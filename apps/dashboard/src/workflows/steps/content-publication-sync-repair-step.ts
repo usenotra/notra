@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { getTokenForIntegrationId } from "@notra/ai/integrations/github";
 import type { PublicationSyncRepair } from "@notra/ai/types/content-publication";
 import {
@@ -9,10 +8,13 @@ import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { preparePublicationSyncRepair } from "@notra/ai/utils/update-published-content";
 
+import { registerWorkflowRuntime } from "@/workflows/runtime";
+
 export async function contentPublicationSyncRepairStep(
   repair: PublicationSyncRepair
 ) {
   "use step";
+  await registerWorkflowRuntime();
   const publication = await findOpenContentPublicationForPost({
     organizationId: repair.organizationId,
     postId: repair.postId,

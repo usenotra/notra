@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getLinearToolContextByIntegrationId } from "@notra/ai/integrations/linear";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
@@ -16,11 +15,13 @@ import { generateScheduledContent } from "@/lib/workflows/schedule/handlers";
 import type { ContentGenerationResult } from "@/lib/workflows/schedule/types";
 import type { OnDemandGenerationStepInput } from "@/types/workflows/on-demand-generation";
 import { formatTodayContext, resolveLookbackRange } from "@/utils/lookback";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function runOnDemandGeneration(
   input: OnDemandGenerationStepInput
 ): Promise<ContentGenerationResult> {
   "use step";
+  await registerWorkflowRuntime();
   const { payload, repositories, brand, hasLinearSources, chargeAiCredits } =
     input;
   const {

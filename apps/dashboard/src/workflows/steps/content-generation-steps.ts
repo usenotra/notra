@@ -1,6 +1,4 @@
 import { acquireClaim } from "@notra/ai/autonomy/claims";
-
-import "@/workflows/runtime";
 import {
   confirmContentBilling,
   releaseContentBilling,
@@ -76,6 +74,7 @@ import type {
   WorkflowRepositoryData,
   WorkflowTriggerData,
 } from "@/types/workflows/workflows";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 const EXECUTION_CLAIM_TTL_SECONDS = 60 * 60 * 24;
 const EXECUTION_CLAIM_SCOPE = "workflow-execution";
@@ -84,6 +83,7 @@ export async function claimWorkflowExecution(
   input: ClaimWorkflowExecutionInput
 ): Promise<{ claimed: boolean }> {
   "use step";
+  await registerWorkflowRuntime();
   const claim = await acquireClaim({
     scope: EXECUTION_CLAIM_SCOPE,
     claimKey: input.executionId,
@@ -108,6 +108,7 @@ export async function fetchScheduleTriggerContext(triggerId: string): Promise<{
   lookbackWindow: LookbackWindow;
 }> {
   "use step";
+  await registerWorkflowRuntime();
   const [result, lookbackResult] = await Promise.all([
     db.query.contentTriggers.findFirst({
       where: eq(contentTriggers.id, triggerId),
@@ -147,6 +148,7 @@ export async function gateContentBilling(
   input: GateContentBillingInput
 ): Promise<WorkflowContentBillingGate> {
   "use step";
+  await registerWorkflowRuntime();
   return await reserveContentBilling(input);
 }
 
@@ -154,6 +156,7 @@ export async function notifyContentLimitReached(
   input: NotifyContentLimitInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await sendAiCreditsDepletedEmails(input);
 }
 
@@ -161,6 +164,7 @@ export async function recordWorkflowPause(
   input: WorkflowPauseInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await recordAutomatedWorkflowPauseSafe(input);
   await trackServerEventAndFlush({
     event: POSTHOG_EVENTS.WORKFLOW_PAUSED,
@@ -178,6 +182,7 @@ export async function clearWorkflowPause(input: {
   logPrefix: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await clearAutomatedWorkflowPauseSafe(input);
 }
 
@@ -189,6 +194,7 @@ export async function fetchScheduleSources(input: {
   linearIntegrationRefs: Array<{ integrationId: string; teamName?: string }>;
 }> {
   "use step";
+  await registerWorkflowRuntime();
   const [repos, integrations] = await Promise.all([
     input.repositoryIds.length === 0
       ? Promise.resolve([])
@@ -246,6 +252,7 @@ export async function fetchBrandSettingsData(input: {
   outputConfig?: unknown;
 }): Promise<ScheduleBrandSettingsData> {
   "use step";
+  await registerWorkflowRuntime();
   const voiceId = parseTriggerOutputConfig(input.outputConfig)?.brandVoiceId;
   let result = voiceId
     ? await db.query.brandSettings.findFirst({
@@ -291,6 +298,7 @@ export async function startGenerationTracking(input: {
   source?: "dashboard" | "api";
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await addActiveGeneration(input.organizationId, {
     runId: input.runId,
     triggerId: input.triggerId,
@@ -305,6 +313,7 @@ export async function createGenerationCollection(
   input: CreateGenerationCollectionInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const now = new Date();
   await db
     .insert(postCollections)
@@ -329,6 +338,7 @@ export async function fetchGenerationUserId(
   organizationId: string
 ): Promise<string | undefined> {
   "use step";
+  await registerWorkflowRuntime();
   const ownerMembership = await db.query.members.findFirst({
     where: and(
       eq(members.organizationId, organizationId),
@@ -354,6 +364,7 @@ export async function fetchEventTrigger(triggerId: string): Promise<{
   lookbackWindow: LookbackWindow;
 }> {
   "use step";
+  await registerWorkflowRuntime();
   const [result, lookbackResult] = await Promise.all([
     db.query.contentTriggers.findFirst({
       where: eq(contentTriggers.id, triggerId),
@@ -386,6 +397,7 @@ export async function fetchEventRepository(input: {
   organizationId: string;
 }): Promise<WorkflowRepositoryData | null> {
   "use step";
+  await registerWorkflowRuntime();
   const repo = await db.query.githubIntegrations.findFirst({
     where: and(
       eq(githubIntegrations.id, input.repositoryId),
@@ -402,6 +414,7 @@ export async function fetchLogRetention(
   organizationId: string
 ): Promise<LogRetentionDays> {
   "use step";
+  await registerWorkflowRuntime();
   return await checkLogRetention(organizationId);
 }
 
@@ -409,6 +422,7 @@ export async function finishGeneration(
   input: FinishGenerationInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await completeActiveGeneration(input.organizationId, {
     runId: input.runId,
     triggerId: input.triggerId,
@@ -443,6 +457,7 @@ export async function finalizeContentBilling(
   input: FinalizeContentBillingInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const { reservation } = input;
   if (input.action === "release") {
     await releaseContentBilling(reservation);
@@ -469,6 +484,7 @@ export async function appendAutomationLog(
   input: AppendAutomationLogInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await appendWebhookLog({
     payload: input.payload,
     organizationId: input.organizationId,
@@ -496,7 +512,7 @@ export async function appendAutomationLogBestEffort(
 ): Promise<void> {
   const [result] = await Promise.allSettled([appendAutomationLog(input)]);
   if (result?.status === "rejected") {
-    logError("[ActivityLog] Failed to record activity log", result.reason);
+    console.error("[ActivityLog] Failed to record activity log");
   }
 }
 
@@ -504,6 +520,7 @@ export async function trackContentOutcome(
   input: TrackContentOutcomeInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await trackContentOutcomeAndFlush(input);
   try {
     if (input.kind === "created") {
@@ -576,6 +593,7 @@ export async function fetchNotificationData(input: {
   setting: NotificationSettingKey;
 }): Promise<NotificationData> {
   "use step";
+  await registerWorkflowRuntime();
   const notificationSettings =
     await db.query.organizationNotificationSettings.findFirst({
       where: eq(
@@ -617,6 +635,7 @@ export async function fetchNotificationData(input: {
 
 export async function enqueueDigest(input: EnqueueDigestInput): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await enqueueContentEmailDigest(input);
 }
 
@@ -625,6 +644,7 @@ export async function cleanupEmptyCollection(input: {
   organizationId: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await db
     .delete(postCollections)
     .where(

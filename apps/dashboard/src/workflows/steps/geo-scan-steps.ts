@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { flushGeoLog } from "@notra/ai/evlog";
 import { publishGeoVisibilityChange } from "@notra/geo-core/geo/live";
 import { runGeoScanPersonaBatch } from "@notra/geo-core/geo/persona-scan";
@@ -28,6 +27,7 @@ import {
   trackGeoScanStepResult,
 } from "@/lib/analytics/geo-workflow-events";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 function parseClaimedAt(claimedAt?: string): Date | undefined {
   if (!claimedAt) {
@@ -62,6 +62,7 @@ export async function listGeoScanProjectsStep(
   options: { projectId?: string; projectIds?: string[]; claimedAt?: string }
 ): Promise<string[]> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     return await Effect.runPromise(
       listGeoScanProjects(organizationId, {
@@ -87,6 +88,7 @@ export async function prepareGeoScanProjectStep(
   }
 ): Promise<GeoScanProjectPlanResult> {
   "use step";
+  await registerWorkflowRuntime();
   const startedAt = Date.now();
   try {
     const result = await Effect.runPromise(
@@ -132,6 +134,7 @@ export async function renewGeoScanClaimStep(
   renewalToken: string
 ): Promise<string> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     return await Effect.runPromise(
       renewGeoScanClaimIfDue(projectId, claimedAt, renewalToken).pipe(
@@ -148,6 +151,7 @@ export async function runGeoScanTaskBatchStep(
   tasks: GeoScanPlannedTask[]
 ): Promise<GeoScanBatchOutcome> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     const outcome = await Effect.runPromise(
       runGeoScanTaskBatch(context, tasks).pipe(
@@ -166,6 +170,7 @@ export async function runGeoScanSequenceBatchStep(
   sequences: GeoScanPlannedSequence[]
 ): Promise<GeoScanBatchOutcome> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     const outcome = await Effect.runPromise(
       runGeoScanSequenceBatch(context, sequences).pipe(
@@ -184,6 +189,7 @@ export async function runGeoScanPersonaBatchStep(
   personas: GeoScanPlannedPersona[]
 ): Promise<GeoScanBatchOutcome> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     const outcome = await Effect.runPromise(
       runGeoScanPersonaBatch(context, personas).pipe(
@@ -209,6 +215,7 @@ export async function finalizeGeoScanProjectStep(
   }
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     await Effect.runPromise(
       finalizeGeoScanProject(
@@ -261,6 +268,7 @@ export async function trackGeoScanRetryScheduledStep(
   durationMs: number
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   try {
     await trackGeoScanStepResult({
       organizationId,

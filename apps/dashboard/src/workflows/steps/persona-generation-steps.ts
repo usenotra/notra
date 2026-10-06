@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { generateGeoPersonas } from "@notra/geo-core/geo/personas";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Effect } from "effect";
@@ -9,12 +8,14 @@ import { trackServerEventAndFlush } from "@/lib/analytics/posthog-server";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { updatePersonaGenerationJob } from "@/lib/geo/persona-generation-store";
 import type { PersonaGenerationJob } from "@/types/persona-generation";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function generatePersonasStep(
   job: PersonaGenerationJob,
   runId: string
 ) {
   "use step";
+  await registerWorkflowRuntime();
   const owned = await updatePersonaGenerationJob(job, {
     status: "running",
     runId,
@@ -75,6 +76,7 @@ export async function finishPersonaGenerationStep(
   failed: boolean
 ) {
   "use step";
+  await registerWorkflowRuntime();
   await updatePersonaGenerationJob(job, {
     status: failed ? "failed" : "completed",
     error: failed ? PERSONA_GENERATION_FAILED_MESSAGE : null,

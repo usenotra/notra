@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { getTokenForIntegrationId } from "@notra/ai/integrations/github";
 import type { RecordContentPublicationParams } from "@notra/ai/types/content-publication";
 import {
@@ -8,11 +7,14 @@ import {
 import { githubAncestryValidator } from "@notra/ai/utils/github-ancestry";
 import { createOctokit } from "@notra/ai/utils/octokit";
 
+import { registerWorkflowRuntime } from "@/workflows/runtime";
+
 export async function reconcileContentPublicationStep(
   publication: RecordContentPublicationParams,
   publishedAt: string
 ) {
   "use step";
+  await registerWorkflowRuntime();
   const reconciled = await reconcileContentPublication({
     publication,
     publishedAt,

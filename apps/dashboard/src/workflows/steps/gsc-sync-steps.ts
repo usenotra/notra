@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { db } from "@notra/db/drizzle";
 import { projects } from "@notra/db/schema";
 import { syncGscSuggestions } from "@notra/geo-core/geo/search-console";
@@ -9,9 +8,11 @@ import { Effect } from "effect";
 
 import { trackServerEventAndFlush } from "@/lib/analytics/posthog-server";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function listGscSyncProjectsStep(organizationId: string) {
   "use step";
+  await registerWorkflowRuntime();
   const startedAt = Date.now();
   const selectedProjects = await db.query.projects.findMany({
     columns: { id: true },
@@ -31,6 +32,7 @@ export async function runGscProjectSyncStep(
   projectId: string
 ): Promise<GscSyncResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     syncGscSuggestions(organizationId, projectId).pipe(
       Effect.provide(geoCoreDashboardLayer)
@@ -44,6 +46,7 @@ export async function trackGscSyncStep(
   startedAt: number
 ) {
   "use step";
+  await registerWorkflowRuntime();
   await trackServerEventAndFlush({
     organizationId,
     event: POSTHOG_EVENTS.GSC_SYNC_COMPLETED,

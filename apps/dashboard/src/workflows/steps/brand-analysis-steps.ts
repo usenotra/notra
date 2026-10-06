@@ -1,6 +1,4 @@
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
-
-import "@/workflows/runtime";
 import { gateway } from "@notra/ai/gateway";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import type { ContextDevScrapingResult } from "@notra/ai/types/context-dev";
@@ -36,11 +34,13 @@ import type {
   SaveBrandSettingsInput,
 } from "@/types/workflows/brand-analysis";
 import { updateDefaultBrandSettings } from "@/utils/brand-settings";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function setBrandAnalysisProgress(
   input: BrandAnalysisProgressInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await setProgress(input.organizationId, input.progress);
   await setJobProgress(input.jobId, input.progress);
   await trackBrandAnalysisOutcomeAndFlush(input);
@@ -50,6 +50,7 @@ export async function scrapeBrandWebsite(
   url: string
 ): Promise<ContextDevScrapingResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await scrapeWebsiteForBrandAnalysis(url);
 }
 
@@ -57,6 +58,7 @@ export async function extractBrandInfo(
   input: ExtractBrandInfoInput
 ): Promise<ExtractionResult> {
   "use step";
+  await registerWorkflowRuntime();
   const log = createRequestLogger({
     method: "POST",
     path: "/api/workflows/brand-analysis",
@@ -128,6 +130,7 @@ export async function saveBrandSettingsFromAnalysis(
   input: SaveBrandSettingsInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const validatedLanguage = getValidLanguage(input.brandInfo.language);
   const brandData = {
     websiteUrl: input.url,

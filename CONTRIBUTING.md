@@ -80,6 +80,28 @@ cp .env.example .env
 - OAuth provider credentials
 - Any provider keys needed for the area you're working on
 
+Agent tracing to Respan is optional. Set `RESPAN_TRACING_ENABLED=true` and
+`RESPAN_API_KEY` to enable it in the dashboard and API, including local
+development. It exports AI SDK model, step, and tool spans through standard
+OTLP/HTTP; it does not change model routing or require the Respan SDK. Existing
+TCC tracing is retained; Respan does not replace operational logging.
+
+Prompt, response, and tool content is excluded from the Respan export by default.
+Set `RESPAN_RECORD_CONTENT=true` only for data approved for external tracing.
+Runtime metadata is restricted to organization, user, chat, run, feature, and
+route identifiers; error messages, stacks, custom events, and arbitrary resource
+attributes and vendor trace state are not exported. The resource identifies the
+service as `notra`.
+Parent links are preserved between exported AI spans; filtered HTTP/request
+parents are detached so the AI trace still has a root in Respan.
+Chat and run IDs group related calls, but this does not propagate trace parents between separate
+workflow functions.
+
+To stop exporting, set `RESPAN_TRACING_ENABLED=false` and restart the server.
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` can override the default full trace endpoint
+(`https://api.respan.ai/api/v2/traces`); backend-specific metadata mapping lives
+in `packages/ai/src/utils/agent-trace-attributes.ts`, outside the agents.
+
 Helpful provider docs:
 
 - WorkOS AuthKit: https://workos.com/docs/authkit

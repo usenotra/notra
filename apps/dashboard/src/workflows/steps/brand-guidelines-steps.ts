@@ -1,6 +1,5 @@
 import { logError } from "@notra/ai/utils/server-log";
 
-import "@/workflows/runtime";
 import { WORKFLOW_ANALYTICS_NAMES } from "@/constants/workflow-analytics";
 import {
   applyBrandGuidelineBrandStep,
@@ -18,6 +17,7 @@ import type {
   BrandGuidelineStage,
   BrandGuidelineStageInput,
 } from "@/types/workflows/brand-guidelines";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 const STAGE_CONFIG: Record<
   BrandGuidelineStage,
@@ -47,6 +47,7 @@ export async function markBrandGuidelinesGenerating(
   brandSettingsId: string
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await startBrandGuidelineGeneration(brandSettingsId);
 }
 
@@ -54,6 +55,7 @@ export async function runBrandGuidelineStage(
   input: BrandGuidelineStageInput
 ): Promise<BrandGuidelineWorkflowStepResult> {
   "use step";
+  await registerWorkflowRuntime();
   const config = STAGE_CONFIG[input.stage];
   try {
     await config.run({
@@ -82,6 +84,7 @@ export async function markBrandGuidelineStageFailed(input: {
   error: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await markBrandGuidelinesFailed({
     brandSettingsId: input.brandSettingsId,
     error: input.error,
@@ -93,6 +96,7 @@ export async function markBrandGuidelinesUnexpectedFailure(input: {
   organizationId: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await markBrandGuidelinesFailed({
     brandSettingsId: input.brandSettingsId,
     error: "Guideline generation failed unexpectedly",
