@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
 import { isDemoMode } from "@notra/utils/demo-mode";
@@ -155,7 +156,7 @@ export const getAuthIdentity = cacheAuthRequest(
         if (isRedirect(error) || isNotFound(error)) {
           throw error;
         }
-        console.error("Error reading demo session", error);
+        logError("Error reading demo session", error);
         return null;
       }
     }
@@ -191,7 +192,7 @@ export const getAuthIdentity = cacheAuthRequest(
       if (isRedirect(error) || isNotFound(error)) {
         throw error;
       }
-      console.error("Error reading AuthKit session", error);
+      logError("Error reading AuthKit session", error);
       return null;
     }
 

@@ -17,6 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@notra/ui/components/ui/command";
+import { Composer } from "@notra/ui/components/ui/composer";
 import {
   Popover,
   PopoverContent,
@@ -44,7 +45,6 @@ import { ChatQueue } from "@/components/chat/chat-queue";
 import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import { ChatSkillSlashMenu } from "@/components/chat/chat-skill-slash-menu";
 import { ChatSkillTagChips } from "@/components/chat/chat-skill-tag-chips";
-import { Composer } from "@/components/composer/composer-shell";
 import Link from "@/components/framework/link";
 import { useContentChatInput } from "@/lib/hooks/use-content-chat-input";
 import type {
@@ -231,35 +231,37 @@ function ContentChatInputComposer(props: ChatInputProps) {
               value={value}
             />
             <Composer.Toolbar>
-              <ChatComposerAttachButton
-                attachmentCount={attachments.length}
-                disabled={isInputLocked || isLoading}
-                onAttach={onAttach}
-                pendingUploadCount={pendingUploads.length}
-                tooltip={attachmentTooltipText}
-              />
-              <ChatInputContextPicker
-                contextOptions={contextOptions}
-                contextPickerId={contextPickerId}
-                disabledReason={contextPickerDisabledReason}
-                isInContext={isInContext}
-                isOpen={isContextPickerOpen}
-                onOpenChange={setIsContextPickerOpen}
-                organizationSlug={organizationSlug}
-                toggleContextItem={toggleContextItem}
-              />
-              <Composer.Send
-                disabled={sendDisabled}
-                label={sendLabel}
-                onClick={showStop ? onStop : handleSend}
-                tooltip={sendTooltip}
-              >
-                <HugeiconsIcon
-                  className="size-4"
-                  icon={showStop ? StopIcon : ArrowUp02Icon}
-                  strokeWidth={2}
+              <div className="ml-auto flex items-center gap-1">
+                <ChatInputContextPicker
+                  contextOptions={contextOptions}
+                  contextPickerId={contextPickerId}
+                  disabledReason={contextPickerDisabledReason}
+                  isInContext={isInContext}
+                  isOpen={isContextPickerOpen}
+                  onOpenChange={setIsContextPickerOpen}
+                  organizationSlug={organizationSlug}
+                  toggleContextItem={toggleContextItem}
                 />
-              </Composer.Send>
+                <ChatComposerAttachButton
+                  attachmentCount={attachments.length}
+                  disabled={isInputLocked}
+                  onAttach={onAttach}
+                  pendingUploadCount={pendingUploads.length}
+                  tooltip={attachmentTooltipText}
+                />
+                <Composer.Send
+                  disabled={sendDisabled}
+                  label={sendLabel}
+                  onClick={showStop ? onStop : handleSend}
+                  tooltip={sendTooltip}
+                >
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={showStop ? StopIcon : ArrowUp02Icon}
+                    strokeWidth={2}
+                  />
+                </Composer.Send>
+              </div>
             </Composer.Toolbar>
           </section>
         </Composer.Frame>

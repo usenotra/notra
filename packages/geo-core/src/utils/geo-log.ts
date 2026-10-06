@@ -93,6 +93,20 @@ export function logGeoSkip(
   console.error(`[GEO] ${message}:`, error);
 }
 
+/**
+ * Structured replacement for `console.error` / `console.warn` on GEO paths
+ * that catch and continue: one evlog event with the parsed error fields.
+ */
+export function logGeoFailure(
+  event: GeoLogEvent["event"],
+  message: string,
+  error: unknown,
+  fields?: Record<string, unknown>,
+  level: "error" | "warn" = "error"
+): void {
+  geoLog[level]({ ...fields, event, message, ...describeGeoError(error) });
+}
+
 export function geoLogInfo(event: GeoLogEvent): Effect.Effect<void> {
   return Effect.sync(() => geoLog.info(event));
 }

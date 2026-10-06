@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { slackAuthorizeQuerySchema } from "@notra/schemas/dashboard/slack-integration";
 import { ORPCError } from "@orpc/server";
 
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
 
     return redirectResponse(authUrl.toString());
   } catch (error) {
-    console.error("Error initiating Slack OAuth:", error);
+    logError("Error initiating Slack OAuth", error);
     return redirectResponse(`${baseUrl}/?error=slack_auth_failed`);
   }
 }

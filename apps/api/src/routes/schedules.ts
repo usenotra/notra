@@ -31,6 +31,9 @@ export const schedulesRoutes = createOpenApiApp();
 type DbClient = ReturnType<typeof createDb>;
 
 schedulesRoutes.get("/:organizationId/schedules", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(
@@ -53,6 +56,9 @@ schedulesRoutes.get("/:organizationId/schedules", async (c) => {
 });
 
 schedulesRoutes.post("/:organizationId/schedules", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(
@@ -75,6 +81,9 @@ schedulesRoutes.post("/:organizationId/schedules", async (c) => {
 });
 
 schedulesRoutes.patch("/:organizationId/schedules/:scheduleId", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(
@@ -98,6 +107,9 @@ schedulesRoutes.patch("/:organizationId/schedules/:scheduleId", async (c) => {
 });
 
 schedulesRoutes.delete("/:organizationId/schedules/:scheduleId", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(

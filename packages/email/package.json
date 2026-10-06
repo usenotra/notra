@@ -19,15 +19,15 @@
     "./types/oss-application": "./src/types/oss-application.ts",
     "./types/workflow-paused": "./src/types/workflow-paused.ts",
     "./utils/config": "./src/utils/config.ts",
-    "./utils/dev": "./src/utils/dev.ts",
     "./utils/engine-logo": "./src/utils/engine-logo.ts",
     "./utils/feedback": "./src/utils/feedback.ts",
-    "./utils/resend": "./src/utils/resend.ts"
+    "./constants/brew": "./src/constants/brew.ts",
+    "./utils/brew": "./src/utils/brew.ts",
+    "./types/brew": "./src/types/brew.ts"
   },
   "dependencies": {
     "react": "^19.3.0",
-    "react-email": "6.9.3",
-    "resend": "^6.8.0"
+    "react-email": "6.9.3"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",

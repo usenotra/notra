@@ -52,6 +52,7 @@ import type {
   GeoWriterUpdateInput,
 } from "../types/geo";
 import { REUSABLE_BRIEF_STATUSES } from "../utils/geo-gaps";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   geoBriefToMarkdown,
   markdownToGeoBrief,
@@ -569,7 +570,12 @@ const approveAndStartGeoWriterInScope = Effect.fn("geo.writer.startInScope")(
       .pipe(
         Effect.mapError((cause) => new GeoWriterStartError({ cause })),
         Effect.catch((error) => {
-          console.error("[GEO] writer tracking failed:", error.cause);
+          logGeoFailure(
+            "geo.writer.tracking_failed",
+            "Writer generation tracking failed",
+            error.cause,
+            { runId, projectId: scope.projectId }
+          );
           return Effect.void;
         })
       );
@@ -809,8 +815,9 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
         .pipe(
           Effect.catch((releaseError) =>
             Effect.sync(() => {
-              console.error(
-                "[GEO] planner credit release failed:",
+              logGeoFailure(
+                "geo.writer.planner_release_failed",
+                "Planner credit release failed",
                 releaseError
               );
             })

@@ -1,29 +1,20 @@
-import type { CreateEmailOptions } from "resend";
+import { render } from "react-email";
 
-type MockableEmailOptions = CreateEmailOptions & {
-  _mockContext?: {
-    type: "welcome" | "feedback";
-    data: Record<string, unknown>;
-  };
-};
+import type { EmailResult, SendBrewEmailOptions } from "../types/brew";
 
-export async function sendDevEmail(options: MockableEmailOptions) {
+export async function logDevEmail({
+  category,
+  to,
+  subject,
+  react,
+}: SendBrewEmailOptions): Promise<EmailResult> {
+  const text = await render(react, { plainText: true });
+
   console.log("--- MOCK EMAIL SENT (DEVELOPMENT MODE) ---");
-  console.log("From:", options.from);
-  console.log("To:", options.to);
-  console.log("Subject:", options.subject);
-
-  if (options._mockContext) {
-    const { type, data } = options._mockContext;
-    console.log("Email Type:", type.toUpperCase());
-    console.log("Email Data:");
-    for (const [key, value] of Object.entries(data)) {
-      console.log(`  ${key}:`, value);
-    }
-  } else {
-    console.log("React Component: Email component");
-  }
-
+  console.log("Category:", category);
+  console.log("To:", to);
+  console.log("Subject:", subject);
+  console.log(text);
   console.log("----------------------------------------------");
 
   return { data: { id: "mock-email-id" }, error: null };

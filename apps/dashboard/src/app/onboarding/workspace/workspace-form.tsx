@@ -161,7 +161,7 @@ export function WorkspaceForm({
       slug: existingOrg?.slug ?? "",
       websiteUrl: existingOrg?.websiteUrl ?? "",
       dailySummary: existingOrg?.dailySummary ?? true,
-      marketingEmails: existingOrg?.marketingEmails ?? true,
+      marketingEmails: existingOrg?.marketingEmails ?? false,
     },
     validators: {
       onSubmit: onboardingWorkspaceFormSchema,

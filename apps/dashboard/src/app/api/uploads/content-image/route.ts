@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { ORPCError } from "@orpc/server";
 
 import { CONTENT_MEDIA } from "@/constants/content-media";
@@ -21,7 +22,7 @@ function errorResponse(error: unknown, failed: string) {
   if (error instanceof ORPCError) {
     return Response.json({ message: error.message }, { status: error.status });
   }
-  console.error("Content upload failed", error);
+  logError("Content upload failed", error);
   return Response.json({ message: failed }, { status: 500 });
 }
 

@@ -1,4 +1,5 @@
 import { getAppUrl } from "@notra/ai/qstash/triggers";
+import { logError } from "@notra/ai/utils/server-log";
 import { irisWakeDeliverySchema } from "@notra/schemas/dashboard/workflows/iris";
 import { flattenError } from "zod";
 
@@ -32,10 +33,9 @@ export async function POST(request: Request) {
 
   const parsed = irisWakeDeliverySchema.safeParse(body);
   if (!parsed.success) {
-    console.error(
-      "[Iris] Invalid wake delivery payload:",
-      flattenError(parsed.error)
-    );
+    logError("[Iris] Invalid wake delivery payload", undefined, {
+      issues: flattenError(parsed.error),
+    });
     return new Response("Invalid payload", { status: 400 });
   }
 

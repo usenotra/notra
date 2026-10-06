@@ -146,7 +146,9 @@
           "marketingEmails": {
             "description": "E-Mails zu neuen Funktionen, Tipps und Ankündigungen erhalten"
           }
-        }
+        },
+        "marketingPersonal": "Gilt nur für dich. Jede E-Mail enthält außerdem einen Abmeldelink.",
+        "marketingBlocked": "Du hast dich über einen Link in einer E-Mail von allen Marketing-E-Mails abgemeldet. Schreib an support@usenotra.com, um sie wieder zu erhalten."
       },
       "billing": {
         "plansDescription": "Wechsle deinen Tarif oder mach ein Upgrade.",
@@ -5588,7 +5590,8 @@
       "edit": "Eingereihte Nachricht bearbeiten",
       "cancelSteering": "Steuerung abbrechen",
       "remove": "Aus Warteschlange entfernen",
-      "steer": "Mit dieser Nachricht steuern"
+      "steer": "Mit dieser Nachricht steuern",
+      "attachments": "{count, plural, one {# Anhang} other {# Anhänge}}: {names}"
     },
     "author": {
       "formerMember": "Ehemaliges Mitglied"
@@ -5674,7 +5677,7 @@
     "page": {
       "slackMirrorNotice": "Aus einem Slack-Thread gespiegelt.",
       "working": "Wird bearbeitet",
-      "showMoreImages": "{count, plural, one {# weiteres Bild} other {# weitere Bilder}} anzeigen",
+      "showMoreImages": "{count, plural, one {# weiteren Anhang} other {# weitere Anhänge}} anzeigen",
       "loadingProject": "Projekt wird geladen",
       "slackSendFailed": "Senden an Slack fehlgeschlagen. Versuch es noch einmal.",
       "draftGenerationFailed": "Entwurf konnte nicht erstellt werden. Der Assistent versucht es erneut.",

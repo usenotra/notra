@@ -11,7 +11,7 @@ import {
   setServerPersonProperties,
 } from "@notra/posthog/server";
 
-import { afterResponse } from "@/lib/framework/after-response";
+import { runAfterResponse } from "@/lib/after-response";
 import type {
   IdentifyOrganizationGroupInput,
   IdentifyProjectGroupInput,
@@ -24,19 +24,10 @@ function scheduleCapture(capture: () => void): void {
   // Capture itself can start network work, so both capture and delivery run
   // after the response (outside a request they run right away). Workflows use
   // trackServerEventAndFlush instead of relying on a request context.
-  const deliver = async () => {
-    try {
-      capture();
-      await flushPostHogServer();
-    } catch (error) {
-      console.error("[posthog] capture delivery failed", error);
-    }
-  };
-  try {
-    afterResponse(deliver);
-  } catch {
-    void deliver();
-  }
+  runAfterResponse("[posthog] capture delivery failed", async () => {
+    capture();
+    await flushPostHogServer();
+  });
 }
 
 export function trackServerEvent(input: TrackServerEventInput): void {

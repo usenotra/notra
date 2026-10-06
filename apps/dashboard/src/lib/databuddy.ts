@@ -1,4 +1,5 @@
 import { Databuddy } from "@databuddy/sdk/node";
+import { logWarn } from "@notra/ai/utils/server-log";
 import type {
   ContentCreatedTrackingEvent,
   ContentFailedTrackingEvent,
@@ -17,13 +18,13 @@ const apiKey = process.env.DATABUDDY_API_KEY;
 const websiteId = process.env.NEXT_PUBLIC_DATABUDDY_DASHBOARD_WEBSITE_ID;
 
 if (!apiKey) {
-  console.warn(
+  logWarn(
     "DATABUDDY_API_KEY not configured. Server-side Databuddy tracking will be disabled."
   );
 }
 
 if (!websiteId) {
-  console.warn(
+  logWarn(
     "NEXT_PUBLIC_DATABUDDY_DASHBOARD_WEBSITE_ID not configured. Server-side Databuddy tracking will be disabled."
   );
 }
@@ -55,7 +56,7 @@ export async function trackScheduledContentCreated(
     });
 
     if (!result.success && isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_created failed", {
+      logWarn("[Databuddy] scheduled_content_created failed", {
         triggerId: event.triggerId,
         postId: event.postId,
         error: result.error,
@@ -63,10 +64,10 @@ export async function trackScheduledContentCreated(
     }
   } catch (error) {
     if (isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_created error", {
+      logWarn("[Databuddy] scheduled_content_created error", {
         triggerId: event.triggerId,
         postId: event.postId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -88,16 +89,16 @@ export async function trackScheduledContentFailed(
     });
 
     if (!result.success && isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_failed failed", {
+      logWarn("[Databuddy] scheduled_content_failed failed", {
         triggerId: event.triggerId,
         error: result.error,
       });
     }
   } catch (error) {
     if (isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_failed error", {
+      logWarn("[Databuddy] scheduled_content_failed error", {
         triggerId: event.triggerId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -119,16 +120,16 @@ export async function trackScheduledContentSkipped(
     });
 
     if (!result.success && isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_skipped failed", {
+      logWarn("[Databuddy] scheduled_content_skipped failed", {
         triggerId: event.triggerId,
         error: result.error,
       });
     }
   } catch (error) {
     if (isDevelopment) {
-      console.warn("[Databuddy] scheduled_content_skipped error", {
+      logWarn("[Databuddy] scheduled_content_skipped error", {
         triggerId: event.triggerId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

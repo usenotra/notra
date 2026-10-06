@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import {
   ingestSocialPostSources,
   ingestSocialPosts,
@@ -39,6 +40,6 @@ export async function recordPublishedSocialPost(
       },
     ]);
   } catch (error) {
-    console.error("[Analytics] Failed to record published post:", error);
+    logError("[Analytics] Failed to record published post", error);
   }
 }

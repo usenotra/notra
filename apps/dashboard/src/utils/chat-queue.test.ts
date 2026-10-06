@@ -174,12 +174,39 @@ describe("chat queue", () => {
       parseQueuedMessages([
         { id: "a", text: "first", authorUserId: "user", steering: true },
         { id: "b", text: "second" },
+        {
+          id: "c",
+          text: "with file",
+          attachments: [
+            {
+              url: "https://files.test/brief.pdf",
+              key: "uploads/brief.pdf",
+              filename: "brief.pdf",
+              mediaType: "application/pdf",
+              size: 1200,
+            },
+            { url: "https://files.test/broken" },
+          ],
+        },
         null,
         { id: 1, text: "invalid" },
       ])
     ).toEqual([
       { id: "a", text: "first", authorUserId: "user" },
       { id: "b", text: "second" },
+      {
+        id: "c",
+        text: "with file",
+        attachments: [
+          {
+            url: "https://files.test/brief.pdf",
+            key: "uploads/brief.pdf",
+            filename: "brief.pdf",
+            mediaType: "application/pdf",
+            size: 1200,
+          },
+        ],
+      },
     ]);
     expect(parseQueuedMessages(null)).toEqual([]);
   });

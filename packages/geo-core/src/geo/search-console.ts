@@ -30,6 +30,7 @@ import type {
   GscSuggestionSyncOutcome,
   GscSyncResult,
 } from "../types/google-search-console";
+import { logGeoFailure } from "../utils/geo-log";
 import { geoDb } from "./effect";
 import { requireGeoProject } from "./projects";
 import {
@@ -260,7 +261,14 @@ const syncIntegration = Effect.fn("geo.searchConsole.syncIntegration")(
       ),
       Effect.catch((error) =>
         Effect.gen(function* () {
-          console.error("[GSC] Sync failed:", error);
+          logGeoFailure(
+            "geo.gsc.sync_failed",
+            "Search Console sync failed",
+            error,
+            {
+              projectId,
+            }
+          );
           if (
             !(error instanceof GeoSearchConsoleError && error.reauthRequired)
           ) {
