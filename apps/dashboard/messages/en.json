@@ -486,8 +486,7 @@
       "resendDescription": "We'll send a new invitation link to <strong>{email}</strong>.",
       "resending": "Resending…",
       "cancelTitle": "Cancel invitation?",
-      "cancelDescription": "The invitation sent to {email} will be canceled and can no longer be accepted.",
-      "canceling": "Canceling…"
+      "cancelDescription": "The invitation sent to {email} will be canceled and can no longer be accepted."
     },
     "invite": {
       "sent": "Invitation sent successfully",
@@ -504,8 +503,7 @@
       "selectRole": "Select a role",
       "updateRole": "Update role",
       "removeTitle": "Remove {name}?",
-      "removeDescription": "{name} will be removed from {organization} and lose access to all its content. To rejoin, they'll need a new invitation.",
-      "removing": "Removing…"
+      "removeDescription": "{name} will be removed from {organization} and lose access to all its content. To rejoin, they'll need a new invitation."
     },
     "shared": {
       "resendInvitation": "Resend invitation",
@@ -1930,7 +1928,6 @@
       "failedToAddSitemap": "Failed to add sitemap",
       "sitemapOrSiteUrl": "Sitemap or site URL",
       "adding": "Adding…",
-      "removing": "Removing…",
       "url": "URL",
       "links": "Links",
       "today": "Today",
@@ -3067,7 +3064,6 @@
       "archiveDescription": "This persona will be removed from future scans. Its scan history is kept.",
       "nounSingular": "persona",
       "nounPlural": "personas",
-      "archiving": "Archiving…",
       "archiveTitle": "Archive persona?"
     },
     "projectBrandSection": {
@@ -4610,7 +4606,6 @@
         "updateCredentials": "Update credentials",
         "disconnectTitle": "Disconnect {name}?",
         "disconnectDescription": "Its tools will no longer be available to this organization. You can reconnect it later.",
-        "disconnecting": "Disconnecting…",
         "auth": {
           "none": "No authentication"
         }
@@ -6604,7 +6599,6 @@
       "resetDescription": "Everything you changed is thrown away and the sample data is restored. Your demo ID, API key and customization stay the same.",
       "cancel": "Cancel",
       "resetConfirm": "Reset workspace",
-      "resetting": "Resetting…",
       "resetFailed": "The workspace couldn't be reset. Please try again."
     },
     "playground": {
