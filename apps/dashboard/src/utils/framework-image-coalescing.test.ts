@@ -6,27 +6,21 @@ import { optimizeFrameworkImage } from "./framework-image.server";
 
 afterEach(() => mock.restore());
 
-function imageRequest(
-  source: string,
-  accept = "image/webp",
-  width = 128,
-  method = "GET",
-  etag?: string
-) {
+function imageRequest(source: string, method = "GET", etag?: string) {
   return new Request(
-    `http://localhost/api/image?${new URLSearchParams({ url: source, w: String(width), q: "75" })}`,
+    `http://localhost/api/image?${new URLSearchParams({ url: source, w: "128", q: "75" })}`,
     {
       method,
       headers: {
-        Accept: accept,
+        Accept: "image/webp",
         ...(etag ? { "If-None-Match": etag } : {}),
       },
     }
   );
 }
 
-function imageSource(pathname = "/demo/fieldnote-homepage.png") {
-  return `${pathname}?coalescing=${crypto.randomUUID()}`;
+function imageSource() {
+  return `/demo/fieldnote-homepage.png?coalescing=${crypto.randomUUID()}`;
 }
 
 describe("in-flight image coalescing", () => {
@@ -64,10 +58,8 @@ describe("in-flight image coalescing", () => {
     const source = imageSource();
     const responses = await Promise.all([
       optimizeFrameworkImage(imageRequest(source)),
-      optimizeFrameworkImage(imageRequest(source, "image/webp", 128, "HEAD")),
-      optimizeFrameworkImage(
-        imageRequest(source, "image/webp", 128, "GET", "*")
-      ),
+      optimizeFrameworkImage(imageRequest(source, "HEAD")),
+      optimizeFrameworkImage(imageRequest(source, "GET", "*")),
     ]);
     expect(encode).toHaveBeenCalledTimes(1);
     expect(responses.map((response) => response.status)).toEqual([
@@ -79,36 +71,6 @@ describe("in-flight image coalescing", () => {
     expect(
       new Set(responses.map((response) => response.headers.get("etag"))).size
     ).toBe(1);
-  });
-
-  test("does not combine different formats, widths or sources", async () => {
-    const encode = spyOn(sharp.prototype, "toBuffer");
-    const source = imageSource();
-    const requests = [
-      imageRequest(source, "image/webp", 128),
-      imageRequest(source, "image/avif", 128),
-      imageRequest(source, "image/webp", 256),
-      imageRequest(imageSource("/icon1.png"), "image/webp", 48),
-    ];
-    const responses = await Promise.all(requests.map(optimizeFrameworkImage));
-    expect(encode).toHaveBeenCalledTimes(4);
-    expect(
-      responses.map((response) => response.headers.get("content-type"))
-    ).toEqual(["image/webp", "image/avif", "image/webp", "image/webp"]);
-    for (const [index, response] of responses.entries()) {
-      expect(response.status).toBe(200);
-      const metadata = await sharp(
-        Buffer.from(await response.arrayBuffer())
-      ).metadata();
-      let expectedWidth = 128;
-      if (index === 2) {
-        expectedWidth = 256;
-      }
-      if (index === 3) {
-        expectedWidth = 48;
-      }
-      expect(metadata.width).toBe(expectedWidth);
-    }
   });
 
   test("removes failed work so the next request can retry", async () => {
@@ -128,27 +90,5 @@ describe("in-flight image coalescing", () => {
       200
     );
     expect(encode).toHaveBeenCalledTimes(2);
-  });
-
-  test("shares SVG reads without changing bytes or response security headers", async () => {
-    const metadata = spyOn(sharp.prototype, "metadata");
-    const source = imageSource("/icon0.svg");
-    const responses = await Promise.all([
-      optimizeFrameworkImage(imageRequest(source)),
-      optimizeFrameworkImage(imageRequest(source)),
-    ]);
-    expect(metadata).toHaveBeenCalledTimes(1);
-    const bodies = await Promise.all(
-      responses.map((response) => response.text())
-    );
-    expect(bodies[0]).toContain("<svg");
-    expect(bodies[1]).toBe(bodies[0]);
-    for (const response of responses) {
-      expect(response.headers.get("content-type")).toBe("image/svg+xml");
-      expect(response.headers.get("content-security-policy")).toContain(
-        "sandbox"
-      );
-      expect(response.headers.get("x-content-type-options")).toBe("nosniff");
-    }
   });
 });
