@@ -2,11 +2,10 @@ import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
 
+import { OFFERING_SEARCH_MAX_VISIBLE_DOMAINS } from "@/constants/offering-check";
 import type { OfferingSearchActivityProps } from "@/types/offering-check";
 
 import { OfferingFavicon } from "./offering-favicon";
-
-const MAX_VISIBLE_DOMAINS = 8;
 
 // Items fade in as the stream delivers them; there is no stagger, the stream
 // already spaces them out. Reopening a finished trace shows them at once.
@@ -19,7 +18,7 @@ export function OfferingSearchActivity({
   links,
   live,
 }: OfferingSearchActivityProps) {
-  const visibleDomains = domains.slice(0, MAX_VISIBLE_DOMAINS);
+  const visibleDomains = domains.slice(0, OFFERING_SEARCH_MAX_VISIBLE_DOMAINS);
   const hiddenDomains = domains.length - visibleDomains.length;
   const enterClass = live ? ENTER_CLASS : null;
 

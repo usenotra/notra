@@ -9,27 +9,27 @@ import {
   OFFERING_CHECK_MAX_QUERIES,
   OFFERING_CHECK_MODEL,
   OFFERING_CHECK_MODEL_LABEL,
+  OFFERING_MS_PER_SECOND,
 } from "@/constants/offering-check";
+import {
+  OFFERING_ANSWER_SYSTEM_PROMPT,
+  OFFERING_JUDGE_SYSTEM_PROMPT,
+} from "@/constants/offering-check-prompts";
 import { offeringJudgeSchema } from "@/schemas/offering-check";
 import type {
   OfferingAnswer,
+  OfferingAnsweredQuestion,
   OfferingCheckInput,
   OfferingCheckResult,
   OfferingQuestion,
   OfferingStreamEmit,
 } from "@/types/offering-check";
-import {
-  buildOfferingQuestions,
-  domainOfUrl,
-  groupSourcesByDomain,
-  stripAnswerCitations,
-} from "@/utils/offering-check";
+import { domainOfUrl } from "@/utils/offering-domain";
+import { stripAnswerCitations } from "@/utils/offering-markdown";
+import { buildOfferingQuestions } from "@/utils/offering-questions";
+import { groupSourcesByDomain } from "@/utils/offering-sources";
 
-import {
-  buildOfferingJudgePrompt,
-  OFFERING_ANSWER_SYSTEM_PROMPT,
-  OFFERING_JUDGE_SYSTEM_PROMPT,
-} from "./prompts";
+import { buildOfferingJudgePrompt } from "./prompts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -53,8 +53,6 @@ function readSearchOutput(output: unknown) {
   return { queries, urls };
 }
 
-const MS_PER_SECOND = 1000;
-
 /**
  * Tags every gateway call so the free tool's spend shows up on its own in
  * AI Gateway, split by step. Visitors type these prompts, so they are never
@@ -67,14 +65,12 @@ function offeringGatewayOptions(step: string) {
   };
 }
 
-type AnsweredQuestion = Omit<OfferingAnswer, "verdict" | "summary">;
-
 async function answerQuestion(
   input: OfferingCheckInput,
   question: OfferingQuestion,
   emit: OfferingStreamEmit,
   abortSignal: AbortSignal
-): Promise<AnsweredQuestion> {
+): Promise<OfferingAnsweredQuestion> {
   const { kind } = question;
   const stream = streamText({
     model: gateway(OFFERING_CHECK_MODEL),
@@ -133,7 +129,7 @@ async function answerQuestion(
   }
   const seconds = Math.max(
     1,
-    Math.round((Date.now() - startedAt) / MS_PER_SECOND)
+    Math.round((Date.now() - startedAt) / OFFERING_MS_PER_SECOND)
   );
   emit({ type: "answered", kind, seconds });
   return {

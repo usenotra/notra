@@ -1,32 +1,30 @@
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
+import { parseAsString } from "nuqs";
 import * as z from "zod";
 
 import {
-  OFFERING_CHECK_PROBLEM_MAX_LENGTH,
-  OFFERING_CHECK_PROBLEM_MIN_LENGTH,
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
   OFFERING_CHECK_FEATURE_MAX_WORDS,
   OFFERING_CHECK_FEATURE_MIN_LENGTH,
   OFFERING_CHECK_MAX_OTHER_OFFERINGS,
+  OFFERING_CHECK_PROBLEM_MAX_LENGTH,
+  OFFERING_CHECK_PROBLEM_MIN_LENGTH,
+  OFFERING_COMPANY_DESCRIPTION_MAX_LENGTH,
+  OFFERING_COMPANY_NAME_MAX_LENGTH,
+  OFFERING_CONTROL_CHARACTER_PATTERN,
+  OFFERING_DOMAIN_INPUT_MAX_LENGTH,
+  OFFERING_LINK_PATTERN,
+  OFFERING_OTHER_OFFERING_MAX_LENGTH,
+  OFFERING_SUMMARY_MAX_LENGTH,
+  OFFERING_WHITESPACE_RUN,
 } from "@/constants/offering-check";
-import { normalizeDomain } from "@/utils/offering-check";
-
-const DOMAIN_INPUT_MAX_LENGTH = 200;
-// Control and invisible formatting characters (e.g. NUL, RTL override).
-const CONTROL_CHARACTER_PATTERN = /[\p{Cc}\p{Cf}]/u;
-const WHITESPACE_RUN = /\s+/g;
-// Links turn the free-text fields into a way to put URLs on our pages.
-const LINK_PATTERN = /https?:\/\/|www\.|\]\(/i;
-const SUMMARY_MAX_LENGTH = 400;
-const OTHER_OFFERING_MAX_LENGTH = 80;
-const COMPANY_NAME_MAX_LENGTH = 60;
-const COMPANY_DESCRIPTION_MAX_LENGTH = 320;
+import { normalizeDomain } from "@/utils/offering-domain";
 
 const domainSchema = z
   .string()
   .trim()
   .min(1, "Enter your website.")
-  .max(DOMAIN_INPUT_MAX_LENGTH, "That does not look like a website.")
+  .max(OFFERING_DOMAIN_INPUT_MAX_LENGTH, "That does not look like a website.")
   .transform((value, context) => {
     const domain = normalizeDomain(value);
     if (!domain) {
@@ -48,7 +46,10 @@ export const offeringCheckRequestSchema = z
       .max(OFFERING_CHECK_FEATURE_MAX_LENGTH, "Keep the feature name short.")
       .refine(
         (value) =>
-          !(CONTROL_CHARACTER_PATTERN.test(value) || LINK_PATTERN.test(value)),
+          !(
+            OFFERING_CONTROL_CHARACTER_PATTERN.test(value) ||
+            OFFERING_LINK_PATTERN.test(value)
+          ),
         "Use plain text for the feature name."
       )
       .refine(
@@ -59,14 +60,14 @@ export const offeringCheckRequestSchema = z
       )
       .refine(
         (value) =>
-          value.split(WHITESPACE_RUN).length <=
+          value.split(OFFERING_WHITESPACE_RUN).length <=
           OFFERING_CHECK_FEATURE_MAX_WORDS,
         "Name the feature in a few words."
       )
       .default(""),
     problem: z
       .string()
-      .transform((value) => value.replace(WHITESPACE_RUN, " ").trim())
+      .transform((value) => value.replace(OFFERING_WHITESPACE_RUN, " ").trim())
       .pipe(
         z
           .string()
@@ -80,8 +81,8 @@ export const offeringCheckRequestSchema = z
           .refine(
             (value) =>
               !(
-                CONTROL_CHARACTER_PATTERN.test(value) ||
-                LINK_PATTERN.test(value)
+                OFFERING_CONTROL_CHARACTER_PATTERN.test(value) ||
+                OFFERING_LINK_PATTERN.test(value)
               ),
             "Use plain text for the problem, without links."
           )
@@ -97,14 +98,14 @@ const verdictSchema = z.enum(["knows", "vague", "confused", "unknown"]);
 
 const gradeSchema = z.object({
   verdict: verdictSchema,
-  summary: z.string().max(SUMMARY_MAX_LENGTH),
+  summary: z.string().max(OFFERING_SUMMARY_MAX_LENGTH),
 });
 
 export const offeringJudgeSchema = z.object({
-  companyName: z.string().max(COMPANY_NAME_MAX_LENGTH),
-  companyDescription: z.string().max(COMPANY_DESCRIPTION_MAX_LENGTH),
+  companyName: z.string().max(OFFERING_COMPANY_NAME_MAX_LENGTH),
+  companyDescription: z.string().max(OFFERING_COMPANY_DESCRIPTION_MAX_LENGTH),
   otherOfferings: z
-    .array(z.string().max(OTHER_OFFERING_MAX_LENGTH))
+    .array(z.string().max(OFFERING_OTHER_OFFERING_MAX_LENGTH))
     .max(OFFERING_CHECK_MAX_OTHER_OFFERINGS),
   name: gradeSchema,
   problem: gradeSchema.nullable(),
@@ -187,3 +188,11 @@ export const offeringReportSearchSchema = z.object({
   feature: searchTextSchema,
   problem: searchTextSchema,
 });
+
+// The form lives in the URL, so going back from a report keeps the input and
+// links like /offering?domain=acme.com prefill it.
+export const offeringFormParsers = {
+  domain: parseAsString.withDefault(""),
+  feature: parseAsString.withDefault(""),
+  problem: parseAsString.withDefault(""),
+};

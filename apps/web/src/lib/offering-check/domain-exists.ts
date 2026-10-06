@@ -2,7 +2,10 @@ import { lookup } from "node:dns/promises";
 
 import { Data, Effect } from "effect";
 
-import { OFFERING_CHECK_DNS_TIMEOUT } from "@/constants/offering-check";
+import {
+  OFFERING_CHECK_DNS_TIMEOUT,
+  OFFERING_DNS_NOT_FOUND_CODES,
+} from "@/constants/offering-check";
 
 export class OfferingCheckUnknownSite extends Data.TaggedError(
   "OfferingCheckUnknownSite"
@@ -10,15 +13,13 @@ export class OfferingCheckUnknownSite extends Data.TaggedError(
   readonly domain: string;
 }> {}
 
-const NOT_FOUND_CODES = new Set(["ENOTFOUND", "ENODATA"]);
-
 function isNotFound(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     typeof error.code === "string" &&
-    NOT_FOUND_CODES.has(error.code)
+    OFFERING_DNS_NOT_FOUND_CODES.has(error.code)
   );
 }
 

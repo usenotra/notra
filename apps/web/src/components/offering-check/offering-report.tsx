@@ -12,7 +12,7 @@ import {
 import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
 import type { OfferingReportProps } from "@/types/offering-check";
-import { getOfferingHeroCopy } from "@/utils/offering-check";
+import { getOfferingHeroCopy } from "@/utils/offering-copy";
 
 import { OfferingChatWindow } from "./offering-chat-window";
 import { OfferingReportCard } from "./offering-report-card";

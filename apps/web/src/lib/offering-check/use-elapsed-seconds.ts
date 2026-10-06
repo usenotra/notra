@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const TICK_MS = 1000;
+import { OFFERING_ELAPSED_TICK_MS } from "@/constants/offering-check";
 
 export function useElapsedSeconds(running: boolean): number {
   const [seconds, setSeconds] = useState(0);
@@ -11,8 +11,13 @@ export function useElapsedSeconds(running: boolean): number {
     }
     const startedAt = Date.now();
     const timer = setInterval(() => {
-      setSeconds(Math.max(1, Math.round((Date.now() - startedAt) / TICK_MS)));
-    }, TICK_MS);
+      setSeconds(
+        Math.max(
+          1,
+          Math.round((Date.now() - startedAt) / OFFERING_ELAPSED_TICK_MS)
+        )
+      );
+    }, OFFERING_ELAPSED_TICK_MS);
     return () => clearInterval(timer);
   }, [running]);
 

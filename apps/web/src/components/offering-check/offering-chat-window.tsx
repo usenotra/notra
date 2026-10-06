@@ -18,9 +18,9 @@ import type {
 } from "@/types/offering-check";
 import {
   createFeatureHighlightPlugin,
-  offeringQuestionTitle,
   stripAnswerCitations,
-} from "@/utils/offering-check";
+} from "@/utils/offering-markdown";
+import { offeringQuestionTitle } from "@/utils/offering-questions";
 
 import { OfferingSearchActivity } from "./offering-search-activity";
 import { OfferingSources } from "./offering-sources";

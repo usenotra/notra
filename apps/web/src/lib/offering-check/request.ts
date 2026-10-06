@@ -1,6 +1,7 @@
 import {
   OFFERING_CHECK_INVALID_REQUEST_MESSAGE,
   OFFERING_CHECK_KILL_SWITCH_ENV,
+  OFFERING_MS_PER_SECOND,
 } from "@/constants/offering-check";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type { OfferingCheckInput } from "@/types/offering-check";
@@ -15,8 +16,6 @@ import type {
   OfferingCheckRateLimitExceeded,
   OfferingCheckRateLimitUnavailable,
 } from "./ratelimit";
-
-const MS_PER_SECOND = 1000;
 
 function isSameOriginRequest(request: Request): boolean {
   const origin = request.headers.get("origin");
@@ -81,7 +80,7 @@ export function checkErrorResponse(
   }
   const retryAfter = Math.max(
     0,
-    Math.ceil((error.reset - Date.now()) / MS_PER_SECOND)
+    Math.ceil((error.reset - Date.now()) / OFFERING_MS_PER_SECOND)
   );
   return Response.json(
     { error: "Rate limit exceeded", scope: error.scope },

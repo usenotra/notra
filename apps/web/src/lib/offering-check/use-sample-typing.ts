@@ -1,36 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 
-import { OFFERING_SAMPLE_TYPING } from "@/constants/offering-check";
+import {
+  OFFERING_SAMPLE_FIELDS,
+  OFFERING_SAMPLE_PAUSE_CHARACTER,
+  OFFERING_SAMPLE_TYPING,
+} from "@/constants/offering-check";
 import type {
   OfferingCheckInput,
   OfferingSampleField,
+  OfferingSampleValues,
+  OfferingTypingFrame,
 } from "@/types/offering-check";
 import { getReducedMotionSnapshot } from "@/utils/reduced-motion";
-
-type Values = Pick<OfferingCheckInput, "domain" | "feature" | "problem">;
-
-interface Frame {
-  values: Values;
-  field: OfferingSampleField | null;
-  /** Milliseconds after the start at which this frame shows. */
-  at: number;
-}
-
-const FIELDS: readonly OfferingSampleField[] = ["domain", "feature", "problem"];
-const PAUSE_CHARACTER = /[\s.,?!]/;
 
 /** Small, repeatable variation so the typing does not tick like a metronome. */
 function keystrokeDelay(character: string, base: number): number {
   const jitter = (character.charCodeAt(0) * 7) % 5;
-  const pause = PAUSE_CHARACTER.test(character)
+  const pause = OFFERING_SAMPLE_PAUSE_CHARACTER.test(character)
     ? OFFERING_SAMPLE_TYPING.wordPauseMs
     : 0;
   return base + jitter * OFFERING_SAMPLE_TYPING.jitterStepMs + pause;
 }
 
 /** Erases what is there, then types each field in turn with short pauses. */
-function buildFrames(from: Values, to: Values): Frame[] {
-  const frames: Frame[] = [];
+function buildFrames(
+  from: OfferingSampleValues,
+  to: OfferingSampleValues
+): OfferingTypingFrame[] {
+  const frames: OfferingTypingFrame[] = [];
   const current = { ...from };
   let at = 0;
   const push = (field: OfferingSampleField, delay: number) => {
@@ -38,7 +35,7 @@ function buildFrames(from: Values, to: Values): Frame[] {
     frames.push({ values: { ...current }, field, at });
   };
 
-  for (const field of [...FIELDS].reverse()) {
+  for (const field of [...OFFERING_SAMPLE_FIELDS].reverse()) {
     const step = Math.max(
       1,
       Math.ceil(current[field].length / OFFERING_SAMPLE_TYPING.eraseSteps)
@@ -49,7 +46,7 @@ function buildFrames(from: Values, to: Values): Frame[] {
     }
   }
 
-  for (const field of FIELDS) {
+  for (const field of OFFERING_SAMPLE_FIELDS) {
     const target = to[field];
     const base =
       field === "problem"
@@ -74,11 +71,11 @@ function buildFrames(from: Values, to: Values): Frame[] {
  * field being typed so it can look focused without stealing focus.
  */
 export function useSampleTyping(
-  current: Values,
-  apply: (values: Values) => void
+  current: OfferingSampleValues,
+  apply: (values: OfferingSampleValues) => void
 ) {
   const frame = useRef<number | null>(null);
-  const target = useRef<Values | null>(null);
+  const target = useRef<OfferingSampleValues | null>(null);
   const [typingField, setTypingField] = useState<OfferingSampleField | null>(
     null
   );
@@ -106,7 +103,7 @@ export function useSampleTyping(
    * Jumps to the end of a running example and returns its full values, so a
    * submit mid-animation sends the whole sample instead of half of it.
    */
-  const finishTyping = (): Values | null => {
+  const finishTyping = (): OfferingSampleValues | null => {
     const values = frame.current === null ? null : target.current;
     stopTyping();
     if (values) {

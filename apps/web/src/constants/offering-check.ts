@@ -1,7 +1,9 @@
 import type {
   OfferingCheckSample,
   OfferingFailureStatus,
+  OfferingFormProblem,
   OfferingRateLimitScope,
+  OfferingSampleField,
   OfferingVerdict,
   OfferingVerdictCopy,
 } from "@/types/offering-check";
@@ -276,3 +278,72 @@ export const OFFERING_FIELD_SHAKE = {
   ],
   timing: { duration: 380, easing: "ease-out" },
 } satisfies { keyframes: Keyframe[]; timing: KeyframeAnimationOptions };
+
+// Input and URL parsing.
+export const OFFERING_PROTOCOL_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//i;
+export const OFFERING_WWW_PATTERN = /^www\./;
+export const OFFERING_HOSTNAME_PATTERN =
+  /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
+export const OFFERING_TRACKING_PARAM = "utm_source";
+export const OFFERING_DOMAIN_INPUT_MAX_LENGTH = 200;
+/** Control and invisible formatting characters (e.g. NUL, RTL override). */
+export const OFFERING_CONTROL_CHARACTER_PATTERN = /[\p{Cc}\p{Cf}]/u;
+export const OFFERING_WHITESPACE_RUN = /\s+/g;
+/** Links would turn the free-text fields into a way to put URLs on our pages. */
+export const OFFERING_LINK_PATTERN = /https?:\/\/|www\.|\]\(/i;
+export const OFFERING_SENTENCE_END_PATTERN = /[.!?]$/;
+
+// Judge output limits.
+export const OFFERING_SUMMARY_MAX_LENGTH = 400;
+export const OFFERING_OTHER_OFFERING_MAX_LENGTH = 80;
+export const OFFERING_COMPANY_NAME_MAX_LENGTH = 60;
+export const OFFERING_COMPANY_DESCRIPTION_MAX_LENGTH = 320;
+
+// Answer markdown.
+export const OFFERING_MARKDOWN_CITATION_PATTERN = /\s*\(\[[^\]]+\]\([^)]+\)\)/g;
+export const OFFERING_REGEX_SPECIAL_PATTERN = /[.*+?^${}()|[\]\\]/g;
+export const OFFERING_WORD_CHARACTER = String.raw`[\p{L}\p{M}\p{N}_]`;
+export const OFFERING_HIGHLIGHT_CLASSES = [
+  "rounded",
+  "bg-[#8B5CF626]",
+  "box-decoration-clone",
+  "px-0.5",
+  "text-inherit",
+  "dark:bg-[#8B5CF640]",
+];
+
+// Report copy while the check runs.
+export const OFFERING_PENDING_HERO_BODY =
+  "Searching the web now. You are watching the answer come in.";
+
+/** Which form field a notice belongs to; the rest show below the form. */
+export const OFFERING_NOTICE_FIELD: Partial<
+  Record<OfferingFormProblem, OfferingSampleField>
+> = {
+  "invalid-domain": "domain",
+  "unknown-site": "domain",
+  "invalid-feature": "feature",
+  "invalid-problem": "problem",
+};
+
+// Server plumbing.
+export const OFFERING_MS_PER_SECOND = 1000;
+export const OFFERING_RATE_LIMIT_GLOBAL_KEY = "global";
+export const OFFERING_DNS_NOT_FOUND_CODES = new Set(["ENOTFOUND", "ENODATA"]);
+export const OFFERING_STREAM_HEADERS = {
+  "Cache-Control": "no-store",
+  "Content-Type": "application/x-ndjson; charset=utf-8",
+  "X-Accel-Buffering": "no",
+};
+
+// UI.
+export const OFFERING_ELAPSED_TICK_MS = 1000;
+export const OFFERING_SEARCH_MAX_VISIBLE_DOMAINS = 8;
+export const OFFERING_SOURCES_STACKED_FAVICONS = 4;
+export const OFFERING_SOURCES_PAGES_PER_SITE = 4;
+export const OFFERING_SAMPLE_FIELDS: readonly OfferingSampleField[] = [
+  "domain",
+  "feature",
+  "problem",
+];
+export const OFFERING_SAMPLE_PAUSE_CHARACTER = /[\s.,?!]/;

@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { OFFERING_CHECK_FAVICON_SIZE } from "@/constants/offering-check";
 import type { OfferingFaviconProps } from "@/types/offering-check";
-import { offeringFaviconUrl } from "@/utils/offering-check";
+import { offeringFaviconUrl } from "@/utils/offering-domain";
 
 export function OfferingFavicon({ domain, className }: OfferingFaviconProps) {
   const [failed, setFailed] = useState(false);

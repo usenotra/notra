@@ -14,11 +14,9 @@ import type {
   OfferingReportStatProps,
 } from "@/types/offering-check";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
-import {
-  getOfferingActivityLabel,
-  offeringQuestionTitle,
-  summarizeOfferingSources,
-} from "@/utils/offering-check";
+import { getOfferingActivityLabel } from "@/utils/offering-copy";
+import { offeringQuestionTitle } from "@/utils/offering-questions";
+import { summarizeOfferingSources } from "@/utils/offering-sources";
 
 import { OfferingFavicon } from "./offering-favicon";
 import { OfferingVerdictRow } from "./offering-verdict-row";

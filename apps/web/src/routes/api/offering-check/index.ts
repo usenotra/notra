@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Effect } from "effect";
 
-import { OFFERING_CHECK_TIMEOUT_MS } from "@/constants/offering-check";
+import {
+  OFFERING_CHECK_TIMEOUT_MS,
+  OFFERING_STREAM_HEADERS,
+} from "@/constants/offering-check";
 import {
   readCachedOfferingCheck,
   writeCachedOfferingCheck,
@@ -19,12 +22,6 @@ import type {
   OfferingCheckResult,
   OfferingStreamEvent,
 } from "@/types/offering-check";
-
-const STREAM_HEADERS = {
-  "Cache-Control": "no-store",
-  "Content-Type": "application/x-ndjson; charset=utf-8",
-  "X-Accel-Buffering": "no",
-};
 
 function streamEvents(
   request: Request,
@@ -73,7 +70,7 @@ function streamEvents(
       active = false;
     },
   });
-  return new Response(body, { headers: STREAM_HEADERS });
+  return new Response(body, { headers: OFFERING_STREAM_HEADERS });
 }
 
 async function POST(request: Request) {

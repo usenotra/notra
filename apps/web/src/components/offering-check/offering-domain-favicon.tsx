@@ -6,7 +6,7 @@ import {
   OFFERING_FAVICON_SETTLE_MS,
 } from "@/constants/offering-check";
 import type { OfferingDomainFaviconProps } from "@/types/offering-check";
-import { normalizeDomain, offeringFaviconUrl } from "@/utils/offering-check";
+import { normalizeDomain, offeringFaviconUrl } from "@/utils/offering-domain";
 
 /**
  * Shows the site's favicon next to the domain field, but only once a real

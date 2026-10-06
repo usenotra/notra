@@ -11,17 +11,12 @@ import type {
   OfferingFailureStatus,
   OfferingLiveState,
   OfferingQuestionKind,
+  OfferingStreamAction,
   OfferingStreamEvent,
   OfferingThread,
 } from "@/types/offering-check";
-import { buildOfferingQuestions } from "@/utils/offering-check";
+import { buildOfferingQuestions } from "@/utils/offering-questions";
 import { failureStatusFor } from "@/utils/offering-report";
-
-type Action =
-  | { type: "event"; event: OfferingStreamEvent }
-  | { type: "failed"; status: OfferingFailureStatus }
-  | { type: "verify" }
-  | { type: "restart" };
 
 function initialState(input: OfferingCheckInput): OfferingLiveState {
   return {
@@ -68,7 +63,10 @@ function updateThread(
   };
 }
 
-function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
+function reduce(
+  state: OfferingLiveState,
+  action: OfferingStreamAction
+): OfferingLiveState {
   if (action.type === "failed") {
     return { ...state, status: action.status };
   }
@@ -157,7 +155,7 @@ async function streamOfferingCheck(
   input: OfferingCheckInput,
   turnstileToken: string,
   signal: AbortSignal,
-  update: (action: Action) => void,
+  update: (action: OfferingStreamAction) => void,
   canAskAgain: boolean
 ) {
   const response = await fetch(OFFERING_CHECK_API_PATH, {
@@ -214,7 +212,7 @@ function createOfferingStreamStore(
   let start: ReturnType<typeof setTimeout> | null = null;
   let controller: AbortController | null = null;
   const listeners = new Set<() => void>();
-  const update = (action: Action) => {
+  const update = (action: OfferingStreamAction) => {
     state = reduce(state, action);
     for (const listener of listeners) {
       listener();

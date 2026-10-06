@@ -5,12 +5,7 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  debounce,
-  defaultRateLimit,
-  parseAsString,
-  useQueryStates,
-} from "nuqs";
+import { debounce, defaultRateLimit, useQueryStates } from "nuqs";
 import { type FocusEvent, type FormEvent, useRef, useState } from "react";
 
 import { Turnstile } from "@/components/turnstile";
@@ -24,7 +19,10 @@ import {
 import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { preflightOfferingCheck } from "@/lib/offering-check/preflight";
 import { useSampleTyping } from "@/lib/offering-check/use-sample-typing";
-import { offeringCheckRequestSchema } from "@/schemas/offering-check";
+import {
+  offeringCheckRequestSchema,
+  offeringFormParsers,
+} from "@/schemas/offering-check";
 import type {
   OfferingCheckFormProps,
   OfferingCheckInput,
@@ -32,7 +30,7 @@ import type {
   OfferingSampleField,
 } from "@/types/offering-check";
 import type { TurnstileHandle } from "@/types/turnstile";
-import { describeOfferingNotice } from "@/utils/offering-check";
+import { describeOfferingNotice } from "@/utils/offering-copy";
 
 import { OfferingDomainFavicon } from "./offering-domain-favicon";
 import { OfferingErrorTooltip } from "./offering-error-tooltip";
@@ -43,18 +41,10 @@ const SWAP_CLASS =
   "transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] [grid-area:1/1] motion-reduce:transition-none";
 const SWAP_HIDDEN = "scale-25 opacity-0 blur-[4px]";
 
-// The form lives in the URL, so going back from a report keeps the input and
-// links like /offering?domain=acme.com prefill it.
-const OFFERING_FORM_PARSERS = {
-  domain: parseAsString.withDefault(""),
-  feature: parseAsString.withDefault(""),
-  problem: parseAsString.withDefault(""),
-};
-
 export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const navigate = useNavigate();
   const [{ domain, feature, problem }, setValues] = useQueryStates(
-    OFFERING_FORM_PARSERS,
+    offeringFormParsers,
     {
       clearOnDefault: true,
       history: "replace",

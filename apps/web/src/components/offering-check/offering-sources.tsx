@@ -12,17 +12,18 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useState } from "react";
 
-import { OFFERING_YOU_TOOLTIP } from "@/constants/offering-check";
+import {
+  OFFERING_SOURCES_PAGES_PER_SITE,
+  OFFERING_SOURCES_STACKED_FAVICONS,
+  OFFERING_YOU_TOOLTIP,
+} from "@/constants/offering-check";
 import type {
   OfferingSourceSiteProps,
   OfferingSourcesProps,
 } from "@/types/offering-check";
-import { countSourcePages } from "@/utils/offering-check";
+import { countSourcePages } from "@/utils/offering-sources";
 
 import { OfferingFavicon } from "./offering-favicon";
-
-const STACKED_FAVICONS = 4;
-const PAGES_PER_SITE = 4;
 
 function pagePath(url: string): string {
   if (!URL.canParse(url)) {
@@ -35,7 +36,9 @@ function pagePath(url: string): string {
 
 function SourceSite({ source }: OfferingSourceSiteProps) {
   const [expanded, setExpanded] = useState(false);
-  const pages = expanded ? source.urls : source.urls.slice(0, PAGES_PER_SITE);
+  const pages = expanded
+    ? source.urls
+    : source.urls.slice(0, OFFERING_SOURCES_PAGES_PER_SITE);
   const hidden = source.urls.length - pages.length;
 
   return (
@@ -106,7 +109,7 @@ export function OfferingSources({ sources }: OfferingSourcesProps) {
     <Collapsible className="mt-4 flex flex-col">
       <CollapsibleTrigger className="group bg-muted text-foreground hover:bg-muted/70 inline-flex h-8 cursor-pointer items-center gap-2 self-start rounded-full pr-2.5 pl-2 text-[13px] font-medium transition-[background-color,scale] duration-150 ease-out outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] active:scale-[0.96] motion-reduce:active:scale-100">
         <span className="flex items-center -space-x-1.5">
-          {sources.slice(0, STACKED_FAVICONS).map((source) => (
+          {sources.slice(0, OFFERING_SOURCES_STACKED_FAVICONS).map((source) => (
             <OfferingFavicon
               className="ring-muted size-4.5 rounded-full ring-2"
               domain={source.domain}

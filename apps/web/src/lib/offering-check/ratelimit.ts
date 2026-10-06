@@ -6,13 +6,15 @@ import {
   OFFERING_CHECK_RATE_LIMITS,
   OFFERING_CHECK_RATE_LIMIT_SCRIPT,
   OFFERING_CHECK_REDIS_TIMEOUT,
+  OFFERING_RATE_LIMIT_GLOBAL_KEY,
 } from "@/constants/offering-check";
 import type {
   OfferingCheckInput,
+  OfferingRateLimitCheck,
   OfferingRateLimitScope,
 } from "@/types/offering-check";
 import { getClientIp } from "@/utils/client-ip";
-import { getOfferingCheckBrandFeatureIdentity } from "@/utils/offering-check";
+import { getOfferingCheckBrandFeatureIdentity } from "@/utils/offering-identity";
 
 import { getOfferingCheckRedis } from "./redis";
 
@@ -29,22 +31,14 @@ export class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
-const GLOBAL_KEY = "global";
-
-type RateLimitName = keyof typeof OFFERING_CHECK_RATE_LIMITS;
-
-interface RateLimitCheck {
-  key: string;
-  requests: number;
-  windowMs: number;
-  scope: OfferingRateLimitScope;
-}
-
 function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function limitCheck(name: RateLimitName, id: string): RateLimitCheck {
+function limitCheck(
+  name: keyof typeof OFFERING_CHECK_RATE_LIMITS,
+  id: string
+): OfferingRateLimitCheck {
   return {
     ...OFFERING_CHECK_RATE_LIMITS[name],
     key: `ratelimit:web:offering-check:${name}:${id}`,
@@ -54,7 +48,7 @@ function limitCheck(name: RateLimitName, id: string): RateLimitCheck {
 function scanLimitChecks(
   request: Request,
   input: OfferingCheckInput
-): RateLimitCheck[] {
+): OfferingRateLimitCheck[] {
   const ip = sha256(getClientIp(request));
   return [
     limitCheck("perIpHour", ip),
@@ -64,12 +58,12 @@ function scanLimitChecks(
       "perBrandFeatureDay",
       sha256(getOfferingCheckBrandFeatureIdentity(input))
     ),
-    limitCheck("globalDay", GLOBAL_KEY),
+    limitCheck("globalDay", OFFERING_RATE_LIMIT_GLOBAL_KEY),
   ];
 }
 
 const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
-  function* (checks: readonly RateLimitCheck[], consume: boolean) {
+  function* (checks: readonly OfferingRateLimitCheck[], consume: boolean) {
     const redis = getOfferingCheckRedis();
     if (!redis) {
       if (process.env.NODE_ENV === "production") {

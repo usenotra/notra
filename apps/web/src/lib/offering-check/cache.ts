@@ -12,7 +12,7 @@ import type {
   OfferingCheckInput,
   OfferingCheckResult,
 } from "@/types/offering-check";
-import { getOfferingCheckCacheIdentity } from "@/utils/offering-check";
+import { getOfferingCheckCacheIdentity } from "@/utils/offering-identity";
 
 import { getOfferingCheckRedis } from "./redis";
 

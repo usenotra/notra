@@ -240,3 +240,50 @@ declare module "@tanstack/react-router" {
     offeringTurnstileToken?: string;
   }
 }
+
+/** An answer before the judge has graded it. */
+export type OfferingAnsweredQuestion = Omit<
+  OfferingAnswer,
+  "verdict" | "summary"
+>;
+
+export type OfferingSampleValues = Pick<
+  OfferingCheckInput,
+  "domain" | "feature" | "problem"
+>;
+
+export interface OfferingTypingFrame {
+  values: OfferingSampleValues;
+  field: OfferingSampleField | null;
+  /** Milliseconds after the start at which this frame shows. */
+  at: number;
+}
+
+export type OfferingStreamAction =
+  | { type: "event"; event: OfferingStreamEvent }
+  | { type: "failed"; status: OfferingFailureStatus }
+  | { type: "verify" }
+  | { type: "restart" };
+
+export interface OfferingRateLimitCheck {
+  key: string;
+  requests: number;
+  windowMs: number;
+  scope: OfferingRateLimitScope;
+}
+
+export interface OfferingHeroCopy {
+  lead: string;
+  body: string;
+}
+
+export interface OfferingNoticeDescription {
+  field: OfferingSampleField | null;
+  message: string;
+}
+
+export interface OfferingSourceSummary {
+  sites: number;
+  pages: number;
+  ownSite: string;
+}
