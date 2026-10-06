@@ -52,8 +52,8 @@ export function DesignSystemTopbar({ activeId }: { activeId: string | null }) {
   const crumbs = useCrumbs(activeId);
 
   return (
-    <header className="bg-background/90 sticky top-0 z-20 grid h-12 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b px-4 backdrop-blur-sm md:grid-cols-[minmax(0,1fr)_18rem_auto] lg:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-1 lg:gap-2">
+    <header className="bg-background/90 sticky top-0 z-20 grid h-12 shrink-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 border-b px-4 backdrop-blur-sm md:grid-cols-[minmax(0,1fr)_18rem_auto] lg:px-6">
+      <div className="flex min-w-0 items-center gap-1 overflow-hidden lg:gap-2">
         <SidebarToggle className="-ml-1" />
         <Separator
           className="mx-2 h-4 self-center data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
@@ -70,10 +70,14 @@ export function DesignSystemTopbar({ activeId }: { activeId: string | null }) {
               const isLast = index === crumbs.length - 1;
               return (
                 <Fragment key={crumb}>
-                  <BreadcrumbSeparator>
+                  <BreadcrumbSeparator
+                    className={isLast ? undefined : "max-md:hidden"}
+                  >
                     <HugeiconsIcon icon={ArrowRight01Icon} />
                   </BreadcrumbSeparator>
-                  <BreadcrumbItem className={isLast ? "min-w-0" : "shrink-0"}>
+                  <BreadcrumbItem
+                    className={isLast ? "min-w-0" : "shrink-0 max-md:hidden"}
+                  >
                     {isLast ? (
                       <BreadcrumbPage className="truncate">
                         {crumb}
@@ -88,10 +92,10 @@ export function DesignSystemTopbar({ activeId }: { activeId: string | null }) {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="hidden md:flex">
+      <div className="flex">
         <DesignSystemSearch />
       </div>
-      <div className="flex justify-end">
+      <div className="hidden justify-end sm:flex">
         <Button
           render={<Link href="/" />}
           nativeButton={false}

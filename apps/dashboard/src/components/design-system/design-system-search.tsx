@@ -48,7 +48,15 @@ export function DesignSystemSearch() {
   return (
     <>
       <button
-        className="text-muted-foreground hover:bg-muted/50 duration-fast flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg border bg-transparent px-3 text-sm transition-colors"
+        aria-label="Search components"
+        className="text-muted-foreground hover:bg-muted/50 hover:text-foreground duration-fast inline-flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors md:hidden"
+        onClick={() => setOpen(true)}
+        type="button"
+      >
+        <HugeiconsIcon icon={SearchIcon} size={16} />
+      </button>
+      <button
+        className="text-muted-foreground hover:bg-muted/50 duration-fast hidden h-8 w-full cursor-pointer items-center gap-2 rounded-lg border bg-transparent px-3 text-sm transition-colors md:flex"
         onClick={() => setOpen(true)}
         type="button"
       >

@@ -13,6 +13,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 
@@ -28,6 +29,13 @@ import { usePathname } from "@/lib/navigation";
 export function DesignSystemSidebar({ activeId }: { activeId: string | null }) {
   const pathname = usePathname();
   const onIndex = pathname === DESIGN_SYSTEM_PATH;
+  const { isMobile, setOpenMobile } = useSidebar();
+  // The mobile sidebar is a sheet over the page; close it so the target shows.
+  const closeOnMobile = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar variant="inset">
@@ -58,7 +66,10 @@ export function DesignSystemSidebar({ activeId }: { activeId: string | null }) {
                     <SidebarMenuButton
                       isActive={onIndex && activeId === item.id}
                       render={
-                        <a href={`${DESIGN_SYSTEM_PATH}#${item.id}`}>
+                        <a
+                          href={`${DESIGN_SYSTEM_PATH}#${item.id}`}
+                          onClick={closeOnMobile}
+                        >
                           {item.label}
                         </a>
                       }
@@ -68,6 +79,7 @@ export function DesignSystemSidebar({ activeId }: { activeId: string | null }) {
                         {item.children.map((child) => (
                           <SidebarMenuSubItem key={child.id}>
                             <SidebarMenuSubButton
+                              onClick={closeOnMobile}
                               href={`${DESIGN_SYSTEM_PATH}#${child.id}`}
                               isActive={activeId === child.id}
                             >
@@ -90,7 +102,7 @@ export function DesignSystemSidebar({ activeId }: { activeId: string | null }) {
               <SidebarMenuItem key={page.href}>
                 <SidebarMenuButton
                   isActive={pathname === page.href}
-                  render={<Link href={page.href} />}
+                  render={<Link href={page.href} onClick={closeOnMobile} />}
                 >
                   {page.label}
                 </SidebarMenuButton>
