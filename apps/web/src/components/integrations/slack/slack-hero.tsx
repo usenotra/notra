@@ -27,9 +27,8 @@ export function SlackHero() {
             <span className="flex flex-wrap items-center justify-center gap-3.5">
               {SLACK_HEADLINE.pre}
               <span className="flex items-center rounded-[0.875rem] bg-[#1D9BD126] px-4 py-0.5 text-[#1264A3] dark:bg-[#1D9BD129] dark:text-[#7CC1E8]">
-                {SLACK_HEADLINE.channel}
+                {SLACK_HEADLINE.mention}
               </span>
-              {SLACK_HEADLINE.post}
             </span>
             <span className="flex flex-wrap items-center justify-center gap-3">
               {SLACK_HEADLINE.secondLinePre}

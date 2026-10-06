@@ -7,12 +7,13 @@ description: The gradient marketing buttons from the Notra landing page.
 
 <RegistryInstall name="marketing-button" />
 
-`MarketingButton` is built on Base UI's `Button`, like the shadcn `Button`, so it takes every Button prop, including a `className` callback. The gradients and hover states ship as two Tailwind utilities, `marketing-gradient-primary` and `marketing-gradient-light`, added to your CSS by the install.
+`MarketingButton` is built on Base UI's `Button`, like the shadcn `Button`, so it takes every Button prop, including a `className` callback. The gradients and hover states ship as three Tailwind utilities, `marketing-gradient-primary`, `marketing-gradient-flat` and `marketing-gradient-light`, added to your CSS by the install.
 
 | Prop | Default | Description |
 | --- | --- | --- |
-| `variant` | `primary` | `primary` is the purple gradient, `light` is the white one. |
-| `size` | `default` | `default` is 44px tall, `lg` is 48px. |
+| `variant` | `primary` | `primary` is the purple gradient, `flat` is the same gradient without the halo, `light` is the white one. |
+| `size` | `default` | `sm` is 40px tall, `default` is 44px, `lg` is 48px. |
+| `loading` | `false` | Swaps the label for a spinner, like `Button`'s loading state, and keeps the button's width. The button stays focusable and ignores clicks. |
 | `render` | none | Base UI's `render` prop. Pass an element to render a link. |
 | `nativeButton` | `true` | Set to `false` when `render` is not a `<button>`. |
 
@@ -27,6 +28,12 @@ The purple gradient, for the main call to action.
 The white gradient with `variant="light"`, for the action next to it.
 
 <Component path="marketing-button/examples/marketing-button-secondary" />
+
+## Loading
+
+Set `loading` while the action runs. The label blurs up and out and a spinner rises in at its center, the same swap as `Button` with a spinner instead of dots. The button keeps its width, so nothing around it moves.
+
+<Component path="marketing-button/examples/marketing-button-loading" />
 
 ## As a link
 

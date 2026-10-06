@@ -5,10 +5,10 @@ import type {
   EngineId,
 } from "@/types/landing/geo";
 
-export const ANSWER_EXAMPLE_HEADING = "See exactly what the engine said.";
+export const ANSWER_EXAMPLE_HEADING = "Read what each engine said.";
 
 export const ANSWER_EXAMPLE_SUBCOPY =
-  "Every scan keeps the whole answer. Open a prompt and read what each engine wrote, where you show up, and which pages it pulled to get there.";
+  "Every scan keeps the whole answer. Open a prompt and read what each engine wrote, where you show up and which pages it pulled to get there.";
 
 export const ANSWER_EXAMPLE_PROMPT =
   "What are good Quillbase alternatives for startups?";
@@ -72,7 +72,7 @@ I would trial two of them against a real launch before committing.`,
     position: null,
     sentiment: "neutral",
     excerpt:
-      "Popular Quillbase alternatives for startups include Draftly, Penfold and Copyhaus. Draftly is often chosen for its templates, Penfold for price, and Copyhaus for agency style workflows. Consider trialing each with a real campaign before choosing.",
+      "Popular Quillbase alternatives for startups include Draftly, Penfold and Copyhaus. Draftly is often chosen for its templates, Penfold for price and Copyhaus for agency style workflows. Consider trialing each with a real campaign before choosing.",
   },
 ];
 
@@ -109,8 +109,8 @@ export const ANSWER_EXAMPLE_POSITION_CLASS: Record<AnswerPositionTone, string> =
 export const ANSWER_EXAMPLE_FACTS = [
   {
     id: "f-1",
-    title: "Full answers, not scores",
-    text: "Read the actual sentence. The position you got, and the names listed next to yours.",
+    title: "Full answers",
+    text: "Read the sentence the engine wrote, the position you got and the names listed next to yours.",
   },
   {
     id: "f-2",

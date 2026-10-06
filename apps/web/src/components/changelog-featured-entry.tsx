@@ -1,5 +1,7 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ctaButtonVariants } from "@notra/ui/components/shared/cta-button";
+import { cn } from "@notra/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import type { ChangelogFeaturedEntryProps } from "~types/changelog";
 
@@ -31,7 +33,13 @@ export function ChangelogFeaturedEntry({
             {item.description}
           </p>
         </div>
-        <span className="cta-gradient-primary font-display inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-6 py-2.75 text-sm font-semibold text-white ring-1 ring-[#1E1E1E1A] sm:self-auto">
+        {/* Styled like a CtaButton, but a span: the whole card is the link. */}
+        <span
+          className={cn(
+            ctaButtonVariants({ size: "sm" }),
+            "font-display self-start px-6 font-semibold sm:self-auto"
+          )}
+        >
           Read the post
           <HugeiconsIcon className="size-4" icon={ArrowRight01Icon} />
         </span>

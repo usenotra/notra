@@ -1,6 +1,5 @@
 "use client";
 
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import { DEFAULT_AUTH_LAST_USED_LABEL } from "@notra/ui/constants/auth-labels";
 
 import type {
@@ -40,21 +39,18 @@ export function AuthSocialButtons({
           <CtaButton
             className="w-full"
             disabled={disabled}
+            loading={authMethod === provider}
             onClick={() => onSelect(provider)}
             type="button"
             variant="light"
           >
-            {authMethod === provider ? (
-              <Spinner />
-            ) : (
-              <Icon
-                className={
-                  provider === "github"
-                    ? "size-4 dark:[&_path]:fill-[#1e1e1e]"
-                    : "size-4"
-                }
-              />
-            )}
+            <Icon
+              className={
+                provider === "github"
+                  ? "size-4 dark:[&_path]:fill-[#1e1e1e]"
+                  : "size-4"
+              }
+            />
             {label}
           </CtaButton>
         </div>

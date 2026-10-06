@@ -56,11 +56,11 @@ export const MCP_FALLBACK_TOOL_CARDS: McpToolCard[] = [
   },
   {
     name: "create_post",
-    description: "Draft changelogs, launch posts, and social updates.",
+    description: "Draft changelogs, launch posts and social updates.",
   },
   {
     name: "publish_post",
-    description: "Ship the result to your changelog, blog, X, or LinkedIn.",
+    description: "Ship the result to your changelog, blog, X or LinkedIn.",
   },
   {
     name: "schedule_post",
@@ -68,7 +68,7 @@ export const MCP_FALLBACK_TOOL_CARDS: McpToolCard[] = [
   },
   {
     name: "get_brand_voice",
-    description: "Your tone, cadence, and vocabulary as context.",
+    description: "Your tone, cadence and vocabulary as context.",
   },
   {
     name: "list_posts",

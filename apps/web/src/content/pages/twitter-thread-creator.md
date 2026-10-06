@@ -1,8 +1,8 @@
 # X (Twitter) Threads Creator
 
-Write, reorder, and preview your thread in one place. Free, no sign-up.
+Write, reorder and preview your thread in one place. Free, no sign-up.
 
-Draft, reorder, and ship X (Twitter) threads in a clean, distraction-free workspace.
+Draft, reorder and ship X (Twitter) threads in a clean, distraction-free workspace.
 
 ## How to use it
 

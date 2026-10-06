@@ -1197,7 +1197,7 @@ export default function DesignSystemClientPage() {
                   In a badge
                 </p>
                 <Badge className="gap-1.5" variant="secondary">
-                  <Spinner className="size-3.5" />
+                  <Spinner />
                   Writing
                 </Badge>
               </div>

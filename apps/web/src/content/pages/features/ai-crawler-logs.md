@@ -22,7 +22,7 @@ See which pages each engine keeps reading and which ones it has never opened.
 
 Add your ingest token to your middleware or edge config. It takes a few minutes and works on any stack.
 
-### 2. Bots get sorted
+### 2. Notra sorts the bots
 
 Notra matches each request to a known AI crawler and labels why it came, so a stray scraper never counts as ChatGPT.
 
@@ -32,4 +32,4 @@ Track the pages engines fetch, the ones they ignore and the clicks that come bac
 
 ## See your site the way AI engines do
 
-Connect your site and see which pages AI crawlers read. Free to start.
+Connect your site and see which pages AI crawlers read. It's free to start.

@@ -114,7 +114,9 @@ export function WorkspaceForm({
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
   );
-  const [websiteValue, setWebsiteValue] = useState("");
+  const [websiteValue, setWebsiteValue] = useState(
+    existingOrg?.websiteUrl ?? ""
+  );
   const [debouncedWebsite] = useDebouncedValue(websiteValue, {
     wait: COMPANY_LOGO_DEBOUNCE_MS,
   });
@@ -157,7 +159,7 @@ export function WorkspaceForm({
       heardAboutNotraSource: initialSource,
       name: existingOrg?.name ?? "",
       slug: existingOrg?.slug ?? "",
-      websiteUrl: "",
+      websiteUrl: existingOrg?.websiteUrl ?? "",
       dailySummary: existingOrg?.dailySummary ?? true,
       marketingEmails: existingOrg?.marketingEmails ?? true,
     },
@@ -430,9 +432,9 @@ export function WorkspaceForm({
                       : undefined
                   }
                   aria-invalid={field.state.meta.errors.length > 0}
-                  autoFocus={isResuming}
+                  autoFocus={isResuming && !existingOrg?.hasBrand}
                   className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || Boolean(existingOrg?.hasBrand)}
                   id="website"
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -600,15 +602,8 @@ export function WorkspaceForm({
           )}
         </form.Field>
 
-        <CtaButton className="w-full" disabled={isSubmitting} type="submit">
-          {isSubmitting ? (
-            <>
-              <Spinner />
-              {t("settingUp")}
-            </>
-          ) : (
-            tCommon("actions.continue")
-          )}
+        <CtaButton className="w-full" loading={isSubmitting} type="submit">
+          {tCommon("actions.continue")}
         </CtaButton>
       </form>
     </div>

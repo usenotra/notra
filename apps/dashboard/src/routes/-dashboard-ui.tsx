@@ -11,7 +11,7 @@ import { Suspense } from "react";
 import { AnalyticsProvider } from "@/components/analytics/analytics-context";
 import { AnalyticsShell } from "@/components/analytics/analytics-shell";
 import { DashboardClientWrapper } from "@/components/dashboard/dashboard-client-wrapper";
-import { StudioUpgradeGate } from "@/components/dashboard/studio-upgrade-gate";
+import { StudioFreeHome } from "@/components/dashboard/studio-free-home";
 import { GeoCatalogWarmer } from "@/components/geo/geo-catalog-warmer";
 import { GeoPageGate } from "@/components/geo/geo-page-gate";
 import { IntegrationsBackLink } from "@/components/integrations/integrations-back-link";
@@ -242,7 +242,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
             />
           </HydrationBoundary>
         ) : (
-          <StudioUpgradeGate slug={params.slug} />
+          <StudioFreeHome greetingText={data.greetingText} slug={params.slug} />
         ),
     }),
     createUiRoute({

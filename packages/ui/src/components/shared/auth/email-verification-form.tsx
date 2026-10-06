@@ -1,7 +1,6 @@
 "use client";
 
 
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import { TOTP_CODE_LENGTH } from "@notra/schemas/constants/dashboard/auth";
 import { DEFAULT_EMAIL_VERIFICATION_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 
@@ -82,17 +81,11 @@ export function EmailVerificationForm({
         <div>
           <CtaButton
             className="w-full"
-            disabled={isPending || code.length !== TOTP_CODE_LENGTH}
+            disabled={code.length !== TOTP_CODE_LENGTH}
+            loading={isPending}
             type="submit"
           >
-            {isPending ? (
-              <>
-                <Spinner />
-                {l.submitting}
-              </>
-            ) : (
-              l.submit
-            )}
+            {l.submit}
           </CtaButton>
         </div>
       </form>

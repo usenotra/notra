@@ -22,7 +22,7 @@ function AboutPage() {
   return (
     <main className="flex w-full flex-col items-center gap-12 pb-20 md:gap-16 md:pb-24">
       <MarketingHeroWash
-        subtitle="The AI content platform that turns shipped work into changelogs, launch posts, and marketing assets in your team's own voice."
+        subtitle="The AI content platform that turns shipped work into changelogs, launch posts and marketing assets in your team's own voice."
         title={
           <>
             About <span className="text-primary">Notra</span>
@@ -34,9 +34,9 @@ function AboutPage() {
         <p className="font-sans text-base leading-8 text-[#1E1E1EBF] dark:text-white/70">
           Notra is an AI content-generation platform for product and engineering
           teams. It turns shipped work into changelogs, launch posts, blog
-          drafts, marketing assets, and social updates that match a team's own
+          drafts, marketing assets and social updates that match a team's own
           voice. The product is built for teams that already ship quickly but
-          lose time collecting context, asking engineers what changed, and
+          lose time collecting context, asking engineers what changed and
           rewriting rough notes into publishable updates.
         </p>
         <p className="font-sans text-base leading-8 text-[#1E1E1EBF] dark:text-white/70">
@@ -66,7 +66,7 @@ function AboutPage() {
             >
               agent.json
             </a>
-            , the public OpenAPI schema, and MCP documentation.
+            , the public OpenAPI schema and MCP documentation.
           </p>
         </div>
       </div>

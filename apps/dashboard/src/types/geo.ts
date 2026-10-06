@@ -157,7 +157,6 @@ export interface TrafficPageViewProps {
   projectId: string | undefined;
   settings: GeoSettings | null;
   isEmptyTraffic: boolean;
-  revealActive: boolean;
   geoRange: GeoRangeControl;
   traffic: AiTrafficResponse | undefined;
   isTrafficPending: boolean;
@@ -1227,6 +1226,7 @@ export interface GeoLanguagePickerProps {
   labeled?: boolean;
   /** Id for the search input, so a visible label can point at it. */
   inputId?: string;
+  inputClassName?: string;
   /** The project's prompt language; it cannot be removed. */
   lockedLanguage?: string | null;
 }

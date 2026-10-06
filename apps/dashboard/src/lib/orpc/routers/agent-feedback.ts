@@ -1,5 +1,6 @@
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
+  agentFeedbackActivityInputSchema,
   agentFeedbackItemInputSchema,
   agentFeedbackListInputSchema,
   agentFeedbackOrganizationInputSchema,
@@ -7,6 +8,7 @@ import {
 } from "@notra/schemas/dashboard/agent-feedback";
 import { Effect } from "effect";
 
+import { getAgentFeedbackActivity } from "@/lib/agent-feedback/activity.server";
 import type { AgentFeedbackRouterError } from "@/lib/agent-feedback/errors";
 import { readAgentFeedbackOrganization } from "@/lib/agent-feedback/organization";
 import {
@@ -77,6 +79,16 @@ export const agentFeedbackRouter = {
   delete: authorizedProcedure
     .input(agentFeedbackItemInputSchema)
     .handler(agentFeedbackHandler((input) => deleteAgentFeedback(input))),
+  activity: authorizedProcedure
+    .input(agentFeedbackActivityInputSchema)
+    .handler(async ({ context, input }) => {
+      await assertOrganizationAccess({
+        headers: context.headers,
+        organizationId: input.organizationId,
+        user: context.user,
+      });
+      return getAgentFeedbackActivity(input.organizationId, input);
+    }),
   setup: authorizedProcedure
     .input(agentFeedbackOrganizationInputSchema)
     .handler(

@@ -161,8 +161,7 @@ export default function PricingComparisonTable() {
           Compare plans in <span className="text-primary">detail</span>
         </h2>
         <p className="max-w-[43rem] text-center font-sans text-lg leading-7 font-medium text-balance text-[#1E1E1EBF] sm:text-xl dark:text-white/70">
-          See exactly what&apos;s included in each plan so you can choose the
-          right fit.
+          See what&apos;s included in each plan so you can choose the right fit.
         </p>
       </div>
 

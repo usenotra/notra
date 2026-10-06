@@ -80,8 +80,16 @@ export const loadDashboardHome = createServerFn({
     const billingPromise = import("@/lib/billing/subscription").then(
       ({ resolveAiProductAccess }) => resolveAiProductAccess(organization.id)
     );
+    const greetingPromise = (async () => {
+      const t = await getTranslations("home");
+      const period = getGreetingPeriod(new Date());
+      const name = user.name?.trim();
+      return name
+        ? t("greetingWithName", { period, name })
+        : t("greeting", { period });
+    })();
     const homePromise = (async () => {
-      const [{ dehydrateDashboardHomeQueries }, projectId, t] =
+      const [{ dehydrateDashboardHomeQueries }, projectId, greetingText] =
         await Promise.all([
           import("@/utils/dashboard-home-prefetch.server"),
           resolveInitialGeoProjectId(
@@ -89,14 +97,10 @@ export const loadDashboardHome = createServerFn({
             slug,
             geoRequestedProjectId(searchParams)
           ),
-          getTranslations("home"),
+          greetingPromise,
         ]);
-      const period = getGreetingPeriod(new Date());
-      const name = user.name?.trim();
       return {
-        greetingText: name
-          ? t("greetingWithName", { period, name })
-          : t("greeting", { period }),
+        greetingText,
         state: await dehydrateDashboardHomeQueries(
           organization.id,
           projectId,
@@ -111,7 +115,7 @@ export const loadDashboardHome = createServerFn({
     homePromise.catch(() => undefined);
     const billing = await billingPromise;
     if (!billing.hasAccess) {
-      return { hasAccess: false as const };
+      return { hasAccess: false as const, greetingText: await greetingPromise };
     }
     return { hasAccess: true as const, ...(await homePromise) };
   });

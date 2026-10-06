@@ -17,7 +17,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Contact Notra";
 const description =
-  "Talk to the Notra team about sales, support, security disclosures, partnerships, and developer integration help. A real human writes back.";
+  "Talk to the Notra team about sales, support, security disclosures, partnerships and developer integration help. A real human writes back.";
 const url = `${SITE_URL}/contact`;
 
 const metadata: Metadata = {
