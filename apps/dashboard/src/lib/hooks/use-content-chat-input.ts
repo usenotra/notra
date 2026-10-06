@@ -9,6 +9,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -49,6 +50,7 @@ import {
 } from "@/utils/slash-skill-query";
 
 export function useContentChatInput({
+  ref,
   onSend,
   onStop,
   isLoading = false,
@@ -115,8 +117,12 @@ export function useContentChatInput({
     pendingUploads,
     previewAttachment,
     removeAttachment,
+    restoreAttachments,
     setPreviewAttachment,
   } = useChatComposerAttachments();
+  useImperativeHandle(ref, () => ({ setAttachments: restoreAttachments }), [
+    restoreAttachments,
+  ]);
   const {
     check,
     data: customer,
@@ -327,17 +333,12 @@ export function useContentChatInput({
 
   const handleSend = useCallback(() => {
     const trimmed = prependTaggedSkills(value, taggedSkillNames);
-    const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
     if (disabled || isUploading) {
       return;
     }
     if (!trimmed && !quoteContext?.quote && attachments.length === 0) {
       return;
     }
-    if (isLoading && hasAttachments) {
-      return;
-    }
-
     clearError();
 
     if (isUsageBlocked) {
@@ -376,12 +377,10 @@ export function useContentChatInput({
     consumeAttachments,
     customer,
     disabled,
-    isLoading,
     isUploading,
     isUsageBlocked,
     onClearSelection,
     onSend,
-    pendingUploads.length,
     resizeTextarea,
     setValue,
     taggedSkillNames,

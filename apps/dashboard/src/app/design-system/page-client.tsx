@@ -235,6 +235,7 @@ import { DesignSystemPerplexityCatalog } from "@/app/design-system/perplexity/pa
 import { Button, buttonVariants } from "@/components/button";
 import ChatInput from "@/components/chat-input";
 import { DesignSystemChatQueueDemo } from "@/components/design-system/design-system-chat-queue-demo";
+import { DesignSystemComposerDemo } from "@/components/design-system/design-system-composer-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
@@ -1510,6 +1511,17 @@ export default function DesignSystemClientPage() {
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      <Separator />
+
+      <section className="scroll-mt-10 space-y-6" id="composer">
+        <DesignSystemSectionHeader
+          description="Chat composer from @notra/ui. A muted tray holds the input card; queued messages, chips and notices sit on the tray above it."
+          id="composer"
+          title="Composer"
+        />
+        <DesignSystemComposerDemo />
       </section>
 
       <Separator />

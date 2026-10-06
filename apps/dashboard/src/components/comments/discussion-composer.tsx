@@ -2,12 +2,13 @@
 
 import { ArrowUp02Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Composer } from "@notra/ui/components/ui/composer";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { Composer } from "@/components/composer/composer-shell";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import type { DiscussionComposerProps } from "@/types/comments";
 
 export function DiscussionComposer({
@@ -86,7 +87,11 @@ export function DiscussionComposer({
             disabled={!canSubmit}
             onClick={onSubmit}
           >
-            <HugeiconsIcon icon={ArrowUp02Icon} className="size-4" />
+            {busy ? (
+              <StatusSpinner />
+            ) : (
+              <HugeiconsIcon icon={ArrowUp02Icon} className="size-4" />
+            )}
           </Composer.Send>
         </div>
       </Composer.Frame>

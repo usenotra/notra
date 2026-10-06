@@ -100,7 +100,9 @@ export function getContentChatInputChrome({
   const isEmpty = value.trim().length === 0 && skillTagCount === 0;
   const hasAttachmentChips = hasReadyAttachments || pendingUploadCount > 0;
   const isInputLocked = disabled || isUsageBlocked;
-  const canQueue = isLoading && !isEmpty && !hasAttachmentChips;
+  // Attachments queue with their message, but only once every upload is done.
+  const canQueue =
+    isLoading && (!isEmpty || hasReadyAttachments) && pendingUploadCount === 0;
   const showStop = isLoading && !canQueue && Boolean(onStop);
   const hasContextChips =
     contextCount > 0 || hasSelection || queuedCount > 0 || skillTagCount > 0;
@@ -243,4 +245,18 @@ export function buildContentChatContextOptions({
   }
 
   return options;
+}
+
+/** Short type label for a file tile, e.g. "pdf" from "brief.pdf" or "application/pdf". */
+export function getAttachmentExtension(
+  filename?: string,
+  mediaType?: string
+): string | null {
+  const fromName = filename?.includes(".")
+    ? filename.split(".").pop()
+    : undefined;
+  if (fromName) {
+    return fromName;
+  }
+  return mediaType?.split("/")[1]?.split(/[+.;]/)[0] ?? null;
 }

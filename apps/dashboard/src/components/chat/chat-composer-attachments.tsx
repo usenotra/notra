@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_CHAT_ATTACHMENTS } from "@notra/schemas/constants/dashboard/upload";
+import { Composer } from "@notra/ui/components/ui/composer";
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +17,6 @@ import { Loader2Icon } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "use-intl";
 
-import { Composer } from "@/components/composer/composer-shell";
 import Image from "@/components/framework/image";
 import { isImageMimeType } from "@/lib/upload/mime";
 import type {

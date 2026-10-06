@@ -70,6 +70,7 @@ import { ChatToolBlock } from "@/components/ai/chat-tool-block";
 import { getMcpToolServerId } from "@/components/ai/chat-tool-block/mcp/utils";
 import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
 import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
+import { ChatFileAttachment } from "@/components/chat/chat-file-attachment";
 import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import {
   ChatInputAdvanced,
@@ -1620,15 +1621,13 @@ function StandaloneChatPageClient({
         return;
       }
       if (isSendingRef.current || isLoading || isWaitingForActiveStream) {
-        if (attachments.length > 0) {
-          return;
-        }
         const next = [
           ...queuedMessagesRef.current,
           {
             id: nanoid(10),
             text,
             authorUserId: currentAuthorUserId,
+            ...(attachments.length > 0 ? { attachments } : {}),
           },
         ];
         queuedMessagesRef.current = next;
@@ -1745,6 +1744,9 @@ function StandaloneChatPageClient({
     queuedMessagesRef.current = next;
     setQueuedMessages(next);
     chatInputRef.current?.setText(message.text);
+    if (message.attachments?.length) {
+      chatInputRef.current?.setAttachments(message.attachments);
+    }
   }, []);
 
   const sendSteeredQueued = useCallback(
@@ -1757,7 +1759,7 @@ function StandaloneChatPageClient({
       setQueuedMessages(taken.remaining);
       isDrainingRef.current = true;
       updateWasStoppedByUser(false, wasStoppedByUserRef, setWasStoppedByUser);
-      dispatchMessage(message.text).catch((error) => {
+      dispatchMessage(message.text, message.attachments).catch((error) => {
         console.error("[Chat] Failed to steer queued message:", error);
         isSendingRef.current = false;
         isDrainingRef.current = false;
@@ -1892,7 +1894,7 @@ function StandaloneChatPageClient({
       const remaining = queue.slice(1);
       queuedMessagesRef.current = remaining;
       setQueuedMessages(remaining);
-      dispatchMessage(next.text).catch((error) => {
+      dispatchMessage(next.text, next.attachments).catch((error) => {
         console.error("[Chat] Failed to drain queued message:", error);
         isSendingRef.current = false;
         isDrainingRef.current = false;
@@ -2222,17 +2224,12 @@ function StandaloneChatPageClient({
         );
       }
       return (
-        <a
-          className="border-border bg-muted/40 text-foreground hover:bg-accent my-1 inline-flex max-w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs no-underline transition-colors"
-          href={url}
+        <ChatFileAttachment
+          filename={filename}
           key={fileKey}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <span className="truncate">
-            {filename ?? mediaType ?? tCommon("labels.attachment")}
-          </span>
-        </a>
+          mediaType={mediaType}
+          url={url}
+        />
       );
     }
 
@@ -2753,21 +2750,9 @@ function StandaloneChatPageClient({
                       const userContentParts = isUser
                         ? message.parts.filter((part) => part.type !== "file")
                         : message.parts;
-                      const userImageParts = isUser
-                        ? message.parts.filter(
-                            (part) =>
-                              part.type === "file" &&
-                              typeof part.mediaType === "string" &&
-                              isImageMimeType(part.mediaType)
-                          )
-                        : [];
-                      const userFileParts = isUser
-                        ? message.parts.filter(
-                            (part) =>
-                              part.type === "file" &&
-                              (typeof part.mediaType !== "string" ||
-                                !isImageMimeType(part.mediaType))
-                          )
+                      // Images and other files share one tile grid above the bubble.
+                      const userAttachmentParts = isUser
+                        ? message.parts.filter((part) => part.type === "file")
                         : [];
                       const branches = isUser
                         ? messageBranches[message.id]
@@ -2812,16 +2797,15 @@ function StandaloneChatPageClient({
                                 }}
                               >
                                 <div className="flex w-full min-w-0 flex-col items-end gap-2">
-                                  {userImageParts.length > 0 && (
+                                  {userAttachmentParts.length > 0 && (
                                     <UserImageGrid>
-                                      {userImageParts.map((part, index) =>
+                                      {userAttachmentParts.map((part, index) =>
                                         renderPart(part, message.id, index)
                                       )}
                                     </UserImageGrid>
                                   )}
                                   {(isEditing ||
-                                    userContentParts.length > 0 ||
-                                    userFileParts.length > 0) && (
+                                    userContentParts.length > 0) && (
                                     <UserMessageTextBubble
                                       initialText={toDisplayText(
                                         getUserMessageText(message)
@@ -2834,13 +2818,6 @@ function StandaloneChatPageClient({
                                     >
                                       {userContentParts.map((part, index) =>
                                         renderPart(part, message.id, index)
-                                      )}
-                                      {userFileParts.length > 0 && (
-                                        <div className="flex max-w-full flex-wrap justify-end gap-2">
-                                          {userFileParts.map((part, index) =>
-                                            renderPart(part, message.id, index)
-                                          )}
-                                        </div>
                                       )}
                                     </UserMessageTextBubble>
                                   )}

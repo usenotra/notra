@@ -32,6 +32,7 @@ import {
   CommandItem,
   CommandList,
 } from "@notra/ui/components/ui/command";
+import { Composer } from "@notra/ui/components/ui/composer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,7 @@ import { Loader2Icon } from "lucide-react";
 import {
   type Dispatch,
   type KeyboardEvent,
+  type ReactNode,
   type Ref,
   type RefObject,
   type SetStateAction,
@@ -77,9 +79,9 @@ import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
 import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
-import { Composer } from "@/components/composer/composer-shell";
 import Image from "@/components/framework/image";
 import Link from "@/components/framework/link";
+import { StatusSpinner } from "@/components/geo/status-spinner";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
@@ -251,13 +253,15 @@ function getComposerSendState({
 }) {
   const hasAnyContent =
     !isEmpty || attachmentCount > 0 || pendingUploadCount > 0;
-  const canQueue =
-    isLoading && !isEmpty && attachmentCount === 0 && pendingUploadCount === 0;
+  // While the agent runs, anything in the composer (text and/or files) queues
+  // as one message; an empty composer turns the button into stop.
+  const canQueue = isLoading && hasAnyContent && !hasUnsupportedAttachments;
+  const showStop = isLoading && !hasAnyContent;
 
   let disabled = hasUnsupportedAttachments || !hasAnyContent;
   if (isQueued || canQueue) {
     disabled = false;
-  } else if (isLoading && isEmpty) {
+  } else if (showStop) {
     disabled = !onStop || isStopping;
   } else if (isUsageBlocked) {
     disabled = true;
@@ -266,14 +270,14 @@ function getComposerSendState({
   let onClick = onSend;
   if (isQueued) {
     onClick = onCancelQueue;
-  } else if (isLoading && isEmpty && onStop) {
+  } else if (showStop && onStop) {
     onClick = onStop;
   }
 
   let icon: "send" | "stop" | "queued" = "send";
   if (isQueued) {
     icon = "queued";
-  } else if (isLoading && isEmpty) {
+  } else if (showStop) {
     icon = "stop";
   }
 
@@ -281,11 +285,11 @@ function getComposerSendState({
     busy: Boolean(isLoading && isStopping),
     disabled,
     icon,
-    labelKey: getSendLabelKey({ canQueue, isEmpty, isLoading }),
+    labelKey: getSendLabelKey({ canQueue, isEmpty: !hasAnyContent, isLoading }),
     onClick,
     tooltipKey: getSubmitTooltipText({
       canQueue,
-      isEmpty,
+      isEmpty: !hasAnyContent,
       isLoading,
       isQueued,
       isStopping,
@@ -334,6 +338,21 @@ function ChatComposerSendButton({
     pendingUploadCount,
   });
 
+  let icon: ReactNode;
+  if (send.busy) {
+    icon = <StatusSpinner />;
+  } else if (send.icon === "queued") {
+    icon = <Loader2Icon className="size-4 animate-spin" />;
+  } else {
+    icon = (
+      <HugeiconsIcon
+        className="size-4"
+        icon={send.icon === "stop" ? StopIcon : ArrowUp02Icon}
+        strokeWidth={send.icon === "send" ? 2 : undefined}
+      />
+    );
+  }
+
   return (
     <Composer.Send
       busy={send.busy}
@@ -342,15 +361,7 @@ function ChatComposerSendButton({
       onClick={send.onClick}
       tooltip={t(send.tooltipKey)}
     >
-      {send.icon === "queued" ? (
-        <Loader2Icon className="size-4 animate-spin" />
-      ) : (
-        <HugeiconsIcon
-          className="size-4"
-          icon={send.icon === "stop" ? StopIcon : ArrowUp02Icon}
-          strokeWidth={send.icon === "send" ? 2 : undefined}
-        />
-      )}
+      {icon}
     </Composer.Send>
   );
 }
@@ -1155,6 +1166,7 @@ function sendOrQueueComposer({
   isUsageBlocked,
   onSend,
   performSend,
+  sendSnapshot,
   setInternalError,
   setPendingSend,
   attachments,
@@ -1179,19 +1191,24 @@ function sendOrQueueComposer({
   isUsageBlocked: boolean;
   onSend?: (value: string, attachments: ChatAttachment[]) => void;
   performSend: () => boolean;
+  sendSnapshot: (value: string, attachments: ChatAttachment[]) => boolean;
   pendingUploads: PendingUploadItem[];
   setInternalError: Dispatch<SetStateAction<string | null>>;
   setPendingSend: Dispatch<SetStateAction<QueuedSendSnapshot | null>>;
   taggedSkillNames: readonly string[];
   limitMessage: string;
 }) {
-  if (isLoading) {
+  if (isLoading && !isUploading) {
     const outbound = prependTaggedSkills(
       serializeEditorWithReferences(editor),
       taggedSkillNames
     );
-    const hasAttachments = attachments.length > 0 || pendingUploads.length > 0;
-    if ((!outbound && !quote) || hasAttachments) {
+    if (attachments.length > 0) {
+      // Files stay with this message in the queue and go out when it drains.
+      sendSnapshot(prependChatQuote(outbound, quote), [...attachments]);
+      return;
+    }
+    if (!outbound && !quote) {
       return;
     }
     clearError();
@@ -1860,6 +1877,19 @@ export function ChatInputAdvanced({
         sel?.removeAllRanges();
         sel?.addRange(range);
       },
+      setAttachments: (next: ChatAttachment[]) => {
+        const merged = [
+          ...attachmentsRef.current,
+          ...next.filter(
+            (attachment) =>
+              !attachmentsRef.current.some(
+                (current) => current.key === attachment.key
+              )
+          ),
+        ].slice(0, MAX_CHAT_ATTACHMENTS);
+        attachmentsRef.current = merged;
+        setAttachments(merged);
+      },
       focus: () => {
         editorRef.current?.focus();
       },
@@ -2288,9 +2318,6 @@ export function ChatInputAdvanced({
 
   const sendSnapshot = useCallback(
     (value: string, snapshotAttachments: ChatAttachment[]) => {
-      if (isLoading) {
-        return false;
-      }
       if (!(value || snapshotAttachments.length > 0)) {
         return false;
       }
@@ -2330,7 +2357,6 @@ export function ChatInputAdvanced({
       clearError,
       customer,
       chatIncludedInPlan,
-      isLoading,
       isUsageBlocked,
       limitMessage,
       model,
@@ -2379,6 +2405,7 @@ export function ChatInputAdvanced({
       limitMessage,
       pendingUploads: pendingUploadsRef.current,
       performSend,
+      sendSnapshot,
       setInternalError,
       setPendingSend,
       taggedSkillNames,
@@ -2396,6 +2423,7 @@ export function ChatInputAdvanced({
     limitMessage,
     onSend,
     performSend,
+    sendSnapshot,
     taggedSkillNames,
     quoteContext,
   ]);
@@ -2682,7 +2710,7 @@ export function ChatInputAdvanced({
               ref={fileInputRef}
               type="file"
             />
-            <div className="bg-background relative flex min-w-0 flex-col rounded-t-[13px]">
+            <div className="relative flex min-w-0 flex-col rounded-t-[13px]">
               <div className="flex w-full min-w-0 items-center rounded-t-[12px]">
                 <div className="relative flex min-w-0 flex-1 cursor-text transition-colors [--lh:1lh]">
                   {/* biome-ignore lint/a11y/useSemanticElements: rich mention editor requires a contentEditable host instead of a native textarea. */}
@@ -2732,14 +2760,6 @@ export function ChatInputAdvanced({
               </div>
             </div>
             <Composer.Toolbar>
-              <ChatComposerAttachButton
-                attachmentCount={attachments.length}
-                disabled={isLoading || isQueued}
-                onAttach={() => fileInputRef.current?.click()}
-                pendingUploadCount={pendingUploads.length}
-                tooltip={attachmentTooltipText}
-              />
-
               <ChatComposerModelPicker
                 availableModels={availableModels}
                 currentModel={currentModel}
@@ -2758,37 +2778,47 @@ export function ChatInputAdvanced({
                 thinkingLevel={thinkingLevel}
               />
 
-              <ChatComposerContextPicker
-                addContext={addContext}
-                contextOptions={contextOptions}
-                contextPickerDisabledReason={contextPickerDisabledReason}
-                contextPickerId={contextPickerId}
-                integrationContextOptions={integrationContextOptions}
-                isContextPickerOpen={isContextPickerOpen}
-                isInContext={isInContext}
-                isLoading={isLoading}
-                isQueued={isQueued}
-                mcpToolOptions={mcpToolOptions}
-                organizationSlug={organizationSlug}
-                removeContext={removeContext}
-                setIsContextPickerOpen={setIsContextPickerOpen}
-              />
+              <div className="ml-auto flex items-center gap-1">
+                <ChatComposerContextPicker
+                  addContext={addContext}
+                  contextOptions={contextOptions}
+                  contextPickerDisabledReason={contextPickerDisabledReason}
+                  contextPickerId={contextPickerId}
+                  integrationContextOptions={integrationContextOptions}
+                  isContextPickerOpen={isContextPickerOpen}
+                  isInContext={isInContext}
+                  isLoading={isLoading}
+                  isQueued={isQueued}
+                  mcpToolOptions={mcpToolOptions}
+                  organizationSlug={organizationSlug}
+                  removeContext={removeContext}
+                  setIsContextPickerOpen={setIsContextPickerOpen}
+                />
 
-              <ChatComposerSendButton
-                attachmentCount={attachments.length}
-                hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
-                isEmpty={
-                  isEmpty && taggedSkills.length === 0 && !quoteContext?.quote
-                }
-                isLoading={isLoading}
-                isQueued={isQueued}
-                isStopping={isStopping}
-                isUsageBlocked={isUsageBlocked}
-                onCancelQueue={() => setPendingSend(null)}
-                onSend={handleSend}
-                onStop={onStop}
-                pendingUploadCount={pendingUploads.length}
-              />
+                <ChatComposerAttachButton
+                  attachmentCount={attachments.length}
+                  disabled={isQueued}
+                  onAttach={() => fileInputRef.current?.click()}
+                  pendingUploadCount={pendingUploads.length}
+                  tooltip={attachmentTooltipText}
+                />
+
+                <ChatComposerSendButton
+                  attachmentCount={attachments.length}
+                  hasUnsupportedAttachments={hasUnsupportedAttachmentsForModel}
+                  isEmpty={
+                    isEmpty && taggedSkills.length === 0 && !quoteContext?.quote
+                  }
+                  isLoading={isLoading}
+                  isQueued={isQueued}
+                  isStopping={isStopping}
+                  isUsageBlocked={isUsageBlocked}
+                  onCancelQueue={() => setPendingSend(null)}
+                  onSend={handleSend}
+                  onStop={onStop}
+                  pendingUploadCount={pendingUploads.length}
+                />
+              </div>
             </Composer.Toolbar>
           </section>
         </Composer.Frame>

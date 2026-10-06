@@ -262,6 +262,25 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
     return current;
   }, []);
 
+  // Puts already-uploaded files back, e.g. when a queued message is edited.
+  // They count as submitted so unmount cleanup never deletes them.
+  const restoreAttachments = useCallback((next: ChatAttachment[]) => {
+    for (const attachment of next) {
+      submittedKeysRef.current.add(attachment.key);
+    }
+    const merged = [
+      ...attachmentsRef.current,
+      ...next.filter(
+        (attachment) =>
+          !attachmentsRef.current.some(
+            (current) => current.key === attachment.key
+          )
+      ),
+    ].slice(0, MAX_CHAT_ATTACHMENTS);
+    attachmentsRef.current = merged;
+    setAttachments(merged);
+  }, []);
+
   const cleanupUnsubmittedAttachments = useCallback(() => {
     for (const attachment of attachmentsRef.current) {
       if (submittedKeysRef.current.has(attachment.key)) {
@@ -343,6 +362,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
   );
 
   return {
+    restoreAttachments,
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
     attachments,

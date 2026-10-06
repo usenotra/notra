@@ -5588,7 +5588,8 @@
       "edit": "Edit queued message",
       "cancelSteering": "Cancel steering",
       "remove": "Remove from queue",
-      "steer": "Steer with this message"
+      "steer": "Steer with this message",
+      "attachments": "{count, plural, one {# attachment} other {# attachments}}: {names}"
     },
     "author": {
       "formerMember": "Former member"
@@ -5674,7 +5675,7 @@
     "page": {
       "slackMirrorNotice": "Mirrored from a Slack thread.",
       "working": "Working",
-      "showMoreImages": "Show {count, plural, one {# more image} other {# more images}}",
+      "showMoreImages": "Show {count, plural, one {# more attachment} other {# more attachments}}",
       "loadingProject": "Loading project",
       "slackSendFailed": "Sending to Slack failed. Try again.",
       "draftGenerationFailed": "Draft generation failed. The assistant will retry.",
