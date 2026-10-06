@@ -1,0 +1,23 @@
+packages/sites-server/src/utils/starter-html.ts
+  s_2e1b04b64a383c::t_3bfb4987d287dd 493-494,496-497
+packages/sites-server/src/utils/starter-files.ts
+  s_2e1b04b64a383c::t_3bfb4987d287dd 74
+packages/sites-server/tests/starter.test.ts
+  s_2e1b04b64a383c::t_3bfb4987d287dd 203-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ce064e38459bdb8975c938a818aef762414a4e17",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
