@@ -69,7 +69,9 @@ export async function submitWorkspaceForm({
   let organizationId: string;
 
   if (existingOrg) {
-    if (parsed.data.websiteUrl) {
+    // A saved brand's website is locked and never re-analyzed here, so a
+    // domain that stopped resolving must not block the step.
+    if (parsed.data.websiteUrl && !existingOrg.hasBrand) {
       const validation = await validateOnboardingWebsiteUrl(
         parsed.data.websiteUrl
       );
@@ -164,7 +166,9 @@ export async function submitWorkspaceForm({
       });
   }
 
-  if (parsed.data.websiteUrl) {
+  // An existing brand keeps its website here; the analysis action would skip
+  // it anyway, and switching domains is done from the brand settings.
+  if (parsed.data.websiteUrl && !existingOrg?.hasBrand) {
     const analysis = await triggerOnboardingBrandAnalysis({
       organizationId,
       websiteUrl: parsed.data.websiteUrl,

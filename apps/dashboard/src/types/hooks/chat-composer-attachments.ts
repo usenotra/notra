@@ -27,5 +27,6 @@ export interface UseChatComposerAttachmentsResult {
   pendingUploads: PendingChatUpload[];
   previewAttachment: ChatAttachment | null;
   removeAttachment: (key: string) => void;
+  restoreAttachments: (attachments: ChatAttachment[]) => boolean;
   setPreviewAttachment: (attachment: ChatAttachment | null) => void;
 }

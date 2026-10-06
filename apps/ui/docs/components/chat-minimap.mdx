@@ -5,9 +5,7 @@ description: A rail of lines that maps a conversation, one line per turn.
 
 <Component path="chat-minimap/examples/chat-minimap" />
 
-```bash
-bunx shadcn@latest add @notra/chat-minimap
-```
+<RegistryInstall name="chat-minimap" />
 
 Each line is a shadcn `Button` holding an SVG. The lines share one length at rest. The hovered line grows the most and its neighbours grow less the further away they are. Hovering a line opens a shadcn `HoverCard` with a `Card` inside. The up and down buttons stay hidden until they are hovered or focused, show all the time on touch screens, and use a shadcn `Tooltip`.
 

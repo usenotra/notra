@@ -61,6 +61,7 @@ import type {
   GeoPersonaUpdateInput,
   PersonaGenerationContext,
 } from "../types/geo-personas";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   hasGeoPersonaDetailsChanged,
   normalizeGeneratedPersonaSet,
@@ -521,7 +522,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
       .pipe(
         Effect.catch((error) =>
           Effect.sync(() => {
-            console.error(`[GeoPersonas] billing ${action} failed:`, error);
+            logGeoFailure(
+              "geo.personas.billing_failed",
+              `Persona billing ${action} failed`,
+              error,
+              { action, runId, projectId: scope.projectId }
+            );
           })
         )
       );
@@ -561,7 +567,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
         claim.claimedAt
       ).pipe(
         Effect.catch((error) => {
-          console.error("[GEO] Failed to start scan after personas:", error);
+          logGeoFailure(
+            "geo.personas.scan_start_failed",
+            "Failed to start scan after personas",
+            error,
+            { projectId: scope.projectId }
+          );
           return Effect.void;
         })
       );

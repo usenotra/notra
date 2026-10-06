@@ -5,9 +5,7 @@ description: The copy, feedback and retry row under a message.
 
 <Component path="claude/examples/claude-actions" />
 
-```bash
-bunx shadcn@latest add @notra/claude-actions
-```
+<RegistryInstall name="claude-actions" />
 
 Each action is a ghost shadcn `Button` with a shadcn `Tooltip`. Assistant messages get Copy, Read aloud, Good response, Bad response and Retry. User messages get Retry, Edit and Copy. Copy writes `text` to the clipboard and shows a check for a moment.
 

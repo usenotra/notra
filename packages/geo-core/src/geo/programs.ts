@@ -25,6 +25,8 @@ import {
   queryGeoCheckCompetitorShareTimeseries,
   queryGeoCheckCompetitorShareTrends,
   queryGeoCheckCompetitorTimeseries,
+  queryGeoCheckEngineBrandMentions,
+  queryGeoCheckEngineTotals,
   queryGeoCheckLanguageShare,
   queryGeoCheckLanguageShareTrends,
   queryGeoCheckOverview,
@@ -65,6 +67,7 @@ import type {
   GeoCompetitorMerge,
   GeoCompetitorReconcileOutcome,
   GeoCompetitorSeed,
+  GeoCompetitorEngineMatrixResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorsResponse,
   GeoCompetitorUpsertInput,
@@ -108,6 +111,7 @@ import {
   summarizeGeoChanges,
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
+import { competitorCanonicalMap } from "../utils/geo-competitor-names";
 import {
   normalizeConversionPaths,
   sumConversionVisits,
@@ -1093,6 +1097,61 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     return response;
   }
 );
+
+export const loadGeoCompetitorEngineMatrix = Effect.fn(
+  "geo.competitorEngineMatrix"
+)(function* (input: GeoScopeInput, window: GeoWindowInput) {
+  const scope = yield* resolveGeoScope(input);
+  const checkScope = geoCheckScope(scope);
+  const checkWindow = toGeoCheckWindow(window);
+
+  const [engines, competitors] = yield* Effect.all(
+    [
+      geoDb("engine totals query failed", () =>
+        queryGeoCheckEngineTotals(checkScope, checkWindow)
+      ),
+      scope.projectId
+        ? loadCompetitorsByProject(scope.projectId)
+        : Effect.succeed<GeoCompetitor[]>([]),
+    ],
+    { concurrency: "unbounded" }
+  );
+  // Tracked competitors are matched by name and synonyms regardless of rank,
+  // so one outside the top brands still gets its row. Untracked brands only
+  // stand in while nothing is tracked.
+  // Same mapping as the client, so an exact tracked name wins over another
+  // competitor's synonym.
+  const brands = competitorCanonicalMap(competitors);
+  if (brands.size === 0) {
+    const topBrands = yield* geoDb("competitor share query failed", () =>
+      queryGeoCheckCompetitorShare(
+        checkScope,
+        checkWindow,
+        GEO_COMPETITOR_SHARE_LIMIT
+      )
+    );
+    for (const row of topBrands) {
+      const key = competitorKey(row.brand);
+      if (key.length > 0 && !brands.has(key)) {
+        brands.set(key, row.brand);
+      }
+    }
+  }
+  const cells = yield* geoDb("engine brand mentions query failed", () =>
+    queryGeoCheckEngineBrandMentions(
+      checkScope,
+      checkWindow,
+      Array.from(brands, ([key, name]) => ({ key, name }))
+    )
+  );
+
+  const response: GeoCompetitorEngineMatrixResponse = {
+    configured: true,
+    engines,
+    cells,
+  };
+  return response;
+});
 
 export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
   function* (

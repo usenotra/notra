@@ -4,6 +4,7 @@ import {
   getLinearIntegrationsByOrganization,
 } from "@notra/ai/integrations/linear";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
 
@@ -81,8 +82,8 @@ export async function GET(request: Request) {
           { ex: restoreTtlSeconds }
         );
       } catch (restoreError) {
-        console.error(
-          "Failed to restore Linear OAuth state for retry:",
+        logError(
+          "Failed to restore Linear OAuth state for retry",
           restoreError
         );
       }
@@ -140,7 +141,7 @@ export async function GET(request: Request) {
 
     if (!tokenRes.ok) {
       const tokenError = await tokenRes.text();
-      console.error("Linear token exchange failed:", tokenError);
+      logError("Linear token exchange failed", tokenError);
       await restoreOAuthState();
       trackIntegrationConnectFailed({
         headers: request.headers,
@@ -172,7 +173,10 @@ export async function GET(request: Request) {
     });
 
     if (!orgRes.ok) {
-      console.error("Linear organization fetch failed:", await orgRes.text());
+      logError("Linear organization fetch failed", undefined, {
+        status: orgRes.status,
+        body: await orgRes.text(),
+      });
       await restoreOAuthState();
       return redirectResponse(`${baseUrl}/?error=org_fetch_failed`);
     }
@@ -230,7 +234,7 @@ export async function GET(request: Request) {
       })
     );
   } catch (error) {
-    console.error("Error in Linear OAuth callback:", error);
+    logError("Error in Linear OAuth callback", error);
     await restoreOAuthState?.();
     trackIntegrationConnectFailed({
       headers: request.headers,

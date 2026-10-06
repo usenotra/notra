@@ -18,6 +18,7 @@ import type {
   ContextDevWebSearchResponse,
 } from "@notra/ai/types/context-dev";
 import type { OperationalLogEvent } from "@notra/ai/types/operational-log";
+import { logError } from "@notra/ai/utils/server-log";
 import { isDemoMode } from "@notra/utils/demo-mode";
 
 import {
@@ -400,7 +401,7 @@ export async function scrapeWebsiteForBrandAnalysis(
       content: truncateContent(formatScrapedPagesForBrandAnalysis(pages)),
     };
   } catch (error) {
-    console.error("Error scraping website", {
+    logError("[context.dev] Error scraping website", undefined, {
       errorName: error instanceof Error ? error.name : "UnknownError",
     });
     return mapContextDevError(error);

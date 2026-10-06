@@ -1,13 +1,5 @@
-export function logError(prefix: string, error: unknown) {
-  if (error instanceof Error) {
-    console.error(prefix, {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      ...(error.cause === undefined ? {} : { cause: error.cause }),
-    });
-    return;
-  }
+import { logError as logServerError } from "@notra/ai/utils/server-log";
 
-  console.error(prefix, { error: String(error) });
+export function logError(prefix: string, error: unknown) {
+  logServerError(prefix, error);
 }

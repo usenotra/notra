@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { TABLE_FRAME_INSET_PX } from "@notra/ui/constants/table";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 import { useTranslations } from "use-intl";
 
@@ -228,6 +229,7 @@ export function ShelfTable({
   hasScanData,
   onAddShelf,
   competitorCount,
+  height = GEO_SHELF_TABLE_HEIGHT,
 }: GeoShelfTableProps) {
   const t = useTranslations("geo.shelf.shelfTable");
   const tGeoShared = useTranslations("geo.shared");
@@ -324,7 +326,8 @@ export function ShelfTable({
       data={rows}
       emptyState={tLabels("noMatches")}
       getRowId={(row) => row.id}
-      height={GEO_SHELF_TABLE_HEIGHT}
+      height={height - TABLE_FRAME_INSET_PX}
+      minHeight={height - TABLE_FRAME_INSET_PX}
       isRowPinned={(row) => pendingSourceIds.has(row.id)}
       loading={isFetchingNextPage}
       loadingMore={isFetchingNextPage}

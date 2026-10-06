@@ -38,6 +38,8 @@ eventTriggersRoutes.on(
   ["GET", "POST"],
   "/:organizationId/event-triggers",
   (c) => {
+    const log = c.get("log");
+    log.set({ legacyRedirect: true });
     const orgId = getOrganizationId(c);
     if (!orgId) {
       return c.json(
@@ -64,6 +66,8 @@ eventTriggersRoutes.on(
   ["GET", "PATCH", "DELETE"],
   "/:organizationId/event-triggers/:triggerId",
   (c) => {
+    const log = c.get("log");
+    log.set({ legacyRedirect: true });
     const orgId = getOrganizationId(c);
     if (!orgId) {
       return c.json(

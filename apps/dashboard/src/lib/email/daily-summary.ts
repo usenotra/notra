@@ -1,3 +1,4 @@
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   geoCompetitors,
@@ -111,9 +112,8 @@ export async function runDailySummaryCron(
       }
     } catch (error) {
       result.failed += 1;
-      console.error("[DailySummary] Failed to send GEO recap", {
+      logError("[DailySummary] Failed to send GEO recap", error, {
         organizationId: setting.organizationId,
-        error,
       });
     }
   }
@@ -305,10 +305,9 @@ async function sendDailySummaryForOrganization({
     });
 
     if (result.error) {
-      console.warn(
-        `[DailySummary] Failed to send GEO recap to ${recipientEmail}:`,
-        result.error
-      );
+      logWarn("[DailySummary] Failed to send GEO recap", {
+        error: result.error.message,
+      });
       failed = true;
       continue;
     }

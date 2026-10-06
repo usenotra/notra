@@ -5,9 +5,7 @@ description: Tool calls with a status bullet and result, plus the collapsed "Ran
 
 <Component path="claude-code/examples/claude-code-tool-call" />
 
-```bash
-bunx shadcn@latest add @notra/claude-code-tool-call
-```
+<RegistryInstall name="claude-code-tool-call" />
 
 `ClaudeCodeToolCall` prints `● Tool(arg)` with the tool name in bold and the result on a dim `⎿` line under it. Without `arg` the line is plain text, which fits the running descriptions Claude Code shows, like `Checking branch commits and PR status` over `$ git log …`. The bullet is green for `success`, red for `error` and a pulsing gray for `pending`.
 

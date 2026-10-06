@@ -25,6 +25,7 @@ import {
   InputGroupText,
 } from "@notra/ui/components/ui/input-group";
 import { Label } from "@notra/ui/components/ui/label";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tabs,
   TabsContent,
@@ -36,7 +37,6 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptKeywordTextarea } from "@/components/geo/prompt-keyword-textarea";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoGenerateFromWebsite, useGscKeywords } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
@@ -308,7 +308,7 @@ export function PromptAddDialog({
             </Button>
           ) : (
             <Button disabled={!canGenerate} form={formId} type="submit">
-              {generate.isPending ? <StatusSpinner /> : null}
+              {generate.isPending ? <Spinner className="size-3.5" /> : null}
               {tGeoShared("generatePrompts")}
             </Button>
           )}

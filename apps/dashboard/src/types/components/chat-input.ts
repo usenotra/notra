@@ -1,9 +1,11 @@
 import type {
   ChatAttachment,
+  ChatInputHandle,
   ChatModel,
   ContextItem,
   TextSelection,
 } from "@notra/ai/types/chat";
+import type { Ref } from "react";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
@@ -38,7 +40,13 @@ export interface ChatModelOption {
   beta?: boolean;
 }
 
+export type ContentChatInputHandle = Pick<ChatInputHandle, "setAttachments"> & {
+  /** The content page mounts a floating and a panel composer; only one shows. */
+  isVisible: () => boolean;
+};
+
 export interface ChatInputProps {
+  ref?: Ref<ContentChatInputHandle>;
   onSend?: (value: string, attachments: ChatAttachment[]) => void;
   onStop?: () => void;
   isLoading?: boolean;
@@ -141,4 +149,10 @@ export interface ChatContextSuggestedIntegration {
 export interface ChatContextConnectSuggestionsProps {
   organizationSlug: string;
   onSelect: () => void;
+}
+
+export interface ChatFileAttachmentProps {
+  url: string;
+  filename?: string;
+  mediaType?: string;
 }

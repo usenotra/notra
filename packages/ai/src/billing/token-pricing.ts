@@ -76,6 +76,8 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   "opencode/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "vercel/anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
+  "anthropic/claude-sonnet-5.5": CLAUDE_SONNET_5_PRICING,
+  "vercel/anthropic/claude-sonnet-5.5": CLAUDE_SONNET_5_PRICING,
   "anthropic/claude-haiku-4.5": {
     inputPerMillionTokens: 1.0,
     outputPerMillionTokens: 5.0,

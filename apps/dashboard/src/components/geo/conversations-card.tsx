@@ -31,6 +31,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Tooltip,
@@ -44,7 +45,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import { ConversationBuilderDialog } from "@/components/geo/conversation-builder-dialog";
 import { ConversationResultsDialog } from "@/components/geo/conversation-results-dialog";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import {
   useGeoRunSequence,
@@ -274,7 +274,7 @@ export function ConversationsCard({
       variant={sequences.length === 0 ? "default" : "ghost"}
     >
       {generateSequences.isPending ? (
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
       ) : (
         <HugeiconsIcon icon={AiMagicIcon} size={14} />
       )}

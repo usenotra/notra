@@ -9,7 +9,7 @@ Notra is a Bun + Turborepo monorepo.
 - Runtime and package manager: **Bun**
 - Monorepo orchestration: **Turbo**
 - Dashboard: **TanStack Start**, **Vite**, **Nitro**
-- Public website: **Next.js 16**
+- Public website: **TanStack Start**, **Vite**, **Nitro**
 - Shared frontend: **React 19**, **Tailwind CSS 4**
 - API: **Hono** on **Cloudflare Workers**
 - Database: **Postgres (Neon or PlanetScale Postgres recommended)** with **Drizzle ORM / drizzle-kit**
@@ -26,7 +26,7 @@ Notra is a Bun + Turborepo monorepo.
 |  |- api/         # Hono API (Cloudflare Worker)
 |  |- dashboard/   # Main Notra product app (TanStack Start)
 |  |- docs/        # Product docs (Mintlify)
-|  |- web/         # Public marketing site (Next.js)
+|  |- web/         # Public marketing site (TanStack Start)
 |- packages/
 |  |- db/                  # Shared Drizzle schema and DB helpers
 |  |- email/               # Shared email templates/components
@@ -169,16 +169,14 @@ https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-
 
 The web and dashboard apps enable incremental TypeScript checking in their
 `tsconfig.json` files, overriding the shared base config. Keep this enabled.
-The dashboard's standalone type check writes to `.cache/typecheck.tsbuildinfo`;
-its Vite build and Nitro output are separate from type checking.
-For the Next.js web app, Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
-Vercel restores on subsequent builds. A cold build still checks the whole project;
-warm builds reuse unchanged checks without disabling type errors.
+Both apps' standalone type checks write to `.cache/typecheck.tsbuildinfo`.
+Their Vite builds and Nitro output are separate from type checking: a successful
+build does not mean TypeScript passed. Run `bun run check-types` separately;
+the code-quality workflow already does this for both apps.
 
-For the web app, Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
-`.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
-task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
-the incremental compiler state used when a task needs to run again.
+Turbo caches completed Nitro artifacts in `.output` and `.vercel/output`, plus
+the web app's generated `.source` files. Neither app uses `.next/cache` or
+Turbopack's filesystem cache.
 
 When comparing deployments, measure compilation, TypeScript, static generation,
 and output deployment separately. Vercel's `Creating build cache` phase occurs
@@ -186,19 +184,18 @@ after `Deployment completed`; it is not additional time until the app is live.
 Both projects use filtered Turbo build commands and skip unaffected projects.
 Preserve those settings when changing the Vercel configuration.
 
-Standalone `check-types` scripts that run `tsc` enable incremental checking with
-command-line flags and write to `.cache/typecheck.tsbuildinfo` within each
-package. Run them through `bun run check-types` (optionally with `--filter`) to
-reuse this state. These flags override the shared base config for type checks
-without changing Eve or tsup builds. The files are already ignored by Git's
-`*.tsbuildinfo` rule and are declared as Turbo task outputs.
+Standalone `check-types` scripts that run `tsc` enable incremental checking in
+their TypeScript configuration or with command-line flags, and write to
+`.cache/typecheck.tsbuildinfo` within each package. Run them through
+`bun run check-types` (optionally with `--filter`) to reuse this state. These
+overrides apply to type checks without changing Eve or tsup builds. The files
+are already ignored by Git's `*.tsbuildinfo` rule and are declared as Turbo task outputs.
 
 The code-quality workflow restores these files using a cache key scoped to the
 runner platform, dependencies, configuration, and commit. A matching prefix can
 restore state from an earlier commit; TypeScript still checks changed source and
 its affected dependents. The workflow retains its existing package selection.
 Blume's `ui` app uses its own checker and does not produce this cache file.
-The web app's Next.js production builds continue to use their separate `.next/cache` state.
 
 ## Database Workflow
 
@@ -544,3 +541,8 @@ Workflow orchestration tests replace steps and `sleep`; they do not verify
 Vercel's durable runtime, restart recovery, or actual cron delivery. Live model
 answers, billing providers, and the committed database migration chain are also
 outside this suite.
+
+The Code quality job also builds the website and runs `bun run test:production`
+from `apps/web`. This starts the production artifact from an empty directory and
+checks the Markdown endpoints without access to the source tree. Run
+`bun run build --filter=web && (cd apps/web && bun run test:production)` locally.

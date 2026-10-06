@@ -10,7 +10,7 @@ import { SITE_URL } from "@/utils/urls";
 const metadata: Metadata = {
   title: "Notra Agent Interface",
   description:
-    "Explore Notra's generative engine optimization (GEO) tools for AI visibility, competitor share of voice, and content gaps through the API and MCP.",
+    "Explore Notra's generative engine optimization (GEO) tools for AI visibility, competitor share of voice and content gaps through the API and MCP.",
   alternates: pageAlternates(`${SITE_URL}/agent`),
 };
 
@@ -25,7 +25,7 @@ function AgentPage() {
   return (
     <main className="flex w-full flex-col items-center gap-8 pb-28 antialiased [font-synthesis:none]">
       <MarketingHeroWash
-        subtitle="Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini, and Perplexity, compare your share of voice with competitors, and turn content gaps into articles in your brand voice."
+        subtitle="Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini and Perplexity, compare your share of voice with competitors and turn content gaps into articles in your brand voice."
         title={
           <>
             Notra <span className="text-primary">Agent</span> Interface

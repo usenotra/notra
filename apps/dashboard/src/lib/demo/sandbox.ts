@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   DEMO_ORG_SLUG_PREFIX,
   DEMO_SEEDING_GRACE_MINUTES,
@@ -254,7 +255,7 @@ async function seedDemoSandbox(
     anonymousId,
     expiresAt,
   }).catch((error: unknown) => {
-    console.error("[demo] Failed to create sandbox API key", error);
+    logError("[demo] Failed to create sandbox API key", error);
     return null;
   });
 
@@ -327,7 +328,7 @@ export async function claimPooledSandbox(
     afterResponse(() =>
       updateDemoApiKey({ keyId, expiresAt: sandboxExpiry(now) }).catch(
         (error: unknown) => {
-          console.error("[demo] Failed to extend claimed sandbox key", error);
+          logError("[demo] Failed to extend claimed sandbox key", error);
         }
       )
     );
@@ -555,7 +556,7 @@ async function swapInPooledWorkspace(
   if (pooledKeyId) {
     afterResponse(() =>
       deleteDemoApiKey(pooledKeyId).catch((error: unknown) => {
-        console.error("[demo] Failed to delete pooled sandbox key", error);
+        logError("[demo] Failed to delete pooled sandbox key", error);
       })
     );
   }
@@ -629,7 +630,7 @@ async function moveDemoApiKey(
     }).then(
       () => true,
       (error: unknown) => {
-        console.error("[demo] Failed to move sandbox API key", error);
+        logError("[demo] Failed to move sandbox API key", error);
         return false;
       }
     );
@@ -643,7 +644,7 @@ async function moveDemoApiKey(
     anonymousId: sandbox.anonymousId,
     expiresAt: sandboxExpiry(sandbox.createdAt),
   }).catch((error: unknown) => {
-    console.error("[demo] Failed to replace sandbox API key", error);
+    logError("[demo] Failed to replace sandbox API key", error);
     return null;
   });
   await db
@@ -677,7 +678,7 @@ async function deleteDemoOrganization(organizationId: string) {
 async function deleteDemoSandbox(sandbox: DemoSandbox) {
   if (sandbox.apiKeyId) {
     await deleteDemoApiKey(sandbox.apiKeyId).catch((error: unknown) => {
-      console.error("[demo] Failed to delete sandbox API key", error);
+      logError("[demo] Failed to delete sandbox API key", error);
     });
   }
   await deleteDemoOrganization(sandbox.organizationId);

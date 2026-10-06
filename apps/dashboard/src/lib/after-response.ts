@@ -1,3 +1,5 @@
+import { logError } from "@notra/ai/utils/server-log";
+
 import { afterResponse } from "@/lib/framework/after-response";
 
 /**
@@ -13,7 +15,7 @@ export function runAfterResponse(
     try {
       await task();
     } catch (error) {
-      console.error(failureMessage, error);
+      logError(failureMessage, error);
     }
   };
 

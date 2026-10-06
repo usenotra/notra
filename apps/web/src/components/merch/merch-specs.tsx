@@ -11,8 +11,8 @@ export function MerchSpecs() {
             Just a <span className="text-primary">good hat</span>.
           </h2>
           <p className="max-w-[40rem] text-center font-sans text-[1.0625rem] leading-[1.3] font-medium tracking-[-0.005em] text-[#1E1E1EBF] sm:text-[1.25rem] dark:text-white/70">
-            Unstructured cotton twill, one size, the Notra mark on the front.
-            That's it.
+            An unstructured cotton twill cap in one size, with the Notra mark on
+            the front.
           </p>
         </div>
 

@@ -9,9 +9,7 @@ Every table in Notra uses the same frame: a grey shell with a 2px rim on all fou
 
 ## Installation
 
-```bash
-bunx shadcn@latest add @notra/data-table
-```
+<RegistryInstall name="data-table" />
 
 This installs the table into `components/data-table/` and replaces `components/ui/table.tsx` with the framed [Table](#table) primitives. It also pulls in [Button](/components/button) and [Tooltip](/components/tooltip), plus shadcn's Checkbox, Select, Context Menu and Skeleton.
 
@@ -115,6 +113,20 @@ Server and cursor tables without `onPageSizeChange` show the range, like "11-20 
 ```
 
 `height` sizes the empty state; once rows arrive, the table shrinks to fit them.
+
+## Toolbar
+
+`toolbar` puts a row above the column headers on its own white card, for summaries or filters that belong to the table.
+
+<Component path="data-table/examples/data-table-toolbar" />
+
+```tsx
+<DataTable
+  columns={columns}
+  data={changes}
+  toolbar={<SummaryToolbar />}
+/>
+```
 
 ## Labels
 

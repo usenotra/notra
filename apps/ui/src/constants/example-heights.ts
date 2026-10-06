@@ -50,6 +50,7 @@ export const EXAMPLE_HEIGHTS: Record<string, number> = {
   "data-table/examples/data-table-demo": 676,
   "data-table/examples/data-table-empty": 344,
   "data-table/examples/data-table-infinite": 489,
+  "data-table/examples/data-table-toolbar": 330,
   "data-table/examples/table-primitives": 289,
   "gemini/examples/gemini-actions": 287,
   "gemini/examples/gemini-composer": 178,

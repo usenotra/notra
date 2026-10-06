@@ -88,7 +88,7 @@ function usageCostUsd(usage: AgentTokenUsage): number {
   if (
     typeof usage.totalUsd === "number" &&
     Number.isFinite(usage.totalUsd) &&
-    usage.totalUsd > 0
+    usage.totalUsd >= 0
   ) {
     return usage.totalUsd;
   }

@@ -17,6 +17,7 @@ import type {
   GeoBrandSearchResponse,
   GeoChangesResponse,
   GeoCompetitorDetailResponse,
+  GeoCompetitorEngineMatrixResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorSuggestionsResponse,
   GeoDiscoverWebsiteResult,
@@ -400,6 +401,22 @@ export function useGeoCompetitorShare(
       },
     }),
     enabled: enabled && !!organizationId,
+    placeholderData: keepPreviousData,
+    meta: { errorMessage: tToast("loadCompetitorShareFailed") },
+  });
+}
+
+export function useGeoCompetitorEngineMatrix(
+  organizationId: string,
+  range?: GeoRangeQuery
+) {
+  const tToast = useTranslations("geo.toasts");
+  const { projectId } = useGeoProjectScope();
+  return useQuery<GeoCompetitorEngineMatrixResponse>({
+    ...dashboardOrpc.geo.competitorEngineMatrix.queryOptions({
+      input: { organizationId, projectId, ...toGeoWindowInput(range) },
+    }),
+    enabled: !!organizationId,
     placeholderData: keepPreviousData,
     meta: { errorMessage: tToast("loadCompetitorShareFailed") },
   });

@@ -39,6 +39,7 @@ import {
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { withChatStreamCleanup } from "@notra/ai/utils/with-chat-stream-cleanup";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
@@ -177,11 +178,10 @@ export const POST = withEvlog(async function POST(
       try {
         billing = await checkChatBilling(organizationId);
       } catch (checkError) {
-        console.error("[Autumn] Check error:", {
-          requestId,
-          customerId: organizationId,
-          error: checkError,
-        });
+        log.error(
+          checkError instanceof Error ? checkError : String(checkError),
+          { billingCheck: "failed" }
+        );
         trackBlocked("BILLING_ERROR");
         return Response.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
@@ -377,11 +377,7 @@ export const POST = withEvlog(async function POST(
       ).catch(() => undefined);
     }
     const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("[Standalone Chat] Error:", {
-      requestId,
-      error: errorMessage,
-      stack: e instanceof Error ? e.stack : undefined,
-    });
+    log.error(e instanceof Error ? e : errorMessage);
     return Response.json(
       {
         error:
@@ -562,10 +558,9 @@ async function createDirectStandaloneChatResponse({
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after standalone chat:", {
+            logError("[Autumn] Track error after standalone chat", trackError, {
               requestId,
               customerId: organizationId,
-              error: trackError,
             });
           }
         },
@@ -623,7 +618,7 @@ async function createDirectStandaloneChatResponse({
           messages.at(-1)?.id
         );
         if (!saved) {
-          console.warn(
+          logWarn(
             "[Standalone Chat] Skipped saving response: chat was deleted",
             { requestId, organizationId, chatId }
           );
@@ -633,10 +628,7 @@ async function createDirectStandaloneChatResponse({
         const isAbort =
           combinedAbortSignal.aborted ||
           (error instanceof Error && error.name === "AbortError");
-        console.error("[Standalone Chat] Direct stream error:", {
-          requestId,
-          error,
-        });
+        logError("[Standalone Chat] Direct stream error", error, { requestId });
         if (isAbort) {
           return "Generation stopped.";
         }

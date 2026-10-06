@@ -25,7 +25,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Pricing";
 const description =
-  "Choose the right Notra plan for your team. Compare features across Starter, Growth, Scale, and Enterprise tiers.";
+  "Choose the right Notra plan for your team. Compare features across Starter, Growth, Scale and Enterprise tiers.";
 const url = `${SITE_URL}/pricing`;
 
 const offers: OfferLike[] = Object.values(PRICING_PLANS).flatMap((plan) => {

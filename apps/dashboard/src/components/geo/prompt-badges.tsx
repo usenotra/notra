@@ -9,35 +9,12 @@ import {
 import { useTranslations } from "use-intl";
 
 import {
-  GEO_PROMPT_INTENT_ICONS,
-  GEO_PROMPT_INTENT_PILL_CLASS,
   GEO_PROMPT_LABEL_PILL_CLASS,
   GEO_PROMPT_PRESENCE_ICONS,
   GEO_PROMPT_PRESENCE_PILL_CLASS,
 } from "@/constants/geo-prompts";
-import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { cn } from "@/lib/utils";
-import type {
-  PromptIntentBadgeProps,
-  PromptPresenceBadgeProps,
-} from "@/types/geo";
-
-export function PromptIntentBadge({ intent }: PromptIntentBadgeProps) {
-  const intentLabel = useGeoPromptIntentLabel();
-  return (
-    <span
-      className={cn(GEO_PROMPT_LABEL_PILL_CLASS, GEO_PROMPT_INTENT_PILL_CLASS)}
-    >
-      <HugeiconsIcon
-        aria-hidden
-        className="size-3.5 shrink-0"
-        icon={GEO_PROMPT_INTENT_ICONS[intent]}
-        strokeWidth={2}
-      />
-      {intentLabel(intent)}
-    </span>
-  );
-}
+import type { PromptPresenceBadgeProps } from "@/types/geo";
 
 export function PromptPresenceBadge({ status }: PromptPresenceBadgeProps) {
   const t = useTranslations("geo.promptBadges");

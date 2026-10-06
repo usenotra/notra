@@ -1,5 +1,6 @@
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Progress } from "@notra/ui/components/ui/progress";
 import { useLocale, useTranslations } from "use-intl";
 
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
@@ -61,9 +62,9 @@ export function ScanActivityStatus({ run }: GeoScanActivityStatusProps) {
         </span>
       </p>
       {running && progress !== null ? (
-        <progress
+        <Progress
           aria-label={t("progressLabel")}
-          className="bg-border [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-value]:bg-primary h-1 w-24 shrink-0 overflow-hidden rounded-full"
+          className="w-24 shrink-0"
           max={100}
           value={progress}
         />

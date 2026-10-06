@@ -105,8 +105,31 @@ export function createOpenRouterAdapter(
         openrouter && typeof openrouter === "object"
           ? (openrouter as Record<string, unknown>)
           : {};
+      const usage =
+        record.usage && typeof record.usage === "object"
+          ? (record.usage as Record<string, unknown>)
+          : {};
+      const gatewayCost = readNumber(usage.cost);
+      const costDetails =
+        usage.costDetails && typeof usage.costDetails === "object"
+          ? (usage.costDetails as Record<string, unknown>)
+          : undefined;
+      const upstreamCost =
+        usage.costDetails === undefined
+          ? 0
+          : readNumber(costDetails?.upstreamInferenceCost);
+      const costUsd =
+        gatewayCost !== undefined &&
+        gatewayCost >= 0 &&
+        upstreamCost !== undefined &&
+        upstreamCost >= 0
+          ? gatewayCost + upstreamCost
+          : undefined;
       return {
         ...(model ? { model } : {}),
+        ...(costUsd !== undefined && Number.isFinite(costUsd)
+          ? { costUsd }
+          : {}),
         upstreamProvider:
           typeof record.provider === "string" && record.provider.length > 0
             ? record.provider

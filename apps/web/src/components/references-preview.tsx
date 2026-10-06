@@ -24,7 +24,7 @@ const MOCK_TWEET: MockTweet = {
   authorHandle: "dominikkoch",
   authorAvatar: "https://avatars.githubusercontent.com/u/68947960?s=200&v=4",
   content:
-    "Just shipped our biggest update yet. Real-time collab, revamped dashboard, and 3x faster sync.\n\nHonestly can't believe how far we've come in 6 months.",
+    "Just shipped our biggest update yet. Real-time collab, revamped dashboard and 3x faster sync.\n\nHonestly can't believe how far we've come in 6 months.",
   likes: 847,
   retweets: 92,
   replies: 31,

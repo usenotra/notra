@@ -1,4 +1,5 @@
 import { CLAIM_REAP_GRACE_SECONDS } from "@notra/ai/constants/autonomy";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { autonomyClaims, autonomyControllerLeases } from "@notra/db/schema";
 import { and, eq, lt, or } from "drizzle-orm";
@@ -154,10 +155,9 @@ export async function acquireClaim(
   try {
     return await Effect.runPromise(acquireClaimEffect(input));
   } catch (error) {
-    console.error("[autonomy-claims] Failed to acquire claim", {
+    logError("[autonomy-claims] Failed to acquire claim", error, {
       scope: input.scope,
       claimKey: input.claimKey,
-      error,
     });
     return { claimed: false };
   }
@@ -169,10 +169,10 @@ export async function releaseClaim(
   try {
     await Effect.runPromise(releaseClaimEffect(input));
   } catch (error) {
-    console.warn("[autonomy-claims] Failed to release claim", {
+    logWarn("[autonomy-claims] Failed to release claim", {
       scope: input.scope,
       claimKey: input.claimKey,
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 }

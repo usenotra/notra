@@ -257,6 +257,7 @@ export interface GeoShelfPagingProps {
 }
 
 export interface GeoShelfBoardProps {
+  height?: number;
   rows: GeoShelfRow[];
   boardCounts: GeoShelfBoardCounts;
   hasNextPage: boolean;
@@ -289,6 +290,7 @@ export interface GeoShelfViewProps extends GeoShelfPagingProps {
 }
 
 export interface GeoShelfTableProps extends GeoShelfPagingProps {
+  height?: number;
   rows: GeoShelfRow[];
   competitorCount: number;
   totalCount: number;

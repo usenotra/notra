@@ -1,4 +1,5 @@
 import { realtime } from "@notra/ai/realtime";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   DEMO_REQUEST_BODY_MAX_CHARS,
   DEMO_REQUEST_LOG_MAX_ROWS,
@@ -84,7 +85,7 @@ export async function recordDemoRequest(
       .emit("demo.request", event);
     return event;
   } catch (error) {
-    console.error("[demo] Failed to record request", error);
+    logError("[demo] Failed to record request", error);
     return null;
   }
 }

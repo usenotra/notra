@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { projects } from "@notra/db/schema";
 import {
@@ -58,7 +59,10 @@ export function createGetGeoOverviewTool() {
           })),
         };
       } catch (error) {
-        console.error("[Tools] GEO overview failed:", error);
+        logError("GEO overview tool failed", error, {
+          organizationId,
+          projectId,
+        });
         return ANALYTICS_QUERY_FAILED_MESSAGE;
       }
     },

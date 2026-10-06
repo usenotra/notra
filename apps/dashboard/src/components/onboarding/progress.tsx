@@ -28,7 +28,7 @@ export function OnboardingProgress({
   return (
     <nav
       aria-label={t("label", { current, total: STEPS.length })}
-      className="flex items-center gap-1"
+      className="flex items-center"
     >
       {STEPS.map((step) => {
         const href = hrefs?.[step - 1];
@@ -44,7 +44,7 @@ export function OnboardingProgress({
 
         if (!href) {
           return (
-            <span className="flex h-6 items-center justify-center" key={step}>
+            <span className="flex h-6 items-center px-0.5" key={step}>
               {pill}
             </span>
           );
@@ -53,10 +53,7 @@ export function OnboardingProgress({
         return (
           <Link
             aria-label={t("goTo", { step: String(step) })}
-            className={cn(
-              "focus-visible:ring-ring flex size-6 items-center rounded-full hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none",
-              step < current ? "justify-end" : "justify-start"
-            )}
+            className="focus-visible:ring-ring relative flex h-6 items-center rounded-full px-0.5 after:absolute after:-inset-x-1 after:inset-y-0 hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
             href={href}
             key={step}
           >

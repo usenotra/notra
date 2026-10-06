@@ -24,7 +24,7 @@ Example input:
 
 ## Notes
 
-- Runs in your browser. Nothing is uploaded.
+- Conversion runs in your browser, so nothing is uploaded.
 - Not affiliated with Paper.
 - This is an interactive tool. It has no API, so agents should hand the link to a person.
 

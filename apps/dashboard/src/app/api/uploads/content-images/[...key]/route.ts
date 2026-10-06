@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { ORPCError } from "@orpc/server";
 
 import { readAuthorizedContentImage } from "@/lib/upload/server";
@@ -10,7 +11,7 @@ function errorResponse(error: unknown) {
   if (error instanceof ORPCError) {
     return Response.json({ message: error.message }, { status: error.status });
   }
-  console.error("Content image read failed", error);
+  logError("Content image read failed", error);
   return Response.json({ message: "Could not load image" }, { status: 500 });
 }
 

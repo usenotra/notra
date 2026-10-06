@@ -1,7 +1,9 @@
-import "@/workflows/runtime";
 import { runGeoWriter } from "@notra/ai/agents/geo-writer";
+
+import "@/workflows/runtime";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterResult } from "@notra/ai/types/geo-writer";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
@@ -177,7 +179,7 @@ export async function finishGeoWriter(input: {
   try {
     await Effect.runPromise(refreshGeoContentGaps(input));
   } catch (error) {
-    console.error("[GEO] Could not refresh content gaps after writing:", error);
+    logError("[GEO] Could not refresh content gaps after writing", error);
   }
 
   await completeActiveGeneration(input.organizationId, {
@@ -228,7 +230,7 @@ export async function failGeoWriter(input: {
   try {
     await Effect.runPromise(refreshGeoContentGaps(input));
   } catch (error) {
-    console.error("[GEO] Could not refresh content gaps after failure:", error);
+    logError("[GEO] Could not refresh content gaps after failure", error);
   }
 
   await completeActiveGeneration(input.organizationId, {

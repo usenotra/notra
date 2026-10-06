@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { repositoryOutputs } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -76,9 +77,9 @@ export async function recordGitHubPublishFailure(
     try {
       await dependencies.redisClient.del(key);
     } catch (error) {
-      console.warn("Failed to clear paused GitHub publish failure state", {
+      logWarn("Failed to clear paused GitHub publish failure state", {
         key,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -105,9 +106,9 @@ export async function clearGitHubPublishFailures(
       )
     );
   } catch (error) {
-    console.warn("Failed to clear GitHub publish failure state", {
+    logWarn("Failed to clear GitHub publish failure state", {
       ...params,
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 }

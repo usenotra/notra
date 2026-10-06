@@ -23,6 +23,7 @@ import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useState } from "react";
 import { useNow, useTranslations } from "use-intl";
@@ -32,7 +33,6 @@ import {
   CollectionMenuItems,
 } from "@/components/content/collection-menu-items";
 import Link from "@/components/framework/link";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   COLLECTION_JUST_NOW_MS,
   COLLECTION_TABLE_ROW_HEIGHT,
@@ -76,7 +76,7 @@ function CollectionStatusBadge({ status }: { status: CollectionStatus }) {
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
-      {status === "generating" ? <StatusSpinner /> : null}
+      {status === "generating" ? <Spinner /> : null}
       {t("status", { status })}
     </Badge>
   );

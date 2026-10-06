@@ -66,8 +66,8 @@ function resultLines(result: IpCheckResult): string[] {
     return [
       ...header,
       incomplete
-        ? "Not in any AI crawler range we could check. It can still be a bot: some lists were unreachable, many agents fetch from ordinary cloud or residential addresses, and some spoof a crawler user agent."
-        : "Not in any published AI crawler range. It can still be a bot: many agents fetch from ordinary cloud or residential addresses, and some spoof a crawler user agent.",
+        ? "Not in any AI crawler range we could check. It can still be a bot, because some lists were unreachable, many agents fetch from ordinary cloud or residential addresses and some spoof a crawler user agent."
+        : "Not in any published AI crawler range. It can still be a bot, because many agents fetch from ordinary cloud or residential addresses, and some spoof a crawler user agent.",
       ...coverage,
     ];
   }
@@ -134,7 +134,7 @@ export function buildIpCheckerMarkdown(
     markdownSection("What a match means", [
       "A hit tells you the address is owned by that vendor and used by the crawlers listed. When several crawlers share one range, pair the result with the user agent from the same request.",
       "",
-      "No match is not proof of a human. Coding agents, browser extensions and many assistants fetch pages from ordinary cloud or residential addresses and never publish them.",
+      "An address with no match can still belong to a bot. Coding agents, browser extensions and many assistants fetch pages from ordinary cloud or residential addresses and never publish them.",
     ]),
   ].join("\n");
 }

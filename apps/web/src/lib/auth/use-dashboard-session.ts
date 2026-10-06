@@ -1,30 +1,41 @@
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 
 import type { DashboardSessionState } from "@/types/auth/session";
 import { getNavbarSession } from "@/utils/navbar-session";
 
-export function useDashboardSession(): DashboardSessionState {
-  const [state, setState] = useState<DashboardSessionState>({
-    isAuthenticated: false,
-    isResolved: false,
-  });
+function getServerSnapshot() {
+  return undefined;
+}
 
-  useEffect(() => {
+export function useDashboardSession(): DashboardSessionState {
+  const fallback = useRef<boolean | undefined>(undefined);
+  const subscribe = useCallback((onChange: () => void) => {
     let cancelled = false;
     getNavbarSession().then((isAuthenticated) => {
-      if (cancelled) {
-        return;
+      if (!cancelled) {
+        fallback.current = isAuthenticated;
+        onChange();
       }
-      setState({
-        isAuthenticated,
-        isResolved: true,
-      });
     });
-
     return () => {
       cancelled = true;
     };
   }, []);
+  const getSnapshot = useCallback(
+    () =>
+      window.__notraNavbarSession
+        ? window.__notraNavbarSessionResolved
+        : fallback.current,
+    []
+  );
+  const isAuthenticated = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
-  return state;
+  return {
+    isAuthenticated: isAuthenticated === true,
+    isResolved: isAuthenticated !== undefined,
+  };
 }

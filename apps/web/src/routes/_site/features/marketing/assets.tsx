@@ -29,7 +29,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Marketing Assets";
 const description =
-  "Notra turns merged PRs into marketing visuals in your brand. Real layers, real text, ready to paste into Paper or Figma.";
+  "Notra turns merged PRs into on-brand marketing visuals with editable layers and text, ready to paste into Paper or Figma.";
 const url = `${SITE_URL}/features/marketing/assets`;
 
 const metadata: Metadata = {

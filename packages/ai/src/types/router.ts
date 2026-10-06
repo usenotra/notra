@@ -89,6 +89,7 @@ export interface RouteMetadata {
   plan?: Plan;
   generationId?: string;
   upstreamProvider?: string;
+  costUsd?: number;
   fallbackFrom?: GatewayId;
   fallbackReason?: FallbackReason;
   /** Whether the call that produced this metadata ran with ZDR enforced. */
@@ -137,11 +138,16 @@ export interface GatewayAdapter {
     providerMetadata: SharedV4ProviderMetadata | undefined,
     servedModelId?: string
   ): Partial<
-    Pick<RouteMetadata, "generationId" | "upstreamProvider" | "model">
+    Pick<
+      RouteMetadata,
+      "generationId" | "upstreamProvider" | "model" | "costUsd"
+    >
   >;
   lookupRouteMetadata?(
     generationId: string
-  ): Promise<Partial<Pick<RouteMetadata, "upstreamProvider" | "model">>>;
+  ): Promise<
+    Partial<Pick<RouteMetadata, "upstreamProvider" | "model" | "costUsd">>
+  >;
 }
 
 export interface BuildProviderOptionsInput {
@@ -340,7 +346,7 @@ export interface RouteUsageSummary {
   route?: RouteMetadata;
   /** Prompt size of the largest step, for long-context pricing. */
   maxPromptTokens?: number;
-  /** Token cost of the steps, summed per call. */
+  /** Reported modeled spend when complete, otherwise estimated token cost, summed per call. */
   tokenCostUsd?: number;
 }
 

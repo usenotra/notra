@@ -5,9 +5,7 @@ description: The collapsible research step with a web search, its queries and so
 
 <Component path="perplexity/examples/perplexity-search" />
 
-```bash
-bunx shadcn@latest add @notra/perplexity-search
-```
+<RegistryInstall name="perplexity-search" />
 
 The step is two nested shadcn `Collapsible`s, both collapsed by default. The outer one shows "Researched" and the duration. Inside, behind a thin rail, "Searching the web" opens the query and source rows. Both headers and `+N more` are `CollapsibleTrigger`s rendering a shadcn `Button`. Rows are shadcn `Item`s, and `emptyDescription` renders in a shadcn `Empty`. The first `previewCount` sources show as rows. The rest sit behind `+N more`, which expands them in place.
 
