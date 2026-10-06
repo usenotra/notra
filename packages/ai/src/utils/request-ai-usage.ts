@@ -32,20 +32,22 @@ const MICRO_USD = 1_000_000;
 
 const usageByRequest = new WeakMap<RequestLogger, RequestAIUsage>();
 
-function routeCost(providerMetadata: SharedV4ProviderMetadata | undefined): {
+function routeInfo(providerMetadata: SharedV4ProviderMetadata | undefined): {
   costUsd: number;
   generationId?: string;
+  model?: string;
 } {
   const route = providerMetadata?.[ROUTER_METADATA_KEY];
   const record =
     route && typeof route === "object" && !Array.isArray(route) ? route : {};
-  const { costUsd, generationId } = record;
+  const { costUsd, generationId, model } = record;
   return {
     costUsd:
       typeof costUsd === "number" && Number.isFinite(costUsd) && costUsd >= 0
         ? costUsd
         : 0,
     ...(typeof generationId === "string" ? { generationId } : {}),
+    ...(typeof model === "string" ? { model } : {}),
   };
 }
 
@@ -88,6 +90,10 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
     return;
   }
   const usage = usageFor(logger);
+  const route = routeInfo(call.providerMetadata);
+  // The router metadata names the model that answered, which differs from the
+  // requested one when OpenRouter served a fallback.
+  const model = route.model ?? call.model;
   const inputTokens = call.inputTokens ?? 0;
   const outputTokens = call.outputTokens ?? 0;
   usage.calls += 1;
@@ -97,21 +103,20 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
   usage.cacheReadTokens += call.cacheReadTokens ?? 0;
   usage.cacheWriteTokens += call.cacheWriteTokens ?? 0;
   usage.reasoningTokens += call.reasoningTokens ?? 0;
-  const cost = routeCost(call.providerMetadata);
-  if (cost.costUsd > 0) {
-    usage.costUsd += cost.costUsd;
-    if (cost.generationId) {
-      usage.costedGenerations.add(cost.generationId);
+  if (route.costUsd > 0) {
+    usage.costUsd += route.costUsd;
+    if (route.generationId) {
+      usage.costedGenerations.add(route.generationId);
     }
   }
   // evlog concatenates arrays on set(), so only hand it models it hasn't seen.
-  const newModel = !usage.models.has(call.model);
-  usage.models.add(call.model);
+  const newModel = !usage.models.has(model);
+  usage.models.add(model);
 
   logger.set({
     ai: {
       calls: usage.calls,
-      model: call.model,
+      model,
       inputTokens: usage.inputTokens,
       outputTokens: usage.outputTokens,
       totalTokens: usage.totalTokens,
@@ -119,7 +124,7 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
       cacheWriteTokens: usage.cacheWriteTokens,
       reasoningTokens: usage.reasoningTokens,
       ...roundedCost(usage),
-      ...(newModel ? { models: [call.model] } : {}),
+      ...(newModel ? { models: [model] } : {}),
     },
   });
 }
