@@ -1,3 +1,4 @@
+import { logWarn } from "@notra/ai/utils/server-log";
 import { Redis } from "@upstash/redis";
 import { Effect } from "effect";
 
@@ -63,7 +64,10 @@ function isCompanyLogoResult(value: unknown): value is CompanyLogoResult {
  * instead of silently costing every caller the live lookup.
  */
 function logCacheSkip(operation: "read" | "write", cause: unknown): void {
-  console.warn(`[onboarding] company logo cache ${operation} skipped`, cause);
+  logWarn("[onboarding] company logo cache skipped", {
+    operation,
+    error: cause instanceof Error ? cause.message : String(cause),
+  });
 }
 
 /**

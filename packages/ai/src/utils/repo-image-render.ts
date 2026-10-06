@@ -9,6 +9,7 @@ import {
   STYLE_ATTR_RE,
 } from "@notra/ai/constants/repo-image";
 import type { VNode } from "@notra/ai/types/repo-image-render";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { Resvg } from "@resvg/resvg-js";
 import { createElement, Fragment, type ReactNode } from "react";
 import satori from "satori";
@@ -67,7 +68,12 @@ async function loadAllFonts() {
 
   for (const result of results) {
     if (result.status === "rejected") {
-      console.warn("Failed to load repo-image font", result.reason);
+      logWarn("[repo-image] Failed to load font", {
+        error:
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason),
+      });
     }
   }
 

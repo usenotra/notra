@@ -278,22 +278,32 @@ app.use("/v1/projects/*", geoContextMiddleware());
 app.use("/v1/projects/:projectId/*", geoProjectContextMiddleware());
 app.use("/v1/geo/ingest/*", geoContextMiddleware());
 
+// Liveness probe; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- liveness probe
 app.get("/", (c) => {
   return c.text("ok");
 });
 
+// Liveness probe; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- liveness probe
 app.get("/ping", (c) => {
   return c.text("pong");
 });
 
+// Static OAuth metadata; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- static OAuth metadata
 app.get("/.well-known/oauth-protected-resource", (c) => {
   return c.json(buildProtectedResourceMetadata(new URL(c.req.url).origin));
 });
 
+// Static OAuth metadata; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- static OAuth metadata
 app.get("/.well-known/oauth-authorization-server", (c) => {
   return c.json(buildAuthorizationServerMetadata());
 });
 
+// Static API catalog; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- static API catalog
 app.get("/.well-known/api-catalog", (c) => {
   c.header(
     "Content-Type",
@@ -360,6 +370,8 @@ app.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
 
 // Routes and schema configuration are fixed after startup.
 let openApiJson: string | undefined;
+// Static OpenAPI document; apiObservabilityMiddleware already records the request
+// evlog-map-disable-next-line -- static OpenAPI document
 app.get("/openapi.json", (c) => {
   openApiJson ??= JSON.stringify(
     app.getOpenAPI31Document({

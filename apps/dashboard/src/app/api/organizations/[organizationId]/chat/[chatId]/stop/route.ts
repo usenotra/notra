@@ -8,6 +8,7 @@ import {
 } from "@notra/ai/chat/history";
 import { realtime } from "@notra/ai/realtime";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
+import { logError } from "@notra/ai/utils/server-log";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -93,11 +94,10 @@ export async function POST(request: Request, { params }: RouteContext) {
         finishReason: "stop",
       });
     } catch (error) {
-      console.error("[Chat Stop] Failed to emit abort chunk:", {
+      logError("[Chat Stop] Failed to emit abort chunk", error, {
         organizationId,
         chatId: safeChatId,
         streamId: activeStreamId,
-        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

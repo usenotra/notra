@@ -19,6 +19,7 @@ import type {
 } from "../types/geo";
 import { resolveTrackedEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import { logGeoFailure } from "../utils/geo-log";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { normalizeWebsiteUrl } from "../utils/geo-website";
 import { readGeoCache, writeGeoCache } from "./cache";
@@ -162,7 +163,12 @@ export async function warmGeoOnboardingCache(
   const results = await Promise.allSettled(tasks);
   for (const result of results) {
     if (result.status === "rejected") {
-      console.error("[GEO] Onboarding cache warm-up failed:", result.reason);
+      logGeoFailure(
+        "geo.onboarding.warmup_failed",
+        "Onboarding cache warm-up failed",
+        result.reason,
+        { organizationId }
+      );
     }
   }
 }

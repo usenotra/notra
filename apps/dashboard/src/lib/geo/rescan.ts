@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { logError } from "@notra/ai/utils/server-log";
 import { requestGeoRescanForPost } from "@notra/geo-core/geo/rescan";
 import type { GeoRescanForPostInput } from "@notra/geo-core/types/geo";
 import { Effect } from "effect";
@@ -17,10 +18,10 @@ export async function requestGeoRescanForPublishedPost(
       )
     );
     if (outcome._tag === "Failure") {
-      console.error("[GEO] Post-publish rescan failed:", outcome.failure);
+      logError("[GEO] Post-publish rescan failed", outcome.failure);
     }
   } catch (error) {
-    console.error("[GEO] Post-publish rescan failed:", error);
+    logError("[GEO] Post-publish rescan failed", error);
   } finally {
     await flushGeoLog();
   }

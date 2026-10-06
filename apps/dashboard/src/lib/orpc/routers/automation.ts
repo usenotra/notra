@@ -4,6 +4,7 @@ import {
   deleteQstashSchedule,
 } from "@notra/ai/qstash/triggers";
 import { QstashScheduleSetupError } from "@notra/ai/schemas/qstash";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   hashTrigger,
   normalizeTriggerConfig,
@@ -388,7 +389,7 @@ export const automationRouter = {
         if (previousQstashScheduleId) {
           await deleteQstashSchedule(previousQstashScheduleId).catch(
             (error) => {
-              console.error("Error deleting schedule:", error);
+              logError("Error deleting schedule", error);
             }
           );
         }
@@ -684,7 +685,7 @@ export const automationRouter = {
           if (qstashScheduleId) {
             await deleteQstashSchedule(qstashScheduleId).catch(
               (cleanupError) => {
-                console.error("Error deleting schedule:", cleanupError);
+                logError("Error deleting schedule", cleanupError);
               }
             );
           }
@@ -698,7 +699,7 @@ export const automationRouter = {
               )
             )
             .catch((cleanupError) => {
-              console.error("Error deleting trigger:", cleanupError);
+              logError("Error deleting trigger", cleanupError);
             });
 
           throw internalServerError("Internal server error", error);
@@ -866,7 +867,7 @@ export const automationRouter = {
           if (qstashScheduleId && qstashScheduleId !== existingScheduleId) {
             await deleteQstashSchedule(qstashScheduleId).catch(
               (cleanupError) => {
-                console.error("Error deleting schedule:", cleanupError);
+                logError("Error deleting schedule", cleanupError);
               }
             );
           }

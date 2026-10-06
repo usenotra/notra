@@ -5,7 +5,7 @@ const { storage, useLogger } = createLoggerStorage(
   "notra:evlog"
 );
 
-export { useLogger as useRequestLogger };
+export { storage as requestLoggerStorage, useLogger as useRequestLogger };
 
 export const evlogRequestIntegration = defineFrameworkIntegration<
   Request | undefined

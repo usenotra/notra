@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { members, organizations } from "@notra/db/schema";
 import {
@@ -217,21 +218,20 @@ export const userRouter = {
         if (shouldCleanupDeletedOrganization) {
           await Promise.all([
             deleteOrganizationFiles(input.organizationId).catch((error) => {
-              console.error(
-                `[Delete Org] Failed to cleanup R2 files for ${input.organizationId}:`,
-                error
-              );
+              logError("[Delete Org] Failed to cleanup R2 files", error, {
+                organizationId: input.organizationId,
+              });
             }),
             deleteOrganizationChatFiles(input.organizationId).catch((error) => {
-              console.error(
-                `[Delete Org] Failed to cleanup chat files for ${input.organizationId}:`,
-                error
-              );
+              logError("[Delete Org] Failed to cleanup chat files", error, {
+                organizationId: input.organizationId,
+              });
             }),
             deleteAutumnCustomer(input.organizationId).catch((error) => {
-              console.error(
-                `[Delete Org] Failed to cancel Autumn subscription for ${input.organizationId}:`,
-                error
+              logError(
+                "[Delete Org] Failed to cancel Autumn subscription",
+                error,
+                { organizationId: input.organizationId }
               );
             }),
           ]);
@@ -347,31 +347,29 @@ export const userRouter = {
       await Promise.all(
         organizationsToCleanup.flatMap((orgId) => [
           deleteOrganizationFiles(orgId).catch((error) => {
-            console.error(
-              `[Delete Org] Failed to cleanup R2 files for ${orgId}:`,
-              error
-            );
+            logError("[Delete Org] Failed to cleanup R2 files", error, {
+              organizationId: orgId,
+            });
           }),
           deleteOrganizationChatFiles(orgId).catch((error) => {
-            console.error(
-              `[Delete Org] Failed to cleanup chat files for ${orgId}:`,
-              error
-            );
+            logError("[Delete Org] Failed to cleanup chat files", error, {
+              organizationId: orgId,
+            });
           }),
           deleteAutumnCustomer(orgId).catch((error) => {
-            console.error(
-              `[Delete Org] Failed to cancel Autumn subscription for ${orgId}:`,
-              error
+            logError(
+              "[Delete Org] Failed to cancel Autumn subscription",
+              error,
+              { organizationId: orgId }
             );
           }),
         ])
       );
 
       await deleteUserFiles(context.user.id).catch((error) => {
-        console.error(
-          `[Delete User] Failed to cleanup R2 files for user ${context.user.id}:`,
-          error
-        );
+        logError("[Delete User] Failed to cleanup R2 files", error, {
+          userId: context.user.id,
+        });
       });
 
       return {
