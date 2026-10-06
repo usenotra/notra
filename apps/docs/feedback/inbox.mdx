@@ -1,0 +1,30 @@
+---
+title: "Agent feedback"
+sidebarTitle: "Inbox"
+description: "Collect bug reports, feature requests and praise that AI agents send about your product, and triage them in the Feedback inbox."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/feedback/inbox
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Agents that use your product (coding agents, assistants, MCP clients) can report what went wrong or what they wish existed. The **Feedback** page in the dashboard collects those reports in one inbox.
+
+## How agents send feedback
+
+Each workspace has a public feedback URL. Agents POST to it directly, or you give them the MCP feedback tool that ships with `@usenotra/geo/feedback`. Publishing a `feedback.md` file on your site also earns a bonus point in [Agent Readiness](/geo/agent-readiness).
+
+## Triage
+
+Every report is a bug, a feature request or praise. Move each one through **New**, **Triaged**, **Resolved** and **Archived**.
+
+<Card title="Agent feedback API" icon="code" href="/feedback/send-feedback" horizontal>
+  The public URL, request format and the MCP tool.
+</Card>

@@ -1,5 +1,5 @@
 ---
-title: "Content Pipeline"
+title: "Content pipeline"
 description: "Explore the Studio pipeline that turns engineering and product activity into publish-ready drafts, and how GEO Write feeds the same pipeline from content gaps."
 authors:
   - handle: dominik
@@ -19,58 +19,56 @@ docolin:
     - five-step pipeline
     - ingest analyze generate
     - GEO Write pipeline
-  prev: ./how-it-works.mdx
   next: ./brand-voice.mdx
 ---
 
-The content pipeline is the Studio side of Notra: it converts activity from your connected tools into changelogs, blog posts, social posts and images. GEO Write reuses the last stages of the same pipeline to turn a content gap into an article. Understanding the stages helps you configure runs and troubleshoot when a draft does not match expectations.
+The content pipeline is the Studio side of Notra. It turns activity from your connected tools into changelogs, blog posts, social posts and images. GEO Write reuses the last stages of the same pipeline to turn a content gap into an article. Knowing the stages helps you configure runs and find out why a draft does not match what you expected.
 
-## The Five-Step Pipeline
+## The five-step pipeline
 
-Every generated post flows through these stages:
+Every generated post goes through these stages:
 
-### 1. Ingest Activity
+### 1. Ingest activity
 
 A run starts with a source and a window.
 
-**Where activity comes from:**
+Activity comes from:
 
 * **GitHub**: pull requests, commits and releases from repositories granted to the Notra GitHub App
 * **Linear**: issues and updates from connected workspaces
 * **Granola**: meeting notes, transcripts and AI summaries
 
-**What starts a run:**
+A run starts from one of these:
 
-* The **Create Content** wizard, where you pick formats, a timeframe, and the pull requests, commits, releases or issues to include
+* The **Create Content** wizard, where you pick formats, a timeframe and the pull requests, commits, releases or issues to include
 * A **schedule** with a lookback window of Current day, Yesterday, Last 7 days, Last 14 days or Last 30 days
 * A **GitHub webhook event**: a published release (pre-releases optional) or a push
-* **Iris**, which watches merged pull requests, pushes and releases and plans its own runs
 
 <Info>
-  Notra only reads repositories, workspaces and channels you have explicitly connected. Each run lists its source targets, and the agent can only query those.
+  Notra only reads repositories, workspaces and channels you have connected. Each run lists its source targets, and the agent can only query those.
 </Info>
 
-### 2. Analyze Context
+### 2. Analyze context
 
 The generation agent gathers what it needs with a small set of tools and decides what is worth telling your audience.
 
-**GitHub tools available to the agent:**
+The agent has these GitHub tools:
 
 * `getCommitsByTimeframe`: commit history for a repository over the exact lookback range, with pagination
 * `getPullRequests`: PR titles, descriptions, authors and merge status
 * `getReleaseByTag`: release notes, tag and assets
 
-**Skill tools:**
+It also has two skill tools:
 
 * `listAvailableSkills` and `getSkillByName`: load writing skills from the Skills page, including the built-in human-writer skill that polishes the final text
 
-For a 7-day changelog the agent typically calls `getCommitsByTimeframe` for every source repository, then `getPullRequests` for the PRs those commits reference, and builds a candidate list from the result.
+For a 7-day changelog the agent usually calls `getCommitsByTimeframe` for every source repository, then `getPullRequests` for the PRs those commits reference. It builds a candidate list from the result.
 
-**Filtering:**
+The agent then filters the candidates:
 
 <Steps>
   <Step title="Audience relevance">
-    Every candidate is checked against the audience in your brand identity. Internal-only work is dropped: small refactors, formatting and lint changes, dependency churn, test-only updates and routine infra chores.
+    The agent checks every candidate against the audience in your brand identity. It drops internal-only work, such as small refactors, formatting and lint changes, dependency churn, test-only updates and routine infra chores.
   </Step>
 
   <Step title="Meaningful fixes stay">
@@ -78,23 +76,21 @@ For a 7-day changelog the agent typically calls `getCommitsByTimeframe` for ever
   </Step>
 
   <Step title="Category priority">
-    When a change fits several categories, it is filed under the first match in this order: Security, Bug Fixes, Features and Enhancements, Performance Improvements, Infrastructure, Internal Changes, Testing, Documentation.
+    When a change fits several categories, the agent files it under the first match in this order: Security, Bug Fixes, Features and Enhancements, Performance Improvements, Infrastructure, Internal Changes, Testing, Documentation.
   </Step>
 
   <Step title="Skip when empty">
-    If every candidate is filtered out, the agent calls the skip tool and no post is created. Filler is never published.
+    If the agent filters out every candidate, it calls the skip tool and Notra creates no post. Notra never publishes filler.
   </Step>
 </Steps>
 
 <Tip>
-  The audience field steers this stage. A developer-oriented audience ("developers", "engineers", "technical teams") gets verified PR links on every referenced change; any other audience gets none.
+  The audience field controls this stage. A developer-oriented audience ("developers", "engineers", "technical teams") gets verified PR links on every referenced change. Any other audience gets none.
 </Tip>
 
-### 3. Generate Drafts
+### 3. Generate drafts
 
-With context in hand, the agent writes the draft for each requested format.
-
-**Formats:**
+The agent then writes a draft for each requested format:
 
 * **Changelog entry**: release notes with a summary, Highlights and categorized More Updates
 * **Blog post**: long-form announcements and stories
@@ -102,7 +98,7 @@ With context in hand, the agent writes the draft for each requested format.
 * **Tweet**: a short post for X
 * **Image**: a generated visual to accompany a post
 
-**Changelog structure:**
+A changelog has this structure:
 
 ```markdown
 # [Title]
@@ -123,17 +119,15 @@ With context in hand, the agent writes the draft for each requested format.
 - **[Change title]** [#140](https://github.com/org/repo/pull/140) - Description (Author: [@sam](https://github.com/sam/))
 ```
 
-Highlights holds up to five changes with clear user, customer, reliability, security or performance impact. Every change that passed filtering appears exactly once, either in Highlights or in More Updates. Author attribution is kept for both developer and non-developer audiences; PR links only for developers.
+Highlights holds up to five changes with clear user, customer, reliability, security or performance impact. Every change that passed filtering appears exactly once, either in Highlights or in More Updates. Both developer and non-developer audiences get author attribution. Only developer audiences get PR links.
 
 <Note>
-  Each format has its own prompt template per tone, so the same activity produces a different changelog, blog post and tweet rather than one text reformatted three times.
+  Each format has its own prompt template per tone. The same activity produces a separate changelog, blog post and tweet, not one text reformatted three times.
 </Note>
 
-### 4. Apply Brand Voice
+### 4. Apply brand voice
 
-The selected brand identity is injected into every generation prompt.
-
-**What brand voice controls:**
+Notra adds the selected brand identity to every generation prompt. Brand voice controls:
 
 * **Company name and description**: who is publishing and what you build
 * **Tone profile**: Conversational, Professional, Casual or Formal, plus custom tone notes
@@ -141,7 +135,7 @@ The selected brand identity is injected into every generation prompt.
 * **Audience**: who you are writing for, which also drives PR links and detail level
 * **Custom instructions**: rules like "avoid jargon" or "always mention pricing"
 
-**How it reaches the model:**
+The model receives it like this:
 
 ```xml
 <company>Acme Corp - Building developer tools for modern web apps</company>
@@ -153,9 +147,9 @@ The selected brand identity is injected into every generation prompt.
 </custom-instructions>
 ```
 
-The company block is the publishing identity. Source repositories are treated as evidence only, so content about an upstream or open source repository is still written as your contribution, not as ownership of the whole project.
+The company block is the publishing identity. The agent treats source repositories as evidence only. Content about an upstream or open source repository describes your contribution and does not claim ownership of the whole project.
 
-**Tone profile impact:**
+Each tone profile writes in a different style:
 
 | Profile            | Style                                 | Example                                                            |
 | ------------------ | ------------------------------------- | ------------------------------------------------------------------ |
@@ -165,20 +159,18 @@ The company block is the publishing identity. Source repositories are treated as
 | **Formal**         | Precise, traditional, structured      | "The engineering team has completed the following deliverables..." |
 
 <Info>
-  Brand identity changes apply to future runs. Existing drafts are not modified.
+  Brand identity changes apply to future runs. They do not modify existing drafts.
 </Info>
 
-### 5. Publish-Ready Output
+### 5. Publish-ready output
 
-The final stage stores the draft and hands it to you.
+The final stage saves the draft for you to review:
 
-**What happens at this stage:**
-
-* The post is saved as a **Draft** with its format, source targets and window
+* Notra saves the post as a **Draft** with its format, source targets and window
 * It appears in **Content**, grouped with the other outputs of the same run into a collection
 * Schedules and triggers with **auto-publish** enabled mark it Published immediately instead
 
-**In the editor:**
+In the editor you can:
 
 * Edit the text directly, or use the chat panel to rewrite sections
 * Switch between Draft and Published
@@ -191,11 +183,11 @@ The final stage stores the draft and hands it to you.
 
 ## GEO Write
 
-Write is the GEO entry point into the same pipeline. Instead of activity, it starts from a target: a prompt where competitors are mentioned and you are not, a comparison against specific competitors, or a custom topic.
+Write is the GEO entry point into the same pipeline. It starts from a target instead of activity. The target is a prompt where engines mention competitors but not you, a comparison against specific competitors or a custom topic.
 
 <Steps>
   <Step title="Plan a brief">
-    The planner produces a brief with a working title, the search intent behind the prompt, the audience, the job to be done, section headings, internal links from your sitemap, and an acceptance checklist.
+    The planner produces a brief with a working title, the search intent behind the prompt, the audience, the job to be done, section headings, internal links from your sitemap and an acceptance checklist.
   </Step>
 
   <Step title="Approve">
@@ -203,7 +195,7 @@ Write is the GEO entry point into the same pipeline. Instead of activity, it sta
   </Step>
 
   <Step title="Write">
-    The brief moves to **Queued**, then **Writing**. The writer uses your brand identity, the same skills as Studio, and the brief as its outline.
+    The brief moves to **Queued**, then **Writing**. The writer uses your brand identity, the same skills as Studio and the brief as its outline.
   </Step>
 
   <Step title="Done">
@@ -211,43 +203,35 @@ Write is the GEO entry point into the same pipeline. Instead of activity, it sta
   </Step>
 </Steps>
 
-## Pipeline Configuration
+## Pipeline configuration
 
-**Create Content wizard:**
+The **Create Content** wizard sets:
 
 * Formats to generate
 * Timeframe and which data points to include (Pull Requests, Commits, Releases, Linear issues)
 * Brand identity
 
-**Schedules:**
+Schedules set:
 
 * Frequency: daily, weekly (day of week) or monthly (day of month), with hour and minute in UTC
 * Repositories, output type, brand identity
 * Lookback window and auto-publish
 
-**Event-based triggers:**
+Event-based triggers set:
 
 * Source: GitHub webhook
-* Event types: release, push; include pre-releases or not
+* Event types: release or push, with or without pre-releases
 * Repositories, output type, brand identity, auto-publish
 
-## Error Handling
+## Error handling
 
-**GitHub API rate limits:**
+* **GitHub API rate limits.** Notra detects rate limit errors and shows a clear message instead of a half-written post.
+* **Nothing worth publishing.** The agent calls the skip tool and the run ends without a post. This is expected for quiet weeks or maintenance-only windows.
+* **Missing data.** The agent omits details it cannot verify instead of guessing. It does not make up PR numbers or commit details.
 
-* Rate limit errors are detected and surfaced with a clear message instead of a half-written post
-
-**Nothing worth publishing:**
-
-* The agent calls the skip tool and the run ends without a post. This is expected for quiet weeks or maintenance-only windows.
-
-**Missing data:**
-
-* The agent omits details it cannot verify rather than guessing. No made-up PR numbers or commit details.
-
-## Monitoring Pipeline Health
+## Monitoring pipeline health
 
 * **Content** shows every collection and the run that produced it
 * **Schedules** and **Events** show whether each workflow is enabled and when it last ran
 * **Settings > Logs** lists workflow activity for the workspace
-* GitHub webhook deliveries can be inspected in your repository settings on GitHub
+* Your repository settings on GitHub show GitHub webhook deliveries

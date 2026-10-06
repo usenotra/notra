@@ -1,0 +1,121 @@
+---
+title: "Prompts"
+description: "Prompts are the questions Notra asks AI engines for you. Add them by hand, import a CSV or accept suggestions from Google Search Console."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/prompts
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Prompts are the questions Notra asks AI engines for you. Competitors are the brands it looks for in the answers next to yours. Both sit under the **Visibility** group of the GEO sidebar and belong to the active project.
+
+The **Prompts** page lists every prompt that goes into a scan. There are two sources:
+
+- **Custom** prompts you add by hand, import or accept from a suggestion. Notra stores them per project with an `enabled` flag.
+- **Auto** prompts derived from the project's brand context. Notra reads the brand identity's company description and audience and extracts a product category and an audience phrase. From those it generates a small set of category questions that never name your brand. Notra regenerates auto prompts from the brand context on every read. They always show as enabled and have no `createdAt`.
+
+Write each prompt the way a person types into ChatGPT. Use lowercase, one intent and no trailing question mark. Usually add a concrete detail about the person's situation (role, team size, budget, stack), and never use the brand's own category jargon. A custom prompt must be between 8 and 300 characters. During onboarding Notra drops suggested prompts that contain your company name or an alias, because a branded question tells you nothing about unaided recall.
+
+## Adding and pausing prompts
+
+Press **Add Prompt** (shortcut `P`). The dialog has a **Question** field and, for suggestions, a **Website** field. For each prompt, the prompts table shows a **Presence** badge, the **Engines** that mentioned you and the **Best** position. The badge reads **Search only** when only the grounded engines named you and **Invisible** when no engine did.
+
+You can pause a custom prompt without deleting it. The next scan skips a paused prompt, and the prompt keeps its history.
+
+<CodeGroup>
+
+```bash Create
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/prompts \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "prompt": "what tools should i use for automating changelogs" }'
+```
+
+```bash Pause
+curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/prompts/$PROMPT_ID \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "enabled": false }'
+```
+
+```bash Delete
+curl -X DELETE https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/prompts/$PROMPT_ID \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+</CodeGroup>
+
+`GET /v1/projects/{projectId}/geo/prompts` returns both sources in one list. Each item has `id`, `prompt`, `enabled`, `source` (`custom` or `auto`) and `createdAt`.
+
+## Bulk import
+
+**Import CSV** on the Prompts page accepts a file with a `prompt` column and an optional `enabled` column. Before you confirm, the dialog summarises **Ready to import**, **Duplicates skipped** and **Rows with problems**.
+
+The API endpoint accepts either structured `rows` or raw `csv` text. It skips prompts that already exist instead of duplicating them.
+
+<ParamField body="rows" type="array">
+  1 to 500 objects with `prompt` (8 to 300 characters, required) and `enabled` (boolean, optional).
+</ParamField>
+<ParamField body="csv" type="string">
+  Raw CSV text, up to 1 MiB, with a `prompt` column and an optional `enabled` column. Used when `rows` is omitted.
+</ParamField>
+
+<CodeGroup>
+
+```bash Rows
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/prompts/import \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rows": [
+      { "prompt": "what tools should i use for automating changelogs" },
+      { "prompt": "best way to turn github activity into a blog post", "enabled": false }
+    ]
+  }'
+```
+
+```bash CSV
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/prompts/import \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "csv": "prompt,enabled\nwhat tools should i use for automating changelogs,true" }'
+```
+
+</CodeGroup>
+
+```json
+{
+  "imported": 2,
+  "updated": 0,
+  "skipped": 0,
+  "issues": [],
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+`issues` lists rejected CSV lines as `{ line, message }` and is always empty for `rows`. Import allows 10 requests per 10 minutes per organization.
+
+## Search Console suggestions
+
+The Prompts page also hosts the **Google Search Console** card: "We read the queries your site ranks for and suggest the AI prompts people ask. Suggestions refresh weekly." Press **Connect Search Console** and choose a **Property**. Notra then syncs the last 28 days of queries every Monday, and **Sync now** runs it immediately. Suggestions appear in a table with **Search queries**, **Impressions**, **Clicks** and **Best position**. Press **Track** to turn one into a custom prompt. Suggestions you have not accepted also feed the search gaps on [Content Gaps](/geo/content-gaps#search-gaps).
+
+## Writing good prompts
+
+<Steps>
+  <Step title="Write like a buyer">
+    Use lowercase, one intent and a concrete detail about the person (role, team size, stack). Skip your own category jargon.
+  </Step>
+  <Step title="Never name your brand">
+    A branded prompt tells you nothing about whether engines recommend you unprompted.
+  </Step>
+  <Step title="Cover the funnel">
+    Mix problem questions ("how do i keep release notes up to date"), category questions ("best changelog tools") and comparison questions ("beamer alternatives").
+  </Step>
+</Steps>

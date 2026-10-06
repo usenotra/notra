@@ -1,0 +1,40 @@
+---
+title: "GEO for software companies"
+sidebarTitle: "Software and SaaS"
+description: "How B2B SaaS teams use Notra to get recommended when buyers ask AI which tool to pick."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/playbooks/software-companies
+  type: tutorial
+  applies_to:
+    - notra
+  language: en
+  status: draft
+---
+
+More software buyers now start with "what's the best tool for..." in ChatGPT, Claude or Perplexity. The answer is usually a short list, and comparison pages and review sites decide who is on it.
+
+## Set up
+
+- **Prompts.** Cover three intents. Problem ("how do i automate release notes"), category ("best changelog tools for startups") and comparison ("beamer alternatives"). Add a buyer detail such as team size or stack.
+- **Competitors.** Add direct competitors and the indirect ones buyers consider, like spreadsheets or an in-house build. Mark them **Indirect**.
+- **Personas.** Generate [personas](/geo/personas) for each buying role, for example the engineering lead and the founder. Compare where each one hears about you.
+- **Search Console.** Connect it so prompt suggestions come from the queries you already rank for.
+
+## What to work on
+
+| Lever | Why it matters for software | Where in Notra |
+| --- | --- | --- |
+| Comparison and alternatives pages | Engines quote them directly for "X vs Y" and "alternatives to X" prompts | [GEO writer](/geo/writer), comparison format |
+| Review sites and listicles | Most cited third-party sources for tool recommendations | [Shelf space](/geo/shelf-space) |
+| Docs and pricing pages | Assistants fetch them live to check features and price | [AI traffic](/ai-traffic/overview), **Cited in answer** |
+| Changelog | Shows engines the product is active and current | [Changelogs](/content/changelogs) |
+
+## Metrics to watch
+
+- [Share of voice](/geo/metrics/share-of-voice) on category prompts.
+- [Position](/geo/metrics/position) on comparison prompts. Being first matters more than being listed.
+- AI referrals reaching `/signup` or `/pricing`. Add them as **Conversion paths**.

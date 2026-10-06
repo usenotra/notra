@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Set up your workspace, run your first GEO scan, and generate your first post"
+description: "Set up your workspace, run your first GEO scan and generate your first post"
 authors:
   - handle: dominik
 
@@ -25,10 +25,10 @@ docolin:
   prev: ./overview.mdx
 ---
 
-This guide walks you through onboarding, your first GEO scan, and, as a second part, connecting GitHub and generating your first post in Studio.
+This guide walks you through onboarding and your first GEO scan, then connecting GitHub and generating your first post in Studio.
 
 <Note>
-  **Before you begin:** you need a public website for the brand you want to track. For the Studio part you also need a GitHub account with access to at least one repository.
+  Before you begin, you need a public website for the brand you want to track. For the Studio part you also need a GitHub account with access to at least one repository.
 </Note>
 
 ## Part 1: Onboarding
@@ -43,7 +43,7 @@ Sign up at `app.usenotra.com`. Onboarding has four steps and a progress indicato
   </Step>
 
   <Step title="Website">
-    Enter your website (for example `acme.com`). Notra reads it in the background to pick up your brand voice and creates your default brand identity from it. The field is optional, but without it the next step cannot suggest prompts and you will type your brand name by hand.
+    Enter your website (for example `acme.com`). Notra reads it in the background, picks up your brand voice and creates your default brand identity from it. The field is optional. Without it, the next step cannot suggest prompts and you type your brand name by hand.
   </Step>
 
   <Step title="Where did you hear about Notra?">
@@ -51,41 +51,41 @@ Sign up at `app.usenotra.com`. Onboarding has four steps and a progress indicato
   </Step>
 
   <Step title="Continue">
-    Click **Continue**. Your workspace and default brand identity are created.
+    Click **Continue**. Notra creates your workspace and default brand identity.
   </Step>
 </Steps>
 
 <Tip>
-  The slug cannot be changed after onboarding, so choose something that represents your company or team.
+  You cannot change the slug after onboarding, so pick one that represents your company or team.
 </Tip>
 
 ### 2. See what AI says about you
 
-Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it. This step decides what to look for in the answers.
+Notra is a GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. The results show whether you appear, who appears instead and how to fix it. This step sets what Notra looks for in the answers.
 
 <Steps>
   <Step title="Let Notra read your website">
-    Your website is prefilled from step 1. Notra reads it, which takes about 20 seconds, and suggests your brand name, aliases and a starter set of prompts. If the site cannot be read, check the address or type your brand name below.
+    Your website is prefilled from step 1. Notra reads it, which takes about 20 seconds, and suggests your brand name, aliases and a starter set of prompts. If Notra cannot read the site, check the address or type your brand name below.
   </Step>
 
   <Step title="Confirm your brand name">
     The **Brand name** field is what Notra looks for in AI answers, usually the name on your homepage. Adjust it if needed.
 
-    Below the field you will see how many questions were pulled from your site. You can edit them later under **Prompts**.
+    Below the field you will see how many questions Notra pulled from your site. You can edit them later under **Prompts**.
   </Step>
 
   <Step title="Continue">
-    Click **Continue** to save the brand and prompts. **Skip for now** takes you straight to plan selection; you can set tracking up later from GEO Settings.
+    Click **Continue** to save the brand and prompts. **Skip for now** takes you straight to plan selection. You can set up tracking later from GEO Settings.
   </Step>
 </Steps>
 
 ### 3. Pick your competitors
 
-When AI recommends someone instead of you, who is it? This step chooses the brands you are measured against.
+This step picks the brands Notra compares you with when AI recommends someone instead of you.
 
 <Steps>
   <Step title="Review suggestions">
-    Notra suggests other companies in your field based on your domain. Click a suggestion to add it, **Show more** to see the full list, or **Add all**.
+    Notra suggests other companies in your field based on your domain. Click a suggestion to add it, **Show more** to see the full list or **Add all**.
   </Step>
 
   <Step title="Search for a brand">
@@ -115,7 +115,7 @@ The sidebar opens in **GEO** mode. Use the switch at the top of the sidebar to m
   </Step>
 
   <Step title="Run Scan">
-    Click **Run Scan** (or press **R**). Notra sends every tracked prompt to every enabled model and checks each answer for your brand, aliases and competitors. The button shows a spinner while the scan runs; results fill in as they arrive.
+    Click **Run Scan** (or press **R**). Notra sends every tracked prompt to every enabled model and checks each answer for your brand, aliases and competitors. The button shows a spinner while the scan runs. Results fill in as they arrive.
   </Step>
 
   <Step title="Read the results">
@@ -129,7 +129,7 @@ The sidebar opens in **GEO** mode. Use the switch at the top of the sidebar to m
 </Steps>
 
 <Info>
-  Scans run automatically on the schedule set in GEO Settings (every day by default). Manual scans always work.
+  Scans run on the schedule set in GEO Settings, every day by default. You can also run a scan manually at any time.
 </Info>
 
 ### 6. Tune what gets tracked
@@ -137,40 +137,40 @@ The sidebar opens in **GEO** mode. Use the switch at the top of the sidebar to m
 <Tabs>
   <Tab title="Settings">
     Open **Settings** under Improve.
-    - **Company name** and **Aliases**: other spellings, product names, or the bare domain that should count as a mention
-    - **Scan schedule**: Every day, Every 48 hours, Every 3 days, Every week, Every 2 weeks, or Every 30 days
+    - **Company name** and **Aliases**: other spellings, product names or the bare domain that should count as a mention
+    - **Scan schedule**: Every day, Every 48 hours, Every 3 days, Every week, Every 2 weeks or Every 30 days
     - **Languages**: the languages your prompts are scanned in. English is on by default
     - **Models**: each enabled provider runs on every prompt
   </Tab>
 
   <Tab title="Prompts">
-    Open **Prompts** under Visibility. Click **Add prompt** to add a question, **Import CSV** to bulk import, or accept suggestions. If you connect Google Search Console, the queries you already rank for become prompt suggestions.
+    Open **Prompts** under Visibility. Click **Add prompt** to add a question or **Import CSV** to bulk import. You can also accept suggestions. If you connect Google Search Console, the queries you already rank for become prompt suggestions.
   </Tab>
 
   <Tab title="Competitors">
-    Open **Competitors** under Visibility to add or remove brands and mark them as direct (sells what you sell) or indirect (solves the same problem differently). Click a competitor to see the prompts where they are recommended.
+    Open **Competitors** under Visibility to add or remove brands and mark them as direct (sells what you sell) or indirect (solves the same problem differently). Click a competitor to see the prompts where engines recommend them.
   </Tab>
 </Tabs>
 
-Read more in [Prompts and competitors](/geo/prompts-and-competitors).
+Read more in [Prompts](/geo/prompts) and [Competitors](/geo/competitors).
 
 ### 7. Go further
 
 <CardGroup cols={3}>
-  <Card title="Traffic" icon="wave-pulse" href="/geo/traffic">
+  <Card title="AI traffic" icon="wave-pulse" href="/ai-traffic/overview">
     Install the `@usenotra/geo` package in your Next.js, Nuxt, TanStack Start, Astro, SvelteKit or Netlify site and set `NOTRA_GEO_TOKEN` to see AI crawlers and referrals visiting your site.
   </Card>
   <Card title="Agent Readiness" icon="robot" href="/geo/agent-readiness">
     Run a public scan of your website and get a 0 to 100 score with a Must do / Should do checklist.
   </Card>
-  <Card title="Content Gaps and Write" icon="pen" href="/geo/content-gaps-and-writer">
+  <Card title="Content Gaps" icon="pen" href="/geo/content-gaps">
     See which questions engines answer without mentioning you, and write an article to close the gap.
   </Card>
 </CardGroup>
 
 ## Part 3: Generate content in Studio
 
-Switch the sidebar to **Studio**. This side turns your engineering and product activity into changelogs, blog posts, tweets, LinkedIn posts and images.
+Switch the sidebar to **Studio**. Studio turns your engineering and product activity into changelogs, blog posts, tweets, LinkedIn posts and images.
 
 ### 8. Connect GitHub
 
@@ -192,7 +192,7 @@ Switch the sidebar to **Studio**. This side turns your engineering and product a
   Integrations connected earlier with a personal access token keep working and are listed as legacy integrations. New connections go through the GitHub App.
 </Info>
 
-See [GitHub](/integrations/github) for details, and [Linear](/integrations/linear), [Slack](/integrations/slack) and [Framer](/integrations/framer) for the other integrations.
+See [GitHub](/integrations/github) for details and [Linear](/integrations/linear), [Slack](/integrations/slack) and [Framer](/integrations/framer) for the other integrations.
 
 ### 9. Review your brand identity
 
@@ -204,15 +204,15 @@ Click **Brand Identity** in the sidebar. If you added a website during onboardin
   </Step>
 
   <Step title="Set tone and language">
-    Pick a tone (**Conversational**, **Professional**, **Casual** or **Formal**), add custom tone notes if you like, pick the **Language** content should be written in, and add **Custom Instructions** such as phrases to avoid or features to always mention.
+    Pick a tone (**Conversational**, **Professional**, **Casual** or **Formal**) and add custom tone notes if you like. Pick the **Language** for your content and add **Custom Instructions** such as phrases to avoid or features to always mention.
   </Step>
 
   <Step title="Describe your audience">
-    Fill in **Who are you writing for?** with their role, interests and pain points. Developer audiences get PR links; non-developer audiences do not.
+    Fill in **Who are you writing for?** with their role, interests and pain points. Developer audiences get PR links. Non-developer audiences do not.
   </Step>
 </Steps>
 
-Changes auto-save. See [Brand Voice](/concepts/brand-voice) for how each field changes the output.
+Changes save automatically. See [Brand Voice](/concepts/brand-voice) for how each field changes the output.
 
 ### 10. Create your first post
 
@@ -234,7 +234,7 @@ Changes auto-save. See [Brand Voice](/concepts/brand-voice) for how each field c
   </Step>
 
   <Step title="Review in Content">
-    Generated posts appear in **Content**, grouped into collections. Open a post to edit it in the editor, use the chat panel to refine it, and click **Publish** when it is ready. Tweets and LinkedIn posts can be posted directly to connected X and LinkedIn accounts.
+    Generated posts appear in **Content**, grouped into collections. Open a post to edit it in the editor, refine it in the chat panel and click **Publish** when it is ready. You can post tweets and LinkedIn posts directly to connected X and LinkedIn accounts.
   </Step>
 </Steps>
 
@@ -260,15 +260,11 @@ Changes auto-save. See [Brand Voice](/concepts/brand-voice) for how each field c
   <Tab title="Events">
     Open **Events** under Automation and create a trigger:
     - **Source**: GitHub webhook
-    - **Event types**: Release, Push, or both (pre-releases can be included)
+    - **Event types**: Release, Push or both (pre-releases can be included)
     - **Repositories** to listen on
     - **Output type** and **brand identity**
 
-    Content is generated as soon as the event arrives.
-  </Tab>
-
-  <Tab title="Iris">
-    Open **Iris** under Automation. Iris watches what you ship and drafts changelogs, blog posts with images and social posts, then asks you on Slack before anything goes live. It needs the Slack integration.
+    Notra generates content as soon as the event arrives.
   </Tab>
 </Tabs>
 
@@ -277,7 +273,7 @@ See [Scheduled workflows](/automation/scheduled) and [Event-based triggers](/aut
 ## What's next?
 
 <CardGroup cols={2}>
-  <Card title="GEO overview" icon="robot" href="/geo/overview">
+  <Card title="How scans work" icon="robot" href="/geo/how-scans-work">
     How scans, engines, share of voice and projects work.
   </Card>
 
@@ -286,7 +282,7 @@ See [Scheduled workflows](/automation/scheduled) and [Event-based triggers](/aut
   </Card>
 
   <Card title="Use the API" icon="code" href="/api/getting-started">
-    Read visibility data and manage prompts, competitors, posts and workflows programmatically.
+    Read visibility data and manage prompts, competitors, posts and workflows.
   </Card>
 
   <Card title="Invite your team" icon="users" href="/organization/team-management">
@@ -308,9 +304,9 @@ See [Scheduled workflows](/automation/scheduled) and [Event-based triggers](/aut
   </Accordion>
 
   <Accordion title="My scan finished but I see no mentions" icon="magnifying-glass">
-    - Add **Aliases** in GEO Settings for other spellings, product names, or your bare domain.
+    - Add **Aliases** in GEO Settings for other spellings, product names or your bare domain.
     - Check the **Prompts** tab on the Overview to see the actual answers per engine.
-    - Content Gaps lists the prompts where you are missing, which is the starting point for new content.
+    - Content Gaps lists the prompts where you are missing. Start new content from there.
   </Accordion>
 
   <Accordion title="No content is being generated" icon="file-lines">

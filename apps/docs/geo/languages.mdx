@@ -1,0 +1,26 @@
+---
+title: "Languages"
+description: "Scan your prompts in up to four languages. Notra translates each prompt and reports mention rate per language."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/languages
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Pick languages under **Settings > Languages**. English is on by default. A project can scan up to four of about 30 supported languages.
+
+- Notra translates your prompts into each language before the scan, so you maintain one prompt list.
+- Each language multiplies the answers a scan uses.
+- [Conversations](/geo/conversations) and [brand sentiment](/geo/metrics/sentiment) only use English answers.
+- **Performance by language** on the GEO **Overview** page and `GET /geo/visibility/language-share` report mention rate per language.
+
+<Note>
+  TODO: add the full list of supported language codes.
+</Note>

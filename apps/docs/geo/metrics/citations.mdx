@@ -1,0 +1,32 @@
+---
+title: "Citations"
+description: "Citations are the pages a grounded engine read and cited while answering a prompt. They show where engines get their information about your category."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/metrics/citations
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: draft
+---
+
+Grounded engines search the web before they answer. Notra saves the search queries they ran and the sources they cited for every answer.
+
+## Where to find them
+
+- Answer details on the [Prompts](/geo/prompts) page list the cited sources and search queries.
+- [Shelf Space](/geo/shelf-space) groups cited third-party pages and tracks whether you are listed on them.
+- The **What changed** card flags **Citation gained**, **Citation lost** and **Competitor cited**.
+- `sources[]` and `searchQueries` in `GET /v1/projects/{projectId}/geo/visibility/prompt-results`.
+
+<Warning>
+  This page is a placeholder. It will cover the topics below.
+</Warning>
+
+- Mention vs citation: being named in an answer vs having your page cited.
+- Own-site citation rate and how it is calculated.
+- Which engines return citations (grounded engines only).

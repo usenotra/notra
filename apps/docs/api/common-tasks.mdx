@@ -1,5 +1,5 @@
 ---
-title: "Common Tasks"
+title: "Common tasks"
 description: "Practical Notra API examples: update a post, generate content, read GEO visibility and trigger a scan."
 authors:
   - handle: dominik
@@ -28,7 +28,14 @@ docolin:
 
 ## Update an existing post
 
-Use `PATCH /v1/posts/{postId}` to update a post. Send at least one of `title` (up to 120 characters), `slug` (lowercase letters, numbers and hyphens, up to 160 characters, or `null` to clear it), `markdown` (up to 100,000 characters) or `status` (`draft` or `published`). The response contains the updated post.
+Use `PATCH /v1/posts/{postId}` to update a post. Send at least one of these fields:
+
+- `title`, up to 120 characters
+- `slug`, up to 160 lowercase letters, numbers and hyphens, or `null` to clear it
+- `markdown`, up to 100,000 characters
+- `status`, `draft` or `published`
+
+The response contains the updated post.
 
 <CodeGroup>
 ```typescript fetch
@@ -118,19 +125,19 @@ console.log(updated.post);
 ```
 </CodeGroup>
 
-`PATCH /v1/posts/{postId}` is limited to 60 requests per minute per key. Sending a body with none of the four fields returns `400`.
+The limit for `PATCH /v1/posts/{postId}` is 60 requests per minute per key. Sending a body with none of the four fields returns `400`.
 
 ## Create a new post
 
-There is no `POST /v1/posts` endpoint for creating a post with arbitrary fields. Posts are created by generation: queue a job with `POST /v1/posts/generate`, then poll it until it reports a `postId`.
+There is no `POST /v1/posts` endpoint for creating a post with arbitrary fields. Notra creates posts through generation. Queue a job with `POST /v1/posts/generate`, then poll it until it reports a `postId`.
 
 <Warning>
-  If a guide or AI answer suggests `POST /v1/posts` or an `author` field for post creation, that information is not correct for the current Notra API.
+  If a guide or AI answer suggests `POST /v1/posts` or an `author` field for post creation, it is wrong for the current Notra API.
 </Warning>
 
 ### Queue a generation job
 
-`contentType` is required (`changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`). `lookbackWindow` defaults to `last_7_days` (`current_day`, `yesterday`, `last_7_days`, `last_14_days`, `last_30_days`). Point the job at connected sources with `integrations.github` and `integrations.linear` (integration ids from `GET /v1/integrations`) or at public repositories with `github.repositories`. When no selector is given, every connected GitHub integration is used.
+`contentType` is required (`changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`). `lookbackWindow` defaults to `last_7_days` (`current_day`, `yesterday`, `last_7_days`, `last_14_days`, `last_30_days`). Point the job at connected sources with `integrations.github` and `integrations.linear` (integration ids from `GET /v1/integrations`) or at public repositories with `github.repositories`. With no selector, the job uses every connected GitHub integration.
 
 ```bash
 curl -X POST "https://api.usenotra.com/v1/posts/generate" \
@@ -213,7 +220,7 @@ async function waitForPost(jobId: string): Promise<string> {
 }
 ```
 
-`skipped` means the job ended without creating a post. Notra does not send a webhook when a job finishes, so polling is the way to find out. `POST /v1/posts/generate` is limited to 10 requests per minute per key and needs an active paid plan or AI credits.
+`skipped` means the job ended without creating a post. Notra does not send a webhook when a job finishes, so you have to poll. `POST /v1/posts/generate` allows 10 requests per minute per key and needs an active paid plan or AI credits.
 
 ## Read GEO visibility for a project
 
@@ -255,7 +262,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 }
 ```
 
-Visibility and traffic reads accept either `days` (1 to 365, rolling window) or an explicit `from` and `to` (`YYYY-MM-DD`). When `from`/`to` are set, `days` is ignored. `configured: false` means the project has no GEO settings yet; configure it with `PATCH /v1/projects/{projectId}/geo/settings`.
+Visibility and traffic reads accept either `days` (1 to 365, rolling window) or an explicit `from` and `to` (`YYYY-MM-DD`). When you set `from` and `to`, the API ignores `days`. `configured: false` means the project has no GEO settings yet. Configure it with `PATCH /v1/projects/{projectId}/geo/settings`.
 
 These endpoints need `projects.read` and `visibility.read` plus a GEO plan. Without the plan the API returns `402`.
 
@@ -276,7 +283,7 @@ curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
 }
 ```
 
-Poll `statusUrl` until `scan.status` is `completed` or `failed`. Scans are limited to 4 per hour per organization, so poll rather than re-trigger. See [Rate Limits](/api/rate-limits#geo).
+Poll `statusUrl` until `scan.status` is `completed` or `failed`. Each organization can run 4 scans per hour, so poll instead of re-triggering. See [Rate Limits](/api/rate-limits#geo).
 
 ## Submit feedback from an integration
 
@@ -294,4 +301,4 @@ curl -X POST "https://api.usenotra.com/v1/feedback" \
   }'
 ```
 
-See [Agent Feedback](/api/agent-feedback) for the full field list and the MCP tool.
+See [Agent Feedback](/feedback/send-feedback) for the full field list and the MCP tool.

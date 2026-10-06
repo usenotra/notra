@@ -1,0 +1,50 @@
+---
+title: "Personas"
+sidebarTitle: "Personas"
+description: "Personas are AI buyer profiles that research your category in every engine during scans, so you see visibility the way a specific buyer would."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/personas
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+<Info>
+  Personas are in beta.
+</Info>
+
+A tracked prompt is one question. A persona is a buyer with a job title, a company, a current tool stack and objections, who has a whole conversation with each engine. The **Persona visibility** card on the Personas page shows how often you come up in those conversations, with a forecast.
+
+## Generate personas
+
+Notra generates a starting set of five personas from your website and audience. **Add persona** creates one from a short description, for example "an agency founder comparing AI visibility tools for clients, with a tight budget". Notra fills in the profile and memories.
+
+## What a persona contains
+
+| Section | Contents |
+| --- | --- |
+| Employment | Job title and company profile |
+| Behavior | Motivations and how they search |
+| Goals and pain points | What they want and what blocks them |
+| Current stack | Up to six tools they already use |
+| Buying triggers and objections | Why they would buy, and why not |
+| Memories | Background facts, preferences and constraints |
+
+From the profile and memories Notra generates fixed **conversation prompts**. Every engine receives the same messages in the same order, so results are comparable across engines and scans. Editing a persona regenerates its prompts.
+
+## Scans and cost
+
+- Personas talk to every enabled engine during each scan. **Max. messages** caps how many messages a persona sends per engine per scan.
+- Each persona answer counts as more than one AI answer against your quota. The persona dialog shows the multiplier.
+- **Pause scans** keeps a persona but skips it. **Archive** removes it from future scans and keeps its history.
+- Notra limits how many personas can be active. Archive one before adding another.
+
+<Note>
+  TODO: document the active persona limit and the AI answer multiplier.
+</Note>

@@ -1,0 +1,131 @@
+---
+title: "GEO writer"
+description: "Turn a content gap or topic into a brief, approve it and let the writer draft an article in your brand voice that opens in Content."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/writer
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Writing is a two-step flow: plan a brief, then approve it. Approval hands the brief to the writer, which produces a draft article in **Content**.
+
+<Steps>
+  <Step title="Open the Write dialog">
+    From a gap row press **Write**, or open the **Write** page and press **New article**. The dialog has five sections: **Prompt** (required), **Format** (required), **Brand identity**, **Sitemap** and **Competitors**. The dashboard offers three formats: **Guide** ("A long article that answers the prompt directly"), **Listicle** ("A numbered list that buyers can scan and cite") and **Comparison** ("Compares the brand with its alternatives"). In the sitemap section, the planner picks internal links from the pages of your site. In the competitors section, you choose which tracked competitors the article positions against.
+  </Step>
+  <Step title="Plan the brief">
+    Notra researches the topic against your brand context, the current gap prompts, the chosen competitors and the sitemap pages. It then writes a brief with a working title, audience, intent, sections with claims, questions to answer, internal links and an acceptance checklist. Planning books AI credits. The brief opens for review in **Draft** state.
+  </Step>
+  <Step title="Approve">
+    Approving claims the brief and starts the writer. The Write page lists every brief with its state: **Draft**, **Queued**, **Writing**, **Done** or **Failed**. While it runs the page shows **Writing the article**.
+  </Step>
+  <Step title="Open the draft in Content">
+    When the run completes, the brief links to a post that opens in **Content** as a blog post draft. Edit and publish it like any other post. A failed brief can be approved again.
+  </Step>
+</Steps>
+
+## Billing
+
+Planning a brief reserves AI credits and does not count toward a plan quota. Notra bills the approved writer run as a long-form post. It draws from the plan's long-form post quota first and falls back to AI credits when the quota is used up. Both steps fail with `402` when neither is available. See [Billing](/organization/billing).
+
+## Plan a brief from the API
+
+```bash
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/briefs \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  --max-time 330 \
+  -d '{
+    "topic": "what tools should i use for automating changelogs",
+    "contentSubtype": "guide",
+    "sourceKind": "gap",
+    "sourceId": "prm_123",
+    "competitorIds": ["cmp_1", "cmp_2"],
+    "autoApprove": false
+  }'
+```
+
+<ParamField body="topic" type="string" required>
+  3 to 200 characters. Replaced by the source prompt when `sourceKind` is `gap`, `prompt` or `search_console`.
+</ParamField>
+<ParamField body="autoApprove" type="boolean" default="false">
+  Start the writer in the same call instead of leaving the brief in draft.
+</ParamField>
+<ParamField body="contentSubtype" type="string">
+  One of `guide`, `comparison`, `listicle`, `how-to`, `faq`, `alternatives`.
+</ParamField>
+<ParamField body="brandVoiceIds" type="string[]">
+  Up to 8 ids. Notra uses only the first, and it overrides the project's brand identity.
+</ParamField>
+<ParamField body="competitorIds" type="string[]">
+  Tracked competitor ids to position against. The brief uses at most 25 of them, preferring the ones named in the evidence and then the ones AI engines recommend most.
+</ParamField>
+<ParamField body="sitemapId" type="string">
+  Sitemap whose pages the planner may link to.
+</ParamField>
+<ParamField body="sourceKind" type="string">
+  One of `manual`, `gap`, `prompt`, `search_console`.
+</ParamField>
+<ParamField body="sourceId" type="string">
+  Gap, prompt or search-console suggestion id. If an open brief exists for the same source, Notra reuses it instead of planning a new one.
+</ParamField>
+
+```json
+{
+  "briefId": "brf_01J...",
+  "brief": {
+    "targetPrompt": "what tools should i use for automating changelogs",
+    "intent": "Buyer comparing changelog automation tools",
+    "contentSubtype": "guide",
+    "workingTitle": "How to automate changelogs from GitHub activity",
+    "audience": "Engineering leads at B2B SaaS companies",
+    "jobToBeDone": "Ship release notes without writing them by hand",
+    "sections": [{ "heading": "Why changelogs fall behind", "goal": "Name the pain", "claims": ["..."] }],
+    "questionsToAnswer": ["..."],
+    "internalLinks": [{ "url": "https://acme.com/docs", "anchor": "docs", "why": "..." }],
+    "acceptanceChecklist": ["..."]
+  },
+  "status": "draft",
+  "runId": null,
+  "postId": null,
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+<Warning>
+  Planning is synchronous. If it exceeds four minutes the API returns `409` while work may still finish in Notra. Do not retry. List the project's briefs to find the result. This endpoint allows 10 requests per 10 minutes per organization.
+</Warning>
+
+## Approve and follow the run
+
+```bash
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/briefs/$BRIEF_ID/approve \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```json
+{
+  "runId": "run_01J...",
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+The response is `202 Accepted`. You can only approve briefs in `draft` or `failed`. Any other status returns `409`. The limit is 20 requests per 10 minutes per organization.
+
+Poll `GET /v1/projects/{projectId}/geo/briefs/{briefId}` until `status` is `completed` or `failed`. The brief object carries `status`, `autoApproved`, `runId`, `postId`, `humanized`, `error`, `createdAt`, `updatedAt` and `completedAt`. `GET /v1/projects/{projectId}/geo/briefs` lists every brief with `id`, `topic`, `workingTitle`, `status`, `postId` and `createdAt`. Once `postId` is set, read the article through the [Posts API](/api-reference/content/list-posts).
+
+<CardGroup cols={2}>
+  <Card title="Plan a content brief" icon="code" href="/api-reference/geo/plan-a-content-brief">
+    Full request and response schema.
+  </Card>
+  <Card title="Blog posts" icon="file-text" href="/content/blog-posts">
+    What happens to the draft once it lands in Content.
+  </Card>
+</CardGroup>

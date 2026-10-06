@@ -1,0 +1,26 @@
+---
+title: "Other platforms"
+description: "Status of AI crawler tracking for platforms without a native tracker integration, such as Express, Cloudflare Workers and CDN log drains."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/install/other-platforms
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: draft
+---
+
+The tracker has native integrations for Next.js, TanStack Start, Nuxt, Astro, SvelteKit and Netlify Edge Functions. The core has no Node APIs and no dependencies, so it can run in most edge or server runtimes.
+
+<Warning>
+  This page is a placeholder. The outline below is what it will cover.
+</Warning>
+
+- Express and Hono middleware.
+- Cloudflare Workers.
+- Vercel log drains and Cloudflare Logpush (server logs instead of middleware).
+- Static sites with no server runtime.

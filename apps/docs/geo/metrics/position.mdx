@@ -1,0 +1,31 @@
+---
+title: "Position"
+description: "Position is where your brand appears in an answer: first, second or further down a list of recommendations."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/metrics/position
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Position tells you whether an engine recommends you first or fifth in a list of ten.
+
+## How it is calculated
+
+The judge records the position of your brand in each answer that mentions it. **Avg position** averages that number across mentioning answers only. It leaves out answers that do not mention you, so read it next to [mention rate](/geo/metrics/mention-rate).
+
+## Where to find it
+
+- **Avg position** column in **Mention rate by engine** on the GEO **Overview** page.
+- **Best** position per prompt on the [Prompts](/geo/prompts) page.
+- `avgPosition` in the visibility API and `position` per answer in `prompt-results`.
+
+<Note>
+  TODO: document how the judge assigns a position when an answer is prose rather than a list.
+</Note>

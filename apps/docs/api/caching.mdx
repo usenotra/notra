@@ -26,7 +26,7 @@ docolin:
   next: ./common-tasks.mdx
 ---
 
-The Notra API does not do HTTP caching for you. Every response is sent with `Cache-Control: private, no-store`, and there are no `ETag` or `Last-Modified` headers, so conditional requests (`If-None-Match`) are not supported. Caching happens in your application, and this page describes how to do it safely for post data.
+The Notra API does not do HTTP caching for you. Every response has `Cache-Control: private, no-store` and no `ETag` or `Last-Modified` headers, so the API does not support conditional requests (`If-None-Match`). You cache in your application. This page shows how to do that safely for post data.
 
 When caching post data, include every query input that changes the result set in the cache key. For `GET /v1/posts` that means:
 
@@ -37,7 +37,7 @@ When caching post data, include every query input that changes the result set in
 - `contentType`
 - `brandIdentityId`
 
-`status`, `contentType` and `brandIdentityId` are comma-separated lists in a single query parameter, for example `status=draft,published`. Repeating the parameter is not supported.
+`status`, `contentType` and `brandIdentityId` are comma-separated lists in a single query parameter, for example `status=draft,published`. The API does not support repeating the parameter.
 
 ## Cache key design
 
@@ -87,7 +87,7 @@ Use separate caches for:
 - post lists, keyed by pagination and filters
 - individual posts, keyed by `postId`
 
-This keeps list pages independent while still letting you refresh a single post after `PATCH /v1/posts/{postId}`.
+List pages stay independent, and you can still refresh a single post after `PATCH /v1/posts/{postId}`.
 
 ```typescript
 const listKey = createPostsCacheKey({
@@ -211,12 +211,12 @@ function useUpdatePost() {
 
 If you use React Server Components or Next.js, React's `cache()` function can help dedupe repeated reads during a single render on the server.
 
-Use it for read paths, but do not rely on it alone for mutation invalidation. Pair it with route-level revalidation, cache tags, or your client cache invalidation strategy after updates, deletes, or completed generation jobs.
+Use it for read paths, but do not rely on it alone for mutation invalidation. After updates, deletes or completed generation jobs, pair it with route-level revalidation, cache tags or your client cache invalidation.
 
 ## Practical defaults
 
-- Use a short TTL for list caches if content changes frequently. Nothing in the response tells you it is stale.
-- Use explicit invalidation after `update`, `delete`, and successful generation completion.
+- Use a short TTL for list caches if content changes often. Nothing in the response tells you it is stale.
+- Use explicit invalidation after `update`, `delete` and completed generation jobs.
 - Prefer `sort=desc` plus page-1 refetch if your UI is a newest-first feed.
 - Cache individual posts separately from paginated lists.
 - Apply the same pattern to `GET /v1/feedback` and `GET /v1/projects/{projectId}/geo/scans`, which paginate the same way. See [Pagination](/api/pagination).

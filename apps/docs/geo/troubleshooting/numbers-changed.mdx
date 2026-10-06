@@ -1,0 +1,51 @@
+---
+title: "Why did my numbers change?"
+sidebarTitle: "Numbers changed"
+description: "Visibility moves when engines answer differently, but also when the prompt mix, engine mix or aliases change. Here is how to tell which one it was."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/troubleshooting/numbers-changed
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Start with the **What changed** card on the GEO **Overview** page. It compares the latest scan with the previous one, prompt by prompt.
+
+## What changed
+
+The card needs two scans before it shows anything. Each row is one prompt and engine where something moved:
+
+| Change | Meaning |
+| --- | --- |
+| Gained mention | An engine started mentioning your brand |
+| Lost mention | An engine stopped mentioning your brand |
+| Position up / down | Your brand moved up or down in the answer |
+| Displaced by competitor | A competitor took the spot you held |
+| Citation gained | An engine started citing your pages |
+| Citation lost | An engine stopped citing your pages |
+| Competitor cited | An engine cited a competitor's page |
+| New engine | The engine had no previous answer to compare |
+
+## Other causes
+
+| Cause | What to check |
+| --- | --- |
+| Engines answered differently | What changed shows gained or lost mentions on the same prompts |
+| You added or paused prompts | Every saved answer has equal weight, so new prompts change the rate |
+| You added or removed engines | Mention rate is per engine; the total mixes them |
+| You changed aliases or competitors | Matching only applies to answers judged after the change |
+| Manual scans | Repeated manual scans count again in the selected range |
+| A partial scan | Answers from an unfinished scan can appear before it completes |
+
+<Warning>
+  This page is a placeholder. The outline below is what it will cover.
+</Warning>
+
+- Whether past answers are re-judged after alias or competitor edits.
+- How judge model upgrades affect history.

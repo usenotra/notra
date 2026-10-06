@@ -1,0 +1,41 @@
+---
+title: "Mention rate"
+description: "Mention rate is the share of saved answers that name your brand or one of its aliases. It is the headline visibility number on the GEO dashboard."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/metrics/mention-rate
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Mention rate shows how often your brand comes up when an engine answers one of your tracked prompts.
+
+## How it is calculated
+
+**Mention rate = answers that mention you / all saved answers**, for the selected engines, languages and date range.
+
+- An answer counts as a mention when the judge finds your company name or any [alias](/geo/brand-and-domains) in it.
+- Every saved answer has equal weight. Answers that do not name you count as zero, so adding prompts you rank poorly on lowers the rate.
+- The dashboard shows the delta against the first half of the selected range.
+
+## Where to find it
+
+- **Mentions** card and **Mention rate by engine** table on the GEO **Overview** page.
+- `mentionRate` in `GET /v1/projects/{projectId}/geo/visibility/overview`.
+
+## What moves it
+
+- Prompt mix: adding or pausing [prompts](/geo/prompts) changes the denominator.
+- Engine mix: each [engine](/geo/engines) has its own rate. Adding a weak engine pulls the total down.
+- Aliases: a missing product name or domain alias hides real mentions.
+- Content: closing [content gaps](/geo/content-gaps) and earning [shelf space](/geo/shelf-space) gets more answers to name you. The other three change what is counted, not how often engines mention you.
+
+<Card title="Why is my visibility zero?" icon="wrench" href="/geo/troubleshooting/visibility-is-zero" horizontal>
+  Work through the common causes.
+</Card>

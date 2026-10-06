@@ -1,0 +1,331 @@
+---
+title: "AI crawler directory"
+sidebarTitle: "Crawler directory"
+description: "Every AI crawler, assistant and agent Notra recognizes, grouped by vendor, with its purpose, user agent token and how it can be verified."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/crawlers
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra classifies every captured request at ingest. Notra stores requests that match one of the signatures below as **AI crawler** events and discards everything else that looks human.
+
+## Purposes
+
+| Purpose | Category | Meaning |
+| --- | --- | --- |
+| Model training | `training-crawler` | Collects pages for training corpora |
+| Search index | `search-index` | Builds the index an AI answer engine searches |
+| Cited in answer | `assistant-browse` | Fetched live while an assistant answered someone |
+
+AI referrals (people clicking through from an answer) are a separate visitor type. Notra recognizes them by referrer host. See [Referrals and conversions](/ai-traffic/referrals).
+
+## Confidence
+
+| Confidence | Meaning |
+| --- | --- |
+| Verified | The operator documents the user agent and publishes IP ranges or a verification method |
+| Reported | The user agent is documented by the operator or a maintained public list, with no verification method |
+| Heuristic | Detected from request patterns such as headers, not a declared user agent |
+
+User agents can be spoofed. Notra does not verify IPs at ingest. The links below point to the operator's own verification method.
+
+## Directory
+
+<AccordionGroup>
+  <Accordion title="OpenAI (4)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [GPTBot](https://developers.openai.com/api/docs/bots) | Model training | `GPTBot` | Verified | [IP list](https://openai.com/gptbot.json) |
+| [OAI-SearchBot](https://developers.openai.com/api/docs/bots) | Search index | `OAI-SearchBot` | Verified | [IP list](https://openai.com/searchbot.json) |
+| [ChatGPT-User](https://developers.openai.com/api/docs/bots) | Cited in answer | `ChatGPT-User` | Verified | [IP list](https://openai.com/chatgpt-user.json) |
+| [OAI-AdsBot](https://developers.openai.com/api/docs/bots) | Search index | `OAI-AdsBot` | Verified | [IP list](https://openai.com/adsbot.json) |
+
+  </Accordion>
+  <Accordion title="Anthropic (6)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Claude Code](https://github.com/monperrus/crawler-user-agents) | Cited in answer | `claude-code/` | Reported | None published |
+| [Claude-SearchBot](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) | Search index | `Claude-SearchBot` | Verified | [IP list](https://claude.com/crawling/bots.json) |
+| [Claude-User](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) | Cited in answer | `Claude-User` | Verified | [IP list](https://claude.com/crawling/bots.json) |
+| [ClaudeBot](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) | Model training | `ClaudeBot` | Verified | [IP list](https://claude.com/crawling/bots.json) |
+| [anthropic-ai](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `anthropic-ai` | Reported | None published |
+| [claude-web](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `claude-web` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Perplexity (2)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [PerplexityBot](https://docs.perplexity.ai/docs/resources/perplexity-crawlers) | Search index | `PerplexityBot` | Verified | [IP list](https://www.perplexity.ai/perplexitybot.json) |
+| [Perplexity-User](https://docs.perplexity.ai/docs/resources/perplexity-crawlers) | Cited in answer | `Perplexity-User` | Verified | [IP list](https://www.perplexity.ai/perplexity-user.json) |
+
+  </Accordion>
+  <Accordion title="Google (9)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Google-CloudVertexBot](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) | Search index | `Google-CloudVertexBot` | Verified | [IP list](https://developers.google.com/static/crawling/ipranges/common-crawlers.json) |
+| [GoogleOther-Image](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) | Model training | `GoogleOther-Image` | Heuristic | [IP list](https://developers.google.com/static/crawling/ipranges/common-crawlers.json) |
+| [GoogleOther-Video](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) | Model training | `GoogleOther-Video` | Heuristic | [IP list](https://developers.google.com/static/crawling/ipranges/common-crawlers.json) |
+| [GoogleOther](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers) | Model training | `GoogleOther` | Heuristic | [IP list](https://developers.google.com/static/crawling/ipranges/common-crawlers.json) |
+| [Google-Agent](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers) | Cited in answer | `Google-Agent` | Verified | [IP list](https://developers.google.com/static/crawling/ipranges/user-triggered-agents.json) |
+| [Google-GeminiNotebook](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers) | Cited in answer | `Google-GeminiNotebook` | Verified | [IP list](https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers-google.json) |
+| [Gemini CLI](https://www.checklyhq.com/blog/state-of-ai-agent-content-negotation/) | Cited in answer | `GoogleAgent-URLContext` | Reported | None published |
+| [Gemini CLI (legacy)](https://knownagents.com/agents/google-gemini-cli) | Cited in answer | `Google-Gemini-CLI` | Reported | None published |
+| [Gemini](https://developers.google.com/crawling/docs/crawlers-fetchers/google-user-triggered-fetchers) | Cited in answer | `Google` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="ByteDance (3)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Bytespider](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `Bytespider` | Reported | None published |
+| [Trae-Agent](https://knownagents.com/agents/trae) | Cited in answer | `Trae-Agent` | Reported | None published |
+| [TikTokSpider](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `TikTokSpider` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Amazon (3)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Amazonbot](https://developer.amazon.com/amazonbot) | Model training | `Amazonbot` | Verified | [Method](https://developer.amazon.com/amazonbot/ip-addresses/) |
+| [Amzn-SearchBot](https://developer.amazon.com/amazonbot) | Search index | `Amzn-SearchBot` | Verified | [Method](https://developer.amazon.com/amazonbot/searchbot-ip-addresses/) |
+| [Amzn-User](https://developer.amazon.com/amazonbot) | Cited in answer | `Amzn-User` | Verified | [Method](https://developer.amazon.com/amazonbot/live-ip-addresses/) |
+
+  </Accordion>
+  <Accordion title="Apple (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Applebot](https://support.apple.com/en-us/119829) | Search index | `Applebot/` | Verified | [IP list](https://search.developer.apple.com/applebot.json) |
+
+  </Accordion>
+  <Accordion title="Cohere (2)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [cohere-training-data-crawler](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `cohere-training-data-crawler` | Reported | None published |
+| [cohere-ai](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `cohere-ai` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Meta (5)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [meta-externalagent](https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers) | Model training | `meta-externalagent` | Verified | None published |
+| [meta-externalfetcher](https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers) | Cited in answer | `meta-externalfetcher` | Verified | None published |
+| [meta-webindexer](https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/) | Search index | `meta-webindexer` | Verified | None published |
+| [meta-externalads](https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/) | Search index | `meta-externalads` | Verified | None published |
+| [FacebookBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `FacebookBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="DuckDuckGo (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [DuckAssistBot](https://duckduckgo.com/duckduckgo-help-pages/results/duckassistbot/) | Cited in answer | `DuckAssistBot` | Verified | [IP list](https://duckduckgo.com/duckassistbot.json) |
+
+  </Accordion>
+  <Accordion title="Liner (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [LinerBot](https://docs.getliner.com/docs/linerbot) | Search index | `LinerBot` | Verified | [IP list](https://docs.getliner.com/linerbot.json) |
+
+  </Accordion>
+  <Accordion title="You.com (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [YouBot](https://you.com/docs/youbot) | Search index | `YouBot` | Verified | [Method](https://you.com/.well-known/http-message-signatures-directory) |
+
+  </Accordion>
+  <Accordion title="Mistral (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [MistralAI-User](https://docs.mistral.ai/robots) | Cited in answer | `MistralAI-User` | Verified | [IP list](https://mistral.ai/mistralai-user-ips.json) |
+
+  </Accordion>
+  <Accordion title="Common Crawl (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [CCBot](https://commoncrawl.org/ccbot) | Model training | `CCBot` | Heuristic | [IP list](https://index.commoncrawl.org/ccbot.json) |
+
+  </Accordion>
+  <Accordion title="Diffbot (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Diffbot](https://www.diffbot.com/docs/crawl/faq/robots-txt) | Search index | `Diffbot` | Verified | None published |
+
+  </Accordion>
+  <Accordion title="Timpi (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Timpibot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `Timpibot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Cognition (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Devin](https://radar.cloudflare.com/bots/directory/devin) | Cited in answer | `Devin/` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="OpenCode (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [OpenCode](https://github.com/sst/opencode) | Cited in answer | `opencode` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Anysphere (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Cursor](https://cursor.com/download) | Cited in answer | `Cursor/` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Cline Bot (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Cline](https://github.com/cline/cline/blob/main/apps/vscode/src/integrations/misc/link-preview.ts) | Cited in answer | `Mozilla/5.0 (compatible; AgentBot/1.0)`, `VSCodeExtension/1.0; +https://cline.bot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Webz.io (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [omgili](https://webz.io/blog/web-data/what-is-the-omgili-bot-and-why-is-it-crawling-your-website/) | Model training | `omgilibot`, `omgili` | Heuristic | None published |
+
+  </Accordion>
+  <Accordion title="Mozilla (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Mozilla Tabstack](https://docs.tabstack.ai/trust/controlling-access) | Cited in answer | `Mozilla-Tabstack` | Verified | None published |
+
+  </Accordion>
+  <Accordion title="Ai2 (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [AI2Bot](https://allenai.org/crawler) | Model training | `AI2Bot` | Verified | None published |
+
+  </Accordion>
+  <Accordion title="Moonshot AI (3)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Kimi-User](https://www.kimi.ai/policies/kimi-crawlers) | Cited in answer | `Kimi-User` | Verified | [IP list](https://www.kimi.ai/policies/kimi-user.json) |
+| [KimiBot](https://www.kimi.ai/policies/kimi-crawlers) | Model training | `KimiBot` | Verified | [IP list](https://www.kimi.ai/policies/kimibot.json) |
+| [Kimi-SearchBot](https://www.kimi.ai/policies/kimi-crawlers) | Search index | `Kimi-SearchBot` | Verified | [IP list](https://www.kimi.ai/policies/kimi-searchbot.json) |
+
+  </Accordion>
+  <Accordion title="Zhipu AI (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [ChatGLM-Spider](https://knownagents.com/agents/chatglm-spider) | Model training | `ChatGLM-Spider` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Alibaba (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [TongyiBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `TongyiBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Baidu (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [YiyanBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `YiyanBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Butterfly Effect (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Manus-User](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `Manus-User` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Kagi (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [kagi-fetcher](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Cited in answer | `kagi-fetcher` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="DeepSeek (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [DeepSeekBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `DeepSeekBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Huawei (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [PanguBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Model training | `PanguBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Cloudflare (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [Cloudflare-AutoRAG](https://developers.cloudflare.com/autorag/configuration/data-source/website/) | Search index | `Cloudflare-AutoRAG` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Exa (2)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [ExaSearchBot](https://crawler.exa.ai/) | Search index | `ExaSearchBot` | Verified | [Method](https://crawler.exa.ai/.well-known/http-message-signatures-directory) |
+| [ExaBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Search index | `ExaBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Parallel (2)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [ShapBot](https://docs.parallel.ai/resources/crawler) | Search index | `ShapBot` | Verified | [IP list](https://docs.parallel.ai/resources/shapbot.json) |
+| [Shap-User](https://parallel.ai/parallel-web-systems-bots) | Cited in answer | `Shap-User` | Verified | None published |
+
+  </Accordion>
+  <Accordion title="Tavily (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [TavilyBot](https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json) | Search index | `TavilyBot` | Reported | None published |
+
+  </Accordion>
+  <Accordion title="Firecrawl (1)">
+
+| Agent | Purpose | User agent contains | Confidence | Verification |
+| --- | --- | --- | --- | --- |
+| [FirecrawlAgent](https://docs.firecrawl.dev/advanced-scraping-guide) | Search index | `FirecrawlAgent` | Heuristic | None published |
+
+  </Accordion>
+</AccordionGroup>
+
+Coding agents and HTTP clients that do not send a distinctive user agent, for example `curl` or `python-requests`, are recognized from request fingerprints where possible.
+
+<Note>
+  Missing an agent? Tell us in [Discord](https://www.usenotra.com/discord). The list is generated from the tracker's signature table.
+</Note>

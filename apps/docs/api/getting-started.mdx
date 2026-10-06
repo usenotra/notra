@@ -1,6 +1,6 @@
 ---
-title: "Getting Started"
-description: "Call the Notra API: base URL, API keys, the TypeScript SDK, and a map of every endpoint group."
+title: "Getting started"
+description: "Call the Notra API: base URL, API keys, the TypeScript SDK and a map of every endpoint group."
 authors:
   - handle: dominik
 
@@ -25,7 +25,7 @@ docolin:
   next: ./authentication.mdx
 ---
 
-The Notra API is a REST API served from `https://api.usenotra.com`. Everything the dashboard can do with GEO tracking, content, schedules, chats, skills and agent feedback is available over HTTP, and the full contract is published as an OpenAPI 3.1 document at [api.usenotra.com/openapi.json](https://api.usenotra.com/openapi.json).
+The Notra API is a REST API served from `https://api.usenotra.com`. Everything the dashboard can do with GEO tracking, content, schedules, chats, skills and agent feedback is available over HTTP. The full contract is an OpenAPI 3.1 document at [api.usenotra.com/openapi.json](https://api.usenotra.com/openapi.json).
 
 <CardGroup cols={2}>
   <Card title="REST API" icon="globe">
@@ -36,7 +36,7 @@ The Notra API is a REST API served from `https://api.usenotra.com`. Everything t
   </Card>
 </CardGroup>
 
-## Quick Start
+## Quick start
 
 Base URL:
 
@@ -44,7 +44,7 @@ Base URL:
 https://api.usenotra.com
 ```
 
-Paths are versioned (`/v1/...`, and `/v2/...` for the Agent group). Requests authenticate with a bearer credential: either an API key from the dashboard or an OAuth access token from the Notra authorization server. The organization is inferred from the credential, so there is no organization segment in the URL.
+Paths are versioned (`/v1/...`, and `/v2/...` for the Agent group). Requests authenticate with a bearer credential: either an API key from the dashboard or an OAuth access token from the Notra authorization server. Notra infers the organization from the credential, so the URL has no organization segment.
 
 Check that the API is reachable without a key:
 
@@ -108,7 +108,7 @@ console.log(result.posts);
     Pick a name, an expiration (no expiry, 7, 30, 60 or 90 days) and the permissions the key needs. Start from one of the presets (MCP Server, SDK, CLI) or choose **Restricted** to set read or write access per resource.
   </Step>
   <Step title="Copy the key">
-    Keys start with `ntra_` and are shown once. Store the value in a server-side environment variable such as `NOTRA_API_KEY`.
+    Keys start with `ntra_`. The dashboard shows each key only once. Store the value in a server-side environment variable such as `NOTRA_API_KEY`.
   </Step>
 </Steps>
 
@@ -123,19 +123,19 @@ console.log(result.posts);
   className="hidden dark:block"
 />
 
-Scopes, presets and error responses are covered in [Authentication](/api/authentication).
+[Authentication](/api/authentication) covers scopes, presets and error responses.
 
 <Note>
-  Building a CLI, MCP client or agent that acts for a signed-in user? Use OAuth instead of a pasted key: register a client, run the authorization code flow with PKCE (or the device flow on headless machines), and send the access token in the same `Authorization: Bearer` header. The Notra MCP server accepts the same tokens. See [OAuth](/api/authentication#oauth).
+  Building a CLI, MCP client or agent that acts for a signed-in user? Use OAuth instead of a pasted key. Register a client, run the authorization code flow with PKCE (or the device flow on headless machines) and send the access token in the same `Authorization: Bearer` header. The Notra MCP server accepts the same tokens. See [OAuth](/api/authentication#oauth).
 </Note>
 
 <Warning>
-  Keep API keys private. Even read-only keys can be abused and burn through your
-  [rate limits](/api/rate-limits) if exposed in client-side code. Make requests
-  from your backend.
+  Keep API keys private. If a key ends up in client-side code, anyone can use it
+  to burn through your [rate limits](/api/rate-limits), even if the key is
+  read-only. Make requests from your backend.
 </Warning>
 
-## SDK Installation
+## SDK installation
 
 <CodeGroup>
 
@@ -169,7 +169,7 @@ const notra = new Notra({
 const post = await notra.content.getPost({ postId: "post_abc" });
 ```
 
-The SDK exposes one namespace per endpoint group: `notra.content`, `notra.schedules`, `notra.eventTriggers`, `notra.chats`, `notra.skills`, `notra.feedback` and `notra.agent`. It is generated from the OpenAPI document and published at [github.com/usenotra/typescript-sdk](https://github.com/usenotra/typescript-sdk).
+The SDK exposes one namespace per endpoint group: `notra.content`, `notra.schedules`, `notra.eventTriggers`, `notra.chats`, `notra.skills`, `notra.feedback` and `notra.agent`. Notra generates it from the OpenAPI document and publishes it at [github.com/usenotra/typescript-sdk](https://github.com/usenotra/typescript-sdk).
 
 <Note>
   GEO endpoints (projects, prompts, competitors, scans, visibility, gaps, briefs, agent readiness, traffic) are not in the SDK yet. Call them with `fetch` or generate a client from the [OpenAPI document](https://api.usenotra.com/openapi.json).
@@ -191,19 +191,19 @@ The SDK exposes one namespace per endpoint group: `notra.content`, `notra.schedu
     Event-based generation fired by GitHub webhooks: list, create, get, update and delete triggers.
   </Card>
   <Card title="Chats" icon="message" href="/api-reference/chats/list-chats">
-    Start a chat and stream the reply, continue an existing chat, list chats, or look a chat up by an external channel id.
+    Start a chat and stream the reply, continue an existing chat, list chats or look a chat up by an external channel id.
   </Card>
   <Card title="Skills" icon="wand-magic-sparkles" href="/api-reference/skills/list-skills">
     Reusable writing skills, addressed by name: list, create, get, update and delete.
   </Card>
   <Card title="Feedback" icon="inbox" href="/api-reference/feedback/list-feedback">
-    Feedback submitted by AI agents. Agents post to your public feedback URL without credentials; list, get and triage entries with an API key. See [Agent Feedback](/api/agent-feedback).
+    Feedback submitted by AI agents. Agents post to your public feedback URL without credentials. You list, get and triage entries with an API key. See [Agent Feedback](/feedback/send-feedback).
   </Card>
   <Card title="GEO" icon="chart-line" href="/api-reference/geo/list-geo-projects">
     Generative engine optimization per project: settings, tracked prompts and prompt sequences, competitors, scans, visibility reads (mention rates, timeseries, share of voice), content gaps and briefs, agent readiness, AI traffic and the traffic ingest token. Requires a GEO plan.
   </Card>
   <Card title="Agent" icon="robot" href="/api-reference/agent/list-agent-sessions">
-    Durable agent sessions under `/v2`: start a session, send follow-up messages or answer input requests, stream session events, and list sessions.
+    Durable agent sessions under `/v2`: start a session, send follow-up messages or answer input requests, stream session events and list sessions.
   </Card>
 </CardGroup>
 
@@ -232,7 +232,7 @@ Errors are JSON with an `error` message. Authentication failures add a machine-r
 | `429` | Rate limited. See [Rate Limits](/api/rate-limits). |
 | `503` | The authentication or billing service is temporarily unavailable. Retry with backoff. |
 
-## Next Steps
+## Next steps
 
 <CardGroup cols={2}>
   <Card title="Authentication" icon="key" href="/api/authentication">

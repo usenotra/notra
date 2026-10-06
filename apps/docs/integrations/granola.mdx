@@ -1,6 +1,6 @@
 ---
 title: "Granola"
-description: "Connect Granola with an API key so the Notra agent can read meeting notes, AI summaries, and transcripts"
+description: "Connect Granola with an API key so the Notra agent can read meeting notes, AI summaries and transcripts"
 authors:
   - handle: dominik
 
@@ -23,17 +23,17 @@ docolin:
   next: ./google-search-console.mdx
 ---
 
-The Granola integration gives the Notra agent read access to your [Granola](https://www.granola.ai/) meeting notes. Once connected, you can ask the agent in **Chat** or in [Slack](/integrations/slack) to pull context from recent meetings, summarize a call, or draft content from a transcript.
+The Granola integration gives the Notra agent read access to your [Granola](https://www.granola.ai/) meeting notes. Once connected, you can ask the agent in **Chat** or in [Slack](/integrations/slack) to pull context from recent meetings, summarize a call or draft content from a transcript.
 
 ## What the agent can do
 
 The agent gets three tools per connected Granola workspace:
 
-* **List notes**: meeting notes with their AI summaries, attendees, and timestamps, filtered by date range or folder.
-* **Get a note**: a single note with its summary and metadata, optionally including the full transcript.
-* **List folders**: your Granola folders, so it can scope a search.
+* **List notes** returns meeting notes with their AI summaries, attendees and timestamps, filtered by date range or folder.
+* **Get a note** returns one note with its summary and metadata, and can include the full transcript.
+* **List folders** returns your Granola folders so the agent can scope a search.
 
-Access is read-only. Notra never creates, edits, or deletes anything in Granola.
+Access is read-only. Notra never creates, edits or deletes anything in Granola.
 
 ## Setup
 
@@ -47,15 +47,15 @@ Access is read-only. Notra never creates, edits, or deletes anything in Granola.
   </Step>
 
   <Step title="Save">
-    Notra verifies the key against Granola before saving it. If the key is rejected you get an error and nothing is stored. On success the key is encrypted and the toast reads "Granola connected".
+    Notra verifies the key against Granola before saving it. If Granola rejects the key, you get an error and Notra stores nothing. On success Notra encrypts the key and the toast reads "Granola connected".
   </Step>
 </Steps>
 
 ## Managing the integration
 
-The Granola page lists every connected workspace. From the card menu you can enable or disable it (a disabled integration is hidden from the agent) or delete it. Deleting removes the encrypted key from Notra; revoke the key in Granola as well if you no longer need it.
+The Granola page lists every connected workspace. From the card menu you can enable, disable or delete it. The agent cannot see a disabled integration. Deleting removes the encrypted key from Notra. If you no longer need the key, revoke it in Granola as well.
 
 ## Limits
 
-- Granola is available to the agent only. It is not a source for the **Create Content** dialog, schedules, or event triggers.
+- Granola is available to the agent only. It is not a source for the **Create Content** dialog, schedules or event triggers.
 - The agent reads notes on request. Notra does not sync or store your Granola notes.

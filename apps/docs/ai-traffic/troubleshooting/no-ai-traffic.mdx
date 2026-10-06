@@ -1,0 +1,37 @@
+---
+title: "No AI traffic showing up"
+sidebarTitle: "No AI traffic"
+description: "The Traffic page still shows the install panel after deploying the tracker. Check the token, the runtime and the excluded paths."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/troubleshooting/no-ai-traffic
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+<AccordionGroup>
+  <Accordion title="The token is missing in production">
+    Set `NOTRA_GEO_TOKEN` at your hosting provider, not only locally. The tracker never throws, so a missing token fails silently. Pass `onError` to log problems.
+  </Accordion>
+  <Accordion title="The token was rotated">
+    Rotating the token invalidates every earlier token right away. Update the variable and redeploy.
+  </Accordion>
+  <Accordion title="Pages are served statically">
+    The tracker runs in middleware. It never sees pages that a CDN serves without hitting your app. On Astro, use a server adapter.
+  </Accordion>
+  <Accordion title="The path is excluded">
+    The tracker skips `/api`, framework asset paths and static files by default. See [Tracker reference](/ai-traffic/tracker-reference).
+  </Accordion>
+  <Accordion title="No AI agent has visited yet">
+    Notra discards human visits. Crawlers visit on their own schedule, so a new or quiet site can take days. Ask ChatGPT or Claude to read one of your pages to trigger an assistant fetch.
+  </Accordion>
+  <Accordion title="The domain is not on the project">
+    List extra hostnames under **Tracked domains**. See [Brand and domains](/geo/brand-and-domains).
+  </Accordion>
+</AccordionGroup>

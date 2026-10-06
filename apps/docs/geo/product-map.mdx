@@ -1,0 +1,76 @@
+---
+title: "Product map"
+description: "What every page in the Notra dashboard does and where it is documented."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/product-map
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+The dashboard sidebar has two modes. **GEO** is the default and the focus of these docs. **Studio** is the content side. Every GEO page reads the active [project](/geo/projects) from the sidebar.
+
+## Visibility
+
+| Page | What it shows | Docs |
+| --- | --- | --- |
+| Overview | Mention rate, share of voice, What changed, sentiment and agent journeys | [Mention rate](/geo/metrics/mention-rate) |
+| Traffic | AI crawlers, AI-cited fetches and AI referrals on your site | [AI traffic](/ai-traffic/overview) |
+| Prompts | The questions Notra asks every engine, plus conversations and Search Console suggestions | [Prompts](/geo/prompts) |
+| Competitors | Who engines recommend instead of you | [Competitors](/geo/competitors) |
+| Personas | Buyer personas that research your category in each engine (beta) | [Personas](/geo/personas) |
+
+## Improve
+
+| Page | What it shows | Docs |
+| --- | --- | --- |
+| Content Gaps | Questions engines answer without mentioning you | [Content gaps](/geo/content-gaps) |
+| Shelf Space | Third-party pages engines cite, and whether you are listed on them | [Shelf space](/geo/shelf-space) |
+| Agent Readiness | A score for how well agents can discover and use your site | [Agent readiness](/geo/agent-readiness) |
+| Write | Briefs and drafts that answer a gap | [GEO writer](/geo/writer) |
+| Content and Schedules | Drafts and recurring generation, shared with Studio | [Content](/content/blog-posts) |
+
+GEO settings (brand, languages and models) open from the settings menu. See [Brand and domains](/geo/brand-and-domains), [Engines](/geo/engines) and [Languages](/geo/languages).
+
+## Studio
+
+Studio turns what you ship into changelogs, blog posts and social posts. It has Content, Chat, Brand Identity, [Social analytics](/studio/social-analytics), [Automation](/automation/overview) and [Integrations](/integrations/overview). The agent [Feedback](/feedback/inbox) inbox also lives here.
+
+## Learn the metrics
+
+<Columns cols={3}>
+  <Card title="Mention rate" icon="eye" href="/geo/metrics/mention-rate">
+    How often engines name you.
+  </Card>
+  <Card title="Share of voice" icon="chart-pie" href="/geo/metrics/share-of-voice">
+    Your mentions against competitors.
+  </Card>
+  <Card title="Position" icon="list-ol" href="/geo/metrics/position">
+    Where in the answer you appear.
+  </Card>
+  <Card title="Sentiment" icon="face-smile" href="/geo/metrics/sentiment">
+    How engines talk about you.
+  </Card>
+  <Card title="Citations" icon="link" href="/geo/metrics/citations">
+    Which pages engines read and cite.
+  </Card>
+  <Card title="Opportunity" icon="bullseye" href="/geo/content-gaps#prompt-gaps">
+    Which gaps to close first.
+  </Card>
+</Columns>
+
+## Build on Notra
+
+<Columns cols={2}>
+  <Card title="API" icon="code" href="/api/getting-started">
+    Read visibility and traffic, manage prompts and competitors and trigger scans.
+  </Card>
+  <Card title="MCP server" icon="sparkles" href="/devtools/mcp">
+    Let Claude, ChatGPT or Cursor work with your GEO data.
+  </Card>
+</Columns>

@@ -1,0 +1,41 @@
+---
+title: "GEO for e-commerce brands"
+sidebarTitle: "E-commerce"
+description: "How online stores track product recommendations in AI answers and Google AI Overviews."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/playbooks/ecommerce
+  type: tutorial
+  applies_to:
+    - notra
+  language: en
+  status: draft
+---
+
+Shoppers ask AI engines for product recommendations ("best running shoes for flat feet under 150") and Google shows AI Overviews above search results. Both rely heavily on review sites, retailer listings and community threads.
+
+## Set up
+
+- **Engines.** Commerce brands get Google AI Overview by default. Keep it on next to the chat engines.
+- **Prompts.** Track product-level questions with real constraints, such as budget, use case, size or location.
+- **Competitors.** Track brands, not retailers. Add product line names as synonyms.
+- **Languages.** Add every market you sell in. See [Languages](/geo/languages).
+
+## What to work on
+
+- **Shelf space** usually has the most impact. Review sites, "best of" lists and community threads decide most product recommendations. Work them in [Shelf space](/geo/shelf-space).
+- **Product and category pages** should state the facts engines compare: price, materials, sizes and ratings. Make sure assistants can fetch them. Check **Cited in answer** on the [AI traffic](/ai-traffic/overview) page.
+- **Buying guides.** Write them with the [GEO writer](/geo/writer) in the listicle or comparison format.
+
+## Metrics to watch
+
+- Mention rate and position per engine, especially Google AI Overview.
+- Performance by language for each market.
+- AI referrals reaching checkout. Add `/checkout` as a **Conversion path**.
+
+<Note>
+  Notra does not track AI shopping carousels or product listing ads.
+</Note>

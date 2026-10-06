@@ -1,0 +1,67 @@
+---
+title: "Conversations"
+description: "Conversations are multi-turn prompt sequences that show how engines answer once a buyer narrows the question."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/conversations
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A conversation (a **prompt sequence** in the API) is a multi-turn exchange of up to five turns. It captures how an engine answers once a buyer has narrowed the question, for example "what tools automate changelogs" followed by "which of those integrate with linear". A project can hold up to ten conversations.
+
+The **Conversations** card on the Prompts page lists each sequence with its **Turns** count and whether it is **Included in scans** or paused. **New conversation** opens a dialog with **Name** and **Turns** fields. Every English scan replays conversations against the grounded engines. The per-turn results appear as a replay thread.
+
+## Running a conversation now
+
+The play button on a row runs that conversation immediately. The API equivalent is synchronous:
+
+```bash
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Changelog tool research",
+    "steps": [
+      "what tools automate changelogs from github",
+      "which of those integrate with linear"
+    ]
+  }'
+```
+
+```bash
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences/$SEQUENCE_ID/run \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  --max-time 330
+```
+
+```json
+{
+  "checks": 8,
+  "mentions": 3,
+  "engines": ["openai/gpt-5.4-grounded", "anthropic/claude-sonnet-4.6-grounded"],
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+<ResponseField name="checks" type="integer">
+  Recorded answers across every engine that responded.
+</ResponseField>
+<ResponseField name="mentions" type="integer">
+  How many of those answers mentioned the tracked brand.
+</ResponseField>
+<ResponseField name="engines" type="string[]">
+  Engines the conversation was played against.
+</ResponseField>
+
+<Warning>
+  The run is not queued. The request stays open for the whole run, which can take several minutes. Use a client timeout of at least five minutes. After four minutes the API stops waiting and answers `409` while the run finishes on its own. Do not retry. Read the result from the project's prompt results instead. This endpoint allows 10 requests per 10 minutes per organization.
+</Warning>
+
+`PATCH /geo/sequences/{sequenceId}` accepts `name`, `steps` (1 to 5) and `enabled`. `DELETE` removes the sequence.

@@ -1,6 +1,6 @@
 ---
-title: "Automation Overview"
-description: "How Notra turns shipped work into content on its own: Iris, schedules, and event triggers"
+title: "Automation overview"
+description: "Notra turns shipped work into content with schedules and event triggers"
 authors:
   - handle: dominik
 
@@ -18,21 +18,16 @@ docolin:
     - automation overview
     - event-based vs scheduled
     - automated workflows
-    - Iris
   next: ./event-based.mdx
 ---
 
-Notra can generate content without you starting each run by hand. In **Studio** mode the sidebar has an **Automation** section with three entries: **Iris**, **Schedules**, and **Events**. Schedules and Events are rule-based automations you configure once. Iris is an agent that watches your sources and decides what to draft.
+Notra can generate content without you starting each run by hand. In **Studio** mode the sidebar has an **Automation** section with **Schedules** and **Events**. Both are rule-based automations you configure once.
 
 ## Automation modes
 
-<CardGroup cols={3}>
-  <Card title="Iris" icon="rainbow" href="#iris">
-    An agent that watches what you ship, drafts changelogs, blog posts, and social posts, and asks you on Slack before anything goes live
-  </Card>
-
+<CardGroup cols={2}>
   <Card title="Scheduled" icon="clock" href="/automation/scheduled">
-    Generate content daily, weekly, or monthly from activity in a lookback window
+    Generate content daily, weekly or monthly from activity in a lookback window
   </Card>
 
   <Card title="Event-Based" icon="bolt" href="/automation/event-based">
@@ -48,15 +43,15 @@ Notra can generate content without you starting each run by hand. In **Studio** 
   </Step>
 
   <Step title="Pick an output format">
-    Choose one format per automation: changelog entry, blog post, LinkedIn post, tweet, or image.
+    Choose one format per automation: changelog entry, blog post, LinkedIn post, tweet or image.
   </Step>
 
   <Step title="Pick a brand identity">
-    Use the workspace default or pin a specific brand identity. Tone, audience, and custom instructions come from it.
+    Use the workspace default or pin a specific brand identity. It sets the tone, audience and custom instructions.
   </Step>
 
   <Step title="Generate and review">
-    The run analyzes the activity, writes the content, and saves it as a draft (or publishes it when auto-publish is on). Review it under **Content**.
+    The run analyzes the activity, writes the content and saves it as a draft. With auto-publish on, it publishes the post instead. Review it under **Content**.
   </Step>
 </Steps>
 
@@ -72,28 +67,19 @@ Schedules and event triggers support the same five formats:
 | Tweet (X) | `twitter_post` | No |
 | Image | `image` | No |
 
-Auto-publish marks changelogs and blog posts as published instead of saving them as drafts. Social posts and images are always saved as drafts for you to review and post.
+Auto-publish marks changelogs and blog posts as published instead of saving them as drafts. Notra always saves social posts and images as drafts for you to review and post.
 
 <Note>
-  Investor updates exist as a content type for manual generation but cannot be selected for schedules or event triggers.
+  Investor updates exist as a content type for manual generation, but you cannot select them for schedules or event triggers.
 </Note>
 
 ## Billing
 
-Automated runs count against the same plan quotas as manual generation: changelogs and blog posts use the long-form post quota, LinkedIn posts and tweets use the social post quota, and images use the image generation quota. When a quota is used up, AI credits cover the run if you have them. If neither is available the run stops and workspace owners receive an email; add credits or upgrade to resume. See [Billing](/organization/billing).
+Automated runs count against the same plan quotas as manual generation. Changelogs and blog posts use the long-form post quota. LinkedIn posts and tweets use the social post quota. Images use the image generation quota. When a quota is used up, AI credits cover the run if you have them. If neither is available, the run stops and workspace owners receive an email. Add credits or upgrade to resume. See [Billing](/organization/billing).
 
 ## Choosing the right mode
 
 <Tabs>
-  <Tab title="Iris">
-    **Best for:**
-
-    * Teams that ship continuously and want marketing to keep up without configuring rules
-    * Slack-first review of everything before it goes live
-
-    Iris reacts to releases, pushes, and merged pull requests, plans a small set of tasks, and reports to a Slack channel. See [Iris](#iris) below.
-  </Tab>
-
   <Tab title="Event-Based">
     **Best for:**
 
@@ -122,36 +108,21 @@ Automated runs count against the same plan quotas as manual generation: changelo
   </Tab>
 </Tabs>
 
-## Iris
-
-Iris is an autonomous agent for workspaces where it is enabled. The **Iris** page in the sidebar shows either the start screen or, if it is not enabled for your workspace yet, a notice that Iris is not available.
-
-**What it does.** Iris watches your GitHub sources for three signals: a release published, code pushed to the default branch, and a pull request merged. It also wakes up on a fixed interval to check for anything it missed. When there is something worth announcing it plans a run with up to a handful of tasks, drafts changelogs, blog posts with images, and social posts in your brand identity, and posts a report to your Slack notification channel. It asks you on Slack before anything goes live; auto-publish is off by default.
-
-**Before you start.** The start screen checks two things:
-
-- **Sources connected**: at least one GitHub repository, so Iris can see what your team ships.
-- **Slack channel connected**: a Slack notification channel for reports. You can start without it and connect Slack later from **Integrations > Slack**.
-
-**Limits.** Each workspace runs Iris under a policy with a daily cap on actions and on spend, and a cap on tasks per run. Runs use the same content quotas and AI credits as other automations.
-
-**Controls.** The Iris page lists recent runs with their status (Thinking, Working, Completed, Failed, Canceled), the artifacts each run produced, and the recent signals it reviewed, grouped, or skipped. **Pause** stops scheduled checks and cancels pending Slack messages; you can resume at any time.
-
 ## Managing automations
 
 Each schedule or event trigger can be:
 
 * **Enabled or paused**: the Schedules and Events pages split automations into **Active** and **Paused** tabs. Pausing keeps the configuration.
-* **Edited**: change sources, format, brand identity, timing, or auto-publish.
-* **Run now**: schedules can be run on demand from the row menu. Event triggers only fire from GitHub.
+* **Edited**: change sources, format, brand identity, timing or auto-publish.
+* **Run now**: you can run schedules on demand from the row menu. Event triggers only fire from GitHub.
 * **Deleted**: removed permanently.
 
 Notra rejects a second schedule or trigger with exactly the same configuration in the same workspace.
 
-**Notifications.** Under **Settings > Notifications** you can be emailed when automated content is created, when generation fails, and when a run is skipped because there was nothing worth writing about. **Settings > Logs** lists integration events (such as GitHub webhook deliveries) with their delivery status.
+**Notifications.** Under **Settings > Notifications** you can be emailed when automated content is created, when generation fails and when a run is skipped because there was nothing worth writing about. **Settings > Logs** lists integration events (such as GitHub webhook deliveries) with their delivery status.
 
 <Info>
-  You can combine modes. For example, use an event trigger for release announcements, a weekly schedule for a progress digest, and Iris for everything in between.
+  You can combine modes. For example, use an event trigger for release announcements and a weekly schedule for a progress digest.
 </Info>
 
 ## Next steps

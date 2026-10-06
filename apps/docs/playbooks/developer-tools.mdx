@@ -1,0 +1,37 @@
+---
+title: "GEO for developer tools"
+sidebarTitle: "Developer tools"
+description: "Coding agents find developer tools as often as people do. How to track both and get recommended."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/playbooks/developer-tools
+  type: tutorial
+  applies_to:
+    - notra
+  language: en
+  status: draft
+---
+
+Developers ask Claude Code, Cursor and Codex which library or API to use, and those agents read your docs directly. For a developer tool, docs that agents can read matter as much as mentions.
+
+## Set up
+
+- **Prompts.** Write them the way a developer types into an agent: "how do i add rate limiting to a next.js api route", "best postgres hosting for a side project".
+- **Engines.** Add the main chat engines first. Coding-agent engines are rolling out; see [Engines](/geo/engines).
+- **Tracker.** Install `@usenotra/geo` on your docs site, not only your marketing site. Add the docs domain under **Tracked domains**.
+
+## What to work on
+
+- **Agent readiness.** Serve Markdown, publish `llms.txt` and keep docs pages light. Run [Agent readiness](/geo/agent-readiness) and fix the **Must do** items.
+- **Watch coding agents.** The [crawler directory](/ai-traffic/crawlers) lists coding agents such as Claude Code, Cursor and OpenCode. Their visits show which docs pages agents actually read.
+- **Follow journeys.** [Tag Markdown links](/ai-traffic/journeys) so you can see the path an agent takes through your docs and where it stops.
+- **Collect agent feedback.** Let agents report what broke with the [feedback inbox](/feedback/inbox). A `feedback.md` file also earns an agent readiness bonus.
+
+## Metrics to watch
+
+- **Markdown** visits on the Traffic page, which count how often agents request the Markdown version of a page.
+- **Cited in answer** fetches on docs pages.
+- Mention rate on "how do i" prompts.

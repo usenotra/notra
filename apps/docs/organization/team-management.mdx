@@ -1,6 +1,6 @@
 ---
-title: "Team Management"
-description: "Invite team members, assign the owner, admin, and member roles, and manage pending invitations"
+title: "Team management"
+description: "Invite team members, assign roles (owner, admin, member) and manage pending invitations"
 authors:
   - handle: dominik
 
@@ -25,9 +25,9 @@ docolin:
 
 ## Overview
 
-Every organization has an owner, and any number of admins and members. Owners and admins manage the organization and its people; members do the work. Invitations go out by email and are managed from **Settings > Members**.
+Every organization has one owner and any number of admins and members. Owners and admins manage the organization and its people. Members do the work. Notra sends invitations by email, and you manage them from **Settings > Members**.
 
-## Inviting Team Members
+## Inviting team members
 
 <Steps>
   <Step title="Open the Members page">
@@ -35,7 +35,7 @@ Every organization has an owner, and any number of admins and members. Owners an
   </Step>
 
   <Step title="Invite">
-    Click **Invite Member** and enter the person's email address. Disposable email addresses are rejected.
+    Click **Invite Member** and enter the person's email address. Notra rejects disposable email addresses.
   </Step>
 
   <Step title="Choose a role">
@@ -51,13 +51,13 @@ Every organization has an owner, and any number of admins and members. Owners an
   Only owners and admins can invite people.
 </Info>
 
-### Team Member Limits
+### Team member limits
 
 Each plan includes a number of team member seats. When the organization has used them all, sending or resending an invitation fails with a message and a **View plans** link to **Settings > Billing & Usage**. Upgrade to add more seats.
 
-## Roles and Permissions
+## Roles and permissions
 
-Notra has three roles. Permissions are enforced on the server, so the rules below apply to the dashboard and to anything that acts on your behalf.
+Notra has three roles. The server enforces permissions, so the rules below apply to the dashboard and to anything that acts on your behalf.
 
 ### Owner
 
@@ -66,36 +66,36 @@ The person who created the organization. There is exactly one owner.
 * Everything an admin can do
 * Delete the organization
 * Cannot be removed, and cannot have their role changed
-* Cannot leave the organization; they delete it instead
+* Cannot leave the organization, only delete it
 
 <Warning>
-  Ownership cannot be transferred from the Members page. The only place ownership moves is during account deletion: when an owner deletes their Notra account, they choose for each organization they own whether to transfer it to another member or delete it.
+  You cannot transfer ownership from the Members page. Ownership only moves during account deletion. When an owner deletes their Notra account, they choose for each organization they own whether to transfer it to another member or delete it.
 </Warning>
 
 ### Admin
 
 * Change organization settings (name, slug, logo)
-* Invite people, change roles between Member and Admin, remove members
+* Invite people, change roles between Member and Admin and remove members
 * Resend and cancel invitations
 * Everything a member can do
 
 ### Member
 
-* Create, edit, publish, and delete content
-* Use chat, GEO, schedules, event triggers, integrations, brand identities, skills, and API keys
+* Create, edit, publish and delete content
+* Use chat, GEO, schedules, event triggers, integrations, brand identities, skills and API keys
 * View the members list and pending invitations
 
 Members cannot change organization settings or manage other people.
 
 <Note>
-  Billing is not restricted by role: anyone in the organization can open **Settings > Billing & Usage**, change the plan, and open the customer portal.
+  Billing is not restricted by role. Anyone in the organization can open **Settings > Billing & Usage**, change the plan and open the customer portal.
 </Note>
 
-## Managing Team Members
+## Managing team members
 
-The **Members** tab lists every person in the organization with their name, email, and role.
+The **Members** tab lists every person in the organization with their name, email and role.
 
-### Changing a Role
+### Changing a role
 
 1. Find the member in the list
 2. Open the action menu at the end of the row
@@ -104,7 +104,7 @@ The **Members** tab lists every person in the organization with their name, emai
 
 Role changes take effect immediately.
 
-### Removing a Member
+### Removing a member
 
 1. Find the member in the list
 2. Open the action menu
@@ -116,15 +116,15 @@ Role changes take effect immediately.
 
 The owner's row has no action menu because the owner cannot be changed or removed.
 
-## Pending Invitations
+## Pending invitations
 
-The **Pending** tab shows the number of open invitations and lists each one with the email address, the role it grants, and when it expires.
+The **Pending** tab shows the number of open invitations and lists each one with the email address, the role it grants and when it expires.
 
 **Resend an invitation**
 
 1. Open the action menu on the invitation
 2. Choose resend and confirm
-3. A fresh email is sent
+3. Notra sends a fresh email
 
 **Cancel an invitation**
 
@@ -136,7 +136,7 @@ The **Pending** tab shows the number of open invitations and lists each one with
   Invitations expire. If someone has not accepted by the date in the Expires column, resend it.
 </Note>
 
-## Accepting an Invitation
+## Accepting an invitation
 
 <Steps>
   <Step title="Open the email">
@@ -148,21 +148,21 @@ The **Pending** tab shows the number of open invitations and lists each one with
   </Step>
 
   <Step title="Start working">
-    You are added to the organization with the role from the invitation and taken to the workspace.
+    Notra adds you to the organization with the role from the invitation and opens the workspace.
   </Step>
 </Steps>
 
-## Multiple Organizations
+## Multiple organizations
 
 You can belong to several organizations with a different role in each.
 
-### Switching Organizations
+### Switching organizations
 
 Click the organization name at the top of the sidebar and pick another one. Notra remembers the workspace you visited last.
 
-### Managing Your Memberships
+### Managing your memberships
 
-Go to **Settings > Account** and scroll to the organizations section. Every organization you belong to is listed with:
+Go to **Settings > Account** and scroll to the organizations section. It lists every organization you belong to, with two actions:
 
 * **View**: switch to that organization
 * **Leave**: remove yourself from an organization you do not own
@@ -170,19 +170,19 @@ Go to **Settings > Account** and scroll to the organizations section. Every orga
 Owners see a delete option instead of leave. You must always keep at least one organization.
 
 <Warning>
-  If you leave an organization you need a new invitation to get back in.
+  If you leave an organization, you need a new invitation to get back in.
 </Warning>
 
-## Best Practices
+## Best practices
 
 <Tip>
-  **Use Member by default.** Give Admin only to people who need to change settings or manage the team.
+  Use Member by default. Give Admin only to people who need to change settings or manage the team.
 </Tip>
 
 <Tip>
-  **Review the list periodically.** Remove people who no longer need access and cancel invitations that were never accepted.
+  Review the list regularly. Remove people who no longer need access and cancel invitations that were never accepted.
 </Tip>
 
 <Tip>
-  **Invite with the right email.** Invitations are tied to the address you enter; the person should sign in with that address.
+  Invite the right email address. Each invitation is tied to the address you enter, and the person should sign in with that address.
 </Tip>

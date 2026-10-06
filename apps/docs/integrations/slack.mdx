@@ -1,6 +1,6 @@
 ---
 title: "Slack"
-description: "Install the Notra agent in Slack to chat, draft, and approve content from threads, mirrored into the dashboard"
+description: "Install the Notra agent in Slack to chat, draft and approve content from threads, mirrored into the dashboard"
 authors:
   - handle: dominik
 
@@ -24,13 +24,13 @@ docolin:
   next: ./granola.mdx
 ---
 
-The Slack integration installs the Notra agent in your workspace. Mention it in a channel or message it directly to chat, turn a thread into a draft, save references, and approve actions with buttons. Public-channel conversations are mirrored into the dashboard so the rest of your team can read them.
+The Slack integration installs the Notra agent in your workspace. Mention it in a channel or message it directly to chat, turn a thread into a draft, save references and approve actions with buttons. Notra mirrors public-channel conversations into the dashboard so the rest of your team can read them.
 
 ## What you can do
 
 * **Chat with the agent in threads**: mention the app in a channel. Once the agent owns a thread, plain replies in that thread continue the same conversation without another mention.
 * **Direct messages**: message the app directly from its Messages tab.
-* **Draft from a thread**: ask the agent to turn a discussion or announcement into a post. Drafts are saved to your Notra content library and the agent confirms with "Saved as a draft".
+* **Draft from a thread**: ask the agent to turn a discussion or announcement into a post. The agent saves drafts to your Notra content library and confirms with "Saved as a draft".
 * **Save references**: ask the agent to remember something for brand context. It confirms with "Saved as a reference".
 * **Approve with buttons**: actions that need a human decision, including posting to X, show confirmation buttons in the thread.
 * **Mirrored history**: public-channel threads with the agent appear as read-only sessions under **Chat** in the dashboard.
@@ -44,7 +44,7 @@ The Slack integration installs the Notra agent in your workspace. Mention it in 
   </Step>
 
   <Step title="Approve the installation">
-    The **Add Slack Integration** dialog explains what happens next. Click **Add to Slack**. Slack shows the permissions listed below; approve them for the workspace you want to connect. The link is valid for 10 minutes.
+    The **Add Slack Integration** dialog explains what happens next. Click **Add to Slack**. Slack shows the permissions listed below. Approve them for the workspace you want to connect. The link is valid for 10 minutes.
   </Step>
 
   <Step title="Choose where the agent responds">
@@ -60,7 +60,7 @@ The Slack integration installs the Notra agent in your workspace. Mention it in 
 
 ### Channel access
 
-Everyone in your workspace can use the agent. People outside your workspace, including Slack Connect guests, cannot. By default the agent responds anywhere it is mentioned. Turn on **Limit to specific channels** and select channels to restrict it; use **Refresh channels from Slack** if a new channel is missing from the list. Click **Save changes** to apply.
+Everyone in your workspace can use the agent. People outside your workspace, including Slack Connect guests, cannot. By default the agent responds anywhere it is mentioned. Turn on **Limit to specific channels** and select channels to restrict it. Use **Refresh channels from Slack** if a new channel is missing from the list. Click **Save changes** to apply.
 
 <Tip>
   Approval buttons in a shared channel can be pressed by anyone who can see them. Limit the agent to channels whose members you trust to approve actions.
@@ -72,7 +72,7 @@ Choose a channel where the agent posts activity updates. Set it to none to turn 
 
 ### Enable, disable, delete
 
-From the workspace card menu you can disable the integration (the agent stops responding), re-enable it, or delete it. Deleting removes the stored bot token from Notra; also remove the app from Slack to revoke access there.
+From the workspace card menu you can disable the integration (the agent stops responding), re-enable it or delete it. Deleting removes the stored bot token from Notra. To revoke access in Slack, also remove the app there.
 
 ## Permissions
 
@@ -88,19 +88,19 @@ The Slack app requests these bot scopes:
 | `files:read`                       | Read attachments shared with the agent                                         |
 | `assistant:write`                  | Enable Slack's assistant experience for the app                                |
 
-The agent only reads a thread once it is mentioned or messaged in it. It does not scan channels for keywords or emoji reactions, and it does not read other threads. Private-channel and DM conversations are not mirrored into the dashboard.
+The agent only reads a thread once it is mentioned or messaged in it. It does not scan channels for keywords or emoji reactions, and it does not read other threads. Notra does not mirror private-channel and DM conversations into the dashboard.
 
 ## Limits
 
 - One connection per Slack workspace, and a workspace can belong to only one Notra organization. Connecting it again shows "This Slack workspace is already connected".
 - Slack conversations count against your organization's agent usage like dashboard chat does.
-- Slack is a chat channel for the agent, not a data source for schedules. Use GitHub, Linear, or Granola for that.
+- Slack is a chat channel for the agent, not a data source for schedules. Use GitHub, Linear or Granola for that.
 
 ## Related
 
 <CardGroup cols={2}>
   <Card title="GitHub integration" icon="github" href="/integrations/github">
-    Turn commits, merged pull requests, and releases into content
+    Turn commits, merged pull requests and releases into content
   </Card>
 
   <Card title="Granola" icon="microphone" href="/integrations/granola">

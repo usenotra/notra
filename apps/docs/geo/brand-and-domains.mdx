@@ -1,0 +1,84 @@
+---
+title: "Brand and domains"
+sidebarTitle: "Brand and domains"
+description: "Set the company name and aliases Notra matches in answers, the extra domains that send AI traffic to a project and the paths that count as conversions."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/brand-and-domains
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Open GEO settings from the settings menu (**Brand**, **Languages** and **Models**). Changes save automatically and apply to the active [project](/geo/projects).
+
+| Field | Meaning |
+| --- | --- |
+| **Company name** | The primary name matched in answers |
+| **Aliases** | Up to 10 other spellings, product names or the bare domain |
+| **Tracked domains** | Extra sites besides the brand website, up to 20. Subdomains are included and all use the same ingest token |
+| **Conversion paths** | Paths that count as a conversion when an AI referral reaches them, for example `/signup`. Prefix match |
+
+<Tip>
+  Add your bare domain (for example `usenotra.com`) as an alias. Engines often name a product by its domain.
+</Tip>
+
+You can also delete a project from this section. See [Projects](/geo/projects).
+
+## From the API
+
+`PATCH` writes the full settings document and re-arms the recurring scan.
+
+```bash
+curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/settings \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "companyName": "Notra",
+    "aliases": ["usenotra", "usenotra.com"],
+    "languages": ["en", "de"],
+    "engines": ["anthropic/claude-sonnet-5", "openai/gpt-5.6-sol", "google/gemini-3.5-flash"],
+    "enforceZdr": false,
+    "nonZdrApprovedEngines": [],
+    "enabled": true,
+    "scanIntervalHours": 24
+  }'
+```
+
+<ParamField body="companyName" type="string" required>
+  1 to 128 characters.
+</ParamField>
+<ParamField body="aliases" type="string[]" required>
+  Up to 10 entries.
+</ParamField>
+<ParamField body="conversionPaths" type="string[]">
+  Paths that count as a conversion when an AI referral reaches them. Prefix match. Omit to keep the stored list.
+</ParamField>
+<ParamField body="domains" type="string[]">
+  Additional hostnames that send AI traffic to this project, besides the brand website. Up to 20. Subdomains of a listed domain are included. Omit to keep the stored list.
+</ParamField>
+<ParamField body="languages" type="string[]" required>
+  1 to 4 supported language codes. The API rejects an unknown code with `400`.
+</ParamField>
+<ParamField body="engines" type="string[]" required>
+  1 to 64 model ids from the catalog this organization can see (the ids `GET /geo/settings` returns). The API rejects an unknown id with `400`. Engines not visible to the caller keep their stored selection.
+</ParamField>
+<ParamField body="enforceZdr" type="boolean" required>
+  Forced off without the ZDR add-on.
+</ParamField>
+<ParamField body="nonZdrApprovedEngines" type="string[]" required>
+  Up to 64 model ids allowed to run despite lacking ZDR.
+</ParamField>
+<ParamField body="enabled" type="boolean" required>
+  Whether recurring scans run.
+</ParamField>
+<ParamField body="scanIntervalHours" type="integer" required>
+  One of 24, 48, 72, 168, 336, 720.
+</ParamField>
+
+The response returns the stored `settings` plus `scanStartedAt`, `lastScanAt` and `isScanning`. It also includes a `competitors` array, which is read-only on this route. Both routes need the `geo-settings` scope.
