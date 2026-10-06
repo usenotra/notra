@@ -100,6 +100,7 @@ export class FrameworkImageCache {
 }
 
 const imageCache = new FrameworkImageCache();
+const pendingImages = new Map<string, Promise<CachedImage>>();
 
 function imageResponse(request: Request, image: CachedImage) {
   const headers = {
@@ -286,46 +287,55 @@ export async function optimizeFrameworkImage(request: Request) {
     if (cached) {
       return imageResponse(request, cached);
     }
-    const input = source.startsWith("/")
-      ? { data: await readLocalImage(source) }
-      : await fetchRemoteImage(new URL(source));
-    const respond = (data: Buffer, contentType: string) => {
-      const image: CachedImage = {
-        data,
-        contentType,
-        etag: `"${createHash("sha256").update(data).digest("base64url")}"`,
-        maxAge: imageCacheMaxAge(input.cacheControl),
-        createdAt: Date.now(),
-      };
-      imageCache.set(cacheKey, image);
-      return imageResponse(request, image);
-    };
-    const pipeline = sharp(input.data, {
-      limitInputPixels: IMAGE_MAX_PIXELS,
-      animated: true,
-    });
-    const metadata = await pipeline.metadata();
-    if (metadata.format === "svg" || (metadata.pages ?? 1) > 1) {
-      return respond(
-        input.data,
-        metadata.format === "svg" ? "image/svg+xml" : `image/${metadata.format}`
-      );
+    let pending = pendingImages.get(cacheKey);
+    if (!pending) {
+      pending = (async () => {
+        const input = source.startsWith("/")
+          ? { data: await readLocalImage(source) }
+          : await fetchRemoteImage(new URL(source));
+        const respond = (data: Buffer, contentType: string) => {
+          const image: CachedImage = {
+            data,
+            contentType,
+            etag: `"${createHash("sha256").update(data).digest("base64url")}"`,
+            maxAge: imageCacheMaxAge(input.cacheControl),
+            createdAt: Date.now(),
+          };
+          imageCache.set(cacheKey, image);
+          return image;
+        };
+        const pipeline = sharp(input.data, {
+          limitInputPixels: IMAGE_MAX_PIXELS,
+          animated: true,
+        });
+        const metadata = await pipeline.metadata();
+        if (metadata.format === "svg" || (metadata.pages ?? 1) > 1) {
+          return respond(
+            input.data,
+            metadata.format === "svg"
+              ? "image/svg+xml"
+              : `image/${metadata.format}`
+          );
+        }
+        const resized = pipeline
+          .rotate()
+          .resize({ width, withoutEnlargement: true });
+        let output: Sharp;
+        if (format === "avif") {
+          output = resized.avif({ quality });
+        } else if (format === "webp") {
+          output = resized.webp({ quality });
+        } else if (metadata.hasAlpha) {
+          output = resized.png();
+        } else {
+          output = resized.jpeg({ quality });
+        }
+        const result = await output.toBuffer({ resolveWithObject: true });
+        return respond(result.data, `image/${format ?? result.info.format}`);
+      })().finally(() => pendingImages.delete(cacheKey));
+      pendingImages.set(cacheKey, pending);
     }
-    const resized = pipeline
-      .rotate()
-      .resize({ width, withoutEnlargement: true });
-    let output: Sharp;
-    if (format === "avif") {
-      output = resized.avif({ quality });
-    } else if (format === "webp") {
-      output = resized.webp({ quality });
-    } else if (metadata.hasAlpha) {
-      output = resized.png();
-    } else {
-      output = resized.jpeg({ quality });
-    }
-    const result = await output.toBuffer({ resolveWithObject: true });
-    return respond(result.data, `image/${format ?? result.info.format}`);
+    return imageResponse(request, await pending);
   } catch {
     return new Response("Unable to optimize image", {
       status: 400,
