@@ -18,7 +18,10 @@ import type {
   IconTabsTriggerProps,
 } from "../types/icon-tabs";
 
-function IconTabs({ className, ...props }: TabsPrimitive.Root.Props) {
+function IconTabs({
+  className,
+  ...props
+}: Omit<TabsPrimitive.Root.Props, "orientation">) {
   return (
     <TabsPrimitive.Root
       className={cn("flex flex-col gap-2", className)}
