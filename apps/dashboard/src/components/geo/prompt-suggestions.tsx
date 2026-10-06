@@ -2,16 +2,7 @@
 
 import { Delete02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DataTable,
   type TableColumn,
@@ -237,40 +228,25 @@ function DismissSuggestionDialog({
   const t = useTranslations("geo.promptSuggestions");
   const tCommon = useTranslations("common.actions");
   return (
-    <ResponsiveAlertDialog
+    <ConfirmDialog
+      className="sm:max-w-md"
+      confirmLabel={tCommon("remove")}
+      description={
+        suggestion
+          ? t("dismissDescription", { prompt: suggestion.prompt })
+          : null
+      }
+      onConfirm={() => {
+        if (suggestion) {
+          onConfirm(suggestion.id);
+        }
+        onOpenChange(false);
+      }}
       onOpenChange={onOpenChange}
       open={suggestion !== null}
-    >
-      <ResponsiveAlertDialogContent className="sm:max-w-md">
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {t("dismissTitle")}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {suggestion
-              ? t("dismissDescription", { prompt: suggestion.prompt })
-              : null}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel onClick={() => onOpenChange(false)}>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            onClick={() => {
-              if (suggestion) {
-                onConfirm(suggestion.id);
-              }
-              onOpenChange(false);
-            }}
-            type="button"
-            variant="destructive"
-          >
-            {tCommon("remove")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+      title={t("dismissTitle")}
+      variant="destructive"
+    />
   );
 }
 

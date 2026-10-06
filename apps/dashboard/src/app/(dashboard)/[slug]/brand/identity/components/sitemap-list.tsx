@@ -6,16 +6,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +41,6 @@ export function SitemapList({
 }: SitemapListProps) {
   const t = useTranslations("brand.sitemap.list");
   const tBrandShared = useTranslations("brand.shared");
-  const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const { data, isError, isPending, refetch } = useSitemaps(
     organizationId,
@@ -185,41 +175,24 @@ export function SitemapList({
         voiceWebsiteUrl={voiceWebsiteUrl}
       />
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={t("removeConfirm")}
+        description={
+          deleteTarget
+            ? t("removeDescriptionNamed", { label: deleteTarget.label })
+            : t("removeDescription")
+        }
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
           if (!open) {
             setDeleteTargetId(null);
           }
         }}
         open={!!deleteTargetId}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("removeTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {deleteTarget
-                ? t("removeDescriptionNamed", { label: deleteTarget.label })
-                : t("removeDescription")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={deleteSitemap.isPending}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={deleteSitemap.isPending}
-              onClick={handleDelete}
-              variant="destructive"
-            >
-              {deleteSitemap.isPending
-                ? tCommon2("labels.removing")
-                : t("removeConfirm")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={deleteSitemap.isPending}
+        title={t("removeTitle")}
+        variant="destructive"
+      />
     </div>
   );
 }

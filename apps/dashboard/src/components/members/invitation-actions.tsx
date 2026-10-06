@@ -6,16 +6,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -211,39 +202,16 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isCanceling) {
-            setShowCancelDialog(open);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tMembersShared("cancelInvitation")}
+        description={t("cancelDescription", { email: invitation.email })}
+        onConfirm={handleCancelInvitation}
+        onOpenChange={setShowCancelDialog}
         open={showCancelDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("cancelTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {t("cancelDescription", { email: invitation.email })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isCanceling}>
-              {tCommon("actions.cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isCanceling}
-              onClick={handleCancelInvitation}
-            >
-              {isCanceling
-                ? t("canceling")
-                : tMembersShared("cancelInvitation")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isCanceling}
+        title={t("cancelTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

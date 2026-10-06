@@ -3,4 +3,5 @@ export interface ActiveProjectState {
   projectId: string | null;
   /** False until the project list resolves successfully, so consumers fail closed. */
   isResolved: boolean;
+  isError: boolean;
 }

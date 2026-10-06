@@ -19,6 +19,7 @@ import {
   useDbClient,
   useLiveQuery,
 } from "@tanstack/react-db";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -30,6 +31,7 @@ import {
 } from "@/constants/geo-projects";
 import {
   geoCollectionId,
+  geoDbQueryKey,
   geoCompetitorsCollection,
   geoProjectsCollection,
   geoPromptsCollection,
@@ -195,6 +197,14 @@ export function useGeoProjectsDb(
   const dbClient = useDbClient();
   const definition = geoProjectsCollection(scope);
   const collection = dbClient.collection(definition);
+  const queryClient = useQueryClient();
+  const projectsQueryStatus = useSyncExternalStore(
+    (onChange) => queryClient.getQueryCache().subscribe(onChange),
+    () =>
+      queryClient.getQueryState(geoDbQueryKey("projects", scope))?.status ??
+      "pending",
+    () => "pending"
+  );
   const { pendingIds, track } = usePendingRows("projects", scope);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -313,8 +323,8 @@ export function useGeoProjectsDb(
 
   return {
     projects,
-    isLoading,
-    isError,
+    isLoading: isLoading || (isEnabled && projectsQueryStatus === "pending"),
+    isError: isError || projectsQueryStatus === "error",
     isReady,
     pendingProjectIds: pendingIds,
     isCreating,

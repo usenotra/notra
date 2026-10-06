@@ -1,16 +1,7 @@
 "use client";
 
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   Empty,
   EmptyContent,
@@ -388,35 +379,17 @@ function FeedbackDeleteDialog({
   const t = useTranslations("feedback.delete");
   const tCommon = useTranslations("common");
   return (
-    <ResponsiveAlertDialog
+    <ConfirmDialog
+      confirmLabel={tCommon("actions.delete")}
+      description={t("description", {
+        name: deleteCandidate?.title ?? deleteCandidate?.message ?? "",
+      })}
+      onConfirm={onConfirm}
       onOpenChange={onOpenChange}
       open={deleteCandidate !== null}
-    >
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {t("description", {
-              name: deleteCandidate?.title ?? deleteCandidate?.message ?? "",
-            })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isPending}
-            onClick={(event) => {
-              event.preventDefault();
-              onConfirm();
-            }}
-            variant="destructive"
-          >
-            {isPending ? tCommon("labels.deleting") : tCommon("actions.delete")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+      pending={isPending}
+      title={t("title")}
+      variant="destructive"
+    />
   );
 }

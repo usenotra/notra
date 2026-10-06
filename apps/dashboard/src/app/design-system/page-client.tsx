@@ -241,6 +241,7 @@ import { DesignSystemComposerDemo } from "@/components/design-system/design-syst
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
+import { ConfirmDialogSection } from "@/components/design-system/sections/confirm-dialog-section";
 import { CopyButtonSection } from "@/components/design-system/sections/copy-button-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
@@ -1242,6 +1243,8 @@ export default function DesignSystemClientPage() {
             </CardContent>
           </Card>
         </section>
+
+        <ConfirmDialogSection />
 
         <CopyButtonSection />
 

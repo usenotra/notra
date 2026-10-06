@@ -13,16 +13,7 @@ import {
   trackedGeoLanguages,
 } from "@notra/geo-core/utils/geo-language-rows";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DataTable,
   type TableColumn,
@@ -154,7 +145,6 @@ export function LanguagePerformanceCard({
   const t = useTranslations("geo.languagePerformanceCard");
   const tCommon2 = useTranslations("common");
   const tGeoShared = useTranslations("geo.shared");
-  const tCommon = useTranslations("common.actions");
   const [languageToAdd, setLanguageToAdd] = useState<string>();
   const addLanguage = useGeoSettingsLanguageAdd(organizationId);
   const savedExtras = trackedGeoLanguages(settings.languages);
@@ -279,33 +269,18 @@ export function LanguagePerformanceCard({
           rowHeight={TABLE_ROW_HEIGHT}
         />
       </InstrumentSection>
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={t("addLanguage")}
+        description={t("confirmDescription", { language: languageToAdd ?? "" })}
+        onConfirm={handleConfirmAddLanguage}
         onOpenChange={(open) => {
           if (!open) {
             setLanguageToAdd(undefined);
           }
         }}
         open={Boolean(languageToAdd)}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("confirmTitle", { language: languageToAdd ?? "" })}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {t("confirmDescription", { language: languageToAdd ?? "" })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction onClick={handleConfirmAddLanguage}>
-              {t("addLanguage")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        title={t("confirmTitle", { language: languageToAdd ?? "" })}
+      />
     </>
   );
 }

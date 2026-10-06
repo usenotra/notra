@@ -27,6 +27,7 @@ export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
       { id: "feedback", label: "Feedback & Status" },
       { id: "spinner", label: "Spinner" },
       { id: "braille-loader", label: "Braille Loader" },
+      { id: "confirm-dialog", label: "Confirm Dialog" },
       { id: "copy-button", label: "Copy Button" },
       { id: "data-display", label: "Data Display" },
       { id: "utility", label: "Utility Elements" },
