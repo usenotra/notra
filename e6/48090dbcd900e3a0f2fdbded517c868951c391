@@ -1,0 +1,127 @@
+packages/geo-core/src/geo/programs.ts
+  s_2e1b04b64a383c::t_206cdd1c4d7781 1156,1161
+  s_2e1b04b64a383c::t_95de6bc6bb0d96 1155,1159-1160,1162
+packages/geo-core/tests/ingest-pipeline.test.ts
+  s_2e1b04b64a383c::t_17c1da3d3bc6a2 51-52,134
+  s_2e1b04b64a383c::t_52e564f2678ce5 47-50,53,57,65,85-88
+packages/analytics/src/tinybird/pipes/web.ts
+  s_2e1b04b64a383c::t_d559cb766bce79 392-410,417,426
+  s_2e1b04b64a383c::t_2107629aca6afb 19,358-359
+  s_2e1b04b64a383c::t_57576b3d905e4c 1-18,20-81,83-113,115-357,360-391,411-416,418-425,427-436
+  s_2e1b04b64a383c::t_44c3e69c1a6624 82,114
+packages/geo-core/src/ingest/web-tracking.ts
+  s_2e1b04b64a383c::t_59eb4be5e9d30e 7,55,59-67,69-72
+  s_2e1b04b64a383c::t_f336506b8aaa45 1-6,8-54,56-58,68,73
+packages/analytics/src/tinybird/datasources.ts
+  s_2e1b04b64a383c::t_4af0e44d3067c0 299-340,347-348,350-353,355-359,362-364,374-386,388-401,403-421,423-434,436-446,453
+  s_2e1b04b64a383c::t_7def21d9c96614 341-346,349,354,360-361,365-373,387,402,422,435
+packages/geo-core/src/constants/web-analytics.ts
+  s_2e1b04b64a383c::t_35b08e45f10251 1-5,7,13-92
+  s_2e1b04b64a383c::t_59eb4be5e9d30e 6,8-12
+packages/analytics/src/constants/geo-queries.ts
+  s_2e1b04b64a383c::t_4344d4426934fb 141-145,150-152,157-161
+  s_2e1b04b64a383c::t_c94e7ffc2b4605 140,146-149,153-156,162-165
+apps/sites/src/handler.ts
+  s_2e1b04b64a383c::t_01ba79283a3eac 34-38,180-181
+  s_2e1b04b64a383c::t_05bec34bd5fb0e 194
+packages/geo-core/src/types/ingest.ts
+  s_2e1b04b64a383c::t_c0c0e9fef5ef9f 108-112
+  s_2e1b04b64a383c::t_be7054acd2b3e5 6,8,114-116,119
+  s_2e1b04b64a383c::t_3291991d927872 113,117-118,120-136,139
+  s_2e1b04b64a383c::t_b8def9660c80e3 1-4,20-21,82-86
+  s_2e1b04b64a383c::t_c4686c3f2bd0fd 137-138
+packages/geo/src/types.ts
+  s_2e1b04b64a383c::t_0c79e0af1b0b9d 41-42,56-57
+packages/db/migrations/0108_sites.sql
+  ai_agent 146-148
+packages/geo-core/src/types/geo.ts
+  s_2e1b04b64a383c::t_206cdd1c4d7781 2102-2106
+  s_2e1b04b64a383c::t_dc65203a9ab507 2019-2089,2092-2101
+  s_2e1b04b64a383c::t_987b586e83596a 2090-2091
+packages/geo-core/src/geo/web-analytics.ts
+  s_2e1b04b64a383c::t_23bfd90b235d6e 65-104
+  s_2e1b04b64a383c::t_59eb4be5e9d30e 16,228
+  s_2e1b04b64a383c::t_987b586e83596a 54,109,173,188-189
+  s_2e1b04b64a383c::t_4344d4426934fb 36,39
+  s_2e1b04b64a383c::t_7d0cac8f7dd376 26,206,210-215
+  s_2e1b04b64a383c::t_206cdd1c4d7781 19,232-281
+  s_2e1b04b64a383c::t_6dd8bf8cb7b3c1 37,197
+  s_2e1b04b64a383c::t_f1a491140d6239 27
+  s_2e1b04b64a383c::t_cb04adbce32a8c 204
+  s_2e1b04b64a383c::t_95de6bc6bb0d96 13,184
+  s_2e1b04b64a383c::t_5940de0404b5d3 202-203,205,207-209,216-227,229-230
+  s_2e1b04b64a383c::t_c1cc59fc9f737e 1-12,14-15,17-18,20-25,28-35,38,40-53,55-64,105-108,110-172,174-183,185-187,190-196,198-201,231
+packages/analytics/src/types/tinybird-endpoints.ts
+  s_2e1b04b64a383c::t_2107629aca6afb 23-32,65-73
+packages/geo-core/src/ingest/pipeline.ts
+  s_2e1b04b64a383c::t_a9703ffab7a204 45,251-254,256
+  s_2e1b04b64a383c::t_b8def9660c80e3 1-8,43,46,137-166,250,255,257-260,316-341
+packages/geo-core/tests/web-session.test.ts
+  s_2e1b04b64a383c::t_c3886d24d58d61 1-24,32-48,52-61
+  s_2e1b04b64a383c::t_c2433b9dcc8bc3 25-31,49-51
+packages/geo/src/serialize.ts
+  s_2e1b04b64a383c::t_0c79e0af1b0b9d 50-58,64
+packages/geo-core/src/ingest/web.ts
+  s_2e1b04b64a383c::t_c70bd1950109a5 1-19,25-28,32-41,47-76,83,88-93,109-202,211-216,228-242,244-252
+  s_2e1b04b64a383c::t_c2433b9dcc8bc3 94-95,217-219
+  s_2e1b04b64a383c::t_a9703ffab7a204 29-31
+  s_2e1b04b64a383c::t_c4686c3f2bd0fd 77-82,86,96-105,221,223-226,243
+  s_2e1b04b64a383c::t_4cc8cca3ec8cb7 84-85,87,220,222,227
+  s_2e1b04b64a383c::t_f9b169f6a2340a 20-24,42-46,106-108,203-210
+packages/geo-core/src/schemas/geo.ts
+  s_2e1b04b64a383c::t_95de6bc6bb0d96 498-507
+  s_2e1b04b64a383c::t_0c79e0af1b0b9d 541,546
+packages/analytics/src/tinybird/pipes/geo-traffic.ts
+  s_2e1b04b64a383c::t_531bc63f0e7d23 23-25,120,143-191,217,229-243,246,275,300
+packages/db/migrations/meta/0108_snapshot.json
+  ai_agent 11695-11701,14706
+packages/geo-core/tests/web-page-view.test.ts
+  s_2e1b04b64a383c::t_f9b169f6a2340a 1-133
+apps/ai-traffic-ingest/src/index.ts
+  s_2e1b04b64a383c::t_8236450029e678 2,4-7,35-42,44-63,113-114
+packages/analytics/tinybird.config.json
+  s_2e1b04b64a383c::t_c94e7ffc2b4605 5-6
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_2e1b04b64a383c::t_8599ba0cce49a1 20-28
+packages/geo-core/src/ingest/ratelimit.ts
+  s_2e1b04b64a383c::t_b8def9660c80e3 18-29
+packages/analytics/src/constants/web-queries.ts
+  s_2e1b04b64a383c::t_37cfe82eb25d64 1-2,5-13,17-19
+  s_2e1b04b64a383c::t_4344d4426934fb 3-4,14-16,20
+packages/analytics/src/tinybird/client.ts
+  s_2e1b04b64a383c::t_2107629aca6afb 37-44,514-516,519,522-582,586-608
+  s_2e1b04b64a383c::t_625b23114ee02d 59-60,84-93,129,148-155,501-513,517-518,520-521,585
+apps/sites/tests/handler.test.ts
+  s_2e1b04b64a383c::t_97bb22a4085fcc 326-332,338-339,360-361
+  s_2e1b04b64a383c::t_dec10c523e21dc 333-337,340-359
+apps/sites/src/traffic.ts
+  s_2e1b04b64a383c::t_c4686c3f2bd0fd 55-58,63-77,110
+  s_2e1b04b64a383c::t_c2433b9dcc8bc3 59-62
+  s_2e1b04b64a383c::t_dec10c523e21dc 27-31,41-48
+  s_2e1b04b64a383c::t_01ba79283a3eac 32-40,49-53
+  s_2e1b04b64a383c::t_05bec34bd5fb0e 12-17,84,115,120
+packages/geo-core/src/ingest/batcher.ts
+  s_2e1b04b64a383c::t_23bfd90b235d6e 13,130-131
+  s_2e1b04b64a383c::t_3f732841ccf216 21,25,27,41,43,53-54,129,132,137,144,152,167,169,219,301-302,369-379
+apps/sites/src/types/traffic.ts
+  s_2e1b04b64a383c::t_05bec34bd5fb0e 38-39
+  s_2e1b04b64a383c::t_0d1c7a43b9bd0b 20,24
+packages/db/src/schema.ts
+  s_2e1b04b64a383c::t_90595c7a5f1607 1408-1409
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e648090dbcd900e3a0f2fdbded517c868951c391",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
