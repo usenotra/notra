@@ -82,30 +82,39 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const openReport = async (input: OfferingCheckInput) => {
     setNotice(null);
     setPending(true);
-    // Writes the URL now, so a still-pending debounced update cannot replace
-    // the report entry after navigating.
-    await setValues(
-      { domain: input.domain, feature: input.feature, problem: input.problem },
-      { limitUrlUpdates: defaultRateLimit }
-    );
-    const failure = await preflightOfferingCheck(input);
-    if (failure) {
-      fail(failure);
+    try {
+      // Writes the URL now, so a still-pending debounced update cannot
+      // replace the report entry after navigating.
+      await setValues(
+        {
+          domain: input.domain,
+          feature: input.feature,
+          problem: input.problem,
+        },
+        { limitUrlUpdates: defaultRateLimit }
+      );
+      const failure = await preflightOfferingCheck(input);
+      if (failure) {
+        fail(failure);
+        return;
+      }
+      await navigate({
+        to: OFFERING_REPORT_PATH,
+        search: {
+          domain: input.domain,
+          feature: input.feature || undefined,
+          problem: input.problem || undefined,
+        },
+        // Tokens are single-use: the report spends this one on its scan, and
+        // the form needs a new one if the visitor comes back.
+        state: { offeringTurnstileToken: turnstileToken },
+      });
+      turnstile.current?.reset();
+    } catch {
+      fail("error");
+    } finally {
       setPending(false);
-      return;
     }
-    await navigate({
-      to: OFFERING_REPORT_PATH,
-      search: {
-        domain: input.domain,
-        feature: input.feature || undefined,
-        problem: input.problem || undefined,
-      },
-      // Tokens are single-use: the report spends this one on its scan, and
-      // the form needs a new one if the visitor comes back.
-      state: { offeringTurnstileToken: turnstileToken },
-    });
-    turnstile.current?.reset();
   };
 
   const fillSample = (sample: OfferingCheckInput) => {
