@@ -1,0 +1,19 @@
+apps/dashboard/src/components/design-system/sections/split-modal-section.tsx
+  s_d2a045b30093ab::t_fec05efaf5f5f3 1-106,108-115,117-195,197-250,252-256,259-272,274-307
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ce73b1bd207cafada6db71c0d2766ec985391772",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
