@@ -1,7 +1,6 @@
 "use client";
 
 
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
 
@@ -265,16 +264,10 @@ export function LoginForm({
             <CtaButton
               className="w-full"
               disabled={isAuthLoading}
+              loading={authMethod === "email"}
               type="submit"
             >
-              {authMethod === "email" ? (
-                <>
-                  <Spinner />
-                  {l.submitting}
-                </>
-              ) : (
-                l.submit
-              )}
+              {l.submit}
             </CtaButton>
           </div>
         </form>

@@ -23,7 +23,7 @@ export function NumberedStepCard({
       </span>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <DeferredDithering
-          className="absolute bottom-0 left-[-6.375rem] h-[13.8125rem] w-[34.75rem]"
+          className="absolute bottom-0 left-[-6.375rem] h-[13.8125rem] w-[max(34.75rem,calc(100%+6.375rem))]"
           colorBack="#00000000"
           colorFront="#C8B2EE80"
           scale={1}

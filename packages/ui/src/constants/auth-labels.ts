@@ -20,7 +20,6 @@ export const DEFAULT_EMAIL_VERIFICATION_FORM_LABELS: EmailVerificationFormLabels
       `We sent a 6-digit code to ${email || "your email address"}. Enter it below to continue.`,
     codeLabel: DEFAULT_TOTP_CODE_INPUT_LABEL,
     submit: "Verify email",
-    submitting: "Verifying...",
     errorFallback: "Verification failed. Please try again.",
   };
 
@@ -32,7 +31,6 @@ export const DEFAULT_MFA_CHALLENGE_FORM_LABELS: MfaChallengeFormLabels = {
       : "Enter the 6-digit code from your authenticator app to finish signing in.",
   codeLabel: "Authentication code",
   submit: "Verify code",
-  submitting: "Verifying...",
   useBackupCode: "Lost your device? Use a backup code",
   backToSignIn: "Back to sign in",
   backupTitle: "Use a backup code",
@@ -41,7 +39,6 @@ export const DEFAULT_MFA_CHALLENGE_FORM_LABELS: MfaChallengeFormLabels = {
   backupCodeLabel: "Backup code",
   backupCodePlaceholder: "xxxx-xxxx",
   backupSubmit: "Use backup code",
-  backupSubmitting: "Checking...",
   useAuthenticator: "Use my authenticator app instead",
   issuedCodesTitle: "Your backup codes",
   issuedCodesDescription:
@@ -98,7 +95,6 @@ export const DEFAULT_LOGIN_FORM_LABELS: LoginFormLabels = {
   or: DEFAULT_AUTH_OR_DIVIDER_LABEL,
   lastUsed: DEFAULT_AUTH_LAST_USED_LABEL,
   submit: "Log in",
-  submitting: "Signing in...",
   forgotPassword: "Forgot your password?",
   resetPassword: "Reset Your Password",
   noAccount: "Don't have an account?",

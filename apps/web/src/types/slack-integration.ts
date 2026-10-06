@@ -1,7 +1,6 @@
 export interface SlackHeadline {
   pre: string;
-  channel: string;
-  post: string;
+  mention: string;
   secondLinePre: string;
   accent: string;
 }
@@ -9,7 +8,9 @@ export interface SlackHeadline {
 export interface SlackThreadMessage {
   author: string;
   message: string;
-  avatarGradient: string;
+  mention?: string;
+  avatarGradient?: string;
+  isBot?: boolean;
 }
 
 export interface SlackFeature {

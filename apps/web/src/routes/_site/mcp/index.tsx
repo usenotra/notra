@@ -19,7 +19,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra MCP Server";
 const description =
-  "Connect your agent to Notra over MCP to draft changelogs, launch posts, and social updates from the editor it already lives in.";
+  "Connect your agent to Notra over MCP to draft changelogs, launch posts and social updates from the editor it already lives in.";
 const url = `${SITE_URL}/mcp`;
 
 const metadata: Metadata = {

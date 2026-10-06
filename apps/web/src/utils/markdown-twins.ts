@@ -12,11 +12,19 @@ import {
   buildBlogAuthorMarkdown,
   listBlogAuthorMarkdownPages,
 } from "@/lib/blog/author-markdown";
+import {
+  buildCompareIndexMarkdown,
+  buildCompareMarkdown,
+  listCompareMarkdownPages,
+} from "@/lib/compare/markdown";
 import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
 import {
   buildIntegrationMarkdown,
   buildIntegrationsMarkdown,
+  buildGithubIntegrationMarkdown,
+  buildGranolaIntegrationMarkdown,
+  buildLinearIntegrationMarkdown,
   buildSlackIntegrationMarkdown,
   listIntegrationMarkdownEntries,
 } from "@/lib/integrations/markdown";
@@ -211,7 +219,7 @@ async function buildBlogIndexMarkdown() {
   return [
     "# Notra Blog",
     "",
-    "Insights, guides, and stories from the Notra team.",
+    "Insights, guides and stories from the Notra team.",
     "",
     "## Posts",
     "",
@@ -232,7 +240,7 @@ async function buildNotraChangelogIndexMarkdown() {
   return [
     "# Notra Changelog",
     "",
-    "The latest product updates, release notes, and improvements from the Notra team.",
+    "The latest product updates, release notes and improvements from the Notra team.",
     "",
     "## Entries",
     "",
@@ -310,11 +318,28 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/agent", render: () => buildAgentPageMarkdown() },
     { pattern: "/mcp", render: () => buildMcpMarkdown() },
     { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/compare", render: () => buildCompareIndexMarkdown() },
+    ...listCompareMarkdownPages().map((page) => ({
+      pattern: page.pattern,
+      render: () => buildCompareMarkdown(page.slug) ?? "",
+    })),
     { pattern: "/contributors", render: () => buildContributorsMarkdown() },
     { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
     {
       pattern: "/integrations/slack",
       render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/github",
+      render: () => buildGithubIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/linear",
+      render: () => buildLinearIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/granola",
+      render: () => buildGranolaIntegrationMarkdown(),
     },
     {
       pattern: "/features/marketing/assets",

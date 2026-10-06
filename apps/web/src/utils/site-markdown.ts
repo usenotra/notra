@@ -92,7 +92,7 @@ export function buildFeaturesMarkdown() {
     "",
     SITE_DESCRIPTION,
     "",
-    "Every answer is kept, so you can read what each engine actually said. A crawler fetch and a citation are not the same thing, and Notra keeps them apart.",
+    "Notra keeps every answer, so you can read what each engine said. It counts crawler fetches and citations separately.",
     "",
     markdownSection("What Notra tracks", [
       "### Prompts",
@@ -105,10 +105,10 @@ export function buildFeaturesMarkdown() {
       "Run the same prompts in up to five languages. Each language gets its own mention rate, so you can see where you win in English and lose in German.",
       "",
       "### Conversations",
-      "Multi-turn chats of up to five turns, replayed against every engine with web search. The follow-up question is usually where the recommendation happens.",
+      "Notra replays multi-turn chats of up to five turns on every engine with web search. Engines often make their recommendation in a follow-up answer.",
       "",
       "### Scans",
-      "Scans run daily by default, or every 48 hours, 3 days, week, 2 weeks or 30 days. Every answer is stored in full with the searches the engine ran and the pages it cited. Zero data retention is available as an add-on for teams that need it.",
+      "Scans run daily by default, or every 48 hours, 3 days, week, 2 weeks or 30 days. Every answer is stored in full with the searches the engine ran and the pages it cited. Zero data retention is available as an add-on.",
     ]),
     markdownSection("What the dashboard shows", [
       `### ${FEATURES_ENGINES_COPY.title}`,
@@ -129,7 +129,7 @@ export function buildFeaturesMarkdown() {
     markdownSection("AI traffic, attributed", [
       FEATURES_TRAFFIC_COPY.description,
       "",
-      "No script tag. You add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt, TanStack Start, Astro or SvelteKit site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
+      "You don't need a script tag. Add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt, TanStack Start, Astro or SvelteKit site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
       "",
       "Every hit is labelled by purpose: model training, search index, cited in answer (an assistant read the page while answering someone) or referral (a person clicked through from an AI answer).",
     ]),
@@ -285,7 +285,7 @@ function buildPromptCalculatorMarkdown() {
     "",
     "Params you leave out fall back to their default, and the page updates the URL as the user changes inputs, so the link always matches what they see.",
     "",
-    "Good to know: the estimate covers the prompts in the project's main language. Each extra language re-runs up to the first 5 prompts, multi-turn conversations add one answer per turn, and persona conversations count two answers per turn, so leave headroom when a customer plans to use any of them. When an organization uses up its monthly AI answers, scheduled scans run on its AI credits instead and are skipped only when no credits are left either. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
+    "Good to know: the estimate covers the prompts in the project's main language. Each extra language re-runs up to the first 5 prompts, multi-turn conversations add one answer per turn and persona conversations count two answers per turn, so leave headroom when a customer plans to use any of them. When an organization uses up its monthly AI answers, scheduled scans run on its AI credits instead and are skipped only when no credits are left either. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
     "",
     "### Models",
     "",
@@ -339,7 +339,7 @@ export function buildPricingMarkdown() {
     "",
     "Choose the right Notra plan for your team.",
     "",
-    "Upgrade when you need more images, posts, or projects.",
+    "Upgrade when you need more images, posts or projects.",
     "",
     planSections,
     buildPromptCalculatorMarkdown(),
@@ -442,7 +442,7 @@ export function buildBrandMarkdown() {
     ]),
     markdownSection("Logo", [
       "The Notra mark is a feather with a lavender fill and ink strokes.",
-      "Keep it on a light surface and give it room to breathe. On dark surfaces, place the mark on a cream tile.",
+      "Keep it on a light surface with clear space around it. On dark surfaces, place the mark on a cream tile.",
     ]),
     markdownSection("Colors", colorLines),
     markdownSection("Typography", [

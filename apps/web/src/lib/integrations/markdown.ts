@@ -1,16 +1,73 @@
 import { AUTH_SIGNUP_URL } from "@/constants/auth";
 import {
+  GITHUB_CONNECT_HREF,
+  GITHUB_CONNECT_LABEL,
+  GITHUB_CTA_HEADING,
+  GITHUB_CTA_SUBCOPY,
+  GITHUB_DRAFT_BODY,
+  GITHUB_DRAFT_HEADLINE,
+  GITHUB_DRAFT_META,
+  GITHUB_DRAFT_TITLE,
+  GITHUB_FEATURES,
+  GITHUB_HEADLINE,
+  GITHUB_HERO_SUBHEAD,
+  GITHUB_MARKETPLACE_HREF,
+  GITHUB_MARKETPLACE_LABEL,
+  GITHUB_PULL_REQUEST,
+  GITHUB_REPOSITORY,
+  GITHUB_TOOLS,
+} from "@/constants/github-integration";
+import {
+  GRANOLA_CONNECT_HREF,
+  GRANOLA_CONNECT_LABEL,
+  GRANOLA_CTA_HEADING,
+  GRANOLA_CTA_SUBCOPY,
+  GRANOLA_DRAFT_BODY,
+  GRANOLA_DRAFT_HEADLINE,
+  GRANOLA_DRAFT_META,
+  GRANOLA_DRAFT_TITLE,
+  GRANOLA_FEATURES,
+  GRANOLA_HEADLINE,
+  GRANOLA_HERO_SUBHEAD,
+  GRANOLA_MARKETPLACE_HREF,
+  GRANOLA_MARKETPLACE_LABEL,
+  GRANOLA_NOTE_HEADING,
+  GRANOLA_NOTE_LINES,
+  GRANOLA_NOTE_TITLE,
+  GRANOLA_TOOLS,
+} from "@/constants/granola-integration";
+import {
   INTEGRATIONS_CONSOLE_URL,
   INTEGRATIONS_DOCS_URL,
+  STATIC_INTEGRATION_PAGE_SLUGS,
 } from "@/constants/integrations";
+import {
+  CTA_BANNER_CONTACT_HREF,
+  CTA_BANNER_PRIMARY_LABEL,
+  CTA_BANNER_SECONDARY_LABEL,
+} from "@/constants/landing/cta-banner";
+import {
+  LINEAR_CONNECT_HREF,
+  LINEAR_CONNECT_LABEL,
+  LINEAR_CTA_HEADING,
+  LINEAR_CTA_SUBCOPY,
+  LINEAR_CYCLE_NAME,
+  LINEAR_DRAFT_BODY,
+  LINEAR_DRAFT_HEADLINE,
+  LINEAR_DRAFT_META,
+  LINEAR_DRAFT_TITLE,
+  LINEAR_FEATURES,
+  LINEAR_HEADLINE,
+  LINEAR_HERO_SUBHEAD,
+  LINEAR_ISSUES,
+  LINEAR_MARKETPLACE_HREF,
+  LINEAR_MARKETPLACE_LABEL,
+  LINEAR_TOOLS,
+} from "@/constants/linear-integration";
 import {
   SLACK_CONNECT_HREF,
   SLACK_CONNECT_LABEL,
-  SLACK_CTA_BADGE_LABEL,
-  SLACK_CTA_CONTACT_HREF,
   SLACK_CTA_HEADING,
-  SLACK_CTA_PRIMARY_LABEL,
-  SLACK_CTA_SECONDARY_LABEL,
   SLACK_CTA_SUBCOPY,
   SLACK_DRAFT_BODY,
   SLACK_DRAFT_HEADLINE,
@@ -43,8 +100,6 @@ import type {
 import { getIntegrationReferralUrl } from "@/utils/integration-referral-url";
 import { escapeMarkdownLinkText, markdownSection } from "@/utils/markdown";
 import { SITE_URL } from "@/utils/urls";
-
-const STATIC_INTEGRATION_SLUGS = new Set(["slack"]);
 
 function getIntegrationSlug(integration: Integration): string {
   return integration.slug ?? integration.id;
@@ -124,7 +179,7 @@ export async function listIntegrationMarkdownEntries(): Promise<
   const entries: IntegrationMarkdownEntry[] = [];
   for (const integration of integrations) {
     const id = getIntegrationSlug(integration);
-    if (STATIC_INTEGRATION_SLUGS.has(id)) {
+    if (STATIC_INTEGRATION_PAGE_SLUGS.has(id)) {
       continue;
     }
     entries.push({
@@ -139,7 +194,7 @@ export async function listIntegrationMarkdownEntries(): Promise<
 export async function buildIntegrationMarkdown(
   id: string
 ): Promise<string | null> {
-  if (STATIC_INTEGRATION_SLUGS.has(id)) {
+  if (STATIC_INTEGRATION_PAGE_SLUGS.has(id)) {
     return null;
   }
   const integration = await fetchIntegration(id);
@@ -181,10 +236,13 @@ export async function buildIntegrationMarkdown(
 }
 
 export function buildSlackIntegrationMarkdown(): string {
-  const headline = `${SLACK_HEADLINE.pre} ${SLACK_HEADLINE.channel} ${SLACK_HEADLINE.post} ${SLACK_HEADLINE.secondLinePre} ${SLACK_HEADLINE.accent}`;
-  const threadLines = SLACK_THREAD_MESSAGES.map(
-    (threadMessage) => `> **${threadMessage.author}**: ${threadMessage.message}`
-  );
+  const headline = `${SLACK_HEADLINE.pre} ${SLACK_HEADLINE.mention} ${SLACK_HEADLINE.secondLinePre} ${SLACK_HEADLINE.accent}`;
+  const threadLines = SLACK_THREAD_MESSAGES.map((threadMessage) => {
+    const message = threadMessage.mention
+      ? `${threadMessage.mention} ${threadMessage.message}`
+      : threadMessage.message;
+    return `> **${threadMessage.author}**: ${message}`;
+  });
 
   return [
     `# ${headline}`,
@@ -194,12 +252,12 @@ export function buildSlackIntegrationMarkdown(): string {
     `- [${SLACK_CONNECT_LABEL}](${SLACK_CONNECT_HREF})`,
     `- [${SLACK_MARKETPLACE_LABEL}](${toAbsoluteUrl(SLACK_MARKETPLACE_HREF)}.md)`,
     "",
-    markdownSection("From thread to announcement", [
+    markdownSection("From thread to draft", [
       `A thread in ${SLACK_THREAD_CHANNEL}:`,
       "",
       ...threadLines.flatMap((line) => [line, ">"]).slice(0, -1),
       "",
-      `Becomes an ${SLACK_DRAFT_TITLE.toLowerCase()}:`,
+      `Notra replies with a ${SLACK_DRAFT_TITLE.toLowerCase()}:`,
       "",
       `> **${SLACK_DRAFT_HEADLINE}**`,
       ">",
@@ -219,10 +277,148 @@ export function buildSlackIntegrationMarkdown(): string {
     markdownSection(SLACK_CTA_HEADING, [
       SLACK_CTA_SUBCOPY,
       "",
-      SLACK_CTA_BADGE_LABEL,
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
+    ]),
+  ].join("\n");
+}
+
+export function buildGithubIntegrationMarkdown(): string {
+  const headline = `${GITHUB_HEADLINE.pre} ${GITHUB_HEADLINE.highlight} ${GITHUB_HEADLINE.secondLinePre} ${GITHUB_HEADLINE.accent}`;
+  const sourceLines = [
+    `- ${GITHUB_PULL_REQUEST.number} ${GITHUB_PULL_REQUEST.title} (merged by ${GITHUB_PULL_REQUEST.author} into ${GITHUB_PULL_REQUEST.baseBranch})`,
+    "",
+    `> ${GITHUB_PULL_REQUEST.comment}`,
+  ];
+
+  return [
+    `# ${headline}`,
+    "",
+    GITHUB_HERO_SUBHEAD,
+    "",
+    `- [${GITHUB_CONNECT_LABEL}](${GITHUB_CONNECT_HREF})`,
+    `- [${GITHUB_MARKETPLACE_LABEL}](${toAbsoluteUrl(GITHUB_MARKETPLACE_HREF)}.md)`,
+    "",
+    markdownSection("From pull requests to changelog", [
+      `Merged in ${GITHUB_REPOSITORY}:`,
       "",
-      `- [${SLACK_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
-      `- [${SLACK_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(SLACK_CTA_CONTACT_HREF)})`,
+      ...sourceLines,
+      "",
+      `Notra writes this ${GITHUB_DRAFT_TITLE.toLowerCase()}:`,
+      "",
+      `> **${GITHUB_DRAFT_HEADLINE}**`,
+      ">",
+      `> ${GITHUB_DRAFT_BODY}`,
+      "",
+      GITHUB_DRAFT_META,
+    ]),
+    markdownSection(
+      "Features",
+      GITHUB_FEATURES.flatMap((feature) => [
+        `### ${feature.title}`,
+        feature.description,
+        "",
+      ])
+    ),
+    markdownSection("Tools", renderToolLines(GITHUB_TOOLS)),
+    markdownSection(GITHUB_CTA_HEADING, [
+      GITHUB_CTA_SUBCOPY,
+      "",
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
+    ]),
+  ].join("\n");
+}
+
+export function buildLinearIntegrationMarkdown(): string {
+  const headline = `${LINEAR_HEADLINE.pre} ${LINEAR_HEADLINE.highlight} ${LINEAR_HEADLINE.secondLinePre} ${LINEAR_HEADLINE.accent}`;
+  const sourceLines = LINEAR_ISSUES.map(
+    (issue) => `- ${issue.identifier} ${issue.title} (${issue.label})`
+  );
+
+  return [
+    `# ${headline}`,
+    "",
+    LINEAR_HERO_SUBHEAD,
+    "",
+    `- [${LINEAR_CONNECT_LABEL}](${LINEAR_CONNECT_HREF})`,
+    `- [${LINEAR_MARKETPLACE_LABEL}](${toAbsoluteUrl(LINEAR_MARKETPLACE_HREF)}.md)`,
+    "",
+    markdownSection("From issues to release notes", [
+      `Finished in ${LINEAR_CYCLE_NAME}:`,
+      "",
+      ...sourceLines,
+      "",
+      `Notra writes this ${LINEAR_DRAFT_TITLE.toLowerCase()}:`,
+      "",
+      `> **${LINEAR_DRAFT_HEADLINE}**`,
+      ">",
+      `> ${LINEAR_DRAFT_BODY}`,
+      "",
+      LINEAR_DRAFT_META,
+    ]),
+    markdownSection(
+      "Features",
+      LINEAR_FEATURES.flatMap((feature) => [
+        `### ${feature.title}`,
+        feature.description,
+        "",
+      ])
+    ),
+    markdownSection("Tools", renderToolLines(LINEAR_TOOLS)),
+    markdownSection(LINEAR_CTA_HEADING, [
+      LINEAR_CTA_SUBCOPY,
+      "",
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
+    ]),
+  ].join("\n");
+}
+
+export function buildGranolaIntegrationMarkdown(): string {
+  const headline = `${GRANOLA_HEADLINE.pre} ${GRANOLA_HEADLINE.highlight} ${GRANOLA_HEADLINE.secondLinePre} ${GRANOLA_HEADLINE.accent}`;
+  const sourceLines = [
+    `### ${GRANOLA_NOTE_HEADING}`,
+    ...GRANOLA_NOTE_LINES.map(
+      (line) => `${line.nested ? "  " : ""}- ${line.text}`
+    ),
+  ];
+
+  return [
+    `# ${headline}`,
+    "",
+    GRANOLA_HERO_SUBHEAD,
+    "",
+    `- [${GRANOLA_CONNECT_LABEL}](${GRANOLA_CONNECT_HREF})`,
+    `- [${GRANOLA_MARKETPLACE_LABEL}](${toAbsoluteUrl(GRANOLA_MARKETPLACE_HREF)}.md)`,
+    "",
+    markdownSection("From meeting notes to customer story", [
+      `Granola note "${GRANOLA_NOTE_TITLE}":`,
+      "",
+      ...sourceLines,
+      "",
+      `Notra writes this ${GRANOLA_DRAFT_TITLE.toLowerCase()}:`,
+      "",
+      `> **${GRANOLA_DRAFT_HEADLINE}**`,
+      ">",
+      `> ${GRANOLA_DRAFT_BODY}`,
+      "",
+      GRANOLA_DRAFT_META,
+    ]),
+    markdownSection(
+      "Features",
+      GRANOLA_FEATURES.flatMap((feature) => [
+        `### ${feature.title}`,
+        feature.description,
+        "",
+      ])
+    ),
+    markdownSection("Tools", renderToolLines(GRANOLA_TOOLS)),
+    markdownSection(GRANOLA_CTA_HEADING, [
+      GRANOLA_CTA_SUBCOPY,
+      "",
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
     ]),
   ].join("\n");
 }

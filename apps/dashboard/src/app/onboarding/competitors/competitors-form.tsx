@@ -8,7 +8,6 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-header";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import { ORPCError } from "@orpc/client";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
@@ -66,7 +65,6 @@ function CompetitorsPicker({
   nextHref,
 }: CompetitorsPickerProps) {
   const t = useTranslations("onboarding.competitors");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -302,15 +300,8 @@ function CompetitorsPicker({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Spinner />
-            {geoLocked ? tOnboardingShared("saving") : t("runningFirstScan")}
-          </>
-        ) : (
-          submitLabel
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {submitLabel}
       </CtaButton>
     </form>
   );

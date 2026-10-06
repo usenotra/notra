@@ -15,18 +15,18 @@ export const FEATURES_SUBCOPY_LINE_ONE =
   "These are the tables in the product, filled with sample data.";
 
 export const FEATURES_SUBCOPY_LINE_TWO =
-  "No vanity score. Mentions, positions, share of voice, and the traffic behind them.";
+  "They show mentions, positions, share of voice and the traffic behind them.";
 
 export const FEATURES_ENGINES_COPY: FeaturesCardCopy = {
   title: "Mention rate by engine",
   description:
-    "Each prompt goes to each model you turn on, with web search. You get who mentioned you, where in the list, and whether that moved since the last scan.",
+    "Each prompt goes to each model you turn on, with web search. You get who mentioned you, where in the list and whether that moved since the last scan.",
 };
 
 export const FEATURES_SHARE_COPY: FeaturesCardCopy = {
   title: "Share of voice",
   description:
-    "Who gets recommended when you don't. Add direct and indirect competitors, plus the misspellings people use for them, and see the split per prompt, language and engine.",
+    "Who gets recommended when you don't. Add direct and indirect competitors, plus the misspellings people use for them and see the split per prompt, language and engine.",
 };
 
 export const FEATURES_TRAFFIC_COPY: FeaturesCardCopy = {
@@ -36,7 +36,7 @@ export const FEATURES_TRAFFIC_COPY: FeaturesCardCopy = {
 };
 
 export const FEATURES_GAPS_COPY: FeaturesCardCopy = {
-  title: "Content Gaps to Write",
+  title: "Content gaps to write",
   description:
     "The questions where engines answer and you are not in the answer, ranked by how winnable they look. Write plans a guide, listicle or comparison and the draft lands in Content.",
 };

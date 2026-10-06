@@ -8,6 +8,7 @@ import {
   GEO_INGEST_MAX_EVENT_AGE_MS,
 } from "../constants/ingest";
 import type { GeoTrafficEventInput } from "../types/ingest";
+import { sanitizeGeoReferer } from "../utils/geo-referer";
 
 export function toCapturedDate(
   timestamp: string | undefined,
@@ -58,7 +59,7 @@ export function buildGeoTrafficEvent(
     path: journey.path,
     host: url.hostname,
     method: payload.method.toUpperCase(),
-    referer: payload.referer ?? "",
+    referer: sanitizeGeoReferer(payload.referer),
     ua: (payload.userAgent ?? "").slice(0, GEO_MAX_STORED_UA_LENGTH),
     country: payload.geo?.country ?? "",
     language: toLanguage(payload.acceptLanguage),

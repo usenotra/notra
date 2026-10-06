@@ -1,7 +1,6 @@
 "use client";
 
 
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   BACKUP_CODE_LENGTH,
   TOTP_CODE_LENGTH,
@@ -14,7 +13,6 @@ import { useRef, useState } from "react";
 import type {
   ChallengeMode,
   MfaChallengeFormProps,
-  MfaSubmitButtonProps,
 } from "../../../types/auth";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -24,26 +22,6 @@ import { CtaButton } from "../cta-button";
 import { AuthFormError } from "./auth-form-error";
 import { AuthFormHeader } from "./auth-form-header";
 import { TotpCodeInput } from "./totp-code-input";
-
-function SubmitButton({
-  isPending,
-  disabled,
-  pendingLabel,
-  label,
-}: MfaSubmitButtonProps) {
-  return (
-    <CtaButton className="w-full" disabled={disabled} type="submit">
-      {isPending ? (
-        <>
-          <Spinner />
-          {pendingLabel}
-        </>
-      ) : (
-        label
-      )}
-    </CtaButton>
-  );
-}
 
 export function MfaChallengeForm({
   step,
@@ -192,12 +170,14 @@ export function MfaChallengeForm({
           </div>
           <div>
             <AuthFormError className="mb-4" error={formError} />
-            <SubmitButton
-              disabled={isPending || !backupCodeReady}
-              isPending={isPending}
-              label={l.backupSubmit}
-              pendingLabel={l.backupSubmitting}
-            />
+            <CtaButton
+              className="w-full"
+              disabled={!backupCodeReady}
+              loading={isPending}
+              type="submit"
+            >
+              {l.backupSubmit}
+            </CtaButton>
           </div>
         </form>
         <Button
@@ -241,12 +221,14 @@ export function MfaChallengeForm({
           onComplete={handleVerify}
           value={code}
         />
-        <SubmitButton
-          disabled={isPending || code.length !== TOTP_CODE_LENGTH}
-          isPending={isPending}
-          label={l.submit}
-          pendingLabel={l.submitting}
-        />
+        <CtaButton
+          className="w-full"
+          disabled={code.length !== TOTP_CODE_LENGTH}
+          loading={isPending}
+          type="submit"
+        >
+          {l.submit}
+        </CtaButton>
       </form>
       <div className="flex flex-col items-center gap-1">
         <Button

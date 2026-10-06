@@ -42,7 +42,7 @@ function BriefStatusBadge({ status }: { status: GeoContentBriefStatus }) {
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
-      {status === "writing" ? <Spinner className="size-3.5" /> : null}
+      {status === "writing" ? <Spinner /> : null}
       {statusLabels[status]}
     </Badge>
   );

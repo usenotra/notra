@@ -23,6 +23,7 @@ import type { AgentFeedbackSetupDialogProps } from "@/types/agent-feedback";
 
 export function AgentFeedbackSetupDialog({
   organizationId,
+  triggerVariant = "outline",
 }: AgentFeedbackSetupDialogProps) {
   const t = useTranslations("feedback.setup");
   const tCommon = useTranslations("common");
@@ -40,7 +41,7 @@ export function AgentFeedbackSetupDialog({
           setOpen(true);
         }}
         size="sm"
-        variant="outline"
+        variant={triggerVariant}
       >
         <HugeiconsIcon className="size-4" icon={Settings01Icon} />
         {t("trigger")}

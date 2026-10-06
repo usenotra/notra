@@ -54,7 +54,6 @@ function VisibilityReview({
   skipHref,
 }: VisibilityReviewProps) {
   const t = useTranslations("onboarding.visibility");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -184,15 +183,8 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Spinner />
-            {tOnboardingShared("saving")}
-          </>
-        ) : (
-          tCommon("actions.continue")
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {tCommon("actions.continue")}
       </CtaButton>
 
       <div className="text-center">
@@ -366,6 +358,7 @@ export function VisibilityForm({
             </div>
             <GeoLanguagePicker
               disabled={isAnalyzing}
+              inputClassName="h-11 rounded-xl"
               inputId={`${id}-languages`}
               labeled={false}
               lockedLanguage={lockedLanguage}

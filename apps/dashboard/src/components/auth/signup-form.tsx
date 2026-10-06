@@ -10,7 +10,6 @@ import { AuthPendingStep } from "@notra/ui/components/shared/auth/auth-pending-s
 import { AuthSocialButtons } from "@notra/ui/components/shared/auth/auth-social-buttons";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Separator } from "@notra/ui/components/ui/separator";
-import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useAuthFlow } from "@notra/ui/hooks/use-auth-flow";
 import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
 import type { AuthMethod, SocialProvider } from "@notra/ui/types/auth";
@@ -309,16 +308,10 @@ export function SignupForm({
           <CtaButton
             className="mt-4 w-full"
             disabled={isAuthLoading}
+            loading={authMethod === "email"}
             type="submit"
           >
-            {authMethod === "email" ? (
-              <>
-                <Spinner />
-                {t("creating")}
-              </>
-            ) : (
-              t("submit")
-            )}
+            {t("submit")}
           </CtaButton>
         </form>
       </div>

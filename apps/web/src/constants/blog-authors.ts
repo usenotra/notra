@@ -43,7 +43,7 @@ export const BLOG_AUTHORS: NotraBlogAuthor[] = [
     image: "/blog/authors/jan.webp",
     slug: "jan",
     bio: null,
-    role: "Founding Intern",
+    role: "Founding Engineer",
     socials: [
       {
         url: "https://x.com/miaugladiator1",

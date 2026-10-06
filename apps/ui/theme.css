@@ -194,6 +194,31 @@ html {
   }
 }
 
+@utility marketing-gradient-flat {
+  --marketing-gradient-from: oklab(69.9% 0.067 -0.16);
+  --marketing-gradient-to: oklab(52.6% 0.113 -0.27);
+  background-image: linear-gradient(
+    180deg,
+    var(--marketing-gradient-from) 0%,
+    var(--marketing-gradient-to) 100%
+  );
+  box-shadow:
+    #28282814 0 0.0625rem 0.125rem,
+    #1e1e1e40 0 0 0 0.0625rem;
+  transition:
+    --marketing-gradient-from 200ms ease-out,
+    --marketing-gradient-to 200ms ease-out;
+
+  &:hover {
+    --marketing-gradient-to: oklab(33.9% 0.073 -0.174);
+  }
+
+  &:active {
+    --marketing-gradient-from: oklab(52.6% 0.113 -0.27);
+    --marketing-gradient-to: oklab(24.8% 0.053 -0.127);
+  }
+}
+
 @utility marketing-gradient-light {
   --marketing-gradient-from: oklab(100% 0 0);
   --marketing-gradient-to: oklab(95.5% 0 0);

@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ctaButtonVariants } from "@notra/ui/components/shared/cta-button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -49,6 +50,10 @@ const PANEL_CLASSNAME = "overflow-hidden";
 
 const MENU_FOOTER_BUTTON_CLASSNAME =
   "font-display flex h-12 items-center justify-center rounded-full text-base tracking-[-0.015em]";
+const MENU_FOOTER_CTA_CLASSNAME = cn(
+  ctaButtonVariants({ size: "lg" }),
+  "font-display flex w-full text-base"
+);
 
 const STAGGER_IN = 0.028;
 const STAGGER_OUT = 0.018;
@@ -376,7 +381,7 @@ function MobileAuthActions({
     return (
       <m.div variants={item}>
         <a
-          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
+          className={MENU_FOOTER_CTA_CLASSNAME}
           href={AUTH_DASHBOARD_URL}
           onClick={onNavigate}
         >
@@ -399,7 +404,7 @@ function MobileAuthActions({
       </m.div>
       <m.div variants={item}>
         <TrackedSignupLink
-          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
+          className={MENU_FOOTER_CTA_CLASSNAME}
           onClick={onNavigate}
           source={NAVBAR_MOBILE_SIGNUP_SOURCE}
         >

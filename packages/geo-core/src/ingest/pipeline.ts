@@ -14,6 +14,7 @@ import type {
   GeoIngestDefer,
   GeoIngestResult,
 } from "../types/ingest";
+import { geoIngestAdmissionKey } from "../utils/geo-ingest-admission-key";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -29,7 +30,7 @@ import { loadIngestAllowedHosts } from "./hosts";
 import { isGeoIngestIdentityActive } from "./identity";
 import { resolveJourneyId } from "./journey";
 import { announceGeoTrafficEvent, expediteForLiveViewers } from "./live";
-import { geoIngestRatelimit } from "./ratelimit";
+import { geoIngestAdmissionRatelimit, geoIngestRatelimit } from "./ratelimit";
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
   request: Request
@@ -52,10 +53,14 @@ const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
 });
 
 const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
-  organizationId: string
+  organizationId: string,
+  admissionKey?: string
 ) {
+  const limiter = admissionKey
+    ? geoIngestAdmissionRatelimit
+    : geoIngestRatelimit;
   const { success, reason } = yield* Effect.tryPromise({
-    try: () => geoIngestRatelimit.limit(organizationId),
+    try: () => limiter.limit(admissionKey ?? organizationId),
     catch: (cause) => new GeoIngestFailedError({ cause }),
   });
   // Upstash reports timeouts as success; an unavailable limiter is not approval.
@@ -140,6 +145,10 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
     identity: GeoIngestIdentity,
     error: GeoIngestInvalidPayloadError | GeoIngestUnparseableUrlError
   ) {
+    yield* enforceRateLimit(
+      identity.organizationId,
+      geoIngestAdmissionKey(identity)
+    );
     const active = yield* Effect.promise(() =>
       isGeoIngestIdentityActive(identity)
     );
@@ -186,6 +195,10 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     } satisfies GeoIngestResult;
   }
 
+  yield* enforceRateLimit(
+    identity.organizationId,
+    geoIngestAdmissionKey(identity)
+  );
   const [active, allowedHosts] = yield* Effect.all(
     [
       Effect.promise(() => isGeoIngestIdentityActive(identity)),
