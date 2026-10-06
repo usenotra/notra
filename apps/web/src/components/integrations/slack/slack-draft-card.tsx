@@ -1,3 +1,4 @@
+import { NotraMark } from "@/components/notra-mark";
 import {
   SLACK_DRAFT_ACTION_LABEL,
   SLACK_DRAFT_BODY,
@@ -11,15 +12,9 @@ export function SlackDraftCard() {
     <div className="flex w-full grow basis-0 flex-col overflow-clip rounded-[1.25rem] bg-white [box-shadow:#ECECEC_0_0_0_0.0625rem,#28282820_0_0.5rem_1.5rem_-0.5rem] lg:w-auto dark:bg-[#17131F] dark:[box-shadow:#FFFFFF14_0_0_0_0.0625rem]">
       <div className="flex items-center justify-between px-5 py-3.5 [box-shadow:#F0F0F0_0_-0.0625rem_0_inset] dark:[box-shadow:#FFFFFF14_0_-0.0625rem_0_inset]">
         <div className="flex items-center gap-2">
-          <img
-            decoding="async"
-            loading="lazy"
-            alt="Notra logo"
-            className="size-4.5 shrink-0"
-            height={18}
-            src="/notra-mark.svg"
-            width={18}
-          />
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md dark:bg-[#F6F3F1] dark:shadow-sm dark:ring-1 dark:inset-shadow-sm dark:shadow-black/40 dark:ring-white/10 dark:inset-shadow-white/8">
+            <NotraMark className="size-4 shrink-0" />
+          </span>
           <span className="font-sans text-sm leading-[1.125rem] font-semibold text-[#1E1E1E] dark:text-white">
             {SLACK_DRAFT_TITLE}
           </span>
