@@ -42,12 +42,24 @@ function ChatTopbarTitleLabel({
   displayTitle,
   hasTitle,
   isGeneratingTitle,
+  isLoading,
 }: {
   displayTitle: string;
   hasTitle: boolean;
   isGeneratingTitle: boolean;
+  isLoading: boolean;
 }) {
   const t = useTranslations("dashboard.chatTitle");
+  const tNav = useTranslations("nav.sidebar");
+  if (isLoading) {
+    return (
+      <Skeleton
+        aria-label={tNav("loadingChatHistory")}
+        className="h-4 w-28"
+        role="status"
+      />
+    );
+  }
   let titleMotionKey = "fallback";
   if (isGeneratingTitle) {
     titleMotionKey = "generating";
@@ -93,7 +105,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   const router = useRouter();
   const slug = activeOrganization?.slug;
 
-  const { sessions, generatingTitleChatIds } = useChatSessions();
+  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const session = sessions.find((item) => item.chatId === chatId);
@@ -238,6 +250,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     displayTitle={displayTitle}
                     hasTitle={hasTitle}
                     isGeneratingTitle={isGeneratingTitle}
+                    isLoading={isLoading}
                   />
                   <HugeiconsIcon
                     className={cn(

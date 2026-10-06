@@ -112,7 +112,7 @@ export function SidebarProjectSwitcher() {
       voices.find((voice) => voice.id === brandSettingsId)?.websiteUrl ?? null
     );
 
-  if (organizationId && (isLoading || isError || !isReady)) {
+  if (organizationId && !isError && (isLoading || !isReady)) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>

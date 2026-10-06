@@ -13,6 +13,7 @@ import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
 import { normalizeChatTitle } from "@notra/ai/utils/chat";
 import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -37,7 +38,6 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -48,13 +48,14 @@ import {
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
 import { usePathname, useRouter } from "@/lib/navigation";
-import { dashboardOrpcClient } from "@/lib/orpc/client";
 import { cn } from "@/lib/utils";
 import {
   displayChatTitle,
   getChatHistoryGroups,
 } from "@/utils/chat-history-groups";
+import { chatHistoryQueryOptions } from "@/utils/chat-history-query";
 
+import { ChatHistoryNavLoading } from "./chat-history-nav-loading";
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
@@ -90,26 +91,15 @@ export function ChatHistoryNav() {
     if (!organizationId) {
       return;
     }
-    queryClient.prefetchQuery({
-      queryKey: ["chat-history", organizationId, chatId],
-      queryFn: async () => {
-        const data = await dashboardOrpcClient.chat.sessions.get({
-          organizationId,
-          chatId,
-        });
-        return {
-          messages: data.messages,
-          lastResponseStopped: data.lastResponseStopped,
-          activeStreamId: data.activeStreamId,
-          externalChannelId: data.externalChannelId,
-        };
-      },
-      staleTime: 1000 * 60 * 5,
-    });
+    void queryClient.prefetchQuery(
+      chatHistoryQueryOptions(organizationId, chatId)
+    );
   }
 
-  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
-  const shouldReduceMotion = useReducedMotion();
+  const { sessions, generatingTitleChatIds, isLoading, isError } =
+    useChatSessions();
+  const showError = isError && sessions.length === 0;
+  const showLoading = !showError && isLoading && sessions.length === 0;
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
@@ -270,6 +260,9 @@ export function ChatHistoryNav() {
                             onMouseEnter={() =>
                               prefetchChatHistory(session.chatId)
                             }
+                            onPointerDown={() =>
+                              prefetchChatHistory(session.chatId)
+                            }
                             replace={isOnChatRoute}
                           >
                             {isGeneratingTitle ? (
@@ -407,27 +400,33 @@ export function ChatHistoryNav() {
 
       {!isCollapsed && (
         <div className="flex-1 overflow-x-hidden overflow-y-auto">
-          <AnimatePresence initial={false}>
-            {!isLoading || sessions.length > 0 ? (
-              <motion.div
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-                key="chat-sessions"
-                transition={{ duration: 0.25, ease: "easeOut" }}
+          {showError && (
+            <div className="space-y-2 p-3" role="alert">
+              <p className="text-muted-foreground text-xs">{t("loadFailed")}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
-                {renderSessions(t("pinned"), pinnedSessions)}
-                {historyGroups.map((group) =>
-                  renderSessions(
-                    group.id === "lastMonth"
-                      ? t("groups.lastMonth")
-                      : tCommon2(`labels.${group.id}`),
-                    group.sessions
-                  )
-                )}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+                {tCommon("refresh")}
+              </Button>
+            </div>
+          )}
+          {showLoading && <ChatHistoryNavLoading />}
+          {!(showError || showLoading) && (
+            <div>
+              {renderSessions(t("pinned"), pinnedSessions)}
+              {historyGroups.map((group) =>
+                renderSessions(
+                  group.id === "lastMonth"
+                    ? t("groups.lastMonth")
+                    : tCommon2(`labels.${group.id}`),
+                  group.sessions
+                )
+              )}
+            </div>
+          )}
         </div>
       )}
 

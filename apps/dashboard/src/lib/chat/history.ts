@@ -1,9 +1,7 @@
 import {
   getActiveChatStream,
-  getChatSession,
+  getChatHistorySnapshot,
   getLastResponseStopped,
-  isChatDeleted,
-  loadChatHistory,
 } from "@notra/ai/chat/history";
 import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
 import type { ChatUIMessage } from "@notra/ai/types/chat";
@@ -18,18 +16,15 @@ export async function loadChatHistoryPayload(
   organizationId: string,
   chatId: string
 ) {
-  if (await isChatDeleted(organizationId, chatId)) {
+  const [snapshot, lastResponseStopped, activeStreamId] = await Promise.all([
+    getChatHistorySnapshot<ChatUIMessage>(organizationId, chatId),
+    getLastResponseStopped(organizationId, chatId),
+    getActiveChatStream(organizationId, chatId),
+  ]);
+  if (!snapshot) {
     return null;
   }
-
-  const [messages, lastResponseStopped, activeStreamId, chatSession] =
-    await Promise.all([
-      loadChatHistory<ChatUIMessage>(organizationId, chatId),
-      getLastResponseStopped(organizationId, chatId),
-      getActiveChatStream(organizationId, chatId),
-      getChatSession(organizationId, chatId),
-    ]);
-  const externalChannelId = chatSession?.externalChannelId ?? null;
+  const { messages, externalChannelId } = snapshot;
   let slackThreadUrl: string | null = null;
   if (externalChannelId?.source === "slack" && externalChannelId.id) {
     const target = parseSlackExternalChannelKey(externalChannelId.id);
