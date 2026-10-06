@@ -1,5 +1,5 @@
 import { cn } from "@notra/ui/lib/utils";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import type { OfferingSentenceFieldProps } from "@/types/offering-check";
 
@@ -14,21 +14,43 @@ export function OfferingSentenceField({
   ...props
 }: OfferingSentenceFieldProps) {
   const sizer = useRef<HTMLSpanElement>(null);
-  const [width, setWidth] = useState<number | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const lastValue = useRef<string | null>(null);
   const value = String(props.value ?? "");
   const placeholder = props.placeholder ?? "";
   // Never narrower than the placeholder while the sentence is being edited,
   // so nothing moves under the cursor. Afterwards it hugs the text.
   const holdPlaceholderWidth = value.length === 0 || holdWidth || active;
 
+  // Sized before paint on every change. Typing resizes instantly, because an
+  // animated width would lag behind the text and scroll it inside the input.
+  // Only the sentence opening and closing up (focus in or out) animates.
   useLayoutEffect(() => {
-    const element = sizer.current;
-    if (!element) {
+    const field = input.current;
+    const measured = sizer.current?.getBoundingClientRect().width;
+    if (!(field && measured)) {
       return;
     }
-    const measure = () => setWidth(element.getBoundingClientRect().width);
-    measure();
-    const observer = new ResizeObserver(measure);
+    const typed = lastValue.current !== null && lastValue.current !== value;
+    lastValue.current = value;
+    field.style.transitionDuration = typed ? "0s" : "";
+    field.style.width = `${measured}px`;
+  }, [value, placeholder, holdPlaceholderWidth]);
+
+  // Late font loads change text widths without any prop changing.
+  useEffect(() => {
+    const element = sizer.current;
+    const field = input.current;
+    if (!(element && field)) {
+      return;
+    }
+    const observer = new ResizeObserver(() => {
+      const width = `${element.getBoundingClientRect().width}px`;
+      if (field.style.width !== width) {
+        field.style.transitionDuration = "0s";
+        field.style.width = width;
+      }
+    });
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
@@ -47,7 +69,7 @@ export function OfferingSentenceField({
       {leading}
       {/*
         The invisible sizer holds the text the input should fit; the input
-        animates to its measured width.
+        takes its measured width.
       */}
       <span className="relative inline-flex max-w-full min-w-0">
         <span
@@ -65,8 +87,8 @@ export function OfferingSentenceField({
           aria-invalid={invalid}
           className="max-w-full min-w-[1ch] bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none placeholder:text-[#8B5CF659] motion-reduce:transition-none dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA59]"
           id={id}
+          ref={input}
           size={Math.max(value.length, placeholder.length, 1)}
-          style={width === null ? undefined : { width }}
           {...props}
         />
       </span>
