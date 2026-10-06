@@ -1,0 +1,23 @@
+apps/ui/docs/components/icon-tabs.mdx
+  s_0036a8309cbf64::t_740415cd055335 39
+apps/ui/registry/notra/icon-tabs/components/icon-tabs.tsx
+  s_0036a8309cbf64::t_740415cd055335 21-24
+apps/ui/src/components/previews/icon-tabs-preview.tsx
+  s_0036a8309cbf64::t_740415cd055335 9-12,17-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3eb82ad31c8b00298dae889248d3e986e43f385d",
+  "prompts": {},
+  "sessions": {
+    "s_0036a8309cbf64": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bedfcd45-dee5-4c47-9a43-4148ff5046c1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
