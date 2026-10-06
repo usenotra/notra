@@ -10,7 +10,7 @@ export const SITE_TAGLINE = "Get recommended by AI engines.";
 export const SITE_TITLE = `Notra. ${SITE_TAGLINE}`;
 
 export const SITE_DESCRIPTION =
-  "Notra is a modern GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. See if you show up, who shows up instead and how to fix it.";
+  "Notra is a GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. It shows whether you appear, who appears instead and how to fix it.";
 
 export const DEFAULT_SOCIAL_IMAGE = {
   url: "/og-image.png",

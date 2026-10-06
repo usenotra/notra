@@ -14,7 +14,7 @@ import {
 import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra Blog";
-const description = "Insights, guides, and stories from the Notra team.";
+const description = "Insights, guides and stories from the Notra team.";
 
 const metadata: Metadata = {
   title,

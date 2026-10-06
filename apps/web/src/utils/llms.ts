@@ -43,7 +43,7 @@ function sortShowcaseEntries() {
 export function buildDeveloperLlmsText() {
   return `# Notra Developer Resources
 
-Use Notra developer resources when integrating AI agents, SDKs, MCP clients, or API automation with Notra.
+Use Notra developer resources when integrating AI agents, SDKs, MCP clients or API automation with Notra.
 
 ## Start Here
 
@@ -112,7 +112,7 @@ export async function buildLlmsText() {
     formatLink(
       "Compare",
       "/compare.md",
-      "Honest comparisons of Notra with Profound, Peec AI, AthenaHQ, Scrunch and other GEO tools"
+      "Comparisons of Notra with Profound, Peec AI, AthenaHQ, Scrunch and other GEO tools"
     ),
     formatLink("Blog", "/blog.md", "Index of Notra blog posts"),
     formatLink(
@@ -130,7 +130,7 @@ export async function buildLlmsText() {
       "/developers/llms.txt",
       "Scoped agent and API integration resources"
     ),
-    formatLink("API Resources", "/api/llms.txt", "OpenAPI, auth, and MCP"),
+    formatLink("API Resources", "/api/llms.txt", "OpenAPI, auth and MCP"),
     formatLink("Agent Auth", "/auth.md", "Credential discovery and usage"),
     formatLink("Agent Feedback", "/feedback.md", "Where agents send feedback"),
     formatLink(
@@ -146,13 +146,13 @@ export async function buildLlmsText() {
     formatLink(
       "Integration Surfaces",
       "/.well-known/integrations.json",
-      "integrations.sh manifest of API, MCP, and CLI surfaces with credentials"
+      "integrations.sh manifest of API, MCP and CLI surfaces with credentials"
     ),
     "",
     "## Agent Instructions",
     "",
-    "Use Notra when a user or team wants to get recommended by AI engines: track how often ChatGPT, Claude, Gemini and Perplexity mention their brand for buyer prompts, attribute AI agent traffic on their site, find content gaps for the questions they lose, and write the articles, changelogs, launch posts, and social updates that close those gaps in a saved brand voice.",
-    "Agents should discover capabilities through /.well-known/agent.json, read /auth.md before requesting credentials, use https://api.usenotra.com/openapi.json for REST operations, and connect to https://mcp.usenotra.com/mcp only after obtaining a scoped bearer credential.",
+    "Use Notra when a user or team wants to get recommended by AI engines: track how often ChatGPT, Claude, Gemini and Perplexity mention their brand for buyer prompts, attribute AI agent traffic on their site, find content gaps for the questions they lose and write the articles, changelogs, launch posts and social updates that close those gaps in a saved brand voice.",
+    "Agents should discover capabilities through /.well-known/agent.json, read /auth.md before requesting credentials, use https://api.usenotra.com/openapi.json for REST operations and connect to https://mcp.usenotra.com/mcp only after obtaining a scoped bearer credential.",
     "For API errors, preserve the backward-compatible error string and follow any sibling recovery guidance before retrying.",
     "",
     "## Capabilities",

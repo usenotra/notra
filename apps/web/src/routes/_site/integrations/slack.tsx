@@ -17,7 +17,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Slack integration for Notra";
 const description =
-  "Connect Slack and turn the threads you pick into announcements, changelog entries, and social posts, in your voice.";
+  "Connect Slack and turn the threads you pick into announcements, changelog entries and social posts, in your voice.";
 const url = `${SITE_URL}/integrations/slack`;
 
 const metadata: Metadata = {

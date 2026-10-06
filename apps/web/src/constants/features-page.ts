@@ -14,7 +14,7 @@ export const FEATURES_PAGE_HERO_TITLE_PREFIX = "See where you stand in";
 export const FEATURES_PAGE_HERO_TITLE_HIGHLIGHT = "AI answers";
 
 export const FEATURES_PAGE_HERO_SUBTITLE =
-  "Prompts, engines, competitors and the traffic behind them. No vanity score.";
+  "Track prompts, engines, competitors and the traffic behind them.";
 
 export const FEATURES_PAGE_TRACKING: FeaturesPageSectionCopy = {
   heading: "What Notra tracks",
@@ -41,7 +41,7 @@ export const FEATURES_PAGE_TRACKING_CARDS: FeaturesPageCard[] = [
   {
     title: "Conversations",
     description:
-      "Multi-turn chats of up to five turns, replayed against every engine with web search. The follow-up question is usually where the recommendation happens.",
+      "Notra replays multi-turn chats of up to five turns on every engine with web search. Engines often make their recommendation in a follow-up answer.",
   },
   {
     title: "Scans",
@@ -51,14 +51,14 @@ export const FEATURES_PAGE_TRACKING_CARDS: FeaturesPageCard[] = [
   {
     title: "Zero data retention",
     description:
-      "An add-on for teams that need it. With ZDR enforced, prompts only go to models whose provider offers zero data retention. Everything else stays off unless you approve it.",
+      "ZDR is an add-on. With it enforced, prompts only go to models whose provider offers zero data retention. Everything else stays off unless you approve it.",
   },
 ];
 
 export const FEATURES_PAGE_IMPROVE: FeaturesPageSectionCopy = {
   heading: "Turn a lost answer into a page",
   subcopy:
-    "Knowing you are missing is half of it. The other half is shipping something the engines can cite.",
+    "Once you know which answers leave you out, publish a page the engines can cite.",
 };
 
 export const FEATURES_PAGE_IMPROVE_CARDS: FeaturesPageCard[] = [
@@ -130,13 +130,13 @@ export const FEATURES_PAGE_STUDIO_CARDS: FeaturesPageStudioCard[] = [
   {
     title: "Set up in under a minute",
     description:
-      "One click connects GitHub, Linear and Slack. No pipelines, no prompts to engineer, no Zapier spaghetti.",
+      "One click connects GitHub, Linear and Slack, with no pipelines or prompts to set up.",
     visual: "integrations",
   },
   {
     title: "Train it on your best writing",
     description:
-      "Drop in your tweets, launch posts or blog snippets. Notra matches tone, cadence and vocabulary. Yours, not ChatGPT's.",
+      "Add your tweets, launch posts or blog snippets and Notra matches their tone, cadence and vocabulary.",
     visual: "references",
   },
 ];

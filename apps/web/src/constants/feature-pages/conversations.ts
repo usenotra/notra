@@ -13,7 +13,7 @@ export const CONVERSATIONS_PAGE: FeatureDetailCopy = {
     ogImageKey: "conversations",
   },
   heroSubtitle:
-    "Buyers ask, compare, then push back on price. Notra plays the whole thread on every engine and shows where you stand after each follow-up.",
+    "Buyers ask a question, compare the options and then push back on price. Notra plays the whole thread on every engine and shows where you stand after each follow-up.",
   signupSource: "feature_conversations",
   overview: {
     heading: "Most buyers ask more than one question",
@@ -38,7 +38,7 @@ export const CONVERSATIONS_PAGE: FeatureDetailCopy = {
       {
         title: "Write or generate a thread",
         description:
-          "Start from a real buying question and add the follow-ups a buyer would ask next. Or let Notra draft them for you.",
+          "Start from a real buying question and add the follow-ups a buyer would ask next., or let Notra draft them for you.",
       },
       {
         title: "Play it on every engine",
@@ -46,7 +46,7 @@ export const CONVERSATIONS_PAGE: FeatureDetailCopy = {
           "Notra sends each turn in order, so every engine answers with the full context of the conversation so far.",
       },
       {
-        title: "See where you hold",
+        title: "See where you rank",
         description:
           "Read each answer, check your position per turn and spot the follow-up where buyers get sent elsewhere.",
       },
@@ -55,7 +55,7 @@ export const CONVERSATIONS_PAGE: FeatureDetailCopy = {
   cta: {
     heading: "Keep your spot through every follow-up",
     subcopy:
-      "Add a conversation, play it on every engine, read each turn. Free to start.",
+      "Add a conversation and play it on every engine to read each turn. It's free to start.",
   },
 };
 

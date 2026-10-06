@@ -15,7 +15,7 @@ export const SLACK_HEADLINE: SlackHeadline = {
 };
 
 export const SLACK_HERO_SUBHEAD =
-  "Decisions and launches already live in your channels. Notra follows the ones you pick and turns threads into announcements, changelog entries, and social posts, in your voice.";
+  "Decisions and launches already live in your channels. Notra follows the ones you pick and turns threads into announcements, changelog entries and social posts, in your voice.";
 
 export const SLACK_CONNECT_LABEL = "Connect Slack";
 
@@ -70,12 +70,12 @@ export const SLACK_FEATURES: SlackFeature[] = [
   {
     title: "Drafts in your voice",
     description:
-      "Threads become announcements that read like your best writer, not a summary bot.",
+      "Notra turns threads into announcements written in your team's voice.",
   },
   {
     title: "Publishes where you announce",
     description:
-      "Send the result to your changelog, blog, X, or LinkedIn without leaving Notra.",
+      "Send the result to your changelog, blog, X or LinkedIn without leaving Notra.",
   },
 ];
 

@@ -52,7 +52,7 @@ export const COMPARE_AT_A_GLANCE_ROWS: CompareRowId[] = [
 export const COMPARE_INDEX_TITLE = "Notra vs other AI visibility tools";
 
 export const COMPARE_INDEX_DESCRIPTION =
-  "Honest side-by-side comparisons of Notra with Profound, Peec AI, AthenaHQ, Scrunch, Otterly and other GEO platforms. What each one tracks, what it costs and where it wins.";
+  "Side-by-side comparisons of Notra with Profound, Peec AI, AthenaHQ, Scrunch, Otterly and other GEO platforms. What each one tracks, what it costs and where it wins.";
 
 export const COMPARE_INDEX_SUBTITLE =
   "Side-by-side looks at the GEO tools teams weigh against Notra. We list what they do well too, so you can pick the right fit.";

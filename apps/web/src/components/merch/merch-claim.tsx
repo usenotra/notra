@@ -28,10 +28,9 @@ export function MerchClaim() {
 
           <div className="flex justify-center rounded-[0.8125rem] px-9 py-5.5 ring-1 ring-[#ECECEC] dark:ring-white/10">
             <p className="max-w-[56.25rem] text-center font-sans text-[0.9375rem] leading-[1.45] tracking-[-0.005em] text-[#1E1E1EA6] dark:text-white/60">
-              The Classic Hat is a gift for paid Notra customers, not a
-              free-trial promotion. On a trial? You can't claim one yet. Upgrade
-              to any paid plan, reach out, and we'll send one your way. US
-              shipping only for now.
+              The Classic Hat is a gift for paid Notra customers. If you're on a
+              trial, upgrade to any paid plan, reach out and we'll send one your
+              way. We only ship to the US for now.
             </p>
           </div>
         </div>

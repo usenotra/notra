@@ -35,7 +35,7 @@ export const BYDEFAULT: CompareCompetitor = {
     {
       title: "Citations from real answers",
       description:
-        "A crawler reading your page is not a citation. When Meta's crawler fetches the same page ten times to train a model, that is ten fetches and zero citations. Notra counts a citation only when an engine cites your page in an answer, and labels training crawls separately.",
+        "When Meta's crawler fetches the same page ten times to train a model, Notra logs ten training crawls and zero citations. It counts a citation only when an engine cites your page in an answer, and labels training crawls separately.",
     },
     {
       title: "Content from the first plan",
@@ -137,7 +137,7 @@ export const BYDEFAULT: CompareCompetitor = {
     {
       question: "How does Notra count citations differently from ByDefault?",
       answer:
-        "ByDefault counts AI crawler fetches of your pages. Notra counts a citation only when an engine cites your page in an actual answer. A training crawler like Meta's can fetch one page ten times, which Notra logs as ten training crawls, not ten citations.",
+        "ByDefault counts AI crawler fetches of your pages. Notra counts a citation only when an engine cites your page in an actual answer. A training crawler like Meta's can fetch one page ten times, which Notra logs as ten training crawls and zero citations.",
     },
     {
       question: "Which is cheaper, ByDefault or Notra?",

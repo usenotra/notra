@@ -216,7 +216,7 @@ async function buildBlogIndexMarkdown() {
   return [
     "# Notra Blog",
     "",
-    "Insights, guides, and stories from the Notra team.",
+    "Insights, guides and stories from the Notra team.",
     "",
     "## Posts",
     "",
@@ -237,7 +237,7 @@ async function buildNotraChangelogIndexMarkdown() {
   return [
     "# Notra Changelog",
     "",
-    "The latest product updates, release notes, and improvements from the Notra team.",
+    "The latest product updates, release notes and improvements from the Notra team.",
     "",
     "## Entries",
     "",

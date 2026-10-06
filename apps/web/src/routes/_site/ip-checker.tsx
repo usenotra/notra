@@ -145,10 +145,10 @@ function IpCheckerPage() {
               from the same log line.
             </p>
             <p className={bodyClass}>
-              No match is not proof of a human. Coding agents, browser
-              extensions and many assistants fetch pages from ordinary cloud or
-              residential addresses and never publish them. Notra tracks those
-              by request fingerprint instead of IP.
+              An address with no match can still belong to a bot. Coding agents,
+              browser extensions and many assistants fetch pages from ordinary
+              cloud or residential addresses and never publish them. Notra
+              tracks those by request fingerprint instead of IP.
             </p>
           </div>
         </div>

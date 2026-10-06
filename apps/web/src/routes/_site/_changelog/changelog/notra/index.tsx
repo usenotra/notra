@@ -13,7 +13,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra Changelog";
 const description =
-  "Follow the latest Notra product updates, improvements, and release notes.";
+  "Follow the latest Notra product updates, improvements and release notes.";
 
 export const Route = createFileRoute("/_site/_changelog/changelog/notra/")({
   loader: () => getNotraChangelogTimeline(),
@@ -50,7 +50,7 @@ function NotraChangelogPage() {
       <ChangelogPageHeader
         description={
           <>
-            Every product update, release note, and improvement from the Notra
+            Every product update, release note and improvement from the Notra
             team in one place.
           </>
         }
