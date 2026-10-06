@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useState } from "react";
@@ -25,7 +16,6 @@ import type { TrackingTokenCardProps } from "@/types/api-keys";
 
 export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
   const t = useTranslations("apiKeys.trackingToken");
-  const tCommon = useTranslations("common");
   const { data, isPending } = useGeoIngestSetup(organizationId);
   const rotate = useGeoIngestTokenRotate(organizationId);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -61,31 +51,17 @@ export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
         <ApiKeyRevealField value={token} />
       )}
 
-      <ResponsiveAlertDialog onOpenChange={setConfirmOpen} open={confirmOpen}>
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("confirmTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {t("confirmDescription")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>
-              {tCommon("actions.cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              onClick={() => {
-                setConfirmOpen(false);
-                rotate.mutate();
-              }}
-            >
-              {t("confirm")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+      <ConfirmDialog
+        confirmLabel={t("confirm")}
+        description={t("confirmDescription")}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          rotate.mutate();
+        }}
+        onOpenChange={setConfirmOpen}
+        open={confirmOpen}
+        title={t("confirmTitle")}
+      />
     </section>
   );
 }

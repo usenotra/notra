@@ -1473,7 +1473,6 @@ export interface GeoRemoveDialogProps {
   description: string | ((items: string[]) => string);
   actionLabel?: string;
   destructive?: boolean;
-  pendingLabel?: string;
   title?: string;
 }
 

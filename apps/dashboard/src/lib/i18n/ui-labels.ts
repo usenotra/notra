@@ -10,6 +10,7 @@ export function useUiLabelsTranslations(): UiLabels {
   return {
     locale,
     close: tCommon("actions.close"),
+    cancel: tCommon("actions.cancel"),
     copy: tCommon("actions.copy"),
     copied: tCommon("actions.copied"),
     more: tCommon("labels.more"),

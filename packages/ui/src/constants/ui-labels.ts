@@ -2,6 +2,7 @@ import type { UiLabels } from "@notra/ui/types/ui-labels";
 
 export const DEFAULT_UI_LABELS: UiLabels = {
   close: "Close",
+  cancel: "Cancel",
   copy: "Copy",
   copied: "Copied",
   more: "More",

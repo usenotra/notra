@@ -338,7 +338,6 @@ export function PersonasTable({
           }
         }}
         open={removing !== null}
-        pendingLabel={t("archiving")}
         title={t("archiveTitle")}
       />
     </section>

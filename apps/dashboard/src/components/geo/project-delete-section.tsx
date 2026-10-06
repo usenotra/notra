@@ -2,16 +2,7 @@
 
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
@@ -28,7 +19,6 @@ export function GeoProjectDeleteSection({
 }: GeoProjectDeleteSectionProps) {
   const t = useTranslations("geo.projectDeleteSection");
   const tGeoShared = useTranslations("geo.shared");
-  const tCommon = useTranslations("common.actions");
   const [open, setOpen] = useState(false);
   const { deleteProject, isDeleting } = useGeoProjectsDb(organizationId);
   const isLastProject = replacementProjectId === undefined;
@@ -70,40 +60,16 @@ export function GeoProjectDeleteSection({
         </Button>
       </div>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(nextOpen) => {
-          if (!isDeleting) {
-            setOpen(nextOpen);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tGeoShared("deleteProject")}
+        description={t("confirmDescription")}
+        onConfirm={handleDelete}
+        onOpenChange={setOpen}
         open={open}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle className="wrap-anywhere">
-              {t("confirmTitle", { name: project.name })}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {t("confirmDescription")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {isDeleting ? tCommon("deleting") : tGeoShared("deleteProject")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={t("confirmTitle", { name: project.name })}
+        variant="destructive"
+      />
     </TitleCard>
   );
 }

@@ -10,16 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
 import { formatChatIdFallback, normalizeChatTitle } from "@notra/ai/utils/chat";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -292,44 +283,26 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
         </AnimatePresence>
       </div>
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={
+          session?.title
+            ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+                title: session.title,
+              })
+            : t("deleteDescriptionFallback")
+        }
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
-          if (!open && !isDeleting) {
+          if (!open) {
             setDeleteOpen(false);
           }
         }}
         open={deleteOpen}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("deleteTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {session?.title
-                ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
-                    title: session.title,
-                  })
-                : t("deleteDescriptionFallback")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {isDeleting ? tCommon("deleting") : tCommon("delete")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={t("deleteTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

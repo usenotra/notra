@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export interface UiLabels {
   locale?: string;
   close: string;
+  cancel: string;
   copy: string;
   copied: string;
   more: string;

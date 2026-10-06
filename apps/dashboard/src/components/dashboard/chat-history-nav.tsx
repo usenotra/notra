@@ -12,16 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
 import { normalizeChatTitle } from "@notra/ai/utils/chat";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -440,42 +431,22 @@ export function ChatHistoryNav() {
         </div>
       )}
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+          title: deleteCandidate?.title ?? "",
+        })}
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
-          if (!open && !deletingChatId) {
+          if (!open) {
             setDeleteCandidate(null);
           }
         }}
         open={Boolean(deleteCandidate)}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {tChat("deleteTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {tCommon2("messages.thisWillPermanentlyDeleteTitle", {
-                title: deleteCandidate?.title ?? "",
-              })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={Boolean(deletingChatId)}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={Boolean(deletingChatId)}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {deletingChatId ? tCommon("deleting") : tCommon("delete")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={Boolean(deletingChatId)}
+        title={tChat("deleteTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

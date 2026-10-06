@@ -240,6 +240,7 @@ import { DesignSystemChatQueueDemo } from "@/components/design-system/design-sys
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
+import { ConfirmDialogSection } from "@/components/design-system/sections/confirm-dialog-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
@@ -1240,6 +1241,8 @@ export default function DesignSystemClientPage() {
             </CardContent>
           </Card>
         </section>
+
+        <ConfirmDialogSection />
 
         <section className="scroll-mt-10 space-y-6" id="data-display">
           <DesignSystemSectionHeader id="data-display" title="Data Display" />
