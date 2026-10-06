@@ -1,0 +1,83 @@
+packages/ai/src/constants/excalidraw-diagram.ts
+  s_c919a343b1b3a7::t_c88fef9ccbc00e 239-240
+  s_c919a343b1b3a7::t_99abc9d8981432 134-136,140-143,172,174,183,223
+  s_c919a343b1b3a7::t_5b45a85be3df48 250-272
+  s_c919a343b1b3a7::t_ea38c97ff50d9b 171
+apps/dashboard/messages/en.json
+  s_c919a343b1b3a7::t_f5e24a056f5176 6012-6014
+packages/ai/src/orchestration/orchestrate.ts
+  s_c919a343b1b3a7::t_34569f73d4bd79 48,120
+apps/dashboard/src/schemas/diagram-editor.ts
+  s_c919a343b1b3a7::t_6e094e10366dfd 3,12,17-18
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/chat/route.ts
+  s_c919a343b1b3a7::t_34569f73d4bd79 237
+packages/ai/src/tools/image.ts
+  s_c919a343b1b3a7::t_9820a9d4dd6553 18
+  s_c919a343b1b3a7::t_1fcb08c648cf45 222
+  s_c919a343b1b3a7::t_34569f73d4bd79 146,164-166
+  s_c919a343b1b3a7::t_e7fec21783afc5 61-62
+packages/ai/src/types/repo-image.ts
+  s_c919a343b1b3a7::t_34569f73d4bd79 63
+packages/ai/src/orchestration/tool-registry.ts
+  s_c919a343b1b3a7::t_34569f73d4bd79 61,94
+packages/ai/src/types/orchestration.ts
+  s_c919a343b1b3a7::t_34569f73d4bd79 154-155,188-189
+apps/dashboard/src/types/components/diagram-editor.ts
+  s_c919a343b1b3a7::t_f5e24a056f5176 8-18
+packages/ai/src/utils/excalidraw-diagram.ts
+  s_c919a343b1b3a7::t_1fcb08c648cf45 58-67
+  s_c919a343b1b3a7::t_0df5f63159089d 88-89,151-155,161,166-167
+  s_c919a343b1b3a7::t_ab8a6d99fe3cd5 385-390,504-538,547-548,550-556,558-561,613-615,620
+packages/ai/src/prompts/diagram-edit.ts
+  s_c919a343b1b3a7::t_c88fef9ccbc00e 36
+apps/dashboard/src/components/content/diagram-editor-canvas.tsx
+  s_c919a343b1b3a7::t_497898f1857f77 41-42
+apps/dashboard/messages/de.json
+  s_c919a343b1b3a7::t_f5e24a056f5176 6012-6014
+apps/dashboard/src/constants/diagram-editor.ts
+  s_c919a343b1b3a7::t_6e094e10366dfd 1-7
+packages/ai/src/schemas/excalidraw-diagram.ts
+  s_c919a343b1b3a7::t_5b45a85be3df48 1-10,14-18,20,28-32,43,55-58,67-68,70,87,101-102,120
+  s_c919a343b1b3a7::t_b0ba90c698ecc4 19,25,27,69
+packages/tools/src/image/generate-image.ts
+  s_c919a343b1b3a7::t_e7fec21783afc5 68-69
+packages/ai/src/utils/excalidraw-diagram.test.ts
+  s_c919a343b1b3a7::t_bd1764b5495271 238-258,262-263,265-275
+  s_c919a343b1b3a7::t_d36d4608760a61 259-261
+packages/tools/src/image/revise-image.ts
+  s_c919a343b1b3a7::t_9820a9d4dd6553 9,125-127
+packages/ai/src/utils/excalidraw-diagram-check-script.test.ts
+  s_c919a343b1b3a7::t_57ac6503eed27e 95-97
+packages/ai/src/utils/image-post-service.ts
+  s_c919a343b1b3a7::t_e7fec21783afc5 16-18,230
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/excalidraw/route.ts
+  s_c919a343b1b3a7::t_d49491128657dd 157
+  s_c919a343b1b3a7::t_2a43a972dfabae 2-4,8,13-16,82-86
+  s_c919a343b1b3a7::t_6e094e10366dfd 103-113,119,126-127,134,136,141-156,158-162
+packages/ai/src/utils/diagram-edit.test.ts
+  s_c919a343b1b3a7::t_bd1764b5495271 244-337
+packages/ai/src/utils/diagram-edit.ts
+  s_c919a343b1b3a7::t_76fd49b01aefc8 527-530,542-568,616-617,620-622,625,632,644-646
+  s_c919a343b1b3a7::t_a7ae1768f7108b 7-8,15-22,40,361-364
+  s_c919a343b1b3a7::t_c88fef9ccbc00e 10,59,532-535,539-541,569-579,587-597,602-604,668-677,681-691,710-711,717-720,739,751,763-765,767-771,773,806,819
+  s_c919a343b1b3a7::t_d49491128657dd 678-680
+  s_c919a343b1b3a7::t_4301f571c82e55 103-150,159-162,265-271,274-275,277,282-291,293-294,297,300,303-304,331-334,346-354,358-360,378-394,417,440,457-461
+apps/dashboard/src/components/content/diagram-editor-dialog.tsx
+  s_c919a343b1b3a7::t_f5e24a056f5176 21,24-25,50-52,61,66-69,81-82,88,90-91,104,107-116,120,122-132,178,180,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "69af7d969ddfc25d53e13fc4d1a4ecbc85565dba",
+  "prompts": {},
+  "sessions": {
+    "s_c919a343b1b3a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d702b52-a27a-4406-bcdc-2ff9e43a1186",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
