@@ -1,4 +1,5 @@
 import "@tanstack/react-start/server-only";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
 import { BREW_MARKETING_CONSENT_POLICY_VERSION } from "@notra/email/constants/brew";
@@ -94,10 +95,7 @@ async function trySyncContact(userId: string): Promise<boolean> {
     const { failed } = await syncBrewContacts([userId]);
     return failed === 0;
   } catch (error) {
-    console.error("[MarketingConsent] Contact sync failed", {
-      userId,
-      error: error instanceof Error ? error.message : error,
-    });
+    logError("[MarketingConsent] Contact sync failed", error, { userId });
     return false;
   }
 }
@@ -172,9 +170,8 @@ export async function applyOnboardingMarketingChoice({
   try {
     await mirrorMarketingChoice({ userId, email, enabled });
   } catch (error) {
-    console.error("[MarketingConsent] Failed to mirror choice to Brew", {
+    logError("[MarketingConsent] Failed to mirror choice to Brew", error, {
       userId,
-      error: error instanceof Error ? error.message : error,
     });
   }
 }
