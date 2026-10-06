@@ -1,0 +1,21 @@
+packages/ai/src/router/create-router.ts
+  s_69a291ada5b8da::t_419b8117e8c14c 16,152-154
+packages/ai/src/utils/request-ai-usage.ts
+  s_69a291ada5b8da::t_419b8117e8c14c 17-18,35-49,52-55,57,67,70-71,73-90,100-106,121,126-146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "094f9796a9973b82d705a7168a02eaacbd6f194f",
+  "prompts": {},
+  "sessions": {
+    "s_69a291ada5b8da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d72cc19f-9bad-4ab4-993d-b91bbde61195",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
