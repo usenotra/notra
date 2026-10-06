@@ -3,10 +3,10 @@
 import { GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
 import { useTranslations } from "use-intl";
 
 import { ShareOfVoiceTable } from "@/components/geo/share-of-voice-table";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";

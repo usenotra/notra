@@ -1,6 +1,10 @@
 "use client";
 
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import {
+  InstrumentModule,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Card, CardContent } from "@notra/ui/components/ui/card";
 import {
@@ -15,10 +19,6 @@ import { EChartsLineChart } from "@/components/evilcharts/charts/echarts-line-ch
 import { DirectionDelta } from "@/components/geo/directions/direction-delta";
 import { PromptResultsTable } from "@/components/geo/directions/prompt-results-table";
 import { EngineIcon } from "@/components/geo/engine-icon";
-import {
-  InstrumentModule,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import { CHART_PERCENT_SCALE } from "@/constants/charts";
 import {
   GEO_DIRECTIONS_ENGINES,

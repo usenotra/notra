@@ -10,12 +10,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_READINESS_MAX_SCORE } from "@notra/geo-core/constants/agent-readiness";
 import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { AgentReadinessScoreGauge } from "@/components/geo/agent-readiness/readiness-score-gauge";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type {

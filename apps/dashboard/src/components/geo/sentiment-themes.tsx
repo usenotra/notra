@@ -1,10 +1,10 @@
+import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
 import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { SentimentResultsTable } from "@/components/geo/sentiment-results-table";
 import { SentimentThemesEmpty } from "@/components/geo/sentiment-themes-empty";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { GEO_SENTIMENT_EMPTY_LABEL_KEYS } from "@/constants/geo-sentiment";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
 import type { SentimentThemesProps } from "@/types/geo-sentiment";

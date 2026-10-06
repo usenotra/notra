@@ -8,6 +8,11 @@ import {
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
 import {
+  InstrumentEmpty,
+  InstrumentModule,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
+import {
   InfiniteDataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
@@ -19,11 +24,6 @@ import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneysCardProps } from "@/types/geo";

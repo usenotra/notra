@@ -1,6 +1,10 @@
 "use client";
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
@@ -8,10 +12,6 @@ import { useLocale, useTranslations } from "use-intl";
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoPersonaActivity } from "@/lib/hooks/use-geo-personas";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";

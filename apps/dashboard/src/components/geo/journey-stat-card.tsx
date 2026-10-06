@@ -1,12 +1,12 @@
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
 import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { JourneyEmpty } from "@/components/geo/journey-empty";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import type { JourneyStatCardProps } from "@/types/geo";
 
 /**

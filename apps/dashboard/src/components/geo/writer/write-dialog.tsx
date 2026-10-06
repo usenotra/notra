@@ -16,6 +16,10 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import {
+  SplitModalContent,
+  SplitModalPane,
+} from "@notra/ui/components/shared/split-modal";
 import { Label } from "@notra/ui/components/ui/label";
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, LazyMotion, m, useReducedMotion } from "motion/react";
@@ -31,10 +35,6 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
-import {
-  SplitModalContent,
-  SplitModalPane,
-} from "@/components/shared/split-modal";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import {
   GEO_WRITE_CONTENT_SUBTYPES,

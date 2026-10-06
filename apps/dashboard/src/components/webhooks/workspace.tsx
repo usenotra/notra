@@ -7,19 +7,16 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@notra/ui/components/ui/tabs";
+  IconTabsList,
+  IconTabsTrigger,
+} from "@notra/ui/components/ui/icon-tabs";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Tabs, TabsContent } from "@notra/ui/components/ui/tabs";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { SlideInTabIcon } from "@/components/geo/slide-in-tab-icon";
-import { SlidingTabIndicator } from "@/components/geo/sliding-tab-indicator";
 import {
   WebhookDeliveries,
   WebhookStatusFilter,
@@ -74,26 +71,25 @@ export function WebhookWorkspaceView({
       ) : null}
       <Tabs className="gap-3" onValueChange={setTab} value={tab}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <TabsList aria-label={t("views")} indicator={false}>
-            <SlidingTabIndicator value={tab} />
-            <TabsTrigger className="group/tab" value="deliveries">
-              <SlideInTabIcon>
-                <HugeiconsIcon icon={SentIcon} size={15} />
-              </SlideInTabIcon>
+          <IconTabsList aria-label={t("views")} value={tab}>
+            <IconTabsTrigger
+              icon={<HugeiconsIcon icon={SentIcon} size={15} />}
+              value="deliveries"
+            >
               {t("deliveries")}
-            </TabsTrigger>
-            <TabsTrigger className="group/tab" value="endpoints">
-              <SlideInTabIcon>
-                <HugeiconsIcon icon={Link04Icon} size={15} />
-              </SlideInTabIcon>
+            </IconTabsTrigger>
+            <IconTabsTrigger
+              icon={<HugeiconsIcon icon={Link04Icon} size={15} />}
+              value="endpoints"
+            >
               {t("endpoints")}
               {loading ? null : (
                 <Badge size="sm" variant="secondary">
                   {endpoints.length}
                 </Badge>
               )}
-            </TabsTrigger>
-          </TabsList>
+            </IconTabsTrigger>
+          </IconTabsList>
           <div className="flex items-center gap-2">
             {tab === "deliveries" ? (
               <WebhookStatusFilter filter={filter} onFilter={onFilter} />

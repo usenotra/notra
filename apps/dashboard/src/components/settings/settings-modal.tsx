@@ -2,6 +2,10 @@
 
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  SplitModalContent,
+  SplitModalPane,
+} from "@notra/ui/components/shared/split-modal";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   Dialog,
@@ -31,10 +35,6 @@ import {
   useSettingsHeader,
 } from "@/components/settings/settings-header-context";
 import { SettingsModalNav } from "@/components/settings/settings-modal-nav";
-import {
-  SplitModalContent,
-  SplitModalPane,
-} from "@/components/shared/split-modal";
 import {
   DEFAULT_SETTINGS_SECTION,
   SETTINGS_NAV_GROUPS,

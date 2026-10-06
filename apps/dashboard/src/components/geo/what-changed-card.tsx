@@ -25,6 +25,10 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
+import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   DataTable,
@@ -42,10 +46,6 @@ import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import {

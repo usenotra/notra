@@ -1,12 +1,12 @@
 "use client";
 
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import type { CSSProperties } from "react";
 import { useTranslations } from "use-intl";
 
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   GEO_SENTIMENT_EMPTY_LABEL_KEYS,
   SENTIMENT_PREVIEW_BARS,

@@ -9,10 +9,13 @@ export type LandingPreview =
   | "data-table"
   | "duotone-tooltip"
   | "gemini"
+  | "icon-tabs"
   | "marketing-button"
   | "opencode"
   | "perplexity"
   | "shimmer"
+  | "sonner"
+  | "step-slider"
   | "tooltip";
 
 export interface LandingComponentLink {

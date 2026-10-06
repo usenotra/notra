@@ -165,6 +165,7 @@
 @source "../../../../packages/ui/src/constants/framework-image.ts";
 @source "../../../../packages/ui/src/constants/gemini-models.ts";
 @source "../../../../packages/ui/src/constants/geo.ts";
+@source "../../../../packages/ui/src/constants/instrument.ts";
 @source "../../../../packages/ui/src/constants/kibo-ui-labels.ts";
 @source "../../../../packages/ui/src/constants/message-animation.ts";
 @source "../../../../packages/ui/src/constants/message-code.ts";

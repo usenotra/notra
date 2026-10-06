@@ -15,6 +15,10 @@ import {
   trafficLogHostFilter,
 } from "@notra/geo-core/utils/geo-project-domains";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   DataTable,
@@ -33,10 +37,6 @@ import { useLocale, useTranslations } from "use-intl";
 
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type {
