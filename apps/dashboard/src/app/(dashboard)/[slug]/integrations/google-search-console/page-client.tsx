@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { GscQueryRow } from "@notra/ai/types/google-search-console";
 import { GSC_OAUTH_AUTHORIZE_PATH } from "@notra/geo-core/constants/google-search-console";
 import type { GeoSearchConsoleStatus } from "@notra/geo-core/types/google-search-console";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -41,7 +42,6 @@ import Link from "@/components/framework/link";
 import { SearchConsolePropertyPicker } from "@/components/geo/search-console-card";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {

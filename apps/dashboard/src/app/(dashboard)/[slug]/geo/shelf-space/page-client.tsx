@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useTranslations } from "use-intl";
 
@@ -64,12 +65,10 @@ function GeoShelfNotSetup({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {tCommon("labels.shelfSpace")}
-          </h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.shelfSpace")}
+        />
         <EmptyState
           action={
             <Button
@@ -104,13 +103,10 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon("labels.shelfSpace")}
-            </h1>
-            <p className="text-muted-foreground">{t("description")}</p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.shelfSpace")}
+        >
           <Button
             className="gap-1.5"
             onClick={() => page.onAddOpenChange(true)}
@@ -121,7 +117,7 @@ function GeoShelfLoaded({ page }: GeoShelfLoadedProps) {
               {GEO_SHELF_ADD_HOTKEY}
             </Kbd>
           </Button>
-        </header>
+        </PageHeading>
 
         <div className="space-y-3">
           {page.totalCount > 0 ? (

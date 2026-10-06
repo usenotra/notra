@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Card,
@@ -31,7 +32,6 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { AddLinearIntegrationDialog } from "@/components/integrations/add-linear-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useLinearConnectionToast } from "@/lib/hooks/use-linear-connection-toast";
 import { usePathname, useRouter } from "@/lib/navigation";

@@ -6,6 +6,7 @@ import {
   unionTrafficHosts,
 } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "use-intl";
 
@@ -18,7 +19,6 @@ import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { TrafficEmpty } from "@/components/geo/traffic-empty";
 import { TrafficPagesCard } from "@/components/geo/traffic-pages-card";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -63,7 +63,7 @@ function TrafficPageView({
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full min-w-0 space-y-6 px-4 lg:px-6">
-          <PageHeader description={t("description")} title={t("title")} />
+          <PageHeading description={t("description")} title={t("title")} />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
             description={t("setupDescription")}
@@ -81,11 +81,11 @@ function TrafficPageView({
   }
 
   const header = (
-    <PageHeader description={t("description")} title={t("title")}>
+    <PageHeading description={t("description")} title={t("title")}>
       <div className="flex items-center gap-2">
         <GeoRangePicker control={geoRange} />
       </div>
-    </PageHeader>
+    </PageHeading>
   );
 
   if (isEmptyTraffic) {

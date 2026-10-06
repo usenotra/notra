@@ -1,10 +1,10 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useTranslations } from "use-intl";
 
 import { AgentFeedbackInbox } from "@/components/agent-feedback/feedback-inbox";
 import { AgentFeedbackSetupDialog } from "@/components/agent-feedback/feedback-setup-dialog";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import type { AgentFeedbackPageClientProps } from "@/types/agent-feedback";
 

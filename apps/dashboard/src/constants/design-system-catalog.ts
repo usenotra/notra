@@ -43,6 +43,7 @@ export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
       { id: "onboarding", label: "Onboarding" },
       { id: "geo-range-picker", label: "GEO Range Picker" },
       { id: "write-dialog", label: "Write Dialog" },
+      { id: "page-heading", label: "Page Heading" },
     ],
   },
   {

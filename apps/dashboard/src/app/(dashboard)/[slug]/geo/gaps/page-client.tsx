@@ -1,12 +1,12 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoGapsTable } from "@/components/geo/gaps-table";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import { useGeoGapsPage } from "@/lib/hooks/use-geo-gaps-page";
 import type {
@@ -63,7 +63,7 @@ function GeoGapsLoadError({ isRetrying, onRetry }: GeoGapsLoadErrorProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:py-6">
       <div className="space-y-4 px-4 lg:px-6" role="alert">
-        <PageHeader
+        <PageHeading
           description={t("loadFailed")}
           title={tCommon2("labels.contentGaps")}
         />
@@ -84,7 +84,7 @@ function GeoGapsLoaded({ page }: GeoGapsLoadedProps) {
       data-geo-gaps-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <PageHeader
+        <PageHeading
           description={t("description")}
           title={tCommon2("labels.contentGaps")}
         />

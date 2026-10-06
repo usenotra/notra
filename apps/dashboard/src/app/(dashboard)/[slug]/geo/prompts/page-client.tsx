@@ -8,6 +8,7 @@ import {
   PlusSignIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import {
@@ -128,12 +129,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon("labels.prompts")}
-            </h1>
-            <p className="text-muted-foreground">{t("description")}</p>
-          </header>
+          <PageHeading
+            description={t("description")}
+            title={tCommon("labels.prompts")}
+          />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
             description={t("setupDescription")}
@@ -158,13 +157,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     >
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <header className="flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {tCommon("labels.prompts")}
-              </h1>
-              <p className="text-muted-foreground">{t("description")}</p>
-            </div>
+          <PageHeading
+            description={t("description")}
+            title={tCommon("labels.prompts")}
+          >
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 className="gap-1.5"
@@ -176,7 +172,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                 <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
               </Button>
             </div>
-          </header>
+          </PageHeading>
           <Tabs
             onValueChange={(value) => {
               const next = GEO_PROMPTS_PAGE_TABS.find(

@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
@@ -19,13 +20,10 @@ export function GeoPromptsSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon("labels.prompts")}
-            </h1>
-            <p className="text-muted-foreground">{t("description")}</p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.prompts")}
+        >
           <div className="flex items-center gap-2">
             <Button className="gap-1.5" size="sm">
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
@@ -33,7 +31,7 @@ export function GeoPromptsSkeleton() {
               <Kbd className="ml-1 hidden sm:inline-flex">P</Kbd>
             </Button>
           </div>
-        </header>
+        </PageHeading>
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-8 w-md max-w-full rounded-lg" />
           <Skeleton className="h-7 w-28 rounded-lg" />

@@ -1,8 +1,8 @@
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 
 import { CollectionsPageSkeleton } from "./skeleton";
 

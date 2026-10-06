@@ -2,6 +2,7 @@
 
 import { LinkSquare02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
 import { useState } from "react";
 import { useTranslations } from "use-intl";
@@ -43,17 +44,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
-          <div className="flex items-center gap-3">
-            <Raycast className="h-8 w-8" />
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t("title")}
-              </h1>
-              <p className="text-muted-foreground">{t("description")}</p>
-            </div>
-          </div>
-        </div>
+        <PageHeading
+          description={t("description")}
+          icon={<Raycast className="h-8 w-8 shrink-0" />}
+          title={t("title")}
+        />
 
         <div className="max-w-xl space-y-1">
           {STEPS.map((step, index) => {

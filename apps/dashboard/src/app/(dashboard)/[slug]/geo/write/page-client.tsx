@@ -3,6 +3,7 @@
 import { PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_GAPS_NAV_LINK } from "@notra/geo-core/constants/geo";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { type ReactNode, useCallback, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -132,29 +133,25 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
       data-geo-write-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <header className="flex shrink-0 flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon("labels.write")}
-            </h1>
-            <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-              {t.rich("description", {
-                link: (chunks) => (
-                  <Link
-                    className="hover:text-foreground underline decoration-from-font underline-offset-4"
-                    href={gapsHref}
-                  >
-                    {chunks}
-                  </Link>
-                ),
-              })}
-            </p>
-          </div>
+        <PageHeading
+          className="@min-[40rem]/main:items-center"
+          description={t.rich("description", {
+            link: (chunks) => (
+              <Link
+                className="hover:text-foreground underline decoration-from-font underline-offset-4"
+                href={gapsHref}
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+          title={tCommon("labels.write")}
+        >
           <Button className="gap-1.5" onClick={() => openDialog()}>
             <HugeiconsIcon className="size-4" icon={PencilEdit01Icon} />
             {t("newArticle")}
           </Button>
-        </header>
+        </PageHeading>
 
         {history}
       </div>

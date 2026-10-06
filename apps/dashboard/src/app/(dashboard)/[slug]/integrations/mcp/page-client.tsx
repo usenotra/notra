@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useHotkey } from "@tanstack/react-hotkeys";
@@ -16,7 +17,6 @@ import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { AddMcpServerDialog } from "@/components/integrations/add-mcp-server-dialog";
 import { McpServerCard } from "@/components/integrations/mcp-server-card";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { dashboardOrpc } from "@/lib/orpc/query";
 

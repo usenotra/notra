@@ -2,6 +2,7 @@
 
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Button } from "@notra/ui/components/ui/button";
 import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
@@ -13,7 +14,6 @@ import { LazyCreateContentDialog } from "@/components/content/lazy-create-conten
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   CONTENT_COLLECTION_VIEWS,

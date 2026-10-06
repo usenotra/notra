@@ -1,11 +1,11 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 import type { GeoWriterNeedsSetupProps } from "@/types/components/geo-writer";
 
 export function GeoWriterNeedsSetup({
@@ -18,7 +18,7 @@ export function GeoWriterNeedsSetup({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeader description={description} title={title} />
+        <PageHeading description={description} title={title} />
         <EmptyState
           action={<GeoSetupButton organizationId={organizationId} />}
           description={t("description")}

@@ -6,6 +6,7 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -35,7 +36,6 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { SkillCard } from "@/components/skills/skill-card";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
 import { SKILL_SORT_KEYS } from "@/constants/skills";

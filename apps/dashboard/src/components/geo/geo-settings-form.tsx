@@ -15,6 +15,7 @@ import { normalizeConversionPaths } from "@notra/geo-core/utils/geo-conversion-p
 import { resolveTrackedEngines } from "@notra/geo-core/utils/geo-engines";
 import { trackedGeoLanguages } from "@notra/geo-core/utils/geo-language-rows";
 import { extraProjectDomains } from "@notra/geo-core/utils/geo-project-domains";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
@@ -128,14 +129,10 @@ export function GeoSettingsForm({
   return (
     <div className="w-full space-y-6">
       {hideHeader ? null : (
-        <header className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon("labels.geoSettings")}
-            </h1>
-            <p className="text-muted-foreground">{t("description")}</p>
-          </div>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.geoSettings")}
+        />
       )}
       <div className="space-y-6">
         {showBrand && project ? (

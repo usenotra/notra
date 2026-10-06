@@ -2,6 +2,7 @@
 
 import { Add01Icon, Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useTranslations } from "use-intl";
 
@@ -42,15 +43,10 @@ export function BrandIdentityHeader({
   const action = actionByTab[activeTab];
 
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {tLabels(BRAND_IDENTITY_TAB_LABEL_KEYS[activeTab])}
-        </h1>
-        <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-          {t(`tabs.${activeTab}.description`)}
-        </p>
-      </div>
+    <PageHeading
+      description={t(`tabs.${activeTab}.description`)}
+      title={tLabels(BRAND_IDENTITY_TAB_LABEL_KEYS[activeTab])}
+    >
       {activeTab === "guidelines" ? (
         <Button loading={isRefreshingGuidelines} onClick={onRefreshGuidelines}>
           <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
@@ -64,6 +60,6 @@ export function BrandIdentityHeader({
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
         </Button>
       ) : null}
-    </header>
+    </PageHeading>
   );
 }

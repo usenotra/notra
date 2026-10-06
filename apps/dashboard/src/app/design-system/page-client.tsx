@@ -240,6 +240,7 @@ import { DesignSystemChatQueueDemo } from "@/components/design-system/design-sys
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
+import { PageHeadingSection } from "@/components/design-system/sections/page-heading-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
@@ -1898,6 +1899,8 @@ export default function DesignSystemClientPage() {
         </section>
 
         <DesignSystemWriteDialogDemo />
+
+        <PageHeadingSection />
       </DesignSystemCategory>
 
       <DesignSystemCategory id="ai-surfaces">

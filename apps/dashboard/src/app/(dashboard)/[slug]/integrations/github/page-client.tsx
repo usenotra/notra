@@ -2,6 +2,7 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { useTranslations } from "use-intl";
 
@@ -39,8 +40,7 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-10 px-4 lg:px-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <h1 className="text-3xl font-bold tracking-tight">GitHub</h1>
+        <PageHeading title="GitHub">
           {githubIntegrations.length > 0 ? (
             <Button
               className="gap-1.5"
@@ -55,7 +55,7 @@ export default function PageClient({
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           ) : null}
-        </div>
+        </PageHeading>
         <GitHubRepositoriesSection {...settings} />
         {showGitHubAppSection ? <GitHubAppSection {...settings} /> : null}
       </div>

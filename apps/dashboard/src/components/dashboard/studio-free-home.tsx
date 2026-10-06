@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useTranslations } from "use-intl";
 
 import { AgentFeedbackActivityCard } from "@/components/agent-feedback/feedback-activity-card";
@@ -26,9 +27,7 @@ export function StudioFreeHome({ greetingText, slug }: StudioFreeHomeProps) {
       footer={<AgentFeedbackActivityCard organizationId={organizationId} />}
       heading={(isEmpty) => (
         <div className="space-y-6">
-          <h1 className="text-2xl font-bold tracking-tight text-balance @min-[40rem]/main:text-3xl">
-            {greetingText}
-          </h1>
+          <PageHeading title={greetingText} />
           <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
             <div className="min-w-0">
               <h2 className="text-lg font-semibold">
