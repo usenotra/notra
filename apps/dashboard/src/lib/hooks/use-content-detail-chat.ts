@@ -104,7 +104,8 @@ export function useContentDetailChat({
   const [chatIdToHydrate, setChatIdToHydrate] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  const chatInputRef = useRef<ContentChatInputHandle | null>(null);
+  const floatingInputRef = useRef<ContentChatInputHandle | null>(null);
+  const panelInputRef = useRef<ContentChatInputHandle | null>(null);
   const drainQueueRef = useRef<() => void>(() => {});
   const flushSteerAfterStopRef = useRef<() => void>(() => {});
   const isDrainingRef = useRef(false);
@@ -601,6 +602,16 @@ export function useContentDetailChat({
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
+    // Restore files into whichever composer is on screen; if they don't fit,
+    // the message stays queued.
+    if (message.attachments?.length) {
+      const visibleInput = [floatingInputRef, panelInputRef]
+        .map((ref) => ref.current)
+        .find((input) => input?.isVisible());
+      if (!visibleInput?.setAttachments(message.attachments)) {
+        return;
+      }
+    }
     if (steerAfterStopRef.current?.id === message.id) {
       steerAfterStopRef.current = null;
       wasStoppedByUserRef.current = true;
@@ -616,9 +627,6 @@ export function useContentDetailChat({
     }
     if (message.context?.length) {
       setContext(message.context);
-    }
-    if (message.attachments?.length) {
-      chatInputRef.current?.setAttachments(message.attachments);
     }
   }, []);
 
@@ -804,8 +812,7 @@ export function useContentDetailChat({
     contentChatHistoryQuery.isFetching ||
     contentChatHistoryQuery.isError;
 
-  const composerProps: ContentDetailChatComposerProps = {
-    ref: chatInputRef,
+  const composerProps: Omit<ContentDetailChatComposerProps, "ref"> = {
     context,
     disabled: isChatDisabled,
     error: chatError,
@@ -832,6 +839,7 @@ export function useContentDetailChat({
 
   const floatingChatProps = {
     ...composerProps,
+    ref: floatingInputRef,
     sidebarOffsetClass:
       sidebarState === "collapsed" ? "md:left-14" : "md:left-64",
     hideOnLargeScreens: isRightPanelOpen,
@@ -847,7 +855,7 @@ export function useContentDetailChat({
     onSelectChat: handleSelectChat,
     sessions: contentChatSessions,
     status,
-    composer: composerProps,
+    composer: { ...composerProps, ref: panelInputRef },
   };
 
   return {

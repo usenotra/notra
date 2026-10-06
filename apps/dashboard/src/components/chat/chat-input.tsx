@@ -109,7 +109,11 @@ import type {
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
 import { hasIncludedChatPlan } from "@/utils/chat-billing";
-import { contextItemKey, contextItemsEqual } from "@/utils/chat-input";
+import {
+  contextItemKey,
+  contextItemsEqual,
+  mergeChatAttachments,
+} from "@/utils/chat-input";
 import { prependChatQuote } from "@/utils/chat-quote";
 import {
   extractIntegrationReferences,
@@ -1878,17 +1882,16 @@ export function ChatInputAdvanced({
         sel?.addRange(range);
       },
       setAttachments: (next: ChatAttachment[]) => {
-        const merged = [
-          ...attachmentsRef.current,
-          ...next.filter(
-            (attachment) =>
-              !attachmentsRef.current.some(
-                (current) => current.key === attachment.key
-              )
-          ),
-        ].slice(0, MAX_CHAT_ATTACHMENTS);
+        const merged = mergeChatAttachments(attachmentsRef.current, next);
+        if (merged.length > MAX_CHAT_ATTACHMENTS) {
+          toast.error(
+            t("upload.maxAttachments", { max: MAX_CHAT_ATTACHMENTS })
+          );
+          return false;
+        }
         attachmentsRef.current = merged;
         setAttachments(merged);
+        return true;
       },
       focus: () => {
         editorRef.current?.focus();
@@ -1897,7 +1900,7 @@ export function ChatInputAdvanced({
         submitRef.current();
       },
     }),
-    []
+    [t]
   );
 
   const persistDraft = useCallback(

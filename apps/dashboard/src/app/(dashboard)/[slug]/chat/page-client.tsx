@@ -1736,6 +1736,13 @@ function StandaloneChatPageClient({
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
+    // Restore files first: if they don't fit, the message stays queued.
+    if (
+      message.attachments?.length &&
+      !chatInputRef.current?.setAttachments(message.attachments)
+    ) {
+      return;
+    }
     if (steerAfterStopRef.current?.id === message.id) {
       steerAfterStopRef.current = null;
       updateWasStoppedByUser(true, wasStoppedByUserRef, setWasStoppedByUser);
@@ -1744,9 +1751,6 @@ function StandaloneChatPageClient({
     queuedMessagesRef.current = next;
     setQueuedMessages(next);
     chatInputRef.current?.setText(message.text);
-    if (message.attachments?.length) {
-      chatInputRef.current?.setAttachments(message.attachments);
-    }
   }, []);
 
   const sendSteeredQueued = useCallback(

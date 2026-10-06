@@ -120,9 +120,20 @@ export function useContentChatInput({
     restoreAttachments,
     setPreviewAttachment,
   } = useChatComposerAttachments();
-  useImperativeHandle(ref, () => ({ setAttachments: restoreAttachments }), [
-    restoreAttachments,
-  ]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      setAttachments: restoreAttachments,
+      // A closed right panel stays in layout at w-0 but is inert.
+      isVisible: () => {
+        const element = textareaRef.current;
+        return Boolean(
+          element?.checkVisibility() && !element.closest("[inert]")
+        );
+      },
+    }),
+    [restoreAttachments]
+  );
   const {
     check,
     data: customer,

@@ -40,7 +40,10 @@ export interface ChatModelOption {
   beta?: boolean;
 }
 
-export type ContentChatInputHandle = Pick<ChatInputHandle, "setAttachments">;
+export type ContentChatInputHandle = Pick<ChatInputHandle, "setAttachments"> & {
+  /** The content page mounts a floating and a panel composer; only one shows. */
+  isVisible: () => boolean;
+};
 
 export interface ChatInputProps {
   ref?: Ref<ContentChatInputHandle>;

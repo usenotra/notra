@@ -32,6 +32,7 @@ import type {
   PendingChatUpload,
   UseChatComposerAttachmentsResult,
 } from "@/types/hooks/chat-composer-attachments";
+import { mergeChatAttachments } from "@/utils/chat-input";
 import { prepareChatImage } from "@/utils/prepare-chat-image";
 
 const GENERIC_PASTED_IMAGE_NAME_RE = /^image\.(jpe?g|png|gif|webp)$/i;
@@ -264,22 +265,22 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
 
   // Puts already-uploaded files back, e.g. when a queued message is edited.
   // They count as submitted so unmount cleanup never deletes them.
-  const restoreAttachments = useCallback((next: ChatAttachment[]) => {
-    for (const attachment of next) {
-      submittedKeysRef.current.add(attachment.key);
-    }
-    const merged = [
-      ...attachmentsRef.current,
-      ...next.filter(
-        (attachment) =>
-          !attachmentsRef.current.some(
-            (current) => current.key === attachment.key
-          )
-      ),
-    ].slice(0, MAX_CHAT_ATTACHMENTS);
-    attachmentsRef.current = merged;
-    setAttachments(merged);
-  }, []);
+  const restoreAttachments = useCallback(
+    (next: ChatAttachment[]) => {
+      const merged = mergeChatAttachments(attachmentsRef.current, next);
+      if (merged.length > MAX_CHAT_ATTACHMENTS) {
+        toast.error(tUpload("maxAttachments", { max: MAX_CHAT_ATTACHMENTS }));
+        return false;
+      }
+      for (const attachment of next) {
+        submittedKeysRef.current.add(attachment.key);
+      }
+      attachmentsRef.current = merged;
+      setAttachments(merged);
+      return true;
+    },
+    [tUpload]
+  );
 
   const cleanupUnsubmittedAttachments = useCallback(() => {
     for (const attachment of attachmentsRef.current) {

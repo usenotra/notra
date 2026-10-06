@@ -1,4 +1,8 @@
-import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
+import type {
+  ChatAttachment,
+  ContextItem,
+  TextSelection,
+} from "@notra/ai/types/chat";
 
 import type {
   ChatContextOption,
@@ -259,4 +263,16 @@ export function getAttachmentExtension(
     return fromName;
   }
   return mediaType?.split("/")[1]?.split(/[+.;]/)[0] ?? null;
+}
+
+/** Appends files that are not already in the list, keeping order. */
+export function mergeChatAttachments(
+  current: ChatAttachment[],
+  next: ChatAttachment[]
+): ChatAttachment[] {
+  const keys = new Set(current.map((attachment) => attachment.key));
+  return [
+    ...current,
+    ...next.filter((attachment) => !keys.has(attachment.key)),
+  ];
 }
