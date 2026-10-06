@@ -1,0 +1,90 @@
+apps/web/src/components/offering-check/offering-domain-favicon.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 9
+apps/web/src/lib/offering-check/use-sample-typing.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 19,30,38,49,74-75,78,106
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 3-7,11-12,26-29
+apps/web/src/components/offering-check/offering-favicon.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 6
+apps/web/src/utils/offering-identity.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 1-2
+  s_6a2418f3350ad8::t_abff2722e88fcd 3-27
+apps/web/src/utils/offering-markdown.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 7
+  s_6a2418f3350ad8::t_abff2722e88fcd 1-6,8-56
+apps/web/src/lib/offering-check/request.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 83
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 4
+apps/web/src/utils/offering-domain.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 1-40
+apps/web/src/components/offering-check/offering-report-card.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 17-19
+apps/web/src/lib/offering-check/use-offering-stream.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 14,66-69
+  s_6a2418f3350ad8::t_728f28a5cff10c 18,158,215
+apps/web/src/schemas/offering-check.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 2,21,27,63,70,84-85,101,105-106,108,191-198
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 10-19,49-52
+apps/web/src/components/offering-check/offering-check-form.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 33,47
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 8,22-25
+apps/web/src/utils/offering-sources.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 4,9,12,19,77-79
+apps/web/src/lib/offering-check/domain-exists.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 22
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 5-8
+apps/web/src/routes/api/offering-check/index.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 4-7
+  s_6a2418f3350ad8::t_728f28a5cff10c 73
+apps/web/src/lib/offering-check/use-elapsed-seconds.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 3,20
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 14-19
+apps/web/src/utils/offering-copy.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 1-69
+apps/web/src/components/offering-check/offering-chat-window.tsx
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 22
+  s_6a2418f3350ad8::t_728f28a5cff10c 23
+apps/web/src/types/offering-check.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 245-248
+  s_6a2418f3350ad8::t_abff2722e88fcd 243-244,249-289
+apps/web/src/constants/offering-check-prompts.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 1-19
+apps/web/src/utils/offering-questions.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 1-53
+apps/web/src/components/offering-check/offering-report.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 15
+apps/web/src/components/offering-check/offering-sources.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 24,112
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 15-19,39-41
+apps/web/src/lib/offering-check/cache.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 15
+apps/web/src/lib/offering-check/prompts.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 2
+  s_6a2418f3350ad8::t_728f28a5cff10c 8-11
+apps/web/src/constants/offering-check.ts
+  s_6a2418f3350ad8::t_abff2722e88fcd 4,6,281-349
+apps/web/src/lib/offering-check/scan.ts
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 12,14-17,21
+  s_6a2418f3350ad8::t_728f28a5cff10c 27-30,32,73,132
+apps/web/src/components/offering-check/offering-search-activity.tsx
+  s_6a2418f3350ad8::t_728f28a5cff10c 21
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 5
+apps/web/src/lib/offering-check/ratelimit.ts
+  s_6a2418f3350ad8::t_728f28a5cff10c 17,51,61,66
+  s_6a2418f3350ad8::t_bb6c0b24d0326c 9,13,38-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c42f03d29921c2a04432bd1c991cdf70f238e966",
+  "prompts": {},
+  "sessions": {
+    "s_6a2418f3350ad8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2491fe07-3c1b-4db8-89bd-1d1e5b0410c4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
