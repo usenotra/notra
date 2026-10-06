@@ -916,22 +916,18 @@ export async function queryGeoCheckCompetitorTimeseries(
   brand: string,
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckCompetitorTimeseriesRow[]> {
-  const filters = [
-    scopeWhere(scope),
-    withoutPersonaRows,
-    ...capturedWithin(window),
-  ];
-
   const rows = await withGeoCheckAggregateCache(
     scope,
     db
       .select({
         day: sql<string>`(${geoMentionChecks.capturedAt})::date`,
-        mentions: sql<number>`count(*) filter (where ${geoMentionChecks.competitors} @> array[${brand}]::text[])::int`,
-        checks: sql<number>`count(*)::int`,
+        mentions: countChecksWhere(
+          sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`
+        ),
+        checks: countChecks,
       })
       .from(geoMentionChecks)
-      .where(and(...filters))
+      .where(mentionFilters(scope, window))
       .groupBy(sql`(${geoMentionChecks.capturedAt})::date`)
       .orderBy(sql`(${geoMentionChecks.capturedAt})::date asc`)
   );

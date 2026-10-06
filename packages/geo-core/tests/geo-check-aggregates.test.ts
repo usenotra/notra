@@ -25,6 +25,8 @@ import {
 } from "./utils/database";
 
 const {
+  queryGeoCheckCompetitorShare,
+  queryGeoCheckCompetitorTimeseries,
   queryGeoCheckEngineTotals,
   queryGeoCheckLanguageShare,
   queryGeoCheckOverview,
@@ -165,5 +167,49 @@ describe("geo check aggregates", () => {
     expect(overview).toMatchObject({ checks: 2, mentions: 1 });
     const results = await queryGeoCheckPromptResults(scope, undefined);
     expect(results.map((row) => row.promptId)).toEqual(["prompt"]);
+  });
+
+  test("a competitor's detail timeseries matches its share count", async () => {
+    const scope = await seedProject("competitor");
+    await testDb.insert(geoPersonas).values({
+      id: "persona",
+      ...scope,
+      name: "Persona",
+      role: "Role",
+      company: "Company",
+      summary: "Summary",
+      searchStyle: "Style",
+      profile: {} as typeof geoPersonas.$inferInsert.profile,
+      conversationPrompts: ["one", "two"],
+    });
+    for (const turn of [1, 2, 3]) {
+      await seedCheck(scope, {
+        id: `sequence-${turn}`,
+        promptId: "sequence-prompt",
+        sequenceId: "sequence",
+        turn,
+        competitors: ["Rival"],
+      });
+    }
+    await seedCheck(scope, {
+      id: "persona-1",
+      promptId: "persona-prompt",
+      personaId: "persona",
+      personaSnapshot:
+        {} as typeof geoMentionChecks.$inferInsert.personaSnapshot,
+      turn: 1,
+      competitors: ["Rival"],
+    });
+    await seedCheck(scope, { id: "single" });
+
+    const [share] = await queryGeoCheckCompetitorShare(scope, undefined, 5);
+    const series = await queryGeoCheckCompetitorTimeseries(
+      scope,
+      "Rival",
+      undefined
+    );
+    expect(share).toMatchObject({ brand: "Rival", mentions: 2 });
+    expect(series).toHaveLength(1);
+    expect(series[0]).toMatchObject({ mentions: 2, checks: 3 });
   });
 });
