@@ -165,6 +165,43 @@ function DemoSectionBody({ activeSection }: { activeSection: DemoSectionId }) {
   );
 }
 
+/* Below md the nav pane is hidden, so sections become a scrolling chip row
+   under the title, the same way the GEO write dialog does it. */
+function DemoMobileNav({
+  activeSection,
+  onSelect,
+}: {
+  activeSection: DemoSectionId;
+  onSelect: (id: DemoSectionId) => void;
+}) {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className="flex gap-1 overflow-x-auto pt-2 md:hidden"
+    >
+      {DEMO_SECTIONS.map((item) => {
+        const active = activeSection === item.id;
+        return (
+          <button
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "duration-fast shrink-0 cursor-pointer rounded-md px-2.5 py-1 text-sm transition-colors",
+              active
+                ? "bg-muted text-foreground font-medium"
+                : "text-muted-foreground hover:bg-muted/60"
+            )}
+            key={item.id}
+            onClick={() => onSelect(item.id)}
+            type="button"
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 function sectionFor(id: DemoSectionId) {
   return DEMO_SECTIONS.find((item) => item.id === id) ?? DEMO_SECTIONS[0];
 }
@@ -197,6 +234,10 @@ function ResponsiveSplitModalDemo() {
                 <ResponsiveDialogDescription>
                   {section.description}
                 </ResponsiveDialogDescription>
+                <DemoMobileNav
+                  activeSection={activeSection}
+                  onSelect={setActiveSection}
+                />
               </div>
               <ResponsiveDialogClose
                 render={
