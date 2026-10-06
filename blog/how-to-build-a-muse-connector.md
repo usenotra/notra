@@ -1,4 +1,4 @@
-Meta Muse launched on September 8, 2026 and hit number one on the Apple US App Store within ten days. Ten days after that, Zuckerberg opened connector submissions to developers. The window is still open, and building one is worth doing even if Muse wasn't already on your radar, which btw it probably should be 😄
+Meta Muse launched on September 8, 2026 and hit number one on the Apple US App Store within ten days. Ten days after that, Zuckerberg opened connector submissions to developers. The window is still open, and if you already have an MCP server sitting somewhere, getting it in front of Muse users is mostly a submission process now, not a build one 😄
 
 ## What is a Muse connector?
 
