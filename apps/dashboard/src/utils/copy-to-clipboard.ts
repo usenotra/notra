@@ -1,3 +1,4 @@
+import type { CopyToClipboardErrorReason } from "@notra/ui/types/copy-button";
 import { toast } from "sonner";
 
 import { commonToastMessage } from "@/utils/toast-message";
@@ -22,4 +23,13 @@ export async function copyTextToClipboard(
     return;
   }
   toast.success(successMessage);
+}
+
+/** `onCopyError` handler for `CopyButton` / `useCopyToClipboard`. */
+export function toastCopyError(reason: CopyToClipboardErrorReason) {
+  toast.error(
+    commonToastMessage(
+      reason === "unsupported" ? "clipboardUnsupported" : "copyFailed"
+    )
+  );
 }

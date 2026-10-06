@@ -37,6 +37,13 @@ export default defineConfig({
             allow: ["layout", "gap-6", "p-6"],
           },
           { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          // Icon-only copy buttons sit next to secondary text (code headers,
+          // input addons), so callers mute the idle icon. The tick keeps its
+          // own success colour.
+          {
+            pattern: "^CopyButton$",
+            allow: ["layout", "text-muted-foreground"],
+          },
           // Spinner draws in currentColor, so callers tint it like an icon.
           { pattern: "^Spinner$", allow: ["layout", "color"] },
           {

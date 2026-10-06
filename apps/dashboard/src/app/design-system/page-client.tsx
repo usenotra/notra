@@ -241,6 +241,7 @@ import { DesignSystemComposerDemo } from "@/components/design-system/design-syst
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
+import { CopyButtonSection } from "@/components/design-system/sections/copy-button-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
 import { cn } from "@/lib/utils";
@@ -1241,6 +1242,8 @@ export default function DesignSystemClientPage() {
             </CardContent>
           </Card>
         </section>
+
+        <CopyButtonSection />
 
         <section className="scroll-mt-10 space-y-6" id="data-display">
           <DesignSystemSectionHeader id="data-display" title="Data Display" />

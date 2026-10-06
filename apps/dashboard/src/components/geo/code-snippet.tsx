@@ -1,16 +1,10 @@
 "use client";
 
-import {
-  AiMagicIcon,
-  Copy01Icon,
-  Tick01Icon,
-  Tick02Icon,
-} from "@hugeicons/core-free-icons";
+import { AiMagicIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { COPY_FEEDBACK_MS } from "@notra/geo-core/constants/geo";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCopyToClipboard } from "@notra/ui/hooks/use-copy-to-clipboard";
 import { highlight } from "sugar-high";
 import { useTranslations } from "use-intl";
 
@@ -22,67 +16,21 @@ import type {
   CopyCodeButtonProps,
   CopyPromptButtonProps,
 } from "@/types/geo";
-
-export function useCopyCode(code: string) {
-  const tCommon = useTranslations("common");
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copied = copiedCode === code;
-
-  useEffect(
-    () => () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    },
-    []
-  );
-
-  const copy = async () => {
-    if (!navigator.clipboard?.writeText) {
-      toast.error(tCommon("toasts.clipboardUnsupported"));
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(code);
-    } catch {
-      toast.error(tCommon("toasts.copyFailed"));
-      return;
-    }
-
-    setCopiedCode(code);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => setCopiedCode(null), COPY_FEEDBACK_MS);
-  };
-
-  return { copied, copy };
-}
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 
 function CopyCodeButton({ code, label, onCopy }: CopyCodeButtonProps) {
   const tCommon = useTranslations("common");
-  const { copied, copy } = useCopyCode(code);
 
   return (
-    <Button
-      aria-label={
-        copied
-          ? tCommon("labels.labelCopied", { label })
-          : tCommon("labels.copyLabel", { label })
-      }
-      className="text-muted-foreground shrink-0"
-      onClick={() => {
-        onCopy?.();
-        return copy();
-      }}
+    <CopyButton
+      aria-label={tCommon("labels.copyLabel", { label })}
+      className="text-muted-foreground"
+      copiedAriaLabel={tCommon("labels.labelCopied", { label })}
+      onCopy={onCopy}
+      onCopyError={toastCopyError}
       size="icon-xs"
-      type="button"
-      variant="ghost"
-    >
-      <HugeiconsIcon icon={copied ? Tick01Icon : Copy01Icon} size={14} />
-    </Button>
+      value={code}
+    />
   );
 }
 
@@ -151,7 +99,7 @@ export function CopyPromptButton({
   className,
 }: CopyPromptButtonProps) {
   const tCommon = useTranslations("common");
-  const { copied, copy } = useCopyCode(prompt);
+  const { copied, copy } = useCopyToClipboard({ onError: toastCopyError });
   const fade =
     "col-start-1 row-start-1 transition-[opacity,filter,translate,scale] duration-normal ease-emphasized motion-reduce:transition-none";
   const hidden = "opacity-0 blur-[2px]";
@@ -160,9 +108,10 @@ export function CopyPromptButton({
     <Button
       className={cn("gap-2", className)}
       disabled={disabled}
-      onClick={() => {
-        onCopy?.();
-        return copy();
+      onClick={async () => {
+        if (await copy(prompt)) {
+          onCopy?.();
+        }
       }}
       size="sm"
       type="button"

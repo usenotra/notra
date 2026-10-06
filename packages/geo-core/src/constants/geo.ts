@@ -970,8 +970,6 @@ export const GEO_MAX_LANGUAGES = 4;
 export const GEO_LANGUAGE_MAX_PROMPTS = 5;
 export const GEO_TRANSLATION_MAX_TOKENS = 2000;
 
-export const COPY_FEEDBACK_MS = 2000;
-
 export const GEO_TAB_VALUES = [
   "visibility",
   "brand-sentiment",
