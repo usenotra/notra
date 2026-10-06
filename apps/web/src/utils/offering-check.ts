@@ -1,17 +1,21 @@
 import {
   OFFERING_CHECK_FAVICON_SIZE,
+  OFFERING_CHECK_INVALID_MESSAGES,
   OFFERING_CHECK_MAX_SOURCE_DOMAINS,
   OFFERING_CHECK_MAX_SOURCE_PAGES,
   OFFERING_CHECK_MODEL_LABEL,
   OFFERING_QUESTION_TITLES,
+  OFFERING_REPORT_FAILURE_MESSAGES,
   OFFERING_VERDICTS,
 } from "@/constants/offering-check";
 import type {
   OfferingAnswer,
   OfferingCheckResult,
+  OfferingFormProblem,
   OfferingQuestion,
   OfferingQuestionKind,
   OfferingCheckInput,
+  OfferingSampleField,
   OfferingThread,
   OfferingMarkdownNode,
   OfferingSourceDomain,
@@ -305,4 +309,26 @@ export function summarizeOfferingSources(answers: readonly OfferingAnswer[]) {
     ownSite = "Read, not cited";
   }
   return { sites: sites.size, pages: pages.size, ownSite };
+}
+
+const NOTICE_FIELD: Partial<Record<OfferingFormProblem, OfferingSampleField>> =
+  {
+    "invalid-domain": "domain",
+    "unknown-site": "domain",
+    "invalid-feature": "feature",
+    "invalid-problem": "problem",
+  };
+
+/** The message for a form notice, and the field it belongs to if any. */
+export function describeOfferingNotice(notice: OfferingFormProblem): {
+  field: OfferingSampleField | null;
+  message: string;
+} {
+  const message =
+    notice === "invalid-domain" ||
+    notice === "invalid-feature" ||
+    notice === "invalid-problem"
+      ? OFFERING_CHECK_INVALID_MESSAGES[notice]
+      : OFFERING_REPORT_FAILURE_MESSAGES[notice];
+  return { field: NOTICE_FIELD[notice] ?? null, message };
 }

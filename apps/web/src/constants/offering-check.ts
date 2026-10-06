@@ -1,6 +1,7 @@
 import type {
   OfferingCheckSample,
   OfferingFailureStatus,
+  OfferingRateLimitScope,
   OfferingVerdict,
   OfferingVerdictCopy,
 } from "@/types/offering-check";
@@ -26,6 +27,8 @@ export const OFFERING_CHECK_HERO_SUBTITLE =
 
 export const OFFERING_CHECK_MODEL = "openai/gpt-6-luna";
 
+export const OFFERING_CHECK_GATEWAY_TAG = "offering-check";
+
 export const OFFERING_CHECK_MODEL_LABEL = "GPT-6";
 
 export const OFFERING_CHECK_KILL_SWITCH_ENV = "NOTRA_OFFERING_CHECK";
@@ -34,7 +37,12 @@ export const OFFERING_CHECK_FEATURE_MIN_LENGTH = 2;
 
 export const OFFERING_CHECK_FEATURE_MAX_LENGTH = 80;
 
-export const OFFERING_CHECK_PROBLEM_MAX_LENGTH = 280;
+export const OFFERING_CHECK_PROBLEM_MIN_LENGTH = 12;
+
+export const OFFERING_CHECK_PROBLEM_MAX_LENGTH = 200;
+
+/** The remaining-characters hint shows once this few are left. */
+export const OFFERING_CHECK_PROBLEM_COUNTER_FROM = 40;
 
 export const OFFERING_CHECK_MAX_OTHER_OFFERINGS = 8;
 
@@ -44,25 +52,38 @@ export const OFFERING_CHECK_MAX_SOURCE_DOMAINS = 8;
 
 export const OFFERING_CHECK_MAX_SOURCE_PAGES = 25;
 
-export const OFFERING_CHECK_MAX_OUTPUT_TOKENS = 1800;
+export const OFFERING_CHECK_MAX_OUTPUT_TOKENS = 1200;
 
 export const OFFERING_CHECK_TIMEOUT_MS = 50_000;
 
 /** Upper bound for one Upstash call; cache misses and rate-limit outages fall back after it. */
 export const OFFERING_CHECK_REDIS_TIMEOUT = "1500 millis";
 
+export const OFFERING_CHECK_DNS_TIMEOUT = "2 seconds";
+
+export const OFFERING_CHECK_FEATURE_MAX_WORDS = 8;
+
 export const OFFERING_CHECK_CACHE_SECONDS = 60 * 60 * 24;
 
 export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v8";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * `scope` says whose quota ran out, so the visitor is only told "you used your
+ * checks" when it really was their own limit.
+ */
 export const OFFERING_CHECK_RATE_LIMITS = {
-  preflightPerIpMinute: { requests: 30, windowMs: 60 * 1000 },
-  perIpHour: { requests: 5, windowMs: 60 * 60 * 1000 },
-  perIpDay: { requests: 15, windowMs: 24 * 60 * 60 * 1000 },
-  perBrandDay: { requests: 25, windowMs: 24 * 60 * 60 * 1000 },
-  perBrandFeatureDay: { requests: 2, windowMs: 24 * 60 * 60 * 1000 },
-  globalDay: { requests: 1000, windowMs: 24 * 60 * 60 * 1000 },
-} as const;
+  preflightPerIpMinute: { requests: 30, windowMs: 60 * 1000, scope: "visitor" },
+  perIpHour: { requests: 5, windowMs: 60 * 60 * 1000, scope: "visitor" },
+  perIpDay: { requests: 15, windowMs: DAY_MS, scope: "visitor" },
+  perBrandDay: { requests: 25, windowMs: DAY_MS, scope: "site" },
+  perBrandFeatureDay: { requests: 10, windowMs: DAY_MS, scope: "site" },
+  globalDay: { requests: 1000, windowMs: DAY_MS, scope: "busy" },
+} as const satisfies Record<
+  string,
+  { requests: number; windowMs: number; scope: OfferingRateLimitScope }
+>;
 
 export const OFFERING_CHECK_RATE_LIMIT_SCRIPT = `
 local now = tonumber(ARGV[1])
@@ -95,14 +116,26 @@ end
 return {1, 0}
 `;
 
-export const OFFERING_CHECK_INVALID_MESSAGE =
+export const OFFERING_CHECK_INVALID_REQUEST_MESSAGE =
   "Enter a website like acme.com. Feature name and problem are optional.";
+
+export const OFFERING_CHECK_INVALID_MESSAGES = {
+  "invalid-domain": "Enter a website like acme.com.",
+  "invalid-feature":
+    "Name the feature in a few words (2 to 80 characters, up to 8 words), or leave it empty.",
+  "invalid-problem":
+    "Describe the problem in one plain sentence, without links.",
+} as const;
 
 export const OFFERING_REPORT_FAILURE_MESSAGES: Record<
   OfferingFailureStatus,
   string
 > = {
   "rate-limited": "You have used your free checks for now. Try again later.",
+  "site-limited":
+    "This website has been checked a lot today. Try again tomorrow.",
+  busy: "The checker is busy right now. Try again later.",
+  "unknown-site": "We could not find that website. Check the address.",
   unavailable: "The checker is paused right now. Try again later.",
   error: "Something went wrong while asking the model. Try again.",
 };
@@ -228,3 +261,15 @@ export const OFFERING_FORM_URL_DEBOUNCE_MS = 400;
 
 /** Size of the default globe Google returns for domains it has no icon for. */
 export const OFFERING_FAVICON_FALLBACK_SIZE = 16;
+
+export const OFFERING_FIELD_SHAKE = {
+  keyframes: [
+    { transform: "translateX(0)" },
+    { transform: "translateX(-6px)" },
+    { transform: "translateX(5px)" },
+    { transform: "translateX(-3px)" },
+    { transform: "translateX(2px)" },
+    { transform: "translateX(0)" },
+  ],
+  timing: { duration: 380, easing: "ease-out" },
+} satisfies { keyframes: Keyframe[]; timing: KeyframeAnimationOptions };

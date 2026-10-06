@@ -93,11 +93,23 @@ export interface OfferingVerdictCopy {
 
 export type OfferingCheckSample = OfferingCheckInput;
 
-export type OfferingFailureStatus = "rate-limited" | "unavailable" | "error";
+export type OfferingRateLimitScope = "visitor" | "site" | "busy";
+
+export type OfferingFailureStatus =
+  | "rate-limited"
+  | "site-limited"
+  | "busy"
+  | "unknown-site"
+  | "unavailable"
+  | "error";
 
 type OfferingReportStatus = "checking" | "done" | OfferingFailureStatus;
 
-export type OfferingFormProblem = "invalid" | OfferingFailureStatus;
+export type OfferingFormProblem =
+  | "invalid-domain"
+  | "invalid-feature"
+  | "invalid-problem"
+  | OfferingFailureStatus;
 
 export interface OfferingCheckFormProps {
   samples: readonly OfferingCheckSample[];
@@ -197,6 +209,8 @@ export interface OfferingSentenceFieldProps extends ComponentProps<"input"> {
   invalid: boolean;
   /** Looks focused while an example types itself in. */
   active?: boolean;
+  /** Keep at least the placeholder width, e.g. while the sentence has focus. */
+  holdWidth: boolean;
   leading?: ReactNode;
 }
 
@@ -205,3 +219,12 @@ export interface OfferingDomainFaviconProps {
 }
 
 export type OfferingSampleField = "domain" | "feature" | "problem";
+
+export interface OfferingErrorTooltipProps {
+  error: string | null;
+  /** Bumped on every failed submit to replay the shake. */
+  attempt: number;
+  /** Sits inside a line of text, like the sentence fields. */
+  inline?: boolean;
+  children: ReactNode;
+}

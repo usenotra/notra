@@ -6,9 +6,10 @@ import {
   readCachedOfferingCheck,
   writeCachedOfferingCheck,
 } from "@/lib/offering-check/cache";
+import { ensureOfferingSiteExists } from "@/lib/offering-check/domain-exists";
 import { enforceOfferingCheckRateLimit } from "@/lib/offering-check/ratelimit";
 import {
-  rateLimitResponse,
+  checkErrorResponse,
   readOfferingCheckRequest,
 } from "@/lib/offering-check/request";
 import { runOfferingCheck } from "@/lib/offering-check/scan";
@@ -84,10 +85,12 @@ async function POST(request: Request) {
     Effect.gen(function* () {
       const cached = yield* readCachedOfferingCheck(input);
       if (!cached) {
+        // Before the rate limit, so a typo does not cost a free check.
+        yield* ensureOfferingSiteExists(input.domain);
         yield* enforceOfferingCheckRateLimit(request, input);
       }
       return streamEvents(request, input, cached);
-    }).pipe(Effect.catch((error) => Effect.succeed(rateLimitResponse(error))))
+    }).pipe(Effect.catch((error) => Effect.succeed(checkErrorResponse(error))))
   );
 }
 

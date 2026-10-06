@@ -14,5 +14,5 @@ export async function preflightOfferingCheck(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   }).catch(() => null);
-  return response?.ok ? null : failureStatusFor(response?.status);
+  return response?.ok ? null : failureStatusFor(response);
 }

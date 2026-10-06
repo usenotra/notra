@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateText, Output, streamText } from "ai";
 
 import {
+  OFFERING_CHECK_GATEWAY_TAG,
   OFFERING_CHECK_MAX_OTHER_OFFERINGS,
   OFFERING_CHECK_MAX_OUTPUT_TOKENS,
   OFFERING_CHECK_MAX_QUERIES,
@@ -54,6 +55,18 @@ function readSearchOutput(output: unknown) {
 
 const MS_PER_SECOND = 1000;
 
+/**
+ * Tags every gateway call so the free tool's spend shows up on its own in
+ * AI Gateway, split by step. Visitors type these prompts, so they are never
+ * used for training.
+ */
+function offeringGatewayOptions(step: string) {
+  return {
+    tags: [OFFERING_CHECK_GATEWAY_TAG, `${OFFERING_CHECK_GATEWAY_TAG}-${step}`],
+    disallowPromptTraining: true,
+  };
+}
+
 type AnsweredQuestion = Omit<OfferingAnswer, "verdict" | "summary">;
 
 async function answerQuestion(
@@ -71,7 +84,10 @@ async function answerQuestion(
       web_search: openai.tools.webSearch({ searchContextSize: "low" }),
     },
     reasoning: "low",
-    providerOptions: { openai: { reasoningSummary: "auto" } },
+    providerOptions: {
+      openai: { reasoningSummary: "auto" },
+      gateway: offeringGatewayOptions(`answer-${kind}`),
+    },
     maxOutputTokens: OFFERING_CHECK_MAX_OUTPUT_TOKENS,
     abortSignal,
   });
@@ -132,6 +148,20 @@ async function answerQuestion(
   };
 }
 
+/** The judge sometimes repeats an offering with different casing or spacing. */
+function uniqueOfferings(offerings: readonly string[]): string[] {
+  const seen = new Set<string>();
+  return offerings.flatMap((offering) => {
+    const name = offering.trim();
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) {
+      return [];
+    }
+    seen.add(key);
+    return [name];
+  });
+}
+
 /**
  * Asks every question in parallel, then grades all answers in one judge call
  * that alone sees the feature name and the problem.
@@ -141,11 +171,17 @@ export async function runOfferingCheck(
   emit: OfferingStreamEmit,
   abortSignal: AbortSignal
 ): Promise<OfferingCheckResult> {
+  // One failed answer fails the check, so stop paying for the other one.
+  const answering = new AbortController();
+  const signal = AbortSignal.any([abortSignal, answering.signal]);
   const answered = await Promise.all(
     buildOfferingQuestions(input).map((question) =>
-      answerQuestion(input, question, emit, abortSignal)
+      answerQuestion(input, question, emit, signal)
     )
-  );
+  ).catch((error: unknown) => {
+    answering.abort();
+    throw error;
+  });
 
   const { output: judged } = await generateText({
     model: gateway(OFFERING_CHECK_MODEL),
@@ -153,6 +189,7 @@ export async function runOfferingCheck(
     prompt: buildOfferingJudgePrompt(input, answered),
     output: Output.object({ schema: offeringJudgeSchema }),
     reasoning: "low",
+    providerOptions: { gateway: offeringGatewayOptions("judge") },
     abortSignal,
   });
 
@@ -163,7 +200,7 @@ export async function runOfferingCheck(
     companyName: judged.companyName.trim() || input.domain,
     companyDescription: judged.companyDescription.trim(),
     model: OFFERING_CHECK_MODEL_LABEL,
-    otherOfferings: judged.otherOfferings.slice(
+    otherOfferings: uniqueOfferings(judged.otherOfferings).slice(
       0,
       OFFERING_CHECK_MAX_OTHER_OFFERINGS
     ),

@@ -3,13 +3,20 @@ import * as z from "zod";
 
 import {
   OFFERING_CHECK_PROBLEM_MAX_LENGTH,
+  OFFERING_CHECK_PROBLEM_MIN_LENGTH,
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
+  OFFERING_CHECK_FEATURE_MAX_WORDS,
   OFFERING_CHECK_FEATURE_MIN_LENGTH,
   OFFERING_CHECK_MAX_OTHER_OFFERINGS,
 } from "@/constants/offering-check";
 import { normalizeDomain } from "@/utils/offering-check";
 
 const DOMAIN_INPUT_MAX_LENGTH = 200;
+// Control and invisible formatting characters (e.g. NUL, RTL override).
+const CONTROL_CHARACTER_PATTERN = /[\p{Cc}\p{Cf}]/u;
+const WHITESPACE_RUN = /\s+/g;
+// Links turn the free-text fields into a way to put URLs on our pages.
+const LINK_PATTERN = /https?:\/\/|www\.|\]\(/i;
 const SUMMARY_MAX_LENGTH = 400;
 const OTHER_OFFERING_MAX_LENGTH = 80;
 const COMPANY_NAME_MAX_LENGTH = 60;
@@ -41,15 +48,44 @@ export const offeringCheckRequestSchema = z
       .max(OFFERING_CHECK_FEATURE_MAX_LENGTH, "Keep the feature name short.")
       .refine(
         (value) =>
+          !(CONTROL_CHARACTER_PATTERN.test(value) || LINK_PATTERN.test(value)),
+        "Use plain text for the feature name."
+      )
+      .refine(
+        (value) =>
           value.length === 0 ||
           value.length >= OFFERING_CHECK_FEATURE_MIN_LENGTH,
         "Enter a feature name."
       )
+      .refine(
+        (value) =>
+          value.split(WHITESPACE_RUN).length <=
+          OFFERING_CHECK_FEATURE_MAX_WORDS,
+        "Name the feature in a few words."
+      )
       .default(""),
     problem: z
       .string()
-      .trim()
-      .max(OFFERING_CHECK_PROBLEM_MAX_LENGTH, "Keep the problem short.")
+      .transform((value) => value.replace(WHITESPACE_RUN, " ").trim())
+      .pipe(
+        z
+          .string()
+          .max(OFFERING_CHECK_PROBLEM_MAX_LENGTH, "Keep the problem short.")
+          .refine(
+            (value) =>
+              value.length === 0 ||
+              value.length >= OFFERING_CHECK_PROBLEM_MIN_LENGTH,
+            "Describe the problem in a sentence."
+          )
+          .refine(
+            (value) =>
+              !(
+                CONTROL_CHARACTER_PATTERN.test(value) ||
+                LINK_PATTERN.test(value)
+              ),
+            "Use plain text for the problem, without links."
+          )
+      )
       .default(""),
   })
   .transform((input) => ({
@@ -136,8 +172,18 @@ export const offeringStreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("error") }),
 ]);
 
+// The router parses `?feature=42` or `?feature=true` as JSON, so values come
+// back as numbers, booleans or arrays. They are all plain text here.
+const searchTextSchema = z.preprocess(
+  (value) =>
+    value === undefined || typeof value === "string"
+      ? value
+      : JSON.stringify(value),
+  z.string().optional().catch(undefined)
+);
+
 export const offeringReportSearchSchema = z.object({
-  domain: z.string().optional().catch(undefined),
-  feature: z.string().optional().catch(undefined),
-  problem: z.string().optional().catch(undefined),
+  domain: searchTextSchema,
+  feature: searchTextSchema,
+  problem: searchTextSchema,
 });

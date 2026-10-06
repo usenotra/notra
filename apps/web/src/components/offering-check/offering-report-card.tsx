@@ -172,14 +172,14 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
 
         {result && result.otherOfferings.length > 0 ? (
           <div className="flex flex-col gap-3">
-            <h3 className="text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
+            <h3 className="text-[0.8125rem]/5 wrap-anywhere text-[#1E1E1E99] dark:text-white/50">
               {hasFeature ? "What else" : "What"} {OFFERING_CHECK_MODEL_LABEL}{" "}
               says {result.companyName} offers
             </h3>
             <ul className="grid border-t border-[#1E1E1E0F] sm:grid-cols-2 sm:gap-x-8 dark:border-white/[0.06]">
               {result.otherOfferings.map((offering) => (
                 <li
-                  className="text-foreground border-b border-[#1E1E1E0F] py-2.5 text-[0.9375rem]/6 dark:border-white/[0.06]"
+                  className="text-foreground border-b border-[#1E1E1E0F] py-2.5 text-[0.9375rem]/6 wrap-anywhere dark:border-white/[0.06]"
                   key={offering}
                 >
                   {offering}

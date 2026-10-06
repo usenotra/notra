@@ -35,7 +35,8 @@ export function OfferingReport({ input }: OfferingReportProps) {
           subtitle={OFFERING_REPORT_FAILURE_MESSAGES[status]}
           title={
             <>
-              We could not check <span className="text-primary">{subject}</span>
+              We could not check{" "}
+              <span className="text-primary wrap-anywhere">{subject}</span>
             </>
           }
         />
@@ -65,7 +66,7 @@ export function OfferingReport({ input }: OfferingReportProps) {
         title={
           <>
             {hero.lead}
-            <span className="text-primary">{subject}</span>
+            <span className="text-primary wrap-anywhere">{subject}</span>
           </>
         }
       />

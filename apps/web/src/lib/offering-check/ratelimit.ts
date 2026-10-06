@@ -7,7 +7,10 @@ import {
   OFFERING_CHECK_RATE_LIMIT_SCRIPT,
   OFFERING_CHECK_REDIS_TIMEOUT,
 } from "@/constants/offering-check";
-import type { OfferingCheckInput } from "@/types/offering-check";
+import type {
+  OfferingCheckInput,
+  OfferingRateLimitScope,
+} from "@/types/offering-check";
 import { getClientIp } from "@/utils/client-ip";
 import { getOfferingCheckBrandFeatureIdentity } from "@/utils/offering-check";
 
@@ -17,6 +20,7 @@ export class OfferingCheckRateLimitExceeded extends Data.TaggedError(
   "OfferingCheckRateLimitExceeded"
 )<{
   readonly reset: number;
+  readonly scope: OfferingRateLimitScope;
 }> {}
 
 export class OfferingCheckRateLimitUnavailable extends Data.TaggedError(
@@ -33,6 +37,7 @@ interface RateLimitCheck {
   key: string;
   requests: number;
   windowMs: number;
+  scope: OfferingRateLimitScope;
 }
 
 function sha256(value: string) {
@@ -115,6 +120,7 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
       return yield* Effect.fail(
         new OfferingCheckRateLimitExceeded({
           reset: (Math.floor(now / rejected.windowMs) + 1) * rejected.windowMs,
+          scope: rejected.scope,
         })
       );
     }

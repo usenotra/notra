@@ -1,11 +1,12 @@
 import {
-  OFFERING_CHECK_INVALID_MESSAGE,
+  OFFERING_CHECK_INVALID_REQUEST_MESSAGE,
   OFFERING_CHECK_KILL_SWITCH_ENV,
 } from "@/constants/offering-check";
 import { offeringCheckRequestSchema } from "@/schemas/offering-check";
 import type { OfferingCheckInput } from "@/types/offering-check";
 import { jsonError } from "@/utils/api-response";
 
+import type { OfferingCheckUnknownSite } from "./domain-exists";
 import type {
   OfferingCheckRateLimitExceeded,
   OfferingCheckRateLimitUnavailable,
@@ -47,12 +48,19 @@ export async function readOfferingCheckRequest(
   );
   return parsed.success
     ? parsed.data
-    : jsonError(OFFERING_CHECK_INVALID_MESSAGE, 400);
+    : jsonError(OFFERING_CHECK_INVALID_REQUEST_MESSAGE, 400);
 }
 
-export function rateLimitResponse(
-  error: OfferingCheckRateLimitExceeded | OfferingCheckRateLimitUnavailable
+/** Maps the typed failures of both endpoints to HTTP responses. */
+export function checkErrorResponse(
+  error:
+    | OfferingCheckRateLimitExceeded
+    | OfferingCheckRateLimitUnavailable
+    | OfferingCheckUnknownSite
 ): Response {
+  if (error._tag === "OfferingCheckUnknownSite") {
+    return jsonError("Website not found", 422);
+  }
   if (error._tag === "OfferingCheckRateLimitUnavailable") {
     return jsonError("Rate limit service unavailable", 503);
   }
@@ -61,7 +69,7 @@ export function rateLimitResponse(
     Math.ceil((error.reset - Date.now()) / MS_PER_SECOND)
   );
   return Response.json(
-    { error: "Rate limit exceeded" },
+    { error: "Rate limit exceeded", scope: error.scope },
     { headers: { "Retry-After": String(retryAfter) }, status: 429 }
   );
 }

@@ -78,23 +78,48 @@ export function useSampleTyping(
   apply: (values: Values) => void
 ) {
   const frame = useRef<number | null>(null);
+  const target = useRef<Values | null>(null);
   const [typingField, setTypingField] = useState<OfferingSampleField | null>(
     null
   );
 
-  const stop = () => {
+  const cancel = () => {
     if (frame.current !== null) {
       cancelAnimationFrame(frame.current);
       frame.current = null;
     }
   };
 
-  useEffect(() => stop, []);
+  useEffect(() => cancel, []);
+
+  /** Stops typing where it is, e.g. when the visitor types themselves. */
+  const stopTyping = () => {
+    if (frame.current === null) {
+      return;
+    }
+    cancel();
+    target.current = null;
+    setTypingField(null);
+  };
+
+  /**
+   * Jumps to the end of a running example and returns its full values, so a
+   * submit mid-animation sends the whole sample instead of half of it.
+   */
+  const finishTyping = (): Values | null => {
+    const values = frame.current === null ? null : target.current;
+    stopTyping();
+    if (values) {
+      apply(values);
+    }
+    return values;
+  };
 
   // Driven by elapsed time, so slow renders skip characters instead of
   // stretching the whole animation.
   const typeSample = (sample: OfferingCheckInput) => {
-    stop();
+    cancel();
+    target.current = sample;
     if (getReducedMotionSnapshot()) {
       apply(sample);
       setTypingField(null);
@@ -120,6 +145,7 @@ export function useSampleTyping(
       }
       if (shown >= frames.length - 1) {
         frame.current = null;
+        target.current = null;
         setTypingField(null);
         return;
       }
@@ -128,5 +154,5 @@ export function useSampleTyping(
     frame.current = requestAnimationFrame(tick);
   };
 
-  return { typeSample, typingField };
+  return { typeSample, stopTyping, finishTyping, typingField };
 }

@@ -142,7 +142,7 @@ async function streamOfferingCheck(
     return;
   }
   if (!response?.ok) {
-    onFailure(failureStatusFor(response?.status));
+    onFailure(await failureStatusFor(response));
     return;
   }
 

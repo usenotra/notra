@@ -1,9 +1,7 @@
 import { cn } from "@notra/ui/lib/utils";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import type { OfferingSentenceFieldProps } from "@/types/offering-check";
-
-const SIZER_CLASS =
-  "invisible col-start-1 row-start-1 overflow-hidden pe-0.5 whitespace-pre";
 
 export function OfferingSentenceField({
   id,
@@ -11,9 +9,30 @@ export function OfferingSentenceField({
   leading,
   invalid,
   active = false,
+  holdWidth,
   className,
   ...props
 }: OfferingSentenceFieldProps) {
+  const sizer = useRef<HTMLSpanElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  const value = String(props.value ?? "");
+  const placeholder = props.placeholder ?? "";
+  // Never narrower than the placeholder while the sentence is being edited,
+  // so nothing moves under the cursor. Afterwards it hugs the text.
+  const holdPlaceholderWidth = value.length === 0 || holdWidth || active;
+
+  useLayoutEffect(() => {
+    const element = sizer.current;
+    if (!element) {
+      return;
+    }
+    const measure = () => setWidth(element.getBoundingClientRect().width);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <span
       data-active={active || undefined}
@@ -27,24 +46,27 @@ export function OfferingSentenceField({
       </label>
       {leading}
       {/*
-        Hidden copies of the placeholder and the value share one grid cell
-        with the input, so the field is as wide as the longer of the two and
-        the sentence does not jump when the first letter replaces the
-        placeholder.
+        The invisible sizer holds the text the input should fit; the input
+        animates to its measured width.
       */}
-      <span className="inline-grid max-w-full min-w-0">
-        <span aria-hidden className={SIZER_CLASS}>
-          {props.placeholder}
-        </span>
-        <span aria-hidden className={SIZER_CLASS}>
-          {props.value}
+      <span className="relative inline-flex max-w-full min-w-0">
+        <span
+          aria-hidden
+          className="invisible absolute start-0 top-0 inline-grid pe-0.5 whitespace-pre"
+          ref={sizer}
+        >
+          {holdPlaceholderWidth ? (
+            <span className="col-start-1 row-start-1">{placeholder}</span>
+          ) : null}
+          <span className="col-start-1 row-start-1">{value}</span>
         </span>
         <input
           aria-describedby={invalid ? "offering-check-error" : undefined}
           aria-invalid={invalid}
-          className="col-start-1 row-start-1 w-full min-w-0 bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] outline-none placeholder:text-[#8B5CF659] dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA59]"
+          className="max-w-full min-w-[1ch] bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none placeholder:text-[#8B5CF659] motion-reduce:transition-none dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA59]"
           id={id}
-          size={1}
+          size={Math.max(value.length, placeholder.length, 1)}
+          style={width === null ? undefined : { width }}
           {...props}
         />
       </span>

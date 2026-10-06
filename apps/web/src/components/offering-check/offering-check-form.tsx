@@ -5,15 +5,19 @@ import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { debounce, parseAsString, useQueryStates } from "nuqs";
-import { type FormEvent, useState } from "react";
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
+import { type FocusEvent, type FormEvent, useRef, useState } from "react";
 
 import {
+  OFFERING_CHECK_PROBLEM_COUNTER_FROM,
   OFFERING_CHECK_PROBLEM_MAX_LENGTH,
   OFFERING_FORM_URL_DEBOUNCE_MS,
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
-  OFFERING_CHECK_INVALID_MESSAGE,
-  OFFERING_REPORT_FAILURE_MESSAGES,
   OFFERING_REPORT_PATH,
 } from "@/constants/offering-check";
 import { preflightOfferingCheck } from "@/lib/offering-check/preflight";
@@ -23,9 +27,12 @@ import type {
   OfferingCheckFormProps,
   OfferingCheckInput,
   OfferingFormProblem,
+  OfferingSampleField,
 } from "@/types/offering-check";
+import { describeOfferingNotice } from "@/utils/offering-check";
 
 import { OfferingDomainFavicon } from "./offering-domain-favicon";
+import { OfferingErrorTooltip } from "./offering-error-tooltip";
 import { OfferingFavicon } from "./offering-favicon";
 import { OfferingSentenceField } from "./offering-sentence-field";
 
@@ -55,8 +62,22 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
     }
   );
   const [notice, setNotice] = useState<OfferingFormProblem | null>(null);
+  // Counts failed submits so a repeated error shakes the field again.
+  const [attempt, setAttempt] = useState(0);
+  const [editingSentence, setEditingSentence] = useState(false);
+  const sentence = useRef<HTMLParagraphElement>(null);
+  // Focus moving between the two sentence fields keeps the sentence "open".
+  const leaveSentenceField = (event: FocusEvent<HTMLInputElement>) => {
+    if (!sentence.current?.contains(event.relatedTarget)) {
+      setEditingSentence(false);
+    }
+  };
+  const fail = (problem: OfferingFormProblem) => {
+    setNotice(problem);
+    setAttempt((count) => count + 1);
+  };
   const [pending, setPending] = useState(false);
-  const { typeSample, typingField } = useSampleTyping(
+  const { typeSample, stopTyping, finishTyping, typingField } = useSampleTyping(
     { domain, feature, problem },
     (values) => {
       void setValues(values);
@@ -66,9 +87,15 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const openReport = async (input: OfferingCheckInput) => {
     setNotice(null);
     setPending(true);
+    // Writes the URL now, so a still-pending debounced update cannot replace
+    // the report entry after navigating.
+    await setValues(
+      { domain: input.domain, feature: input.feature, problem: input.problem },
+      { limitUrlUpdates: defaultRateLimit }
+    );
     const failure = await preflightOfferingCheck(input);
     if (failure) {
-      setNotice(failure);
+      fail(failure);
       setPending(false);
       return;
     }
@@ -89,59 +116,89 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const parsed = offeringCheckRequestSchema.safeParse({
-      domain,
-      feature,
-      problem,
-    });
+    const values = finishTyping() ?? { domain, feature, problem };
+    const parsed = offeringCheckRequestSchema.safeParse(values);
     if (parsed.success) {
       openReport(parsed.data);
+      return;
+    }
+    const invalidField = parsed.error.issues[0]?.path[0];
+    if (invalidField === "feature") {
+      fail("invalid-feature");
+    } else if (invalidField === "problem") {
+      fail("invalid-problem");
     } else {
-      setNotice("invalid");
+      fail("invalid-domain");
     }
   };
 
-  const invalid = notice === "invalid";
+  const editField = (values: Partial<OfferingCheckInput>) => {
+    stopTyping();
+    setNotice(null);
+    void setValues(values);
+  };
+
+  const shown = notice ? describeOfferingNotice(notice) : null;
+  const errorFor = (field: OfferingSampleField) =>
+    shown?.field === field ? shown.message : null;
+  const problemLeft = OFFERING_CHECK_PROBLEM_MAX_LENGTH - problem.length;
   const problemEnabled = feature.trim().length > 0 || typingField !== null;
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
-      <p className="font-display text-foreground text-[1.75rem]/[1.55] font-medium tracking-[-0.02em] text-pretty sm:text-[2.25rem]/[1.5]">
+      {/* Two lines tall at least, so the fields closing up never moves the
+          problem field below. */}
+      <p
+        className="font-display text-foreground min-h-[3.1em] text-[1.75rem]/[1.55] font-medium tracking-[-0.02em] text-pretty sm:min-h-[3em] sm:text-[2.25rem]/[1.5]"
+        ref={sentence}
+      >
         Does AI know{" "}
-        <OfferingSentenceField
-          active={typingField === "domain"}
-          autoCapitalize="none"
-          autoComplete="url"
-          id="offering-check-domain"
-          inputMode="url"
-          invalid={invalid}
-          label="Your website"
-          leading={<OfferingDomainFavicon value={domain} />}
-          name="domain"
-          onChange={(event) => {
-            void setValues({ domain: event.target.value });
-            setNotice(null);
-          }}
-          placeholder="acme.com"
-          spellCheck={false}
-          value={domain}
-        />{" "}
+        <OfferingErrorTooltip
+          attempt={attempt}
+          error={errorFor("domain")}
+          inline
+        >
+          <OfferingSentenceField
+            active={typingField === "domain"}
+            holdWidth={editingSentence}
+            onBlur={leaveSentenceField}
+            onFocus={() => setEditingSentence(true)}
+            autoCapitalize="none"
+            autoComplete="url"
+            id="offering-check-domain"
+            inputMode="url"
+            invalid={errorFor("domain") !== null}
+            label="Your website"
+            leading={<OfferingDomainFavicon value={domain} />}
+            name="domain"
+            onChange={(event) => editField({ domain: event.target.value })}
+            placeholder="acme.com"
+            spellCheck={false}
+            value={domain}
+          />
+        </OfferingErrorTooltip>{" "}
         and{" "}
-        <OfferingSentenceField
-          active={typingField === "feature"}
-          autoComplete="off"
-          id="offering-check-feature"
-          invalid={false}
-          label="Feature name, optional"
-          maxLength={OFFERING_CHECK_FEATURE_MAX_LENGTH}
-          name="feature"
-          onChange={(event) => {
-            void setValues({ feature: event.target.value });
-            setNotice(null);
-          }}
-          placeholder="your feature"
-          value={feature}
-        />
+        <OfferingErrorTooltip
+          attempt={attempt}
+          error={errorFor("feature")}
+          inline
+        >
+          <OfferingSentenceField
+            active={typingField === "feature"}
+            holdWidth={editingSentence}
+            onBlur={leaveSentenceField}
+            onFocus={() => setEditingSentence(true)}
+            autoComplete="off"
+            id="offering-check-feature"
+            invalid={errorFor("feature") !== null}
+            label="Feature name, optional"
+            maxLength={OFFERING_CHECK_FEATURE_MAX_LENGTH}
+            name="feature"
+            onChange={(event) => editField({ feature: event.target.value })}
+            placeholder="your feature"
+            value={feature}
+          />
+        </OfferingErrorTooltip>
         ?
       </p>
 
@@ -161,41 +218,60 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
             optional
           </span>
         </Label>
-        <Textarea
-          autoComplete="off"
-          data-active={typingField === "problem" || undefined}
-          className="min-h-20 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 py-3 text-[0.9375rem]/6 shadow-none transition-[border-color,box-shadow] placeholder:text-[#1E1E1E66] data-active:border-[#8B5CF6] data-active:ring-3 data-active:ring-[#8B5CF6]/20 dark:border-white/12 dark:placeholder:text-white/40"
-          id="offering-check-problem"
-          maxLength={OFFERING_CHECK_PROBLEM_MAX_LENGTH}
-          name="problem"
-          onChange={(event) => {
-            void setValues({ problem: event.target.value });
-          }}
-          disabled={!problemEnabled}
-          placeholder={
-            problemEnabled
-              ? "New bug reports pile up and nobody knows which team should pick them up."
-              : "Name a feature first"
-          }
-          rows={2}
-          value={problem}
-        />
+        <OfferingErrorTooltip attempt={attempt} error={errorFor("problem")}>
+          <div className="relative">
+            <Textarea
+              autoComplete="off"
+              aria-describedby={
+                errorFor("problem") ? "offering-check-error" : undefined
+              }
+              aria-invalid={errorFor("problem") !== null}
+              data-active={typingField === "problem" || undefined}
+              className="min-h-20 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 pt-3 pb-7 text-[0.9375rem]/6 shadow-none transition-[border-color,box-shadow] placeholder:text-[#1E1E1E66] data-active:border-[#8B5CF6] data-active:ring-3 data-active:ring-[#8B5CF6]/20 dark:border-white/12 dark:placeholder:text-white/40"
+              id="offering-check-problem"
+              maxLength={OFFERING_CHECK_PROBLEM_MAX_LENGTH}
+              name="problem"
+              onChange={(event) => editField({ problem: event.target.value })}
+              disabled={!problemEnabled}
+              placeholder={
+                problemEnabled
+                  ? "New bug reports pile up and nobody knows which team should pick them up."
+                  : "Name a feature first"
+              }
+              rows={2}
+              value={problem}
+            />
+            {/* Overlaid so the hint never shifts the layout. */}
+            <span
+              aria-hidden={problemLeft > OFFERING_CHECK_PROBLEM_COUNTER_FROM}
+              className={cn(
+                "pointer-events-none absolute end-3 bottom-2 text-xs tabular-nums transition-opacity duration-200",
+                problemLeft > OFFERING_CHECK_PROBLEM_COUNTER_FROM
+                  ? "opacity-0"
+                  : "opacity-100",
+                problemLeft <= 0
+                  ? "text-[#9B1C1C] dark:text-[#FCA5A5]"
+                  : "text-[#1E1E1E80] dark:text-white/45"
+              )}
+            >
+              {problemLeft}
+            </span>
+          </div>
+        </OfferingErrorTooltip>
       </div>
 
-      {notice ? (
+      {/* Field errors show as a tooltip on the field; this repeats them for screen readers. */}
+      {shown?.field ? (
+        <p className="sr-only" id="offering-check-error" role="alert">
+          {shown.message}
+        </p>
+      ) : null}
+      {shown && !shown.field ? (
         <p
-          className={cn(
-            "mt-4 text-[0.875rem]/5.5",
-            invalid
-              ? "text-[#9B1C1C] dark:text-[#FCA5A5]"
-              : "text-foreground rounded-xl bg-[#F7F5FB] px-3.5 py-2.5 dark:bg-white/[0.04]"
-          )}
-          id={invalid ? "offering-check-error" : undefined}
+          className="text-foreground mt-4 rounded-xl bg-[#F7F5FB] px-3.5 py-2.5 text-[0.875rem]/5.5 dark:bg-white/[0.04]"
           role="alert"
         >
-          {invalid
-            ? OFFERING_CHECK_INVALID_MESSAGE
-            : OFFERING_REPORT_FAILURE_MESSAGES[notice]}
+          {shown.message}
         </p>
       ) : null}
 
