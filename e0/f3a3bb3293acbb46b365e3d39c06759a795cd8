@@ -1,0 +1,72 @@
+apps/ui/registry/notra/icon-tabs/lib/icon-tabs.ts
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-30
+apps/ui/docs/components/icon-tabs.mdx
+  s_0036a8309cbf64::t_6bdc4b98d9f1da 29
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-28,31-39
+  s_0036a8309cbf64::t_790280e0df8865 30
+apps/ui/src/types/landing.ts
+  s_0036a8309cbf64::t_46d4a7535194d2 12
+  s_0036a8309cbf64::t_d18b1793e6e137 17-18
+apps/ui/registry/notra/icon-tabs/constants/icon-tabs.ts
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-2
+packages/ui/src/types/icon-tabs.ts
+  s_0036a8309cbf64::t_c6a35efebb8111 1-33
+apps/ui/registry.json
+  s_0036a8309cbf64::t_46d4a7535194d2 1231-1258
+apps/ui/src/components/previews/step-slider-preview.tsx
+  s_0036a8309cbf64::t_d18b1793e6e137 1-20
+apps/ui/src/components/previews/icon-tabs-preview.tsx
+  s_0036a8309cbf64::t_46d4a7535194d2 1-22
+apps/dashboard/src/components/webhooks/workspace.tsx
+  s_0036a8309cbf64::t_84d47e9519b985 15,76-78,82-84
+  s_0036a8309cbf64::t_c6a35efebb8111 11-14,74-75,80-81,91-92
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_0036a8309cbf64::t_c6a35efebb8111 32
+packages/ui/src/components/ui/icon-tabs.tsx
+  s_0036a8309cbf64::t_c6a35efebb8111 1-161
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_0036a8309cbf64::t_c6a35efebb8111 246,1253
+apps/ui/src/components/previews/sonner-preview.tsx
+  s_0036a8309cbf64::t_d18b1793e6e137 1-34
+apps/ui/registry/notra/icon-tabs/examples/icon-tabs.tsx
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-15,18-27
+  s_0036a8309cbf64::t_6bdc4b98d9f1da 16-17
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/page-client.tsx
+  s_0036a8309cbf64::t_c6a35efebb8111 13-15,184-185,193-194,202-203,209-210,233-234
+  s_0036a8309cbf64::t_84d47e9519b985 186,188-190,195,197-199,204-206,211,221-226
+  s_0036a8309cbf64::t_e47dd4c3bd6437 18
+apps/dashboard/src/components/design-system/sections/icon-tabs-section.tsx
+  s_0036a8309cbf64::t_c6a35efebb8111 1-81
+apps/ui/src/components/landing-sections.astro
+  s_0036a8309cbf64::t_46d4a7535194d2 14,34
+  s_0036a8309cbf64::t_d18b1793e6e137 19-20,39-40
+apps/ui/registry/notra/icon-tabs/types/icon-tabs.ts
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-33
+apps/ui/src/constants/landing.ts
+  s_0036a8309cbf64::t_d18b1793e6e137 59-72
+  s_0036a8309cbf64::t_46d4a7535194d2 73-77
+packages/ui/src/lib/icon-tabs.ts
+  s_0036a8309cbf64::t_c6a35efebb8111 1-30
+apps/ui/docs/components/meta.ts
+  s_0036a8309cbf64::t_46d4a7535194d2 12
+packages/ui/src/constants/icon-tabs.ts
+  s_0036a8309cbf64::t_c6a35efebb8111 1-2
+apps/ui/registry/notra/icon-tabs/components/icon-tabs.tsx
+  s_0036a8309cbf64::t_faa91d59e5c67b 1-197
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e0f3a3bb3293acbb46b365e3d39c06759a795cd8",
+  "prompts": {},
+  "sessions": {
+    "s_0036a8309cbf64": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bedfcd45-dee5-4c47-9a43-4148ff5046c1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
