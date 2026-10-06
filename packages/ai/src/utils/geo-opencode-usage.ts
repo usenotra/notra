@@ -7,7 +7,14 @@ export function geoBoxTokenUsage(
 ): GeoBoxTokenUsage {
   return {
     modelId: model,
-    totalUsd: cost.totalUsd,
+    ...(Number.isFinite(cost.totalUsd) &&
+    (cost.totalUsd > 0 ||
+      (cost.totalUsd === 0 &&
+        cost.inputTokens === 0 &&
+        cost.outputTokens === 0 &&
+        cost.cachedInputTokens === 0))
+      ? { totalUsd: cost.totalUsd }
+      : {}),
     computeMs: cost.computeMs,
     inputTokens: cost.inputTokens,
     inputTokenDetails: {

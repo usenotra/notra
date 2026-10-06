@@ -14,6 +14,7 @@ import { ConsentManager } from "@/components/consent-manager";
 import NotFound from "@/components/not-found-page";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RSS_FEED_PATH, RSS_FEED_TITLE } from "@/utils/constants";
+import { buildNavbarSessionScript } from "@/utils/navbar-session";
 
 import globalsCss from "@/styles/globals.css?url";
 
@@ -49,6 +50,10 @@ export const Route = createRootRoute({
       },
     ],
     scripts: [
+      {
+        id: "navbar-session-prefetch",
+        children: buildNavbarSessionScript(),
+      },
       {
         id: "c15t-initial-data-prefetch",
         children: buildPrefetchScript({ backendURL: "/api/c15t" }),

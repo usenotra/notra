@@ -4,9 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_WRITER_NAV_LINK } from "@notra/geo-core/constants/geo";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -20,6 +19,7 @@ import {
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
 import type { NavModePrimaryActionProps } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
+import dynamic from "@/utils/lazy-component";
 
 import { SidebarNavLink } from "./sidebar-nav-link";
 

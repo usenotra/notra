@@ -1,3 +1,6 @@
+import { logError } from "@notra/ai/utils/server-log";
+
+import "@/workflows/runtime";
 import {
   getOnboardingAgentState,
   releaseOnboardingAgentReservation,
@@ -30,9 +33,9 @@ export async function getOnboardingAgentStateStep(input: {
   "use step";
   const state = await getOnboardingAgentState(input.organizationId);
   if (!state.ran && input.poll === input.softLimitPolls) {
-    console.error(
-      `[Onboarding Agent] Run for organization ${input.organizationId} exceeded the soft time limit`
-    );
+    logError("[Onboarding Agent] Run exceeded the soft time limit", undefined, {
+      organizationId: input.organizationId,
+    });
   }
   return state;
 }

@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { FormatCard } from "@/components/content/create/format-card";
 import { FORMAT_ORDER } from "@/constants/content-formats";

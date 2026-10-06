@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { websiteLogUrl } from "@notra/ai/utils/website-log-url";
 
 import { WORKFLOW_FAILURE_ALERT } from "@/constants/workflow-failure-alert";
 import type { WorkflowFailureAlertInput } from "@/types/workflow-failure-alert";
@@ -17,10 +18,14 @@ export async function enqueueWorkflowFailure(
   }
   await redis
     .multi()
-    .set(`workflow:failure-alert:payload:${input.runId}`, input, {
-      nx: true,
-      ex: WORKFLOW_FAILURE_ALERT.payloadSeconds,
-    })
+    .set(
+      `workflow:failure-alert:payload:${input.runId}`,
+      { ...input, websiteUrl: websiteLogUrl(input.websiteUrl) },
+      {
+        nx: true,
+        ex: WORKFLOW_FAILURE_ALERT.payloadSeconds,
+      }
+    )
     .zadd(pendingKey, { nx: true }, { score: Date.now(), member: input.runId })
     .exec();
 }
@@ -53,6 +58,7 @@ async function alertWorkflowFailure(
     if (await redis.exists(sentKey)) {
       return;
     }
+    const websiteUrl = websiteLogUrl(input.websiteUrl);
     const response = await fetch(webhook, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -61,6 +67,7 @@ async function alertWorkflowFailure(
           ":warning: Workflow failed",
           `Workflow: ${input.workflow}`,
           `Run: ${input.runId}`,
+          ...(websiteUrl ? [`Website: ${websiteUrl}`] : []),
           ...(input.organizationId
             ? [`Organization: ${input.organizationId}`]
             : []),

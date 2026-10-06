@@ -21,6 +21,7 @@ import type {
   AgentFeedbackClassification,
   ClassifyAgentFeedbackParams,
 } from "@notra/ai/types/feedback-classifier";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { generateText, Output } from "ai";
 
@@ -63,10 +64,9 @@ async function generateClassification(
     });
     return output;
   } catch (error) {
-    console.error("[AgentFeedback] Classification failed", {
+    logError("[AgentFeedback] Classification failed", error, {
       organizationId: params.organizationId,
       feedbackId: params.feedbackId,
-      error,
     });
     return null;
   }

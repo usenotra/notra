@@ -1,3 +1,4 @@
+import { GEO_CONTEXT_COMPETITOR_LIMIT } from "@notra/db/constants/geo-context-competitors";
 import { isDemoMode } from "@notra/utils/demo-mode";
 
 import type {
@@ -326,6 +327,7 @@ export const GEO_BRAND_LABELS: Record<string, string> = {
   codex: "Codex",
   copilot: "Copilot",
   mistral: "Mistral",
+  cohere: "Cohere",
   deepseek: "DeepSeek",
   meta: "Meta",
   grok: "Grok",
@@ -342,10 +344,12 @@ export const GEO_MAX_SEQUENCES = 10;
 export const GEO_COMPETITOR_SHARE_LIMIT = 50;
 export const GEO_PROMPT_HISTORY_LIMIT = 120;
 export const GEO_PROMPT_HISTORY_SKELETON_ROWS = 4;
-/** Named brands shown in the scan-history "New brands" cell before +N. */
-export const GEO_PROMPT_HISTORY_NEW_COMPETITORS_VISIBLE = 3;
-export const GEO_PROMPT_HISTORY_EMPTY_POSITION = "\u2013";
-export const GEO_PROMPT_HISTORY_EMPTY_COMPETITORS = "\u2013";
+/** Scans the prompt sheet's history renders per infinite-scroll page. */
+export const GEO_PROMPT_HISTORY_PAGE_SIZE = 10;
+/** Sources listed in the prompt sheet before "Show all". */
+export const GEO_PROMPT_SOURCES_VISIBLE_ROWS = 5;
+/** Brands named in the prompts table's "Mentioned instead" cell before +N. */
+export const GEO_PROMPT_MENTIONED_INSTEAD_VISIBLE = 2;
 export const GEO_SHARE_OF_VOICE_TOP_BRANDS = 5;
 export const GEO_SHARE_OF_VOICE_PAGE_TOP_BRANDS = 8;
 export const GEO_VISIBILITY_TABLE_ROWS = GEO_SHARE_OF_VOICE_TOP_BRANDS + 1;
@@ -362,6 +366,11 @@ export const GEO_CONVERSATION_CONTEXT_PROMPT_LIMIT = 12;
 export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
+export const GEO_FLEX_MODELS: ReadonlySet<string> = new Set([
+  "openai/gpt-5.6-sol",
+  "openai/gpt-5.6-luna",
+  "openai/gpt-5.6-terra",
+]);
 export const GEO_JUDGE_MAX_TOKENS = 800;
 export const GEO_SCAN_CONCURRENCY = 4;
 export const GEO_SCAN_DEFAULT_INTERVAL_HOURS = 24;
@@ -474,10 +483,8 @@ export const GEO_DISCOVERY_CACHE_PREFIX = "geo:discovery:v7";
 export const GEO_DISCOVERY_CACHE_TTL_SECONDS = 60 * 60;
 export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
-export const GEO_INGEST_IDENTITY_CACHE_PREFIX = "geo:ingest-identity:v1";
 export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS = 5 * 60;
-export const GEO_INGEST_IDENTITY_INACTIVE_TTL_SECONDS = 60;
 export const GEO_ONBOARDING_MAX_PROMPTS = 30;
 export const GEO_ONBOARDING_SUGGESTED_COMPETITORS = 10;
 export const GEO_BRAND_SEARCH_MIN_QUERY_LENGTH = 2;
@@ -937,7 +944,18 @@ export const GEO_EMPTY_TRAFFIC_RESPONSE: AiTrafficResponse = {
 };
 
 export const GEO_MAX_ALIASES = 10;
-export const GEO_MAX_COMPETITORS = 25;
+/**
+ * Tracking a competitor only adds a name to match in answers, so this is a
+ * safety ceiling rather than a product limit. LLM prompts never see the whole
+ * list; see GEO_COMPETITOR_CONTEXT_LIMIT.
+ */
+export const GEO_MAX_COMPETITORS = 2000;
+/**
+ * How many tracked competitors an LLM prompt gets (personas, conversations,
+ * suggestions, writer briefs, agent context), ranked by how often engines
+ * recommend them. Keeps token usage flat however many are tracked.
+ */
+export const GEO_COMPETITOR_CONTEXT_LIMIT = GEO_CONTEXT_COMPETITOR_LIMIT;
 export const GEO_MAX_CONVERSION_PATHS = 20;
 export const GEO_CONVERSION_PATH_MAX_LENGTH = 200;
 export const GEO_CONVERSION_PATHS_PLACEHOLDER = "/signup";
@@ -952,15 +970,11 @@ export const GEO_MAX_LANGUAGES = 4;
 export const GEO_LANGUAGE_MAX_PROMPTS = 5;
 export const GEO_TRANSLATION_MAX_TOKENS = 2000;
 
-export const COPY_FEEDBACK_MS = 2000;
-
 export const GEO_TAB_VALUES = [
   "visibility",
   "brand-sentiment",
   "journeys",
 ] as const satisfies readonly GeoTab[];
-
-export const GEO_TRAFFIC_REVEAL_MS = 150;
 
 export const GEO_DEFAULT_TAB: GeoTab = "visibility";
 

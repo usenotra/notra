@@ -146,7 +146,9 @@
           "marketingEmails": {
             "description": "Receive emails about new features, tips and announcements"
           }
-        }
+        },
+        "marketingPersonal": "Just for you. Every email also has an unsubscribe link.",
+        "marketingBlocked": "You unsubscribed from all marketing emails through a link in an email. Contact support@usenotra.com to receive them again."
       },
       "billing": {
         "plansDescription": "Change your plan or upgrade.",
@@ -173,6 +175,10 @@
         "period": "Last 30 days",
         "refresh": "Refresh webhook activity",
         "addEndpoint": "Add endpoint",
+        "removeEndpoint": "Remove endpoint {url}",
+        "rightNow": "Right now",
+        "processing": "Processing",
+        "idle": "Idle",
         "views": "Webhook views",
         "deliveries": "Deliveries",
         "endpoints": "Endpoints",
@@ -196,18 +202,19 @@
           "cancelled": "Cancelled"
         },
         "columns": {
-          "event": "Event and destination",
+          "event": "Event",
+          "destination": "Destination",
           "response": "Response",
-          "attempts": "Attempts"
+          "attemptCount": "{count, plural, one {# attempt} other {# attempts}}"
         },
         "filterLabel": "Filter deliveries by status",
         "empty": {
           "allTitle": "Your events show up here",
           "allDescription": "Add an endpoint, then generate a post. Every delivery and retry gets logged here.",
           "filteredTitle": "No deliveries with this status",
-          "filteredDescription": "Pick another filter to see more of your history."
+          "filteredDescription": "Pick another filter to see more of your history.",
+          "showAll": "Show all deliveries"
         },
-        "pageSummary": "{range} deliveries, refreshes every {seconds}s",
         "endpointsEmpty": {
           "title": "Connect your first endpoint",
           "description": "Pick which events go to your workflow."
@@ -241,7 +248,8 @@
           "inFlight": "Sending",
           "payload": "Request payload",
           "payloadCopied": "Payload copied"
-        }
+        },
+        "itemLabel": "deliveries"
       }
     },
     "logs": {
@@ -467,6 +475,7 @@
     "roleLabel": "{role, select, owner {Owner} admin {Admin} member {Member} other {{role}}}",
     "teamMemberLimit": "Team member limit reached on your current plan.",
     "viewPlans": "View plans",
+    "invitationExpired": "Expired",
     "columns": {
       "user": "User"
     },
@@ -479,8 +488,7 @@
       "resendDescription": "We'll send a new invitation link to <strong>{email}</strong>.",
       "resending": "Resending…",
       "cancelTitle": "Cancel invitation?",
-      "cancelDescription": "The invitation sent to {email} will be canceled and can no longer be accepted.",
-      "canceling": "Canceling…"
+      "cancelDescription": "The invitation sent to {email} will be canceled and can no longer be accepted."
     },
     "invite": {
       "sent": "Invitation sent successfully",
@@ -497,8 +505,7 @@
       "selectRole": "Select a role",
       "updateRole": "Update role",
       "removeTitle": "Remove {name}?",
-      "removeDescription": "{name} will be removed from {organization} and lose access to all its content. To rejoin, they'll need a new invitation.",
-      "removing": "Removing…"
+      "removeDescription": "{name} will be removed from {organization} and lose access to all its content. To rejoin, they'll need a new invitation."
     },
     "shared": {
       "resendInvitation": "Resend invitation",
@@ -646,6 +653,11 @@
     }
   },
   "feedback": {
+    "activity": {
+      "title": "Feedback activity",
+      "loadFailed": "Failed to load feedback activity",
+      "seriesLabel": "Feedback"
+    },
     "unspecified": "Unspecified",
     "kind": {
       "bug": "Bug",
@@ -772,7 +784,6 @@
       "or": "Or",
       "emailPlaceholder": "jane@company.com",
       "passwordPlaceholder": "At least 10 characters",
-      "creating": "Creating account…",
       "submit": "Create account",
       "forgotPassword": "Forgot your password? <link>Reset your password</link>",
       "haveAccount": "Already have an account? <link>Log in</link>"
@@ -814,7 +825,6 @@
       "descriptionNoEmail": "We sent a 6-digit code to your email address. Enter it below to continue.",
       "codeLabel": "Verification code",
       "submit": "Verify email",
-      "submitting": "Verifying…",
       "errorFallback": "Verification failed. Please try again."
     },
     "mfaChallenge": {
@@ -828,7 +838,6 @@
       "backupDescription": "Enter one of the backup codes you saved when you set up two-factor authentication. Each code works once.",
       "backupCodeLabel": "Backup code",
       "backupSubmit": "Use backup code",
-      "backupSubmitting": "Checking…",
       "useAuthenticator": "Use my authenticator app instead",
       "issuedCodesTitle": "Your backup codes",
       "issuedCodesDescription": "You're signed in. Save these backup codes now: each one lets you in once if you lose your authenticator app."
@@ -845,7 +854,6 @@
       "passwordPlaceholder": "Your password",
       "lastUsed": "Last used",
       "submit": "Log in",
-      "submitting": "Signing in…",
       "resetPassword": "Reset your password",
       "noAccount": "Don't have an account?",
       "register": "Register",
@@ -898,7 +906,7 @@
       "createConversationFailed": "Failed to create conversation",
       "conversationLimit": "You can have up to {limit} conversations. Remove one before adding another.",
       "personaLimit": "You can have up to {limit} active personas. Archive one before adding or reactivating another.",
-      "competitorLimit": "You can track up to {limit} competitors. Remove some before importing more.",
+      "competitorLimit": "You can track up to {limit} competitors. Remove some before adding more.",
       "configureTrackingFirst": "Configure your brand tracking settings first",
       "enableTrackingFirst": "Enable brand tracking before starting a scan",
       "scanAlreadyRunning": "A scan is already running for this project",
@@ -992,6 +1000,8 @@
       "branchNotFound": "That branch doesn't exist in the repository",
       "granolaKeyRejected": "Granola couldn't verify this API key. Check the key and its scopes, then try again.",
       "publicUrlInvalid": "Enter a public http or https URL",
+      "websiteDomainNotFound": "Website domain not found. Please check the website address.",
+      "websiteDnsUnavailable": "We couldn't check the website domain right now. Please try again.",
       "mcpAuthorizationFailed": "The MCP server authorization failed. Check the URL and try again.",
       "tooManyConnectionAttempts": "Too many connection attempts. Wait a minute and try again.",
       "selectOneRepository": "Please select exactly one repository",
@@ -1159,7 +1169,6 @@
       "tryingAgain": "Trying again",
       "noSuggestions": "Nothing obvious for {domain}. Search above instead.",
       "showMore": "Show {count} more",
-      "runningFirstScan": "Running your first scan",
       "description": "When AI recommends someone instead of {companyName}, who is it? Pick the brands you want to be measured against.",
       "descriptionFallback": "When AI recommends someone instead of you, who is it? Pick the brands you want to be measured against.",
       "title": "Who do you lose deals to?"
@@ -1183,8 +1192,8 @@
       "startFreeTrial": "Start free trial",
       "selectPlan": "Select {plan}",
       "title": "Choose your plan",
-      "description": "Use feedback for free, or upgrade for AI content and visibility tracking.",
-      "continueFree": "Continue with free feedback",
+      "description": "Pick a plan to unlock AI visibility tracking and content, or close this and look around first.",
+      "close": "Close and go to dashboard",
       "renews": "{interval, select, year {Your plan renews automatically every year until you cancel.} other {Your plan renews automatically every month until you cancel.}}"
     },
     "workspace": {
@@ -1210,26 +1219,17 @@
       "heardAbout": "Where did you hear about Notra?",
       "selectOption": "Select an option",
       "tellUsWhere": "Tell us where",
-      "tellUsWherePlaceholder": "Podcast, community, friend, etc.",
-      "settingUp": "Setting up…"
+      "tellUsWherePlaceholder": "Podcast, community, friend, etc."
     },
     "shared": {
-      "skipOnboarding": "Skip onboarding",
-      "saving": "Saving"
+      "skipOnboarding": "Skip onboarding"
     }
   },
   "shared": {
     "table": {
-      "insertBefore": "Insert before",
-      "insertAfter": "Insert after",
-      "columnOptions": "{column} column options",
-      "rowOptions": "Row {row} options",
       "selectAllRows": "Select all rows",
       "selectRow": "Select row {row}",
-      "reorderColumn": "Reorder {column} column",
-      "renameColumn": "Rename {column} column",
-      "resizeColumn": "Resize {column} column",
-      "cellLabel": "{column} for row {row}"
+      "resizeColumn": "Resize {column} column"
     },
     "checkbox": {
       "partiallySelected": "Partially selected"
@@ -1547,7 +1547,8 @@
         "searchLabel": "Search sitemap URLs",
         "searchPlaceholder": "Search URLs…",
         "noSearchResults": "No URLs match your search.",
-        "emptyView": "No URLs in this view yet."
+        "emptyView": "No URLs in this view yet.",
+        "itemLabel": "pages"
       }
     },
     "references": {
@@ -1831,6 +1832,7 @@
       "year": "year",
       "month": "month",
       "current": "Current",
+      "billingInterval": "Billing interval",
       "monthly": "Monthly",
       "yearly": "Yearly",
       "title": "Title",
@@ -1928,7 +1930,6 @@
       "failedToAddSitemap": "Failed to add sitemap",
       "sitemapOrSiteUrl": "Sitemap or site URL",
       "adding": "Adding…",
-      "removing": "Removing…",
       "url": "URL",
       "links": "Links",
       "today": "Today",
@@ -2455,6 +2456,19 @@
       "customColor": "Pick a custom color",
       "kindHint": "Direct sells what you sell. Indirect solves the same problem differently."
     },
+    "competitorEngineMatrix": {
+      "title": "Recommendations by assistant",
+      "hint": "Share of each assistant's answers that mention the brand in the selected period. Darker cells mean more mentions.",
+      "tableLabel": "Brand mention rate by AI assistant",
+      "brandColumn": "Brand",
+      "you": "You",
+      "noChecks": "No answers",
+      "empty": "No answers in this period yet.",
+      "scanning": "Scanning engines…",
+      "loadFailed": "Couldn't load assistant recommendations.",
+      "cellDetail": "{mentions, number} of {checks, number} answers",
+      "refreshFailed": "Couldn't refresh, showing earlier data"
+    },
     "competitorModal": {
       "description": "How AI engines mention {title} across your tracked prompts"
     },
@@ -2590,9 +2604,7 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "Engine ({count, number})",
-        "visible": "Visible",
-        "lastChecked": "Last checked"
+        "engineCount": "Engine ({count, number})"
       },
       "hints": {
         "visible": "Answers where you showed up at all: your brand was named, one of your pages was cited as a source or both. Citations are included in this number.",
@@ -2601,6 +2613,7 @@
         "avgPosition": "Average rank of your brand across the answers that named it. Answers that only cited you carry no rank and are left out."
       },
       "visibilityLabel": "{engine} visibility",
+      "visibleCount": "{count, number} visible",
       "readoutScanning": "Scanning now",
       "filterLabel": "Filter engines",
       "filterPlaceholder": "Filter by engine…",
@@ -2729,7 +2742,11 @@
       "duplicates": "Duplicates skipped",
       "problems": "Rows with problems",
       "downloadTemplate": "Download template",
-      "fileRejected": "Choose a single CSV file up to {size}"
+      "fileRejected": "Choose a single CSV file up to {size}",
+      "newRows": "New",
+      "updatedRows": "Already tracked, will be updated",
+      "overLimit": "Over the limit of {limit}, not imported",
+      "overLimitHint": "Your project tracks {current} of {limit} competitors. Remove some first to import the rest."
     },
     "geoEnginePicker": {
       "approvedWithoutZdr": "Approved without ZDR",
@@ -3049,7 +3066,6 @@
       "archiveDescription": "This persona will be removed from future scans. Its scan history is kept.",
       "nounSingular": "persona",
       "nounPlural": "personas",
-      "archiving": "Archiving…",
       "archiveTitle": "Archive persona?"
     },
     "projectBrandSection": {
@@ -3121,7 +3137,8 @@
       "latestAnswer": "Latest answer from each engine",
       "answerLanguage": "Answer language",
       "noTags": "No tags",
-      "addTag": "Add a tag…"
+      "addTag": "Add a tag…",
+      "lastScan": "Last scan"
     },
     "promptDetailStatus": {
       "loading": "Loading answer…",
@@ -3142,26 +3159,19 @@
       "competitors": "Brands mentioned instead",
       "searches": "Searches the engine ran",
       "sources": "Sources cited",
-      "history": "Scan history"
+      "history": "Scan history",
+      "showAllSources": "Show all {count} sources"
     },
     "promptReceiptHistory": {
       "gainedMention": "Now mentioned",
-      "gainedMentionAt": "at",
       "lostMention": "No longer mentioned",
-      "moved": "Moved",
       "noChange": "No change",
       "firstScan": "First scan",
       "gainedLabel": "Now mentioned at {position}",
       "movedLabel": "Moved {from} → {to}",
-      "moreAria": "{count} more: {names}",
-      "viewAnswer": "View answer",
-      "viewAnswerAria": "View answer · {timestamp}",
-      "singleScan": "Only one scan so far",
       "noHistory": "No scans recorded yet",
-      "columns": {
-        "date": "Scan",
-        "newCompetitors": "New brands"
-      }
+      "newBrands": "New: {names}",
+      "viewAnswer": "View answer"
     },
     "promptReceiptViewSwitch": {
       "groupLabel": "Receipt view",
@@ -3196,10 +3206,7 @@
       "suggestions": "Tags in use"
     },
     "promptsTable": {
-      "pauseAria": "Pause {prompt}",
-      "enableAria": "Enable {prompt}",
       "copiedPrompt": "Copied prompt",
-      "pausePrompt": "Pause prompt",
       "enablePrompt": "Enable prompt",
       "removePrompt": "Remove prompt",
       "removeDescriptionOne": "\"{prompt}\" will no longer be asked in GEO scans. Historical answers stay in your results.",
@@ -3210,7 +3217,8 @@
       "nounPlural": "prompts",
       "tagsCustomOnly": "Tags apply to custom prompts. Auto-generated prompts were skipped.",
       "columns": {
-        "presence": "Presence"
+        "presence": "Presence",
+        "mentionedInstead": "Mentioned instead"
       },
       "filterAria": "Filter prompts",
       "filterPlaceholder": "Filter prompts…",
@@ -3241,7 +3249,6 @@
       "runningWithTotal": "Scanning now, {checks} of {total} answers saved.",
       "running": "Scanning now, {checks} answers saved.",
       "failed": "The last scan stopped early {when}.",
-      "finished": "Answers from the last scan, {when}.",
       "progressLabel": "Saved scan answers",
       "empty": {
         "title": "No answers yet",
@@ -3369,6 +3376,7 @@
         "retry": "Try again"
       },
       "noRatedAnswers": "No rated answers",
+      "ratedAnswers": "{count, plural, one {# rated answer} other {# rated answers}}",
       "deltaLabel": "Sentiment score",
       "deltaHint": "vs. previous period",
       "band": {
@@ -3545,7 +3553,10 @@
         "clearAll": "Clear all",
         "empty": "No competitors tracked yet. Add them in GEO settings to mention alternatives.",
         "mentioned": "Recommended instead of you",
-        "withDomain": "{detail} · {domain}"
+        "withDomain": "{detail} · {domain}",
+        "selectedCount": "{count} of {max} selected",
+        "limitHint": "A brief positions against up to {max} competitors.",
+        "autoPick": "Nothing picked: the brief uses the {max} competitors AI engines recommend most."
       },
       "writeDialog": {
         "description": "Plan or write an article from a prompt, content type, brand identity and competitors.",
@@ -3959,9 +3970,11 @@
       "connectingProperty": "Connecting {property}…",
       "connectingPropertyDescription": "Reading your search queries. This can take a minute, keep working in the meantime."
     },
-    "liveIndicator": {
-      "label": "Live",
-      "hint": "Updates on its own as new data comes in"
+    "competitorChoices": {
+      "searchLabel": "Search competitors",
+      "searchPlaceholder": "Search competitors",
+      "moreHidden": "{count, plural, one {# more competitor} other {# more competitors}}. Search to find {count, plural, one {it} other {them}}.",
+      "noMatches": "No competitors match “{query}”."
     }
   },
   "integrations": {
@@ -4595,7 +4608,6 @@
         "updateCredentials": "Update credentials",
         "disconnectTitle": "Disconnect {name}?",
         "disconnectDescription": "Its tools will no longer be available to this organization. You can reconnect it later.",
-        "disconnecting": "Disconnecting…",
         "auth": {
           "none": "No authentication"
         }
@@ -5194,7 +5206,8 @@
     "creditActivity": {
       "aiChat": "AI chat",
       "title": "Recent activity",
-      "empty": "No usage events yet"
+      "empty": "No usage events yet",
+      "itemLabel": "events"
     },
     "creditUsage": {
       "creditsUsed": "Credits used",
@@ -5572,7 +5585,8 @@
       "edit": "Edit queued message",
       "cancelSteering": "Cancel steering",
       "remove": "Remove from queue",
-      "steer": "Steer with this message"
+      "steer": "Steer with this message",
+      "attachments": "{count, plural, one {# attachment} other {# attachments}}: {names}"
     },
     "author": {
       "formerMember": "Former member"
@@ -5658,7 +5672,7 @@
     "page": {
       "slackMirrorNotice": "Mirrored from a Slack thread.",
       "working": "Working",
-      "showMoreImages": "Show {count, plural, one {# more image} other {# more images}}",
+      "showMoreImages": "Show {count, plural, one {# more attachment} other {# more attachments}}",
       "loadingProject": "Loading project",
       "slackSendFailed": "Sending to Slack failed. Try again.",
       "draftGenerationFailed": "Draft generation failed. The assistant will retry.",
@@ -6097,15 +6111,15 @@
     "collections": {
       "status": "{status, select, generating {Generating} published {Published} draft {Draft} other {Empty}}",
       "source": "{source, select, manual {Manual} chat {Chat} schedule {Schedule} automation {Automation} api {API} backfill {Backfill} other {{source}}}",
-      "metaGeneratingProgress": "{source} · {ready} of {expected, plural, one {# post} other {# posts}} ready",
+      "metaGeneratingProgress": "{source} · {ready, number} of {expected, plural, one {# post} other {# posts}} ready",
       "metaGeneratingCount": "{source} · {count, plural, one {# post} other {# posts}} ready",
-      "metaPartiallyPublished": "{source} · {count, plural, one {# post} other {# posts}} · {published} published",
+      "metaPartiallyPublished": "{source} · {count, plural, one {# post} other {# posts}} · {published, number} published",
       "metaSingle": "{source} · Single post",
       "metaEmpty": "{source} · Empty collection",
       "metaCount": "{source} · {count, plural, one {# post} other {# posts}}",
-      "formats": "{count} formats",
+      "formats": "{count, number} formats",
       "emptyPage": "No content on this page",
-      "items": "items",
+      "items": "{count, plural, one {item} other {items}}",
       "actions": {
         "open": "Open",
         "openInNewTab": "Open in new tab",
@@ -6264,6 +6278,7 @@
     "chatHistory": {
       "options": "Chat options",
       "pinned": "Pinned",
+      "loadFailed": "Chat history could not be loaded.",
       "groups": {
         "lastMonth": "Last month"
       }
@@ -6309,8 +6324,9 @@
     "emptyAction": "View content",
     "emptyDescription": "You have no new posts today. Create one now or review your existing drafts on the content page.",
     "emptyTitle": "No content created today",
-    "upgradeTitle": "Create with Studio",
-    "upgradeDescription": "Studio is included in paid plans. Upgrade to create content and use AI tools."
+    "feedbackSetupTitle": "Set up feedback",
+    "feedbackSetupDescription": "Connect your AI agent so it can report bugs, questions and requests about your product. Takes about two minutes.",
+    "feedbackDescription": "What AI agents report about your product."
   },
   "ai": {
     "subagent": {
@@ -6528,6 +6544,11 @@
     "goToNextPage": "Go to next page",
     "morePages": "More pages",
     "paginationRange": "{start}-{end} of {total}",
+    "paginationRangeOpen": "{start}-{end}",
+    "pageOf": "Page {page} of {total}",
+    "pageNumber": "Page {page}",
+    "showRows": "Show {count}",
+    "rowsPerPage": "Rows per page",
     "toggleSidebar": "Toggle sidebar",
     "sidebarTitle": "Sidebar",
     "sidebarDescription": "Displays the mobile sidebar.",
@@ -6582,7 +6603,6 @@
       "resetDescription": "Everything you changed is thrown away and the sample data is restored. Your demo ID, API key and customization stay the same.",
       "cancel": "Cancel",
       "resetConfirm": "Reset workspace",
-      "resetting": "Resetting…",
       "resetFailed": "The workspace couldn't be reset. Please try again."
     },
     "playground": {

@@ -6,16 +6,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -32,15 +23,15 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
 import { isTeamMemberLimitError } from "@/lib/billing/limits";
+import { useRouter } from "@/lib/navigation";
 import type { InvitationSummary } from "@/types/organizations/actions";
 
 interface InvitationActionsProps {
@@ -211,39 +202,16 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isCanceling) {
-            setShowCancelDialog(open);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tMembersShared("cancelInvitation")}
+        description={t("cancelDescription", { email: invitation.email })}
+        onConfirm={handleCancelInvitation}
+        onOpenChange={setShowCancelDialog}
         open={showCancelDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("cancelTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {t("cancelDescription", { email: invitation.email })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isCanceling}>
-              {tCommon("actions.cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isCanceling}
-              onClick={handleCancelInvitation}
-            >
-              {isCanceling
-                ? t("canceling")
-                : tMembersShared("cancelInvitation")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isCanceling}
+        title={t("cancelTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

@@ -17,19 +17,17 @@ type CopyAsPaper = (typeof import("@notra/kiwi/paper"))["copyAsPaper"];
 type CopyAsFigmaImport = () => Promise<CopyAsFigma>;
 type CopyAsPaperImport = () => Promise<CopyAsPaper>;
 
-const defaultImportCopyAsFigma: CopyAsFigmaImport = async () => {
+const importCopyAsFigma: CopyAsFigmaImport = async () => {
   const kiwi = await import("@notra/kiwi");
   // Inter (~1.17 MB) is a nested dynamic import. Warm it here so copy-ready
   // means the click path will not wait on the font before clipboard.write.
   await kiwi.loadFallbackFont();
   return kiwi.copyAsFigma;
 };
-const defaultImportCopyAsPaper: CopyAsPaperImport = () =>
+const importCopyAsPaper: CopyAsPaperImport = () =>
   import("@notra/kiwi/paper").then((module) => module.copyAsPaper);
 
 // Kiwi (Figma/Paper paste + Inter payload) stays off `/content/[id]` initial JS.
-let importCopyAsFigma = defaultImportCopyAsFigma;
-let importCopyAsPaper = defaultImportCopyAsPaper;
 let copyAsFigmaPromise: Promise<CopyAsFigma> | null = null;
 let copyAsPaperPromise: Promise<CopyAsPaper> | null = null;
 let copyAsFigmaFn: CopyAsFigma | null = null;
@@ -70,19 +68,6 @@ export function isImageExportCopyReady(target: ImageExportTarget): boolean {
     return copyAsPaperFn !== null;
   }
   return false;
-}
-
-/** Test-only: drop copy caches so a later case can start a fresh import. */
-export function resetImageExportCopyForTests(next?: {
-  figma?: CopyAsFigmaImport;
-  paper?: CopyAsPaperImport;
-}): void {
-  copyAsFigmaPromise = null;
-  copyAsPaperPromise = null;
-  copyAsFigmaFn = null;
-  copyAsPaperFn = null;
-  importCopyAsFigma = next?.figma ?? defaultImportCopyAsFigma;
-  importCopyAsPaper = next?.paper ?? defaultImportCopyAsPaper;
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */

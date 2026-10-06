@@ -1,4 +1,6 @@
 import { calculateAiCreditCostCents } from "@notra/ai/billing/ai-credit-cost";
+
+import "@/workflows/runtime";
 import {
   allowUnmeteredAiInDevelopment,
   autumn,
@@ -32,6 +34,7 @@ import type { StandaloneChatContextItem } from "@notra/ai/types/standalone-chat"
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logInfo, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { flushPostHogServer } from "@notra/posthog/server";
@@ -103,11 +106,10 @@ export async function recheckChatBillingStep(
       chargeAiCredits: billing.chargeAiCredits,
     };
   } catch (error) {
-    console.error(`${LOG_PREFIX} AI credit check failed`, {
+    logError(`${LOG_PREFIX} AI credit check failed`, error, {
       requestId: input.requestId,
       organizationId: input.organizationId,
       chatId: input.chatId,
-      error: error instanceof Error ? error.message : String(error),
     });
     return { allowed: false, unavailable: true, chargeAiCredits: false };
   }
@@ -118,7 +120,7 @@ export async function rejectChatGenerationStep(
 ): Promise<void> {
   "use step";
   const { requestId, organizationId, chatId, streamId, unavailable } = input;
-  console.warn(`${LOG_PREFIX} AI credit check rejected generation`, {
+  logWarn(`${LOG_PREFIX} AI credit check rejected generation`, {
     requestId,
     organizationId,
     chatId,
@@ -144,11 +146,10 @@ export async function rejectChatGenerationStep(
       });
     }
   } catch (error) {
-    console.error(`${LOG_PREFIX} Failed to emit billing error`, {
+    logError(`${LOG_PREFIX} Failed to emit billing error`, error, {
       requestId,
       organizationId,
       chatId,
-      error: error instanceof Error ? error.message : String(error),
     });
   } finally {
     await clearActiveChatStream(organizationId, chatId, streamId);
@@ -193,7 +194,7 @@ export async function streamChatResponseStep(
   const channel = realtime?.channel(channelName);
 
   if (!channel) {
-    console.error(`${LOG_PREFIX} Realtime not configured for streaming`, {
+    logError(`${LOG_PREFIX} Realtime not configured for streaming`, undefined, {
       requestId,
       organizationId,
       chatId,
@@ -355,17 +356,16 @@ export async function streamChatResponseStep(
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after standalone chat:", {
+            logError("[Autumn] Track error after standalone chat", trackError, {
               requestId,
               customerId: organizationId,
-              error: trackError,
             });
           }
         },
       }
     );
 
-    console.log(`${LOG_PREFIX} Routing decision:`, {
+    logInfo(`${LOG_PREFIX} Routing decision`, {
       requestId,
       chatId,
       decision: routingDecision,
@@ -424,14 +424,15 @@ export async function streamChatResponseStep(
           messages.at(-1)?.id
         );
         if (!saved) {
-          console.warn(
-            `${LOG_PREFIX} Skipped saving response: chat was deleted`,
-            { requestId, organizationId, chatId }
-          );
+          logWarn(`${LOG_PREFIX} Skipped saving response: chat was deleted`, {
+            requestId,
+            organizationId,
+            chatId,
+          });
         }
       },
       onError: (error) => {
-        console.error(`${LOG_PREFIX} Stream error:`, { requestId, error });
+        logError(`${LOG_PREFIX} Stream error`, error, { requestId });
         return "An error occurred while processing your request.";
       },
     });
@@ -505,7 +506,7 @@ export async function streamChatResponseStep(
       (error instanceof Error && error.name === "AbortError");
 
     if (isAbort) {
-      console.log(`${LOG_PREFIX} Aborted by user:`, { requestId, chatId });
+      logInfo(`${LOG_PREFIX} Aborted by user`, { requestId, chatId });
       if (!terminalPublished) {
         await publishTerminal([
           { type: "abort", reason: "user-stopped" },
@@ -513,11 +514,7 @@ export async function streamChatResponseStep(
         ]);
       }
     } else {
-      console.error(`${LOG_PREFIX} Error:`, {
-        requestId,
-        chatId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logError(`${LOG_PREFIX} Error`, error, { requestId, chatId });
       if (!terminalPublished) {
         await publishTerminal([
           {

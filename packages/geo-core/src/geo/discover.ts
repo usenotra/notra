@@ -11,6 +11,7 @@ import {
   GEO_DISCOVERY_ALIAS_LIMIT,
   GEO_DISCOVERY_CACHE_TTL_SECONDS,
   GEO_DISCOVERY_COMPETITOR_LIMIT,
+  GEO_MAX_COMPETITORS,
   GEO_DISCOVERY_CONVERSATIONS,
   GEO_DISCOVERY_MAX_ALIASES,
   GEO_DISCOVERY_MAX_COMPETITORS,
@@ -37,6 +38,7 @@ import type {
 import { geoConversationRules } from "../utils/conversation-generation-prompt";
 import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import { logGeoFailure } from "../utils/geo-log";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
@@ -313,16 +315,18 @@ const persistGeoWebsiteGeneration = Effect.fn(
     tx,
     organizationId,
     projectId,
+    // Discovery only tops a project up to its own limit; competitors that
+    // are already tracked (e.g. a CSV import) are never dropped.
     (current) =>
       buildCompetitorSeeds(
         unionValues(
           current.map((competitor) => competitor.name),
           discoveredCompetitors.map((entry) => entry.name),
-          GEO_DISCOVERY_COMPETITOR_LIMIT
+          Math.max(current.length, GEO_DISCOVERY_COMPETITOR_LIMIT)
         ),
         discoveredCompetitors
       ),
-    GEO_DISCOVERY_COMPETITOR_LIMIT
+    GEO_MAX_COMPETITORS
   );
   if (competitorOutcome.status === "limit") {
     return yield* Effect.fail(
@@ -390,9 +394,11 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
       claim.claimedAt
     ).pipe(
       Effect.catch((error) => {
-        console.error(
-          "[GEO] Failed to start scan after website generate:",
-          error
+        logGeoFailure(
+          "geo.discover.scan_start_failed",
+          "Failed to start scan after website generate",
+          error,
+          { projectId }
         );
         return Effect.void;
       })

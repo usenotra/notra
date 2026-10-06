@@ -8,16 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { BlogPostSubtype } from "@notra/db/types/content";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Button } from "@notra/ui/components/ui/button";
 import {
@@ -27,11 +18,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
-import Link from "next/link";
 import { memo, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import { useBlogPostSubtypeLabels } from "@/lib/hooks/use-blog-post-subtype-labels";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { cn } from "@/lib/utils";
@@ -255,37 +246,18 @@ const ContentCard = memo(function ContentCard({
         cardContent
       )}
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isDeleting) {
-            setShowDeleteDialog(open);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+          title,
+        })}
+        onConfirm={handleDelete}
+        onOpenChange={setShowDeleteDialog}
         open={showDeleteDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {tCommon2("labels.deletePost")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {tCommon2("messages.thisWillPermanentlyDeleteTitle", { title })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
-              onClick={handleDelete}
-            >
-              {isDeleting ? tCommon("deleting") : tCommon("delete")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={tCommon2("labels.deletePost")}
+        variant="destructive"
+      />
     </>
   );
 });

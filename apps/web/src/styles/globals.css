@@ -379,36 +379,6 @@
   scrollbar-gutter: stable;
 }
 
-@utility cta-gradient-primary-flat {
-  --cta-gradient-from: oklab(69.9% 0.067 -0.16);
-  --cta-gradient-to: oklab(52.6% 0.113 -0.27);
-  background-image: linear-gradient(
-    180deg,
-    var(--cta-gradient-from) 0%,
-    var(--cta-gradient-to) 100%
-  );
-  background-image: linear-gradient(
-    180deg in oklab,
-    var(--cta-gradient-from) 0%,
-    var(--cta-gradient-to) 100%
-  );
-  box-shadow:
-    #28282814 0 0.0625rem 0.125rem,
-    #1e1e1e40 0 0 0 0.0625rem;
-  transition:
-    --cta-gradient-from 200ms ease-out,
-    --cta-gradient-to 200ms ease-out;
-
-  &:hover {
-    --cta-gradient-to: oklab(33.9% 0.073 -0.174);
-  }
-
-  &:active {
-    --cta-gradient-from: oklab(52.6% 0.113 -0.27);
-    --cta-gradient-to: oklab(24.8% 0.053 -0.127);
-  }
-}
-
 .landing-tables [data-slot="table"] {
   background: var(--muted);
 }
@@ -440,6 +410,16 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes granolaBar {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 

@@ -9,15 +9,15 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { LinearIntegration } from "@/types/integrations";
+import dynamic from "@/utils/lazy-component";
 
 import { LinearIntegrationDetailSkeleton } from "./skeleton";
 

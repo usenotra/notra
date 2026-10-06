@@ -425,6 +425,25 @@ export interface GeoCompetitorShareTimeseriesPoint {
   mentions: number;
 }
 
+export interface GeoEngineCheckTotal {
+  engine: string;
+  checks: number;
+  /** Own-brand mentions. */
+  mentions: number;
+}
+
+export interface GeoEngineBrandMentions {
+  engine: string;
+  brand: string;
+  mentions: number;
+}
+
+export interface GeoCompetitorEngineMatrixResponse {
+  configured: boolean;
+  engines: GeoEngineCheckTotal[];
+  cells: GeoEngineBrandMentions[];
+}
+
 export interface GeoCompetitorShareResponse {
   configured: boolean;
   points: GeoCompetitorSharePoint[];

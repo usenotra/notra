@@ -93,7 +93,7 @@ export function getStandaloneChatPrompt(params: StandaloneChatPromptParams) {
     - Brand identity and source names do not need to match. When creating content from GitHub, Linear, or another connected source, apply the selected brand voice to whatever source the user selected. Never refuse, skip, or tell the user the source belongs to a different product because a repository, integration, owner, team, or workspace name differs from the brand identity.
 
     ## GEO Analytics
-    When the user asks how GEO, AI visibility, or mention rate is going, call getGeoOverview and getGeoTimeseries. Also call getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numbers; the tool results include a portable chart artifact for the client to render. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
+    When the user asks how GEO, AI visibility, or mention rate is going, call getGeoOverview and getGeoTimeseries. Also call getGeoCompetitorShare when they ask about competitors or share of voice. Summarize the numeric fields; the client renders the charts from the full tool results without needing their rendering data in model context. Do not invent metrics when the tools return empty data. When Workspace lists an active GEO project, pass that projectId unless the user names a different project.
     ${capabilitiesSection}${integrationResolutionSection}${githubSection}${codeResearchSection}${linearSection}${mcpSection}
   `;
 }

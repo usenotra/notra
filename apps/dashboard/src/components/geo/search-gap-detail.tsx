@@ -3,6 +3,7 @@
 import { GEO_SEARCH_GAP_ACTION_CLASS } from "@notra/geo-core/constants/geo";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DataTable } from "@notra/ui/components/ui/data-table";
 import {
   Sheet,
   SheetContent,
@@ -12,10 +13,9 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
-import { Table } from "@/components/motion/table";
 import { GEO_SEARCH_GAP_ACTION_LABEL_KEYS } from "@/constants/geo-gaps";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
@@ -176,8 +176,7 @@ function ConsoleSearchGapDetails({ gap, ai }: GeoConsoleSearchGapDetailsProps) {
               {gap.queries.length}
             </span>
           </h3>
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={[
               {
                 key: "query",
@@ -222,6 +221,7 @@ function ConsoleSearchGapDetails({ gap, ai }: GeoConsoleSearchGapDetailsProps) {
             getRowId={(query) => query.query}
             height={360}
             rowSizing="content"
+            autoHeight
           />
         </section>
 

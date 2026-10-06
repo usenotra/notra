@@ -1,18 +1,12 @@
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Section,
-  Tailwind,
-  Text,
-} from "react-email";
+import { Link, Section } from "react-email";
 
-import { EmailFooter } from "../components/footer";
-import { EmailLogo } from "../components/logo";
+import { EmailDetailRow } from "../components/detail-row";
+import { EmailLayout } from "../components/layout";
+import { EmailMessageCard } from "../components/message-card";
+import { EmailTitleCard } from "../components/title-card";
+import { EMAIL_THEME } from "../constants/theme";
 import type { ContactMessageEmailProps } from "../types/contact";
+import { toPreviewText } from "../utils/preview";
 
 export const ContactMessageEmail = ({
   name = "Jane Doe",
@@ -21,52 +15,27 @@ export const ContactMessageEmail = ({
   message = "We're evaluating Notra for our team and would love to chat about volume pricing.",
 }: ContactMessageEmailProps) => {
   return (
-    <Html>
-      <Head />
-      <Preview>
-        New contact message from {name}
-        {company ? ` (${company})` : ""}
-      </Preview>
-      <Tailwind>
-        <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto my-[40px] max-w-[520px] rounded p-[20px]">
-            <EmailLogo />
+    <EmailLayout heading="New contact message" preview={toPreviewText(message)}>
+      <EmailMessageCard message={message} />
 
-            <Heading className="my-6 text-center text-2xl font-medium text-black">
-              New contact message
-            </Heading>
-
-            <Section className="mt-6 rounded-md border border-solid border-[#eaeaea] bg-[#fafafa] p-5">
-              <Text className="m-0 text-[15px] leading-[22px] whitespace-pre-wrap text-black">
-                {message}
-              </Text>
-            </Section>
-
-            <Section className="mt-8">
-              <Text className="m-0 text-[12px] tracking-wide text-[#666666] uppercase">
-                From
-              </Text>
-              <Text className="mt-1 mb-0 text-[14px] leading-[22px] text-black">
-                {name} &lt;{email}&gt;
-              </Text>
-            </Section>
-
-            {company ? (
-              <Section className="mt-4">
-                <Text className="m-0 text-[12px] tracking-wide text-[#666666] uppercase">
-                  Company
-                </Text>
-                <Text className="mt-1 mb-0 text-[14px] leading-[22px] text-black">
-                  {company}
-                </Text>
-              </Section>
-            ) : null}
-
-            <EmailFooter />
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <Section className="mt-4">
+        <EmailTitleCard heading="Details">
+          <EmailDetailRow first label="From">
+            {name} &lt;
+            <Link
+              href={`mailto:${email}`}
+              style={{ color: EMAIL_THEME.link, textDecoration: "underline" }}
+            >
+              {email}
+            </Link>
+            &gt;
+          </EmailDetailRow>
+          {company ? (
+            <EmailDetailRow label="Company">{company}</EmailDetailRow>
+          ) : null}
+        </EmailTitleCard>
+      </Section>
+    </EmailLayout>
   );
 };
 

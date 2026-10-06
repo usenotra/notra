@@ -13,7 +13,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useLocale } from "next-intl";
+import { useLocale } from "use-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -71,6 +71,7 @@ import {
   tooltipBaseOption,
   tooltipShell,
 } from "@/components/evilcharts/ui/echarts-tooltip";
+import { withTooltipSizeMotion } from "@/utils/chart-tooltip-size";
 import type {
   ChartConfig,
   ChartMarker,
@@ -959,7 +960,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
       axisPointerColor: withAlpha(tokens.mutedForeground, AXIS_POINTER_OPACITY),
       strokeWidth: AXIS_POINTER_WIDTH,
     }),
-    formatter: createTooltipFormatter(ctx),
+    formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
 

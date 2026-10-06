@@ -135,6 +135,12 @@ export const DeliveryStats = Schema.Struct({
   failed: Schema.Number,
   active: Schema.Number,
 });
+export const DeliveryActivityDay = Schema.Struct({
+  date: Schema.String,
+  total: Schema.Number,
+  succeeded: Schema.Number,
+  failed: Schema.Number,
+});
 export const PipelineMetrics = Schema.Struct({
   openDeliveries: Schema.Number,
   dueDeliveries: Schema.Number,

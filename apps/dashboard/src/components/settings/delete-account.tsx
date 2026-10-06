@@ -1,7 +1,7 @@
 "use client";
 
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";

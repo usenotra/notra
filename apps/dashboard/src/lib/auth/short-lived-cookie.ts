@@ -1,12 +1,16 @@
-import { cookies } from "next/headers";
+import {
+  deleteCookie,
+  getCookie,
+  getCookies,
+  setCookie,
+} from "@tanstack/react-start/server";
 
 import { cookieAttributes } from "@/utils/cookie-attributes";
 
 export async function readShortLivedCookie(
   name: string
 ): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(name)?.value || null;
+  return getCookie(name) || null;
 }
 
 export async function storeShortLivedCookie(
@@ -14,10 +18,7 @@ export async function storeShortLivedCookie(
   value: string,
   maxAgeSeconds: number
 ) {
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name,
-    value,
+  setCookie(name, value, {
     httpOnly: true,
     ...cookieAttributes(),
     path: "/",
@@ -26,16 +27,13 @@ export async function storeShortLivedCookie(
 }
 
 export async function clearShortLivedCookie(name: string) {
-  const cookieStore = await cookies();
-  cookieStore.delete({ name, path: "/", ...cookieAttributes() });
+  deleteCookie(name, { path: "/", ...cookieAttributes() });
 }
 
 export async function clearShortLivedCookiesWithPrefix(prefix: string) {
-  const cookieStore = await cookies();
-  for (const cookie of cookieStore.getAll()) {
-    if (cookie.name.startsWith(prefix)) {
-      cookieStore.delete({
-        name: cookie.name,
+  for (const name of Object.keys(getCookies())) {
+    if (name.startsWith(prefix)) {
+      deleteCookie(name, {
         path: "/",
         ...cookieAttributes(),
       });

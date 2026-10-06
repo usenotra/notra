@@ -1,10 +1,10 @@
 import { defineConfig } from "oxlint";
 import core from "ultracite/oxlint/core";
-import next from "ultracite/oxlint/next";
 import react from "ultracite/oxlint/react";
+import tanstack from "ultracite/oxlint/tanstack";
 
 export default defineConfig({
-  extends: [core, react, next],
+  extends: [core, react, tanstack],
   jsPlugins: ["@shadcn/lint"],
   settings: {
     shadcn: {
@@ -37,6 +37,15 @@ export default defineConfig({
             allow: ["layout", "gap-6", "p-6"],
           },
           { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          // Icon-only copy buttons sit next to secondary text (code headers,
+          // input addons), so callers mute the idle icon. The tick keeps its
+          // own success colour.
+          {
+            pattern: "^CopyButton$",
+            allow: ["layout", "text-muted-foreground"],
+          },
+          // Spinner draws in currentColor, so callers tint it like an icon.
+          { pattern: "^Spinner$", allow: ["layout", "color"] },
           {
             pattern: "^TitleCard$",
             allow: ["layout", "border-t-0", "pt-0"],
@@ -125,7 +134,6 @@ export default defineConfig({
     "jsx-a11y/interactive-supports-focus": "off",
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/prefer-tag-over-role": "off",
-    "nextjs/no-img-element": "off",
     "node/callback-return": "off",
     "oxc/branches-sharing-code": "off",
     "oxc/no-accumulating-spread": "off",
@@ -285,13 +293,6 @@ export default defineConfig({
       ],
       rules: {
         "no-restricted-imports": "off",
-      },
-    },
-    {
-      files: ["apps/web/**"],
-      rules: {
-        "nextjs/no-html-link-for-pages": "off",
-        "nextjs/no-head-element": "off",
       },
     },
   ],

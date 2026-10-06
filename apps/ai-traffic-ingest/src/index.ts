@@ -1,8 +1,13 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { logError } from "@notra/ai/utils/server-log";
+import { getGeoTrafficFlushIntervalMs } from "@notra/analytics/utils/geo-flush-interval";
+import { createGeoEventBatcher } from "@notra/geo-core/ingest/batcher";
+import { announceGeoTrafficRows } from "@notra/geo-core/ingest/live";
 
 import {
   INGEST_DEFAULT_PORT,
   INGEST_DRAIN_TIMEOUT_MS,
+  INGEST_EVENTS_FLUSH_TIMEOUT_MS,
   INGEST_FLUSH_TIMEOUT_MS,
   INGEST_MAX_BODY_BYTES,
 } from "./constants/server";
@@ -16,14 +21,23 @@ if (missing.length > 0) {
   console.warn(`[geo-ingest] Missing configuration: ${missing.join(", ")}`);
 }
 
+const flushIntervalMs = getGeoTrafficFlushIntervalMs();
+const batcher =
+  flushIntervalMs > 0
+    ? createGeoEventBatcher({
+        intervalMs: flushIntervalMs,
+        onWritten: announceGeoTrafficRows,
+      })
+    : null;
+
 const app = createIngestApp((task) => {
   const promise = task()
     .catch((error) => {
-      console.error("[geo-ingest] Background task failed", error);
+      logError("[geo-ingest] Background task failed", error);
     })
     .finally(() => pending.delete(promise));
   pending.add(promise);
-});
+}, batcher ?? undefined);
 
 const server = Bun.serve({
   hostname: "0.0.0.0",
@@ -72,6 +86,17 @@ async function shutdown() {
       `[geo-ingest] Drain exceeded ${INGEST_DRAIN_TIMEOUT_MS}ms, closing connections`
     );
     server.stop(true);
+  }
+  if (batcher) {
+    const flushed = await withDeadline(
+      () => batcher.stop(),
+      INGEST_EVENTS_FLUSH_TIMEOUT_MS
+    );
+    if (!flushed || batcher.size() > 0) {
+      console.error(
+        `[geo-ingest] Buffered events not written before exit (${batcher.size()} left in buffer)`
+      );
+    }
   }
   if (!(await withDeadline(flushGeoLog, INGEST_FLUSH_TIMEOUT_MS))) {
     console.error(

@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { LOG_SOURCE_COMMON_LABEL_KEYS } from "@/constants/logs";
 import type { LogSourceFilter } from "@/types/webhooks/webhooks";

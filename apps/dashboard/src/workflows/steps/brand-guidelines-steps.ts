@@ -1,3 +1,6 @@
+import { logError } from "@notra/ai/utils/server-log";
+
+import "@/workflows/runtime";
 import { WORKFLOW_ANALYTICS_NAMES } from "@/constants/workflow-analytics";
 import {
   applyBrandGuidelineBrandStep,
@@ -59,7 +62,7 @@ export async function runBrandGuidelineStage(
     });
     return { success: true };
   } catch (error) {
-    console.error(`[Brand Guidelines] Stage ${input.stage} failed`, error);
+    logError("[Brand Guidelines] Stage failed", error, { stage: input.stage });
     await reportStepError(error, {
       workflow: WORKFLOW_ANALYTICS_NAMES.BRAND_GUIDELINES,
       step: input.stage,
@@ -94,7 +97,7 @@ export async function markBrandGuidelinesUnexpectedFailure(input: {
     brandSettingsId: input.brandSettingsId,
     error: "Guideline generation failed unexpectedly",
   });
-  console.error(
-    `[Brand Guidelines] Workflow failed for organization ${input.organizationId}`
-  );
+  logError("[Brand Guidelines] Workflow failed", undefined, {
+    organizationId: input.organizationId,
+  });
 }

@@ -1,3 +1,5 @@
+import { logError } from "@notra/ai/utils/server-log";
+
 import { CHAT_INTEGRATIONS_CACHE_TTL_SECONDS } from "../constants/chat";
 import {
   getGitHubIntegrationsByOrganization,
@@ -30,7 +32,9 @@ export async function getStandaloneChatIntegrations(
         return cached;
       }
     } catch (error) {
-      console.error("[chat-integrations-cache] Redis get failed:", error);
+      logError("[chat-integrations-cache] Redis get failed", error, {
+        organizationId,
+      });
     }
   }
 
@@ -42,7 +46,9 @@ export async function getStandaloneChatIntegrations(
         ex: CHAT_INTEGRATIONS_CACHE_TTL_SECONDS,
       });
     } catch (error) {
-      console.error("[chat-integrations-cache] Redis set failed:", error);
+      logError("[chat-integrations-cache] Redis set failed", error, {
+        organizationId,
+      });
     }
   }
 
@@ -58,7 +64,9 @@ export async function invalidateStandaloneChatIntegrations(
   try {
     await redis.del(cacheKey(organizationId));
   } catch (error) {
-    console.error("[chat-integrations-cache] Redis del failed:", error);
+    logError("[chat-integrations-cache] Redis del failed", error, {
+      organizationId,
+    });
   }
 }
 

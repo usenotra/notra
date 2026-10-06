@@ -14,7 +14,7 @@ import {
 } from "@notra/db/schema";
 import type { GeoContentBriefStatus } from "@notra/db/types/geo-writer";
 import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
-import { Effect } from "effect";
+import { Cause, Effect } from "effect";
 
 import {
   GEO_AI_SEARCH_GAP_MAX_QUERIES,
@@ -62,6 +62,7 @@ import {
   searchGapPosition,
   toGapBriefBaseline,
 } from "../utils/geo-gaps";
+import { logGeoFailure } from "../utils/geo-log";
 import { competitorKey } from "./domain";
 import { geoDb } from "./effect";
 import { GeoSettingsMissingError } from "./errors";
@@ -841,7 +842,12 @@ export const loadGeoContentGaps = Effect.fn("geo.gaps.load")(function* (
   return yield* refreshGeoContentGaps(scope).pipe(
     Effect.catchCause((cause) =>
       Effect.sync((): GeoContentGapsResponse => {
-        console.error("[GEO] Could not build content gaps snapshot:", cause);
+        logGeoFailure(
+          "geo.gaps.snapshot_build_failed",
+          "Could not build content gaps snapshot",
+          Cause.squash(cause),
+          { projectId: scope.projectId }
+        );
         return {
           promptGaps: [],
           searchGaps: [],
@@ -887,7 +893,12 @@ export const refreshGeoContentGapsBestEffort = Effect.fn(
   yield* refreshGeoContentGaps(input).pipe(
     Effect.catchCause((cause) =>
       Effect.sync(() => {
-        console.error("[GEO] Could not refresh content gaps:", cause);
+        logGeoFailure(
+          "geo.gaps.refresh_failed",
+          "Could not refresh content gaps",
+          Cause.squash(cause),
+          { projectId: input.projectId }
+        );
       })
     )
   );

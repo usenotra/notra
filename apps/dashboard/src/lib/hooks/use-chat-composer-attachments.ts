@@ -6,7 +6,6 @@ import {
   MAX_CHAT_FILE_SIZE,
   MIME_DISPLAY_LABELS,
 } from "@notra/schemas/constants/dashboard/upload";
-import { useTranslations } from "next-intl";
 import {
   type ChangeEvent,
   type DragEvent,
@@ -17,7 +16,9 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
+import { MAX_CHAT_HEIC_INPUT_BYTES } from "@/constants/content-image";
 import { dragEventHasFiles } from "@/lib/upload/chat";
 import {
   deleteChatUpload as deleteChatUploadFile,
@@ -31,6 +32,8 @@ import type {
   PendingChatUpload,
   UseChatComposerAttachmentsResult,
 } from "@/types/hooks/chat-composer-attachments";
+import { mergeChatAttachments } from "@/utils/chat-input";
+import { prepareChatImage } from "@/utils/prepare-chat-image";
 
 const GENERIC_PASTED_IMAGE_NAME_RE = /^image\.(jpe?g|png|gif|webp)$/i;
 
@@ -145,15 +148,23 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
 
       const accepted: File[] = [];
       for (const file of files.slice(0, remainingSlots)) {
-        if (!isAllowedChatMimeType(file.type)) {
+        if (
+          !isAllowedChatMimeType(file.type) &&
+          !/\.heic$/i.test(file.name) &&
+          file.type !== "image/heic"
+        ) {
           toast.error(tUpload("unsupportedType", { name: file.name }));
           continue;
         }
-        if (file.size > MAX_CHAT_FILE_SIZE) {
+        const maxBytes =
+          /\.heic$/i.test(file.name) || file.type === "image/heic"
+            ? MAX_CHAT_HEIC_INPUT_BYTES
+            : MAX_CHAT_FILE_SIZE;
+        if (file.size > maxBytes) {
           toast.error(
             tUpload("tooLarge", {
               name: file.name,
-              size: MAX_CHAT_FILE_SIZE / 1024 / 1024,
+              size: maxBytes / 1024 / 1024,
             })
           );
           continue;
@@ -178,13 +189,14 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
             return false;
           }
           try {
-            const result = await uploadFile({ file, type: "chat" });
+            const readyFile = await prepareChatImage(file);
+            const result = await uploadFile({ file: readyFile, type: "chat" });
             const uploadedAttachment = {
               url: result.url,
               key: result.key,
-              filename: file.name,
-              mediaType: file.type,
-              size: file.size,
+              filename: readyFile.name,
+              mediaType: readyFile.type,
+              size: readyFile.size,
             };
 
             if (!isMountedRef.current) {
@@ -251,6 +263,25 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
     return current;
   }, []);
 
+  // Puts already-uploaded files back, e.g. when a queued message is edited.
+  // They count as submitted so unmount cleanup never deletes them.
+  const restoreAttachments = useCallback(
+    (next: ChatAttachment[]) => {
+      const merged = mergeChatAttachments(attachmentsRef.current, next);
+      if (merged.length > MAX_CHAT_ATTACHMENTS) {
+        toast.error(tUpload("maxAttachments", { max: MAX_CHAT_ATTACHMENTS }));
+        return false;
+      }
+      for (const attachment of next) {
+        submittedKeysRef.current.add(attachment.key);
+      }
+      attachmentsRef.current = merged;
+      setAttachments(merged);
+      return true;
+    },
+    [tUpload]
+  );
+
   const cleanupUnsubmittedAttachments = useCallback(() => {
     for (const attachment of attachmentsRef.current) {
       if (submittedKeysRef.current.has(attachment.key)) {
@@ -316,7 +347,12 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
 
   const handlePasteFiles = useCallback(
     (files: File[]) => {
-      const accepted = files.filter((file) => isAllowedChatMimeType(file.type));
+      const accepted = files.filter(
+        (file) =>
+          isAllowedChatMimeType(file.type) ||
+          /\.heic$/i.test(file.name) ||
+          file.type === "image/heic"
+      );
       if (accepted.length === 0) {
         return false;
       }
@@ -327,6 +363,7 @@ export function useChatComposerAttachments(): UseChatComposerAttachmentsResult {
   );
 
   return {
+    restoreAttachments,
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
     attachments,

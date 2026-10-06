@@ -1,5 +1,5 @@
 import type { Locale } from "date-fns";
-import type { useTranslations } from "next-intl";
+import type { useTranslations } from "use-intl";
 
 export interface AttachmentRow {
   id: string;

@@ -31,7 +31,7 @@ function mapAnalyticsFlagEvaluation(
   return result.enabled ? "enabled" : "disabled";
 }
 
-export const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
+const evaluateAnalyticsFlag = Effect.fn("evaluateAnalyticsFlag")(
   function* (clientId: string, organizationId: string) {
     const params = new URLSearchParams({
       clientId,

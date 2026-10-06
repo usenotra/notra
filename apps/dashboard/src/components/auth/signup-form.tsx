@@ -14,14 +14,13 @@ import { useAuthFlow } from "@notra/ui/hooks/use-auth-flow";
 import { setLastUsedLoginMethod } from "@notra/ui/lib/last-login-method";
 import type { AuthMethod, SocialProvider } from "@notra/ui/types/auth";
 import { useForm } from "@tanstack/react-form";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useQueryStates } from "nuqs";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
+import Link from "@/components/framework/link";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   redeemBackupCodeAction,
@@ -31,7 +30,6 @@ import {
   signUpWithPasswordAction,
   verifyEmailCodeAction,
 } from "@/lib/auth/password-actions";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { useAuthPendingStepLabels } from "@/lib/i18n/use-auth-labels";
 import { errorMessageOr } from "@/lib/utils";
@@ -140,10 +138,7 @@ export function SignupForm({
     startSocialSignInAction({
       provider,
       returnTo: buildCallbackUrl(provider),
-    }).catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
+    }).catch(() => {
       authInFlightRef.current = false;
       setAuthMethod(null);
       setFormError(t("socialFailed"));
@@ -313,16 +308,10 @@ export function SignupForm({
           <CtaButton
             className="mt-4 w-full"
             disabled={isAuthLoading}
+            loading={authMethod === "email"}
             type="submit"
           >
-            {authMethod === "email" ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {t("creating")}
-              </>
-            ) : (
-              t("submit")
-            )}
+            {t("submit")}
           </CtaButton>
         </form>
       </div>

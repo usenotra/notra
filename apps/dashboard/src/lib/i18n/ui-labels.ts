@@ -1,14 +1,17 @@
 import type { UiLabels } from "@notra/ui/types/ui-labels";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 export function useUiLabelsTranslations(): UiLabels {
   const t = useTranslations("ui");
   const tCommon = useTranslations("common");
+  const tTable = useTranslations("shared.table");
+  const tComposer = useTranslations("composer");
   const locale = useLocale();
 
   return {
     locale,
     close: tCommon("actions.close"),
+    cancel: tCommon("actions.cancel"),
     copy: tCommon("actions.copy"),
     copied: tCommon("actions.copied"),
     more: tCommon("labels.more"),
@@ -23,6 +26,12 @@ export function useUiLabelsTranslations(): UiLabels {
     morePages: t("morePages"),
     paginationRange: (start, end, total) =>
       t("paginationRange", { start, end, total }),
+    paginationRangeOpen: (start, end) =>
+      t("paginationRangeOpen", { start, end }),
+    pageOf: (page, total) => t("pageOf", { page, total }),
+    pageNumber: (page) => t("pageNumber", { page }),
+    showRows: (count) => t("showRows", { count }),
+    rowsPerPage: t("rowsPerPage"),
     toggleSidebar: t("toggleSidebar"),
     sidebarTitle: t("sidebarTitle"),
     sidebarDescription: t("sidebarDescription"),
@@ -43,6 +52,10 @@ export function useUiLabelsTranslations(): UiLabels {
     previousBranch: t("previousBranch"),
     nextBranch: t("nextBranch"),
     table: tCommon("labels.table"),
+    noData: tCommon("labels.noData"),
+    selectAllRows: tTable("selectAllRows"),
+    selectRow: (row) => tTable("selectRow", { row }),
+    resizeColumn: (column) => tTable("resizeColumn", { column }),
     copyTableAsMarkdown: t("copyTableAsMarkdown"),
     downloadTable: t("downloadTable"),
     viewTableFullscreen: t("viewTableFullscreen"),
@@ -54,5 +67,9 @@ export function useUiLabelsTranslations(): UiLabels {
     removeAttachment: t("removeAttachment"),
     expandImage: t("expandImage"),
     minimizeImage: t("minimizeImage"),
+    composerEdit: (label) => tCommon("labels.editLabel", { label }),
+    composerRemove: (label) => tCommon("labels.removeLabel", { label }),
+    composerSteer: (label) => tComposer("steerWith", { label }),
+    composerPreview: (label) => tComposer("preview", { label }),
   };
 }

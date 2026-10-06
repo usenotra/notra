@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { cn } from "@notra/ui/lib/utils";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
+import { Button } from "@/components/button";
 import { DAY_MS } from "@/constants/analytics-weekdays";
 import {
   DAYS_OF_MONTH,
@@ -43,23 +43,19 @@ export function ScheduleDayPicker({
           {DAYS_OF_WEEK.map((day) => {
             const isActive = day === selectedDay;
             return (
-              <button
+              <Button
                 aria-pressed={isActive}
-                className={cn(
-                  "h-10 min-w-12 rounded-lg border px-3 text-sm font-medium transition-colors",
-                  isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                )}
+                className="h-10 min-w-12"
                 key={day}
                 onClick={() => onDayOfWeekChange(day)}
                 type="button"
+                variant={isActive ? "secondary" : "outline"}
               >
                 {format.dateTime(
                   new Date(WEEKDAY_REFERENCE_SUNDAY_UTC + day * DAY_MS),
                   { weekday: "short", timeZone: "UTC" }
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>

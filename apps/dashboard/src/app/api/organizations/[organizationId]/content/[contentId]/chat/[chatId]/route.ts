@@ -3,14 +3,12 @@ import { chatIdSchema } from "@notra/ai/schemas/chat";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { RouteContext } from "@/types/api/routes";
 
 export async function GET(
-  request: NextRequest,
+  request: Request,
   {
     params,
   }: RouteContext<{
@@ -28,7 +26,7 @@ export async function GET(
 
   const chatIdParse = chatIdSchema.safeParse(chatId);
   if (!chatIdParse.success) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Invalid chat ID", details: chatIdParse.error.issues },
       { status: 400 }
     );
@@ -42,7 +40,7 @@ export async function GET(
     columns: { id: true },
   });
   if (!contentExists) {
-    return NextResponse.json({ error: "Content not found" }, { status: 404 });
+    return Response.json({ error: "Content not found" }, { status: 404 });
   }
 
   const messages = await loadContentChatHistory(
@@ -51,8 +49,8 @@ export async function GET(
     chatIdParse.data
   );
   if (!messages) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ chatId: chatIdParse.data, messages });
+  return Response.json({ chatId: chatIdParse.data, messages });
 }

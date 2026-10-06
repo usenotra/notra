@@ -7,13 +7,13 @@ import {
   brandSettings,
   brandSitemapPages,
   brandSitemaps,
-  geoCompetitors,
   geoPersonaMemories,
   geoPersonas,
   geoPrompts,
   geoSettings,
 } from "@notra/db/schema";
 import { toGeoCheckWindow } from "@notra/db/utils/geo-checks";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import {
   queryGeoCheckPersonaActivity,
   queryGeoCheckPersonaResults,
@@ -61,6 +61,7 @@ import type {
   GeoPersonaUpdateInput,
   PersonaGenerationContext,
 } from "../types/geo-personas";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   hasGeoPersonaDetailsChanged,
   normalizeGeneratedPersonaSet,
@@ -166,6 +167,7 @@ export const requireGeoPersonaGenerationCapacity = Effect.fn(
 });
 
 const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
+  organizationId: string,
   projectId: string,
   brandSettingsId: string
 ) {
@@ -188,10 +190,7 @@ const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
       })
     ),
     geoDb("competitors lookup failed", () =>
-      db
-        .select({ name: geoCompetitors.name })
-        .from(geoCompetitors)
-        .where(eq(geoCompetitors.projectId, projectId))
+      selectGeoContextCompetitors({ organizationId, projectId })
     ),
     geoDb("prompts lookup failed", () =>
       db
@@ -242,7 +241,7 @@ const loadGenerationContext = Effect.fn("geo.personas.context")(function* (
     websiteUrl: brand?.websiteUrl ?? null,
     companyDescription: brand?.companyDescription ?? null,
     audience: brand?.audience ?? null,
-    competitors: competitors.map((competitor) => competitor.name),
+    competitors: competitors.competitors.map((competitor) => competitor.name),
     pages,
     prompts: prompts.map((row) => row.prompt),
   };
@@ -468,6 +467,7 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
     );
   }
   const context = yield* loadGenerationContext(
+    scope.organizationId,
     scope.projectId,
     scope.brandSettingsId
   );
@@ -522,7 +522,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
       .pipe(
         Effect.catch((error) =>
           Effect.sync(() => {
-            console.error(`[GeoPersonas] billing ${action} failed:`, error);
+            logGeoFailure(
+              "geo.personas.billing_failed",
+              `Persona billing ${action} failed`,
+              error,
+              { action, runId, projectId: scope.projectId }
+            );
           })
         )
       );
@@ -562,7 +567,12 @@ export const generateGeoPersonas = Effect.fn("geo.personasGenerate")(function* (
         claim.claimedAt
       ).pipe(
         Effect.catch((error) => {
-          console.error("[GEO] Failed to start scan after personas:", error);
+          logGeoFailure(
+            "geo.personas.scan_start_failed",
+            "Failed to start scan after personas",
+            error,
+            { projectId: scope.projectId }
+          );
           return Effect.void;
         })
       );

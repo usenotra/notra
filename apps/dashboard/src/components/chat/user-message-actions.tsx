@@ -4,11 +4,10 @@ import {
   ArrowLeft01Icon,
   ArrowReloadHorizontalIcon,
   ArrowRight01Icon,
-  CheckmarkCircle02Icon,
-  Copy01Icon,
   Edit02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { CopyStateIcon } from "@notra/ui/components/ui/copy-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +23,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useCopyToClipboard } from "@notra/ui/hooks/use-copy-to-clipboard";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
 import { AnimatePresence, m, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ModelIcon } from "@/components/chat/chat-input";
@@ -39,6 +39,8 @@ import type {
   UserMessageEditorProps,
   UserMessageTextBubbleProps,
 } from "@/types/components/chat-page";
+
+const USER_MESSAGE_COPIED_MS = 1500;
 
 interface UserMessageActionsProps {
   availableModels?: readonly ChatModelOption[];
@@ -71,18 +73,10 @@ export function UserMessageActions({
   const tCommon2 = useTranslations("common");
   const tCommon = useTranslations("common.actions");
   const modelLabels = useChatModelLabels();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard({
+    timeout: USER_MESSAGE_COPIED_MS,
+  });
   const [retryOpen, setRetryOpen] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(messageText);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // no-op
-    }
-  }, [messageText]);
 
   const hasBranches =
     typeof branchIndex === "number" &&
@@ -209,21 +203,15 @@ export function UserMessageActions({
               render={
                 <Button
                   aria-label={t("copyMessage")}
-                  className={cn(
-                    "size-5",
-                    copied && "text-success hover:text-success"
-                  )}
-                  onClick={handleCopy}
+                  className="size-5"
+                  onClick={() => copy(messageText)}
                   size="icon-sm"
                   type="button"
                   variant="ghost"
                 />
               }
             >
-              <HugeiconsIcon
-                icon={copied ? CheckmarkCircle02Icon : Copy01Icon}
-                size={12}
-              />
+              <CopyStateIcon copied={copied} iconClassName="size-3" />
             </TooltipTrigger>
             <TooltipContent>
               {copied ? tCommon("copied") : tCommon("copy")}

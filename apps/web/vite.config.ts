@@ -49,6 +49,7 @@ export default defineConfig(({ command }) => ({
   },
   server: {
     port: 3001,
+    allowedHosts: [".trycloudflare.com"],
   },
   optimizeDeps: {
     exclude: SERVER_ONLY_PACKAGES,

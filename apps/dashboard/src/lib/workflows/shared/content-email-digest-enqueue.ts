@@ -1,3 +1,4 @@
+import { logWarn } from "@notra/ai/utils/server-log";
 import { start } from "workflow/api";
 
 import {
@@ -39,14 +40,16 @@ export async function enqueueContentEmailDigest({
       });
 
       if (!appended) {
-        console.warn(
-          `[${logPrefix}] Redis not configured, skipping delayed ${kind} email for ${recipientEmail}`
-        );
+        logWarn("Redis not configured, skipping delayed content email", {
+          workflow: logPrefix,
+          organizationId,
+          kind,
+        });
         return;
       }
 
-      const claimed = await claimContentEmailDigestWindow(digestKey);
-      if (!claimed) {
+      const lockToken = await claimContentEmailDigestWindow(digestKey);
+      if (!lockToken) {
         return;
       }
 
@@ -55,16 +58,19 @@ export async function enqueueContentEmailDigest({
         recipientEmail,
         organizationId,
         kind,
+        lockToken,
       };
 
       try {
         await start(contentEmailDigestWorkflow, [payload]);
       } catch (error) {
         await releaseContentEmailDigestWindow(digestKey);
-        console.warn(
-          `[${logPrefix}] Failed to start delayed ${kind} email workflow for ${recipientEmail}:`,
-          error
-        );
+        logWarn("Failed to start delayed content email workflow", {
+          workflow: logPrefix,
+          organizationId,
+          kind,
+          error: error instanceof Error ? error.message : String(error),
+        });
         throw error;
       }
     })

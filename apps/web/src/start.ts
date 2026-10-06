@@ -6,9 +6,10 @@ import {
 } from "@usenotra/geo";
 
 import {
+  DYNAMIC_PAGE_CACHE_CONTROL,
   GEO_INGEST_ENDPOINT,
   PROXY_EXCLUDED_PATH_PREFIXES,
-  STATIC_PAGE_CACHE_CONTROL,
+  PUBLIC_PAGE_CACHE_CONTROL,
 } from "@/constants/proxy";
 import { appendHeaderValue, negotiateMarkdown } from "@/lib/proxy/dualmark";
 import { findRedirect } from "@/lib/proxy/redirects";
@@ -47,6 +48,7 @@ async function proxy(request: Request, next: () => Promise<Response>) {
   if (geoTagLinks) {
     const tagged = await tagMarkdownResponse(request, geoTagLinks, {});
     if (tagged) {
+      tagged.headers.set("Cache-Control", DYNAMIC_PAGE_CACHE_CONTROL);
       waitUntil(request, geoTracker.track(request));
       return tagged;
     }
@@ -69,7 +71,7 @@ async function proxy(request: Request, next: () => Promise<Response>) {
       request.method === "GET" &&
       !response.headers.has("cache-control")
     ) {
-      response.headers.set("Cache-Control", STATIC_PAGE_CACHE_CONTROL);
+      response.headers.set("Cache-Control", PUBLIC_PAGE_CACHE_CONTROL);
     }
     return response;
   });

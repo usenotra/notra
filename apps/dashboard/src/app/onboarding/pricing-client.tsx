@@ -1,20 +1,28 @@
 "use client";
 
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { useListPlans } from "autumn-js/react";
-import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
+import { AuthWordmark } from "@/components/auth/auth-wordmark";
 import { PlanCard } from "@/components/billing/plan-card";
-import { Button } from "@/components/button";
+import { buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
 import { OnboardingProgress } from "@/components/onboarding/progress";
+import { SkipOnboardingForm } from "@/components/onboarding/skip-onboarding-form";
 import { OnboardingStepViewTracker } from "@/components/onboarding/step-view-tracker";
-import { ONBOARDING_STEPS, PLAN_SURFACES } from "@/constants/analytics-events";
+import {
+  ONBOARDING_STEPS,
+  PAYWALL_KINDS,
+  PLAN_SURFACES,
+} from "@/constants/analytics-events";
 import { FEATURED_PLAN_TIER } from "@/constants/billing";
 import { ONBOARDING_STEP_PRICING } from "@/constants/onboarding";
 import {
@@ -24,7 +32,9 @@ import {
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { attachPlanWithAddons } from "@/lib/billing/attach-plan";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
-import { skipOnboarding } from "@/lib/onboarding/skip";
+import { pickSidebarMode } from "@/lib/hooks/use-sidebar-mode";
+import { useRouter } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 import type { BillingPlanGroup } from "@/types/billing/plan";
 import type { PricingClientProps } from "@/types/onboarding";
 import {
@@ -37,17 +47,19 @@ import {
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
+import { setSidebarModeCookie } from "@/utils/cookies";
 
 export function PricingClient({
   canSkipOnboarding,
+  closeHref,
   slug,
   progressHrefs,
 }: PricingClientProps) {
   const t = useTranslations("onboarding.pricing");
   const tCommon = useTranslations("common");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tBilling = useTranslations("billing");
   const locale = useLocale();
+  const router = useRouter();
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const { attach, multiAttach } = useBillingCustomer();
   const [isYearly, setIsYearly] = useState(false);
@@ -75,6 +87,18 @@ export function PricingClient({
       surface: PLAN_SURFACES.ONBOARDING,
     });
   }, [plansLoading, plans]);
+
+  // A stored "geo" mode would send the org root straight to the GEO paywall,
+  // so switch to Studio (where free feedback lives) before leaving.
+  async function handleClose(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    trackEvent(POSTHOG_EVENTS.PAYWALL_DISMISSED, {
+      kind: PAYWALL_KINDS.ONBOARDING_PRICING,
+    });
+    pickSidebarMode("studio", undefined);
+    await setSidebarModeCookie("studio").catch(() => undefined);
+    router.push(closeHref);
+  }
 
   function handleIntervalChange(value: string) {
     const yearly = value === "yearly";
@@ -185,71 +209,76 @@ export function PricingClient({
   }
 
   return (
-    <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-12">
+    <div className="relative min-h-screen w-full">
       <OnboardingStepViewTracker step={ONBOARDING_STEPS.PRICING} />
-      <div className="mb-6 flex justify-center">
-        <OnboardingProgress
-          current={ONBOARDING_STEP_PRICING}
-          hrefs={progressHrefs}
-        />
-      </div>
-      <div className="space-y-3 text-center">
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-muted-foreground">{t("description")}</p>
-        <Button render={<Link href={`/${slug}/feedback`} />} variant="outline">
-          {t("continueFree")}
-        </Button>
-      </div>
-
-      <div className="mt-8 flex justify-center">
-        <Tabs
-          onValueChange={handleIntervalChange}
-          value={isYearly ? "yearly" : "monthly"}
+      <header className="absolute inset-x-0 top-0 flex items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
+        <AuthWordmark />
+        <Link
+          aria-label={t("close")}
+          className={cn(
+            buttonVariants({ size: "icon", variant: "ghost" }),
+            "text-muted-foreground"
+          )}
+          href={closeHref}
+          onClick={handleClose}
         >
-          <TabsList variant="line">
-            <TabsTrigger value="monthly">
-              {tCommon("labels.monthly")}
-            </TabsTrigger>
-            <TabsTrigger className="flex items-center gap-1.5" value="yearly">
-              {tCommon("labels.yearly")}
-              <span className="bg-success/10 text-success rounded-full px-1.5 py-0.5 text-xs font-medium">
-                {tCommon("labels.savePercent", { percent: 20 })}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <p className="text-muted-foreground mt-3 text-center text-xs">
-        {t("renews", { interval: isYearly ? "year" : "month" })}
-      </p>
-
-      {plansLoading ? (
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <Skeleton className="h-[28rem] rounded-lg" />
-          <Skeleton className="h-[28rem] rounded-lg" />
-          <Skeleton className="h-[28rem] rounded-lg" />
+          <HugeiconsIcon className="size-5" icon={Cancel01Icon} />
+        </Link>
+      </header>
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 pt-24 pb-12">
+        <div className="mb-6 flex justify-center">
+          <OnboardingProgress
+            current={ONBOARDING_STEP_PRICING}
+            hrefs={progressHrefs}
+          />
         </div>
-      ) : (
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          {planGroups.map(renderPlanCard)}
+        <div className="space-y-3 text-center">
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+            {t("title")}
+          </h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
-      )}
-      {canSkipOnboarding && (
-        <form
-          action={skipOnboarding.bind(null, slug, ONBOARDING_STEPS.PRICING)}
-          className="mt-8 flex justify-center"
-        >
-          <button
-            className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
-            type="submit"
+
+        <div className="mt-8 flex justify-center">
+          <Tabs
+            onValueChange={handleIntervalChange}
+            value={isYearly ? "yearly" : "monthly"}
           >
-            {tOnboardingShared("skipOnboarding")}
-          </button>
-        </form>
-      )}
+            <TabsList aria-label={tCommon("labels.billingInterval")}>
+              <TabsTrigger value="monthly">
+                {tCommon("labels.monthly")}
+              </TabsTrigger>
+              <TabsTrigger value="yearly">
+                {tCommon("labels.yearly")}
+                <Badge size="sm" variant="success">
+                  {tCommon("labels.savePercent", { percent: 20 })}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <p className="text-muted-foreground mt-3 text-center text-xs">
+          {t("renews", { interval: isYearly ? "year" : "month" })}
+        </p>
+
+        {plansLoading ? (
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <Skeleton className="h-[28rem] rounded-lg" />
+            <Skeleton className="h-[28rem] rounded-lg" />
+            <Skeleton className="h-[28rem] rounded-lg" />
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {planGroups.map(renderPlanCard)}
+          </div>
+        )}
+        {canSkipOnboarding && (
+          <div className="mt-8">
+            <SkipOnboardingForm slug={slug} step={ONBOARDING_STEPS.PRICING} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

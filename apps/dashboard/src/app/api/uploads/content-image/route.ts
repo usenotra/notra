@@ -1,5 +1,5 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { ORPCError } from "@orpc/server";
-import { NextResponse } from "next/server";
 
 import { CONTENT_MEDIA } from "@/constants/content-media";
 import { uploadContentImage, uploadContentVideo } from "@/lib/upload/server";
@@ -9,8 +9,6 @@ import {
   contentImageTooLargeMessage,
   guessContentImageMime,
 } from "@/utils/content-image-size";
-
-export const maxDuration = 30;
 
 const CONTENT_UPLOADS = {
   image: uploadContentImage,
@@ -22,13 +20,10 @@ const CONTENT_UPLOADS = {
 
 function errorResponse(error: unknown, failed: string) {
   if (error instanceof ORPCError) {
-    return NextResponse.json(
-      { message: error.message },
-      { status: error.status }
-    );
+    return Response.json({ message: error.message }, { status: error.status });
   }
-  console.error("Content upload failed", error);
-  return NextResponse.json({ message: failed }, { status: 500 });
+  logError("Content upload failed", error);
+  return Response.json({ message: failed }, { status: 500 });
 }
 
 function uploadKind(form: FormData): ContentMediaKind {
@@ -40,7 +35,7 @@ export async function POST(request: Request) {
   try {
     form = await request.formData();
   } catch {
-    return NextResponse.json(
+    return Response.json(
       { message: CONTENT_MEDIA.image.choose },
       { status: 400 }
     );
@@ -50,13 +45,13 @@ export async function POST(request: Request) {
   const media = CONTENT_MEDIA[kind];
   const file = form.get("file");
   if (!(file instanceof File)) {
-    return NextResponse.json({ message: media.choose }, { status: 400 });
+    return Response.json({ message: media.choose }, { status: 400 });
   }
   const imageMime = kind === "image" ? guessContentImageMime(file) : "";
   const maxBytes =
     kind === "image" ? contentImageMaxBytes(imageMime) : media.maxBytes;
   if (file.size > maxBytes) {
-    return NextResponse.json(
+    return Response.json(
       {
         message:
           kind === "image"
@@ -73,7 +68,7 @@ export async function POST(request: Request) {
       bytes,
       headers: request.headers,
     });
-    return NextResponse.json(uploaded);
+    return Response.json(uploaded);
   } catch (error) {
     return errorResponse(error, media.failed);
   }

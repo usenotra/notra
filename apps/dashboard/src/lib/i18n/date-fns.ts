@@ -1,6 +1,6 @@
 import type { Locale } from "date-fns";
 import { de, enUS } from "date-fns/locale";
-import { useLocale } from "next-intl";
+import { useLocale } from "use-intl";
 
 import type { DashboardLocale } from "@/types/i18n";
 

@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-  ResponsiveAlertDialogTrigger,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
-import { useTranslations } from "next-intl";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import type { ReactElement } from "react";
+import { useTranslations } from "use-intl";
 
 import {
   getOrganizationMembershipActionDescriptionKey,
@@ -23,7 +13,7 @@ interface OrganizationMembershipActionDialogProps {
   organizationName: string;
   action: OrganizationMembershipAction;
   hasOtherMembers: boolean;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<unknown>;
   trigger: ReactElement;
 }
 
@@ -35,37 +25,17 @@ export function OrganizationMembershipActionDialog({
   trigger,
 }: OrganizationMembershipActionDialogProps) {
   const t = useTranslations("settings.membershipAction");
-  const tCommon = useTranslations("common.actions");
 
   return (
-    <ResponsiveAlertDialog>
-      <ResponsiveAlertDialogTrigger render={trigger} />
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle className="wrap-anywhere">
-            {t("title", { action, name: organizationName })}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {t(
-              getOrganizationMembershipActionDescriptionKey(
-                action,
-                hasOtherMembers
-              )
-            )}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={onConfirm}
-          >
-            {t("confirm", { action })}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={t("confirm", { action })}
+      description={t(
+        getOrganizationMembershipActionDescriptionKey(action, hasOtherMembers)
+      )}
+      onConfirm={onConfirm}
+      title={t("title", { action, name: organizationName })}
+      trigger={trigger}
+      variant="destructive"
+    />
   );
 }

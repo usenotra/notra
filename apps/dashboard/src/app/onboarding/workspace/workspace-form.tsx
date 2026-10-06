@@ -15,13 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
-import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { CheckIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { OnboardingEmailPrefs } from "@/components/onboarding/email-prefs";
 import { OrgLogoField } from "@/components/onboarding/org-logo-field";
@@ -35,6 +36,7 @@ import {
 } from "@/constants/onboarding";
 import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
 import { extractDomain } from "@/lib/onboarding/company-logo";
+import { continueAfterWorkspace } from "@/lib/onboarding/continue-after-workspace";
 import {
   MAX_LOGO_FILE_SIZE_MB,
   readFileAsDataUrl,
@@ -42,6 +44,7 @@ import {
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
 import type {
+  OnboardingExistingOrg,
   WorkspaceFormField,
   WorkspaceFormProps,
   WorkspaceSlugCheck,
@@ -105,11 +108,15 @@ export function WorkspaceForm({
     return t("validation.checkField");
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrg, setCreatedOrg] = useState<OnboardingExistingOrg>();
+  const currentOrg = existingOrg ?? createdOrg;
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
   );
-  const [websiteValue, setWebsiteValue] = useState("");
+  const [websiteValue, setWebsiteValue] = useState(
+    existingOrg?.websiteUrl ?? ""
+  );
   const [debouncedWebsite] = useDebouncedValue(websiteValue, {
     wait: COMPANY_LOGO_DEBOUNCE_MS,
   });
@@ -117,7 +124,7 @@ export function WorkspaceForm({
   const fetchedLogoUrl = logoFile
     ? null
     : (getGoogleFaviconUrl(companyDomain) ?? null);
-  const isResuming = !!existingOrg;
+  const isResuming = !!currentOrg;
 
   const handleLogoSelect = async (file: File) => {
     const validationError = validateLogoFile(file);
@@ -152,9 +159,9 @@ export function WorkspaceForm({
       heardAboutNotraSource: initialSource,
       name: existingOrg?.name ?? "",
       slug: existingOrg?.slug ?? "",
-      websiteUrl: "",
+      websiteUrl: existingOrg?.websiteUrl ?? "",
       dailySummary: existingOrg?.dailySummary ?? true,
-      marketingEmails: existingOrg?.marketingEmails ?? true,
+      marketingEmails: existingOrg?.marketingEmails ?? false,
     },
     validators: {
       onSubmit: onboardingWorkspaceFormSchema,
@@ -164,12 +171,13 @@ export function WorkspaceForm({
 
       try {
         await submitWorkspaceForm({
-          existingOrg,
+          existingOrg: currentOrg,
+          onOrganizationCreated: setCreatedOrg,
           logoFile,
           logoSourceUrl: null,
           value,
         });
-        window.location.assign("/onboarding/visibility");
+        await continueAfterWorkspace(currentOrg, value);
       } catch (err) {
         toast.error(
           err instanceof Error && err.message ? err.message : t("createFailed")
@@ -370,9 +378,11 @@ export function WorkspaceForm({
                   className="pointer-events-none absolute right-3.5 flex size-6 items-center justify-center"
                   role="status"
                 >
-                  <Loader2Icon
-                    className={`text-muted-foreground duration-fast absolute size-4 animate-spin transition-opacity motion-reduce:animate-none motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
-                  />
+                  <span
+                    className={`text-muted-foreground duration-fast absolute transition-opacity motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
+                  >
+                    <Spinner />
+                  </span>
                   <span
                     className={`bg-success/15 text-success duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
                   >
@@ -422,9 +432,9 @@ export function WorkspaceForm({
                       : undefined
                   }
                   aria-invalid={field.state.meta.errors.length > 0}
-                  autoFocus={isResuming}
+                  autoFocus={isResuming && !existingOrg?.hasBrand}
                   className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || Boolean(existingOrg?.hasBrand)}
                   id="website"
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -592,15 +602,8 @@ export function WorkspaceForm({
           )}
         </form.Field>
 
-        <CtaButton className="w-full" disabled={isSubmitting} type="submit">
-          {isSubmitting ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              {t("settingUp")}
-            </>
-          ) : (
-            tCommon("actions.continue")
-          )}
+        <CtaButton className="w-full" loading={isSubmitting} type="submit">
+          {tCommon("actions.continue")}
         </CtaButton>
       </form>
     </div>

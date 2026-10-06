@@ -3,7 +3,6 @@ import { skills } from "@notra/db/schema";
 import { and, asc, count, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-import { getConversationalBlogPostPrompt } from "../../prompts/blog_post/conversational";
 import { DEFAULT_SKILL_CATALOG_LIMIT, UNSLOP_DESCRIPTION } from "../constants";
 import { ensureUnslopSkill } from "../seed";
 import type {
@@ -13,6 +12,7 @@ import type {
   SkillServiceContext,
 } from "../types";
 import { UNSLOP_CONTENT } from "../unslop-content";
+import { currentSkillContent } from "./current-content";
 import { normalizeSkillSummary } from "./guidance";
 
 const promptableSkillWhere = (organizationId: string) =>
@@ -91,13 +91,7 @@ export async function loadSkillByName(
   return {
     name: row.name,
     description: row.description,
-    // Refresh only the untouched seeded copy; preserve organization edits.
-    content:
-      row.isSystem &&
-      name === "blog-post" &&
-      row.updatedAt.getTime() === row.createdAt.getTime()
-        ? getConversationalBlogPostPrompt()
-        : row.content.trim(),
+    content: currentSkillContent(row).trim(),
   };
 }
 

@@ -2,8 +2,8 @@
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";

@@ -1,7 +1,7 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, members, organizations } from "@notra/db/schema";
-import { getResend } from "@notra/email/utils/resend";
 import {
   type AutomatedWorkflowFailureState,
   automatedWorkflowFailureStateSchema,
@@ -87,14 +87,6 @@ async function sendPausedEmails({
   reason,
   logPrefix,
 }: RecordAutomatedWorkflowPauseParams) {
-  const resend = getResend();
-  if (!resend) {
-    console.warn(
-      `[${logPrefix}] Resend not configured, skipping workflow paused email`
-    );
-    return;
-  }
-
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { name: true, slug: true },
@@ -114,7 +106,7 @@ async function sendPausedEmails({
   const pauseEventId = crypto.randomUUID();
 
   for (const recipientEmail of ownerEmails) {
-    const result = await sendWorkflowPausedEmail(resend, {
+    const result = await sendWorkflowPausedEmail({
       recipientEmail,
       organizationName,
       organizationSlug,
@@ -124,10 +116,9 @@ async function sendPausedEmails({
     });
 
     if (result.error) {
-      console.error(
-        `[${logPrefix}] Failed to send workflow paused email to ${recipientEmail}:`,
-        result.error
-      );
+      logError("Failed to send workflow paused email", result.error, {
+        workflow: logPrefix,
+      });
     }
   }
 }
@@ -258,15 +249,20 @@ export async function recordAutomatedWorkflowPauseSafe(
     );
 
     if (pauseResult.paused) {
-      console.warn(
-        `[${params.logPrefix}] Paused trigger ${params.triggerId} after ${pauseResult.failureCount} automated ${params.reason} events`
-      );
+      logWarn("Paused trigger after repeated automated failures", {
+        workflow: params.logPrefix,
+        triggerId: params.triggerId,
+        failureCount: pauseResult.failureCount,
+        reason: params.reason,
+      });
     }
   } catch (error) {
-    console.warn(
-      `[${params.logPrefix}] Failed to record automated workflow pause state`,
-      { triggerId: params.triggerId, reason: params.reason, error }
-    );
+    logWarn("Failed to record automated workflow pause state", {
+      workflow: params.logPrefix,
+      triggerId: params.triggerId,
+      reason: params.reason,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -277,9 +273,10 @@ export async function clearAutomatedWorkflowPauseSafe({
   try {
     await Effect.runPromise(clearAutomatedWorkflowFailures({ triggerId }));
   } catch (error) {
-    console.warn(
-      `[${logPrefix}] Failed to clear automated workflow pause state`,
-      { triggerId, error }
-    );
+    logWarn("Failed to clear automated workflow pause state", {
+      workflow: logPrefix,
+      triggerId,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }

@@ -16,6 +16,7 @@ import {
   loadGeoPromptResultsForTool,
   loadGeoTimeseriesForTool,
 } from "@notra/ai/utils/geo-tool-data";
+import { geoToolModelOutput } from "@notra/ai/utils/geo-tool-model-output";
 import { type Tool, tool } from "ai";
 
 export function createListGeoProjectsTool(
@@ -45,11 +46,12 @@ export function createGetGeoOverviewTool(config: OrganizationToolConfig): Tool {
       whenToUse:
         "Use when the user asks about GEO performance, AI visibility, brand mentions in AI answers, engine performance, or competing brands in AI search.",
       usageNotes:
-        "Choose a trailing window from 1 to 365 days. Omit projectId for all projects, or use an ID from listGeoProjects. Data may be empty if no scans have run yet.",
+        "Choose a trailing window from 1 to 365 days. Omit projectId for all projects, or use an ID from listGeoProjects. mention_rate and visibility_rate are fractions from 0 to 1; multiply by 100 when displaying percentages. Data may be empty if no scans have run yet.",
     }),
     inputSchema: getGeoOverviewInputSchema,
     execute: ({ projectId, days }) =>
       loadGeoOverviewForTool(config.organizationId, projectId, days),
+    toModelOutput: ({ output }) => geoToolModelOutput(output),
   });
 }
 
@@ -64,11 +66,12 @@ export function createGetGeoTimeseriesTool(
       whenToUse:
         "Use when the user asks whether AI visibility is improving or declining, requests a trend, or wants to compare engine performance over time.",
       usageNotes:
-        "Choose a trailing window from 1 to 365 days. Omit projectId for all projects, or use an ID from listGeoProjects.",
+        "Choose a trailing window from 1 to 365 days. Omit projectId for all projects, or use an ID from listGeoProjects. Model-facing points use columns and rows; match each value to its column name. mention_rate and visibility_rate are fractions from 0 to 1; multiply by 100 when displaying percentages.",
     }),
     inputSchema: getGeoTimeseriesInputSchema,
     execute: ({ projectId, days }) =>
       loadGeoTimeseriesForTool(config.organizationId, projectId, days),
+    toModelOutput: ({ output }) => geoToolModelOutput(output),
   });
 }
 
@@ -118,6 +121,7 @@ export function createGetGeoCompetitorShareTool(
         days,
         limit
       ),
+    toModelOutput: ({ output }) => geoToolModelOutput(output),
   });
 }
 
@@ -128,18 +132,19 @@ export function createGetGeoProjectContextTool(
     description: toolDescription({
       toolName: "getGeoProjectContext",
       intro:
-        "Returns one GEO project's brand name and aliases, configured competitors, tracked prompts, and latest per-engine checks.",
+        "Returns one GEO project's brand name and aliases, its most relevant tracked competitors (the ones AI engines recommend most) with the total tracked count, tracked prompts, and latest per-engine checks.",
       whenToUse:
         "Use for a detailed project-level picture before giving GEO positioning, competitor, prompt, or content recommendations.",
       usageNotes:
-        "Call listGeoProjects first and pass an exact project ID. Use includeAnswers=true only when full answers are necessary.",
+        "Call listGeoProjects first and pass an exact project ID. Use includeAnswers=true only when full answers are necessary. When trackedCompetitorCount is larger than the competitors returned, pass competitorSearch to look up a specific one.",
     }),
     inputSchema: getGeoProjectContextInputSchema,
-    execute: ({ projectId, includeAnswers }) =>
+    execute: ({ projectId, includeAnswers, competitorSearch }) =>
       loadGeoProjectContextForTool(
         config.organizationId,
         projectId,
-        includeAnswers
+        includeAnswers,
+        competitorSearch
       ),
   });
 }

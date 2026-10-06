@@ -86,10 +86,7 @@ export const SIDEBAR_MODE_HOME_LINKS: Record<SidebarMode, string> = {
   studio: HOME_NAV_LINK,
 };
 
-export const GEO_ROUTE_SECTIONS: ReadonlySet<string> = new Set([
-  "geo",
-  "feedback",
-]);
+export const GEO_ROUTE_SECTIONS: ReadonlySet<string> = new Set(["geo"]);
 
 export const SHARED_ROUTE_PREFIXES: readonly string[] = [
   "content",
@@ -102,6 +99,7 @@ export const STUDIO_ROUTE_SECTIONS: ReadonlySet<string> = new Set([
   "analytics",
   "brand",
   "automation",
+  "feedback",
   "iris",
 ]);
 
@@ -166,7 +164,6 @@ export const NAV_GEO_VISIBILITY_LINKS: readonly string[] = [
   GEO_PROMPTS_NAV_LINK,
   GEO_COMPETITORS_NAV_LINK,
   GEO_PERSONAS_NAV_LINK,
-  AGENT_FEEDBACK_NAV_LINK,
 ];
 
 export const NAV_GEO_IMPROVE_LINKS: readonly string[] = [
@@ -188,6 +185,7 @@ export const NAV_STUDIO_LINKS: readonly string[] = [
   CHAT_NAV_LINK,
   CONTENT_NAV_LINK,
   ANALYTICS_NAV_LINK,
+  AGENT_FEEDBACK_NAV_LINK,
   BRAND_IDENTITY_NAV_LINK,
 ];
 

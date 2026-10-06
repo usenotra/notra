@@ -3,7 +3,7 @@
 import type { TextSelection } from "@notra/ai/types/chat";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { ContentPlanView } from "@/components/content/content-plan-view";
 import { ContentEditorSwitch } from "@/components/content/editors";

@@ -8,7 +8,7 @@ import {
 import type { ComposeOption } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useLocale } from "next-intl";
+import { useLocale } from "use-intl";
 import { useReducedMotion } from "motion/react";
 import {
   Children,
@@ -46,6 +46,7 @@ import {
   resolveTooltipPosition,
   tooltipShell,
 } from "@/components/evilcharts/ui/echarts-tooltip";
+import { withTooltipSizeMotion } from "@/utils/chart-tooltip-size";
 import type {
   ChartConfig,
   TooltipBodyItem,
@@ -799,7 +800,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
     padding: 0,
     extraCssText: "box-shadow:none;",
     position: resolveTooltipPosition(tooltipSlot.position),
-    formatter: createTooltipFormatter(ctx),
+    formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
 

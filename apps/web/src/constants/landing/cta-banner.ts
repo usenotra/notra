@@ -1,8 +1,8 @@
 export const CTA_BANNER_HEADING =
-  "Find out what agents say about you. Then change it.";
+  "Find out what AI agents say about you and change it.";
 
 export const CTA_BANNER_SUBCOPY =
-  "Add a few prompts, run a scan, read the answers. Free to start.";
+  "Add a few prompts and run a scan to read the answers. Notra is free to start.";
 
 export const CTA_BANNER_PRIMARY_LABEL = "Start for free";
 

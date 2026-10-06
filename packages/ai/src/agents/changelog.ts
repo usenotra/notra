@@ -1,4 +1,5 @@
 import { runBackgroundGen } from "@notra/ai/agents/background-gen";
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import type {
   ChangelogAgentOptions,
   ChangelogAgentResult,
@@ -10,10 +11,7 @@ export async function generateChangelog(
   return runBackgroundGen({
     organizationId: options.organizationId,
     collectionId: options.collectionId,
-    skillName: "changelog",
-    contentType: "changelog",
-    brandAgentType: "changelog",
-    contentLabel: "changelog",
+    ...CONTENT_AGENT_PROFILES.changelog,
     voiceId: options.voiceId,
     repositories: options.repositories,
     linearIntegrations: options.linearIntegrations,

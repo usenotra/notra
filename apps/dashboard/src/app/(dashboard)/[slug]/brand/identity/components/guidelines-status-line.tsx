@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useFormatter, useNow, useTranslations } from "use-intl";
 
 import type { GuidelinesStatusLineProps } from "@/types/brand-identity";
 import { latest } from "@/utils/latest-date";
@@ -17,7 +17,7 @@ export function GuidelinesStatusLine({
   if (generating) {
     return (
       <p className="text-muted-foreground flex items-center justify-end gap-2 text-xs">
-        <Loader2Icon className="size-3 animate-spin" />
+        <Spinner className="size-3" />
         {t("updatingGuidelines")}
       </p>
     );

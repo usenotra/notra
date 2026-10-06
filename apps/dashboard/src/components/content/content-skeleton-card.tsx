@@ -4,13 +4,13 @@ import { CodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import { formatSnakeCaseLabel } from "@/utils/format";
@@ -39,7 +39,7 @@ export function ContentSkeletonCard({
       <div className="border-border/60 bg-background flex min-h-28 flex-1 flex-col gap-2 overflow-hidden rounded-lg border px-3 pt-2.5 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <Loader2Icon className="text-muted-foreground size-4 shrink-0 animate-spin" />
+            <Spinner className="text-muted-foreground shrink-0" />
             <p className="text-muted-foreground truncate text-base font-medium">
               {t("generating")}
             </p>

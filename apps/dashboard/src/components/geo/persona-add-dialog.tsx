@@ -12,9 +12,10 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogFooter,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { PersonaAddDialogProps } from "@/types/geo-personas-ui";
@@ -53,9 +54,7 @@ export function PersonaAddDialog({
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <div className="flex flex-col gap-3">
-            <label className="text-sm font-medium" htmlFor={id}>
-              {t("label")}
-            </label>
+            <Label htmlFor={id}>{t("label")}</Label>
             <Textarea
               id={id}
               value={brief}

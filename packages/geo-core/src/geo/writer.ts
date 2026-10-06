@@ -16,7 +16,6 @@ import {
   brandSettings,
   brandSitemapPages,
   brandSitemaps,
-  geoCompetitors,
   geoContentBriefs,
   geoMentionChecks,
   geoPromptSuggestions,
@@ -25,6 +24,7 @@ import {
   postCollections,
 } from "@notra/db/schema";
 import type { PostSourceMetadata } from "@notra/db/schema";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { slugify } from "@notra/utils/slugify";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -52,6 +52,7 @@ import type {
   GeoWriterUpdateInput,
 } from "../types/geo";
 import { REUSABLE_BRIEF_STATUSES } from "../utils/geo-gaps";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   geoBriefToMarkdown,
   markdownToGeoBrief,
@@ -569,7 +570,12 @@ const approveAndStartGeoWriterInScope = Effect.fn("geo.writer.startInScope")(
       .pipe(
         Effect.mapError((cause) => new GeoWriterStartError({ cause })),
         Effect.catch((error) => {
-          console.error("[GEO] writer tracking failed:", error.cause);
+          logGeoFailure(
+            "geo.writer.tracking_failed",
+            "Writer generation tracking failed",
+            error.cause,
+            { runId, projectId: scope.projectId }
+          );
           return Effect.void;
         })
       );
@@ -678,55 +684,49 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   }
   const brandSettingsId = selectedBrandId ?? scope.brandSettingsId;
 
-  const competitorFilter =
-    input.competitorIds && input.competitorIds.length > 0
-      ? inArray(geoCompetitors.id, input.competitorIds)
-      : undefined;
-
   const evidenceSourceId =
     sourceId && (sourceKind === "gap" || sourceKind === "prompt")
       ? sourceId
       : null;
 
-  const [brand, settings, competitors, gapData, sitemap, evidence] =
-    yield* Effect.all([
-      geoDb("brand identity lookup failed", () =>
-        db.query.brandSettings.findFirst({
-          columns: {
-            name: true,
-            companyName: true,
-            companyDescription: true,
-            audience: true,
-            websiteUrl: true,
-          },
-          where: eq(brandSettings.id, brandSettingsId),
-        })
-      ),
-      geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          columns: { companyName: true, aliases: true },
-          where: eq(geoSettings.projectId, scope.projectId),
-        })
-      ),
-      geoDb("competitors lookup failed", () =>
-        db
-          .select({ name: geoCompetitors.name, domain: geoCompetitors.domain })
-          .from(geoCompetitors)
-          .where(
-            competitorFilter
-              ? and(
-                  eq(geoCompetitors.projectId, scope.projectId),
-                  competitorFilter
-                )
-              : eq(geoCompetitors.projectId, scope.projectId)
-          )
-      ),
-      loadPlannerGapPrompts(scope.projectId),
-      loadSitemapPages(brandSettingsId, input.sitemapId),
-      evidenceSourceId
-        ? loadPromptEvidence(scope.projectId, evidenceSourceId)
-        : Effect.succeed(null),
-    ]);
+  const [brand, settings, gapData, sitemap, evidence] = yield* Effect.all([
+    geoDb("brand identity lookup failed", () =>
+      db.query.brandSettings.findFirst({
+        columns: {
+          name: true,
+          companyName: true,
+          companyDescription: true,
+          audience: true,
+          websiteUrl: true,
+        },
+        where: eq(brandSettings.id, brandSettingsId),
+      })
+    ),
+    geoDb("settings lookup failed", () =>
+      db.query.geoSettings.findFirst({
+        columns: { companyName: true, aliases: true },
+        where: eq(geoSettings.projectId, scope.projectId),
+      })
+    ),
+    loadPlannerGapPrompts(scope.projectId),
+    loadSitemapPages(brandSettingsId, input.sitemapId),
+    evidenceSourceId
+      ? loadPromptEvidence(scope.projectId, evidenceSourceId)
+      : Effect.succeed(null),
+  ]);
+
+  // Brands the engines named for this prompt rank first, then the ones they
+  // recommend most often overall.
+  const competitorSelection = yield* geoDb("competitors lookup failed", () =>
+    selectGeoContextCompetitors(scope, {
+      ids: input.competitorIds,
+      preferNames: evidence?.competitorMentions.map((mention) => mention.name),
+    })
+  );
+  const competitors = competitorSelection.competitors.map((competitor) => ({
+    name: competitor.name,
+    domain: competitor.domain,
+  }));
 
   const companyName =
     settings?.companyName?.trim() || brand?.companyName?.trim() || "the brand";
@@ -815,8 +815,9 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
         .pipe(
           Effect.catch((releaseError) =>
             Effect.sync(() => {
-              console.error(
-                "[GEO] planner credit release failed:",
+              logGeoFailure(
+                "geo.writer.planner_release_failed",
+                "Planner credit release failed",
                 releaseError
               );
             })

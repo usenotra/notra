@@ -1,8 +1,8 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { EmptyStateAnalyticsPreview } from "@/components/empty-state-preview";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";

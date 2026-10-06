@@ -14,6 +14,7 @@ import {
   geoLiveProgressKey,
   geoLiveWatchKey,
 } from "../utils/geo-live";
+import { logGeoFailure } from "../utils/geo-log";
 
 const watchMemo = new Map<string, { watched: boolean; expiresAt: number }>();
 
@@ -36,7 +37,13 @@ export async function markGeoLiveWatched(
   try {
     await pipeline.exec();
   } catch (error) {
-    console.warn("[geo-live] Could not record live viewer", error);
+    logGeoFailure(
+      "geo.live.watch_failed",
+      "Could not record live viewer",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }
 
@@ -74,6 +81,13 @@ async function isGeoLiveWatched(organizationId: string): Promise<boolean> {
   return watched;
 }
 
+/** Whether live updates for the organization would reach anyone. */
+export async function hasGeoLiveViewers(
+  organizationId: string
+): Promise<boolean> {
+  return Boolean(realtime) && (await isGeoLiveWatched(organizationId));
+}
+
 /**
  * Announces new AI traffic rows to open GEO tabs. The org's cached traffic
  * queries are purged first, so the refetch this triggers reads Tinybird
@@ -85,7 +99,7 @@ export async function publishGeoTrafficChange(
 ): Promise<void> {
   // Without a viewer the cached traffic queries expire on their own TTL, as
   // before live updates existed; skipping saves the purge and the publish.
-  if (!(realtime && (await isGeoLiveWatched(organizationId)))) {
+  if (!(realtime && (await hasGeoLiveViewers(organizationId)))) {
     return;
   }
   await bumpPurgeGeneration("geo", organizationId);
@@ -94,7 +108,13 @@ export async function publishGeoTrafficChange(
       .channel(geoLiveChannel(organizationId))
       .emit("geo.traffic", { projectIds });
   } catch (error) {
-    console.warn("[geo-live] Could not publish traffic update", error);
+    logGeoFailure(
+      "geo.live.traffic_publish_failed",
+      "Could not publish traffic update",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }
 
@@ -146,6 +166,12 @@ export async function publishGeoVisibilityChange(input: {
         status: input.status,
       });
   } catch (error) {
-    console.warn("[geo-live] Could not publish visibility update", error);
+    logGeoFailure(
+      "geo.live.visibility_publish_failed",
+      "Could not publish visibility update",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }

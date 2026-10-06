@@ -1,10 +1,9 @@
 "use client";
 
-import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import {
   Select,
   SelectContent,
@@ -21,10 +20,9 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
 } from "lexical";
-import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
 
 import { $isKiboCodeBlockNode } from "./kibo-code-block-node";
@@ -79,11 +77,9 @@ export default function KiboCodeBlockComponent({
     useLexicalNodeSelection(nodeKey);
   const [localCode, setLocalCode] = useState(code);
   const [prevCode, setPrevCode] = useState(code);
-  const [isCopied, setIsCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lineIdPrefix = useId();
 
   const normalizedLanguage = language || "plain";
@@ -103,15 +99,6 @@ export default function KiboCodeBlockComponent({
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [localCode]);
-
-  // Cleanup copy timeout
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) {
-        clearTimeout(copyTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     const onDelete = (event: KeyboardEvent) => {
@@ -180,23 +167,6 @@ export default function KiboCodeBlockComponent({
     });
   };
 
-  const handleCopy = () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
-      return;
-    }
-    navigator.clipboard.writeText(localCode).catch(() => {
-      // Ignore clipboard errors
-    });
-    setIsCopied(true);
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-    }
-    copyTimeoutRef.current = setTimeout(() => {
-      setIsCopied(false);
-      copyTimeoutRef.current = null;
-    }, 2000);
-  };
-
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Interactive editor element
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Interactive editor element
@@ -226,19 +196,14 @@ export default function KiboCodeBlockComponent({
             ))}
           </SelectContent>
         </Select>
-        <Button
-          aria-label={isCopied ? t("copied") : t("copy")}
-          className="h-7 shrink-0"
-          onClick={handleCopy}
-          size="icon"
-          variant="ghost"
-        >
-          <HugeiconsIcon
-            className={isCopied ? "text-success" : "text-muted-foreground"}
-            icon={isCopied ? Tick02Icon : Copy01Icon}
-            size={14}
-          />
-        </Button>
+        <CopyButton
+          aria-label={t("copy")}
+          className="text-muted-foreground"
+          copiedAriaLabel={t("copied")}
+          iconClassName="size-3.5"
+          size="icon-sm"
+          value={localCode}
+        />
       </div>
       <div className="flex">
         <div

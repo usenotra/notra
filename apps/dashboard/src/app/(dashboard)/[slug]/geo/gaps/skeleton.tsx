@@ -1,11 +1,11 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 
 const GAP_ROW_COUNT = 6;
 
@@ -24,7 +24,7 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
           <Skeleton className="h-8 w-36 rounded-md" />
         </div>
       </div>
-      <GeoTableSkeleton rows={GAP_ROW_COUNT} />
+      <DataTableSkeleton rows={GAP_ROW_COUNT} />
       <p aria-live="polite" className="sr-only">
         {t("loadingStatus")}
       </p>
@@ -41,12 +41,12 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
       data-geo-gaps-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <PageHeader
+        <PageHeading
           description={t("description")}
           title={tCommon("labels.contentGaps")}
         >
           <Skeleton className="h-9 w-36 rounded-md" />
-        </PageHeader>
+        </PageHeading>
         {table}
       </div>
     </PageContainer>

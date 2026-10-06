@@ -4,8 +4,9 @@ import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getAgentReadinessScanErrorMessage } from "@notra/geo-core/utils/agent-readiness";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
-import { useTranslations } from "next-intl";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateReadinessPreview } from "@/components/empty-state-preview";
@@ -122,12 +123,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <header className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon2("labels.agentReadiness")}
-            </h1>
-            <p className="text-muted-foreground">{t("description")}</p>
-          </header>
+          <PageHeading
+            description={t("description")}
+            title={tCommon2("labels.agentReadiness")}
+          />
           <EmptyState
             action={<GeoSetupButton organizationId={organizationId} />}
             description={t("setupDescription")}
@@ -146,12 +145,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {tCommon2("labels.agentReadiness")}
-          </h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon2("labels.agentReadiness")}
+        />
 
         {readinessQuery.data ? (
           <ReadinessBody

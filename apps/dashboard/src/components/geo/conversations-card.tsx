@@ -13,6 +13,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_MAX_SEQUENCES } from "@notra/geo-core/constants/geo";
 import type { GeoPromptSequence } from "@notra/geo-core/types/geo";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -27,21 +31,20 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Switch } from "@notra/ui/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
 import { type ReactNode, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConversationBuilderDialog } from "@/components/geo/conversation-builder-dialog";
 import { ConversationResultsDialog } from "@/components/geo/conversation-results-dialog";
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import {
   useGeoRunSequence,
@@ -271,7 +274,7 @@ export function ConversationsCard({
       variant={sequences.length === 0 ? "default" : "ghost"}
     >
       {generateSequences.isPending ? (
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
       ) : (
         <HugeiconsIcon icon={AiMagicIcon} size={14} />
       )}
@@ -322,8 +325,7 @@ export function ConversationsCard({
           </EmptyContent>
         </Empty>
       ) : (
-        <Table
-          className="rounded-2xl"
+        <DataTable
           columns={columns}
           data={sequences}
           defaultSort={{ key: "name", direction: "asc" }}

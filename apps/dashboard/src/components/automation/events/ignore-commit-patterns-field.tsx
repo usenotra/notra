@@ -16,8 +16,8 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import type { IgnoreCommitPatternsFieldProps } from "@/types/automation/event-trigger";
 import {

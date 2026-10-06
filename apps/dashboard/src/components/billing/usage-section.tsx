@@ -13,10 +13,9 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useAggregateEvents } from "autumn-js/react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
 import { Button } from "@/components/button";
@@ -54,6 +53,7 @@ import {
   remainingBarColor,
   remainingPercent,
 } from "@/utils/format";
+import dynamic from "@/utils/lazy-component";
 
 const UsageBreakdownChart = dynamic(
   () =>

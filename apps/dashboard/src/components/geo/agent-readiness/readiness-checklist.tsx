@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Alert02Icon,
-  AlertCircleIcon,
-  Copy01Icon,
-  Tick01Icon,
-} from "@hugeicons/core-free-icons";
+import { Alert02Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { AgentReadinessIssueGroups } from "@notra/geo-core/types/agent-readiness";
 import {
@@ -15,10 +10,9 @@ import {
 } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
-import { useCopyCode } from "@/components/geo/code-snippet";
 import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { AGENT_READINESS_FIX_COPY_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -30,6 +24,7 @@ import type {
   AgentReadinessResultBadgeProps,
   AgentReadinessSectionHeaderProps,
 } from "@/types/agent-readiness";
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 
 function CopyPromptButton({
   prompt,
@@ -40,25 +35,23 @@ function CopyPromptButton({
   size = "sm",
 }: AgentReadinessCopyPromptButtonProps) {
   const tCommon = useTranslations("common");
-  const { copied, copy } = useCopyCode(prompt);
 
   return (
-    <Button
-      className="shrink-0"
+    <CopyButton
+      copiedLabel={tCommon("actions.copied")}
       onClick={() => {
         trackEvent(POSTHOG_EVENTS.AGENT_READINESS_FIX_COPIED, {
           check_id: checkId ?? null,
           kind: copyKind,
         });
-        return copy();
       }}
+      onCopyError={toastCopyError}
       size={size}
-      type="button"
+      value={prompt}
       variant={variant}
     >
-      <HugeiconsIcon icon={copied ? Tick01Icon : Copy01Icon} size={14} />
-      {copied ? tCommon("actions.copied") : label}
-    </Button>
+      {label}
+    </CopyButton>
   );
 }
 

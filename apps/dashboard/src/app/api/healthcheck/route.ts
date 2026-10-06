@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
-
 export function GET() {
   const cacheControlHeaders = { "Cache-Control": "no-store" };
 
-  return NextResponse.json(
+  return Response.json(
     {
       ok: true,
       time: new Date().toISOString(),

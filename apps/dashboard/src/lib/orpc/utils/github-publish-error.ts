@@ -1,5 +1,6 @@
-import { getTranslations } from "next-intl/server";
+import { logWarn } from "@notra/ai/utils/server-log";
 
+import { getTranslations } from "@/lib/i18n/server";
 import { recordGitHubPublishFailure } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   GitHubContentBranchConflictError,
@@ -76,7 +77,7 @@ export async function toGitHubPublishOrpcError(
     connectionMethod,
     installationId,
   } = context;
-  console.warn("GitHub content publishing failed", {
+  logWarn("GitHub content publishing failed", {
     organizationId,
     repositoryId,
     connectionMethod,
@@ -94,10 +95,13 @@ export async function toGitHubPublishOrpcError(
       });
       paused = result.paused;
     } catch (trackingError) {
-      console.warn("Failed to record GitHub publish failure state", {
+      logWarn("Failed to record GitHub publish failure state", {
         organizationId,
         repositoryId,
-        error: trackingError,
+        error:
+          trackingError instanceof Error
+            ? trackingError.message
+            : String(trackingError),
       });
     }
     if (paused) {

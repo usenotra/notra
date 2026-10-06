@@ -7,6 +7,7 @@ import {
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_MAX_COMPETITORS } from "@notra/geo-core/constants/geo";
 import {
   GEO_CSV_IMPORT_ACCEPT,
   GEO_CSV_IMPORT_MAX_BYTES,
@@ -18,7 +19,9 @@ import {
   parsePromptsCsv,
   readGeoCsvFile,
 } from "@notra/geo-core/geo/csv-import";
+import { competitorKey } from "@notra/geo-core/geo/domain";
 import type {
+  GeoCompetitorImportRow,
   GeoCsvIssue,
   GeoCsvSelection,
 } from "@notra/geo-core/types/geo-import";
@@ -32,25 +35,29 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Effect } from "effect";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoImportCompetitors,
   useGeoImportPrompts,
 } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
+  CsvImportPlanRowsProps,
+  CsvImportSummaryProps,
+  GeoCsvImportCapacity,
   GeoCsvImportDialogProps,
   GeoImportDialogProps,
 } from "@/types/components/geo";
 import { downloadBlob } from "@/utils/download";
-import { formatCsvFileSize } from "@/utils/geo-import";
+import { formatCsvFileSize, planGeoCsvImport } from "@/utils/geo-import";
 
 function CsvIssueList({ issues }: { issues: GeoCsvIssue[] }) {
   const t = useTranslations("geo.geoCsvImportDialog");
@@ -100,6 +107,74 @@ function CsvSummaryRow({
   );
 }
 
+function CsvImportPlanRows<TRow>({
+  capacity,
+  plan,
+  readyCount,
+}: CsvImportPlanRowsProps<TRow>) {
+  const t = useTranslations("geo.geoCsvImportDialog");
+  if (!capacity) {
+    return <CsvSummaryRow label={t("ready")} value={readyCount} />;
+  }
+  return (
+    <>
+      <CsvSummaryRow label={t("newRows")} value={plan.added} />
+      {plan.updated > 0 ? (
+        <CsvSummaryRow label={t("updatedRows")} value={plan.updated} />
+      ) : null}
+      {plan.overLimit > 0 ? (
+        <div className="space-y-1 pb-3">
+          <CsvSummaryRow
+            label={t("overLimit", { limit: capacity.limit })}
+            tone="warning"
+            value={plan.overLimit}
+          />
+          <p className="text-muted-foreground px-3 text-xs text-pretty">
+            {t("overLimitHint", {
+              current: capacity.existingKeys.size,
+              limit: capacity.limit,
+            })}
+          </p>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function CsvImportSummary<TRow>({
+  capacity,
+  plan,
+  readyCount,
+  duplicates,
+  issues,
+}: CsvImportSummaryProps<TRow>) {
+  const t = useTranslations("geo.geoCsvImportDialog");
+  return (
+    <div className="divide-y rounded-lg border text-sm">
+      <CsvImportPlanRows
+        capacity={capacity}
+        plan={plan}
+        readyCount={readyCount}
+      />
+      {duplicates > 0 ? (
+        <CsvSummaryRow label={t("duplicates")} value={duplicates} />
+      ) : null}
+      {issues.length > 0 ? (
+        <div className="space-y-2 pb-3">
+          <CsvSummaryRow
+            label={t("problems")}
+            tone="warning"
+            value={issues.length}
+          />
+          <div className="px-3">
+            <CsvIssueList issues={issues} />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function GeoCsvImportDialog<TRow>({
   open,
   onOpenChange,
@@ -107,6 +182,7 @@ function GeoCsvImportDialog<TRow>({
   parse,
   onImport,
   isPending,
+  capacity,
 }: GeoCsvImportDialogProps<TRow>) {
   const t = useTranslations("geo.geoCsvImportDialog");
   const tCommon = useTranslations("common.actions");
@@ -120,10 +196,12 @@ function GeoCsvImportDialog<TRow>({
     null
   );
   const copy = GEO_IMPORT_COPY[kind];
-  const rows = selection?.result.rows ?? [];
+  const plan = planGeoCsvImport(selection?.result.rows ?? [], capacity);
+  const rows = plan.rows;
   const issues = selection?.result.issues ?? [];
   const duplicates = selection?.result.duplicates ?? 0;
-  const canImport = rows.length > 0 && !isPending;
+  const canImport =
+    rows.length > 0 && !isPending && (capacity?.isReady ?? true);
 
   const close = () => {
     setSelection(null);
@@ -236,24 +314,13 @@ function GeoCsvImportDialog<TRow>({
             )}
           </Dropzone>
           {selection ? (
-            <div className="divide-y rounded-lg border text-sm">
-              <CsvSummaryRow label={t("ready")} value={rows.length} />
-              {duplicates > 0 ? (
-                <CsvSummaryRow label={t("duplicates")} value={duplicates} />
-              ) : null}
-              {issues.length > 0 ? (
-                <div className="space-y-2 pb-3">
-                  <CsvSummaryRow
-                    label={t("problems")}
-                    tone="warning"
-                    value={issues.length}
-                  />
-                  <div className="px-3">
-                    <CsvIssueList issues={issues} />
-                  </div>
-                </div>
-              ) : null}
-            </div>
+            <CsvImportSummary
+              capacity={capacity}
+              duplicates={duplicates}
+              issues={issues}
+              plan={plan}
+              readyCount={rows.length}
+            />
           ) : null}
           <div className="flex justify-end">
             <Button
@@ -278,7 +345,7 @@ function GeoCsvImportDialog<TRow>({
             {tCommon("cancel")}
           </Button>
           <Button disabled={!canImport} onClick={handleImport} type="button">
-            {isPending ? <StatusSpinner /> : null}
+            {isPending ? <Spinner className="size-3.5" /> : null}
             {rows.length > 0
               ? t(`kinds.${kind}.importCount`, { count: rows.length })
               : importLabel}
@@ -313,8 +380,20 @@ export function CompetitorsCsvImportDialog({
   organizationId,
 }: GeoImportDialogProps) {
   const importCompetitors = useGeoImportCompetitors(organizationId);
+  const { competitors, isLoading } = useGeoCompetitorsDb(organizationId, {
+    enabled: open,
+  });
+  const capacity: GeoCsvImportCapacity<GeoCompetitorImportRow> = {
+    isReady: !isLoading,
+    limit: GEO_MAX_COMPETITORS,
+    existingKeys: new Set(
+      competitors.map((competitor) => competitorKey(competitor.name))
+    ),
+    keyOf: (row) => competitorKey(row.name),
+  };
   return (
     <GeoCsvImportDialog
+      capacity={capacity}
       isPending={importCompetitors.isPending}
       kind="competitors"
       onImport={(rows) => importCompetitors.mutateAsync(rows)}

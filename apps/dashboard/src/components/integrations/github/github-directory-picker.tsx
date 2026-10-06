@@ -4,7 +4,6 @@ import {
   Add01Icon,
   ArrowRight01Icon,
   Folder01Icon,
-  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { repositoryContentDirectorySchema } from "@notra/schemas/dashboard/integrations";
@@ -28,10 +27,11 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@notra/ui/components/ui/radio-group";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { cn } from "@notra/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { type FormEvent, type ReactNode, useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -159,7 +159,7 @@ function DirectoryNodeStatus({
         className="text-muted-foreground flex h-10 items-center gap-2 text-sm"
         style={{ paddingInlineStart }}
       >
-        <HugeiconsIcon className="size-4 animate-spin" icon={Loading03Icon} />
+        <Spinner />
         {tCommon2("states.loading")}
       </output>
     );
@@ -205,7 +205,7 @@ function RootDirectoryContent({
   if (isLoading) {
     return (
       <output className="text-muted-foreground flex h-20 items-center justify-center gap-2 text-sm">
-        <HugeiconsIcon className="size-4 animate-spin" icon={Loading03Icon} />
+        <Spinner />
         {t("loadingFolders")}
       </output>
     );

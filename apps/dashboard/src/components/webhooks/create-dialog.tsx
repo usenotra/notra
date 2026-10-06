@@ -12,14 +12,15 @@ import {
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { WEBHOOK_EVENTS } from "@/constants/outbound-webhooks";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
+  WebhookCreateDialogViewProps,
   WebhookCreateProps,
   WebhookEventName,
 } from "@/types/webhooks/outbound";
@@ -31,12 +32,6 @@ export function WebhookCreateDialog({
   onOpenChange,
   onCreated,
 }: WebhookCreateProps) {
-  const t = useTranslations("settings.panes.webhooks.create");
-  const tActions = useTranslations("common.actions");
-  const [url, setUrl] = useState("");
-  const [events, setEvents] = useState<WebhookEventName[]>([
-    "post.generation.completed",
-  ]);
   const [secret, setSecret] = useState<string | null>(null);
   const create = useMutation(
     dashboardOrpc.outboundWebhooks.create.mutationOptions({
@@ -47,6 +42,30 @@ export function WebhookCreateDialog({
       onError: (error) => toast.error(error.message),
     })
   );
+  return (
+    <WebhookCreateDialogView
+      open={open}
+      onOpenChange={onOpenChange}
+      secret={secret}
+      pending={create.isPending}
+      onSubmit={(url, events) => create.mutate({ organizationId, url, events })}
+    />
+  );
+}
+
+export function WebhookCreateDialogView({
+  open,
+  onOpenChange,
+  secret,
+  pending,
+  onSubmit,
+}: WebhookCreateDialogViewProps) {
+  const t = useTranslations("settings.panes.webhooks.create");
+  const tActions = useTranslations("common.actions");
+  const [url, setUrl] = useState("");
+  const [events, setEvents] = useState<WebhookEventName[]>([
+    "post.generation.completed",
+  ]);
   const toggleEvent = (name: WebhookEventName, checked: boolean) => {
     setEvents(
       checked ? [...events, name] : events.filter((value) => value !== name)
@@ -56,7 +75,7 @@ export function WebhookCreateDialog({
     <ResponsiveDialog
       open={open}
       onOpenChange={(next) => {
-        if (!create.isPending) {
+        if (!pending) {
           onOpenChange(next);
         }
       }}
@@ -97,7 +116,7 @@ export function WebhookCreateDialog({
             className="space-y-5"
             onSubmit={(event) => {
               event.preventDefault();
-              create.mutate({ organizationId, url, events });
+              onSubmit(url, events);
             }}
           >
             <div className="space-y-2">
@@ -144,7 +163,7 @@ export function WebhookCreateDialog({
             <>
               <Button
                 variant="outline"
-                disabled={create.isPending}
+                disabled={pending}
                 onClick={() => onOpenChange(false)}
               >
                 {tActions("cancel")}
@@ -152,9 +171,9 @@ export function WebhookCreateDialog({
               <Button
                 type="submit"
                 form="create-webhook"
-                disabled={create.isPending || events.length === 0}
+                disabled={pending || events.length === 0}
               >
-                {create.isPending ? tActions("creating") : t("submit")}
+                {pending ? tActions("creating") : t("submit")}
               </Button>
             </>
           )}

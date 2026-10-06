@@ -13,7 +13,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { DemoApiConsole } from "@/components/demo/demo-api-console";
 import { DemoMissions } from "@/components/demo/demo-missions";

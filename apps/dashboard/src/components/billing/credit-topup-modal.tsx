@@ -9,7 +9,7 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { CreditTopupContent } from "@/components/billing/credit-topup-content";
 import { Button } from "@/components/button";

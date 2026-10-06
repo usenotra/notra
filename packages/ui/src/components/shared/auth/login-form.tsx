@@ -4,8 +4,7 @@
 import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
 
-import { Loader2Icon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@notra/ui/components/framework-provider";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useAuthFlow } from "../../../hooks/use-auth-flow";
 import type {
@@ -17,7 +16,6 @@ import {
   getLastUsedLoginMethod,
   setLastUsedLoginMethod,
 } from "../../../lib/last-login-method";
-import { isNextRedirectError } from "../../../lib/redirect-error";
 import { Badge } from "../../ui/badge";
 import { Separator } from "../../ui/separator";
 import { CtaButton } from "../cta-button";
@@ -90,10 +88,8 @@ export function LoginForm({
     authInFlightRef.current = true;
     setAuthMethod(method);
     setLastUsedLoginMethod(method);
-    start().catch((error) => {
-      if (isNextRedirectError(error)) {
-        return;
-      }
+    // A successful start navigates away and never settles.
+    start().catch(() => {
       releaseAuth();
       setFormError(fallbackError);
     });
@@ -268,16 +264,10 @@ export function LoginForm({
             <CtaButton
               className="w-full"
               disabled={isAuthLoading}
+              loading={authMethod === "email"}
               type="submit"
             >
-              {authMethod === "email" ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  {l.submitting}
-                </>
-              ) : (
-                l.submit
-              )}
+              {l.submit}
             </CtaButton>
           </div>
         </form>

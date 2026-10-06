@@ -19,14 +19,18 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
@@ -38,7 +42,6 @@ import {
   BrandTrackingBadge,
   TrackBrandButton,
 } from "@/components/geo/share-of-voice-brand-tag";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { CHART_PRIMARY_COLOR } from "@/constants/charts";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
@@ -236,33 +239,32 @@ function CompetitorPromptAppearances({
 }: CompetitorPromptAppearancesProps) {
   const t = useTranslations("geo.competitorDetailView");
   return (
-    <Table
-      className="rounded-2xl"
-      columns={columns}
-      data={prompts}
-      defaultSort={{ key: "capturedAt", direction: "desc" }}
-      emptyState={
-        unavailable
-          ? t("promptsUnavailable")
-          : t("promptsEmpty", { competitor })
-      }
-      getRowId={(row) => `${row.promptId}-${row.engine}`}
-      height={showLoading ? tableHeightFor(3) : tableHeight}
-      key={competitor}
-      loading={showLoading}
-      onRowClick={onRowClick}
-      rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
-      toolbar={
-        <div className="space-y-0.5 px-4 py-3">
-          <h2 className="text-sm font-medium wrap-anywhere">
-            {t("whereShowsUp", { competitor })}
-          </h2>
-          <p className="text-muted-foreground text-xs wrap-anywhere">
-            {t("whereShowsUpDescription", { competitor })}
-          </p>
-        </div>
-      }
-    />
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <h2 className="text-base font-semibold text-pretty wrap-anywhere">
+          {t("whereShowsUp", { competitor })}
+        </h2>
+        <p className="text-muted-foreground text-xs wrap-anywhere">
+          {t("whereShowsUpDescription", { competitor })}
+        </p>
+      </div>
+      <DataTable
+        columns={columns}
+        data={prompts}
+        defaultSort={{ key: "capturedAt", direction: "desc" }}
+        emptyState={
+          unavailable
+            ? t("promptsUnavailable")
+            : t("promptsEmpty", { competitor })
+        }
+        getRowId={(row) => `${row.promptId}-${row.engine}`}
+        height={showLoading ? tableHeightFor(3) : tableHeight}
+        key={competitor}
+        loading={showLoading}
+        onRowClick={onRowClick}
+        rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
+      />
+    </div>
   );
 }
 

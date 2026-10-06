@@ -1,5 +1,5 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { headers } from "next/headers";
+import { getRequestHeaders as headers } from "@tanstack/react-start/server";
 
 import { createDemoSandbox, maintainDemoSandboxPool } from "@/lib/demo/sandbox";
 import { writeDemoSession } from "@/lib/demo/session";
@@ -7,8 +7,6 @@ import { demoSandboxCreateInputSchema } from "@/schemas/demo";
 import type { DemoSandboxCreateResponse } from "@/types/demo";
 import { getDemoClientIp, hashDemoClientIp } from "@/utils/demo-ip-hash";
 import { ratelimit } from "@/utils/ratelimit";
-
-export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!isDemoMode()) {

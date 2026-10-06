@@ -2,12 +2,12 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -18,7 +18,6 @@ import { CompetitorsCsvImportDialog } from "@/components/geo/geo-csv-import-dial
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -33,8 +32,20 @@ import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { shareOfVoiceByBrand } from "@/utils/geo-share-of-voice";
+import dynamic from "@/utils/lazy-component";
 
 import { GeoCompetitorsSkeleton } from "./skeleton";
+
+const CompetitorEngineMatrixCard = dynamic(
+  () =>
+    import("@/components/geo/competitor-engine-matrix-card").then(
+      (module) => module.CompetitorEngineMatrixCard
+    ),
+  {
+    loading: () => <Skeleton className="h-96 w-full rounded-2xl" />,
+    ssr: false,
+  }
+);
 
 const CompetitorShareCard = dynamic(
   () =>
@@ -148,6 +159,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             timeseries={timeseries}
           />
         )}
+        <CompetitorEngineMatrixCard
+          aliases={settings.aliases}
+          companyName={settings.companyName}
+          competitors={competitors}
+          isScanning={isScanning}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          range={geoRange.query}
+          trackedEngines={settings.engines}
+        />
         <CompetitorsTable
           aliases={settings.aliases}
           companyName={settings.companyName}

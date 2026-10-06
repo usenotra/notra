@@ -2,8 +2,8 @@ import type {
   AddMcpServerFormValues,
   beginMcpOAuthRequestSchema,
 } from "@notra/schemas/dashboard/integrations";
-import type { useTranslations } from "next-intl";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { useTranslations } from "use-intl";
 import type { z } from "zod";
 
 import type { useMcpServerForm } from "@/lib/hooks/use-mcp-server-form";

@@ -24,15 +24,15 @@ import {
   RadioGroupItem,
 } from "@notra/ui/components/ui/radio-group";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   DeleteAccountDialogProps,
@@ -314,7 +314,7 @@ export function DeleteAccountDialog({
           >
             {isDeleting ? (
               <>
-                <Loader2Icon className="size-4 animate-spin" />
+                <Spinner />
                 {tCommon("deleting")}
               </>
             ) : (

@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@notra/ui/components/ui/dialog";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@notra/ui/lib/utils";
 

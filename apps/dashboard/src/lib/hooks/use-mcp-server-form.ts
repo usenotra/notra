@@ -1,7 +1,7 @@
 import type { AddMcpServerFormValues } from "@notra/schemas/dashboard/integrations";
 import { useForm } from "@tanstack/react-form";
-import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { DEFAULT_MCP_SERVER_FORM_VALUES } from "@/constants/mcp";
 import { createMcpServerFormSchema } from "@/schemas/mcp-server-form";

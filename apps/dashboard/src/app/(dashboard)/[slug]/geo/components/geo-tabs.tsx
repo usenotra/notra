@@ -6,8 +6,8 @@ import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
-import { useLocale, useTranslations } from "next-intl";
 import { Activity, type ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
@@ -22,20 +22,7 @@ import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";
-import { journeyTotals } from "@/utils/geo-journey";
 import { toGeoTab } from "@/utils/geo-tabs";
-
-function TriggerCount({ count }: { count: number }) {
-  const locale = useLocale();
-  if (count <= 0) {
-    return null;
-  }
-  return (
-    <span className="text-xs tabular-nums opacity-70">
-      {count.toLocaleString(locale)}
-    </span>
-  );
-}
 
 function TabSection({
   active,
@@ -103,16 +90,7 @@ export function GeoTabs({
           {tCommon("labels.brandSentiment")}
         </PermissionOption>
         <PermissionOption value="journeys">
-          <span className="flex items-baseline gap-1.5">
-            {tCommon("labels.journeys")}
-            <TriggerCount
-              count={
-                journeyStats
-                  ? journeyTotals(journeyStats.sources).journeys
-                  : journeys.length
-              }
-            />
-          </span>
+          {tCommon("labels.journeys")}
         </PermissionOption>
       </PermissionRow>
 

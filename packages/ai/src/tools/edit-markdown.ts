@@ -3,6 +3,7 @@ import {
   editOperationSchema,
 } from "@notra/ai/schemas/tools";
 import type { EditMarkdownContext } from "@notra/ai/types/tools";
+import { logError, logInfo } from "@notra/ai/utils/server-log";
 import { type Tool, tool } from "ai";
 import z from "zod";
 
@@ -48,7 +49,9 @@ export function createMarkdownTools(context: EditMarkdownContext): {
       const numberedContent = currentLines
         .map((line, i) => `${i + 1}: ${line}`)
         .join("\n");
-      console.log(`[getMarkdown] Returning ${currentLines.length} lines`);
+      logInfo("[getMarkdown] Returning markdown", {
+        lineCount: currentLines.length,
+      });
       return { content: numberedContent, lineCount: currentLines.length };
     },
   });
@@ -61,22 +64,22 @@ export function createMarkdownTools(context: EditMarkdownContext): {
     }),
     execute: ({ operations }) => {
       try {
-        console.log("[editMarkdown] Received:", JSON.stringify(operations));
-
         const previousMarkdown = currentLines.join("\n");
         const sortedOps = [...operations].sort(
           (a, b) => getOperationLineNumber(b) - getOperationLineNumber(a)
         );
 
         for (const op of sortedOps) {
-          console.log(`[editMarkdown] Applying: ${op.op}`);
           applyOperation(currentLines, op);
         }
 
         const updatedMarkdown = currentLines.join("\n");
         context.onUpdate(updatedMarkdown);
 
-        console.log(`[editMarkdown] Success. Lines: ${currentLines.length}`);
+        logInfo("[editMarkdown] Applied operations", {
+          operations: sortedOps.map((op) => op.op),
+          lineCount: currentLines.length,
+        });
         return {
           success: true,
           lineCount: currentLines.length,
@@ -85,7 +88,9 @@ export function createMarkdownTools(context: EditMarkdownContext): {
           updatedMarkdown,
         };
       } catch (err) {
-        console.error("[editMarkdown] Error:", err);
+        logError("[editMarkdown] Failed to apply operations", err, {
+          operationCount: operations.length,
+        });
         return { success: false, error: String(err) };
       }
     },

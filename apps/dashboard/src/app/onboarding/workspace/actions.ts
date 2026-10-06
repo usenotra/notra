@@ -1,6 +1,59 @@
-"use server";
+import { createServerFn } from "@tanstack/react-start";
+
+const isWorkspaceSlugAvailableServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof isWorkspaceSlugAvailableImpl>) => data)
+  .handler(({ data }) => isWorkspaceSlugAvailableImpl(...data));
+export const isWorkspaceSlugAvailable = (
+  ...data: Parameters<typeof isWorkspaceSlugAvailableImpl>
+) => isWorkspaceSlugAvailableServerFn({ data });
+
+const validateOnboardingWebsiteUrlServerFn = createServerFn({ method: "POST" })
+  .validator(
+    (data: Parameters<typeof validateOnboardingWebsiteUrlImpl>) => data
+  )
+  .handler(({ data }) => validateOnboardingWebsiteUrlImpl(...data));
+export const validateOnboardingWebsiteUrl = (
+  ...data: Parameters<typeof validateOnboardingWebsiteUrlImpl>
+) => validateOnboardingWebsiteUrlServerFn({ data });
+
+const triggerOnboardingBrandAnalysisServerFn = createServerFn({
+  method: "POST",
+})
+  .validator(
+    (data: Parameters<typeof triggerOnboardingBrandAnalysisImpl>) => data
+  )
+  .handler(({ data }) => triggerOnboardingBrandAnalysisImpl(...data));
+export const triggerOnboardingBrandAnalysis = (
+  ...data: Parameters<typeof triggerOnboardingBrandAnalysisImpl>
+) => triggerOnboardingBrandAnalysisServerFn({ data });
+
+const triggerOnboardingAgentSetupServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof triggerOnboardingAgentSetupImpl>) => data)
+  .handler(({ data }) => triggerOnboardingAgentSetupImpl(...data));
+export const triggerOnboardingAgentSetup = (
+  ...data: Parameters<typeof triggerOnboardingAgentSetupImpl>
+) => triggerOnboardingAgentSetupServerFn({ data });
+
+const saveOnboardingAttributionServerFn = createServerFn({ method: "POST" })
+  .validator((data: Parameters<typeof saveOnboardingAttributionImpl>) => data)
+  .handler(({ data }) => saveOnboardingAttributionImpl(...data));
+export const saveOnboardingAttribution = (
+  ...data: Parameters<typeof saveOnboardingAttributionImpl>
+) => saveOnboardingAttributionServerFn({ data });
+
+const saveOnboardingNotificationSettingsServerFn = createServerFn({
+  method: "POST",
+})
+  .validator(
+    (data: Parameters<typeof saveOnboardingNotificationSettingsImpl>) => data
+  )
+  .handler(({ data }) => saveOnboardingNotificationSettingsImpl(...data));
+export const saveOnboardingNotificationSettings = (
+  ...data: Parameters<typeof saveOnboardingNotificationSettingsImpl>
+) => saveOnboardingNotificationSettingsServerFn({ data });
 
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
 import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
@@ -18,11 +71,9 @@ import {
   onboardingWorkspaceFormFieldsSchema,
 } from "@notra/schemas/dashboard/onboarding/workspace";
 import { ORPCError } from "@orpc/server";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
-import { headers } from "next/headers";
-import { after } from "next/server";
 import { z } from "zod";
 
 import { ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS } from "@/constants/analytics-events";
@@ -36,6 +87,9 @@ import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getAuthSession } from "@/lib/auth/server";
 import { queueBrandAnalysisForOnboarding } from "@/lib/brand-analysis";
+import { applyOnboardingMarketingChoice } from "@/lib/email/marketing-consent";
+import { afterResponse } from "@/lib/framework/after-response";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   ensureDefaultBrandIdentity,
   launchReservedOnboardingAgent,
@@ -57,11 +111,40 @@ import type {
   TriggerOnboardingAgentSetupInput,
   TriggerOnboardingAgentSetupResult,
 } from "@/types/onboarding-agent";
+import type { ActionResult } from "@/types/organizations/actions";
 import { ratelimit } from "@/utils/ratelimit";
+import {
+  validateOnboardingWebsite,
+  validateWebsiteUrl,
+} from "@/utils/website-url";
 
 const ANALYSIS_LOCK_TTL_SECONDS = 60;
 
-export async function isWorkspaceSlugAvailable(slug: string): Promise<boolean> {
+async function validateOnboardingWebsiteUrlImpl(
+  rawUrl: string
+): Promise<ActionResult<null>> {
+  const session = await getAuthSession();
+  if (!session?.user) {
+    return {
+      data: null,
+      error: { message: "Unauthorized", code: "UNAUTHORIZED" },
+    };
+  }
+  try {
+    await validateOnboardingWebsite(rawUrl, session.user.id);
+    return { data: null, error: null };
+  } catch (error) {
+    if (error instanceof ORPCError) {
+      return {
+        data: null,
+        error: { message: error.message, code: error.code },
+      };
+    }
+    throw error;
+  }
+}
+
+async function isWorkspaceSlugAvailableImpl(slug: string): Promise<boolean> {
   const session = await getAuthSession();
   if (!session?.user) {
     throw new Error("Unauthorized");
@@ -144,9 +227,9 @@ async function runOnboardingAgentSetup({
   );
 }
 
-export async function triggerOnboardingBrandAnalysis(
+async function triggerOnboardingBrandAnalysisImpl(
   rawInput: OnboardingBrandAnalysisInput
-) {
+): Promise<ActionResult<null>> {
   const input = onboardingBrandAnalysisSchema.parse(rawInput);
   const session = await getAuthSession();
 
@@ -166,6 +249,14 @@ export async function triggerOnboardingBrandAnalysis(
     throw new Error("Forbidden");
   }
 
+  const existingBrand = await db.query.brandSettings.findFirst({
+    where: eq(brandSettings.organizationId, input.organizationId),
+    columns: { id: true },
+  });
+  if (existingBrand) {
+    return { data: null, error: null };
+  }
+
   const [{ success: withinLimit }, requestHeaders] = await Promise.all([
     ratelimit.onboardingBrandAnalysis.limit(input.organizationId),
     readRequestHeaders(),
@@ -181,30 +272,43 @@ export async function triggerOnboardingBrandAnalysis(
         reason: ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS.RATE_LIMITED,
       },
     });
-    throw new Error(
-      "Too many onboarding brand analysis requests. Please try again shortly."
-    );
+    return {
+      data: null,
+      error: {
+        code: "TOO_MANY_REQUESTS",
+        message:
+          "Too many onboarding brand analysis requests. Please try again shortly.",
+      },
+    };
   }
 
+  try {
+    await validateWebsiteUrl(input.websiteUrl);
+  } catch (error) {
+    if (error instanceof ORPCError) {
+      return {
+        data: null,
+        error: { code: error.code, message: error.message },
+      };
+    }
+    throw error;
+  }
   const acquiredLock = await tryAcquireBrandAnalysisLock(input.organizationId);
 
   if (!acquiredLock) {
-    throw new Error("Onboarding brand analysis is already in progress.");
-  }
-
-  const existingBrand = await db.query.brandSettings.findFirst({
-    where: eq(brandSettings.organizationId, input.organizationId),
-    columns: { id: true },
-  });
-
-  if (existingBrand) {
-    throw new Error("Onboarding brand analysis has already been requested.");
+    return {
+      data: null,
+      error: {
+        code: "CONFLICT",
+        message: "Onboarding brand analysis is already in progress.",
+      },
+    };
   }
 
   // The visibility step prefills its language from the browser, so warm the
   // same variant.
   const language = preferredGeoLanguage(requestHeaders?.get("accept-language"));
-  after(() =>
+  afterResponse(() =>
     warmGeoOnboardingCache(input.organizationId, input.websiteUrl, language)
   );
 
@@ -215,9 +319,9 @@ export async function triggerOnboardingBrandAnalysis(
       name: input.name,
     });
   } catch (error) {
-    console.error("[Onboarding] Failed to queue brand analysis", {
+    logError("[Onboarding] Failed to queue brand analysis", undefined, {
       organizationId: input.organizationId,
-      error,
+      errorName: error instanceof Error ? error.name : "UnknownError",
     });
     trackServerEvent({
       event: POSTHOG_EVENTS.ONBOARDING_BRAND_ANALYSIS_FAILED,
@@ -228,9 +332,14 @@ export async function triggerOnboardingBrandAnalysis(
         reason: ONBOARDING_BRAND_ANALYSIS_FAILURE_REASONS.QUEUE_FAILED,
       },
     });
-    throw new Error(
-      "Couldn't kick off the brand analysis. Please try again in a moment."
-    );
+    return {
+      data: null,
+      error: {
+        code: "SERVICE_UNAVAILABLE",
+        message:
+          "Couldn't kick off the brand analysis. Please try again in a moment.",
+      },
+    };
   }
 
   trackServerEvent({
@@ -240,10 +349,10 @@ export async function triggerOnboardingBrandAnalysis(
     organizationId: input.organizationId,
   });
 
-  return { success: true };
+  return { data: null, error: null };
 }
 
-export async function triggerOnboardingAgentSetup(
+async function triggerOnboardingAgentSetupImpl(
   rawInput: TriggerOnboardingAgentSetupInput
 ): Promise<TriggerOnboardingAgentSetupResult> {
   const input = triggerOnboardingAgentSetupSchema.parse(rawInput);
@@ -298,12 +407,11 @@ export async function triggerOnboardingAgentSetup(
     organizationId: input.organizationId,
   };
 
-  after(async () => {
+  afterResponse(async () => {
     try {
       await runOnboardingAgentSetup(taskInput);
     } catch (error) {
-      console.error("[Onboarding] Background onboarding agent setup failed", {
-        error,
+      logError("[Onboarding] Background onboarding agent setup failed", error, {
         organizationId: taskInput.organizationId,
       });
     }
@@ -318,7 +426,7 @@ const saveOnboardingAttributionSchema = z
   })
   .and(onboardingWorkspaceAttributionSchema);
 
-export async function saveOnboardingAttribution(
+async function saveOnboardingAttributionImpl(
   rawInput: SaveOnboardingAttributionInput
 ): Promise<SaveOnboardingAttributionResult> {
   const parsed = saveOnboardingAttributionSchema.safeParse(rawInput);
@@ -336,7 +444,7 @@ export async function saveOnboardingAttribution(
 
   try {
     const access = await assertOrganizationAccess({
-      headers: await headers(),
+      headers: getRequestHeaders(),
       organizationId: parsed.data.organizationId,
     });
     membershipRole = access.membership.role;
@@ -399,7 +507,7 @@ const saveOnboardingNotificationSettingsSchema = z
   })
   .and(onboardingNotificationPrefsSchema);
 
-export async function saveOnboardingNotificationSettings(
+async function saveOnboardingNotificationSettingsImpl(
   rawInput: SaveOnboardingNotificationSettingsInput
 ): Promise<SaveOnboardingNotificationSettingsResult> {
   const parsed = saveOnboardingNotificationSettingsSchema.safeParse(rawInput);
@@ -413,13 +521,15 @@ export async function saveOnboardingNotificationSettings(
   }
 
   let membershipRole: string;
+  let userId: string;
 
   try {
     const access = await assertOrganizationAccess({
-      headers: await headers(),
+      headers: getRequestHeaders(),
       organizationId: parsed.data.organizationId,
     });
     membershipRole = access.membership.role;
+    userId = access.user.id;
   } catch (error) {
     if (error instanceof ORPCError) {
       return {
@@ -441,7 +551,11 @@ export async function saveOnboardingNotificationSettings(
   await upsertOnboardingNotificationSettings({
     organizationId: parsed.data.organizationId,
     dailySummary: parsed.data.dailySummary,
-    marketingEmails: parsed.data.marketingEmails,
+  });
+  // Marketing consent is the user's own, not the organization's.
+  await applyOnboardingMarketingChoice({
+    userId,
+    enabled: parsed.data.marketingEmails,
   });
 
   return { success: true };

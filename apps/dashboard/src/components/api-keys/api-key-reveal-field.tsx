@@ -1,62 +1,23 @@
 "use client";
 
-import {
-  Copy01Icon,
-  Tick02Icon,
-  ViewIcon,
-  ViewOffSlashIcon,
-} from "@hugeicons/core-free-icons";
+import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { ApiKeyRevealFieldProps } from "@/types/api-keys";
-
-const COPIED_RESET_MS = 2000;
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 
 export function ApiKeyRevealField({
   value,
   className,
 }: ApiKeyRevealFieldProps) {
   const t = useTranslations("apiKeys.reveal");
-  const tCommon = useTranslations("common");
   const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (copyTimer.current) {
-        clearTimeout(copyTimer.current);
-      }
-    },
-    []
-  );
-
-  const handleCopy = async () => {
-    if (!navigator.clipboard) {
-      toast.error(tCommon("toasts.clipboardUnsupported"));
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch {
-      setCopied(false);
-      toast.error(tCommon("toasts.copyFailed"));
-      return;
-    }
-
-    setCopied(true);
-    if (copyTimer.current) {
-      clearTimeout(copyTimer.current);
-    }
-    copyTimer.current = setTimeout(() => setCopied(false), COPIED_RESET_MS);
-  };
 
   return (
     <div className={cn("relative", className)}>
@@ -80,22 +41,13 @@ export function ApiKeyRevealField({
             icon={revealed ? ViewOffSlashIcon : ViewIcon}
           />
         </Button>
-        <Button
+        <CopyButton
           aria-label={t("copy")}
-          className={cn(
-            "text-muted-foreground size-7",
-            copied && "text-success"
-          )}
-          onClick={handleCopy}
+          className="text-muted-foreground size-7"
+          onCopyError={toastCopyError}
           size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <HugeiconsIcon
-            className="size-4"
-            icon={copied ? Tick02Icon : Copy01Icon}
-          />
-        </Button>
+          value={value}
+        />
       </div>
     </div>
   );

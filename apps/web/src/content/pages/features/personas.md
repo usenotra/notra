@@ -6,7 +6,7 @@ A growth lead on a $500 budget and a founder on a free tier get different answer
 
 ## A different answer for every buyer
 
-An average hides who you're losing. Personas split visibility by buyer, so you know whose questions you win and whose go to someone else.
+A single average hides which buyers you're losing. Personas split visibility by buyer, so you know whose questions you win and whose go to someone else.
 
 ### Personas with memory
 
@@ -32,4 +32,4 @@ Every scan asks as each persona on ChatGPT, Claude, Gemini and Perplexity. You g
 
 ## See what AI tells each of your buyers
 
-Generate a few personas, run a scan, read the answers. Free to start.
+Generate a few personas and run a scan to read the answers. It's free to start.

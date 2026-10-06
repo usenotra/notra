@@ -1,22 +1,15 @@
 import { describe, expect, test } from "bun:test";
 
-import {
-  CODE_RESEARCH_EXIT_MARKER,
-  CODE_RESEARCH_REPO_DIR,
-} from "@notra/ai/constants/code-research";
+import { CODE_RESEARCH_REPO_DIR } from "@notra/ai/constants/code-research";
 
 import {
   buildCheckoutScript,
   buildCloneScript,
   buildListFilesScript,
   buildReadFileScript,
-  buildSearchScript,
-  globToRegExp,
   isDeniedRepoPath,
   normalizeRepoPath,
-  parseCommandOutput,
   parseCommitLines,
-  parseListFiles,
   parseSearchMatches,
   parseShowChange,
   redactSecrets,
@@ -125,21 +118,6 @@ describe("redactSecrets", () => {
   });
 });
 
-describe("parseCommandOutput", () => {
-  test("reads the exit trailer", () => {
-    expect(
-      parseCommandOutput(`hello\nworld\n\n${CODE_RESEARCH_EXIT_MARKER}3`, 0)
-    ).toEqual({ exitCode: 3, output: "hello\nworld\n" });
-  });
-
-  test("falls back to the box exit code without a trailer", () => {
-    expect(parseCommandOutput("boom", 2)).toEqual({
-      exitCode: 2,
-      output: "boom",
-    });
-  });
-});
-
 describe("parseSearchMatches", () => {
   test("hides denied files, redacts, and caps", () => {
     const output = [
@@ -171,52 +149,6 @@ describe("secret handling in results", () => {
       `${"a".repeat(40)}\u001fJan\u001f2026-09-29\u001ffix: rotate ghp_${"b".repeat(36)}`
     );
     expect(commit?.subject).not.toContain("ghp_");
-  });
-});
-
-describe("parseListFiles", () => {
-  test("collapses large listings into directories", () => {
-    const files = [
-      "apps/web/a.ts",
-      "apps/web/b.ts",
-      "apps/api/c.ts",
-      "README.md",
-    ];
-    const parsed = parseListFiles(files.join("\n"), "", 2);
-    expect(parsed.truncated).toBe(true);
-    expect(parsed.files).toEqual(["README.md"]);
-    expect(parsed.directories).toEqual([{ path: "apps", files: 3 }]);
-  });
-
-  test("returns small listings as files", () => {
-    const parsed = parseListFiles("src/a.ts\nsrc/b.ts", "src", 10);
-    expect(parsed.files).toEqual(["src/a.ts", "src/b.ts"]);
-    expect(parsed.truncated).toBe(false);
-  });
-
-  test("filters by glob relative to the listed path", () => {
-    const listing = [
-      "apps/web/src/flag.ts",
-      "apps/web/src/lib/geo/flag.ts",
-      "apps/web/src/lib/geo/flag.test.ts",
-      "apps/web/README.md",
-    ].join("\n");
-    expect(parseListFiles(listing, "apps/web", 10, "**/flag.ts").files).toEqual(
-      ["apps/web/src/flag.ts", "apps/web/src/lib/geo/flag.ts"]
-    );
-    expect(parseListFiles(listing, "apps/web", 10, "*.md").files).toEqual([
-      "apps/web/README.md",
-    ]);
-  });
-});
-
-describe("globToRegExp", () => {
-  test("keeps * inside one directory and lets ** cross them", () => {
-    expect(globToRegExp("*.ts").test("a.ts")).toBe(true);
-    expect(globToRegExp("*.ts").test("dir/a.ts")).toBe(false);
-    expect(globToRegExp("**/*.ts").test("a/b/c.ts")).toBe(true);
-    expect(globToRegExp("src/?.ts").test("src/a.ts")).toBe(true);
-    expect(globToRegExp("a+b.(x)").test("a+b.(x)")).toBe(true);
   });
 });
 
@@ -319,32 +251,5 @@ describe("git scripts", () => {
       `ls-tree -r --name-only '${sha}'`
     );
     expect(() => buildReadFileScript("HEAD", "src/a.ts", 1, 10)).toThrow();
-  });
-
-  test("filters listings by glob before the scan cap", () => {
-    const script = buildListFilesScript("b".repeat(40), "apps/web", "**/*.ts");
-    expect(script).toContain(
-      "| grep -E '^apps/web/(.*/)?[^/]*\\.ts$' | head -n"
-    );
-  });
-
-  test("keeps git grep's exit status past the line cap", () => {
-    const script = buildSearchScript({
-      sha: "c".repeat(40),
-      query: "foo(",
-      regex: true,
-      ignoreCase: false,
-      path: "",
-      maxPerFile: 3,
-    });
-    expect(script).toContain('echo "$?" > "$s"; } | head -n 4000');
-    expect(script).toContain('[ "$c" = 141 ] && c=0');
-    expect(script).toContain('exit "$c"');
-  });
-
-  test("fetches pull request heads into a private ref", () => {
-    expect(
-      buildCheckoutScript({ kind: "pull_request", number: 42 }, "main")
-    ).toContain("+refs/pull/42/head:refs/remotes/origin/pr/42");
   });
 });

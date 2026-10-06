@@ -5,14 +5,16 @@ import {
   upsertGitHubAppInstallation,
 } from "@notra/ai/integrations/github";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
-import { type NextRequest, NextResponse } from "next/server";
+import { getCookie } from "@tanstack/react-start/server";
 
 import {
   INTEGRATION_AUTH_KINDS,
   INTEGRATION_PROVIDERS,
 } from "@/constants/integration-analytics";
+import { redirectResponse } from "@/lib/auth/http";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { getServerSession } from "@/lib/auth/session";
 import {
@@ -30,8 +32,13 @@ interface GitHubAppInstallState {
 
 const ORGANIZATION_SLUG_PATTERN = /^[a-z0-9-]+$/i;
 
-function getFallbackCallbackPath(request: NextRequest) {
-  const slug = getLastVisitedOrganization(request.cookies);
+function getFallbackCallbackPath(request: Request) {
+  const slug = getLastVisitedOrganization({
+    get: (name) => {
+      const value = getCookie(name);
+      return value === undefined ? undefined : { value };
+    },
+  });
   if (!slug || !ORGANIZATION_SLUG_PATTERN.test(slug)) {
     return null;
   }
@@ -39,7 +46,7 @@ function getFallbackCallbackPath(request: NextRequest) {
 }
 
 function buildErrorRedirect(params: {
-  request: NextRequest;
+  request: Request;
   baseUrl: string;
   callbackPath: string | null;
   code: string;
@@ -52,14 +59,14 @@ function buildErrorRedirect(params: {
   });
 
   if (params.callbackPath) {
-    return NextResponse.redirect(
+    return redirectResponse(
       buildCallbackUrl(params.baseUrl, params.callbackPath, {
         githubError: params.code,
       })
     );
   }
 
-  return NextResponse.redirect(
+  return redirectResponse(
     `${params.baseUrl}/?error=${encodeURIComponent(params.code)}`
   );
 }
@@ -79,7 +86,7 @@ async function readInstallState(state: string | null) {
   return installState;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
   let callbackPath: string | null = null;
   let installationId: string | null = null;
@@ -181,7 +188,7 @@ export async function GET(request: NextRequest) {
       authKind: INTEGRATION_AUTH_KINDS.OAUTH,
     });
 
-    return NextResponse.redirect(
+    return redirectResponse(
       buildCallbackUrl(baseUrl, installState.callbackPath, {
         githubConnected: "true",
         githubAccountId: installation.accountId,
@@ -193,7 +200,7 @@ export async function GET(request: NextRequest) {
       error instanceof GitHubReauthorizationRequiredError
     ) {
       if (callbackPath && installationId && state) {
-        return NextResponse.redirect(
+        return redirectResponse(
           buildCallbackUrl(baseUrl, callbackPath, {
             githubReauthorizeInstallationId: installationId,
             githubReauthorizeState: state,
@@ -215,10 +222,7 @@ export async function GET(request: NextRequest) {
         code: "github_installation_forbidden",
       });
     }
-    console.error(
-      "Error in GitHub App callback:",
-      error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-    );
+    logError("Error in GitHub App callback", error);
     return buildErrorRedirect({
       request,
       baseUrl,

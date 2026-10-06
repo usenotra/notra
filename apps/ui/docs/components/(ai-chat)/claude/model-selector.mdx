@@ -5,9 +5,7 @@ description: The hover menu for Claude's model and thinking effort.
 
 <Component path="claude/examples/claude-model-selector" />
 
-```bash
-bunx shadcn@latest add @notra/claude-model-selector
-```
+<RegistryInstall name="claude-model-selector" />
 
 `ClaudeModelSelector` is a shadcn `DropdownMenu` that opens on hover, like claude.ai. The trigger shows the model and, in muted text, the effort, and fills when open. The menu lists the four current models (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 4.5) as a `DropdownMenuRadioGroup`: a title over a muted description, with a blue check at the end of the selected one. Below a separator are an Effort submenu (radio items, current value shown muted) and a More models submenu with the older models.
 

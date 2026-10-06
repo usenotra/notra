@@ -17,6 +17,23 @@ export function toOpenRouterModelId(modelId: string): string {
   return OPENROUTER_MODEL_ALIASES[neutral] ?? neutral;
 }
 
+// Snapshot suffix OpenRouter may append, e.g. "-20260115" or "-2026-01-15".
+const SNAPSHOT_SUFFIX_REGEX = /-\d{4}-?\d{2}-?\d{2}$/;
+
+/**
+ * Inverse of {@link toOpenRouterModelId}, for model ids OpenRouter reports
+ * back. Drops a dated snapshot suffix so the id matches our pricing table.
+ */
+export function fromOpenRouterModelId(modelId: string): string {
+  const base = modelId.replace(SNAPSHOT_SUFFIX_REGEX, "");
+  for (const [neutral, alias] of Object.entries(OPENROUTER_MODEL_ALIASES)) {
+    if (alias === base) {
+      return neutral;
+    }
+  }
+  return base;
+}
+
 export function toVercelModelId(modelId: string): string {
   return modelId;
 }

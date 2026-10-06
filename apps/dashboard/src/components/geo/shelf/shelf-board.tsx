@@ -24,10 +24,17 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useTranslations } from "next-intl";
-import { memo, useRef, useState } from "react";
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";
@@ -241,14 +248,30 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
     data: { type: "column" },
     disabled: dropDisabled,
   });
-  const itemIds =
-    rows.length > 0 ? rows.map((row) => row.id) : EMPTY_COLUMN_IDS;
+  const itemIds = useMemo(
+    () => (rows.length > 0 ? rows.map((row) => row.id) : EMPTY_COLUMN_IDS),
+    [rows]
+  );
+  const activeIndex = useMemo(
+    () => (activeId ? rows.findIndex((row) => row.id === activeId) : -1),
+    [activeId, rows]
+  );
+  const rangeExtractor = useCallback(
+    (range: Parameters<typeof defaultRangeExtractor>[0]) => {
+      const indexes = defaultRangeExtractor(range);
+      return activeIndex < 0 || indexes.includes(activeIndex)
+        ? indexes
+        : [...indexes, activeIndex].sort((a, b) => a - b);
+    },
+    [activeIndex]
+  );
   // react-doctor-disable-next-line react-hooks-js/incompatible-library
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => GEO_SHELF_BOARD_CARD_HEIGHT,
     getItemKey: (index) => rows[index]?.id ?? index,
+    rangeExtractor,
     initialRect: {
       height: GEO_SHELF_BOARD_COLUMN_SCROLL_HEIGHT,
       width: GEO_SHELF_BOARD_COLUMN_WIDTH,
@@ -359,6 +382,7 @@ export function ShelfBoard({
   pendingSourceIds,
   onRowClick,
   onUpdateOpportunity,
+  height = GEO_SHELF_BOARD_HEIGHT,
 }: GeoShelfBoardProps) {
   const tLabels = useTranslations("geo.shelf.labels");
   const statusLabels = useGeoShelfStatusLabels();
@@ -386,7 +410,10 @@ export function ShelfBoard({
 
   if (rows.length === 0) {
     return (
-      <div className="text-muted-foreground flex min-h-48 items-center justify-center rounded-xl border border-dashed px-4 text-sm">
+      <div
+        className="text-muted-foreground flex h-(--shelf-height) items-center justify-center rounded-xl border border-dashed px-4 text-sm"
+        style={{ "--shelf-height": `${height}px` } as CSSProperties}
+      >
         {tLabels("noMatches")}
       </div>
     );
@@ -537,8 +564,8 @@ export function ShelfBoard({
       sensors={sensors}
     >
       <div
-        className="flex gap-3 overflow-x-auto overflow-y-hidden"
-        style={{ height: GEO_SHELF_BOARD_HEIGHT }}
+        className="flex h-(--shelf-height) gap-3 overflow-x-auto overflow-y-hidden"
+        style={{ "--shelf-height": `${height}px` } as CSSProperties}
       >
         {visibleColumns.map((column) => {
           const columnId = column.id as GeoShelfBoardColumnId;

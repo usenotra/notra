@@ -2,16 +2,7 @@
 
 import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -19,19 +10,22 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { formatDistanceToNowStrict } from "date-fns";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useNow, useTranslations } from "use-intl";
 
 import {
   CollectionActionsMenu,
   CollectionMenuItems,
 } from "@/components/content/collection-menu-items";
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
+import Link from "@/components/framework/link";
 import {
+  COLLECTION_JUST_NOW_MS,
   COLLECTION_TABLE_ROW_HEIGHT,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
@@ -39,6 +33,7 @@ import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,
@@ -72,7 +67,7 @@ function CollectionStatusBadge({ status }: { status: CollectionStatus }) {
       className="inline-flex items-center gap-1.5 rounded-sm text-[0.6875rem] whitespace-nowrap"
       variant={statusVariant(status)}
     >
-      {status === "generating" ? <StatusSpinner /> : null}
+      {status === "generating" ? <Spinner /> : null}
       {t("status", { status })}
     </Badge>
   );
@@ -155,66 +150,58 @@ export function CollectionsView({
     onDelete: setDeleteTarget,
   };
   const deleteDialog = (
-    <ResponsiveAlertDialog
+    <ConfirmDialog
+      confirmLabel={tCommon("actions.delete")}
+      description={
+        deleteTarget?.postCount === 1
+          ? tCommon("messages.thisWillPermanentlyDeleteTitle", {
+              title: collectionTitle(deleteTarget),
+            })
+          : t("actions.deleteDescription", {
+              title: deleteTarget ? collectionTitle(deleteTarget) : "",
+              count: deleteTarget?.postCount ?? 0,
+            })
+      }
+      onConfirm={async () => {
+        if (!deleteTarget) {
+          return;
+        }
+        const deleted = await deleteCollection(deleteTarget.id);
+        if (deleted) {
+          setDeleteTarget(null);
+          if (collections.length === 1 && pagination.page > 1) {
+            void pagination.setPage(pagination.page - 1);
+          }
+        }
+      }}
       onOpenChange={(open) => {
-        if (!(open || isDeleting)) {
+        if (!open) {
           setDeleteTarget(null);
         }
       }}
       open={deleteTarget !== null}
-    >
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {deleteTarget?.postCount === 1
-              ? tCommon("labels.deletePost")
-              : t("actions.deleteTitle")}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {deleteTarget?.postCount === 1
-              ? tCommon("messages.thisWillPermanentlyDeleteTitle", {
-                  title: collectionTitle(deleteTarget),
-                })
-              : t("actions.deleteDescription", {
-                  title: deleteTarget ? collectionTitle(deleteTarget) : "",
-                  count: deleteTarget?.postCount ?? 0,
-                })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isDeleting}>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isDeleting}
-            onClick={async () => {
-              if (!deleteTarget || isDeleting) {
-                return;
-              }
-              const deleted = await deleteCollection(deleteTarget.id);
-              if (deleted) {
-                setDeleteTarget(null);
-                if (collections.length === 1 && pagination.page > 1) {
-                  void pagination.setPage(pagination.page - 1);
-                }
-              }
-            }}
-            variant="destructive"
-          >
-            {isDeleting
-              ? tCommon("actions.deleting")
-              : tCommon("actions.delete")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+      pending={isDeleting}
+      title={
+        deleteTarget?.postCount === 1
+          ? tCommon("labels.deletePost")
+          : t("actions.deleteTitle")
+      }
+      variant="destructive"
+    />
   );
   const dateFnsLocale = useDateFnsLocale();
-  const formatRelativeDate = (dateString: string) =>
-    formatDistanceToNowStrict(new Date(dateString), {
+  const now = useNow({ updateInterval: 60_000 });
+  const formatRelativeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    // date-fns has no "just now"; it would print "0 seconds ago".
+    if (Math.abs(now.getTime() - date.getTime()) < COLLECTION_JUST_NOW_MS) {
+      return tCommon("time.justNow");
+    }
+    return formatDistanceToNowStrict(date, {
       addSuffix: true,
       locale: dateFnsLocale,
     });
+  };
   const collectionColumns: TableColumn<PostCollectionSummary>[] = [
     {
       key: "types",
@@ -348,7 +335,10 @@ export function CollectionsView({
             {t("emptyPage")}
           </p>
         ) : null}
-        <TablePagination {...pagination} itemLabel={t("items")} />
+        <TablePagination
+          {...pagination}
+          itemLabel={t("items", { count: pagination.totalItems })}
+        />
         {deleteDialog}
       </div>
     );
@@ -356,12 +346,19 @@ export function CollectionsView({
 
   return (
     <>
-      <Table
-        className="rounded-xl"
+      <DataTable
         columns={columns}
         data={collections}
         emptyState={t("emptyPage")}
-        footer={<TablePagination {...pagination} itemLabel={t("items")} />}
+        pagination={{
+          mode: "server",
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+          totalItems: pagination.totalItems,
+          onPageChange: pagination.setPage,
+          onPageSizeChange: pagination.onPageSizeChange,
+          itemLabel: t("items", { count: pagination.totalItems }),
+        }}
         getRowId={(collection) => collection.id}
         height={paginatedTableHeightFor(
           pagination.pageRowCount,

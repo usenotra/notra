@@ -1,10 +1,10 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
+import { usePathname } from "@/lib/navigation";
 import type { AnalyticsNavProps } from "@/types/analytics";
 
 export function AnalyticsNav({ slug }: AnalyticsNavProps) {

@@ -1,10 +1,10 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import Link from "next/link";
 import { useEffect } from "react";
 
 import { buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
 import { DEFAULT_ERROR_CONTENT_COPY } from "@/constants/error-content";
 import { trackClientException } from "@/lib/analytics/posthog-client";
 import type { ErrorContentProps } from "@/types/components/error";

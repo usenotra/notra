@@ -16,6 +16,9 @@ export interface OperationalLogEvent {
   projectId?: string | null;
   provider?: string;
   errorName?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  websiteUrl?: string;
 }
 
 export interface OperationalContext {

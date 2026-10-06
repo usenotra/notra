@@ -5,11 +5,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import {
   IntegrationCardDither,
   useIntegrationCardDither,

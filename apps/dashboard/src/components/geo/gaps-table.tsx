@@ -27,6 +27,10 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,15 +48,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useLocale, useTranslations } from "next-intl";
+import { TABLE_FRAME_INSET_PX } from "@notra/ui/constants/table";
 import { parseAsString, useQueryState } from "nuqs";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -61,8 +67,6 @@ import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GapDetailSheet } from "@/components/geo/gap-detail-sheet";
 import { SearchGapDetailSheet } from "@/components/geo/search-gap-detail";
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -138,7 +142,11 @@ function remainingTableHeight(element: HTMLElement): number {
     parent = parent.parentElement;
   }
 
-  return Math.max(element.clientHeight, pageAvailable, scrollAvailable);
+  // The table frame adds its rim and borders on top of the passed height.
+  return (
+    Math.max(element.clientHeight, pageAvailable, scrollAvailable) -
+    TABLE_FRAME_INSET_PX
+  );
 }
 
 function useFillHeight(fallback: number) {
@@ -292,7 +300,7 @@ function WriteCell({
             }
           >
             {isIgnoring ? (
-              <StatusSpinner />
+              <Spinner className="size-3.5" />
             ) : (
               <HugeiconsIcon icon={ViewOffSlashIcon} size={15} />
             )}
@@ -310,7 +318,7 @@ function WriteCell({
           size="sm"
           variant="ghost"
         >
-          {isIgnoring ? <StatusSpinner /> : null}
+          {isIgnoring ? <Spinner className="size-3.5" /> : null}
           {t("ignore")}
         </Button>
       ) : null}
@@ -403,7 +411,7 @@ function SearchWriteCell({
             {hasDismiss ? (
               <DropdownMenuItem disabled={isDismissing} onClick={onDismiss}>
                 {isDismissing ? (
-                  <StatusSpinner />
+                  <Spinner className="size-3.5" />
                 ) : (
                   <HugeiconsIcon icon={ViewOffSlashIcon} size={15} />
                 )}
@@ -427,7 +435,7 @@ function SearchWriteCell({
           size="sm"
           variant="ghost"
         >
-          {isDismissing ? <StatusSpinner /> : null}
+          {isDismissing ? <Spinner className="size-3.5" /> : null}
           {tCommon("labels.dismiss")}
         </Button>
         <Button
@@ -632,7 +640,7 @@ function GapsEmpty({ kind, isScanning, onRunScan }: GeoGapsEmptyProps) {
   if (kind === "no-scan") {
     action = (
       <Button disabled={isScanning} onClick={onRunScan}>
-        {isScanning ? <StatusSpinner /> : null}
+        {isScanning ? <Spinner className="size-3.5" /> : null}
         {tGeoShared("runScan")}
       </Button>
     );
@@ -1249,8 +1257,7 @@ export function GeoGapsTable({
   ]);
   const tables = {
     prompt: (
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={promptColumns}
         data={filteredPromptGaps}
         defaultSort={{ key: "opportunity", direction: "desc" }}
@@ -1260,8 +1267,8 @@ export function GeoGapsTable({
       />
     ),
     search: (
-      <Table
-        className="rounded-2xl [&_tbody_td]:align-middle"
+      <DataTable
+        className="[&_tbody_td]:align-middle"
         columns={searchColumns}
         data={filteredSearchRows}
         getRowId={({ kind, row }) => `${kind}:${row.id}`}

@@ -17,8 +17,9 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { useTranslations } from "next-intl";
+import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useGeoSequencesDb } from "@/lib/hooks/use-geo-db";
@@ -122,27 +123,26 @@ export function ConversationBuilderDialog({
                   <span className="text-muted-foreground mt-2 w-5 shrink-0 text-right text-xs tabular-nums">
                     {index + 1}
                   </span>
-                  <div className="border-border bg-muted/40 min-w-0 flex-1 rounded-lg border px-3 py-2">
-                    <textarea
-                      className="placeholder:text-muted-foreground block field-sizing-content max-h-80 w-full resize-none overflow-y-auto bg-transparent text-sm outline-none"
-                      onChange={(event) =>
-                        setSteps((previous) =>
-                          previous.map((item) =>
-                            item.id === step.id
-                              ? { ...item, text: event.target.value }
-                              : item
-                          )
+                  <Textarea
+                    aria-label={`${tGeoShared("turns")} ${index + 1}`}
+                    className="max-h-80 min-w-0 flex-1 resize-none overflow-y-auto"
+                    onChange={(event) =>
+                      setSteps((previous) =>
+                        previous.map((item) =>
+                          item.id === step.id
+                            ? { ...item, text: event.target.value }
+                            : item
                         )
-                      }
-                      placeholder={
-                        index === 0
-                          ? t("firstTurnPlaceholder")
-                          : t("followUpPlaceholder")
-                      }
-                      rows={2}
-                      value={step.text}
-                    />
-                  </div>
+                      )
+                    }
+                    placeholder={
+                      index === 0
+                        ? t("firstTurnPlaceholder")
+                        : t("followUpPlaceholder")
+                    }
+                    rows={2}
+                    value={step.text}
+                  />
                   {steps.length > 1 && (
                     <Button
                       aria-label={t("removeTurn", { number: index + 1 })}

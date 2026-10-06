@@ -1,11 +1,11 @@
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
+import {
+  HoverCard,
+  HoverCardTrigger,
+} from "@notra/ui/components/ui/hover-card";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 const LINEAR_PREFIX = /^linear:/;
 
@@ -20,18 +20,20 @@ export function SourcesCell({
 }: SourcesCellProps) {
   const tCommon = useTranslations("common");
   const count = repositoryIds.length;
+  const label = tCommon("messages.countPluralOneSourceOther", { count });
   return (
-    <Tooltip>
-      <TooltipTrigger className="cursor-help">
-        {tCommon("messages.countPluralOneSourceOther", { count })}
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs" side="top">
-        <ul className="space-y-1">
+    <HoverCard>
+      <HoverCardTrigger className="cursor-help">{label}</HoverCardTrigger>
+      <DetailCardContent title={label}>
+        <ul className="flex flex-col">
           {repositoryIds.map((id) => {
             const isLinear = id.startsWith("linear:");
             const label = repositoryMap?.[id] ?? id.replace(LINEAR_PREFIX, "");
             return (
-              <li className="flex items-center gap-1.5" key={id}>
+              <li
+                className="flex items-center gap-2 px-3 py-1.5 text-xs"
+                key={id}
+              >
                 {isLinear ? (
                   <Linear className="size-3 shrink-0" />
                 ) : (
@@ -42,7 +44,7 @@ export function SourcesCell({
             );
           })}
         </ul>
-      </TooltipContent>
-    </Tooltip>
+      </DetailCardContent>
+    </HoverCard>
   );
 }

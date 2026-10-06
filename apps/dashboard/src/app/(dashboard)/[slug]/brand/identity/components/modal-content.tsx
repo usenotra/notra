@@ -1,5 +1,5 @@
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { ModalContentProps } from "@/types/brand-identity";
@@ -21,7 +21,7 @@ export function ModalContent({
   if (isPendingSettings) {
     return (
       <div className="flex justify-center py-4">
-        <Loader2Icon className="text-primary size-8 animate-spin" />
+        <Spinner className="text-primary size-8" />
       </div>
     );
   }

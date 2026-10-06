@@ -16,12 +16,13 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@notra/ui/components/ui/combobox";
-import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Twemoji } from "@/components/geo/twemoji";
 import { LANGUAGE_FLAGS } from "@/constants/language-flags";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
+import { cn } from "@/lib/utils";
 import type { GeoLanguagePickerProps } from "@/types/geo";
 
 export function LanguageLabel({ language }: { language: string }) {
@@ -44,6 +45,7 @@ export function GeoLanguagePicker({
   disabled = false,
   labeled = true,
   inputId,
+  inputClassName,
   lockedLanguage,
 }: GeoLanguagePickerProps) {
   const t = useTranslations("geo.geoLanguagePicker");
@@ -82,7 +84,7 @@ export function GeoLanguagePicker({
       >
         <ComboboxInput
           aria-label={inputId ? undefined : t("add")}
-          className="w-full"
+          className={cn("w-full", inputClassName)}
           id={inputId}
           placeholder={atLimit ? t("limitReached") : t("add")}
         />

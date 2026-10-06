@@ -1,13 +1,14 @@
 "use client";
 
-import {
-  Copy01Icon,
-  Delete02Icon,
-  Tick01Icon,
-} from "@hugeicons/core-free-icons";
+import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_FEEDBACK_STATUSES } from "@notra/db/constants/agent-feedback";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,7 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackAgent } from "@/components/agent-feedback/feedback-agent-icon";
 import {
@@ -33,8 +34,6 @@ import {
 } from "@/components/agent-feedback/feedback-badges";
 import { Button } from "@/components/button";
 import { Discussion } from "@/components/comments/discussion";
-import { useCopyCode } from "@/components/geo/code-snippet";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import { useRetainedDetail } from "@/lib/hooks/use-retained-detail";
 import type {
@@ -43,6 +42,7 @@ import type {
   AgentFeedbackItem,
 } from "@/types/agent-feedback";
 import { isAgentFeedbackStatus } from "@/utils/agent-feedback";
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 import { paginatedTableHeightFor } from "@/utils/table";
 
 const FEEDBACK_DETAIL_ROW_HEIGHT = 36;
@@ -50,23 +50,12 @@ const FEEDBACK_DETAIL_ROW_HEIGHT = 36;
 // Long IDs and URLs are truncated to keep rows compact; the copy button keeps
 // the full value reachable without hover.
 function CopyableValue({ value }: { value: string }) {
-  const tCommon = useTranslations("common");
-  const { copied, copy } = useCopyCode(value);
   return (
     <span className="flex min-w-0 items-center gap-1">
       <span className="truncate font-mono text-xs" title={value}>
         {value}
       </span>
-      <Button
-        aria-label={
-          copied ? tCommon("actions.copied") : tCommon("actions.copy")
-        }
-        onClick={copy}
-        size="icon-xs"
-        variant="ghost"
-      >
-        <HugeiconsIcon icon={copied ? Tick01Icon : Copy01Icon} />
-      </Button>
+      <CopyButton onCopyError={toastCopyError} size="icon-xs" value={value} />
     </span>
   );
 }
@@ -193,8 +182,7 @@ function FeedbackDetailsTable({
   ];
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={rows}
       getRowId={(row) => row.key}

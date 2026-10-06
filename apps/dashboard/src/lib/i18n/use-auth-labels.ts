@@ -4,7 +4,7 @@ import type {
   TotpEnrollmentPanelLabels,
 } from "@notra/ui/types/auth";
 import type { BackupCodesPanelLabels } from "@notra/ui/types/security";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export function useBackupCodesPanelLabels(): BackupCodesPanelLabels {
   const t = useTranslations("settings.twoFactor.backupCodes");
@@ -74,7 +74,6 @@ export function useAuthPendingStepLabels(): AuthPendingStepLabels {
           : t("emailVerification.descriptionNoEmail"),
       codeLabel: t("emailVerification.codeLabel"),
       submit: t("emailVerification.submit"),
-      submitting: t("emailVerification.submitting"),
       errorFallback: t("emailVerification.errorFallback"),
     },
     mfaChallenge: {
@@ -85,14 +84,12 @@ export function useAuthPendingStepLabels(): AuthPendingStepLabels {
           : t("mfaChallenge.descriptionNoEmail"),
       codeLabel: t("mfaChallenge.codeLabel"),
       submit: t("mfaChallenge.submit"),
-      submitting: t("emailVerification.submitting"),
       useBackupCode: t("mfaChallenge.useBackupCode"),
       backToSignIn: t("mfaChallenge.backToSignIn"),
       backupTitle: t("mfaChallenge.backupTitle"),
       backupDescription: t("mfaChallenge.backupDescription"),
       backupCodeLabel: t("mfaChallenge.backupCodeLabel"),
       backupSubmit: t("mfaChallenge.backupSubmit"),
-      backupSubmitting: t("mfaChallenge.backupSubmitting"),
       useAuthenticator: t("mfaChallenge.useAuthenticator"),
       issuedCodesTitle: t("mfaChallenge.issuedCodesTitle"),
       issuedCodesDescription: t("mfaChallenge.issuedCodesDescription"),
@@ -130,7 +127,6 @@ export function useLoginFormLabels(): LoginFormLabels {
     or: t("signup.or"),
     lastUsed: t("loginForm.lastUsed"),
     submit: t("loginForm.submit"),
-    submitting: t("loginForm.submitting"),
     forgotPassword: t("forgotPassword.title"),
     resetPassword: t("loginForm.resetPassword"),
     noAccount: t("loginForm.noAccount"),

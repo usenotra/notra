@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { chatSessions } from "@notra/db/schema";
 import { projectScopeFilter } from "@notra/db/utils/projects";
@@ -354,10 +355,10 @@ export async function replaceContentChatHistory(
   );
 }
 
-export async function loadChatHistory(
+export async function loadChatHistory<TMessage extends UIMessage = UIMessage>(
   organizationId: string,
   chatId: string
-): Promise<UIMessage[]> {
+): Promise<TMessage[]> {
   const row = await db
     .select({
       messages: chatSessions.messages,
@@ -378,7 +379,39 @@ export async function loadChatHistory(
     return [];
   }
 
-  return row.messages as UIMessage[];
+  return row.messages as TMessage[];
+}
+
+export async function getChatHistorySnapshot<
+  TMessage extends UIMessage = UIMessage,
+>(organizationId: string, chatId: string) {
+  const [row] = await db
+    .select({
+      messages: chatSessions.messages,
+      deletedAt: chatSessions.deletedAt,
+      externalChannelSource: chatSessions.externalChannelSource,
+      externalChannelId: chatSessions.externalChannelId,
+    })
+    .from(chatSessions)
+    .where(
+      and(
+        eq(chatSessions.id, chatId),
+        eq(chatSessions.organizationId, organizationId),
+        isNull(chatSessions.contentId)
+      )
+    )
+    .limit(1);
+
+  if (row?.deletedAt) {
+    return null;
+  }
+
+  return {
+    messages: (row?.messages ?? []) as TMessage[],
+    externalChannelId: row
+      ? toExternalChannelId(row.externalChannelSource, row.externalChannelId)
+      : null,
+  };
 }
 
 export async function getChatSessionState(
@@ -1042,6 +1075,9 @@ export async function generateAndSetChatTitle(
         )
       );
   } catch (err) {
-    console.error("[Chat Title] Generation failed:", err);
+    logError("[Chat Title] Generation failed", err, {
+      chatId,
+      organizationId,
+    });
   }
 }

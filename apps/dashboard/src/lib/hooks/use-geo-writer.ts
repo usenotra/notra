@@ -8,9 +8,9 @@ import type {
   GeoWriterPlanInput,
 } from "@notra/geo-core/types/geo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GEO_CONTENT_GAPS_PREPARING_POLL_MS } from "@/constants/geo-content-gaps";

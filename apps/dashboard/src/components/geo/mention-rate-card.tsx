@@ -18,10 +18,12 @@ import {
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -29,16 +31,14 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import {
   InstrumentEmpty,
   InstrumentModule,
@@ -139,7 +139,7 @@ function ProviderRow({
       <HoverCardTrigger render={<button {...buttonProps} />}>
         {content}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           trackEngine ? (
             <Button
@@ -151,7 +151,7 @@ function ProviderRow({
               variant="outline"
             >
               {tracking ? (
-                <StatusSpinner />
+                <Spinner className="size-3.5" />
               ) : (
                 <HugeiconsIcon
                   data-icon="inline-start"
@@ -169,7 +169,7 @@ function ProviderRow({
         <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
           {t("untrackedHint")}
         </p>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

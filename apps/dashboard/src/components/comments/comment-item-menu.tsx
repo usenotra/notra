@@ -8,8 +8,8 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from "@notra/ui/components/ui/context-menu";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { COMMENT_REACTIONS } from "@/constants/comments";
 import type { CommentItemMenuProps } from "@/types/comments";

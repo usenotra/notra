@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -14,6 +13,7 @@ import {
 } from "react";
 
 import { authClient } from "@/lib/auth/client";
+import { usePathname } from "@/lib/navigation";
 import type { ClientSessionData } from "@/types/auth/session";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { getOrganizationSlugFromPathname } from "@/utils/organization-pathname";

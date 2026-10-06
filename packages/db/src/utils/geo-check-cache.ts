@@ -107,3 +107,52 @@ export async function bumpGeoCheckGeneration(
     console.warn("[geo-checks] Could not bump the aggregate generation", error);
   }
 }
+
+const EMPTY_SHELF_SYNC_TTL_SECONDS = 86_400;
+
+function emptyShelfSyncKey(projectId: string): string {
+  return `geo-shelf-empty-sync:${projectId}`;
+}
+
+/**
+ * Whether a shelf citation sync already found nothing to import at the
+ * organization's current check generation. The sync scans the project's whole
+ * mention-check history, so a project without cited pages would otherwise pay
+ * for it on every shelf view. A new scan bumps the generation and re-enables
+ * the sync. Without Redis the answer is always "not synced".
+ *
+ * Returns the generation read here so an empty sync is recorded against the
+ * generation it actually covered: a scan that lands during the sync bumps the
+ * generation and must not be marked as synced.
+ */
+export async function readEmptyShelfSync(
+  scope: GeoCheckScope & { projectId: string }
+): Promise<{ current: boolean; generation: number | null }> {
+  const redis = getRedis();
+  if (!redis) {
+    return { current: false, generation: null };
+  }
+  const generation = await readGeneration(redis, scope.organizationId);
+  if (generation === null) {
+    return { current: false, generation: null };
+  }
+  const synced = await redis
+    .get<number>(emptyShelfSyncKey(scope.projectId))
+    .catch(() => null);
+  return { current: synced === generation, generation };
+}
+
+export async function markEmptyShelfSync(
+  scope: GeoCheckScope & { projectId: string },
+  generation: number
+): Promise<void> {
+  const redis = getRedis();
+  if (!redis) {
+    return;
+  }
+  await redis
+    .set(emptyShelfSyncKey(scope.projectId), generation, {
+      ex: EMPTY_SHELF_SYNC_TTL_SECONDS,
+    })
+    .catch(() => undefined);
+}

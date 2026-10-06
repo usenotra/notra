@@ -3,8 +3,6 @@ import { getChatMirrorChannelName } from "@notra/ai/chat/mirror";
 import { CHAT_STREAM_MAX_LIFETIME_MS } from "@notra/ai/constants/chat";
 import { realtime } from "@notra/ai/realtime";
 import { chatIdSchema } from "@notra/ai/schemas/chat";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { withOrganizationAuth } from "@/lib/auth/organization";
 import { ratelimit } from "@/utils/ratelimit";
@@ -17,7 +15,7 @@ function toSseChunk(data: unknown) {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const { organizationId, chatId } = await params;
   const auth = await withOrganizationAuth(request, organizationId);
 
@@ -27,7 +25,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const chatIdParse = chatIdSchema.safeParse(chatId);
   if (!chatIdParse.success) {
-    return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
+    return Response.json({ error: "Invalid chat ID" }, { status: 400 });
   }
 
   const safeChatId = chatIdParse.data;
@@ -35,7 +33,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     `${organizationId}:${auth.context.user.id}`
   );
   if (!withinLimit) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Rate limit exceeded", reset },
       { status: 429 }
     );
@@ -43,11 +41,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const session = await getChatSession(organizationId, safeChatId);
   if (!session) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    return Response.json({ error: "Chat not found" }, { status: 404 });
   }
 
   if (session.externalChannelId?.source !== "slack") {
-    return NextResponse.json(
+    return Response.json(
       { error: "Chat is not mirrored from Slack" },
       { status: 409 }
     );

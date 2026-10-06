@@ -1,12 +1,12 @@
 import { db } from "@notra/db/drizzle";
 import { users } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
-import { cache } from "react";
 
 import {
   DEMO_SESSION_COOKIE,
   DEMO_SESSION_COOKIE_MAX_AGE_SECONDS,
 } from "@/constants/demo";
+import { cacheAuthRequest } from "@/lib/auth/request-cache";
 import { readSignedCookie, storeSignedCookie } from "@/lib/auth/signed-cookie";
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
 import { loadDemoSandbox, touchDemoSandbox } from "@/lib/demo/sandbox";
@@ -26,7 +26,7 @@ export async function writeDemoSession(anonymousId: string) {
  * The visitor's sandbox, resolved once per request from the signed cookie.
  * The anonymousId alone is public; only a valid signature opens the sandbox.
  */
-export const getCurrentDemoSandbox = cache(
+export const getCurrentDemoSandbox = cacheAuthRequest(
   async (): Promise<DemoSandbox | null> => {
     const payload = await readSignedCookie(
       DEMO_SESSION_COOKIE,

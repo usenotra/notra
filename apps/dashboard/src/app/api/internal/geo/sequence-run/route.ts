@@ -1,9 +1,10 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { toGeoFailureWire } from "@notra/geo-core/geo/failure-wire";
 import { runGeoSequenceNow } from "@notra/geo-core/geo/scan";
 import { geoSequenceRunInputSchema } from "@notra/geo-core/schemas/geo";
 import { Effect } from "effect";
 
-import { scheduleGeoShelfCitationSync } from "@/lib/geo-shelf/service";
+import { scheduleGeoShelfCitationSync } from "@/lib/geo-shelf/request-service";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 import { verifyInternalWorkflowRequest } from "@/lib/workflows/internal-auth";
 import { ratelimit } from "@/utils/ratelimit";
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
   );
 
   if (outcome._tag === "Failure") {
-    console.error("[GEO] Internal sequence run failed:", outcome.failure);
+    logError("[GEO] Internal sequence run failed", outcome.failure);
     return Response.json(
       { failure: toGeoFailureWire(outcome.failure) },
       { status: GEO_FAILURE_STATUS }

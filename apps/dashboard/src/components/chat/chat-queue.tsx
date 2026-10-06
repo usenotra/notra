@@ -1,10 +1,16 @@
 "use client";
 
-import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
-import { useTranslations } from "next-intl";
+import { Attachment01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import type {
+  ChatAttachment,
+  ContextItem,
+  TextSelection,
+} from "@notra/ai/types/chat";
+import { Composer } from "@notra/ui/components/ui/composer";
+import { useTranslations } from "use-intl";
 
 import { MessageAuthorAvatar } from "@/components/chat/message-author-avatar";
-import { Composer } from "@/components/composer/composer-shell";
 import {
   COMPOSER_QUEUED_CHIP,
   COMPOSER_QUEUED_CHIP_LABEL,
@@ -18,6 +24,8 @@ export interface QueuedMessage {
   authorUserId?: string;
   selection?: TextSelection;
   context?: ContextItem[];
+  /** Files that belong to this message only; sent with it when it drains. */
+  attachments?: ChatAttachment[];
   steering?: boolean;
 }
 
@@ -51,34 +59,64 @@ export function ChatQueue({
       className="flex w-full min-w-0 flex-col gap-1.5"
       role="group"
     >
-      {messages.map((message) => (
-        <Composer.Chip
-          className={COMPOSER_QUEUED_CHIP}
-          editLabel={t("edit")}
-          icon={
-            showAuthorAvatars && message.authorUserId ? (
-              <MessageAuthorAvatar
-                author={
-                  authorsById?.get(message.authorUserId) ??
-                  unknownChatMessageAuthor(message.authorUserId)
-                }
-                size="sm"
-              />
-            ) : undefined
-          }
-          key={message.id}
-          label={message.text}
-          labelClassName={COMPOSER_QUEUED_CHIP_LABEL}
-          onEdit={onEdit ? () => onEdit(message) : undefined}
-          onRemove={onRemove ? () => onRemove(message.id) : undefined}
-          onSteer={
-            hasPendingSteer || !onSteer ? undefined : () => onSteer(message)
-          }
-          pending={Boolean(message.steering)}
-          removeLabel={message.steering ? t("cancelSteering") : t("remove")}
-          steerLabel={t("steer")}
-        />
-      ))}
+      {messages.map((message) => {
+        const files = message.attachments ?? [];
+        const fileNames = files.map((file) => file.filename).join(", ");
+        const author =
+          showAuthorAvatars && message.authorUserId ? (
+            <MessageAuthorAvatar
+              author={
+                authorsById?.get(message.authorUserId) ??
+                unknownChatMessageAuthor(message.authorUserId)
+              }
+              size="sm"
+            />
+          ) : null;
+        const filesBadge =
+          files.length > 0 ? (
+            <span
+              className="text-muted-foreground inline-flex shrink-0 items-center gap-0.5 tabular-nums"
+              title={t("attachments", {
+                count: files.length,
+                names: fileNames,
+              })}
+            >
+              <HugeiconsIcon className="size-3.5" icon={Attachment01Icon} />
+              <span className="sr-only">
+                {t("attachments", { count: files.length, names: fileNames })}
+              </span>
+              {files.length > 1 ? (
+                <span aria-hidden="true">{files.length}</span>
+              ) : null}
+            </span>
+          ) : null;
+
+        return (
+          <Composer.Chip
+            className={COMPOSER_QUEUED_CHIP}
+            editLabel={t("edit")}
+            icon={
+              author || filesBadge ? (
+                <>
+                  {author}
+                  {filesBadge}
+                </>
+              ) : undefined
+            }
+            key={message.id}
+            label={message.text || fileNames}
+            labelClassName={COMPOSER_QUEUED_CHIP_LABEL}
+            onEdit={onEdit ? () => onEdit(message) : undefined}
+            onRemove={onRemove ? () => onRemove(message.id) : undefined}
+            onSteer={
+              hasPendingSteer || !onSteer ? undefined : () => onSteer(message)
+            }
+            pending={Boolean(message.steering)}
+            removeLabel={message.steering ? t("cancelSteering") : t("remove")}
+            steerLabel={t("steer")}
+          />
+        );
+      })}
     </div>
   );
 }

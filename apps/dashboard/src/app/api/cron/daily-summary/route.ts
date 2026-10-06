@@ -2,8 +2,6 @@ import { isDemoMode } from "@notra/utils/demo-mode";
 
 import { runDailySummaryCron } from "@/lib/email/daily-summary";
 
-export const maxDuration = 60;
-
 /**
  * Vercel Cron entry point for opt-in GEO daily summary emails. Quiet or
  * unchanged days are skipped so owners only hear from us when GEO moved.

@@ -4,6 +4,8 @@ import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import Counter from "@notra/ui/components/shared/counter";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import {
   Empty,
   EmptyContent,
@@ -13,18 +15,16 @@ import {
   EmptyTitle,
 } from "@notra/ui/components/ui/empty";
 import { useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -166,7 +166,7 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <PageHeader
+          <PageHeading
             description={t("description")}
             title={tCommon("labels.personas")}
           />
@@ -212,15 +212,15 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeader
+        <PageHeading
           description={t("description")}
           title={tCommon("labels.personas")}
         >
           {headerAction}
-        </PageHeader>
+        </PageHeading>
 
         {isLoadingPersonas ? (
-          <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
+          <DataTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
         ) : null}
 
         {hasPersonas ? (

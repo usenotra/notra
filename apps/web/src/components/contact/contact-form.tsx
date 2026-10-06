@@ -301,11 +301,12 @@ export function ContactForm() {
           {(canSubmit) => (
             <CtaButton
               className="px-7 text-[0.9375rem]/4.75 tracking-[-0.01em]"
-              disabled={!canSubmit || isSubmitting || !turnstileToken}
+              disabled={!canSubmit || !turnstileToken}
+              loading={isSubmitting}
               type="submit"
               variant="primary"
             >
-              {isSubmitting ? "Sending..." : "Send message"}
+              Send message
             </CtaButton>
           )}
         </form.Subscribe>

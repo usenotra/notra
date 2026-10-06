@@ -17,10 +17,10 @@ import {
 import { companyLogoInputSchema } from "@notra/schemas/dashboard/onboarding/company-logo";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { getTranslations } from "next-intl/server";
 
 import { COMPANY_LOGO_LOOKUP_TIMEOUT_MS } from "@/constants/company-logo";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   getOnboardingAgentState,
   startSelfServeOnboardingAgent,

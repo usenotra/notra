@@ -123,6 +123,10 @@ export class ContentImageNode extends DecoratorNode<JSX.Element> {
     return false;
   }
 
+  isInline(): false {
+    return false;
+  }
+
   getSrc(): string {
     return this.__src;
   }

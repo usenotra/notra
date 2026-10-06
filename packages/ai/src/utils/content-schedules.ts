@@ -15,6 +15,7 @@ import type {
   ContentScheduleSummary,
   CreateContentScheduleResult,
 } from "@notra/ai/types/schedules";
+import { logError } from "@notra/ai/utils/server-log";
 import { hashTrigger } from "@notra/ai/utils/trigger-hash";
 import { db } from "@notra/db/drizzle";
 import {
@@ -199,7 +200,13 @@ export async function createContentSchedule(
   } catch (error) {
     if (qstashScheduleId) {
       await deleteQstashSchedule(qstashScheduleId).catch((cleanupError) => {
-        console.error("Error deleting schedule:", cleanupError);
+        logError(
+          "[content-schedules] Failed to delete QStash schedule",
+          cleanupError,
+          {
+            qstashScheduleId,
+          }
+        );
       });
     }
 

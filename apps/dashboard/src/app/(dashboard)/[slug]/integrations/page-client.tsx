@@ -1,6 +1,7 @@
 "use client";
 
 import type { IntegrationType } from "@notra/schemas/dashboard/integrations";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   Tabs,
@@ -10,13 +11,12 @@ import {
 } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { memo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import {
   IntegrationCardDither,
   useIntegrationCardDither,
@@ -34,6 +34,7 @@ import {
   INTEGRATION_TAB_VALUES,
   INTEGRATIONS_WITH_CONNECT_DIALOG,
 } from "@/lib/integrations/constants";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   IntegrationConfig,
@@ -188,12 +189,10 @@ export default function PageClient({
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
-              {tCommon2("labels.integrations")}
-            </h1>
-            <p className="text-muted-foreground">{t("selectOrganization")}</p>
-          </div>
+          <PageHeading
+            description={t("selectOrganization")}
+            title={tCommon2("labels.integrations")}
+          />
         </div>
       </PageContainer>
     );
@@ -214,12 +213,10 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {tCommon2("labels.integrations")}
-          </h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon2("labels.integrations")}
+        />
 
         <Tabs onValueChange={(value) => setActiveTab(value)} value={activeTab}>
           <TabsList variant="line">

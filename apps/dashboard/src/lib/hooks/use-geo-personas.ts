@@ -8,9 +8,9 @@ import type {
   GeoPersonasResponse,
 } from "@notra/geo-core/types/geo-personas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GEO_PERSONA_RESULTS_POLL_MS } from "@/constants/geo-personas";

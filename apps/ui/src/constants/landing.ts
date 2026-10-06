@@ -61,6 +61,13 @@ export const LANDING_SECTIONS: LandingSection[] = [
         preview: "chat-minimap",
         title: "Chat Minimap",
       },
+      {
+        description:
+          "A sortable, paged table in the grey shell, with an infinite-scroll variant.",
+        href: "/components/data-table",
+        preview: "data-table",
+        title: "Data Table",
+      },
     ],
     description: "Primitives and small pieces used across the dashboard.",
     title: "Components",

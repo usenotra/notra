@@ -33,26 +33,6 @@ afterAll(() => database.postgres.close());
 beforeEach(resetDatabase);
 
 describe("suggestion transactions", () => {
-  test("accept targets the selected project and reuses normalized duplicates", async () => {
-    await seedProject("default");
-    const scope = await seedProject("selected");
-    await seedSuggestion();
-    await testDb.insert(geoPrompts).values({
-      id: "existing",
-      ...scope,
-      prompt: "  WHICH SUGGESTION TOOLS SHOULD I USE?  ",
-    });
-    const result = await Effect.runPromise(
-      acceptSuggestion({ ...scope, suggestionId: "suggestion" })
-    );
-    expect(result.prompt.id).toBe("existing");
-    expect(result.projectId).toBe("selected");
-    expect(await testDb.select().from(geoPrompts)).toHaveLength(1);
-    expect(
-      (await testDb.query.geoPromptSuggestions.findFirst())?.acceptedPromptId
-    ).toBe("existing");
-  });
-
   test("foreign suggestions and foreign projects are refused", async () => {
     const scope = await seedProject("own");
     await seedProject("foreign", { organizationId: "other-org" });

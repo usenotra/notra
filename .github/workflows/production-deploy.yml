@@ -22,14 +22,58 @@ concurrency:
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main' && github.repository == 'usenotra/notra'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+    runs-on: ubuntu-26.04
+    timeout-minutes: 120
     steps:
       - name: Checkout release commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Require passing release CI
+        timeout-minutes: 12
+        run: node scripts/github/utils/release-ci.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Setup Bun
+        if: ${{ !inputs.dry_run }}
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Build and boot agents
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for app in agent onboarding-agent; do
+            echo "::group::Build and boot $app"
+            (
+              cd "apps/$app"
+              bash -c "$(bun -p 'require("./vercel.json").installCommand')"
+              bun run build
+              PORT=3200 node --no-experimental-require-module .output/server/index.mjs > boot.log 2>&1 &
+              pid=$!
+              trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true' EXIT
+              for _ in $(seq 1 30); do
+                if curl -sf http://127.0.0.1:3200/eve/v1/health; then
+                  echo
+                  exit 0
+                fi
+                sleep 1
+              done
+              echo "Agent did not become healthy"
+              cat boot.log
+              exit 1
+            )
+            echo "::endgroup::"
+          done
 
       - name: Deploy checked main commit
         run: node scripts/github/production-deploy.mjs
@@ -38,4 +82,5 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: team_J0UtPqQdb8AdDMRkyvJuR8kM
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          UNKEY_DEPLOY_ROOT_KEY: ${{ secrets.UNKEY_DEPLOY_ROOT_KEY }}
           DRY_RUN: ${{ inputs.dry_run || false }}

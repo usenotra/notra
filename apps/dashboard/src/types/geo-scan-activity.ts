@@ -3,8 +3,8 @@ import type {
   GeoScanResultSummary,
   GeoScanRunSummary,
 } from "@notra/geo-core/types/geo-scan-history";
-import type { useTranslations } from "next-intl";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { useTranslations } from "use-intl";
 
 import type { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
@@ -122,13 +122,6 @@ export interface GeoScanModelCellProps {
 export interface GeoScanPromptCellProps {
   prompt: string;
   turn: number | null;
-}
-
-export interface GeoScanTablePaginationProps {
-  offset: number;
-  total: number;
-  itemLabel: string;
-  onOffsetChange: (offset: number) => void;
 }
 
 export interface GeoScanRunEmptyStateInput {

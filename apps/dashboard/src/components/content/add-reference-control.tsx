@@ -8,8 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export function AddReferenceControl({
         className={cn(buttonVariants({ variant: "outline" }))}
         disabled={isPending}
       >
-        {isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+        {isPending ? <Spinner /> : null}
         {t("addAsReference")}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

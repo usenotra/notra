@@ -56,16 +56,16 @@ export const MERCH_CLAIM_STEPS: MerchClaimStep[] = [
   {
     number: "1",
     title: "Be on a paid plan",
-    body: "Basic, Pro, or Enterprise all count. Free trials don't, so finish your trial first.",
+    body: "Basic, Pro or Enterprise all count. Free trials don't, so finish your trial first.",
   },
   {
     number: "2",
     title: "Reach out to us",
-    body: "Use the feedback form in your workspace, ping us on Slack, or reach out via the contact page. Tell us where to send it.",
+    body: "Use the feedback form in your workspace, ping us on Slack or reach out via the contact page. Tell us where to send it.",
   },
   {
     number: "3",
     title: "We ship it",
-    body: "One hat per workspace, on us. US addresses only for now; international friends, soon. Wear it in your next launch video.",
+    body: "One hat per workspace, on us. We only ship to US addresses for now. Wear it in your next launch video.",
   },
 ];

@@ -1,12 +1,13 @@
 "use client";
 
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { DirectionCockpit } from "@/components/geo/directions/direction-cockpit";
 import { DirectionInstrument } from "@/components/geo/directions/direction-instrument";
@@ -23,15 +24,11 @@ export default function PageClient() {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-4 px-4 lg:px-6">
         <Tabs defaultValue="instrument">
-          <header className="flex flex-wrap items-end justify-between gap-3">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {tGeoShared("geoDirections")}
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                {t("description")}
-              </p>
-            </div>
+          <PageHeading
+            className="@min-[40rem]/main:items-end"
+            description={t("description")}
+            title={tGeoShared("geoDirections")}
+          >
             <TabsList variant="line">
               {GEO_DIRECTION_TABS.map((tab) => (
                 <TabsTrigger key={tab.key} value={tab.key}>
@@ -41,7 +38,7 @@ export default function PageClient() {
                 </TabsTrigger>
               ))}
             </TabsList>
-          </header>
+          </PageHeading>
 
           <TabsContent className="mt-6" value="instrument">
             <DirectionInstrument />

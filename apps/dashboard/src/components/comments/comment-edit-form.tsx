@@ -1,7 +1,7 @@
 "use client";
 
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { CommentEditFormProps } from "@/types/comments";

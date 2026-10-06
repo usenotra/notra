@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   DEMO_ORG_SLUG_PREFIX,
   DEMO_SEEDING_GRACE_MINUTES,
@@ -27,7 +28,6 @@ import {
   type SQL,
   TransactionRollbackError,
 } from "drizzle-orm";
-import { after } from "next/server";
 
 import {
   DEMO_ANONYMOUS_ID_LENGTH,
@@ -54,6 +54,7 @@ import {
 import { assertDedicatedDemoDatabase } from "@/lib/demo/database-guard";
 import { rebaseDemoSandbox, shouldRebaseDemoSandbox } from "@/lib/demo/rebase";
 import { seedDemoWorkspace } from "@/lib/demo/seed/workspace";
+import { afterResponse } from "@/lib/framework/after-response";
 import type {
   CreateDemoSandboxInput,
   DemoOrganizationInput,
@@ -254,7 +255,7 @@ async function seedDemoSandbox(
     anonymousId,
     expiresAt,
   }).catch((error: unknown) => {
-    console.error("[demo] Failed to create sandbox API key", error);
+    logError("[demo] Failed to create sandbox API key", error);
     return null;
   });
 
@@ -324,10 +325,10 @@ export async function claimPooledSandbox(
   }
   const keyId = claimed.row.apiKeyId;
   if (keyId) {
-    after(() =>
+    afterResponse(() =>
       updateDemoApiKey({ keyId, expiresAt: sandboxExpiry(now) }).catch(
         (error: unknown) => {
-          console.error("[demo] Failed to extend claimed sandbox key", error);
+          logError("[demo] Failed to extend claimed sandbox key", error);
         }
       )
     );
@@ -389,7 +390,7 @@ async function refillDemoSandboxPool(): Promise<void> {
  * vercel.json with production, where a demo cron would only 404.
  */
 export function maintainDemoSandboxPool(): void {
-  after(async () => {
+  afterResponse(async () => {
     await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
     await refillDemoSandboxPool();
   });
@@ -553,9 +554,9 @@ async function swapInPooledWorkspace(
   }
   const pooledKeyId = result.apiKeyId;
   if (pooledKeyId) {
-    after(() =>
+    afterResponse(() =>
       deleteDemoApiKey(pooledKeyId).catch((error: unknown) => {
-        console.error("[demo] Failed to delete pooled sandbox key", error);
+        logError("[demo] Failed to delete pooled sandbox key", error);
       })
     );
   }
@@ -629,7 +630,7 @@ async function moveDemoApiKey(
     }).then(
       () => true,
       (error: unknown) => {
-        console.error("[demo] Failed to move sandbox API key", error);
+        logError("[demo] Failed to move sandbox API key", error);
         return false;
       }
     );
@@ -643,7 +644,7 @@ async function moveDemoApiKey(
     anonymousId: sandbox.anonymousId,
     expiresAt: sandboxExpiry(sandbox.createdAt),
   }).catch((error: unknown) => {
-    console.error("[demo] Failed to replace sandbox API key", error);
+    logError("[demo] Failed to replace sandbox API key", error);
     return null;
   });
   await db
@@ -677,7 +678,7 @@ async function deleteDemoOrganization(organizationId: string) {
 async function deleteDemoSandbox(sandbox: DemoSandbox) {
   if (sandbox.apiKeyId) {
     await deleteDemoApiKey(sandbox.apiKeyId).catch((error: unknown) => {
-      console.error("[demo] Failed to delete sandbox API key", error);
+      logError("[demo] Failed to delete sandbox API key", error);
     });
   }
   await deleteDemoOrganization(sandbox.organizationId);

@@ -25,6 +25,7 @@ import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
@@ -33,8 +34,6 @@ import { chatRequestSchema } from "@notra/schemas/dashboard/content";
 import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { AI_CREDITS_SOURCE_CONTENT_CHAT } from "@/constants/studio-analytics";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
@@ -43,10 +42,8 @@ import { withOrganizationAuth } from "@/lib/auth/organization";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 
-export const maxDuration = 60;
-
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: RouteContext<{ organizationId: string; contentId: string }>
 ) {
   const { organizationId, contentId } = await params;
@@ -64,15 +61,15 @@ export async function GET(
     columns: { id: true },
   });
   if (!contentExists) {
-    return NextResponse.json({ error: "Content not found" }, { status: 404 });
+    return Response.json({ error: "Content not found" }, { status: 404 });
   }
 
   const sessions = await listContentChatSessions(organizationId, contentId);
-  return NextResponse.json({ sessions });
+  return Response.json({ sessions });
 }
 
 export const POST = withEvlog(async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: RouteContext<{ organizationId: string; contentId: string }>
 ) {
   const log = getLogger();
@@ -97,7 +94,7 @@ export const POST = withEvlog(async function POST(
     const parseResult = chatRequestSchema.safeParse(body);
 
     if (!parseResult.success) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Invalid request body", details: parseResult.error.issues },
         { status: 400 }
       );
@@ -118,24 +115,22 @@ export const POST = withEvlog(async function POST(
       try {
         billing = await checkChatBilling(organizationId);
       } catch (checkError) {
-        console.error("[Autumn] Check error:", {
-          requestId,
-          customerId: organizationId,
-          error: checkError,
-        });
-        return NextResponse.json(
+        log.error(
+          checkError instanceof Error ? checkError : String(checkError),
+          { billingCheck: "failed" }
+        );
+        return Response.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
           { status: 500 }
         );
       }
 
       if (!billing.allowed) {
-        console.log("[Autumn] Usage limit reached:", {
-          requestId,
-          customerId: organizationId,
+        log.set({
+          usageLimitReached: true,
           balance: billing.balanceRemaining ?? 0,
         });
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Usage limit reached",
             code: "USAGE_LIMIT_REACHED",
@@ -148,7 +143,7 @@ export const POST = withEvlog(async function POST(
       useMarkup = billing.useMarkup;
       chargeAiCredits = billing.chargeAiCredits;
     } else {
-      return NextResponse.json(
+      return Response.json(
         { error: "Billing service is unavailable", code: "BILLING_ERROR" },
         { status: 503 }
       );
@@ -173,7 +168,7 @@ export const POST = withEvlog(async function POST(
       columns: { id: true },
     });
     if (!contentExists) {
-      return NextResponse.json({ error: "Content not found" }, { status: 404 });
+      return Response.json({ error: "Content not found" }, { status: 404 });
     }
 
     const messages = preserveConversationSelection(
@@ -187,7 +182,7 @@ export const POST = withEvlog(async function POST(
       messages
     );
     if (!historySaved) {
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+      return Response.json({ error: "Chat not found" }, { status: 404 });
     }
 
     trackServerEvent({
@@ -213,11 +208,8 @@ export const POST = withEvlog(async function POST(
       contentType === "image"
         ? await getImageDefaults({ organizationId, contentId }).catch(
             (error) => {
-              console.warn("[Content Chat] Failed to load image defaults", {
-                requestId,
-                organizationId,
-                contentId,
-                error,
+              log.warn("[Content Chat] Failed to load image defaults", {
+                error: error instanceof Error ? error.message : String(error),
               });
               return undefined;
             }
@@ -331,10 +323,9 @@ export const POST = withEvlog(async function POST(
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after chat completion:", {
+            logError("[Autumn] Track error after chat completion", trackError, {
               requestId,
               customerId: organizationId,
-              error: trackError,
             });
           }
         },
@@ -342,10 +333,7 @@ export const POST = withEvlog(async function POST(
       }
     );
 
-    console.log("[Content Chat] Routing decision:", {
-      requestId,
-      decision: routingDecision,
-    });
+    log.set({ routingDecision });
 
     const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
@@ -390,7 +378,7 @@ export const POST = withEvlog(async function POST(
           responseMessages
         );
         if (!saved) {
-          console.warn("[Content Chat] Skipped saving response", {
+          logWarn("[Content Chat] Skipped saving response", {
             requestId,
             organizationId,
             contentId,
@@ -399,7 +387,7 @@ export const POST = withEvlog(async function POST(
         }
       },
       onError: (error) => {
-        console.error("[Content Chat] Stream error:", { requestId, error });
+        logError("[Content Chat] Stream error", error, { requestId });
         return "An error occurred while processing your request.";
       },
     });
@@ -409,11 +397,8 @@ export const POST = withEvlog(async function POST(
       stream: uiStream,
     });
   } catch (e) {
-    console.error("[Content Chat] Error:", {
-      requestId,
-      error: e instanceof Error ? e.message : String(e),
-    });
-    return NextResponse.json(
+    log.error(e instanceof Error ? e : String(e));
+    return Response.json(
       { error: "Failed to process chat request" },
       { status: 500 }
     );

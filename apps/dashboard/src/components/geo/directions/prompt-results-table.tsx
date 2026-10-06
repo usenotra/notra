@@ -2,11 +2,14 @@
 
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   GEO_DIRECTIONS_POSITION_CLASS,
   GEO_DIRECTIONS_PROMPT_ENGINES,
@@ -100,8 +103,7 @@ export function PromptResultsTable({ className }: PromptResultsTableProps) {
           })}
         </span>
       </div>
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={[...GEO_DIRECTIONS_PROMPTS]}
         emptyState={t("noResults")}

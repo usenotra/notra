@@ -7,10 +7,11 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
+import { useTranslations } from "use-intl";
 
-import type { TableColumn } from "@/components/motion/table";
 import { getUserAvatarUrl } from "@/utils/avatar";
+import { nameInitials } from "@/utils/name-initials";
 
 import { MemberActions } from "./member-actions";
 
@@ -59,7 +60,7 @@ export function useMemberColumns(): TableColumn<Member>[] {
               src={getUserAvatarUrl(member.user.image, member.user.email)}
             />
             <AvatarFallback>
-              {(member.user.name || member.user.email).charAt(0).toUpperCase()}
+              {nameInitials(member.user.name || member.user.email, 1)}
             </AvatarFallback>
           </Avatar>
           <TruncateWithTooltip className="font-medium">

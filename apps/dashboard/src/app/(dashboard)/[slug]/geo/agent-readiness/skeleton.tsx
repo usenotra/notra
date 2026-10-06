@@ -1,8 +1,9 @@
 "use client";
 
 import { AGENT_READINESS_SKELETON_ROW_KEYS } from "@notra/geo-core/constants/agent-readiness";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 
@@ -37,12 +38,10 @@ export function AgentReadinessSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {tCommon("labels.agentReadiness")}
-          </h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.agentReadiness")}
+        />
         {content}
       </div>
     </PageContainer>

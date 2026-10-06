@@ -15,8 +15,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { BRAND_GUIDELINE_POLL_INTERVAL_MS } from "@/constants/brand-guidelines";
 import type { BrandGuidelinesResponse } from "@/types/hooks/brand-guidelines";

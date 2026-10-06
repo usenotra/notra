@@ -128,8 +128,8 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
       )}
 
       <p className="text-muted-foreground font-mono text-xs">
-        Runs in your browser. Nothing is uploaded. Not affiliated with{" "}
-        {copy.productName}.
+        Conversion runs in your browser, so nothing is uploaded. Not affiliated
+        with {copy.productName}.
       </p>
     </div>
   );

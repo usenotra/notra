@@ -11,17 +11,17 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
-import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
+import dynamic from "@/utils/lazy-component";
 import { isNavigation } from "@/utils/sidebar-navigation";
 
+import { ChatHistoryNavLoading } from "./chat-history-nav-loading";
 import {
   DeferredSidebarStatus,
   DeferredSidebarUpgrade,
@@ -41,21 +41,6 @@ const ChatHistoryNav = dynamic(
     loading: () => <ChatHistoryNavLoading />,
   }
 );
-
-function ChatHistoryNavLoading() {
-  const t = useTranslations("nav.sidebar");
-  return (
-    <div
-      aria-label={t("loadingChatHistory")}
-      className="space-y-2 p-3"
-      role="status"
-    >
-      <Skeleton className="h-5 w-24" />
-      <Skeleton className="h-8 w-full" />
-      <Skeleton className="h-8 w-4/5" />
-    </div>
-  );
-}
 
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
   const t = useTranslations("common.actions");

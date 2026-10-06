@@ -1,8 +1,8 @@
 "use client";
 
-import { Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
+import { CopyStateIcon } from "@notra/ui/components/ui/copy-button";
+import { useCopyToClipboard } from "@notra/ui/hooks/use-copy-to-clipboard";
 import {
   type ComponentProps,
   createContext,
@@ -50,7 +50,7 @@ const lineNumberTransformer: ShikiTransformer = {
   },
 };
 
-export async function highlightCode(
+async function highlightCode(
   code: string,
   language: BundledLanguage,
   showLineNumbers = false
@@ -130,6 +130,11 @@ export const CodeBlock = ({
   );
 };
 
+const COPY_ERROR_MESSAGES = {
+  unsupported: "Clipboard API not available",
+  failed: "Failed to copy to clipboard",
+} as const;
+
 export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
   onCopy?: () => void;
   onError?: (error: Error) => void;
@@ -144,26 +149,23 @@ export const CodeBlockCopyButton = ({
   className,
   ...props
 }: CodeBlockCopyButtonProps) => {
-  const [isCopied, setIsCopied] = useState(false);
   const { code } = useContext(CodeBlockContext);
+  const { copied, copy } = useCopyToClipboard({
+    timeout,
+    onError: (reason, error) => {
+      if (error instanceof Error) {
+        onError?.(error);
+        return;
+      }
+      onError?.(new Error(COPY_ERROR_MESSAGES[reason]));
+    },
+  });
 
   const copyToClipboard = async () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
-      onError?.(new Error("Clipboard API not available"));
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(code);
-      setIsCopied(true);
+    if (await copy(code)) {
       onCopy?.();
-      setTimeout(() => setIsCopied(false), timeout);
-    } catch (error) {
-      onError?.(error as Error);
     }
   };
-
-  const Icon = isCopied ? Tick01Icon : Copy01Icon;
 
   return (
     <Button
@@ -173,7 +175,7 @@ export const CodeBlockCopyButton = ({
       variant="ghost"
       {...props}
     >
-      {children ?? <HugeiconsIcon icon={Icon} size={14} />}
+      {children ?? <CopyStateIcon copied={copied} />}
     </Button>
   );
 };

@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import type { PostSocialErrorNoticeProps } from "@/types/content/post-social";
 
 export function PostSocialErrorNotice({

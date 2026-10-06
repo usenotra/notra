@@ -65,6 +65,7 @@ import { Route as DotwellKnownMcpServerCardDotjsonRouteImport } from './routes/[
 import { Route as SiteLegalLegalRouteImport } from './routes/_site/_legal/legal'
 import { Route as SiteLegalPrivacyRouteImport } from './routes/_site/_legal/privacy'
 import { Route as SiteLegalTermsRouteImport } from './routes/_site/_legal/terms'
+import { Route as SiteCompareIndexRouteImport } from './routes/_site/compare/index'
 import { Route as SiteContributorsIndexRouteImport } from './routes/_site/contributors/index'
 import { Route as SiteContributorsOpengraphImageRouteImport } from './routes/_site/contributors/opengraph-image'
 import { Route as SiteFeaturesIndexRouteImport } from './routes/_site/features/index'
@@ -73,8 +74,13 @@ import { Route as SiteFeaturesConversationsRouteImport } from './routes/_site/fe
 import { Route as SiteFeaturesPersonasRouteImport } from './routes/_site/features/personas'
 import { Route as SiteIntegrationsIndexRouteImport } from './routes/_site/integrations/index'
 import { Route as SiteIntegrationsIdRouteImport } from './routes/_site/integrations/$id'
+import { Route as SiteIntegrationsGithubRouteImport } from './routes/_site/integrations/github'
+import { Route as SiteIntegrationsGranolaRouteImport } from './routes/_site/integrations/granola'
+import { Route as SiteIntegrationsLinearRouteImport } from './routes/_site/integrations/linear'
 import { Route as SiteIntegrationsSlackRouteImport } from './routes/_site/integrations/slack'
 import { Route as SiteMcpIndexRouteImport } from './routes/_site/mcp/index'
+import { Route as SiteNotraVsChar123slugChar125IndexRouteImport } from './routes/_site/notra-vs-{$slug}/index'
+import { Route as SiteNotraVsChar123slugChar125OpengraphImageRouteImport } from './routes/_site/notra-vs-{$slug}/opengraph-image'
 import { Route as SiteOfferingIndexRouteImport } from './routes/_site/offering/index'
 import { Route as SiteOfferingReportRouteImport } from './routes/_site/offering/report'
 import { Route as AgentAuthAuthorizeRouteImport } from './routes/agent/auth/authorize'
@@ -385,6 +391,11 @@ const SiteLegalTermsRoute = SiteLegalTermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => SiteLegalRoute,
 } as any)
+const SiteCompareIndexRoute = SiteCompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteContributorsIndexRoute = SiteContributorsIndexRouteImport.update({
   id: '/contributors/',
   path: '/contributors/',
@@ -428,6 +439,21 @@ const SiteIntegrationsIdRoute = SiteIntegrationsIdRouteImport.update({
   path: '/integrations/$id',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteIntegrationsGithubRoute = SiteIntegrationsGithubRouteImport.update({
+  id: '/integrations/github',
+  path: '/integrations/github',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteIntegrationsGranolaRoute = SiteIntegrationsGranolaRouteImport.update({
+  id: '/integrations/granola',
+  path: '/integrations/granola',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteIntegrationsLinearRoute = SiteIntegrationsLinearRouteImport.update({
+  id: '/integrations/linear',
+  path: '/integrations/linear',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteIntegrationsSlackRoute = SiteIntegrationsSlackRouteImport.update({
   id: '/integrations/slack',
   path: '/integrations/slack',
@@ -438,6 +464,18 @@ const SiteMcpIndexRoute = SiteMcpIndexRouteImport.update({
   path: '/mcp/',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteNotraVsChar123slugChar125IndexRoute =
+  SiteNotraVsChar123slugChar125IndexRouteImport.update({
+    id: '/notra-vs-{$slug}/',
+    path: '/notra-vs-{$slug}/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SiteNotraVsChar123slugChar125OpengraphImageRoute =
+  SiteNotraVsChar123slugChar125OpengraphImageRouteImport.update({
+    id: '/notra-vs-{$slug}/opengraph-image',
+    path: '/notra-vs-{$slug}/opengraph-image',
+    getParentRoute: () => SiteRoute,
+  } as any)
 const SiteOfferingIndexRoute = SiteOfferingIndexRouteImport.update({
   id: '/offering/',
   path: '/offering/',
@@ -642,7 +680,11 @@ export interface FileRoutesByFullPath {
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
@@ -654,10 +696,12 @@ export interface FileRoutesByFullPath {
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp/': typeof DotwellKnownMcpIndexRoute
+  '/compare/': typeof SiteCompareIndexRoute
   '/contributors/': typeof SiteContributorsIndexRoute
   '/features/': typeof SiteFeaturesIndexRoute
   '/integrations/': typeof SiteIntegrationsIndexRoute
   '/mcp/': typeof SiteMcpIndexRoute
+  '/notra-vs-{$slug}/': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/offering/': typeof SiteOfferingIndexRoute
   '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
@@ -732,7 +776,11 @@ export interface FileRoutesByTo {
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
@@ -744,10 +792,12 @@ export interface FileRoutesByTo {
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp': typeof DotwellKnownMcpIndexRoute
+  '/compare': typeof SiteCompareIndexRoute
   '/contributors': typeof SiteContributorsIndexRoute
   '/features': typeof SiteFeaturesIndexRoute
   '/integrations': typeof SiteIntegrationsIndexRoute
   '/mcp': typeof SiteMcpIndexRoute
+  '/notra-vs-{$slug}': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/offering': typeof SiteOfferingIndexRoute
   '/api/offering-check': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
@@ -828,7 +878,11 @@ export interface FileRoutesById {
   '/_site/features/conversations': typeof SiteFeaturesConversationsRoute
   '/_site/features/personas': typeof SiteFeaturesPersonasRoute
   '/_site/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/_site/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/_site/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/_site/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/_site/integrations/slack': typeof SiteIntegrationsSlackRoute
+  '/_site/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/_site/offering/report': typeof SiteOfferingReportRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
   '/agent/auth/claim': typeof AgentAuthClaimRoute
@@ -840,10 +894,12 @@ export interface FileRoutesById {
   '/api/star-video/render': typeof ApiStarVideoRenderRoute
   '/api/star-video/repo': typeof ApiStarVideoRepoRoute
   '/.well-known/mcp/': typeof DotwellKnownMcpIndexRoute
+  '/_site/compare/': typeof SiteCompareIndexRoute
   '/_site/contributors/': typeof SiteContributorsIndexRoute
   '/_site/features/': typeof SiteFeaturesIndexRoute
   '/_site/integrations/': typeof SiteIntegrationsIndexRoute
   '/_site/mcp/': typeof SiteMcpIndexRoute
+  '/_site/notra-vs-{$slug}/': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/_site/offering/': typeof SiteOfferingIndexRoute
   '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/_site/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
@@ -920,7 +976,11 @@ export interface FileRouteTypes {
     | '/features/conversations'
     | '/features/personas'
     | '/integrations/$id'
+    | '/integrations/github'
+    | '/integrations/granola'
+    | '/integrations/linear'
     | '/integrations/slack'
+    | '/notra-vs-{$slug}/opengraph-image'
     | '/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
@@ -932,10 +992,12 @@ export interface FileRouteTypes {
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp/'
+    | '/compare/'
     | '/contributors/'
     | '/features/'
     | '/integrations/'
     | '/mcp/'
+    | '/notra-vs-{$slug}/'
     | '/offering/'
     | '/api/offering-check/'
     | '/features/marketing/assets'
@@ -1010,7 +1072,11 @@ export interface FileRouteTypes {
     | '/features/conversations'
     | '/features/personas'
     | '/integrations/$id'
+    | '/integrations/github'
+    | '/integrations/granola'
+    | '/integrations/linear'
     | '/integrations/slack'
+    | '/notra-vs-{$slug}/opengraph-image'
     | '/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
@@ -1022,10 +1088,12 @@ export interface FileRouteTypes {
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp'
+    | '/compare'
     | '/contributors'
     | '/features'
     | '/integrations'
     | '/mcp'
+    | '/notra-vs-{$slug}'
     | '/offering'
     | '/api/offering-check'
     | '/features/marketing/assets'
@@ -1105,7 +1173,11 @@ export interface FileRouteTypes {
     | '/_site/features/conversations'
     | '/_site/features/personas'
     | '/_site/integrations/$id'
+    | '/_site/integrations/github'
+    | '/_site/integrations/granola'
+    | '/_site/integrations/linear'
     | '/_site/integrations/slack'
+    | '/_site/notra-vs-{$slug}/opengraph-image'
     | '/_site/offering/report'
     | '/agent/auth/authorize'
     | '/agent/auth/claim'
@@ -1117,10 +1189,12 @@ export interface FileRouteTypes {
     | '/api/star-video/render'
     | '/api/star-video/repo'
     | '/.well-known/mcp/'
+    | '/_site/compare/'
     | '/_site/contributors/'
     | '/_site/features/'
     | '/_site/integrations/'
     | '/_site/mcp/'
+    | '/_site/notra-vs-{$slug}/'
     | '/_site/offering/'
     | '/api/offering-check/'
     | '/_site/features/marketing/assets'
@@ -1583,6 +1657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteLegalTermsRouteImport
       parentRoute: typeof SiteLegalRoute
     }
+    '/_site/compare/': {
+      id: '/_site/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof SiteCompareIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/contributors/': {
       id: '/_site/contributors/'
       path: '/contributors'
@@ -1639,6 +1720,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteIntegrationsIdRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/integrations/github': {
+      id: '/_site/integrations/github'
+      path: '/integrations/github'
+      fullPath: '/integrations/github'
+      preLoaderRoute: typeof SiteIntegrationsGithubRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/integrations/granola': {
+      id: '/_site/integrations/granola'
+      path: '/integrations/granola'
+      fullPath: '/integrations/granola'
+      preLoaderRoute: typeof SiteIntegrationsGranolaRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/integrations/linear': {
+      id: '/_site/integrations/linear'
+      path: '/integrations/linear'
+      fullPath: '/integrations/linear'
+      preLoaderRoute: typeof SiteIntegrationsLinearRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/integrations/slack': {
       id: '/_site/integrations/slack'
       path: '/integrations/slack'
@@ -1651,6 +1753,20 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp/'
       preLoaderRoute: typeof SiteMcpIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/notra-vs-{$slug}/': {
+      id: '/_site/notra-vs-{$slug}/'
+      path: '/notra-vs-{$slug}'
+      fullPath: '/notra-vs-{$slug}/'
+      preLoaderRoute: typeof SiteNotraVsChar123slugChar125IndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/notra-vs-{$slug}/opengraph-image': {
+      id: '/_site/notra-vs-{$slug}/opengraph-image'
+      path: '/notra-vs-{$slug}/opengraph-image'
+      fullPath: '/notra-vs-{$slug}/opengraph-image'
+      preLoaderRoute: typeof SiteNotraVsChar123slugChar125OpengraphImageRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/offering/': {
@@ -1939,12 +2055,18 @@ interface SiteRouteChildren {
   SiteFeaturesConversationsRoute: typeof SiteFeaturesConversationsRoute
   SiteFeaturesPersonasRoute: typeof SiteFeaturesPersonasRoute
   SiteIntegrationsIdRoute: typeof SiteIntegrationsIdRoute
+  SiteIntegrationsGithubRoute: typeof SiteIntegrationsGithubRoute
+  SiteIntegrationsGranolaRoute: typeof SiteIntegrationsGranolaRoute
+  SiteIntegrationsLinearRoute: typeof SiteIntegrationsLinearRoute
   SiteIntegrationsSlackRoute: typeof SiteIntegrationsSlackRoute
+  SiteNotraVsChar123slugChar125OpengraphImageRoute: typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   SiteOfferingReportRoute: typeof SiteOfferingReportRoute
+  SiteCompareIndexRoute: typeof SiteCompareIndexRoute
   SiteContributorsIndexRoute: typeof SiteContributorsIndexRoute
   SiteFeaturesIndexRoute: typeof SiteFeaturesIndexRoute
   SiteIntegrationsIndexRoute: typeof SiteIntegrationsIndexRoute
   SiteMcpIndexRoute: typeof SiteMcpIndexRoute
+  SiteNotraVsChar123slugChar125IndexRoute: typeof SiteNotraVsChar123slugChar125IndexRoute
   SiteOfferingIndexRoute: typeof SiteOfferingIndexRoute
   SiteFeaturesMarketingAssetsRoute: typeof SiteFeaturesMarketingAssetsRoute
   SiteMcpUseCasesSlugRoute: typeof SiteMcpUseCasesSlugRoute
@@ -1973,12 +2095,20 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteFeaturesConversationsRoute: SiteFeaturesConversationsRoute,
   SiteFeaturesPersonasRoute: SiteFeaturesPersonasRoute,
   SiteIntegrationsIdRoute: SiteIntegrationsIdRoute,
+  SiteIntegrationsGithubRoute: SiteIntegrationsGithubRoute,
+  SiteIntegrationsGranolaRoute: SiteIntegrationsGranolaRoute,
+  SiteIntegrationsLinearRoute: SiteIntegrationsLinearRoute,
   SiteIntegrationsSlackRoute: SiteIntegrationsSlackRoute,
+  SiteNotraVsChar123slugChar125OpengraphImageRoute:
+    SiteNotraVsChar123slugChar125OpengraphImageRoute,
   SiteOfferingReportRoute: SiteOfferingReportRoute,
+  SiteCompareIndexRoute: SiteCompareIndexRoute,
   SiteContributorsIndexRoute: SiteContributorsIndexRoute,
   SiteFeaturesIndexRoute: SiteFeaturesIndexRoute,
   SiteIntegrationsIndexRoute: SiteIntegrationsIndexRoute,
   SiteMcpIndexRoute: SiteMcpIndexRoute,
+  SiteNotraVsChar123slugChar125IndexRoute:
+    SiteNotraVsChar123slugChar125IndexRoute,
   SiteOfferingIndexRoute: SiteOfferingIndexRoute,
   SiteFeaturesMarketingAssetsRoute: SiteFeaturesMarketingAssetsRoute,
   SiteMcpUseCasesSlugRoute: SiteMcpUseCasesSlugRoute,

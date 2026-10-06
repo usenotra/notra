@@ -12,11 +12,11 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 
 interface RaycastSetupGuideDialogProps {
   open: boolean;

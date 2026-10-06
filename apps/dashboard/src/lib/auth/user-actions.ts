@@ -1,7 +1,6 @@
-"use server";
-
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
+import { deleteBrewContact } from "@notra/email/utils/brew";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   signOutOptionsSchema,
@@ -9,10 +8,11 @@ import {
   updateUserInputSchema,
 } from "@notra/schemas/dashboard/auth/user-actions";
 import { isDemoMode } from "@notra/utils/demo-mode";
-import { getWorkOS, signOut, withAuth } from "@workos-inc/authkit-nextjs";
+import { redirect } from "@tanstack/react-router";
+import { getWorkOS } from "@workos/authkit-session";
+import { getAuthKitContext } from "@workos/authkit-tanstack-react-start";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { redirect } from "next/navigation";
 
 import {
   DEMO_DISABLED_MESSAGE,
@@ -22,11 +22,14 @@ import {
 import { ActionFailure } from "@/lib/actions/errors";
 import { runAction } from "@/lib/actions/run-action";
 import { validateActionInput } from "@/lib/actions/validate-input";
+import { runAfterResponse } from "@/lib/after-response";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { clearSignedCookie } from "@/lib/auth/signed-cookie";
+import { signOutAuthSession } from "@/lib/auth/workos";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { syncBrewContacts } from "@/lib/email/brew-contacts";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
@@ -44,19 +47,19 @@ const tryAction = <T>(run: () => Promise<T>, message: string) =>
     catch: (cause) => new ActionFailure({ message, cause }),
   });
 
-export async function signOutAction(options?: SignOutActionOptions) {
+export async function signOut(options?: SignOutActionOptions) {
   const parsed = signOutOptionsSchema.safeParse(options);
   await clearLocaleCookie();
   // Leaving the public demo drops the sandbox cookie; the sandbox itself
   // expires on its own.
   if (isDemoMode()) {
     await clearSignedCookie(DEMO_SESSION_COOKIE);
-    redirect(DEMO_EXIT_URL);
+    throw redirect({ href: DEMO_EXIT_URL });
   }
-  await signOut(parsed.success ? parsed.data : undefined);
+  await signOutAuthSession(parsed.success ? parsed.data : undefined);
 }
 
-export async function updateUserAction(
+export async function updateUser(
   rawInput: UpdateUserInput
 ): Promise<ActionResult<SessionUser>> {
   return runAction(
@@ -113,6 +116,14 @@ export async function updateUserAction(
         yield* Effect.promise(() => writeLocaleCookie(locale));
       }
 
+      if (input.name !== undefined) {
+        yield* Effect.sync(() =>
+          runAfterResponse("[BrewContacts] Sync failed", () =>
+            syncBrewContacts([updated.id])
+          )
+        );
+      }
+
       if (input.name !== undefined && updated.workosUserId) {
         const [firstName, ...rest] = input.name.split(" ");
         yield* tryAction(
@@ -137,7 +148,7 @@ export async function updateUserAction(
   );
 }
 
-export async function deleteUserAction(): Promise<
+export async function deleteUser(): Promise<
   ActionResult<{ deleted: boolean }>
 > {
   return runAction(
@@ -149,14 +160,24 @@ export async function deleteUserAction(): Promise<
       }
       const session = yield* requireSession();
 
-      const { sessionId } = yield* tryAction(
-        () => withAuth(),
+      // Before anything else: once the user row is gone, prune can no longer
+      // tell this contact apart from one Brew got elsewhere.
+      yield* tryAction(
+        () => deleteBrewContact(session.user.email),
+        "Failed to delete email contact"
+      );
+
+      const auth = yield* tryAction(
+        async () => getAuthKitContext().auth(),
         "Failed to read auth session"
       );
 
-      if (sessionId) {
+      if (auth.user && auth.sessionId) {
         yield* tryAction(
-          () => getWorkOS().userManagement.revokeSession({ sessionId }),
+          () =>
+            getWorkOS().userManagement.revokeSession({
+              sessionId: auth.sessionId,
+            }),
           "Failed to revoke WorkOS session"
         ).pipe(
           Effect.catch((error) =>
@@ -202,6 +223,13 @@ export async function deleteUserAction(): Promise<
         () => db.delete(users).where(eq(users.id, session.user.id)),
         "Failed to delete user"
       );
+      // Again once the row is gone: a contact sync that read the user just
+      // before could have recreated the contact in between.
+      yield* Effect.sync(() =>
+        runAfterResponse("[BrewContacts] Delete failed", () =>
+          deleteBrewContact(session.user.email)
+        )
+      );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");
       yield* Effect.promise(clearLocaleCookie);
@@ -211,7 +239,7 @@ export async function deleteUserAction(): Promise<
   );
 }
 
-export async function requestPasswordResetAction(): Promise<
+export async function requestPasswordReset(): Promise<
   ActionResult<{ sent: boolean }>
 > {
   return runAction(
@@ -236,9 +264,7 @@ export async function requestPasswordResetAction(): Promise<
   );
 }
 
-export async function listAccountsAction(): Promise<
-  ActionResult<AccountInfo[]>
-> {
+export async function listAccounts(): Promise<ActionResult<AccountInfo[]>> {
   return runAction(
     Effect.gen(function* () {
       const session = yield* requireSession();
@@ -262,7 +288,7 @@ export async function listAccountsAction(): Promise<
   );
 }
 
-export async function unlinkAccountAction(
+export async function unlinkAccount(
   rawInput: UnlinkAccountInput
 ): Promise<ActionResult<{ removed: boolean }>> {
   return runAction(

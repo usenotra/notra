@@ -6,8 +6,12 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
-import { useLocale, useTranslations } from "next-intl";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
@@ -15,7 +19,6 @@ import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
 import { InstrumentEmpty } from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { ShareOfVoiceTableProps } from "@/types/geo";
@@ -202,8 +205,7 @@ export function ShareOfVoiceTable({
   }
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={rows}
       defaultSort={{ key: "share", direction: "desc" }}

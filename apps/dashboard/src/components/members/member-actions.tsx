@@ -6,16 +6,7 @@ import {
   UserEdit01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   Dialog,
   DialogContent,
@@ -39,15 +30,15 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useReducer } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
 import { isTeamMemberLimitError } from "@/lib/billing/limits";
+import { useRouter } from "@/lib/navigation";
 import { errorMessageOr } from "@/lib/utils";
 import type {
   MemberActionsAction,
@@ -323,40 +314,19 @@ export function MemberActions({ member }: MemberActionsProps) {
         </DialogContent>
       </Dialog>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isRemoving) {
-            dispatch({ type: "removeDialogChanged", open });
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tMembersShared("removeMember")}
+        description={t("removeDescription", {
+          name: member.user.name,
+          organization: activeOrganization.name,
+        })}
+        onConfirm={handleRemoveMember}
+        onOpenChange={(open) => dispatch({ type: "removeDialogChanged", open })}
         open={showRemoveDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle className="wrap-anywhere">
-              {t("removeTitle", { name: member.user.name })}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {t("removeDescription", {
-                name: member.user.name,
-                organization: activeOrganization.name,
-              })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isRemoving}>
-              {tCommon("actions.cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isRemoving}
-              onClick={handleRemoveMember}
-            >
-              {isRemoving ? t("removing") : tMembersShared("removeMember")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isRemoving}
+        title={t("removeTitle", { name: member.user.name })}
+        variant="destructive"
+      />
     </>
   );
 }

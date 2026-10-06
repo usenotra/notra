@@ -11,8 +11,8 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoTagList } from "@/components/geo/geo-tag-list";

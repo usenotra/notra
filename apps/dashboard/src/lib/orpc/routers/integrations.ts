@@ -76,6 +76,7 @@ import {
   createOctokit,
   GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
 } from "@notra/ai/utils/octokit";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -122,7 +123,6 @@ import { isDemoMode } from "@notra/utils/demo-mode";
 import { PublicUrlValidationError } from "@notra/utils/url";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
 import * as z from "zod";
 
@@ -140,6 +140,7 @@ import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { isUniqueConstraintError } from "@/lib/db/errors";
+import { getTranslations } from "@/lib/i18n/server";
 import { toMcpIntegrationAuthKind } from "@/lib/integrations/auth-kind";
 import { clearGitHubPublishFailures } from "@/lib/integrations/github/github-publish-failure-state";
 import {
@@ -615,10 +616,9 @@ export const integrationsRouter = {
         if (schedule.qstashScheduleId) {
           await deleteQstashSchedule(schedule.qstashScheduleId).catch(
             (error) => {
-              console.error(
-                `Failed to delete qstash schedule ${schedule.qstashScheduleId}:`,
-                error
-              );
+              logError("Failed to delete qstash schedule", error, {
+                scheduleId: schedule.qstashScheduleId,
+              });
             }
           );
         }
@@ -1402,7 +1402,17 @@ export const integrationsRouter = {
           });
         }
 
-        return updated;
+        // Not the row itself: it carries the encrypted access token and
+        // webhook secret, which no client needs.
+        return (
+          updated && {
+            id: updated.id,
+            displayName: updated.displayName,
+            enabled: updated.enabled,
+            linearTeamId: updated.linearTeamId,
+            linearTeamName: updated.linearTeamName,
+          }
+        );
       }),
     delete: baseProcedure
       .input(integrationInputSchema)

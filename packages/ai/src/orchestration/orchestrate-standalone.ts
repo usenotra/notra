@@ -22,6 +22,7 @@ import { withStandaloneCodeMode } from "@notra/ai/utils/code-mode";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
+import { logError, logInfo } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { getToolApprovalSecret } from "@notra/ai/utils/tool-approval-secret";
 import { withToolErrorPayloads } from "@notra/ai/utils/tool-error-payload";
@@ -225,6 +226,7 @@ export async function orchestrateStandaloneChat(
   );
 
   const modelMessages = await convertToModelMessages(messagesForModel, {
+    tools,
     ignoreIncompleteToolCalls: true,
   });
   const getActiveToolNames = async (
@@ -305,13 +307,9 @@ export async function orchestrateStandaloneChat(
 
         return { ...toolCall, input: JSON.stringify(repairedInput) };
       } catch (repairError) {
-        console.error("[Standalone Chat] Tool call repair failed", {
+        logError("[Standalone Chat] Tool call repair failed", repairError, {
           organizationId,
           toolName: toolCall.toolName,
-          error:
-            repairError instanceof Error
-              ? repairError.message
-              : String(repairError),
         });
         return null;
       }
@@ -329,7 +327,7 @@ export async function orchestrateStandaloneChat(
       }
     },
     onAbort({ steps }) {
-      console.log("[Standalone Chat Stream Aborted]", {
+      logInfo("[Standalone Chat] Stream aborted", {
         organizationId,
         model: routingDecision.model,
         completedSteps: steps.length,
@@ -346,10 +344,9 @@ export async function orchestrateStandaloneChat(
     },
     onError({ error }) {
       lazyMcpRuntime?.cleanup().catch(() => undefined);
-      console.error("[Standalone Chat Stream Error]", {
+      logError("[Standalone Chat] Stream failed", error, {
         organizationId,
         model: routingDecision.model,
-        error: error instanceof Error ? error.message : String(error),
       });
     },
   });
@@ -549,9 +546,10 @@ async function validateStandaloneIntegrations(
           repositories: enabledRepos,
         });
       } catch (error) {
-        console.error(
-          `[Standalone Chat] Error validating GitHub integration ${integrationId}:`,
-          error
+        logError(
+          "[Standalone Chat] Error validating GitHub integration",
+          error,
+          { organizationId, integrationId }
         );
       }
     }
@@ -585,9 +583,10 @@ async function validateStandaloneIntegrations(
           linearTeamName: integration.linearTeamName,
         });
       } catch (error) {
-        console.error(
-          `[Standalone Chat] Error validating Linear integration ${integrationId}:`,
-          error
+        logError(
+          "[Standalone Chat] Error validating Linear integration",
+          error,
+          { organizationId, integrationId }
         );
       }
     }
@@ -626,10 +625,9 @@ async function getEnabledGitHubIntegrations(
       }))
       .filter((integration) => integration.repositories.length > 0);
   } catch (error) {
-    console.error(
-      `[Standalone Chat] Error listing GitHub integrations for org ${organizationId}:`,
-      error
-    );
+    logError("[Standalone Chat] Error listing GitHub integrations", error, {
+      organizationId,
+    });
     return [];
   }
 }
@@ -656,10 +654,9 @@ async function getEnabledLinearIntegrations(
         linearTeamName: integration.linearTeamName,
       }));
   } catch (error) {
-    console.error(
-      `[Standalone Chat] Error listing Linear integrations for org ${organizationId}:`,
-      error
-    );
+    logError("[Standalone Chat] Error listing Linear integrations", error, {
+      organizationId,
+    });
     return [];
   }
 }

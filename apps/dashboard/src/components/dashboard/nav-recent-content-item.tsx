@@ -8,16 +8,7 @@ import {
   TextIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -30,13 +21,13 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { NAV_RECENT_TITLE_CLASS, POST_STATUS_DOT_CLASS } from "@/constants/nav";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
+import { useRouter } from "@/lib/navigation";
 import type { NavRecentContentItemProps } from "@/types/components/nav";
 
 import { SidebarNavLink } from "./sidebar-nav-link";
@@ -145,47 +136,26 @@ export function NavRecentContentItem({
         </ContextMenuContent>
       </ContextMenu>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isDeleting) {
-            setShowDeleteDialog(open);
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+          title: post.title,
+        })}
+        onConfirm={async () => {
+          const deleted = await deletePost(post.id);
+          if (deleted) {
+            setShowDeleteDialog(false);
+            if (isActive) {
+              router.replace(href.slice(0, href.lastIndexOf("/")));
+            }
           }
         }}
+        onOpenChange={setShowDeleteDialog}
         open={showDeleteDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {tCommon2("labels.deletePost")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {tCommon2("messages.thisWillPermanentlyDeleteTitle", {
-                title: post.title,
-              })}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              variant="destructive"
-              onClick={async () => {
-                const deleted = await deletePost(post.id);
-                if (deleted) {
-                  setShowDeleteDialog(false);
-                  if (isActive) {
-                    router.replace(href.slice(0, href.lastIndexOf("/")));
-                  }
-                }
-              }}
-            >
-              {isDeleting ? tCommon("deleting") : tCommon("delete")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={tCommon2("labels.deletePost")}
+        variant="destructive"
+      />
     </>
   );
 }

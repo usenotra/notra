@@ -9,8 +9,8 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";

@@ -9,13 +9,12 @@ import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-heade
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { GeoLanguagePicker } from "@/components/geo/geo-language-picker";
 import { BrandReviewSkeleton } from "@/components/onboarding/brand-review-skeleton";
 import { OnboardingProgress } from "@/components/onboarding/progress";
@@ -33,6 +32,7 @@ import {
   useGeoOnboardingBrand,
 } from "@/lib/hooks/use-geo";
 import { useLanguageLabel } from "@/lib/hooks/use-language-label";
+import { useRouter } from "@/lib/navigation";
 import type {
   VisibilityFormProps,
   VisibilityReviewProps,
@@ -54,7 +54,6 @@ function VisibilityReview({
   skipHref,
 }: VisibilityReviewProps) {
   const t = useTranslations("onboarding.visibility");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -184,15 +183,8 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Loader2Icon className="size-4 animate-spin" />
-            {tOnboardingShared("saving")}
-          </>
-        ) : (
-          tCommon("actions.continue")
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {tCommon("actions.continue")}
       </CtaButton>
 
       <div className="text-center">
@@ -337,7 +329,7 @@ export function VisibilityForm({
               />
               {isAnalyzing ? (
                 <span className="text-muted-foreground flex h-full items-center px-3.5">
-                  <Loader2Icon className="size-4 animate-spin" />
+                  <Spinner />
                 </span>
               ) : null}
             </div>
@@ -366,6 +358,7 @@ export function VisibilityForm({
             </div>
             <GeoLanguagePicker
               disabled={isAnalyzing}
+              inputClassName="h-11 rounded-xl"
               inputId={`${id}-languages`}
               labeled={false}
               lockedLanguage={lockedLanguage}

@@ -10,17 +10,13 @@ import {
   PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tabs,
   TabsContent,
@@ -42,10 +39,9 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useFormatter, useNow, useTranslations } from "use-intl";
 
 import { BrandVoiceCell } from "@/components/automation/brand-voice-cell";
 import { OnboardingSuggestions } from "@/components/automation/onboarding-suggestions";
@@ -57,8 +53,6 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -621,64 +615,41 @@ function ScheduleDeleteDialog({
   const tCommon = useTranslations("common.actions");
   const formatFrequency = useScheduleFrequencyLabel();
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {t("deleteTitle")}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {t.rich("deleteDescription", {
-              target: () =>
-                triggerToDelete ? (
-                  <Tooltip>
-                    <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
-                      {triggerToDelete.name}
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs" side="top">
-                      <div className="space-y-1 text-xs wrap-anywhere">
-                        <p>
-                          {t("runs", {
-                            value: formatFrequency(
-                              triggerToDelete.sourceConfig.cron
-                            ),
-                          })}
-                        </p>
-                        <p>
-                          {t("repositories", {
-                            value: deleteTriggerRepositoryNames.join(", "),
-                          })}
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  t("thisSchedule")
-                ),
-            })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isPending}
-            onClick={onConfirm}
-            variant="destructive"
-          >
-            {isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                {tCommon("deleting")}
-              </>
-            ) : (
-              tCommon("delete")
-            )}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={tCommon("delete")}
+      description={t.rich("deleteDescription", {
+        target: () =>
+          triggerToDelete ? (
+            <Tooltip>
+              <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
+                {triggerToDelete.name}
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs" side="top">
+                <div className="space-y-1 text-xs wrap-anywhere">
+                  <p>
+                    {t("runs", {
+                      value: formatFrequency(triggerToDelete.sourceConfig.cron),
+                    })}
+                  </p>
+                  <p>
+                    {t("repositories", {
+                      value: deleteTriggerRepositoryNames.join(", "),
+                    })}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            t("thisSchedule")
+          ),
+      })}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={isPending}
+      title={t("deleteTitle")}
+      variant="destructive"
+    />
   );
 }
 
@@ -838,7 +809,7 @@ function ScheduleTable({
                   variant="ghost"
                 >
                   {isThisUpdating || isThisRunning ? (
-                    <Loader2Icon className="size-4 animate-spin" />
+                    <Spinner />
                   ) : (
                     <HugeiconsIcon
                       className="text-muted-foreground size-4"
@@ -887,8 +858,7 @@ function ScheduleTable({
   ];
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={triggers}
       emptyState={t("emptyCategory")}

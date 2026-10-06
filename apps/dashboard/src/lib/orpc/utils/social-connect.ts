@@ -1,10 +1,11 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { Effect } from "effect";
-import { getTranslations } from "next-intl/server";
 
 import {
   SOCIAL_DUPLICATE_CONTENT_CODE,
   SOCIAL_DUPLICATE_CONTENT_REGEX,
 } from "@/constants/social-connect";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   assertNotDemo,
   badRequest,
@@ -49,7 +50,7 @@ export async function runSocialConnect<A>(
     throw serviceUnavailable(tCommonErrors("generic"));
   }
 
-  console.error(`${options.logLabel}:`, error);
+  logError(options.logLabel, error);
   const statusCode = getSocialConnectStatusCode(error.cause);
 
   if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {

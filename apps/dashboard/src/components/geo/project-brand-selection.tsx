@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import type { GeoProjectBrandSelectionProps } from "@/types/geo";
 

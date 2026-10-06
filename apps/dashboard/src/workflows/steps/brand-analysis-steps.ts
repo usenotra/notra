@@ -1,4 +1,6 @@
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
+
+import "@/workflows/runtime";
 import { gateway } from "@notra/ai/gateway";
 import { withRouterDefaults } from "@notra/ai/provider-options";
 import type { ContextDevScrapingResult } from "@notra/ai/types/context-dev";
@@ -98,7 +100,9 @@ Extract the following information:
 
     return { success: true, brandInfo: output };
   } catch (error) {
-    console.error("Error extracting brand info:", error);
+    log.error(error instanceof Error ? error : String(error), {
+      step: "extractBrandInfo",
+    });
     await reportStepError(error, {
       workflow: WORKFLOW_ANALYTICS_NAMES.BRAND_ANALYSIS,
       step: "extractBrandInfo",

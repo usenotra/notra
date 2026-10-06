@@ -8,10 +8,12 @@ Notra is a Bun + Turborepo monorepo.
 
 - Runtime and package manager: **Bun**
 - Monorepo orchestration: **Turbo**
-- Frontend: **Next.js 16**, **React 19**, **Tailwind CSS 4**
+- Dashboard: **TanStack Start**, **Vite**, **Nitro**
+- Public website: **TanStack Start**, **Vite**, **Nitro**
+- Shared frontend: **React 19**, **Tailwind CSS 4**
 - API: **Hono** on **Cloudflare Workers**
 - Database: **Postgres (Neon or PlanetScale Postgres recommended)** with **Drizzle ORM / drizzle-kit**
-- Auth: **better-auth**
+- Dashboard auth: **WorkOS AuthKit**
 - Queueing and rate limiting: **Upstash (QStash/Redis)**
 - API Keys: **Unkey**
 
@@ -22,9 +24,9 @@ Notra is a Bun + Turborepo monorepo.
 |- apps/
 |  |- ai-traffic-ingest/ # AI traffic collector (Bun, Railway)
 |  |- api/         # Hono API (Cloudflare Worker)
-|  |- dashboard/   # Main Notra product app (Next.js)
+|  |- dashboard/   # Main Notra product app (TanStack Start)
 |  |- docs/        # Product docs (Mintlify)
-|  |- web/         # Public marketing site (Next.js)
+|  |- web/         # Public marketing site (TanStack Start)
 |- packages/
 |  |- db/                  # Shared Drizzle schema and DB helpers
 |  |- email/               # Shared email templates/components
@@ -46,7 +48,7 @@ Install or prepare:
   - Upstash Redis
   - Upstash QStash
   - Cloudflare R2
-  - Resend
+  - Brew (email)
   - Unkey
 
 ## Getting Started
@@ -86,7 +88,7 @@ Helpful provider docs:
 - Upstash (Redis/QStash): https://upstash.com
 - Unkey: https://unkey.com
 - Cloudflare R2: https://developers.cloudflare.com/r2/
-- Resend: https://resend.com
+- Brew: https://brew.new
 
 5. Run database migrations:
 
@@ -115,6 +117,13 @@ bun dev --filter=web
 bun dev --filter=docs
 ```
 
+The dashboard runs Vite on `127.0.0.1:3000`. Build it with
+`bun run build --filter=dashboard`, then run `bun run start` from
+`apps/dashboard` to serve Nitro's `.output/server/index.mjs`. Run
+`bun run check-types --filter=dashboard` separately: `vite build` does not
+perform the full TypeScript check. Existing `NEXT_PUBLIC_*`
+deployment variable names remain supported; they are not framework dependencies.
+
 ## QStash Local Workflows
 
 If you're testing webhooks or workflows with QStash, set `NEXT_PUBLIC_APP_URL` to a public URL. `localhost` will not work for external callbacks.
@@ -141,7 +150,7 @@ winget install --id Cloudflare.cloudflared
 cloudflared tunnel --url http://localhost:3000
 ```
 
-`next dev` binds to `127.0.0.1` so LAN clients cannot reach the process and
+The dashboard's Vite dev server binds to `127.0.0.1` so LAN clients cannot reach the process and
 spoof `Host: localhost`. Leave `DEV_AUTH_ENABLED` unset (or `false`) before
 exposing the app. Local-dev impersonation only works on loopback and requires
 both `DEV_AUTH_ENABLED` and `DEV_AUTH_EMAIL`. A public tunnel must use a live
@@ -159,15 +168,15 @@ https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-
 ## Build performance
 
 The web and dashboard apps enable incremental TypeScript checking in their
-`tsconfig.json` files, overriding the shared base config. Keep this enabled:
-Next.js writes the build's type-check state to `.next/cache/.tsbuildinfo`, which
-Vercel restores on subsequent builds. A cold build still checks the whole project;
-warm builds reuse unchanged checks without disabling type errors.
+`tsconfig.json` files, overriding the shared base config. Keep this enabled.
+Both apps' standalone type checks write to `.cache/typecheck.tsbuildinfo`.
+Their Vite builds and Nitro output are separate from type checking: a successful
+build does not mean TypeScript passed. Run `bun run check-types` separately;
+the code-quality workflow already does this for both apps.
 
-Next.js 16.3 also enables the Turbopack filesystem build cache by default. Keep
-`.next/cache` in Vercel's build cache, but exclude it and `.next/dev` from Turbo's
-task outputs. Turbo caches completed build artifacts; Vercel's build cache keeps
-the incremental compiler state used when a task needs to run again.
+Turbo caches completed Nitro artifacts in `.output` and `.vercel/output`, plus
+the web app's generated `.source` files. Neither app uses `.next/cache` or
+Turbopack's filesystem cache.
 
 When comparing deployments, measure compilation, TypeScript, static generation,
 and output deployment separately. Vercel's `Creating build cache` phase occurs
@@ -175,19 +184,18 @@ after `Deployment completed`; it is not additional time until the app is live.
 Both projects use filtered Turbo build commands and skip unaffected projects.
 Preserve those settings when changing the Vercel configuration.
 
-Standalone `check-types` scripts that run `tsc` enable incremental checking with
-command-line flags and write to `.cache/typecheck.tsbuildinfo` within each
-package. Run them through `bun run check-types` (optionally with `--filter`) to
-reuse this state. These flags override the shared base config for type checks
-without changing Eve or tsup builds. The files are already ignored by Git's
-`*.tsbuildinfo` rule and are declared as Turbo task outputs.
+Standalone `check-types` scripts that run `tsc` enable incremental checking in
+their TypeScript configuration or with command-line flags, and write to
+`.cache/typecheck.tsbuildinfo` within each package. Run them through
+`bun run check-types` (optionally with `--filter`) to reuse this state. These
+overrides apply to type checks without changing Eve or tsup builds. The files
+are already ignored by Git's `*.tsbuildinfo` rule and are declared as Turbo task outputs.
 
 The code-quality workflow restores these files using a cache key scoped to the
 runner platform, dependencies, configuration, and commit. A matching prefix can
 restore state from an earlier commit; TypeScript still checks changed source and
 its affected dependents. The workflow retains its existing package selection.
 Blume's `ui` app uses its own checker and does not produce this cache file.
-Next.js production builds continue to use their separate `.next/cache` state.
 
 ## Database Workflow
 
@@ -337,12 +345,13 @@ All five Vercel app configurations disable automatic Git deployments with
 development and GitHub's code-quality checks continue to run as before.
 
 The [Production deploy workflow](.github/workflows/production-deploy.yml) releases
-`dashboard` (`notra`), `web` (`notra-web`), and `ui` (`notra-ui`) at **12:00 and
+`dashboard` (`notra`), `web` (`notra-web`), `ui` (`notra-ui`), `agent`
+(`notra-agent`), and `onboarding-agent` (`notra-onboarding-agent`) at **12:00 and
 19:00 Europe/Berlin** each day. The timezone includes daylight-saving changes;
 GitHub may start scheduled runs late. Production remains on `main`.
 
 Before merging this configuration, add a GitHub Actions repository secret named
-`VERCEL_TOKEN` containing a token with access to the Notra team's three projects.
+`VERCEL_TOKEN` containing a token with access to the Notra team's five projects.
 The team ID is configured in the workflow. No application secrets or local
 Vercel login tokens need to be copied into the repository. Keep Vercel's GitHub
 repository connection enabled so the API can build the pinned Git commit.
@@ -355,9 +364,10 @@ There is no automatic deployment when CI finishes later; the next scheduled
 window checks again.
 
 Each project is compared with the deployment serving its stable production alias
-(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`, or
-`notra-ui-notra.vercel.app`). The script resolves that alias to a deployment ID,
-then reads its commit SHA. A missing alias, wrong project, or unidentified live
+(`notra-notra.vercel.app`, `notra-web-notra.vercel.app`,
+`notra-ui-notra.vercel.app`, `notra-agent-notra.vercel.app`, or
+`notra-onboarding-agent-notra.vercel.app`). The script resolves that alias to a
+deployment ID, then reads its commit SHA. A missing alias, wrong project, or unidentified live
 commit blocks all new builds. Neither the latest successful build nor
 `targets.production` is used as a substitute: the latter can refer to a skipped
 build that was never published. GitHub must confirm the
@@ -368,7 +378,7 @@ old runs from overwriting newer releases; use Vercel's rollback flow for a
 deliberate rollback.
 
 Changes in a project's own app directory trigger a build; shared packages and
-inputs outside `apps/` conservatively trigger all three. Changes confined to
+inputs outside `apps/` conservatively trigger all five. Changes confined to
 another app are skipped. Renames are compared as a deletion and an addition so
 moves between apps rebuild both. After the history check passes, missing local
 historical Git commits cause a build rather than an unsafe skip. Any
@@ -379,8 +389,9 @@ every project. Each project's existing build command, environment, migrations,
 and build cache remain in use. The workflow waits for `READY`, verifies the built
 SHA and that the production alias points to the new deployment, and reports
 failures in the Actions summary. Polling is limited to ten minutes
-per project, with a 60-minute job limit for all projects, the Railway services,
-and API overhead.
+per project. Five sequential Vercel builds, the 20-minute Unkey phase, and the
+20-minute Railway phase can take up to 90 minutes when the API release is enabled,
+excluding API overhead, within the workflow's 120-minute job limit.
 Projects deploy independently; a failed project does not roll back another
 project's successful deployment.
 Deployment creation is not automatically retried, since a timed-out request may
@@ -404,6 +415,46 @@ unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
 patterns must stay unset: a deployment skipped by them would leave a service
 behind production and fails the release.
 
+The production API at `api.usenotra.com` is hosted on Unkey Compute, not the
+Railway `demo-api` service. Its scheduled release is opt-in: add the GitHub Actions
+secret `UNKEY_DEPLOY_ROOT_KEY` to enable it. Without that secret, the workflow
+reports that the API remains outside the scheduled release and continues releasing
+the other services. Use a separate deployment root key from the API's runtime
+`UNKEY_ROOT_KEY`; no new application `.env` values are needed.
+
+The script discovers the target from the exact verified `api.usenotra.com` domain
+using [Unkey's domain API](https://unkey.com/docs/compute/api-reference/domains/list-domains).
+It verifies the app's connected repository and `main` branch, the production
+environment, its current live deployment and Git history, and the absence of
+active deployments or a rollback. Configured but inaccessible or invalid targets
+prevent all new builds; the script does not fall back to an unrelated project.
+Give the Compute-workspace root key read access to this app, its production
+environment, domains and deployments, and write access to its deployment
+collection. It does not need environment-variable access, environment-setting
+write access, or permissions to other apps. See the
+[root-key permission reference](https://unkey.com/docs/platform/root-keys/permission-reference).
+
+To activate after merging, add the secret and run **Production deploy** with
+`dry_run` checked. This performs read-only preflight requests and reports the
+planned API deployment; it allows auto deploy to remain enabled during inspection.
+After a successful dry-run, turn off **Auto deploy** for the API's production
+environment under Unkey **App Settings → Build settings**, preserving its GitHub
+repository connection and preview settings. Then run a manual production release
+and verify it. Real releases refuse to run while production auto deploy is enabled
+or cannot be verified as disabled. Never disable the existing trigger before the
+replacement configuration is ready.
+
+Changed API builds use [createDeployment](https://unkey.com/docs/compute/api-reference/deployments/create-deployment)
+with the exact checked `git.commitSha`. After the Vercel releases succeed, the
+workflow rechecks the API's production configuration, active deployments and live
+commit before creating its build. An intervening newer release, rollback, or domain
+target change blocks the API deployment; an intervening release of the selected
+commit skips the duplicate build. It then polls for up to 20 minutes until that deployment is
+`ready`, has the expected target and commit, and is current in production. An API
+failure prevents Railway deployments. Deployment creation is not retried, and no
+provider settings are changed by the workflow. The release is not atomic: an API
+failure does not roll back Vercel projects that have already published.
+
 For an urgent release, open **Actions → Production deploy → Run workflow**, select
 `main`, and leave `dry_run` unchecked. This uses the same CI and change checks.
 Check `dry_run` to validate configuration and report planned deployments without
@@ -424,12 +475,9 @@ must have a unique package name and explicitly declare its internal dependencies
 in `package.json`.
 
 `agent` and `onboarding-agent` have `git.deploymentEnabled: false` in their
-`vercel.json` files. Pushes and merges do not deploy them. For a production
-release, open the agent's Vercel project → **Deployments** → **Create Deployment**
-and select its configured production branch (usually `main`), then verify the
-deployment is marked **Production**. Alternatively, from the linked agent app
-directory run `vercel deploy --prod`. A different branch or `vercel deploy`
-without `--prod` may only create a preview and will not update the production URL.
+`vercel.json` files. Pushes and merges do not deploy them. They now participate
+in the same scheduled and manually dispatched production release as the other
+Vercel apps, with their own live-alias, history, and change checks.
 
 The app configs do not set an `ignoreCommand`. Keep
 [Vercel's built-in skipping](https://vercel.com/docs/monorepos#skipping-unaffected-projects)
@@ -439,7 +487,7 @@ command after the repository override is removed.
 
 Changes outside the workspace definitions, such as root documentation, can
 select builds during a scheduled release. Shared Bun lockfile changes can select
-all three projects as well.
+all five projects as well.
 
 Root install configuration and the prepare script remain declared in
 `turbo.json#globalDependencies` for build cache invalidation. Declare any new
@@ -485,7 +533,7 @@ because Bun's `mock.module` replacements live for the entire test process.
 Keep infrastructure replacements at the boundary; do not mock the function
 being tested. Reset database/emulator state between scenarios and close servers
 in teardown. Import only `bun-types/test` in TypeScript configuration so Bun's
-global `fetch` extensions do not change the Node/Next application types.
+global `fetch` extensions do not change the application runtime types.
 
 These are not deployed end-to-end tests. PGlite serializes database requests,
 so overlapping-call tests do not reproduce separate Postgres connections.
@@ -493,3 +541,8 @@ Workflow orchestration tests replace steps and `sleep`; they do not verify
 Vercel's durable runtime, restart recovery, or actual cron delivery. Live model
 answers, billing providers, and the committed database migration chain are also
 outside this suite.
+
+The Code quality job also builds the website and runs `bun run test:production`
+from `apps/web`. This starts the production artifact from an empty directory and
+checks the Markdown endpoints without access to the source tree. Run
+`bun run build --filter=web && (cd apps/web && bun run test:production)` locally.

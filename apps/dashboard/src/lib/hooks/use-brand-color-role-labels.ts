@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { BrandGuidelineColorRole } from "@/types/hooks/brand-guidelines";
 

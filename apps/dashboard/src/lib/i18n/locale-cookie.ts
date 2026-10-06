@@ -1,4 +1,8 @@
-import { cookies } from "next/headers";
+import {
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@tanstack/react-start/server";
 
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/constants/cookies";
 import { LOCALE_AUTO_VALUE } from "@/constants/locales";
@@ -8,7 +12,7 @@ import { isDashboardLocale } from "@/utils/i18n";
 export async function readLocaleCookie(): Promise<
   LocalePreference | undefined
 > {
-  const value = (await cookies()).get(LOCALE_COOKIE)?.value;
+  const value = getCookie(LOCALE_COOKIE);
   if (value === LOCALE_AUTO_VALUE) {
     return null;
   }
@@ -16,7 +20,7 @@ export async function readLocaleCookie(): Promise<
 }
 
 export async function writeLocaleCookie(preference: LocalePreference) {
-  (await cookies()).set(LOCALE_COOKIE, preference ?? LOCALE_AUTO_VALUE, {
+  setCookie(LOCALE_COOKIE, preference ?? LOCALE_AUTO_VALUE, {
     httpOnly: true,
     maxAge: LOCALE_COOKIE_MAX_AGE,
     path: "/",
@@ -26,5 +30,5 @@ export async function writeLocaleCookie(preference: LocalePreference) {
 }
 
 export async function clearLocaleCookie() {
-  (await cookies()).delete({ name: LOCALE_COOKIE, path: "/" });
+  deleteCookie(LOCALE_COOKIE, { path: "/" });
 }

@@ -3,10 +3,10 @@
 import { Add01Icon, Image01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ImageZoom } from "@notra/ui/components/kibo-ui/image-zoom";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { ASSET_SLOTS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesAssetsSectionProps } from "@/types/brand-identity";
 import type {

@@ -8,20 +8,20 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
 import {
   useCompleteLinkedInSelection,
   useLinkedInSelection,
 } from "@/lib/hooks/use-linkedin-selection";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { SelectionShellProps } from "@/types/components/linkedin-connect";
 
@@ -229,7 +229,7 @@ export default function LinkedInConnectPage() {
     <Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">
-          <Loader2Icon className="text-muted-foreground size-6 animate-spin" />
+          <Spinner className="text-muted-foreground size-6" />
         </div>
       }
     >

@@ -17,6 +17,7 @@ import { githubAppInstallationCanPublishContent } from "@notra/ai/utils/github-a
 import { getGitHubConnectionMethod } from "@notra/ai/utils/github-connection-method";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { retryWrite } from "@notra/ai/utils/retry-write";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   githubAppInstallations,
@@ -31,12 +32,12 @@ import { repositoryContentDirectoryConfigSchema } from "@notra/schemas/dashboard
 import { slugify } from "@notra/utils/slugify";
 import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { getTranslations } from "next-intl/server";
 
 import {
   DEFAULT_GITHUB_CONTENT_DIRECTORIES,
   DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED,
 } from "@/constants/github";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   prepareR2GitHubContentAssets,
   resolveGitHubImagePathTemplate,
@@ -382,10 +383,11 @@ export async function publishSavedContentToGitHub(
       await startContentPublicationReconciliation(publication, publishedAt);
       reconciliationScheduled = true;
     } catch (error) {
-      console.error("Failed to start content publication reconciliation", {
-        ...logContext,
+      logError(
+        "Failed to start content publication reconciliation",
         error,
-      });
+        logContext
+      );
     }
     try {
       await retryWrite(() =>
@@ -402,17 +404,15 @@ export async function publishSavedContentToGitHub(
         try {
           await startContentPublicationReconciliation(publication, publishedAt);
         } catch (startError) {
-          console.error("Failed to start content publication reconciliation", {
-            ...logContext,
-            error: startError,
-          });
+          logError(
+            "Failed to start content publication reconciliation",
+            startError,
+            logContext
+          );
         }
       }
     } catch (error) {
-      console.error("Failed to record content publication", {
-        ...logContext,
-        error,
-      });
+      logError("Failed to record content publication", error, logContext);
       // The PR already exists, so hand the idempotent mapping write to a
       // durable workflow instead of relying on this request process. The
       // publish itself succeeded, whatever happens to the handover.
@@ -420,10 +420,11 @@ export async function publishSavedContentToGitHub(
         try {
           await startContentPublicationReconciliation(publication, publishedAt);
         } catch (startError) {
-          console.error("Failed to start content publication reconciliation", {
-            ...logContext,
-            error: startError,
-          });
+          logError(
+            "Failed to start content publication reconciliation",
+            startError,
+            logContext
+          );
         }
       }
     }
@@ -443,10 +444,11 @@ export async function publishSavedContentToGitHub(
           )
       );
     } catch (error) {
-      console.error("Failed to update GitHub publication metadata", {
-        ...logContext,
+      logError(
+        "Failed to update GitHub publication metadata",
         error,
-      });
+        logContext
+      );
     }
     return result;
   } catch (error) {

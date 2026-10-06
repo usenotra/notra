@@ -10,16 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
 import { formatChatIdFallback, normalizeChatTitle } from "@notra/ai/utils/chat";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,16 +21,16 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useChatSessionMutations,
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { displayChatTitle } from "@/utils/chat-history-groups";
 
@@ -51,12 +42,24 @@ function ChatTopbarTitleLabel({
   displayTitle,
   hasTitle,
   isGeneratingTitle,
+  isLoading,
 }: {
   displayTitle: string;
   hasTitle: boolean;
   isGeneratingTitle: boolean;
+  isLoading: boolean;
 }) {
   const t = useTranslations("dashboard.chatTitle");
+  const tNav = useTranslations("nav.sidebar");
+  if (isLoading) {
+    return (
+      <Skeleton
+        aria-label={tNav("loadingChatHistory")}
+        className="h-4 w-28"
+        role="status"
+      />
+    );
+  }
   let titleMotionKey = "fallback";
   if (isGeneratingTitle) {
     titleMotionKey = "generating";
@@ -102,7 +105,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
   const router = useRouter();
   const slug = activeOrganization?.slug;
 
-  const { sessions, generatingTitleChatIds } = useChatSessions();
+  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const session = sessions.find((item) => item.chatId === chatId);
@@ -247,6 +250,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     displayTitle={displayTitle}
                     hasTitle={hasTitle}
                     isGeneratingTitle={isGeneratingTitle}
+                    isLoading={isLoading}
                   />
                   <HugeiconsIcon
                     className={cn(
@@ -292,44 +296,26 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
         </AnimatePresence>
       </div>
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={
+          session?.title
+            ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+                title: session.title,
+              })
+            : t("deleteDescriptionFallback")
+        }
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
-          if (!open && !isDeleting) {
+          if (!open) {
             setDeleteOpen(false);
           }
         }}
         open={deleteOpen}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("deleteTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription className="wrap-anywhere">
-              {session?.title
-                ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
-                    title: session.title,
-                  })
-                : t("deleteDescriptionFallback")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              {tCommon("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {isDeleting ? tCommon("deleting") : tCommon("delete")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={t("deleteTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

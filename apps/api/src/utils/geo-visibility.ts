@@ -21,7 +21,7 @@ interface VisibilityMetrics {
  * OpenAPI schema. Older check rows may omit citations/visibility fields; the
  * dashboard tolerates undefined but the API contract requires numbers.
  */
-export function normalizeVisibilityMetrics<T extends VisibilityMetrics>(
+function normalizeVisibilityMetrics<T extends VisibilityMetrics>(
   row: T
 ): T & {
   citations: number;

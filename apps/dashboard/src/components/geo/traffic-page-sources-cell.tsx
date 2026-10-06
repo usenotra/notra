@@ -6,14 +6,14 @@ import {
   formatAiTrafficTimestamp,
   formatGeoSource,
 } from "@notra/geo-core/utils/ai-traffic";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import type { TrafficPageSourcesCellProps } from "@/types/geo";
 import { trafficVisitShare } from "@/utils/ai-traffic-groups";
 
@@ -60,13 +60,15 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
             </span>
           ))}
           {overflow > 0 ? (
-            <span className="bg-muted border-border text-muted-foreground -ml-1.5 flex size-6 items-center justify-center rounded-full border text-[0.625rem] font-medium tabular-nums">
+            // Not tucked under the last logo like the others: the overlap
+            // would hide the "+" of the count.
+            <span className="bg-muted border-border text-muted-foreground ml-1 flex h-6 min-w-6 items-center justify-center rounded-full border px-1.5 text-[0.625rem] font-medium tabular-nums">
               +{overflow}
             </span>
           ) : null}
         </span>
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={tGeoShared("countPluralOneVisitOther", { count: group.visits })}
         icon={null}
         title={group.path}
@@ -104,7 +106,7 @@ export function TrafficPageSourcesCell({ group }: TrafficPageSourcesCellProps) {
             </li>
           ))}
         </ul>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }

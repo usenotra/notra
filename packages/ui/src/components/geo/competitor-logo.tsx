@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import { useMemo, useState } from "react";
 import { GEO_LOGO_SIZE_PX } from "@notra/ui/constants/geo";
 import { competitorLogoSources } from "@notra/ui/lib/geo-logo";

@@ -1,26 +1,25 @@
 {
-  "extends": "@notra/typescript-config/nextjs.json",
+  "extends": "@notra/typescript-config/base.json",
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": ".cache/typecheck.tsbuildinfo",
     "strict": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["node", "bun-types/test", "react", "react-dom"]
+    "types": ["node", "bun-types/test", "react", "react-dom", "vite/client"]
   },
   "include": [
-    "next-env.d.ts",
-    "next.config.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
     "../../packages/ui/src/hooks/use-controllable-state.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".output", ".vercel"]
 }

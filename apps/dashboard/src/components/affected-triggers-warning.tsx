@@ -3,7 +3,7 @@
 import { Calendar03Icon, SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { AffectedTrigger } from "@notra/schemas/dashboard/integrations";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 interface AffectedTriggersWarningProps {
   schedules: AffectedTrigger[];

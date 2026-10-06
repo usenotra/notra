@@ -14,7 +14,7 @@ import {
   SplitButtonTrigger,
 } from "@notra/ui/components/ui/split-button";
 import { Github } from "@notra/ui/components/ui/svgs/github";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";

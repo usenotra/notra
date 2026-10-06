@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Image } from "@notra/ui/components/framework-provider";
 import { cn } from "@notra/ui/lib/utils";
 import type { ModelProviderLogoProps } from "@notra/ui/types/geo";
 import { modelsDevLogoUrl } from "@notra/ui/lib/geo-model-display";

@@ -4,16 +4,16 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { StoreIntegrationCard } from "@/components/integrations/store-integration-card";
 import { StoreIntegrationDialogs } from "@/components/integrations/store-integration-dialogs";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { buildOrganizationIntegrationsPath } from "@/lib/integrations/deeplink";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   McpStoreIntegration,

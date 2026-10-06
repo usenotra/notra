@@ -1,4 +1,6 @@
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { cn } from "@notra/ui/lib/utils";
+
 import {
   Table,
   TableBody,
@@ -6,9 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-
+} from "@/components/marketing-table";
 import { FEATURES_TABLE_OPTIONAL_COL } from "@/constants/landing/features";
 import type { ShareRow, ShareRowLogo } from "@/types/landing/geo";
 

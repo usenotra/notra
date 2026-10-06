@@ -12,11 +12,19 @@ import {
   buildBlogAuthorMarkdown,
   listBlogAuthorMarkdownPages,
 } from "@/lib/blog/author-markdown";
+import {
+  buildCompareIndexMarkdown,
+  buildCompareMarkdown,
+  listCompareMarkdownPages,
+} from "@/lib/compare/markdown";
 import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
 import {
   buildIntegrationMarkdown,
   buildIntegrationsMarkdown,
+  buildGithubIntegrationMarkdown,
+  buildGranolaIntegrationMarkdown,
+  buildLinearIntegrationMarkdown,
   buildSlackIntegrationMarkdown,
   listIntegrationMarkdownEntries,
 } from "@/lib/integrations/markdown";
@@ -35,6 +43,7 @@ import {
 } from "@/utils/changelog";
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
+import { readAppMarkdownSource } from "@/utils/markdown-source";
 import { MarkdownNotFoundError } from "@/utils/not-found";
 import {
   getShowcaseCompany,
@@ -101,43 +110,6 @@ function markdownFromTitleAndBody(title: string, body: string) {
   return withTrailingNewline([`# ${title}`, "", content].join("\n"));
 }
 
-const CONTENT_SOURCES = import.meta.glob<string>(
-  [
-    "/src/content/pages/*.md",
-    "/src/content/pages/features/*.md",
-    "/src/content/legal/*.mdx",
-    "/src/content/changelog/**/*.mdx",
-  ],
-  { query: "?raw", import: "default", eager: true }
-);
-
-async function readAppMarkdownSource(...segments: string[]) {
-  const source = CONTENT_SOURCES[`/src/content/${segments.join("/")}`];
-
-  if (source === undefined) {
-    throw new Error(`Unable to load markdown source: ${segments.join("/")}`);
-  }
-
-  return source;
-}
-
-async function getShowcaseEntryMarkdown(
-  name: string,
-  slug: string,
-  entry: (typeof changelog)[number]
-) {
-  try {
-    return stripFrontmatter(await entry.getText("raw"));
-  } catch {
-    const source = await readAppMarkdownSource(
-      "changelog",
-      name,
-      `${slug}.mdx`
-    );
-    return stripFrontmatter(source);
-  }
-}
-
 function renderDatedEntry(entry: MarkdownTwinEntry) {
   const lines = [`# ${entry.data.title}`, ""];
 
@@ -200,7 +172,9 @@ async function getShowcaseEntries(name: string): Promise<MarkdownTwinEntry[]> {
           dateLabel: entry.date,
           publishedDate: new Date(entry.date),
         },
-        body: await getShowcaseEntryMarkdown(name, slug, entry),
+        body: stripFrontmatter(
+          readAppMarkdownSource("changelog", entry.info.path)
+        ),
       };
     })
   );
@@ -245,7 +219,7 @@ async function buildBlogIndexMarkdown() {
   return [
     "# Notra Blog",
     "",
-    "Insights, guides, and stories from the Notra team.",
+    "Insights, guides and stories from the Notra team.",
     "",
     "## Posts",
     "",
@@ -266,7 +240,7 @@ async function buildNotraChangelogIndexMarkdown() {
   return [
     "# Notra Changelog",
     "",
-    "The latest product updates, release notes, and improvements from the Notra team.",
+    "The latest product updates, release notes and improvements from the Notra team.",
     "",
     "## Entries",
     "",
@@ -344,11 +318,28 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/agent", render: () => buildAgentPageMarkdown() },
     { pattern: "/mcp", render: () => buildMcpMarkdown() },
     { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/compare", render: () => buildCompareIndexMarkdown() },
+    ...listCompareMarkdownPages().map((page) => ({
+      pattern: page.pattern,
+      render: () => buildCompareMarkdown(page.slug) ?? "",
+    })),
     { pattern: "/contributors", render: () => buildContributorsMarkdown() },
     { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
     {
       pattern: "/integrations/slack",
       render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/github",
+      render: () => buildGithubIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/linear",
+      render: () => buildLinearIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/granola",
+      render: () => buildGranolaIntegrationMarkdown(),
     },
     {
       pattern: "/features/marketing/assets",

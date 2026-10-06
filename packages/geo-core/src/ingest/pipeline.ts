@@ -9,7 +9,13 @@ import { acceptsIngestHost } from "@notra/geo-core/utils/geo-project-domains";
 import { Effect } from "effect";
 
 import { GEO_INGEST_TINYBIRD_TIMEOUT_MS } from "../constants/ingest";
-import type { GeoIngestDefer, GeoIngestResult } from "../types/ingest";
+import type {
+  GeoIngestBuffer,
+  GeoIngestDefer,
+  GeoIngestResult,
+} from "../types/ingest";
+import { geoIngestAdmissionKey } from "../utils/geo-ingest-admission-key";
+import { logGeoFailure } from "../utils/geo-log";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -24,8 +30,8 @@ import { buildGeoTrafficEvent, toCapturedDate } from "./event";
 import { loadIngestAllowedHosts } from "./hosts";
 import { isGeoIngestIdentityActive } from "./identity";
 import { resolveJourneyId } from "./journey";
-import { announceGeoTrafficEvent } from "./live";
-import { geoIngestRatelimit } from "./ratelimit";
+import { announceGeoTrafficEvent, expediteForLiveViewers } from "./live";
+import { geoIngestAdmissionRatelimit, geoIngestRatelimit } from "./ratelimit";
 
 const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
   request: Request
@@ -48,10 +54,14 @@ const readBearerIdentity = Effect.fn("geoIngest.readBearerIdentity")(function* (
 });
 
 const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
-  organizationId: string
+  organizationId: string,
+  admissionKey?: string
 ) {
+  const limiter = admissionKey
+    ? geoIngestAdmissionRatelimit
+    : geoIngestRatelimit;
   const { success, reason } = yield* Effect.tryPromise({
-    try: () => geoIngestRatelimit.limit(organizationId),
+    try: () => limiter.limit(admissionKey ?? organizationId),
     catch: (cause) => new GeoIngestFailedError({ cause }),
   });
   // Upstash reports timeouts as success; an unavailable limiter is not approval.
@@ -136,6 +146,10 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
     identity: GeoIngestIdentity,
     error: GeoIngestInvalidPayloadError | GeoIngestUnparseableUrlError
   ) {
+    yield* enforceRateLimit(
+      identity.organizationId,
+      geoIngestAdmissionKey(identity)
+    );
     const active = yield* Effect.promise(() =>
       isGeoIngestIdentityActive(identity)
     );
@@ -148,7 +162,8 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
 
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   request: Request,
-  defer: GeoIngestDefer
+  defer: GeoIngestDefer,
+  buffer?: GeoIngestBuffer
 ) {
   const identity = yield* readBearerIdentity(request);
 
@@ -181,6 +196,10 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     } satisfies GeoIngestResult;
   }
 
+  yield* enforceRateLimit(
+    identity.organizationId,
+    geoIngestAdmissionKey(identity)
+  );
   const [active, allowedHosts] = yield* Effect.all(
     [
       Effect.promise(() => isGeoIngestIdentityActive(identity)),
@@ -232,24 +251,34 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
 
   yield* enforceRateLimit(identity.organizationId);
   const ingestStartedAt = Date.now();
-  yield* ingestEvent(event);
+  // A buffered event is acknowledged before it reaches Tinybird; the batcher
+  // retries failed writes and announces rows once written. Without a buffer
+  // (or when it is full) the 202 still waits for the write.
+  const buffered = buffer?.enqueue(event) ?? false;
+  if (!buffered) {
+    yield* ingestEvent(event);
+  }
   const ingestMs = Date.now() - ingestStartedAt;
   // Analytics and the live update must not hold the 202 open for the site
   // that sent the event.
   yield* Effect.sync(() =>
     defer(async () => {
-      const announced = announceGeoTrafficEvent(
-        event.organization_id,
-        event.project_id
-      );
+      const announced =
+        buffered && buffer
+          ? expediteForLiveViewers(buffer, event.organization_id)
+          : announceGeoTrafficEvent(event.organization_id, event.project_id);
       try {
         await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
       } catch (error) {
-        console.error("[geo-ingest] Deferred analytics failed", {
+        logGeoFailure(
+          "geo.ingest.analytics_failed",
+          "Deferred ingest analytics failed",
           error,
-          organizationId: identity.organizationId,
-          projectId: identity.projectId,
-        });
+          {
+            organizationId: identity.organizationId,
+            projectId: identity.projectId,
+          }
+        );
       }
       await announced;
     })

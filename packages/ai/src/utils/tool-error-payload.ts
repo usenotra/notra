@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import type { Tool } from "ai";
 
 const MAX_ERROR_MESSAGE_LENGTH = 600;
@@ -21,7 +22,7 @@ function toErrorPayload(toolName: string, error: unknown) {
     rawMessage.length > MAX_ERROR_MESSAGE_LENGTH
       ? `${rawMessage.slice(0, MAX_ERROR_MESSAGE_LENGTH)}…`
       : rawMessage;
-  console.error("[Tool Error]", { toolName, error: rawMessage });
+  logError("[Tool Error]", error, { toolName });
   const retryable = !isExplicitlyNonRetryable(error);
   return {
     isError: true,

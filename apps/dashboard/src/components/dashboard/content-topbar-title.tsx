@@ -1,7 +1,7 @@
 "use client";
 
 import { BreadcrumbPage } from "@notra/ui/components/ui/breadcrumb";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useContent } from "@/lib/hooks/use-content";

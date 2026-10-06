@@ -7,9 +7,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { IrisArtifactCard } from "@/components/iris/iris-artifact-card";
 import { IrisRunStatusBadge } from "@/components/iris/iris-run-status-badge";
 import { cn } from "@/lib/utils";

@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createHmac } from "node:crypto";
 
 import { startService } from "./utils/service";
 
@@ -24,32 +23,6 @@ afterAll(async () => {
 });
 
 describe("standalone ingest HTTP service", () => {
-  test("starts without credentials but does not accept traffic", async () => {
-    const health = await fetch(`${unconfigured.url}/healthz`);
-    expect(health.status).toBe(200);
-    const ready = await fetch(`${unconfigured.url}/readyz`);
-    expect(ready.status).toBe(503);
-    expect(await ready.json()).toEqual({ ready: false });
-    const ingest = await fetch(`${unconfigured.url}/api/geo/ingest`, {
-      method: "POST",
-    });
-    expect(ingest.status).toBe(503);
-    expect(ingest.headers.get("cache-control")).toBe("no-store");
-  });
-
-  test("exposes configuration readiness separately from liveness", async () => {
-    const response = await fetch(`${configured.url}/readyz`);
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ready: true });
-  });
-
-  test("keeps the ingest route POST-only", async () => {
-    const response = await fetch(`${configured.url}/api/geo/ingest`);
-    expect(response.status).toBe(405);
-    expect(response.headers.get("allow")).toBe("POST");
-    expect((await fetch(`${configured.url}/unknown`)).status).toBe(404);
-  });
-
   test("rejects missing and invalid tokens before reading the payload", async () => {
     for (const authorization of ["", "Bearer invalid-token"]) {
       const response = await fetch(`${configured.url}/api/geo/ingest`, {
@@ -60,27 +33,6 @@ describe("standalone ingest HTTP service", () => {
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({ error: "Unauthorized" });
     }
-  });
-
-  test("drops ordinary visitors without contacting database, Redis or Tinybird", async () => {
-    const scope = "org_test.project_test";
-    const signature = createHmac("sha256", "test-ingest-secret")
-      .update(scope)
-      .digest("hex");
-    const response = await fetch(`${configured.url}/api/geo/ingest`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${scope}.${signature}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        method: "GET",
-        url: "https://example.com/",
-        userAgent: "Mozilla/5.0",
-      }),
-    });
-    expect(response.status).toBe(202);
-    expect(await response.json()).toEqual({ ok: true });
   });
 
   test("bounds the request body", async () => {

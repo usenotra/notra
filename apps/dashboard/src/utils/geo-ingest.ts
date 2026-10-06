@@ -12,6 +12,7 @@ import type {
   GeoIngestPackageManager,
   GeoIngestSetupResponse,
 } from "@notra/geo-core/types/geo";
+import { NOTRA_AGENT_FEEDBACK_PROMPT } from "@notra/utils/constants/agent-feedback-prompt";
 
 export function geoIngestSnippet(
   setup: GeoIngestSetupResponse | undefined,
@@ -62,7 +63,7 @@ export function geoIngestAgentPrompt(
       '4. Serve pages from an Astro server adapter (`output: "server"` or hybrid). A static build has no request to capture after deploy.'
     );
   }
-  return lines.join("\n");
+  return [...lines, "", NOTRA_AGENT_FEEDBACK_PROMPT].join("\n");
 }
 
 export function isGeoIngestPackageManager(
@@ -71,4 +72,10 @@ export function isGeoIngestPackageManager(
   return GEO_INGEST_PACKAGE_MANAGER_OPTIONS.some(
     (option) => option.value === value
   );
+}
+
+export function isGeoIngestFramework(
+  value: string
+): value is GeoIngestFramework {
+  return GEO_INGEST_FRAMEWORK_OPTIONS.some((option) => option.value === value);
 }

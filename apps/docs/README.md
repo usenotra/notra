@@ -34,6 +34,25 @@ Validate the live OpenAPI spec before pushing docs changes:
 bun run openapi:check
 ```
 
+## Design-system buttons
+
+`buttons.css` adapts the primary and outline styles from `packages/ui/src/components/ui/button.tsx`.
+The navbar Dashboard link uses the same primary style. Mintlify loads this CSS
+automatically. Keep these styles in sync when the design-system buttons change; Mintlify
+cannot import their Base UI and other npm dependencies directly.
+
+For buttons in page content, import the snippet in the parent MDX page:
+
+```mdx
+import { DocsButton } from "/snippets/button.jsx"
+
+<DocsButton href="https://app.usenotra.com">Open dashboard</DocsButton>
+<DocsButton href="/quickstart" variant="outline">Get started</DocsButton>
+```
+
+Use `href` for navigation. Without `href`, the component renders a native button
+and accepts button props such as `onClick` and `disabled`.
+
 ---
 
 Built with ❤️ using [Mintlify](https://mintlify.com)

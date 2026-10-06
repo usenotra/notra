@@ -1,12 +1,12 @@
 "use client";
 
 import { useHotkey } from "@tanstack/react-hotkeys";
-import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { CreateContentButtonGroup } from "@/components/content/create-content-button-group";
 import type { ContentCreateEntry } from "@/types/analytics/studio-events";
 import type { CreateContentActionsProps } from "@/types/content/create-post";
+import dynamic from "@/utils/lazy-component";
 
 const loadCreateContentDialog = () =>
   import("@/components/content/create-content-dialog").then(

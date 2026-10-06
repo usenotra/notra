@@ -12,11 +12,13 @@ import { GEO_PROMPT_FILTER_ALL } from "@notra/schemas/constants/dashboard/geo-pr
 
 import type {
   EngineFamilyPromptHit,
+  GeoPromptBrandCount,
   GeoPromptCoverage,
   GeoPromptTableFilters,
   GeoPromptTableRow,
 } from "@/types/geo";
 import { bestFuzzyScore, fuzzyMatches } from "@/utils/fuzzy";
+import { uniquePromptBrandNames } from "@/utils/geo-prompt-brands";
 
 function promptMentionSets(results: readonly GeoPromptResultSummary[]): {
   mentioned: Set<string>;
@@ -240,4 +242,24 @@ export function promptTableRowForId(
     presence: null,
     results: group,
   };
+}
+
+/**
+ * Brands the engines named on a prompt instead of yours, most named first.
+ * `count` is how many answers named the brand.
+ */
+export function promptMentionedInstead(
+  results: readonly GeoPromptResultSummary[]
+): GeoPromptBrandCount[] {
+  const counts = new Map<string, number>();
+  for (const result of results) {
+    for (const name of uniquePromptBrandNames(result.competitors)) {
+      if (name) {
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+      }
+    }
+  }
+  return [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }

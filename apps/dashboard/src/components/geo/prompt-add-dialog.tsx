@@ -25,18 +25,18 @@ import {
   InputGroupText,
 } from "@notra/ui/components/ui/input-group";
 import { Label } from "@notra/ui/components/ui/label";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
-import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptKeywordTextarea } from "@/components/geo/prompt-keyword-textarea";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoGenerateFromWebsite, useGscKeywords } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
@@ -88,11 +88,14 @@ export function PromptAddDialog({
   const canGenerate = normalizedUrl !== null && !busy;
   const writeMode = mode === "write";
 
-  const close = () => {
+  const close = () => onOpenChange(false);
+
+  // Cleared once the close animation is done, so the closing dialog keeps
+  // showing what the user saw instead of snapping back to an empty draft.
+  const reset = () => {
     setMode("write");
     setDraft("");
     setUrl("");
-    onOpenChange(false);
   };
 
   const handleAdd = () => {
@@ -133,6 +136,11 @@ export function PromptAddDialog({
 
   return (
     <ResponsiveDialog
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) {
+          reset();
+        }
+      }}
       onOpenChange={(next) => {
         if (next) {
           onOpenChange(true);
@@ -211,6 +219,9 @@ export function PromptAddDialog({
                         handleAdd();
                       }
                     }}
+                    // A fixed height: a growing textarea resized (and
+                    // re-centred) the whole dialog on every wrapped line.
+                    className="field-sizing-fixed h-28 resize-none"
                     placeholder={t("questionPlaceholder")}
                     ref={promptRef}
                     rows={4}
@@ -297,7 +308,7 @@ export function PromptAddDialog({
             </Button>
           ) : (
             <Button disabled={!canGenerate} form={formId} type="submit">
-              {generate.isPending ? <StatusSpinner /> : null}
+              {generate.isPending ? <Spinner className="size-3.5" /> : null}
               {tGeoShared("generatePrompts")}
             </Button>
           )}

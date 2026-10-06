@@ -1,9 +1,9 @@
-import { useTranslations } from "next-intl";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { SentimentResultsTable } from "@/components/geo/sentiment-results-table";
 import { SentimentThemesEmpty } from "@/components/geo/sentiment-themes-empty";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { GEO_SENTIMENT_EMPTY_LABEL_KEYS } from "@/constants/geo-sentiment";
 import { useGeoSentimentAnalysis } from "@/lib/hooks/use-geo-sentiment";
@@ -57,7 +57,7 @@ export function SentimentThemes({
           (view.pending && !view.showEmpty) ||
           (view.showResults && analyzing) ? (
             <span className="inline-flex items-center gap-2">
-              <StatusSpinner />
+              <Spinner className="size-3.5" />
               {view.showResults ? t("updating") : statusText}
             </span>
           ) : undefined

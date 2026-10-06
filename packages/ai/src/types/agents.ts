@@ -109,6 +109,16 @@ export interface BackgroundGenOptions {
   includeSearchBrandReferencesTool?: boolean;
 }
 
+/** The per-content-type part of {@link BackgroundGenOptions}. */
+export type ContentAgentProfile = Pick<
+  BackgroundGenOptions,
+  | "skillName"
+  | "contentType"
+  | "brandAgentType"
+  | "contentLabel"
+  | "includeSearchBrandReferencesTool"
+>;
+
 export interface BackgroundGenResult {
   postId: string;
   title: string;

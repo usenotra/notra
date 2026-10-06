@@ -22,17 +22,9 @@ import {
   createApiKeySchema,
   updateApiKeySchema,
 } from "@notra/schemas/dashboard/api-keys";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { ConnectedCards } from "@notra/ui/components/shared/connected-cards";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -43,6 +35,10 @@ import {
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Alert, AlertDescription } from "@notra/ui/components/ui/alert";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,7 +70,6 @@ import type {
   KeyResponseData,
   V2KeysCreateKeyResponseData,
 } from "@unkey/api/models/components";
-import { useLocale, useTranslations } from "next-intl";
 import {
   parseAsArrayOf,
   parseAsString,
@@ -85,9 +80,11 @@ import {
   type ComponentType,
   type ReactNode,
   useEffect,
+  useEffectEvent,
   useReducer,
 } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 import * as z from "zod";
 
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
@@ -96,8 +93,6 @@ import { TrackingTokenCard } from "@/components/api-keys/tracking-token-card";
 import { Button } from "@/components/button";
 import { DemoApiCallout } from "@/components/demo/demo-api-callout";
 import { PageContainer } from "@/components/layout/container";
-import { PageHeading } from "@/components/layout/page-heading";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   API_KEY_EXPIRATION_OPTIONS,
@@ -106,6 +101,8 @@ import {
 import { API_KEY_CARD_ITEMS, API_KEY_PRESETS } from "@/lib/api-keys/presets";
 import { expandLegacyApiKeyScopes } from "@/lib/api-keys/scopes";
 import { useApiKeyExpirationItems } from "@/lib/hooks/use-api-key-expiration-items";
+import { useHasActivePlan } from "@/lib/hooks/use-plan";
+import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   ApiKeyAccessMode,
@@ -258,7 +255,13 @@ function getDefaultEditExpiration(
   return "90d";
 }
 
-function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
+function ApiKeysHeader({
+  createDisabled,
+  onCreate,
+}: {
+  createDisabled: boolean;
+  onCreate: () => void;
+}) {
   const t = useTranslations("apiKeys");
   const tCommon2 = useTranslations("common");
   return (
@@ -268,7 +271,11 @@ function ApiKeysHeader({ onCreate }: { onCreate: () => void }) {
       title={tCommon2("labels.apiKeys")}
     >
       <div className="flex items-center gap-2">
-        <Button className="gap-1.5" onClick={onCreate}>
+        <Button
+          className="gap-1.5"
+          disabled={createDisabled}
+          onClick={onCreate}
+        >
           <HugeiconsIcon className="size-4" icon={Add01Icon} />
           {t("createKey")}
           <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
@@ -427,7 +434,7 @@ function ApiKeysTable({
   const visibleRows = isPending ? 3 : Math.max(keys.length, 1);
 
   return (
-    <Table
+    <DataTable
       columns={columns}
       data={keys}
       emptyState={t("empty")}
@@ -783,34 +790,19 @@ function DeleteApiKeyDialog({
 }) {
   const t = useTranslations("apiKeys.delete");
   const tApiKeysShared = useTranslations("apiKeys.shared");
-  const tCommon = useTranslations("common");
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={!!apiKey}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription className="wrap-anywhere">
-            {apiKey
-              ? t("descriptionNamed", { name: apiKey.name })
-              : t("description")}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={!apiKey || isPending}
-            onClick={onConfirm}
-          >
-            {isPending
-              ? tCommon("actions.deleting")
-              : tApiKeysShared("deleteApiKey")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={tApiKeysShared("deleteApiKey")}
+      description={
+        apiKey ? t("descriptionNamed", { name: apiKey.name }) : t("description")
+      }
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={!!apiKey}
+      pending={isPending}
+      title={t("title")}
+      variant="destructive"
+    />
   );
 }
 
@@ -832,9 +824,36 @@ export default function ApiKeysPage() {
     newKeyConfig.scopes !== null &&
     newKeyConfig.expiration !== null;
 
+  const { isLocked: planLocked, isLoading: planLoading } = useHasActivePlan();
+  const { openSettings } = useSettingsModal();
+  const tMembers = useTranslations("members");
+  const tBilling = useTranslations("errors.billing");
+  // Creating a key needs an active plan; say so up front instead of after
+  // the user has filled in the form.
+  const openCreateDialog = () => {
+    // Until billing has loaded we cannot tell, and an open form would only be
+    // rejected on submit.
+    if (planLoading) {
+      return false;
+    }
+    if (planLocked) {
+      toast.error(tBilling("subscriptionRequired"), {
+        action: {
+          label: tMembers("viewPlans"),
+          onClick: () => openSettings("billing"),
+        },
+      });
+      return false;
+    }
+    dispatchUi({ type: "createDialogChanged", open: true });
+    return true;
+  };
+
   useHotkey(
     "C",
-    () => dispatchUi({ type: "createDialogChanged", open: true }),
+    () => {
+      openCreateDialog();
+    },
     {
       enabled: !(
         dialogOpen ||
@@ -865,11 +884,16 @@ export default function ApiKeysPage() {
     expiration: newKeyExpiration,
   };
 
+  // A preconfigured link waits for billing, so a free plan gets the hint
+  // instead of a form it cannot submit.
+  const openPreconfiguredDialog = useEffectEvent(() => {
+    openCreateDialog();
+  });
   useEffect(() => {
-    if (hasNewKeyConfig) {
-      dispatchUi({ type: "createDialogChanged", open: true });
+    if (hasNewKeyConfig && !planLoading) {
+      openPreconfiguredDialog();
     }
-  }, [hasNewKeyConfig]);
+  }, [hasNewKeyConfig, planLoading]);
 
   const handlePresetSelect = (id: string) => {
     const preset = API_KEY_PRESETS.find((item) => item.id === id);
@@ -883,8 +907,9 @@ export default function ApiKeysPage() {
       expiration: preset.expiration,
     };
     dispatchUi({ type: "createErrorChanged", createError: null });
-    dispatchUi({ type: "createDialogChanged", open: true });
-    setNewKeyConfig(config);
+    if (openCreateDialog()) {
+      setNewKeyConfig(config);
+    }
   };
 
   const getCreateErrorMessage = (field: PropertyKey | undefined) => {
@@ -1058,9 +1083,10 @@ export default function ApiKeysPage() {
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
         <ApiKeysHeader
-          onCreate={() =>
-            dispatchUi({ type: "createDialogChanged", open: true })
-          }
+          createDisabled={planLoading}
+          onCreate={() => {
+            openCreateDialog();
+          }}
         />
 
         <DemoApiCallout />

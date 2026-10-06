@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 import type { UsageFeatureId } from "@/types/billing/usage-feature";
 import type { FeatureData } from "@/types/hooks/billing";

@@ -1,0 +1,74 @@
+diff --git a/dist/builders.js b/dist/builders.js
+--- a/dist/builders.js
++++ b/dist/builders.js
+@@ -1,4 +1,4 @@
+-import { mkdir, readFile, writeFile } from 'node:fs/promises';
++import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+ import { BaseBuilder, createBaseBuilderConfig, VercelBuildOutputAPIBuilder, } from '@workflow/builders';
+ import { join } from 'pathe';
+ const FLOW_ROUTE = '^\\/\\.well-known\\/workflow\\/v1\\/flow$';
+@@ -10,6 +10,8 @@ function getNitroWorkflowDirs(nitro) {
+     return nitro.options.workflow?.dirs ?? ['.'];
+ }
+ export class VercelBuilder extends VercelBuildOutputAPIBuilder {
++    #nodeModulesDir;
++    #architecture;
+     constructor(nitro) {
+         super({
+             ...createBaseBuilderConfig({
+@@ -17,14 +19,23 @@ export class VercelBuilder extends VercelBuildOutputAPIBuilder {
+                 projectRoot: getNitroProjectRoot(nitro),
+                 dirs: getNitroWorkflowDirs(nitro),
+                 runtime: nitro.options.workflow?.runtime,
++                externalPackages: nitro.options.workflow?.externalPackages,
+             }),
+             buildTarget: 'vercel-build-output-api',
+         });
++        this.#nodeModulesDir = join(nitro.options.output.serverDir, 'node_modules');
++        this.#architecture = nitro.options.vercel?.functions?.architecture;
+     }
++    async createVcConfig(dir, config) {
++        await super.createVcConfig(dir, { architecture: this.#architecture, ...config });
++    }
+     async build() {
+         const configPath = join(this.config.workingDir, '.vercel/output/config.json');
+         const originalConfig = JSON.parse(await readFile(configPath, 'utf-8'));
+         await super.build();
++        if (this.config.externalPackages?.length) {
++            await cp(this.#nodeModulesDir, join(this.config.workingDir, '.vercel/output/functions/.well-known/workflow/v1/step.func/node_modules'), { recursive: true, dereference: true });
++        }
+         const newConfig = JSON.parse(await readFile(configPath, 'utf-8'));
+         originalConfig.routes.unshift({ src: FLOW_ROUTE, dest: '/.well-known/workflow/v1/flow' }, { src: STEP_ROUTE, dest: '/.well-known/workflow/v1/step' }, ...newConfig.routes);
+         await writeFile(configPath, JSON.stringify(originalConfig, null, 2));
+diff --git a/dist/index.js b/dist/index.js
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -250,7 +250,7 @@
+           currentImportPath = pathToFileURL(handlerPath).href + "?t=" + version;
+           ${preloadSteps[buildPath]}
+         }
+-        return (await import(currentImportPath)).POST;
++        return (await import(/* @vite-ignore */ currentImportPath)).POST;
+       }
+ 
+       export default fromWebHandler(async (request, context) => {
+@@ -275,7 +275,7 @@
+           currentImportPath = pathToFileURL(handlerPath).href + "?t=" + version;
+           ${preloadSteps[buildPath]}
+         }
+-        return (await import(currentImportPath)).POST;
++        return (await import(/* @vite-ignore */ currentImportPath)).POST;
+       }
+ 
+       export default async ({ req }) => {
+diff --git a/dist/types.d.ts b/dist/types.d.ts
+--- a/dist/types.d.ts
++++ b/dist/types.d.ts
+@@ -18,6 +18,7 @@ export interface ModuleOptions {
+      * @example "nodejs24.x"
+      */
+     runtime?: string;
++    externalPackages?: string[];
+ }
+ declare module 'nitro/types' {
+     interface NitroOptions {

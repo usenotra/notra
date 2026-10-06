@@ -1,3 +1,6 @@
+import { logWarn } from "@notra/ai/utils/server-log";
+
+import "@/workflows/runtime";
 import { runAutomaticSentiment } from "@notra/geo-core/geo/sentiment-automation";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { Effect } from "effect";
@@ -9,14 +12,14 @@ export async function analyzeGeoSentimentStep(input: GeoScopeInput) {
   const result = await Effect.runPromise(
     runAutomaticSentiment(input).pipe(Effect.provide(geoCoreDashboardLayer))
   ).catch((error: unknown) => {
-    console.warn("Automatic GEO sentiment analysis errored", {
+    logWarn("Automatic GEO sentiment analysis errored", {
       ...input,
-      error,
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   });
   if (result?.status === "failed") {
-    console.warn("Automatic GEO sentiment analysis failed", {
+    logWarn("Automatic GEO sentiment analysis failed", {
       ...input,
       message: result.message,
     });

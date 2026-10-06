@@ -10,21 +10,18 @@ import { geoLiveChannel } from "@notra/geo-core/utils/geo-live";
 import { useThrottledCallback } from "@tanstack/react-pacer";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@upstash/realtime/client";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { GeoLiveContextValue, GeoLiveProviderProps } from "@/types/geo";
+import type { GeoLiveProviderProps } from "@/types/geo";
 import {
   invalidateGeoTrafficQueries,
   isGeoLiveEventInScope,
 } from "@/utils/geo-live";
 import { invalidateGeoScanResultQueries } from "@/utils/geo-scan-results";
 
-const GeoLiveContext = createContext<GeoLiveContextValue>({
-  connected: false,
-  updates: 0,
-});
+const GeoLiveContext = createContext(false);
 
 /**
  * Subscribes the GEO pages to `geo:{orgId}`. Ingest announces new AI traffic
@@ -39,9 +36,6 @@ export function GeoLiveProvider({
 }: GeoLiveProviderProps) {
   const queryClient = useQueryClient();
   const { projectId } = useGeoProjectScope();
-  // Counts announcements for the viewed scope; the live indicator keys its
-  // one-shot pulse on it.
-  const [updates, setUpdates] = useState(0);
   // @upstash/realtime 1.x resets its retry counter inside every reconnect, so
   // `maxReconnectAttempts` never trips and a failing /api/realtime (expired
   // session, outage) is retried every second for as long as the tab is open.
@@ -86,13 +80,11 @@ export function GeoLiveProvider({
     onData: (payload) => {
       if (payload.event === "geo.traffic") {
         if (isGeoLiveEventInScope(payload.data.projectIds, projectId)) {
-          setUpdates((count) => count + 1);
           refreshTraffic();
         }
         return;
       }
       if (isGeoLiveEventInScope([payload.data.projectId], projectId)) {
-        setUpdates((count) => count + 1);
         refreshVisibility();
       }
     },
@@ -122,19 +114,14 @@ export function GeoLiveProvider({
     return () => clearTimeout(resume);
   }, [paused]);
 
-  const connected = status === "connected";
-  const value = useMemo(() => ({ connected, updates }), [connected, updates]);
-
   return (
-    <GeoLiveContext.Provider value={value}>{children}</GeoLiveContext.Provider>
+    <GeoLiveContext.Provider value={status === "connected"}>
+      {children}
+    </GeoLiveContext.Provider>
   );
 }
 
 /** True while GEO live updates stream in; polling can back off. */
 export function useGeoLive(): boolean {
-  return useContext(GeoLiveContext).connected;
-}
-
-export function useGeoLiveStatus(): GeoLiveContextValue {
   return useContext(GeoLiveContext);
 }

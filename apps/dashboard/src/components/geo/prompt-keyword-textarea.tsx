@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -11,7 +12,6 @@ import {
   HOVER_CARD_DELAY_MS,
 } from "@notra/ui/constants/hover-card";
 import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
-import { useLocale, useTranslations } from "next-intl";
 import {
   forwardRef,
   useEffect,
@@ -21,8 +21,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
 import { cn } from "@/lib/utils";
 import type { PromptKeywordTextareaProps } from "@/types/geo";
 import { findPromptKeywordSegments } from "@/utils/geo-prompt-keywords";
@@ -272,7 +272,7 @@ export const PromptKeywordTextarea = forwardRef<
                     }}
                     render={label}
                   />
-                  <TrafficBreakdownCard
+                  <DetailCardContent
                     aside={t("lastDays")}
                     icon={<Google className="size-4" />}
                     onPointerEnter={cancelPointerClose}
@@ -307,7 +307,7 @@ export const PromptKeywordTextarea = forwardRef<
                         })}
                       </dd>
                     </dl>
-                  </TrafficBreakdownCard>
+                  </DetailCardContent>
                 </HoverCard>
               );
             })}

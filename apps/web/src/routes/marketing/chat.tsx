@@ -3,6 +3,7 @@ import { ImageResponse } from "@vercel/og";
 
 import bgDataUrl from "@/../public/marketing/chat-bg.jpg?inline";
 import notraSvg from "@/../public/notra-mark.svg?raw";
+import { MARKETING_CHAT_LONG_DATE_FORMATTER } from "@/constants/marketing-chat";
 import { marketingChatOgQuerySchema } from "@/schemas/marketing-chat";
 import type {
   ChatOgComposerProps,
@@ -48,11 +49,7 @@ function getGreeting(now: Date): string {
 }
 
 function formatLongDate(now: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(now);
+  return MARKETING_CHAT_LONG_DATE_FORMATTER.format(now);
 }
 
 function BrainIcon() {

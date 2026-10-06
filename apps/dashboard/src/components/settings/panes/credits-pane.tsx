@@ -6,24 +6,24 @@ import { FEATURES } from "@notra/ai/billing/features";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useAggregateEvents } from "autumn-js/react";
-import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { CreditActivity } from "@/components/billing/credit-activity";
 import { CreditSummaryCards } from "@/components/billing/credit-summary-cards";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
 import { Button } from "@/components/button";
 import { Confetti } from "@/components/confetti";
+import Link from "@/components/framework/link";
 import { NotFoundContent } from "@/components/not-found-content";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 import { useHasAiCreditsFeature } from "@/lib/hooks/use-plan";
+import { useParams } from "@/lib/navigation";
 import type { CreditRangeOption } from "@/types/billing/credits";
+import dynamic from "@/utils/lazy-component";
 
 const CreditUsageChart = dynamic(
   () =>

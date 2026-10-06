@@ -15,9 +15,10 @@ import {
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
+import type { TableColumn } from "@notra/ui/components/ui/data-table";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { TrafficHero } from "@/components/geo/traffic-hero";
@@ -29,7 +30,6 @@ import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@/components/instrument/instrument-module";
-import type { TableColumn } from "@/components/motion/table";
 import { TRAFFIC_SOURCE_COLUMN_MIN_WIDTH } from "@/constants/geo-traffic-sources";
 import type {
   AiTrafficCardProps,

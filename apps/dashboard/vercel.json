@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "git": {
     "deploymentEnabled": false
   },
@@ -22,6 +23,10 @@
     {
       "path": "/api/cron/daily-summary",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/brew-contacts",
+      "schedule": "30 3 * * *"
     }
   ]
 }

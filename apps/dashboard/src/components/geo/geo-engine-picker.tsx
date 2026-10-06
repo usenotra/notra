@@ -12,16 +12,7 @@ import {
   sortKnownEngines,
 } from "@notra/geo-core/utils/geo-engines";
 import { geoModelsForProvider } from "@notra/geo-core/utils/geo-model-catalog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@notra/ui/components/ui/alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
@@ -32,12 +23,12 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
+import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   hasProviderWordmark,
@@ -154,7 +145,6 @@ export function GeoEnginePicker({
 }: GeoEnginePickerProps) {
   const t = useTranslations("geo.geoEnginePicker");
   const tCommon2 = useTranslations("common");
-  const tCommon = useTranslations("common.actions");
   const id = useId();
   const { activeOrganization } = useOrganizationsContext();
   const { attach, data: customer, refetch } = useBillingCustomer();
@@ -436,57 +426,33 @@ export function GeoEnginePicker({
         open={consentOpen}
       />
 
-      <AlertDialog
+      <ConfirmDialog
+        confirmLabel={t("enableWithoutZdr")}
+        description={t("noZdrDescription")}
+        onConfirm={approvePending}
         onOpenChange={(open) => {
           if (!open) {
             setPendingApproval(null);
           }
         }}
         open={pendingApproval !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("noZdrTitle", { model: pendingApproval?.label ?? "" })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("noZdrDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={approvePending}>
-              {t("enableWithoutZdr")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t("noZdrTitle", { model: pendingApproval?.label ?? "" })}
+      />
 
-      <AlertDialog
+      <ConfirmDialog
+        confirmLabel={t("turnOff")}
+        description={t("turnOffDescription", {
+          model: pendingDisable?.label ?? "",
+        })}
+        onConfirm={confirmDisable}
         onOpenChange={(open) => {
           if (!open) {
             setPendingDisable(null);
           }
         }}
         open={pendingDisable !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("turnOffTitle", { model: pendingDisable?.label ?? "" })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("turnOffDescription", { model: pendingDisable?.label ?? "" })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDisable}>
-              {t("turnOff")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t("turnOffTitle", { model: pendingDisable?.label ?? "" })}
+      />
     </div>
   );
 }

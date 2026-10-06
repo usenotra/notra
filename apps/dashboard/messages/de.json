@@ -146,7 +146,9 @@
           "marketingEmails": {
             "description": "E-Mails zu neuen Funktionen, Tipps und Ankündigungen erhalten"
           }
-        }
+        },
+        "marketingPersonal": "Gilt nur für dich. Jede E-Mail enthält außerdem einen Abmeldelink.",
+        "marketingBlocked": "Du hast dich über einen Link in einer E-Mail von allen Marketing-E-Mails abgemeldet. Schreib an support@usenotra.com, um sie wieder zu erhalten."
       },
       "billing": {
         "plansDescription": "Wechsle deinen Tarif oder mach ein Upgrade.",
@@ -173,6 +175,10 @@
         "period": "Letzte 30 Tage",
         "refresh": "Webhook-Aktivität aktualisieren",
         "addEndpoint": "Endpunkt hinzufügen",
+        "removeEndpoint": "Endpunkt {url} entfernen",
+        "rightNow": "Gerade",
+        "processing": "In Bearbeitung",
+        "idle": "Nichts offen",
         "views": "Webhook-Ansichten",
         "deliveries": "Zustellungen",
         "endpoints": "Endpunkte",
@@ -196,18 +202,19 @@
           "cancelled": "Abgebrochen"
         },
         "columns": {
-          "event": "Event und Ziel",
+          "event": "Event",
+          "destination": "Ziel",
           "response": "Antwort",
-          "attempts": "Versuche"
+          "attemptCount": "{count, plural, one {# Versuch} other {# Versuche}}"
         },
         "filterLabel": "Zustellungen nach Status filtern",
         "empty": {
           "allTitle": "Hier tauchen deine Events auf",
           "allDescription": "Füg einen Endpunkt hinzu und generier dann einen Post. Jede Zustellung und jeder neue Versuch landet hier.",
           "filteredTitle": "Keine Zustellungen mit diesem Status",
-          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen."
+          "filteredDescription": "Wähl einen anderen Filter, um mehr von deinem Verlauf zu sehen.",
+          "showAll": "Alle Zustellungen anzeigen"
         },
-        "pageSummary": "{range} Zustellungen, aktualisiert alle {seconds} s",
         "endpointsEmpty": {
           "title": "Verbinde deinen ersten Endpunkt",
           "description": "Wähl aus, welche Events an deinen Workflow gehen."
@@ -241,7 +248,8 @@
           "inFlight": "Sendet",
           "payload": "Request-Payload",
           "payloadCopied": "Payload kopiert"
-        }
+        },
+        "itemLabel": "Zustellungen"
       }
     },
     "logs": {
@@ -467,6 +475,7 @@
     "roleLabel": "{role, select, owner {Inhaber} admin {Admin} member {Mitglied} other {{role}}}",
     "teamMemberLimit": "Du hast das Limit für Teammitglieder in deinem aktuellen Tarif erreicht.",
     "viewPlans": "Tarife ansehen",
+    "invitationExpired": "Abgelaufen",
     "columns": {
       "user": "Nutzer"
     },
@@ -479,8 +488,7 @@
       "resendDescription": "Wir senden einen neuen Einladungslink an <strong>{email}</strong>.",
       "resending": "Wird gesendet…",
       "cancelTitle": "Einladung zurückziehen?",
-      "cancelDescription": "Die an {email} gesendete Einladung wird zurückgezogen und kann danach nicht mehr angenommen werden.",
-      "canceling": "Wird zurückgezogen…"
+      "cancelDescription": "Die an {email} gesendete Einladung wird zurückgezogen und kann danach nicht mehr angenommen werden."
     },
     "invite": {
       "sent": "Einladung erfolgreich gesendet",
@@ -497,8 +505,7 @@
       "selectRole": "Rolle auswählen",
       "updateRole": "Rolle aktualisieren",
       "removeTitle": "{name} entfernen?",
-      "removeDescription": "{name} wird aus {organization} entfernt, verliert den Zugriff auf alle Inhalte der Organisation und muss für einen erneuten Beitritt wieder eingeladen werden.",
-      "removing": "Wird entfernt…"
+      "removeDescription": "{name} wird aus {organization} entfernt, verliert den Zugriff auf alle Inhalte der Organisation und muss für einen erneuten Beitritt wieder eingeladen werden."
     },
     "shared": {
       "resendInvitation": "Einladung erneut senden",
@@ -646,6 +653,11 @@
     }
   },
   "feedback": {
+    "activity": {
+      "title": "Feedback-Aktivität",
+      "loadFailed": "Feedback-Aktivität konnte nicht geladen werden",
+      "seriesLabel": "Feedback"
+    },
     "unspecified": "Nicht angegeben",
     "kind": {
       "bug": "Bug",
@@ -772,7 +784,6 @@
       "or": "Oder",
       "emailPlaceholder": "jane@firma.de",
       "passwordPlaceholder": "Mindestens 10 Zeichen",
-      "creating": "Konto wird erstellt…",
       "submit": "Konto erstellen",
       "forgotPassword": "Passwort vergessen? <link>Passwort zurücksetzen</link>",
       "haveAccount": "Du hast schon ein Konto? <link>Anmelden</link>"
@@ -814,7 +825,6 @@
       "descriptionNoEmail": "Wir haben einen 6-stelligen Code an deine E-Mail-Adresse gesendet. Gib ihn unten ein, um fortzufahren.",
       "codeLabel": "Bestätigungscode",
       "submit": "E-Mail bestätigen",
-      "submitting": "Wird geprüft…",
       "errorFallback": "Bestätigung fehlgeschlagen. Bitte versuch es nochmal."
     },
     "mfaChallenge": {
@@ -828,7 +838,6 @@
       "backupDescription": "Gib einen der Backup-Codes ein, die du beim Einrichten der Zwei-Faktor-Authentifizierung gespeichert hast. Jeder Code funktioniert einmal.",
       "backupCodeLabel": "Backup-Code",
       "backupSubmit": "Backup-Code verwenden",
-      "backupSubmitting": "Wird geprüft…",
       "useAuthenticator": "Stattdessen meine Authenticator-App verwenden",
       "issuedCodesTitle": "Deine Backup-Codes",
       "issuedCodesDescription": "Du bist angemeldet. Speichere jetzt diese Backup-Codes: Mit jedem kommst du einmal rein, falls du deine Authenticator-App verlierst."
@@ -845,7 +854,6 @@
       "passwordPlaceholder": "Dein Passwort",
       "lastUsed": "Zuletzt verwendet",
       "submit": "Anmelden",
-      "submitting": "Anmeldung läuft…",
       "resetPassword": "Passwort zurücksetzen",
       "noAccount": "Noch kein Konto?",
       "register": "Registrieren",
@@ -898,7 +906,7 @@
       "createConversationFailed": "Konversation konnte nicht erstellt werden",
       "conversationLimit": "Du kannst bis zu {limit} Konversationen haben. Entferne eine, bevor du eine weitere hinzufügst.",
       "personaLimit": "Du kannst bis zu {limit} aktive Personas haben. Archiviere eine, bevor du eine weitere hinzufügst oder reaktivierst.",
-      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere importierst.",
+      "competitorLimit": "Du kannst bis zu {limit} Wettbewerber tracken. Entferne einige, bevor du weitere hinzufügst.",
       "configureTrackingFirst": "Konfiguriere zuerst deine Einstellungen für das Marken-Tracking",
       "enableTrackingFirst": "Aktiviere das Marken-Tracking, bevor du einen Scan startest",
       "scanAlreadyRunning": "Für dieses Projekt läuft bereits ein Scan",
@@ -992,6 +1000,8 @@
       "branchNotFound": "Dieser Branch existiert im Repository nicht",
       "granolaKeyRejected": "Granola konnte diesen API-Schlüssel nicht bestätigen. Prüfe den Schlüssel und seine Berechtigungen und versuche es erneut.",
       "publicUrlInvalid": "Gib eine öffentliche http- oder https-URL ein",
+      "websiteDomainNotFound": "Website-Domain nicht gefunden. Bitte prüfe die Website-Adresse.",
+      "websiteDnsUnavailable": "Wir konnten die Website-Domain gerade nicht prüfen. Bitte versuche es erneut.",
       "mcpAuthorizationFailed": "Die Autorisierung beim MCP-Server ist fehlgeschlagen. Prüfe die URL und versuche es erneut.",
       "tooManyConnectionAttempts": "Zu viele Verbindungsversuche. Warte eine Minute und versuch es nochmal.",
       "selectOneRepository": "Bitte wähle genau ein Repository aus",
@@ -1159,7 +1169,6 @@
       "tryingAgain": "Neuer Versuch",
       "noSuggestions": "Nichts Offensichtliches für {domain}. Nutze stattdessen die Suche oben.",
       "showMore": "{count} weitere anzeigen",
-      "runningFirstScan": "Dein erster Scan läuft",
       "description": "Wenn KI statt {companyName} jemand anderen empfiehlt, wer ist das? Wähle die Marken, mit denen du dich messen willst.",
       "descriptionFallback": "Wenn KI statt dir jemand anderen empfiehlt, wer ist das? Wähle die Marken, mit denen du dich messen willst.",
       "title": "An wen verlierst du Deals?"
@@ -1183,8 +1192,8 @@
       "startFreeTrial": "Kostenlos testen",
       "selectPlan": "Tarif {plan} auswählen",
       "title": "Wähle deinen Tarif",
-      "description": "Nutze Feedback kostenlos oder upgrade für KI-Inhalte und Sichtbarkeits-Tracking.",
-      "continueFree": "Mit kostenlosem Feedback fortfahren",
+      "description": "Wähle einen Plan für KI-Sichtbarkeits-Tracking und Content oder schließe das hier und sieh dich erst um.",
+      "close": "Schließen und zum Dashboard",
       "renews": "{interval, select, year {Dein Tarif verlängert sich jedes Jahr automatisch, bis du kündigst.} other {Dein Tarif verlängert sich jeden Monat automatisch, bis du kündigst.}}"
     },
     "workspace": {
@@ -1210,26 +1219,17 @@
       "heardAbout": "Wo hast du von Notra gehört?",
       "selectOption": "Option auswählen",
       "tellUsWhere": "Verrate uns, wo",
-      "tellUsWherePlaceholder": "Podcast, Community, Freunde usw.",
-      "settingUp": "Wird eingerichtet…"
+      "tellUsWherePlaceholder": "Podcast, Community, Freunde usw."
     },
     "shared": {
-      "skipOnboarding": "Onboarding überspringen",
-      "saving": "Wird gespeichert"
+      "skipOnboarding": "Onboarding überspringen"
     }
   },
   "shared": {
     "table": {
-      "insertBefore": "Davor einfügen",
-      "insertAfter": "Danach einfügen",
-      "columnOptions": "Optionen für Spalte {column}",
-      "rowOptions": "Optionen für Zeile {row}",
       "selectAllRows": "Alle Zeilen auswählen",
       "selectRow": "Zeile {row} auswählen",
-      "reorderColumn": "Spalte {column} verschieben",
-      "renameColumn": "Spalte {column} umbenennen",
-      "resizeColumn": "Breite der Spalte {column} ändern",
-      "cellLabel": "{column} in Zeile {row}"
+      "resizeColumn": "Breite der Spalte {column} ändern"
     },
     "checkbox": {
       "partiallySelected": "Teilweise ausgewählt"
@@ -1547,7 +1547,8 @@
         "searchLabel": "Sitemap-URLs durchsuchen",
         "searchPlaceholder": "URLs durchsuchen…",
         "noSearchResults": "Keine URLs passen zu deiner Suche.",
-        "emptyView": "In dieser Ansicht gibt es noch keine URLs."
+        "emptyView": "In dieser Ansicht gibt es noch keine URLs.",
+        "itemLabel": "Seiten"
       }
     },
     "references": {
@@ -1831,6 +1832,7 @@
       "year": "Jahr",
       "month": "Monat",
       "current": "Aktuell",
+      "billingInterval": "Abrechnungszeitraum",
       "monthly": "Monatlich",
       "yearly": "Jährlich",
       "title": "Titel",
@@ -1928,7 +1930,6 @@
       "failedToAddSitemap": "Sitemap konnte nicht hinzugefügt werden",
       "sitemapOrSiteUrl": "Sitemap- oder Website-URL",
       "adding": "Wird hinzugefügt…",
-      "removing": "Wird entfernt…",
       "url": "URL",
       "links": "Links",
       "today": "Heute",
@@ -2455,6 +2456,19 @@
       "customColor": "Eigene Farbe wählen",
       "kindHint": "Direkt verkauft, was du verkaufst. Indirekt löst dasselbe Problem auf andere Weise."
     },
+    "competitorEngineMatrix": {
+      "title": "Empfehlungen nach Assistent",
+      "hint": "Anteil der Antworten jedes Assistenten im ausgewählten Zeitraum, die die Marke erwähnen. Dunklere Zellen bedeuten mehr Erwähnungen.",
+      "tableLabel": "Erwähnungsrate der Marken nach KI-Assistent",
+      "brandColumn": "Marke",
+      "you": "Du",
+      "noChecks": "Keine Antworten",
+      "empty": "Noch keine Antworten in diesem Zeitraum.",
+      "scanning": "Engines werden gescannt…",
+      "loadFailed": "Empfehlungen nach Assistent konnten nicht geladen werden.",
+      "cellDetail": "{mentions, number} von {checks, number} Antworten",
+      "refreshFailed": "Aktualisierung fehlgeschlagen, ältere Daten"
+    },
     "competitorModal": {
       "description": "Wie KI-Engines {title} in deinen getrackten Prompts erwähnen"
     },
@@ -2590,9 +2604,7 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "KI-Engine ({count, number})",
-        "visible": "Sichtbar",
-        "lastChecked": "Zuletzt geprüft"
+        "engineCount": "KI-Engine ({count, number})"
       },
       "hints": {
         "visible": "Antworten, in denen du überhaupt aufgetaucht bist: Deine Marke wurde genannt, eine deiner Seiten wurde als Quelle zitiert oder beides. Zitate sind in dieser Zahl enthalten.",
@@ -2601,6 +2613,7 @@
         "avgPosition": "Durchschnittlicher Rang deiner Marke in den Antworten, die sie genannt haben. Antworten, die dich nur zitiert haben, haben keinen Rang und werden nicht berücksichtigt."
       },
       "visibilityLabel": "Sichtbarkeit in {engine}",
+      "visibleCount": "{count, number} sichtbar",
       "readoutScanning": "Scan läuft",
       "filterLabel": "KI-Engines filtern",
       "filterPlaceholder": "Nach KI-Engine filtern…",
@@ -2729,7 +2742,11 @@
       "duplicates": "Duplikate übersprungen",
       "problems": "Zeilen mit Problemen",
       "downloadTemplate": "Vorlage herunterladen",
-      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}"
+      "fileRejected": "Wähle eine einzelne CSV-Datei bis {size}",
+      "newRows": "Neu",
+      "updatedRows": "Schon getrackt, wird aktualisiert",
+      "overLimit": "Über dem Limit von {limit}, nicht importiert",
+      "overLimitHint": "Dein Projekt trackt {current} von {limit} Wettbewerbern. Entferne zuerst welche, um den Rest zu importieren."
     },
     "geoEnginePicker": {
       "approvedWithoutZdr": "Ohne ZDR freigegeben",
@@ -3049,7 +3066,6 @@
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",
       "nounPlural": "Personas",
-      "archiving": "Wird archiviert…",
       "archiveTitle": "Persona archivieren?"
     },
     "projectBrandSection": {
@@ -3121,7 +3137,8 @@
       "latestAnswer": "Neueste Antwort jeder KI-Engine",
       "answerLanguage": "Antwortsprache",
       "noTags": "Keine Tags",
-      "addTag": "Tag hinzufügen…"
+      "addTag": "Tag hinzufügen…",
+      "lastScan": "Letzter Scan"
     },
     "promptDetailStatus": {
       "loading": "Antwort wird geladen…",
@@ -3142,26 +3159,19 @@
       "competitors": "Stattdessen erwähnte Marken",
       "searches": "Suchen der KI-Engine",
       "sources": "Zitierte Quellen",
-      "history": "Scan-Verlauf"
+      "history": "Scan-Verlauf",
+      "showAllSources": "Alle {count} Quellen anzeigen"
     },
     "promptReceiptHistory": {
       "gainedMention": "Jetzt erwähnt",
-      "gainedMentionAt": "auf",
       "lostMention": "Nicht mehr erwähnt",
-      "moved": "Verschoben",
       "noChange": "Keine Änderung",
       "firstScan": "Erster Scan",
       "gainedLabel": "Jetzt erwähnt auf {position}",
       "movedLabel": "Verschoben {from} → {to}",
-      "moreAria": "{count} weitere: {names}",
-      "viewAnswer": "Antwort ansehen",
-      "viewAnswerAria": "Antwort ansehen · {timestamp}",
-      "singleScan": "Bisher nur ein Scan",
       "noHistory": "Noch keine Scans aufgezeichnet",
-      "columns": {
-        "date": "Scan",
-        "newCompetitors": "Neue Marken"
-      }
+      "newBrands": "Neu: {names}",
+      "viewAnswer": "Antwort ansehen"
     },
     "promptReceiptViewSwitch": {
       "groupLabel": "Ansicht",
@@ -3196,10 +3206,7 @@
       "suggestions": "Verwendete Tags"
     },
     "promptsTable": {
-      "pauseAria": "{prompt} pausieren",
-      "enableAria": "{prompt} aktivieren",
       "copiedPrompt": "Prompt kopiert",
-      "pausePrompt": "Prompt pausieren",
       "enablePrompt": "Prompt aktivieren",
       "removePrompt": "Prompt entfernen",
       "removeDescriptionOne": "„{prompt}“ wird in GEO-Scans nicht mehr abgefragt. Bisherige Antworten bleiben in deinen Ergebnissen.",
@@ -3210,7 +3217,8 @@
       "nounPlural": "Prompts",
       "tagsCustomOnly": "Tags gelten nur für eigene Prompts. Automatisch erzeugte Prompts wurden übersprungen.",
       "columns": {
-        "presence": "Präsenz"
+        "presence": "Präsenz",
+        "mentionedInstead": "Stattdessen genannt"
       },
       "filterAria": "Prompts filtern",
       "filterPlaceholder": "Prompts filtern…",
@@ -3241,7 +3249,6 @@
       "runningWithTotal": "Scan läuft, {checks} von {total} Antworten gespeichert.",
       "running": "Scan läuft, {checks} Antworten gespeichert.",
       "failed": "Der letzte Scan wurde {when} vorzeitig beendet.",
-      "finished": "Antworten aus dem letzten Scan, {when}.",
       "progressLabel": "Gespeicherte Scan-Antworten",
       "empty": {
         "title": "Noch keine Antworten",
@@ -3369,6 +3376,7 @@
         "retry": "Erneut versuchen"
       },
       "noRatedAnswers": "Keine bewerteten Antworten",
+      "ratedAnswers": "{count, plural, one {# bewertete Antwort} other {# bewertete Antworten}}",
       "deltaLabel": "Stimmungswert",
       "deltaHint": "ggü. Vorperiode",
       "band": {
@@ -3545,7 +3553,10 @@
         "clearAll": "Alle abwählen",
         "empty": "Noch keine Wettbewerber getrackt. Füge sie in den GEO-Einstellungen hinzu, um Alternativen zu erwähnen.",
         "mentioned": "Statt dir empfohlen",
-        "withDomain": "{detail} · {domain}"
+        "withDomain": "{detail} · {domain}",
+        "selectedCount": "{count} von {max} ausgewählt",
+        "limitHint": "Ein Briefing grenzt sich gegen bis zu {max} Wettbewerber ab.",
+        "autoPick": "Nichts ausgewählt: Das Briefing nutzt die {max} Wettbewerber, die AI-Engines am häufigsten empfehlen."
       },
       "writeDialog": {
         "description": "Plane oder schreibe einen Artikel aus einem Prompt, Inhaltstyp, einer Markenidentität und Wettbewerbern.",
@@ -3959,9 +3970,11 @@
       "connectingProperty": "{property} wird verbunden…",
       "connectingPropertyDescription": "Deine Suchanfragen werden gelesen. Das kann eine Minute dauern, du kannst solange weiterarbeiten."
     },
-    "liveIndicator": {
-      "label": "Live",
-      "hint": "Aktualisiert sich automatisch, sobald neue Daten ankommen"
+    "competitorChoices": {
+      "searchLabel": "Wettbewerber suchen",
+      "searchPlaceholder": "Wettbewerber suchen",
+      "moreHidden": "{count, plural, one {# weiterer Wettbewerber} other {# weitere Wettbewerber}}. Suche, um {count, plural, one {ihn} other {sie}} zu finden.",
+      "noMatches": "Keine Wettbewerber passen zu „{query}“."
     }
   },
   "integrations": {
@@ -4595,7 +4608,6 @@
         "updateCredentials": "Zugangsdaten aktualisieren",
         "disconnectTitle": "{name} trennen?",
         "disconnectDescription": "Die Tools stehen dieser Organisation dann nicht mehr zur Verfügung. Du kannst die Integration später wieder verbinden.",
-        "disconnecting": "Wird getrennt…",
         "auth": {
           "none": "Keine Authentifizierung"
         }
@@ -5194,7 +5206,8 @@
     "creditActivity": {
       "aiChat": "KI-Chat",
       "title": "Letzte Aktivität",
-      "empty": "Noch keine Nutzungsereignisse"
+      "empty": "Noch keine Nutzungsereignisse",
+      "itemLabel": "Ereignisse"
     },
     "creditUsage": {
       "creditsUsed": "Verbrauchte Credits",
@@ -5572,7 +5585,8 @@
       "edit": "Eingereihte Nachricht bearbeiten",
       "cancelSteering": "Steuerung abbrechen",
       "remove": "Aus Warteschlange entfernen",
-      "steer": "Mit dieser Nachricht steuern"
+      "steer": "Mit dieser Nachricht steuern",
+      "attachments": "{count, plural, one {# Anhang} other {# Anhänge}}: {names}"
     },
     "author": {
       "formerMember": "Ehemaliges Mitglied"
@@ -5658,7 +5672,7 @@
     "page": {
       "slackMirrorNotice": "Aus einem Slack-Thread gespiegelt.",
       "working": "Wird bearbeitet",
-      "showMoreImages": "{count, plural, one {# weiteres Bild} other {# weitere Bilder}} anzeigen",
+      "showMoreImages": "{count, plural, one {# weiteren Anhang} other {# weitere Anhänge}} anzeigen",
       "loadingProject": "Projekt wird geladen",
       "slackSendFailed": "Senden an Slack fehlgeschlagen. Versuch es noch einmal.",
       "draftGenerationFailed": "Entwurf konnte nicht erstellt werden. Der Assistent versucht es erneut.",
@@ -6097,15 +6111,15 @@
     "collections": {
       "status": "{status, select, generating {Wird erstellt} published {Veröffentlicht} draft {Entwurf} other {Leer}}",
       "source": "{source, select, manual {Manuell} chat {Chat} schedule {Zeitplan} automation {Automatisierung} api {API} backfill {Backfill} other {{source}}}",
-      "metaGeneratingProgress": "{source} · {ready} von {expected, plural, one {# Beitrag} other {# Beiträgen}} fertig",
+      "metaGeneratingProgress": "{source} · {ready, number} von {expected, plural, one {# Beitrag} other {# Beiträgen}} fertig",
       "metaGeneratingCount": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} fertig",
-      "metaPartiallyPublished": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} · {published} veröffentlicht",
+      "metaPartiallyPublished": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}} · {published, number} veröffentlicht",
       "metaSingle": "{source} · Einzelner Beitrag",
       "metaEmpty": "{source} · Leere Sammlung",
       "metaCount": "{source} · {count, plural, one {# Beitrag} other {# Beiträge}}",
-      "formats": "{count} Formate",
+      "formats": "{count, number} Formate",
       "emptyPage": "Keine Inhalte auf dieser Seite",
-      "items": "Einträge",
+      "items": "{count, plural, one {Eintrag} other {Einträge}}",
       "actions": {
         "open": "Öffnen",
         "openInNewTab": "In neuem Tab öffnen",
@@ -6264,6 +6278,7 @@
     "chatHistory": {
       "options": "Chat-Optionen",
       "pinned": "Angeheftet",
+      "loadFailed": "Chatverlauf konnte nicht geladen werden.",
       "groups": {
         "lastMonth": "Letzter Monat"
       }
@@ -6309,8 +6324,9 @@
     "emptyAction": "Inhalte ansehen",
     "emptyDescription": "Du hast heute noch keine neuen Beiträge. Erstelle jetzt einen oder sieh dir deine Entwürfe auf der Inhaltsseite an.",
     "emptyTitle": "Heute noch keine Inhalte erstellt",
-    "upgradeTitle": "Mit Studio Inhalte erstellen",
-    "upgradeDescription": "Studio ist in den kostenpflichtigen Plänen enthalten. Upgrade, um Inhalte zu erstellen und KI-Tools zu nutzen."
+    "feedbackSetupTitle": "Feedback einrichten",
+    "feedbackSetupDescription": "Verbinde deinen KI-Agenten, damit er Bugs, Fragen und Wünsche zu deinem Produkt meldet. Dauert etwa zwei Minuten.",
+    "feedbackDescription": "Was KI-Agenten über dein Produkt melden."
   },
   "ai": {
     "subagent": {
@@ -6528,6 +6544,11 @@
     "goToNextPage": "Zur nächsten Seite",
     "morePages": "Weitere Seiten",
     "paginationRange": "{start}-{end} von {total}",
+    "paginationRangeOpen": "{start}-{end}",
+    "pageOf": "Seite {page} von {total}",
+    "pageNumber": "Seite {page}",
+    "showRows": "{count} anzeigen",
+    "rowsPerPage": "Zeilen pro Seite",
     "toggleSidebar": "Seitenleiste ein-/ausblenden",
     "sidebarTitle": "Seitenleiste",
     "sidebarDescription": "Zeigt die mobile Seitenleiste an.",
@@ -6582,7 +6603,6 @@
       "resetDescription": "Alle deine Änderungen werden verworfen und die Beispieldaten wiederhergestellt. Demo-ID, API-Key und Anpassung bleiben gleich.",
       "cancel": "Abbrechen",
       "resetConfirm": "Workspace zurücksetzen",
-      "resetting": "Wird zurückgesetzt…",
       "resetFailed": "Der Workspace konnte nicht zurückgesetzt werden. Bitte versuch es erneut."
     },
     "playground": {

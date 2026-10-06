@@ -1,9 +1,9 @@
 "use client";
 
 import type { AuthFlowResult } from "@notra/schemas/types/dashboard/auth";
-import { Loader2Icon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { resumeSocialEnrollmentAction } from "@/lib/auth/mfa-actions";
@@ -37,7 +37,7 @@ export function SocialEnrollmentResume({
         className="text-muted-foreground flex min-h-48 items-center justify-center"
         role="status"
       >
-        <Loader2Icon aria-hidden className="size-5 animate-spin" />
+        <Spinner className="size-5" />
         <span className="sr-only">{t("preparing")}</span>
       </div>
     );
