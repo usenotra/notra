@@ -15,10 +15,6 @@
   "favicon": "/favicon.svg",
   "redirects": [
     {
-      "source": "/integrations/kontentspace",
-      "destination": "/integrations/overview"
-    },
-    {
       "source": "/",
       "destination": "/overview"
     },
