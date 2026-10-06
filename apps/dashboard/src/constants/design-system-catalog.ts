@@ -1,341 +1,193 @@
-import type { DesignSystemCatalogItem } from "@/types/design-system-catalog";
+import type {
+  DesignSystemCatalogEntry,
+  DesignSystemCategory,
+  DesignSystemPageLink,
+} from "@/types/design-system-catalog";
 
-export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
+export const DESIGN_SYSTEM_PATH = "/design-system";
+
+export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
   {
-    id: "colors",
-    label: "Colors",
-    href: "/design-system#colors",
-    level: "group",
+    id: "foundations",
+    label: "Foundations",
+    description: "Tokens every component is built from.",
+    items: [
+      { id: "colors", label: "Colors" },
+      { id: "motion", label: "Motion" },
+    ],
   },
   {
-    id: "motion",
-    label: "Motion",
-    href: "/design-system#motion",
-    level: "section",
+    id: "components",
+    label: "Components",
+    description: "Primitives from @notra/ui, one card per component family.",
+    items: [
+      { id: "buttons", label: "Buttons & Badges" },
+      { id: "forms", label: "Forms & Inputs" },
+      { id: "navigation", label: "Navigation & Overlays" },
+      { id: "feedback", label: "Feedback & Status" },
+      { id: "spinner", label: "Spinner" },
+      { id: "braille-loader", label: "Braille Loader" },
+      { id: "data-display", label: "Data Display" },
+      { id: "utility", label: "Utility Elements" },
+    ],
   },
   {
-    id: "icons",
-    label: "Icons",
-    href: "/design-system/icons",
-    level: "section",
+    id: "patterns",
+    label: "Patterns",
+    description: "Composed dashboard pieces built on the components above.",
+    items: [
+      { id: "rich-interactions", label: "Rich Interactions" },
+      { id: "chat-queue", label: "Chat Queue" },
+      { id: "identity", label: "Identity & Layout" },
+      { id: "social", label: "Social Previews" },
+      { id: "onboarding", label: "Onboarding" },
+      { id: "geo-range-picker", label: "GEO Range Picker" },
+      { id: "write-dialog", label: "Write Dialog" },
+    ],
   },
   {
-    id: "buttons",
-    label: "Buttons & Badges",
-    href: "/design-system#buttons",
-    level: "section",
-  },
-  {
-    id: "forms",
-    label: "Forms & Inputs",
-    href: "/design-system#forms",
-    level: "section",
-  },
-  {
-    id: "navigation",
-    label: "Navigation & Overlays",
-    href: "/design-system#navigation",
-    level: "section",
-  },
-  {
-    id: "feedback",
-    label: "Feedback & Status",
-    href: "/design-system#feedback",
-    level: "section",
-  },
-  {
-    id: "data-display",
-    label: "Data Display",
-    href: "/design-system#data-display",
-    level: "section",
-  },
-  {
-    id: "rich-interactions",
-    label: "Rich Interactions",
-    href: "/design-system#rich-interactions",
-    level: "section",
-  },
-  {
-    id: "chat-queue",
-    label: "Chat Queue",
-    href: "/design-system#chat-queue",
-    level: "section",
-  },
-  {
-    id: "identity",
-    label: "Identity & Layout",
-    href: "/design-system#identity",
-    level: "section",
-  },
-  {
-    id: "utility",
-    label: "Utility Elements",
-    href: "/design-system#utility",
-    level: "section",
-  },
-  {
-    id: "social",
-    label: "Social Previews",
-    href: "/design-system#social",
-    level: "section",
-  },
-  {
-    id: "onboarding",
-    label: "Onboarding",
-    href: "/design-system#onboarding",
-    level: "section",
-  },
-  {
-    id: "spinner",
-    label: "Spinner",
-    href: "/design-system#spinner",
-    level: "section",
-  },
-  {
-    id: "braille-loader",
-    label: "Braille Loader",
-    href: "/design-system#braille-loader",
-    level: "section",
-  },
-  {
-    id: "auth-mfa",
-    label: "Auth · Two-factor",
-    href: "/design-system/auth-flow",
-    level: "section",
-  },
-  {
-    id: "claude-session",
-    label: "Claude · Session",
-    href: "/design-system#claude-session",
-    level: "group",
-  },
-  {
-    id: "claude-header",
-    label: "Claude · Header",
-    href: "/design-system#claude-header",
-    level: "section",
-  },
-  {
-    id: "claude-messages",
-    label: "Claude · Messages",
-    href: "/design-system#claude-messages",
-    level: "section",
-  },
-  {
-    id: "claude-todos",
-    label: "Claude · Todos",
-    href: "/design-system#claude-todos",
-    level: "section",
-  },
-  {
-    id: "claude-tools",
-    label: "Claude · Tools",
-    href: "/design-system#claude-tools",
-    level: "section",
-  },
-  {
-    id: "claude-modes",
-    label: "Claude · Modes",
-    href: "/design-system#claude-modes",
-    level: "section",
-  },
-  {
-    id: "claude-effort",
-    label: "Claude · Effort",
-    href: "/design-system#claude-effort",
-    level: "section",
-  },
-  {
-    id: "claude-playground",
-    label: "Claude · Playground",
-    href: "/design-system#claude-playground",
-    level: "section",
-  },
-  {
-    id: "codex-session",
-    label: "Codex · Session",
-    href: "/design-system#codex-session",
-    level: "group",
-  },
-  {
-    id: "codex-header",
-    label: "Codex · Header",
-    href: "/design-system#codex-header",
-    level: "section",
-  },
-  {
-    id: "codex-messages",
-    label: "Codex · Messages",
-    href: "/design-system#codex-messages",
-    level: "section",
-  },
-  {
-    id: "codex-exec",
-    label: "Codex · Exec",
-    href: "/design-system#codex-exec",
-    level: "section",
-  },
-  {
-    id: "codex-composer",
-    label: "Codex · Composer",
-    href: "/design-system#codex-composer",
-    level: "section",
-  },
-  {
-    id: "opencode-session",
-    label: "OpenCode · Session",
-    href: "/design-system#opencode-session",
-    level: "group",
-  },
-  {
-    id: "opencode-home",
-    label: "OpenCode · Home",
-    href: "/design-system#opencode-home",
-    level: "section",
-  },
-  {
-    id: "opencode-activity",
-    label: "OpenCode · Activity",
-    href: "/design-system#opencode-activity",
-    level: "section",
-  },
-  {
-    id: "opencode-composer",
-    label: "OpenCode · Composer",
-    href: "/design-system#opencode-composer",
-    level: "section",
-  },
-  {
-    id: "opencode-sidebar",
-    label: "OpenCode · Sidebar",
-    href: "/design-system#opencode-sidebar",
-    level: "section",
-  },
-  {
-    id: "chatgpt-thread",
-    label: "ChatGPT · Thread",
-    href: "/design-system#chatgpt-thread",
-    level: "group",
-  },
-  {
-    id: "chatgpt-user",
-    label: "ChatGPT · User",
-    href: "/design-system#chatgpt-user",
-    level: "section",
-  },
-  {
-    id: "chatgpt-assistant",
-    label: "ChatGPT · Assistant",
-    href: "/design-system#chatgpt-assistant",
-    level: "section",
-  },
-  {
-    id: "chatgpt-models",
-    label: "ChatGPT · Models",
-    href: "/design-system#chatgpt-models",
-    level: "section",
-  },
-  {
-    id: "chatgpt-playground",
-    label: "ChatGPT · Playground",
-    href: "/design-system#chatgpt-playground",
-    level: "section",
-  },
-  {
-    id: "claude-chat-thread",
-    label: "Claude chat · Thread",
-    href: "/design-system#claude-chat-thread",
-    level: "group",
-  },
-  {
-    id: "claude-chat-user",
-    label: "Claude chat · User",
-    href: "/design-system#claude-chat-user",
-    level: "section",
-  },
-  {
-    id: "claude-chat-assistant",
-    label: "Claude chat · Assistant",
-    href: "/design-system#claude-chat-assistant",
-    level: "section",
-  },
-  {
-    id: "claude-chat-models",
-    label: "Claude chat · Models",
-    href: "/design-system#claude-chat-models",
-    level: "section",
-  },
-  {
-    id: "claude-chat-playground",
-    label: "Claude chat · Playground",
-    href: "/design-system#claude-chat-playground",
-    level: "section",
-  },
-  {
-    id: "gemini-thread",
-    label: "Gemini · Thread",
-    href: "/design-system#gemini-thread",
-    level: "group",
-  },
-  {
-    id: "gemini-user",
-    label: "Gemini · User",
-    href: "/design-system#gemini-user",
-    level: "section",
-  },
-  {
-    id: "gemini-assistant",
-    label: "Gemini · Assistant",
-    href: "/design-system#gemini-assistant",
-    level: "section",
-  },
-  {
-    id: "gemini-models",
-    label: "Gemini · Models",
-    href: "/design-system#gemini-models",
-    level: "section",
-  },
-  {
-    id: "gemini-playground",
-    label: "Gemini · Playground",
-    href: "/design-system#gemini-playground",
-    level: "section",
-  },
-  {
-    id: "perplexity-thread",
-    label: "Perplexity · Thread",
-    href: "/design-system#perplexity-thread",
-    level: "group",
-  },
-  {
-    id: "perplexity-user",
-    label: "Perplexity · User",
-    href: "/design-system#perplexity-user",
-    level: "section",
-  },
-  {
-    id: "perplexity-assistant",
-    label: "Perplexity · Assistant",
-    href: "/design-system#perplexity-assistant",
-    level: "section",
-  },
-  {
-    id: "perplexity-models",
-    label: "Perplexity · Composer",
-    href: "/design-system#perplexity-models",
-    level: "section",
-  },
-  {
-    id: "perplexity-playground",
-    label: "Perplexity · Playground",
-    href: "/design-system#perplexity-playground",
-    level: "section",
+    id: "ai-surfaces",
+    label: "AI Surfaces",
+    description:
+      "Pixel-faithful skins of the assistants and terminals we render answers in.",
+    items: [
+      {
+        id: "claude-code",
+        label: "Claude Code",
+        children: [
+          { id: "claude-session", label: "Full session" },
+          { id: "claude-header", label: "Header" },
+          { id: "claude-messages", label: "Messages" },
+          { id: "claude-todos", label: "Todos" },
+          { id: "claude-tools", label: "Tool calls" },
+          { id: "claude-status", label: "Status" },
+          { id: "claude-modes", label: "Prompt modes" },
+          { id: "claude-effort", label: "Prompt effort" },
+          { id: "claude-playground", label: "Playground" },
+        ],
+      },
+      {
+        id: "codex",
+        label: "Codex",
+        children: [
+          { id: "codex-session", label: "Full session" },
+          { id: "codex-header", label: "Header" },
+          { id: "codex-messages", label: "Messages" },
+          { id: "codex-exec", label: "Exec and explored" },
+          { id: "codex-composer", label: "Composer" },
+        ],
+      },
+      {
+        id: "opencode",
+        label: "OpenCode",
+        children: [
+          { id: "opencode-session", label: "Full session" },
+          { id: "opencode-home", label: "Home" },
+          { id: "opencode-activity", label: "Activity" },
+          { id: "opencode-composer", label: "Composer" },
+          { id: "opencode-sidebar", label: "Sidebar" },
+        ],
+      },
+      {
+        id: "chatgpt",
+        label: "ChatGPT",
+        children: [
+          { id: "chatgpt-thread", label: "Thread" },
+          { id: "chatgpt-user", label: "User" },
+          { id: "chatgpt-assistant", label: "Assistant" },
+          { id: "chatgpt-models", label: "Models" },
+          { id: "chatgpt-playground", label: "Playground" },
+        ],
+      },
+      {
+        id: "claude-chat",
+        label: "Claude",
+        children: [
+          { id: "claude-chat-thread", label: "Thread" },
+          { id: "claude-chat-user", label: "User" },
+          { id: "claude-chat-assistant", label: "Assistant" },
+          { id: "claude-chat-models", label: "Models" },
+          { id: "claude-chat-playground", label: "Playground" },
+        ],
+      },
+      {
+        id: "gemini",
+        label: "Gemini",
+        children: [
+          { id: "gemini-thread", label: "Thread" },
+          { id: "gemini-user", label: "User" },
+          { id: "gemini-assistant", label: "Assistant" },
+          { id: "gemini-models", label: "Models" },
+          { id: "gemini-playground", label: "Playground" },
+        ],
+      },
+      {
+        id: "perplexity",
+        label: "Perplexity",
+        children: [
+          { id: "perplexity-thread", label: "Thread" },
+          { id: "perplexity-user", label: "User" },
+          { id: "perplexity-assistant", label: "Assistant" },
+          { id: "perplexity-models", label: "Composer" },
+          { id: "perplexity-playground", label: "Playground" },
+        ],
+      },
+    ],
   },
 ];
 
-export const DESIGN_SYSTEM_CATALOG_BY_ID = Object.fromEntries(
-  DESIGN_SYSTEM_CATALOG.map((item, index) => [
-    item.id,
-    { ...item, number: String(index + 1).padStart(2, "0") },
-  ])
-) as Record<string, DesignSystemCatalogItem & { number: string }>;
+export const DESIGN_SYSTEM_PAGES: DesignSystemPageLink[] = [
+  { href: "/design-system/icons", label: "Icons" },
+  { href: "/design-system/auth-flow", label: "Auth flow" },
+  { href: "/design-system/2fa-preview", label: "Two-factor" },
+  { href: "/design-system/code-research", label: "Code research" },
+  { href: "/design-system/geo-traffic", label: "GEO traffic" },
+  { href: "/design-system/scan-filters", label: "Scans table" },
+  { href: "/design-system/webhooks", label: "Webhooks" },
+  { href: "/design-system/break-ui", label: "Break UI" },
+];
+
+function buildCatalog(): DesignSystemCatalogEntry[] {
+  const entries: DesignSystemCatalogEntry[] = [];
+  let sectionIndex = 0;
+  for (const category of DESIGN_SYSTEM_CATEGORIES) {
+    for (const item of category.items) {
+      sectionIndex += 1;
+      entries.push({
+        id: item.id,
+        label: item.label,
+        href: `${DESIGN_SYSTEM_PATH}#${item.id}`,
+        categoryId: category.id,
+        number: String(sectionIndex).padStart(2, "0"),
+        depth: 0,
+        parentLabel: null,
+      });
+      for (const child of item.children ?? []) {
+        entries.push({
+          id: child.id,
+          label: child.label,
+          href: `${DESIGN_SYSTEM_PATH}#${child.id}`,
+          categoryId: category.id,
+          number: null,
+          depth: 1,
+          parentLabel: item.label,
+        });
+      }
+    }
+  }
+  return entries;
+}
+
+export const DESIGN_SYSTEM_CATALOG = buildCatalog();
+
+export const DESIGN_SYSTEM_CATALOG_BY_ID: Record<
+  string,
+  DesignSystemCatalogEntry
+> = Object.fromEntries(DESIGN_SYSTEM_CATALOG.map((entry) => [entry.id, entry]));
+
+export const DESIGN_SYSTEM_CATEGORY_BY_ID: Record<
+  string,
+  DesignSystemCategory
+> = Object.fromEntries(
+  DESIGN_SYSTEM_CATEGORIES.map((category) => [category.id, category])
+);
