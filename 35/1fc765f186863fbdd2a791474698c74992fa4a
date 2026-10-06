@@ -1,0 +1,57 @@
+apps/dashboard/src/components/design-system/design-system-section-header.tsx
+  s_d2a045b30093ab::t_c07eb5da66d5ba 13-15,18-27,31,33-35
+  s_d2a045b30093ab::t_672a5efcba70d5 2
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_d2a045b30093ab::t_f451687d22a330 238,480-497,499-501,503-513,516-550,552-554,557,559,562-602,606-632,638,640-641,644-650,652-656,658-665,671-680,682-686,688-691,693-823,825-882,884-937,939-990,992-1083,1085-1155,1157-1162,1206,1208-1213,1242-1296,1298-1349,1352-1454,1459-1504,1508-1511,1513-1529,1531-1549,1553-1557,1561-1565,1569-1575,1580-1611,1613-1617,1619-1623,1625-1643,1645-1715,1717-1719,1721-1722,1724-1742,1745-1761,1765-1781,1783-1822,1824-1855,1859-1879,1881-1886,1889-1892,1894-1895,1898,1900-1901,1903-1908,1910-1917,1919-1966
+  s_d2a045b30093ab::t_ad0243afbf0996 1455-1458
+  s_d2a045b30093ab::t_672a5efcba70d5 514-515,603-605,1505-1507,1550-1552,1558-1560,1566-1568,1576-1579,1762-1764,1856-1858
+  s_d2a045b30093ab::t_1d9499a113697f 1164-1173,1176-1202,1215-1239
+  s_d2a045b30093ab::t_6fce8426ba2ec0 477-478,1743-1744
+apps/dashboard/src/components/design-system/design-system-topbar.tsx
+  s_d2a045b30093ab::t_120a2e74205da4 45-46
+  s_d2a045b30093ab::t_9ac88f13d6a829 1-13,15-44,47-54,56-68,88-90,92-93,95-107
+  s_d2a045b30093ab::t_461e228aadcca9 14,69-87
+  s_d2a045b30093ab::t_76c503ef043371 55,91,94
+apps/dashboard/src/components/design-system/design-system-search.tsx
+  s_d2a045b30093ab::t_76c503ef043371 51
+  s_d2a045b30093ab::t_0e160698a2eb03 1-50,52-81,83,90-110
+  s_d2a045b30093ab::t_120a2e74205da4 82,84-89
+apps/dashboard/src/components/design-system/design-system-category.tsx
+  s_d2a045b30093ab::t_977bd2b46f9eea 1-19,21,23-24,26,30-34
+  s_d2a045b30093ab::t_ba9301a061a57a 20,22,25,27-29
+apps/dashboard/src/app/design-system/write-dialog-demo.tsx
+  s_d2a045b30093ab::t_672a5efcba70d5 23-25,28-29,40-49
+  s_d2a045b30093ab::t_6fce8426ba2ec0 11-12,26-27,39,50
+apps/dashboard/src/types/design-system-catalog.ts
+  s_d2a045b30093ab::t_120a2e74205da4 23
+  s_d2a045b30093ab::t_2729de85627e28 1-4,6-10,13-17,19-22,24-28
+apps/dashboard/src/components/design-system/design-system-sidebar.tsx
+  s_d2a045b30093ab::t_5d87fd8e72f1c9 3-16,18-19,21-26,28-30,33-34,36-37,39-42,44-107
+  s_d2a045b30093ab::t_a145f0457d8d13 17
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_d2a045b30093ab::t_9cced6c1d8003f 1-5,7-135,139-162,164-172,174-193
+  s_d2a045b30093ab::t_120a2e74205da4 163,173
+apps/dashboard/src/hooks/use-active-section.ts
+  s_d2a045b30093ab::t_a8040ff424cea4 1-39,45-47,49-54
+  s_d2a045b30093ab::t_120a2e74205da4 40-44,48
+apps/dashboard/src/components/design-system/design-system-frame.tsx
+  s_d2a045b30093ab::t_120a2e74205da4 25-26,28
+  s_d2a045b30093ab::t_8a56b4618950c1 3,6-7,9-11,22-23,27,29,31-39,41-42
+  s_d2a045b30093ab::t_a145f0457d8d13 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "351fc765f186863fbdd2a791474698c74992fa4a",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
