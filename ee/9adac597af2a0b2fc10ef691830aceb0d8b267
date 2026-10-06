@@ -1,0 +1,21 @@
+apps/dashboard/src/components/design-system/design-system-sidebar.tsx
+  s_d2a045b30093ab::t_9c867492d9437f 60-65
+apps/dashboard/src/components/design-system/design-system-topbar.tsx
+  s_d2a045b30093ab::t_9c867492d9437f 72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ee9adac597af2a0b2fc10ef691830aceb0d8b267",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
