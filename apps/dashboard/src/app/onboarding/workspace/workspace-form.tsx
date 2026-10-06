@@ -15,10 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
-import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
+import { CheckIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -377,9 +378,11 @@ export function WorkspaceForm({
                   className="pointer-events-none absolute right-3.5 flex size-6 items-center justify-center"
                   role="status"
                 >
-                  <Loader2Icon
-                    className={`text-muted-foreground duration-fast absolute size-4 animate-spin transition-opacity motion-reduce:animate-none motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
-                  />
+                  <span
+                    className={`text-muted-foreground duration-fast absolute transition-opacity motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
+                  >
+                    <Spinner />
+                  </span>
                   <span
                     className={`bg-success/15 text-success duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
                   >

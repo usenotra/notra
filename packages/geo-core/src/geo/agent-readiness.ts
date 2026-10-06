@@ -24,6 +24,7 @@ import type {
   AgentReadinessWorkflowResult,
 } from "../types/agent-readiness";
 import { canReuseAgentReadinessScan } from "../utils/agent-readiness";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   areWebsiteUrlsEquivalent,
   getWebsiteUrlLookupVariants,
@@ -458,7 +459,12 @@ export const executeAgentReadinessScan = Effect.fn(
           error instanceof AgentReadinessApiError
             ? error.message
             : "Scan failed. Please try again.";
-        console.error("[AgentReadiness] Scan failed:", error);
+        logGeoFailure(
+          "geo.agent_readiness.scan_failed",
+          "Agent readiness scan failed",
+          error,
+          { reportId: payload.reportId }
+        );
         yield* geoDb("stamp failed readiness scan", () =>
           db
             .update(geoAgentReadinessReports)

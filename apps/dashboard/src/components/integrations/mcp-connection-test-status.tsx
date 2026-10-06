@@ -1,6 +1,6 @@
 import { Alert01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTranslations } from "use-intl";
 
 import type { McpConnectionTestStatusProps } from "@/types/integrations/mcp";
@@ -20,7 +20,7 @@ export function McpConnectionTestStatus({
     >
       {status === "testing" ? (
         <>
-          <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
+          <Spinner className="text-muted-foreground" />
           <span className="text-muted-foreground">{t("testing")}</span>
         </>
       ) : null}

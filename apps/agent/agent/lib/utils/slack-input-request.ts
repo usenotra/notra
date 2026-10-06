@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import {
   getLinkedTwitterAccounts,
   isTwitterPublishConfigured,
@@ -175,7 +176,10 @@ async function resolveLinkedTwitterAccount(
     });
     return stored ? account : null;
   } catch (error) {
-    console.error("[agent] Failed to resolve linked X account", error);
+    logError("[agent] Failed to resolve linked X account", error, {
+      slackTeamId: teamId,
+      callId: request.action.callId,
+    });
     return null;
   }
 }

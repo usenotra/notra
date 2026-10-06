@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import "@tanstack/react-start/server-only";
 import { sendDevEmail } from "@notra/email/utils/dev";
 import { getResend } from "@notra/email/utils/resend";
@@ -32,13 +33,13 @@ export async function sendWelcomeEmailAction({
     });
 
     if (error) {
-      console.error("Failed to send welcome email:", userEmail, error);
+      logError("Failed to send welcome email", error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error sending welcome email:", userEmail, error);
+    logError("Unexpected error sending welcome email", error);
     return { success: false, error: "Failed to send email" };
   }
 }

@@ -3,12 +3,12 @@
 import {
   CheckmarkCircle02Icon,
   CircleIcon,
-  Loading03Icon,
   MinusSignCircleIcon,
   ServerStack01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { cn } from "@notra/ui/lib/utils";
 import { useEffect, useRef } from "react";
@@ -62,13 +62,7 @@ function StageIcon({ status }: { status: CodeResearchStage["status"] }) {
     );
   }
   if (status === "running") {
-    return (
-      <HugeiconsIcon
-        aria-hidden
-        className="text-info size-4 shrink-0 animate-spin motion-reduce:animate-none"
-        icon={Loading03Icon}
-      />
-    );
+    return <Spinner className="text-info" />;
   }
   if (status === "skipped") {
     return (

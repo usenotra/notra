@@ -76,6 +76,7 @@ import {
   createOctokit,
   GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
 } from "@notra/ai/utils/octokit";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers, repositoryOutputs } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -615,10 +616,9 @@ export const integrationsRouter = {
         if (schedule.qstashScheduleId) {
           await deleteQstashSchedule(schedule.qstashScheduleId).catch(
             (error) => {
-              console.error(
-                `Failed to delete qstash schedule ${schedule.qstashScheduleId}:`,
-                error
-              );
+              logError("Failed to delete qstash schedule", error, {
+                scheduleId: schedule.qstashScheduleId,
+              });
             }
           );
         }

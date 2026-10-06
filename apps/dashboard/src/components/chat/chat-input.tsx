@@ -46,6 +46,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { ClaudeAiIcon } from "@notra/ui/components/ui/svgs/claudeAiIcon";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
@@ -58,11 +59,9 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import {
   type Dispatch,
   type KeyboardEvent,
-  type ReactNode,
   type Ref,
   type RefObject,
   type SetStateAction,
@@ -81,7 +80,6 @@ import { useTranslations } from "use-intl";
 import { ChatQuotePreview, useChatQuote } from "@/components/chat/chat-quote";
 import Image from "@/components/framework/image";
 import Link from "@/components/framework/link";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import { CHAT_COMPOSER_DRAFT_PERSIST_MS } from "@/constants/chat-composer";
 import { AVAILABLE_MODELS, LEGACY_CHAT_MODELS } from "@/constants/chat-models";
@@ -342,21 +340,6 @@ function ChatComposerSendButton({
     pendingUploadCount,
   });
 
-  let icon: ReactNode;
-  if (send.busy) {
-    icon = <StatusSpinner />;
-  } else if (send.icon === "queued") {
-    icon = <Loader2Icon className="size-4 animate-spin" />;
-  } else {
-    icon = (
-      <HugeiconsIcon
-        className="size-4"
-        icon={send.icon === "stop" ? StopIcon : ArrowUp02Icon}
-        strokeWidth={send.icon === "send" ? 2 : undefined}
-      />
-    );
-  }
-
   return (
     <Composer.Send
       busy={send.busy}
@@ -365,7 +348,15 @@ function ChatComposerSendButton({
       onClick={send.onClick}
       tooltip={t(send.tooltipKey)}
     >
-      {icon}
+      {send.icon === "queued" ? (
+        <Spinner />
+      ) : (
+        <HugeiconsIcon
+          className="size-4"
+          icon={send.icon === "stop" ? StopIcon : ArrowUp02Icon}
+          strokeWidth={send.icon === "send" ? 2 : undefined}
+        />
+      )}
     </Composer.Send>
   );
 }
@@ -719,7 +710,7 @@ function ChatComposerNudge({
           ))}
           {pendingUploads.map((pending) => (
             <Composer.Chip
-              icon={<Loader2Icon className="size-3 animate-spin" />}
+              icon={<Spinner className="size-3" />}
               key={pending.id}
               label={pending.filename}
               pending

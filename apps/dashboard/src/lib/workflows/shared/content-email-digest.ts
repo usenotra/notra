@@ -1,5 +1,7 @@
-import "@/workflows/runtime";
 import { redis } from "@notra/ai/utils/redis";
+
+import "@/workflows/runtime";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { getResend } from "@notra/email/utils/resend";
 
 import { CONTENT_EMAIL_DIGEST_TTL_SECONDS } from "@/constants/workflows";
@@ -139,10 +141,10 @@ function assertEmailSent({
     return;
   }
 
-  console.warn(
-    `[ContentEmailDigest] Failed to send ${kind} notification to ${recipientEmail}:`,
-    result.error
-  );
+  logWarn("[ContentEmailDigest] Failed to send notification", {
+    kind,
+    error: result.error.message,
+  });
 
   throw new Error(
     `Failed to send ${kind} notification to ${recipientEmail}: ${result.error.message}`

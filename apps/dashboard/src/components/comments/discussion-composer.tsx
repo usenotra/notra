@@ -8,7 +8,6 @@ import { cn } from "@notra/ui/lib/utils";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import type { DiscussionComposerProps } from "@/types/comments";
 
 export function DiscussionComposer({
@@ -87,11 +86,7 @@ export function DiscussionComposer({
             disabled={!canSubmit}
             onClick={onSubmit}
           >
-            {busy ? (
-              <StatusSpinner />
-            ) : (
-              <HugeiconsIcon icon={ArrowUp02Icon} className="size-4" />
-            )}
+            <HugeiconsIcon icon={ArrowUp02Icon} className="size-4" />
           </Composer.Send>
         </div>
       </Composer.Frame>

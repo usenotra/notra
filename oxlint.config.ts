@@ -37,6 +37,8 @@ export default defineConfig({
             allow: ["layout", "gap-6", "p-6"],
           },
           { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          // Spinner draws in currentColor, so callers tint it like an icon.
+          { pattern: "^Spinner$", allow: ["layout", "color"] },
           {
             pattern: "^TitleCard$",
             allow: ["layout", "border-t-0", "pt-0"],

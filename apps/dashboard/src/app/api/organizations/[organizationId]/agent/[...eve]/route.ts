@@ -6,6 +6,7 @@ import {
   forwardAgentStream,
   getAgentSessionMapping,
 } from "@notra/ai/utils/agent-proxy";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
@@ -167,7 +168,7 @@ export async function POST(request: Request, context: AgentRouteContext) {
         { headers: { "x-eve-session-id": started.eveSessionId } }
       );
     } catch (startError) {
-      console.error("[agent-proxy] Session creation failed", startError);
+      logError("[agent-proxy] Session creation failed", startError);
       return Response.json(
         { error: "Agent session creation failed" },
         { status: 502 }

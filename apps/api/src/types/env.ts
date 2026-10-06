@@ -1,5 +1,9 @@
+import type { AuditableLogger } from "evlog";
+
 import type { AuthData } from "./auth";
 import type { GeoRequestContext } from "./geo-context";
+
+type RequestLogger = AuditableLogger<Record<string, unknown>>;
 
 interface ApiBindings {
   readonly [key: string]: unknown;
@@ -23,6 +27,7 @@ interface ApiBindings {
 
 interface ApiVariables {
   auth: AuthData;
+  log: RequestLogger;
   db: GeoRequestContext["db"];
   geo: GeoRequestContext;
 }

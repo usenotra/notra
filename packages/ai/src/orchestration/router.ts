@@ -18,6 +18,7 @@ import type {
   AutoSelection,
   RoutingDecision,
 } from "@notra/ai/types/orchestration";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions, type TccMetadata } from "@notra/ai/utils/tcc";
 import { generateObject, generateText } from "ai";
 
@@ -201,12 +202,7 @@ export async function routeMessage(
 
           return repairedText;
         } catch (repairError) {
-          console.error("[Chat Router] Repair failed", {
-            error:
-              repairError instanceof Error
-                ? repairError.message
-                : String(repairError),
-          });
+          logError("[Chat Router] Repair failed", repairError);
           return null;
         }
       },
@@ -216,9 +212,7 @@ export async function routeMessage(
 
     return object;
   } catch (error) {
-    console.error("[Chat Router] Routing failed; using fallback", {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logError("[Chat Router] Routing failed; using fallback", error);
     return {
       complexity: "complex",
       requiresTools: false,

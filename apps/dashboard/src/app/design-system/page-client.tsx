@@ -181,6 +181,7 @@ import {
   SidebarSeparator,
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   SplitButton,
   SplitButtonTrigger,
@@ -1835,6 +1836,57 @@ export default function DesignSystemClientPage() {
             <GeoRangePickerDemo />
           </CardContent>
         </Card>
+      </section>
+
+      <Separator />
+
+      <section className="scroll-mt-10 space-y-6" id="spinner">
+        <DesignSystemSectionHeader
+          description="Shared pending indicator from @notra/ui. Inherits the text color, size it with size-*."
+          id="spinner"
+          title="Spinner"
+        />
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="space-y-2 p-4">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Sizes
+            </p>
+            <div className="flex items-center gap-3">
+              <Spinner className="size-3" />
+              <Spinner className="size-3.5" />
+              <Spinner />
+              <Spinner className="size-6" />
+            </div>
+          </div>
+          <div className="space-y-2 p-4">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Colors
+            </p>
+            <div className="flex items-center gap-3">
+              <Spinner className="text-muted-foreground" />
+              <Spinner className="text-primary" />
+              <Spinner className="text-info" />
+            </div>
+          </div>
+          <div className="space-y-2 p-4">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              In a button
+            </p>
+            <Button disabled size="sm" variant="outline">
+              <Spinner />
+              Syncing
+            </Button>
+          </div>
+          <div className="space-y-2 p-4">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              In a badge
+            </p>
+            <Badge className="gap-1.5" variant="secondary">
+              <Spinner />
+              Writing
+            </Badge>
+          </div>
+        </div>
       </section>
 
       <Separator />

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  GitBranchIcon,
-  GitBranchPlusIcon,
-  Loading03Icon,
-} from "@hugeicons/core-free-icons";
+import { GitBranchIcon, GitBranchPlusIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Command,
@@ -13,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@notra/ui/components/ui/command";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -52,10 +49,7 @@ export function GitHubBranchList({
         </div>
         {isLoading ? (
           <div className="text-muted-foreground flex items-center justify-center gap-2 py-6 text-sm">
-            <HugeiconsIcon
-              className="size-4 animate-spin"
-              icon={Loading03Icon}
-            />
+            <Spinner />
             {t("loading")}
           </div>
         ) : null}

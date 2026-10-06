@@ -1,4 +1,5 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { linearAuthorizeQuerySchema } from "@notra/schemas/dashboard/linear";
 import { ORPCError } from "@orpc/server";
 
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
 
     return redirectResponse(authUrl.toString());
   } catch (error) {
-    console.error("Error initiating Linear OAuth:", error);
+    logError("Error initiating Linear OAuth", error);
     return redirectResponse(`${baseUrl}/?error=linear_auth_failed`);
   }
 }

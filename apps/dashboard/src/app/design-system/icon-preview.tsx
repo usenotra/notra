@@ -14,12 +14,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@notra/ui/components/ui/card";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -97,7 +97,7 @@ export function DesignSystemIconPreview() {
                   variant="outline"
                 >
                   {iconLoading ? (
-                    <Loader2Icon className="size-4 motion-safe:animate-spin" />
+                    <Spinner />
                   ) : (
                     <HugeiconsIcon className="size-4" icon={Refresh03Icon} />
                   )}

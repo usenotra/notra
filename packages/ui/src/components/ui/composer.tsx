@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -197,7 +198,6 @@ function ComposerToolbarButton({
   );
 }
 
-// Pass a spinner as children while `busy`; the package has no spinner of its own.
 function ComposerSend({
   children,
   label,
@@ -222,14 +222,16 @@ function ComposerSend({
     type: "button" as const,
   };
 
+  const content = busy ? <Spinner className="size-3.5" /> : children;
+
   if (!tooltip) {
-    return <button {...buttonProps}>{children}</button>;
+    return <button {...buttonProps}>{content}</button>;
   }
 
   return (
     <Tooltip>
       <TooltipTrigger render={<button {...buttonProps} />}>
-        {children}
+        {content}
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>

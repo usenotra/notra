@@ -1,5 +1,6 @@
 import { useLogger as getRequestLogger, withEvlog } from "@notra/ai/evlog";
 import { httpErrorKind } from "@notra/ai/utils/http-error-kind";
+import { logError } from "@notra/ai/utils/server-log";
 import { runWithGeoRequestMemo } from "@notra/geo-core/utils/request-memo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { onError } from "@orpc/server";
@@ -27,7 +28,7 @@ const handler = new RPCHandler(dashboardRouter, {
       }
     },
     onError((error, options) => {
-      console.error("[oRPC]", error);
+      logError("[oRPC] request failed", error);
       if (isServerFailureError(error)) {
         trackServerException({
           error,

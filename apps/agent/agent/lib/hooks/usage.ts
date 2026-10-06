@@ -6,6 +6,7 @@ import {
 import { FEATURES } from "@notra/ai/billing/features";
 import { calculateTokenCostUsd } from "@notra/ai/billing/token-pricing";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
@@ -174,7 +175,10 @@ export function createUsageHook(
             redis.expire(key, USAGE_KEY_TTL_SECONDS),
           ]);
         } catch (error) {
-          console.error("[agent] Usage accumulation failed", error);
+          logError("[agent] Usage accumulation failed", error, {
+            sessionId: ctx.session.id,
+            turnId: event.data.turnId,
+          });
         }
       },
       async "turn.completed"(event, ctx) {
@@ -236,7 +240,11 @@ export function createUsageHook(
           charged = true;
           await redis.del(billingKey);
         } catch (error) {
-          console.error("[agent] Usage metering failed", error);
+          logError("[agent] Usage metering failed", error, {
+            sessionId: ctx.session.id,
+            turnId: event.data.turnId,
+            charged,
+          });
           if (!charged) {
             await redis
               ?.del(`agent:usage:billed:${ctx.session.id}:${event.data.turnId}`)

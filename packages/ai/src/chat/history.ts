@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { chatSessions } from "@notra/db/schema";
 import { projectScopeFilter } from "@notra/db/utils/projects";
@@ -1042,6 +1043,9 @@ export async function generateAndSetChatTitle(
         )
       );
   } catch (err) {
-    console.error("[Chat Title] Generation failed:", err);
+    logError("[Chat Title] Generation failed", err, {
+      chatId,
+      organizationId,
+    });
   }
 }

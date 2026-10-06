@@ -1,5 +1,6 @@
 import { checkChatBilling } from "@notra/ai/billing/chat-billing";
 import type { ChatBillingCheck } from "@notra/ai/types/billing";
+import { logError } from "@notra/ai/utils/server-log";
 
 export type AgentCreditCheck =
   | { allowed: true; useMarkup: boolean; chargeAiCredits: boolean }
@@ -12,9 +13,8 @@ export async function checkAgentAiCredits(
   try {
     billing = await checkChatBilling(organizationId);
   } catch (checkError) {
-    console.error("[Autumn] Check error:", {
-      customerId: organizationId,
-      error: checkError,
+    logError("[Autumn] Agent credit check failed", checkError, {
+      organizationId,
     });
     return {
       allowed: false,

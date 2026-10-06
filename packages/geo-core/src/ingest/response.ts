@@ -1,3 +1,4 @@
+import { logGeoFailure } from "../utils/geo-log";
 import type { GeoIngestError } from "./errors";
 
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -39,7 +40,9 @@ export function toGeoIngestErrorResponse(failure: GeoIngestError): Response {
         { status: HTTP_BAD_REQUEST, headers: NO_STORE }
       );
     default:
-      console.error("[GEO] ingest failed:", failure.cause);
+      logGeoFailure("geo.ingest.failed", "Ingest failed", failure.cause, {
+        tag: failure._tag,
+      });
       return Response.json(
         { error: "Ingest failed" },
         { status: HTTP_BAD_GATEWAY, headers: NO_STORE }

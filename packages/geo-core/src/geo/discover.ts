@@ -38,6 +38,7 @@ import type {
 import { geoConversationRules } from "../utils/conversation-generation-prompt";
 import { geoDiscoveryCacheKey } from "../utils/geo-discovery-cache";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import { logGeoFailure } from "../utils/geo-log";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { readGeoCache, writeGeoCache } from "./cache";
 import { competitorKey, normalizeCompetitorDomain } from "./domain";
@@ -393,9 +394,11 @@ const startGeoScanAfterWebsiteGeneration = Effect.fn(
       claim.claimedAt
     ).pipe(
       Effect.catch((error) => {
-        console.error(
-          "[GEO] Failed to start scan after website generate:",
-          error
+        logGeoFailure(
+          "geo.discover.scan_start_failed",
+          "Failed to start scan after website generate",
+          error,
+          { projectId }
         );
         return Effect.void;
       })

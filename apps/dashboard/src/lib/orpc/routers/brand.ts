@@ -7,6 +7,7 @@ import {
 import { FEATURES } from "@notra/ai/billing/features";
 import { deleteQstashSchedule } from "@notra/ai/qstash/triggers";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   brandGuidelineAssets,
@@ -451,10 +452,9 @@ export const brandRouter = {
           if (trigger.qstashScheduleId) {
             await deleteQstashSchedule(trigger.qstashScheduleId).catch(
               (error) => {
-                console.error(
-                  `Failed to delete qstash schedule ${trigger.qstashScheduleId}:`,
-                  error
-                );
+                logError("Failed to delete qstash schedule", error, {
+                  scheduleId: trigger.qstashScheduleId,
+                });
               }
             );
           }
@@ -1151,8 +1151,8 @@ export const brandRouter = {
                 documentId: createdDocumentId,
               });
             } catch (cleanupError) {
-              console.error(
-                "Error cleaning up failed Supermemory reference:",
+              logError(
+                "Error cleaning up failed Supermemory reference",
                 cleanupError
               );
             }
@@ -1257,10 +1257,7 @@ export const brandRouter = {
                 existing as ReferenceMemoryRecord
               );
             } catch (cleanupError) {
-              console.error(
-                "Error deleting stale reference memory:",
-                cleanupError
-              );
+              logError("Error deleting stale reference memory", cleanupError);
 
               await db
                 .update(brandReferences)
@@ -1283,10 +1280,7 @@ export const brandRouter = {
 
           return { reference: serializeBrandReference(refreshedReference) };
         } catch (error) {
-          console.error(
-            "Error syncing updated reference to Supermemory:",
-            error
-          );
+          logError("Error syncing updated reference to Supermemory", error);
 
           if (createdDocumentId) {
             try {
@@ -1294,8 +1288,8 @@ export const brandRouter = {
                 documentId: createdDocumentId,
               });
             } catch (cleanupError) {
-              console.error(
-                "Error cleaning up failed updated Supermemory reference:",
+              logError(
+                "Error cleaning up failed updated Supermemory reference",
                 cleanupError
               );
             }
@@ -1339,7 +1333,7 @@ export const brandRouter = {
         try {
           await removeBrandReferenceMemory(existing as ReferenceMemoryRecord);
         } catch (error) {
-          console.error("Error deleting reference memory:", error);
+          logError("Error deleting reference memory", error);
         }
 
         await db
@@ -1675,10 +1669,7 @@ export const brandRouter = {
               syncedBillableCount += 1;
             }
           } catch (error) {
-            console.error(
-              "Error syncing imported tweet to Supermemory:",
-              error
-            );
+            logError("Error syncing imported tweet to Supermemory", error);
 
             if (createdDocumentId) {
               try {
@@ -1686,8 +1677,8 @@ export const brandRouter = {
                   documentId: createdDocumentId,
                 });
               } catch (cleanupError) {
-                console.error(
-                  "Error cleaning up imported Supermemory reference:",
+                logError(
+                  "Error cleaning up imported Supermemory reference",
                   cleanupError
                 );
               }

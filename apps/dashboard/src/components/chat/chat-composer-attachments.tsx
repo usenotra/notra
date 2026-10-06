@@ -8,12 +8,12 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_CHAT_ATTACHMENTS } from "@notra/schemas/constants/dashboard/upload";
 import { Composer } from "@notra/ui/components/ui/composer";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { Loader2Icon } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "use-intl";
 
@@ -131,7 +131,7 @@ export function ChatComposerAttachmentChips({
       ))}
       {pendingUploads.map((pending) => (
         <Composer.Chip
-          icon={<Loader2Icon className="size-3 animate-spin" />}
+          icon={<Spinner className="size-3" />}
           key={pending.id}
           label={pending.filename}
           pending
