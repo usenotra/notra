@@ -1,0 +1,487 @@
+apps/dashboard/src/app/(dashboard)/[slug]/page-client.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 13,154-158
+apps/dashboard/src/components/agent-feedback/feedback-setup-nudge.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 5-6,8-14,16-20,22,24-47,49-52
+apps/web/src/components/integrations/slack/slack-demo-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 4,6-13,25-32
+apps/dashboard/src/types/onboarding.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 28,44-45,62-64
+apps/web/src/lib/integrations/markdown.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 3-38,42,44-66,182,197,239-245,255,260,280-418,420-421
+apps/dashboard/src/components/geo/geo-language-picker.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 25,48,87
+apps/web/src/utils/metadata.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 13,110-126
+apps/web/src/components/merch/merch-hero.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 25-27,51
+apps/dashboard/src/components/agent-feedback/feedback-setup-dialog.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 26,44
+apps/web/src/constants/compare/competitors/profound.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-160
+apps/web/src/routes/_site/features/marketing/assets.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 32
+apps/web/src/routes/_site/compare/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-81
+apps/dashboard/src/lib/agent-feedback/activity.server.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-46
+.github/workflows/react-doctor.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 30
+apps/ui/src/styles/examples.css
+  s_d2a045b30093ab::t_8847de692d8cd0 193-217
+packages/geo-core/src/utils/geo-referer.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-14
+apps/dashboard/src/app/onboarding/competitors/competitors-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 303-304
+apps/web/src/constants/feature-pages/conversations.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 16,41,49,58
+apps/web/src/components/integrations/integration-connect-button.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1,15-16
+apps/web/src/constants/landing/pricing.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 44
+apps/web/src/constants/compare/competitors/promptwatch.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-164
+apps/dashboard/src/components/agent-feedback/feedback-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-44
+apps/web/src/components/compare/compare-index-view.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-50
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/page-client.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 9,96,107-122
+apps/web/src/components/ip-checker/ip-checker-tool.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1,148,151
+apps/dashboard/src/components/dashboard/home-feedback-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-82
+apps/dashboard/src/app/onboarding/pricing-client.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 3-4,14,16,19,21-25,35-37,50,54,62,91-102,212,214-223,225-233,235-239,241-245,247-281
+apps/web/src/constants/linear-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-102
+apps/web/src/routes/_site/integrations/slack.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 7-12,25,76-80
+apps/web/src/components/html-to-figma/html-export-tool.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 131-132
+apps/web/src/constants/contributors.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 3,7,14,21
+apps/web/src/content/pages/oss-program.md
+  s_d2a045b30093ab::t_8847de692d8cd0 3,13,16,19,25,31
+apps/dashboard/src/constants/analytics-events.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 7
+apps/dashboard/src/types/geo.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1229
+apps/web/src/components/ip-checker/ip-check-result-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 82-84
+apps/web/src/components/star-video/star-video-preview.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 291-292,297
+apps/web/src/constants/compare/page.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-239
+apps/web/src/utils/constants.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 11
+apps/web/src/components/references-preview.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 27
+apps/web/src/content/pages/features/personas.md
+  s_d2a045b30093ab::t_8847de692d8cd0 9,35
+packages/schemas/src/schemas/dashboard/agent-feedback.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 15-34
+apps/web/src/content/blog/connect-google-search-console-and-track-your-ranking-queries-across-ai-engines.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 3,9,13,15,19,25
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 14,245
+apps/web/src/components/integrations/slack/slack-hero.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 30
+apps/web/src/components/star-video/repo-input-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1,59-60,62,65
+apps/web/src/utils/site-markdown.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 95,108,111,132,288,342,445
+.github/workflows/blog.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 16
+apps/dashboard/src/components/geo/writer/brief-history.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 45
+apps/web/src/components/contributors/notra-ai-callout.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 3,5,49-52
+apps/web/src/components/integrations/granola/granola-feature-list.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-18
+apps/web/src/routes/_site/mcp/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 22
+apps/dashboard/src/routes/-onboarding-loaders.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 40,142,172,276
+apps/web/src/constants/contact-spam.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 5
+apps/web/src/utils/llms.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 2,9,46,112-116,133,149,154-155,162-170
+apps/web/src/constants/blog-authors.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 46
+apps/web/src/content/pages/about.md
+  s_d2a045b30093ab::t_8847de692d8cd0 3,5,7,11
+apps/web/src/content/pages/html-to-figma.md
+  s_d2a045b30093ab::t_8847de692d8cd0 29
+apps/dashboard/src/components/agent-feedback/feedback-inbox.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-422
+apps/web/src/routes/_site/about.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 25,37,39,69
+apps/web/src/components/integrations/github/github-tools-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-11
+packages/geo-core/tests/ingest-pipeline.test.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 52
+apps/web/src/utils/showcase.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 27,36,54,63,72,81,99,108,143,152,170,179,188
+apps/web/src/constants/landing/features.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 18,23,29,39
+apps/web/src/constants/feature-pages/ai-crawler-logs.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 46,60
+apps/web/src/routes/_site/integrations/granola.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-84
+apps/web/src/lib/agent/markdown.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 10
+.github/workflows/pr-triage.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 13
+apps/web/src/lib/sitemap/entries.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,16,121-128,153-162
+apps/web/src/content/blog/how-notra-uses-upstash-to-run-an-ai-content-pipeline.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 3,9,11,15,17,19,31,49,53,71,73,90,94,112,128,132
+apps/web/src/routeTree.gen.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 68,77-79,82-83,390-394,438-452,463-474,658-660,662,672,677,750-752,754,764,769,848-850,852,862,867,942-944,946,956,961,1034-1036,1038,1048,1053,1131-1133,1135,1145,1150,1609-1615,1672-1692,1707-1720,1979-1981,1983-1984,1989,2017-2019,2021-2023,2028-2029
+apps/dashboard/src/utils/framework-workflow-plugin.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 7-10,48,51-67,74,87-99
+apps/web/src/constants/compare/competitors/peec.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-163
+apps/web/src/constants/mcp-use-cases.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 41,47,83,88,97-99,104,109,118-120,125-126,130,138-140,145,150,159-161,166,171,180-182,187,192,201-203,208,213,221-223,228-229,233,242-244,249-250,254,262-264,269,274,282-284,289,294,303-305,310,315,327-329,334,339,347-349
+apps/web/src/components/compare/compare-sections.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-383
+apps/web/src/components/integrations/slack/slack-thread-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1,3,32-41,43-51,54-60
+apps/web/src/components/landing/marquee-logos/brew-logo.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-21
+apps/web/src/types/landing/faq.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 13-16
+apps/dashboard/src/constants/framework.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 23-24
+apps/dashboard/src/components/onboarding/progress.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 31,47,56
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 17,85-90,105-112,130-142
+apps/ui/theme.css
+  s_d2a045b30093ab::t_8847de692d8cd0 197-210
+apps/web/src/constants/compare/competitors.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-22
+apps/ai-traffic-ingest/README.md
+  s_d2a045b30093ab::t_8847de692d8cd0 27-32
+apps/web/src/components/integrations/linear/linear-cycle-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-48
+apps/web/src/constants/compare/competitors/scrunch.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-138
+apps/web/src/constants/landing/hero.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 21
+apps/web/src/utils/integrations-manifest.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 66,78
+apps/web/src/constants/compare/classes.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-20
+apps/dashboard/src/utils/agent-feedback-activity.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-27
+apps/web/src/routes/_site/oss-program.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 17,51,55,59,90,112,185-186
+apps/web/src/routes/_site/pricing.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 28
+apps/web/src/lib/marketing-assets/constants/showcase.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 13-14,28,42
+apps/dashboard/src/types/agent-feedback.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 190-231
+apps/web/src/constants/integrations.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 41-47
+apps/web/src/components/pricing-comparison-table.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 164
+apps/web/src/lib/brand/constants.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 24,69
+apps/web/src/constants/granola-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-100
+apps/web/src/components/integrations/linear/linear-feature-list.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-18
+apps/web/src/components/integrations/linear/linear-tools-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-11
+apps/web/src/components/navbar-mobile-menu.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 2,53-56,384,407
+apps/web/src/constants/landing/faq.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 11,32,39,47,54
+apps/dashboard/src/lib/onboarding/submit-workspace-form.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 72-74,169-171
+apps/web/src/components/compare/compare-detail-view.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-66
+apps/web/src/components/contact/contact-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 304-305,309
+apps/web/src/utils/compare.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-148
+packages/geo-core/src/ingest/ratelimit.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 5-6,11-12,17,22-29
+apps/web/src/lib/marketing-assets/constants/hero.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 8
+packages/ui/src/components/shared/auth/auth-social-buttons.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 42,47-53
+apps/web/src/types/integrations.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 100-108
+packages/geo-core/src/ingest/event.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 11,62
+apps/web/src/components/landing/faq-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 5,91-92
+apps/web/src/content/blog/how-to-create-a-grok-bot-plugin.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 3,9,11,15,25,29,43,72,141,149
+apps/web/src/constants/github-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-104
+packages/geo/src/send.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 21,31-34
+apps/web/src/lib/feedback-md/constants.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 31,150,152,155,183,189,266
+apps/web/src/constants/merch.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 59,64,69
+apps/web/src/constants/contact.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 45,54
+apps/web/src/components/merch/merch-claim.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 31-33
+apps/web/src/routes/_site/notra-vs-{$slug}/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-101
+apps/dashboard/messages/de.json
+  s_d2a045b30093ab::t_8847de692d8cd0 656-660,1195-1196,1222,1225,1835,6328-6330
+apps/ui/registry/notra/marketing-button/components/marketing-button-content.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-116
+apps/web/src/components/compare/compare-table.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-187
+apps/web/src/components/integrations/granola/granola-demo-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-33
+apps/dashboard/src/types/dashboard/home.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 6-12,14-15
+apps/web/src/constants/landing/answer-example.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 8,11,75,112-113
+apps/web/src/routes/_site/integrations/github.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-84
+apps/web/src/constants/compare/competitors/bydefault.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-148
+.github/workflows/knip.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 17
+apps/ui/registry/notra/marketing-button/components/marketing-button.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 5-6,8,13,17,30-33,37-42,45-49,53,59,61-63,65-69
+apps/web/src/constants/compare/competitors/prompting-company.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-153
+apps/web/src/constants/compare/competitors/otterly.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-141
+apps/web/src/components/integrations/granola/granola-hero.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-65
+apps/dashboard/src/components/billing/geo-upgrade-dialog.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 15,65-66,192-196,212,216,218,220
+apps/web/src/routes/_site/contributors/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 23
+packages/geo-core/src/ingest/pipeline.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 17,33,56-57,59-61,63,148-151,198-201
+apps/web/src/constants/mcp.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 59,63,71
+apps/web/src/content/pages/features/conversations.md
+  s_d2a045b30093ab::t_8847de692d8cd0 3,23,29,35
+apps/web/src/content/pages/contact.md
+  s_d2a045b30093ab::t_8847de692d8cd0 9,13,19
+packages/ui/src/components/shared/cta-button-content.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-117
+apps/web/src/constants/landing/testimonials.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 4
+apps/web/src/constants/landing/footer.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 44-46,48,75-79,99-102,123
+apps/web/src/components/integrations/github/github-hero.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 4,6-12,14-17,19-31,33-57,61
+apps/web/src/components/integrations/linear/linear-hero.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-63
+apps/ui/registry/notra/marketing-button/examples/marketing-button-loading.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-38
+packages/ui/src/components/shared/auth/login-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 267,270
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 5,9,13,18-19,22,24,28-30
+apps/web/src/content/blog/best-automated-changelog-tools-in-2026.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,9,11,13,15,17,19,21,25,27,29,31,33,37,41,43,47,49,51,53,57,59,63,65,67,69,73,75,77,79,81,83,91,93,97,99,107,113,115,123,125,127,129,131,141,143,147,149,151,153,155,157,160-162,165,167,169,171,173,175,177,179,183,185,187,189,191
+apps/dashboard/src/components/dashboard/studio-free-home.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-50
+.github/workflows/code-quality.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 17
+apps/web/src/routes/_site/_blog/blog/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 17
+apps/web/src/types/compare.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-149
+apps/dashboard/src/components/agent-feedback/feedback-activity-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-109
+apps/web/public/logos/competitors/scrunch.svg
+  s_d2a045b30093ab::t_8847de692d8cd0 1-18
+apps/web/src/components/compare/compare-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-28
+apps/web/src/components/mcp/mcp-use-cases-callout.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 3-4,29-32
+apps/web/src/routes/_site/agent.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 13,28
+apps/web/src/routes/_site/ip-checker.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 148-151
+apps/web/src/routes/[.]well-known/mcp/index.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 19
+apps/web/src/constants/features-page.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 17,44,54,61,133,139
+apps/web/src/content/blog/paid-trials-goodbye-free.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 13,15,19
+apps/web/src/content/pages/html-to-paper.md
+  s_d2a045b30093ab::t_8847de692d8cd0 27
+apps/web/src/routes/_site/_changelog/changelog/notra/index.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 16,53
+apps/web/src/components/integrations/linear/linear-demo-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-33
+apps/dashboard/src/components/onboarding/skip-onboarding-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-23
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 311,314
+apps/dashboard/src/components/content/collections-view.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 79
+apps/web/src/utils/markdown-twins.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 15-19,25-27,222,243,321-325,332-342
+apps/web/src/routes/marketing/chat.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 6,52
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 61-62,65-77,87,89,94-97,143-154
+apps/dashboard/src/components/onboarding/split-layout.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 5,25,27
+apps/web/src/constants/slack-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 10-13,17,19,27,29-33,44-45,50-53,57-59,61,66,68,72,74,77,79,82,84,90,92,95,97,100,102,105,107,110,112,115,117,120,122,126,129
+apps/web/src/content/pages/free-hat.md
+  s_d2a045b30093ab::t_8847de692d8cd0 3,5,19,33,36,39,41
+apps/web/src/routes/_site/integrations/linear.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-84
+apps/web/src/components/changelog-featured-entry.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 3-4,36-42
+apps/web/src/routes/auth[.]md.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 7,11,15,19
+packages/geo-core/src/utils/geo-ingest-admission-key.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-9
+apps/dashboard/src/app/onboarding/visibility/visibility-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 186-187,361
+apps/web/src/content/blog/ai-chat-is-open-to-everyone-with-images-models-and-a-public-api.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,9,13,15,20,26,28,30,34,60,62,64
+apps/dashboard/src/constants/nav.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 89,102,188
+apps/web/src/lib/markdown/handler.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 3,45-48
+packages/ui/src/components/shared/auth/mfa-challenge-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 173-180,224-231
+apps/dashboard/messages/en.json
+  s_d2a045b30093ab::t_8847de692d8cd0 656-660,1195-1196,1222,1225,1835,6328-6330
+apps/web/src/constants/compare/competitors/jam.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-142
+apps/web/src/components/compare/compare-customer-logos.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-36
+apps/web/src/constants/feature-pages/personas.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 22,59
+apps/web/src/constants/marketing-chat.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-8
+apps/web/src/components/brand-voice-preview.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 43
+apps/web/src/types/granola-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-16
+apps/ui/registry.json
+  s_d2a045b30093ab::t_8847de692d8cd0 839-841,848-851,855-878,903-907
+apps/web/src/routes/_site/brand.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 97-98,170,187-188
+apps/dashboard/src/lib/orpc/routers/agent-feedback.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 3,11,82-91
+apps/web/src/components/integrations/integration-draft-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-2,4-11,16-18,20-30,36,39,42
+apps/web/src/components/integrations/integrations-view.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 3-4,67-70
+apps/web/src/content/pages/twitter-thread-creator.md
+  s_d2a045b30093ab::t_8847de692d8cd0 3,5
+apps/web/src/content/blog/more-control-less-waste-on-demand-content-and-brand-voice-learning.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 3,9,11,13,15,17,19,21,23,25,27,29,31,35,37,41,43
+apps/web/src/types/linear-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-17
+packages/ui/src/components/shared/auth/email-verification-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 84-85,88
+apps/web/src/lib/compare/markdown.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-208
+apps/web/src/types/slack-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 3,11-13
+apps/web/src/components/threads/thread-builder.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 206
+apps/web/src/types/github-integration.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-31
+apps/web/vite.config.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 52
+apps/web/src/components/integrations/github/github-feature-list.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-18
+apps/web/src/content/blog/best-ai-tools-for-developer-marketing-in-2026.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,9,11,13,15,17,19-21,23,25,27,29,33,35,39,45,52-53,57,59,65,71,85,89,91,97,117-118,122,124,130,132,137,151,153,155,157,163,170,183,188,190,196,202,206,220,222,231,233,235,237,239,243,245,247,249,251,253,255,257,259,261,263,265,267,269,271,273,277
+packages/geo/README.md
+  s_d2a045b30093ab::t_8847de692d8cd0 128
+packages/geo-core/src/constants/ingest.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 14-16
+apps/web/src/styles/globals.css
+  s_d2a045b30093ab::t_8847de692d8cd0 415-421
+apps/web/src/utils/mcp.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 2
+apps/web/src/components/integrations/granola/granola-tools-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-11
+apps/web/src/components/integrations/granola/granola-note-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-73
+apps/web/src/lib/ip-checker/markdown.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 69-70,137
+apps/web/src/components/integrations/github/github-pull-request-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-99
+apps/dashboard/src/routes/-dashboard-loaders.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 83-90,92,100,103,118
+apps/web/src/routes/_site/notra-vs-{$slug}/opengraph-image.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-134
+apps/web/public/logos/competitors/athena.svg
+  s_d2a045b30093ab::t_8847de692d8cd0 1-10
+apps/web/src/routes/_site/contact.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 20
+packages/ui/src/styles/cta-button.css
+  s_d2a045b30093ab::t_8847de692d8cd0 44-60
+apps/web/src/content/blog/how-to-automate-social-media-posts-from-github-commits.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,9,11,13,15,17,19,21,25-26,28,30,32,34,46,48-51,59,63,65,68-69,74,76,78,150,152,161,163,165,170,173,217,219,240,242,244,246,248,250,252,254,256,258,260,262,264,266,268,270,272,274,276,278,280
+apps/web/src/constants/compare/competitors/athena.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 1-144
+apps/web/src/components/numbered-step-card.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 26
+apps/web/src/content/pages/features/ai-crawler-logs.md
+  s_d2a045b30093ab::t_8847de692d8cd0 25,35
+.github/workflows/production-deploy.yml
+  s_d2a045b30093ab::t_8847de692d8cd0 25
+apps/web/src/content/blog/engineers-are-great-for-marketing.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2,9,11,13,16-17,21,30,32,38,40
+apps/web/src/routes/_site/twitter-thread-creator.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 17,83
+apps/web/src/routes/api/llms[.]txt.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 8,32
+apps/web/src/styles/ui-sources.css
+  s_d2a045b30093ab::t_8847de692d8cd0 53,82,111
+apps/web/src/constants/landing/cta-banner.ts
+  s_d2a045b30093ab::t_8847de692d8cd0 2,5
+apps/web/src/components/integrations/github/github-demo-section.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-33
+packages/ui/src/components/shared/cta-button.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 6-7,9,14,18,30-35,40-43,45-50,54-60,62-64,66-68,72-73
+apps/web/src/content/blog/how-to-automate-your-marketing-content.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 2-3,9,11,13,15,17,21-22,24,26,28,47,49,51,53-55,57,59,61,77,79,90,92,94,96,100-103,105,107,111,113-114,116,118,127,129,131,139,147,155,157,161,165,169,173,177,179,186,191,193,197,201,205,219,223,225,230,235
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 117-119,162,435,437,605-606
+apps/dashboard/src/app/design-system/page-client.tsx
+  ai_agent 1200
+apps/ui/docs/components/marketing-button.mdx
+  s_d2a045b30093ab::t_8847de692d8cd0 10,14-16,32-36
+apps/web/src/components/merch/merch-specs.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 14-15
+apps/web/src/components/compare/compare-logo.tsx
+  s_d2a045b30093ab::t_8847de692d8cd0 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2369c51f855a95fb74fa97f50ca204d384e69016",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
