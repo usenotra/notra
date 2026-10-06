@@ -18,6 +18,11 @@ import type {
 const SWAP_CLASS =
   "col-start-1 row-start-1 transition-[opacity,scale,filter] duration-normal ease-out motion-reduce:transition-none";
 const SWAP_HIDDEN_CLASS = "scale-25 opacity-0 blur-xs";
+// A tick's weight sits in its bottom stroke and caps sit above the line box's
+// centre, so a box-centred tick reads low next to text. Nudge it up optically
+// and match the medium label weight.
+const TICK_OPTICAL_CLASS = "-translate-y-px";
+const TICK_STROKE_WIDTH = 2;
 // Green on a filled background loses contrast; there the tick keeps the label
 // colour.
 const FILLED_VARIANTS = new Set<CopyButtonProps["variant"]>([
@@ -63,11 +68,13 @@ export function CopyStateIcon({
       <HugeiconsIcon
         className={cn(
           SWAP_CLASS,
+          TICK_OPTICAL_CLASS,
           tinted && "text-success",
           iconClassName,
           !copied && SWAP_HIDDEN_CLASS
         )}
         icon={Tick02Icon}
+        strokeWidth={TICK_STROKE_WIDTH}
       />
     </span>
   );
@@ -131,8 +138,13 @@ function CopiedLabelSwap({
         >
           <HugeiconsIcon
             aria-hidden="true"
-            className={cn(tinted && "text-success", iconClassName)}
+            className={cn(
+              TICK_OPTICAL_CLASS,
+              tinted && "text-success",
+              iconClassName
+            )}
             icon={Tick02Icon}
+            strokeWidth={TICK_STROKE_WIDTH}
           />
           {copiedLabel}
         </span>
