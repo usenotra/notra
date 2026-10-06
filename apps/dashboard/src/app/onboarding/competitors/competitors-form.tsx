@@ -9,7 +9,6 @@ import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-heade
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
 import { ORPCError } from "@orpc/client";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -66,7 +65,6 @@ function CompetitorsPicker({
   nextHref,
 }: CompetitorsPickerProps) {
   const t = useTranslations("onboarding.competitors");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -302,15 +300,8 @@ function CompetitorsPicker({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Loader2Icon className="size-4 animate-spin" />
-            {geoLocked ? tOnboardingShared("saving") : t("runningFirstScan")}
-          </>
-        ) : (
-          submitLabel
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {submitLabel}
       </CtaButton>
     </form>
   );

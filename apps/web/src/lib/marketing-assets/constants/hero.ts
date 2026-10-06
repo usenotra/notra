@@ -5,7 +5,7 @@ export const ASSET_HERO = assetHeroSchema.parse({
   title: "Turn shipped work into",
   accent: "marketing visuals",
   description:
-    "Notra reads the PR, understands your brand, and generates editable marketing images your team can paste straight into Paper or Figma.",
+    "Notra reads the PR, understands your brand and generates editable marketing images your team can paste straight into Paper or Figma.",
   primaryCta: "Start for free",
   secondaryCta: "See the workflow",
   videos: [

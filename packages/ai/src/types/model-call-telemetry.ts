@@ -1,6 +1,7 @@
 import type {
   LanguageModelV4FinishReason,
   LanguageModelV4Usage,
+  SharedV4ProviderMetadata,
 } from "@ai-sdk/provider";
 import type {
   ResolvedRoute,
@@ -19,6 +20,7 @@ export interface ModelCallCompletion {
   usage: LanguageModelV4Usage;
   finishReason: LanguageModelV4FinishReason;
   responseId?: string;
+  providerMetadata?: SharedV4ProviderMetadata;
 }
 
 export interface ModelCallTelemetry {

@@ -38,6 +38,7 @@ import {
   geoOnboardingPath,
   geoOnboardingPricingPath,
   geoOnboardingWorkspacePath,
+  withGeoProject,
 } from "@/utils/geo-paths";
 import { onboardingProgressHrefs } from "@/utils/onboarding-progress";
 
@@ -140,7 +141,7 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
       await Promise.all([
         db.query.brandSettings.findFirst({
           where: eq(brandSettings.organizationId, organization.id),
-          columns: { id: true },
+          columns: { id: true, websiteUrl: true },
         }),
         db.query.organizations.findFirst({
           where: eq(organizations.id, organization.id),
@@ -174,6 +175,7 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
             dailySummary: notificationSettings?.dailySummary ?? true,
             marketingEmails: Boolean(user?.marketingOptInAt),
             hasBrand: Boolean(brand),
+            websiteUrl: brand?.websiteUrl ?? null,
           }
         : undefined,
       progressHrefs: onboardingProgressHrefs({
@@ -277,6 +279,7 @@ export const loadOnboardingPricing = createServerFn({ method: "GET" })
     ]);
     return {
       canSkipOnboarding: member?.role === "owner" || member?.role === "admin",
+      closeHref: withGeoProject(`/${organization.slug}`, projectId),
       progressHrefs: onboardingProgressHrefs({
         current: ONBOARDING_STEP_PRICING,
         hasBrand: true,

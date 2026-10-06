@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
 import { upsertMembership } from "@/lib/auth/membership-upsert";
+import { isWorkOSNotFound } from "@/lib/auth/workos-error";
 
 class WebhookSyncError extends Data.TaggedError("WebhookSyncError")<{
   readonly message: string;
@@ -42,10 +43,16 @@ const resolveOrganizationIdByExternalId = Effect.fn(
 )(function* (workosOrgId: string) {
   return yield* Effect.tryPromise({
     try: async () => {
-      const remote =
-        await getWorkOS().organizations.getOrganization(workosOrgId);
+      const remote = await getWorkOS()
+        .organizations.getOrganization(workosOrgId)
+        .catch((error) => {
+          if (isWorkOSNotFound(error)) {
+            return null;
+          }
+          throw error;
+        });
 
-      if (!remote.externalId) {
+      if (!remote?.externalId) {
         return null;
       }
 
@@ -69,7 +76,18 @@ const resolveUserIdByExternalId = Effect.fn(
 )(function* (workosUserId: string) {
   return yield* Effect.tryPromise({
     try: async () => {
-      const remote = await getWorkOS().userManagement.getUser(workosUserId);
+      const remote = await getWorkOS()
+        .userManagement.getUser(workosUserId)
+        .catch((error) => {
+          if (isWorkOSNotFound(error)) {
+            return null;
+          }
+          throw error;
+        });
+
+      if (!remote) {
+        return null;
+      }
 
       const user = await db.query.users.findFirst({
         where: remote.externalId
@@ -126,8 +144,9 @@ export const removeMembershipFromWebhook = Effect.fn(
   const organizationId =
     resolved.organizationId ??
     (yield* resolveOrganizationIdByExternalId(membership.organizationId));
-  const userId =
-    resolved.userId ?? (yield* resolveUserIdByExternalId(membership.userId));
+  const userId = organizationId
+    ? (resolved.userId ?? (yield* resolveUserIdByExternalId(membership.userId)))
+    : null;
 
   if (!(organizationId && userId)) {
     yield* Effect.logWarning(

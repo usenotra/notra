@@ -29,12 +29,18 @@ function withNoIndex(response: Response): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 
+function redirectTo(location: string): Response {
+  return withNoIndex(
+    new Response(null, { status: 307, headers: { Location: location } })
+  );
+}
+
 function redirectToStart(request: Request, returnTo: string | null) {
   const url = new URL(DEMO_ENTER_PATH, request.url);
   if (returnTo && returnTo !== "/") {
     url.searchParams.set("returnTo", returnTo);
   }
-  return withNoIndex(Response.redirect(url, 307));
+  return redirectTo(`${url.pathname}${url.search}`);
 }
 
 export function demoProxy(request: Request): Response | null {
@@ -70,12 +76,10 @@ export function demoProxy(request: Request): Response | null {
   }
   const hiddenPage = DEMO_HIDDEN_PAGE_PATH.exec(pathname);
   if (hiddenPage) {
-    return withNoIndex(
-      Response.redirect(new URL(`/${hiddenPage[1]}/geo`, request.url), 307)
-    );
+    return redirectTo(`/${hiddenPage[1]}/geo`);
   }
   if (DEMO_ONBOARDING_PATH.test(pathname)) {
-    return withNoIndex(Response.redirect(new URL("/", request.url), 307));
+    return redirectTo("/");
   }
   const hasSession = Boolean(getCookie(DEMO_SESSION_COOKIE));
   if (!hasSession && (pathname === "/" || !NON_DASHBOARD_PATH.test(pathname))) {

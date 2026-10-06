@@ -53,6 +53,7 @@ export const saveOnboardingNotificationSettings = (
 ) => saveOnboardingNotificationSettingsServerFn({ data });
 
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, members, organizations } from "@notra/db/schema";
 import { warmGeoOnboardingCache } from "@notra/geo-core/geo/onboarding";
@@ -318,7 +319,7 @@ async function triggerOnboardingBrandAnalysisImpl(
       name: input.name,
     });
   } catch (error) {
-    console.error("[Onboarding] Failed to queue brand analysis", {
+    logError("[Onboarding] Failed to queue brand analysis", undefined, {
       organizationId: input.organizationId,
       errorName: error instanceof Error ? error.name : "UnknownError",
     });
@@ -410,8 +411,7 @@ async function triggerOnboardingAgentSetupImpl(
     try {
       await runOnboardingAgentSetup(taskInput);
     } catch (error) {
-      console.error("[Onboarding] Background onboarding agent setup failed", {
-        error,
+      logError("[Onboarding] Background onboarding agent setup failed", error, {
         organizationId: taskInput.organizationId,
       });
     }

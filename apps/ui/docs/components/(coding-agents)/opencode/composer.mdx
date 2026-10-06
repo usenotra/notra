@@ -5,9 +5,7 @@ description: The OpenCode prompt with the agent line and the status row under it
 
 <Component path="opencode/examples/opencode-composer" />
 
-```bash
-bunx shadcn@latest add @notra/opencode-composer
-```
+<RegistryInstall name="opencode-composer" />
 
 `OpencodeComposer` is a shadcn `InputGroup` on a raised panel with a blue rule. Under the input sits the agent line: the agent in blue, the model, the provider muted and the reasoning effort in bold orange. It passes every other prop to the `InputGroupInput`, so use `value` and `onChange` for a controlled prompt or `defaultValue` for an uncontrolled one.
 

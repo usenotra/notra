@@ -1,8 +1,8 @@
 # Free hat? No, Cap!
 
-The Notra Classic Hat, a thank-you for building with us. If your workspace is on a paid plan, it's yours. Reach out and we'll put one in the mail.
+The Notra Classic Hat is our thank-you for building with us. If your workspace is on a paid plan, it's yours. Reach out and we'll put one in the mail.
 
-Paid workspaces only, free trials don't count. US shipping for now.
+Only paid workspaces qualify, and we ship to the US for now.
 
 [Claim your gift](https://www.usenotra.com/contact.md)
 
@@ -16,7 +16,7 @@ Product photography © Fourthwall, Inc.
 
 ## Just a good hat
 
-Unstructured cotton twill, one size, the Notra mark on the front. That's it.
+An unstructured cotton twill cap in one size, with the Notra mark on the front.
 
 - Fabric: 100% chino cotton twill
 - Profile: Low, unstructured
@@ -30,15 +30,15 @@ Unstructured cotton twill, one size, the Notra mark on the front. That's it.
 No checkout, no shipping fees. If you're on a paid plan, just ask.
 
 ### 1. Be on a paid plan
-Basic, Pro, or Enterprise all count. Free trials don't, so finish your trial first.
+Basic, Pro or Enterprise all count. Free trials don't, so finish your trial first.
 
 ### 2. Reach out to us
-Use the feedback form in your workspace, ping us on Slack, or reach out via the contact page. Tell us where to send it.
+Use the feedback form in your workspace, ping us on Slack or reach out via the contact page. Tell us where to send it.
 
 ### 3. We ship it
-One hat per workspace, on us. US addresses only for now; international friends, soon. Wear it in your next launch video.
+One hat per workspace, on us. We only ship to US addresses for now. Wear it in your next launch video.
 
-The Classic Hat is a gift for paid Notra customers, not a free-trial promotion. On a trial? You can't claim one yet. Upgrade to any paid plan, reach out, and we'll send one your way. US shipping only for now.
+The Classic Hat is a gift for paid Notra customers. If you're on a trial, upgrade to any paid plan, reach out and we'll send one your way. We only ship to the US for now.
 
 ## Spotted in the wild
 

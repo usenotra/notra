@@ -21,6 +21,6 @@ export interface GeoOpenCodeStaleBoxCandidate {
 
 export interface GeoBoxTokenUsage extends LanguageModelUsage {
   modelId: string;
-  totalUsd: number;
+  totalUsd?: number;
   computeMs: number;
 }

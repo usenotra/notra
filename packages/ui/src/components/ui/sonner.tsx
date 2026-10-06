@@ -8,7 +8,7 @@ import {
   MultiplicationSignCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
@@ -54,7 +54,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: (
           <HugeiconsIcon icon={MultiplicationSignCircleIcon} strokeWidth={2} />
         ),
-        loading: <Loader2Icon className="animate-spin" />,
+        loading: <Spinner />,
         close: <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />,
       }}
       theme={theme as ToasterProps["theme"]}

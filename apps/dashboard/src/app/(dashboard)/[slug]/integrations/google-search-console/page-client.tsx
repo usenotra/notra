@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useHotkey } from "@tanstack/react-hotkeys";
@@ -38,7 +39,6 @@ import {
 } from "@/components/empty-state-preview";
 import Link from "@/components/framework/link";
 import { SearchConsolePropertyPicker } from "@/components/geo/search-console-card";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { AddGoogleSearchConsoleIntegrationDialog } from "@/components/integrations/add-google-search-console-integration-dialog";
 import { PageContainer } from "@/components/layout/container";
 import { PageHeading } from "@/components/layout/page-heading";
@@ -144,7 +144,7 @@ function ChangePropertyDialog({
   if (sites.isPending) {
     body = (
       <div className="text-muted-foreground flex items-center gap-2 px-4 py-3 text-sm md:px-0">
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
         {tCommon2("labels.loadingProperties")}
       </div>
     );
@@ -201,7 +201,7 @@ function SyncNowButton({ busy, onSync }: GoogleSearchConsoleSyncButtonProps) {
   const label = busy ? tCommon2("labels.syncing") : tCommon2("labels.syncNow");
   return (
     <Button disabled={busy} onClick={onSync} size="sm" variant="outline">
-      {busy ? <StatusSpinner /> : null}
+      {busy ? <Spinner className="size-3.5" /> : null}
       {label}
     </Button>
   );

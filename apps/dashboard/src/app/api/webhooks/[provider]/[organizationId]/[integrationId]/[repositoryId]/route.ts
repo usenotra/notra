@@ -3,6 +3,7 @@ import {
   getRepositoryById,
 } from "@notra/ai/integrations/github";
 import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
+import { logError } from "@notra/ai/utils/server-log";
 import type { InputIntegrationType } from "@notra/schemas/dashboard/integrations";
 import { webhookParamsWithRepoSchema } from "@notra/schemas/dashboard/webhooks";
 
@@ -144,7 +145,7 @@ export async function POST(request: Request, { params }: RouteContext) {
 
     return await handler(context);
   } catch (error) {
-    console.error("Webhook processing error:", error);
+    logError("Webhook processing error", error);
     return Response.json(
       { error: "Internal server error processing webhook" },
       { status: 500 }

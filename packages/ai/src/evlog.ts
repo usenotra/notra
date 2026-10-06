@@ -3,6 +3,8 @@ import type { LogFlushScheduler } from "@notra/ai/types/operational-log";
 import { isGeoLogEvent } from "@notra/ai/utils/evlog";
 import {
   evlogRequestIntegration,
+  getOpenRequestLogger,
+  trackRequestLoggerEmit,
   useRequestLogger,
 } from "@notra/ai/utils/evlog-request";
 import { getEvlogRuntime } from "@notra/ai/utils/evlog-runtime";
@@ -66,10 +68,16 @@ export function withEvlog<TArgs extends unknown[], TReturn>(
   handler: (...args: TArgs) => TReturn
 ) {
   return async (...args: TArgs) => {
+    // An outer wrapper (the dashboard's route middleware) already owns this
+    // request's event, so a nested handler adds to it instead of emitting twice.
+    if (getOpenRequestLogger()) {
+      return await handler(...args);
+    }
     const parent = getOperationalContext();
     const request = args[0] instanceof Request ? args[0] : undefined;
     const { logger, finish, finishResponse, runWith } =
       evlogRequestIntegration.start(request, { drain });
+    trackRequestLoggerEmit(logger);
     const loggerRequestId = logger.getContext().requestId;
     const requestId =
       parent?.requestId ??

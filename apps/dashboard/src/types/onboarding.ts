@@ -25,6 +25,7 @@ export type OnboardingProgressHrefs = readonly (string | null)[];
 
 export interface PricingClientProps {
   canSkipOnboarding: boolean;
+  closeHref: string;
   slug: string;
   progressHrefs?: OnboardingProgressHrefs;
 }
@@ -40,6 +41,8 @@ export interface OnboardingExistingOrg {
   marketingEmails: boolean;
   /** A brand exists, so the GEO onboarding steps can run without a new website. */
   hasBrand?: boolean;
+  /** Website the existing brand was analyzed from. */
+  websiteUrl?: string | null;
 }
 
 export interface WorkspaceFormProps {
@@ -54,6 +57,11 @@ export interface WorkspaceSlugCheck {
 
 export interface OnboardingSplitLayoutProps {
   children: React.ReactNode;
+}
+
+export interface SkipOnboardingFormProps {
+  slug: string;
+  step: OnboardingStep;
 }
 
 export interface OnboardingStepLayoutProps extends OnboardingSplitLayoutProps {

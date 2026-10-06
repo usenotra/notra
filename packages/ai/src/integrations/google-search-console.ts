@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   geoPromptSuggestions,
@@ -322,8 +323,8 @@ export async function upsertGscIntegration(
       await assertLockOwned?.();
       signal?.throwIfAborted();
     } catch (error) {
-      console.error(
-        "[GSC] Integration lock lost after saving the connection; skipping revocation of the previous grant:",
+      logError(
+        "[GSC] Integration lock lost after saving the connection; skipping revocation of the previous grant",
         error
       );
       return row;
@@ -543,13 +544,13 @@ export async function revokeGscToken(
     if (response.ok || response.status === 400) {
       return true;
     }
-    console.error(
-      `[GSC] Failed to revoke Google token with status ${response.status}`
-    );
+    logError("[GSC] Failed to revoke Google token", undefined, {
+      status: response.status,
+    });
     return false;
   } catch (error) {
     signal?.throwIfAborted();
-    console.error("[GSC] Failed to revoke Google token:", error);
+    logError("[GSC] Failed to revoke Google token", error);
     return false;
   }
 }

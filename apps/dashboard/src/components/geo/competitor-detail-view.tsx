@@ -239,32 +239,32 @@ function CompetitorPromptAppearances({
 }: CompetitorPromptAppearancesProps) {
   const t = useTranslations("geo.competitorDetailView");
   return (
-    <DataTable
-      columns={columns}
-      data={prompts}
-      defaultSort={{ key: "capturedAt", direction: "desc" }}
-      emptyState={
-        unavailable
-          ? t("promptsUnavailable")
-          : t("promptsEmpty", { competitor })
-      }
-      getRowId={(row) => `${row.promptId}-${row.engine}`}
-      height={showLoading ? tableHeightFor(3) : tableHeight}
-      key={competitor}
-      loading={showLoading}
-      onRowClick={onRowClick}
-      rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
-      toolbar={
-        <div className="space-y-0.5 px-4 py-3">
-          <h2 className="text-sm font-medium wrap-anywhere">
-            {t("whereShowsUp", { competitor })}
-          </h2>
-          <p className="text-muted-foreground text-xs wrap-anywhere">
-            {t("whereShowsUpDescription", { competitor })}
-          </p>
-        </div>
-      }
-    />
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <h2 className="text-base font-semibold text-pretty wrap-anywhere">
+          {t("whereShowsUp", { competitor })}
+        </h2>
+        <p className="text-muted-foreground text-xs wrap-anywhere">
+          {t("whereShowsUpDescription", { competitor })}
+        </p>
+      </div>
+      <DataTable
+        columns={columns}
+        data={prompts}
+        defaultSort={{ key: "capturedAt", direction: "desc" }}
+        emptyState={
+          unavailable
+            ? t("promptsUnavailable")
+            : t("promptsEmpty", { competitor })
+        }
+        getRowId={(row) => `${row.promptId}-${row.engine}`}
+        height={showLoading ? tableHeightFor(3) : tableHeight}
+        key={competitor}
+        loading={showLoading}
+        onRowClick={onRowClick}
+        rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
+      />
+    </div>
   );
 }
 

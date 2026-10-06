@@ -37,16 +37,17 @@ export function appendHeaderValue(
   headers.set(name, existing ? `${existing}, ${value}` : value);
 }
 
-function appendVaryAccept(headers: Headers) {
-  const existing = headers.get("Vary");
-  if (!existing) {
-    headers.set("Vary", "Accept");
-    return;
+function appendNegotiationVary(headers: Headers) {
+  const tokens = (headers.get("Vary") ?? "")
+    .split(",")
+    .map((token) => token.trim())
+    .filter(Boolean);
+  for (const name of ["Accept", "User-Agent"]) {
+    if (!tokens.some((token) => token.toLowerCase() === name.toLowerCase())) {
+      tokens.push(name);
+    }
   }
-  const tokens = existing.split(",").map((token) => token.trim().toLowerCase());
-  if (!tokens.includes("accept")) {
-    headers.set("Vary", `${existing}, Accept`);
-  }
+  headers.set("Vary", tokens.join(", "));
 }
 
 export async function negotiateMarkdown(
@@ -68,7 +69,12 @@ export async function negotiateMarkdown(
   const format = negotiateFormat(accept);
 
   if (detectAIBot(userAgent).isBot || format === "markdown") {
-    return serveMarkdownTwin(request, toMarkdownTwinPath(pathname));
+    const response = await serveMarkdownTwin(
+      request,
+      toMarkdownTwinPath(pathname)
+    );
+    appendNegotiationVary(response.headers);
+    return response;
   }
 
   if (format === null && accept) {
@@ -78,7 +84,7 @@ export async function negotiateMarkdown(
         status: 406,
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
-          Vary: "Accept",
+          Vary: "Accept, User-Agent",
         },
       }
     );
@@ -90,6 +96,6 @@ export async function negotiateMarkdown(
     "Link",
     `<${toMarkdownPath(pathname)}>; rel="alternate"; type="text/markdown"`
   );
-  appendVaryAccept(response.headers);
+  appendNegotiationVary(response.headers);
   return response;
 }

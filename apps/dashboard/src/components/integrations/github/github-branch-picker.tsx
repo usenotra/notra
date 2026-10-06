@@ -1,12 +1,13 @@
 "use client";
 
-import { GitBranchIcon, Loading03Icon } from "@hugeicons/core-free-icons";
+import { GitBranchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -106,10 +107,7 @@ export function GitHubBranchPicker({
         }
       >
         {isPending ? (
-          <HugeiconsIcon
-            className="size-3.5 animate-spin"
-            icon={Loading03Icon}
-          />
+          <Spinner className="size-3.5" />
         ) : (
           <HugeiconsIcon className="size-3.5" icon={GitBranchIcon} />
         )}

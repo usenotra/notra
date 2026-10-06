@@ -39,13 +39,13 @@ import {
   SelectValue,
 } from "@notra/ui/components/ui/select";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { type MouseEvent, type ReactNode, useId, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GSC_SETUP_EXAMPLES } from "@/constants/geo-prompts";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
@@ -169,7 +169,7 @@ export function SearchConsolePropertyPicker({
           onSelected?.();
         }}
       >
-        {selectSite.isPending ? <StatusSpinner /> : null}
+        {selectSite.isPending ? <Spinner className="size-3.5" /> : null}
         {selectSite.isPending
           ? tCommon("labels.connecting")
           : t("connectProperty")}
@@ -205,7 +205,7 @@ function ConnectedState({
   if (sites.isPending) {
     changeDialogBody = (
       <div className="text-muted-foreground flex items-center gap-2 px-4 py-3 text-sm md:px-0">
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
         {tCommon("labels.loadingProperties")}
       </div>
     );
@@ -288,7 +288,7 @@ function ConnectedState({
             size="sm"
             variant="outline"
           >
-            {sync.isPending ? <StatusSpinner /> : null}
+            {sync.isPending ? <Spinner className="size-3.5" /> : null}
             {sync.isPending
               ? tCommon("labels.syncing")
               : tCommon("labels.syncNow")}

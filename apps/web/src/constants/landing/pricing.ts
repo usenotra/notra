@@ -41,7 +41,7 @@ export const PRICING_HEADING =
   "Simple pricing that scales with what you track.";
 
 export const PRICING_SUBHEADING =
-  "Every plan comes with prompt tracking, traffic attribution and the writer. The difference is how many answers you track a month. Cancel whenever.";
+  "Every plan comes with prompt tracking, traffic attribution and the writer. Plans differ in how many answers you track a month, and you can cancel anytime.";
 
 const SIGNUP_URL = "https://app.usenotra.com/signup";
 const ENTERPRISE_MAIL_URL = "mailto:hello@usenotra.com";

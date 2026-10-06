@@ -15,6 +15,10 @@ export function withGatewayAgentOptions(
             ...params.providerOptions?.gateway,
             caching: "auto",
             tags: [tag],
+            ...(model.modelId === "openai/gpt-6-sol" &&
+            (tag === "content-writer-agent" || tag === "agent-task")
+              ? { serviceTier: "flex" }
+              : {}),
           },
         },
       }),

@@ -511,9 +511,9 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
         isOAuthAuth(auth) ? auth.userId : `api-key:${auth.keyId}`
       );
     } catch (error) {
-      console.error("Failed to sync saved post to GitHub", {
+      c.get("log").error(error instanceof Error ? error : String(error), {
+        errorCode: "post_github_sync_failed",
         postId: post.id,
-        error,
       });
       if (
         error instanceof InternalDashboardTimeoutError ||

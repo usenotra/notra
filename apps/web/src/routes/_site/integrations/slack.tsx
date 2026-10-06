@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SlackCtaBanner } from "@/components/integrations/slack/slack-cta-banner";
 import { SlackDemoSection } from "@/components/integrations/slack/slack-demo-section";
 import { SlackFeatureList } from "@/components/integrations/slack/slack-feature-list";
 import { SlackHero } from "@/components/integrations/slack/slack-hero";
 import { SlackToolsSection } from "@/components/integrations/slack/slack-tools-section";
+import { CtaBanner } from "@/components/landing/cta-banner";
+import {
+  SLACK_CTA_HEADING,
+  SLACK_CTA_SUBCOPY,
+  SLACK_SIGNUP_SOURCE,
+} from "@/constants/slack-integration";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -17,7 +22,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Slack integration for Notra";
 const description =
-  "Connect Slack and turn the threads you pick into announcements, changelog entries, and social posts, in your voice.";
+  "Mention @Notra in Slack to draft changelog entries, blog posts and social posts from your threads. Approve each draft in the thread.";
 const url = `${SITE_URL}/integrations/slack`;
 
 const metadata: Metadata = {
@@ -68,7 +73,11 @@ function SlackIntegrationPage() {
         <SlackToolsSection />
       </div>
       <section className="w-full px-6">
-        <SlackCtaBanner />
+        <CtaBanner
+          heading={SLACK_CTA_HEADING}
+          signupSource={SLACK_SIGNUP_SOURCE}
+          subcopy={SLACK_CTA_SUBCOPY}
+        />
       </section>
     </div>
   );

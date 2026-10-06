@@ -5,6 +5,7 @@ import {
   fetchWebpage,
   isContextDevConfigured,
 } from "@notra/ai/utils/context-dev";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
   canonicalizeShelfUrl,
@@ -139,7 +140,7 @@ export async function previewGeoShelfUrl(
       available: true,
     };
   } catch (error) {
-    console.warn("[GEO] shelf preview failed", {
+    logWarn("[GEO] shelf preview failed", {
       url,
       error: error instanceof Error ? error.message : "Unknown error",
     });

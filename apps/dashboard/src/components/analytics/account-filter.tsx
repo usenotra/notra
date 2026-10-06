@@ -8,6 +8,7 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 
+import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
 import type { SocialOverviewAccount } from "@/types/analytics";
 import { accountSeriesKey } from "@/utils/analytics-charts";
@@ -32,17 +33,17 @@ export function AccountFilter({
         );
         const selected = selectedKeys.has(key);
         return (
-          <button
+          <Button
             aria-pressed={selected}
             className={cn(
-              "flex max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-sm border py-1 pr-2.5 pl-1 font-mono text-xs transition-colors",
-              selected
-                ? "border-border bg-muted/60"
-                : "bg-muted/20 border-transparent opacity-50 hover:opacity-80"
+              "h-auto max-w-full min-w-0 gap-2",
+              !selected && "opacity-50 hover:opacity-80"
             )}
             key={key}
             onClick={() => onToggle(key)}
             type="button"
+            size="sm"
+            variant={selected ? "secondary" : "ghost"}
           >
             <Avatar className="size-6 shrink-0">
               {account.profileImageUrl && (
@@ -67,7 +68,7 @@ export function AccountFilter({
               }
               size={12}
             />
-          </button>
+          </Button>
         );
       })}
     </div>

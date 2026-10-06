@@ -23,6 +23,7 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -38,7 +39,6 @@ import { Button } from "@/components/button";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import {
   InstrumentEmpty,
   InstrumentModule,
@@ -151,7 +151,7 @@ function ProviderRow({
               variant="outline"
             >
               {tracking ? (
-                <StatusSpinner />
+                <Spinner className="size-3.5" />
               ) : (
                 <HugeiconsIcon
                   data-icon="inline-start"

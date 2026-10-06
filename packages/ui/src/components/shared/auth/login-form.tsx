@@ -4,7 +4,6 @@
 import { DEFAULT_LOGIN_FORM_LABELS } from "@notra/ui/constants/auth-labels";
 import { useForm } from "@tanstack/react-form";
 
-import { Loader2Icon } from "lucide-react";
 import { Link } from "@notra/ui/components/framework-provider";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useAuthFlow } from "../../../hooks/use-auth-flow";
@@ -265,16 +264,10 @@ export function LoginForm({
             <CtaButton
               className="w-full"
               disabled={isAuthLoading}
+              loading={authMethod === "email"}
               type="submit"
             >
-              {authMethod === "email" ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  {l.submitting}
-                </>
-              ) : (
-                l.submit
-              )}
+              {l.submit}
             </CtaButton>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import { logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { members } from "@notra/db/schema";
 import { and, eq, sql } from "drizzle-orm";
@@ -160,7 +161,7 @@ async function runMembershipUpsert(
 }
 
 function warnConflictTargetMissing(): void {
-  console.warn(
+  logWarn(
     "[auth] members(organization_id, user_id) unique index missing; apply migration 0085. Falling back to read-then-write membership sync."
   );
 }

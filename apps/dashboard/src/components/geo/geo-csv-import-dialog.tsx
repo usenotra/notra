@@ -35,13 +35,13 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Effect } from "effect";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoImportCompetitors,
@@ -345,7 +345,7 @@ function GeoCsvImportDialog<TRow>({
             {tCommon("cancel")}
           </Button>
           <Button disabled={!canImport} onClick={handleImport} type="button">
-            {isPending ? <StatusSpinner /> : null}
+            {isPending ? <Spinner className="size-3.5" /> : null}
             {rows.length > 0
               ? t(`kinds.${kind}.importCount`, { count: rows.length })
               : importLabel}

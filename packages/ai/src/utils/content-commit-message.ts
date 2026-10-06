@@ -96,7 +96,10 @@ export async function generateContentCommitHeadline(params: {
         .filter(Boolean)
         .join("\n\n"),
       providerOptions: withRouterDefaults(
-        { gateway: { tags: ["content-commit-message"] } },
+        {
+          gateway: { tags: ["content-commit-message"] },
+          openai: { reasoningEffort: "none" },
+        },
         {
           modelId: UTILITY_MODEL_ID,
         }

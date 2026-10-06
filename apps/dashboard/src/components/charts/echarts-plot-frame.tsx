@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { tween } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
 import { useTranslations } from "use-intl";
@@ -59,7 +60,7 @@ export function EChartsPlotFrame({
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
             transition={tween("slow")}
           >
-            <div className="border-border border-t-primary h-3 w-3 animate-spin rounded-full border" />
+            <Spinner className="size-3" />
             <span>{tCommon("states.loading")}</span>
           </motion.div>
         </div>

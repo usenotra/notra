@@ -1,3 +1,5 @@
+import { logError } from "@notra/ai/utils/server-log";
+
 import "@/workflows/runtime";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { start } from "workflow/api";
@@ -10,9 +12,8 @@ export async function startGeoSentimentStep(input: GeoScopeInput) {
     const run = await start(geoSentimentWorkflow, [input]);
     return run.runId;
   } catch (error) {
-    console.error("Could not start automatic GEO sentiment analysis", {
+    logError("Could not start automatic GEO sentiment analysis", error, {
       ...input,
-      error,
     });
     throw error;
   }

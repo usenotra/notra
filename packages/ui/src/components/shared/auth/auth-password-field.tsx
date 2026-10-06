@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { DEFAULT_AUTH_PASSWORD_FIELD_LABEL } from "@notra/ui/constants/auth-labels";
 import { useState } from "react";
 import type { AuthPasswordFieldProps } from "../../../types/auth";
+import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { useUiLabels } from "../ui-labels-provider";
@@ -42,21 +43,23 @@ export function AuthPasswordField({
           type={showPassword ? "text" : "password"}
           value={value}
         />
-        <button
+        <Button
           aria-label={
             showPassword ? uiLabels.hidePassword : uiLabels.showPassword
           }
-          className="-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="-translate-y-1/2 absolute top-1/2 right-2.5 text-muted-foreground"
           disabled={disabled}
           onClick={() => setShowPassword(!showPassword)}
           type="button"
+          size="icon-sm"
+          variant="ghost"
         >
           {showPassword ? (
             <HugeiconsIcon className="size-4" icon={ViewOffSlashIcon} />
           ) : (
             <HugeiconsIcon className="size-4" icon={ViewIcon} />
           )}
-        </button>
+        </Button>
       </div>
       <AuthFieldError error={error} id={`${id}-error`} />
     </div>

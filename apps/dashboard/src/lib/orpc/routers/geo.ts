@@ -18,6 +18,7 @@ import {
   GscIntegrationLockLostError,
   withGscIntegrationLock,
 } from "@notra/ai/utils/gsc-integration-lock";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { geoAgentReadinessReports, projects } from "@notra/db/schema";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
@@ -73,6 +74,7 @@ import {
   loadAiTraffic,
   loadGeoChanges,
   loadGeoCompetitorDetail,
+  loadGeoCompetitorEngineMatrix,
   loadGeoCompetitorShare,
   loadGeoCompetitors,
   loadGeoJourneyDetail,
@@ -499,10 +501,7 @@ async function removeStaleGscScheduleAfterLeaseLoss(
     }
     await removeGscSchedule(scheduleId);
   } catch (error) {
-    console.error(
-      "[GSC] Failed to clean up stale weekly sync schedule:",
-      error
-    );
+    logError("[GSC] Failed to clean up stale weekly sync schedule", error);
   }
 }
 
@@ -537,8 +536,8 @@ async function ensureGscSchedule(
         await assertLockOwned();
       } catch (error) {
         signal.throwIfAborted();
-        console.error(
-          "[GSC] Failed to reconcile legacy weekly sync schedule:",
+        logError(
+          "[GSC] Failed to reconcile legacy weekly sync schedule",
           error
         );
         return null;
@@ -570,10 +569,7 @@ async function ensureGscSchedule(
         throw error;
       }
       if (creationError) {
-        console.error(
-          "[GSC] Failed to create weekly sync schedule:",
-          creationError
-        );
+        logError("[GSC] Failed to create weekly sync schedule", creationError);
         return null;
       }
 
@@ -587,8 +583,8 @@ async function ensureGscSchedule(
         );
       } catch (error) {
         signal.throwIfAborted();
-        console.error(
-          "[GSC] Failed to record weekly sync schedule; retrying:",
+        logError(
+          "[GSC] Failed to record weekly sync schedule; retrying",
           error
         );
         try {
@@ -602,10 +598,7 @@ async function ensureGscSchedule(
           );
         } catch (retryError) {
           signal.throwIfAborted();
-          console.error(
-            "[GSC] Failed to record weekly sync schedule:",
-            retryError
-          );
+          logError("[GSC] Failed to record weekly sync schedule", retryError);
         }
       }
       signal.throwIfAborted();
@@ -631,7 +624,7 @@ async function ensureGscSchedule(
         signal.throwIfAborted();
         // The deterministic id remains recoverable: the next ensure attempt
         // overwrites the same QStash schedule instead of creating a duplicate.
-        console.error("[GSC] Failed to reconcile weekly sync schedule:", error);
+        logError("[GSC] Failed to reconcile weekly sync schedule", error);
         return null;
       }
     }
@@ -656,7 +649,7 @@ async function removeGscSchedule(scheduleId: string | null) {
   try {
     await deleteGscScheduleIfPresent(scheduleId);
   } catch (error) {
-    console.error("[GSC] Failed to delete QStash schedule:", error);
+    logError("[GSC] Failed to delete QStash schedule", error);
   }
 }
 
@@ -982,7 +975,7 @@ export const geoRouter = {
             try {
               await task();
             } catch (error) {
-              console.error("Could not analyze GEO sentiment", { error });
+              logError("Could not analyze GEO sentiment", error);
             }
           })
         )
@@ -1017,6 +1010,13 @@ export const geoRouter = {
     .handler(
       geoOpenHandler((input) =>
         loadGeoCompetitorShare(input, geoWindow(input), input.summaryOnly)
+      )
+    ),
+  competitorEngineMatrix: authorizedProcedure
+    .input(geoTimeseriesInputSchema)
+    .handler(
+      geoOpenHandler((input) =>
+        loadGeoCompetitorEngineMatrix(input, geoWindow(input))
       )
     ),
   competitors: authorizedProcedure
@@ -2049,7 +2049,7 @@ export const geoRouter = {
         try {
           sites = await listGscSites(integration);
         } catch (error) {
-          console.error("[GSC] Failed to list sites:", error);
+          logError("[GSC] Failed to list sites", error);
           lastError = await toGscErrorMessage(error, "properties");
         }
         // Listing may have refreshed the access token or flipped the row to
@@ -2116,7 +2116,7 @@ export const geoRouter = {
       try {
         return { sites: await listGscSites(integration) };
       } catch (error) {
-        console.error("[GSC] Failed to list sites:", error);
+        logError("[GSC] Failed to list sites", error);
         throw badRequest(await toGscErrorMessage(error, "properties"));
       }
     }),
@@ -2139,7 +2139,7 @@ export const geoRouter = {
       try {
         sites = await listGscSites(integration);
       } catch (error) {
-        console.error("[GSC] Failed to verify property:", error);
+        logError("[GSC] Failed to verify property", error);
         throw badRequest(await toGscErrorMessage(error, "properties"));
       }
       if (!sites.some((site) => site.siteUrl === input.siteUrl)) {
@@ -2161,10 +2161,7 @@ export const geoRouter = {
           ).pipe(Effect.provide(geoCoreDashboardLayer))
         );
       } catch (error) {
-        console.error(
-          "[GSC] Initial sync failed after selecting property:",
-          error
-        );
+        logError("[GSC] Initial sync failed after selecting property", error);
         throw badRequest(await toGscErrorMessage(error, "sync"));
       }
       if (synced.status !== "completed") {
@@ -2184,8 +2181,8 @@ export const geoRouter = {
         } catch (error) {
           // The property and its first sync are already committed. Scheduling
           // remains best-effort and is backfilled by the next manual sync.
-          console.error(
-            "[GSC] Failed to schedule weekly sync after selecting property:",
+          logError(
+            "[GSC] Failed to schedule weekly sync after selecting property",
             error
           );
         }
@@ -2288,10 +2285,7 @@ export const geoRouter = {
           try {
             await Promise.all(scheduleIds.map(deleteGscScheduleIfPresent));
           } catch (error) {
-            console.error(
-              "[GSC] Failed to remove schedules on disconnect:",
-              error
-            );
+            logError("[GSC] Failed to remove schedules on disconnect", error);
             const tErrors = await getTranslations("errors.geo");
             throw serviceUnavailable(tErrors("gscDisconnectFailed"));
           }

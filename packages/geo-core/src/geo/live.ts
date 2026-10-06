@@ -14,6 +14,7 @@ import {
   geoLiveProgressKey,
   geoLiveWatchKey,
 } from "../utils/geo-live";
+import { logGeoFailure } from "../utils/geo-log";
 
 const watchMemo = new Map<string, { watched: boolean; expiresAt: number }>();
 
@@ -36,7 +37,13 @@ export async function markGeoLiveWatched(
   try {
     await pipeline.exec();
   } catch (error) {
-    console.warn("[geo-live] Could not record live viewer", error);
+    logGeoFailure(
+      "geo.live.watch_failed",
+      "Could not record live viewer",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }
 
@@ -101,7 +108,13 @@ export async function publishGeoTrafficChange(
       .channel(geoLiveChannel(organizationId))
       .emit("geo.traffic", { projectIds });
   } catch (error) {
-    console.warn("[geo-live] Could not publish traffic update", error);
+    logGeoFailure(
+      "geo.live.traffic_publish_failed",
+      "Could not publish traffic update",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }
 
@@ -153,6 +166,12 @@ export async function publishGeoVisibilityChange(input: {
         status: input.status,
       });
   } catch (error) {
-    console.warn("[geo-live] Could not publish visibility update", error);
+    logGeoFailure(
+      "geo.live.visibility_publish_failed",
+      "Could not publish visibility update",
+      error,
+      undefined,
+      "warn"
+    );
   }
 }

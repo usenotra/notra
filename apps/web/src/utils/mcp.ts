@@ -1,5 +1,5 @@
 export function formatMcpHeroSubhead(toolCount: number): string {
-  return `${toolCount} tools over MCP. Your agent drafts changelogs, launch posts, and social updates from the editor it already lives in.`;
+  return `${toolCount} tools over MCP. Your agent drafts changelogs, launch posts and social updates from the editor it already lives in.`;
 }
 
 export function formatMcpMoreToolsLabel(hiddenCount: number): string {

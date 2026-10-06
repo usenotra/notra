@@ -35,11 +35,13 @@ import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname } from "@/lib/navigation";
 import { getWebsiteDomain } from "@/utils/brand";
 import {
   getLastVisitedProjectFromClient,
   setLastVisitedProject,
 } from "@/utils/cookies";
+import { isGeoDashboardPath } from "@/utils/geo-paths";
 import { resolveNavItems } from "@/utils/nav";
 
 import { SidebarBrandHeader } from "./sidebar-brand-header";
@@ -49,6 +51,7 @@ const GEO_SETTINGS_ITEM = resolveNavItems([GEO_SETTINGS_NAV_LINK]).at(0);
 
 export function SidebarProjectSwitcher() {
   const tCommon = useTranslations("common");
+  const pathname = usePathname();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const slug = activeOrganization?.slug ?? "";
@@ -65,42 +68,40 @@ export function SidebarProjectSwitcher() {
   const { data: brandData } = useBrandSettings(organizationId);
   const projects = loadedProjects;
   const voices = brandData?.voices ?? [];
+  const lastVisitedProjectId = getLastVisitedProjectFromClient(slug);
 
   const activeProject =
     projects.find((project) => project.id === projectParam) ??
-    projects.at(0) ??
-    null;
+    projects.find((project) => project.id === lastVisitedProjectId) ??
+    projects.at(0);
 
   useEffect(() => {
     if (isLoading || isError || !isReady || !slug) {
       return;
     }
 
-    const selectedProject = loadedProjects.find(
-      (project) => project.id === projectParam
-    );
-    if (selectedProject) {
-      setLastVisitedProject(slug, selectedProject.id).catch(() => {
+    if (activeProject?.id === projectParam) {
+      setLastVisitedProject(slug, activeProject.id).catch(() => {
         // The current URL remains the source of truth if cookies fail.
       });
       return;
     }
 
-    const lastVisitedProjectId = getLastVisitedProjectFromClient(slug);
-    const restoredProject =
-      loadedProjects.find((project) => project.id === lastVisitedProjectId) ??
-      loadedProjects.at(0) ??
-      null;
-    const restoredProjectId = restoredProject?.id ?? null;
+    if (!isGeoDashboardPath(pathname)) {
+      return;
+    }
+
+    const restoredProjectId = activeProject?.id ?? null;
 
     if (projectParam !== restoredProjectId) {
       setProjectParam(restoredProjectId);
     }
   }, [
+    activeProject,
     isError,
     isLoading,
     isReady,
-    loadedProjects,
+    pathname,
     projectParam,
     setProjectParam,
     slug,

@@ -22,9 +22,9 @@ export function MerchHero() {
                 Free hat? No, <span className="text-primary">Cap</span>!
               </h1>
               <p className="max-w-[42.875rem] text-center font-sans text-[1.0625rem] leading-[1.14] font-medium tracking-[-0.005em] text-[#1E1E1EBF] sm:text-[1.25rem] dark:text-white/70">
-                The Notra Classic Hat, a thank-you for building with us. If your
-                workspace is on a paid plan, it's yours. Reach out and we'll put
-                one in the mail.
+                The Notra Classic Hat is our thank-you for building with us. If
+                your workspace is on a paid plan, it's yours. Reach out and
+                we'll put one in the mail.
               </p>
             </div>
 
@@ -48,8 +48,7 @@ export function MerchHero() {
                 </CtaButton>
               </div>
               <p className="max-w-[26rem] text-center font-sans text-sm leading-5 tracking-[-0.005em] text-[#1E1E1EA6] dark:text-white/60">
-                Paid workspaces only, free trials don't count. US shipping for
-                now.
+                Only paid workspaces qualify, and we ship to the US for now.
               </p>
             </div>
           </div>

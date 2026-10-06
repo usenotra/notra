@@ -4,8 +4,7 @@ import { ImageResponse } from "@vercel/og";
 import ditherDataUrl from "@/../public/blog/og-dither.png?inline";
 import logoSvg from "@/../public/notra-mark.svg?raw";
 import { getNotraBlogPostBySlug } from "@/utils/blog";
-import { OG_BLOG_TITLE_MAX_LENGTH } from "@/utils/constants";
-import { loadInterFont, loadImageAsDataUrl, truncate } from "@/utils/og";
+import { loadInterFont, loadImageAsDataUrl } from "@/utils/og";
 
 const size = { width: 1200, height: 630 };
 
@@ -13,7 +12,7 @@ async function GET({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const post = await getNotraBlogPostBySlug(slug);
 
-  const title = truncate(post?.title ?? "Notra Blog", OG_BLOG_TITLE_MAX_LENGTH);
+  const title = post?.title ?? "Notra Blog";
   const author = post?.authors[0] ?? null;
 
   const eyebrow = "BLOG";
@@ -52,6 +51,7 @@ async function GET({ params }: { params: { slug: string } }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexShrink: 0,
         }}
       >
         <img alt="" height={56} src={logoDataUrl} width={56} />
@@ -73,18 +73,22 @@ async function GET({ params }: { params: { slug: string } }) {
           flexDirection: "column",
           marginTop: "3.5rem",
           flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
         }}
       >
         <div
           style={{
-            display: "flex",
+            display: "block",
             color: "#1a1a1a",
             fontFamily: "Inter",
             fontWeight: 600,
             fontSize: "4rem",
             lineHeight: 1.05,
             letterSpacing: "-0.02em",
-            maxWidth: "44rem",
+            width: "100%",
+            lineClamp: 3,
+            wordBreak: "break-word",
           }}
         >
           {title}
@@ -96,6 +100,7 @@ async function GET({ params }: { params: { slug: string } }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexShrink: 0,
         }}
       >
         <div

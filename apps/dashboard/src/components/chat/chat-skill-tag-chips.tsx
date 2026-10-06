@@ -2,9 +2,9 @@
 
 import { MagicWand01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Composer } from "@notra/ui/components/ui/composer";
 import { useTranslations } from "use-intl";
 
-import { Composer } from "@/components/composer/composer-shell";
 import type { ChatSkillTagChipsProps } from "@/types/components/chat-skill-tag-chips";
 import { skillDisplayName } from "@/utils/skills";
 

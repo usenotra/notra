@@ -22,10 +22,14 @@ export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
   // evaluation only runs when there is a mention to rate.
   const [judged, evaluation] = yield* Effect.all(
     [
-      models.judge({
-        organizationId: context.organizationId,
-        prompt: buildJudgePrompt(context, promptText, answer),
-      }),
+      models
+        .judge({
+          organizationId: context.organizationId,
+          prompt: buildJudgePrompt(context, promptText, answer),
+        })
+        .pipe(
+          Effect.retry({ times: 1, while: (error) => error.timedOut === true })
+        ),
       mentioned && models.evaluateMention
         ? models.evaluateMention({
             organizationId: context.organizationId,

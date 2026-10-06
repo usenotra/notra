@@ -10,6 +10,7 @@ import { Button } from "@/components/button";
 import { ContentCard } from "@/components/content/content-card";
 import { ContentSkeletonCard } from "@/components/content/content-skeleton-card";
 import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
+import { HomeFeedbackSection } from "@/components/dashboard/home-feedback-section";
 import { LazyContentActivityCard } from "@/components/dashboard/lazy-content-activity-card";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
@@ -149,6 +150,12 @@ export default function PageClient({
 
           {todayContent}
         </section>
+
+        <HomeFeedbackSection
+          compact
+          organizationId={organizationId}
+          slug={organizationSlug}
+        />
 
         <section className="space-y-4">
           <div>

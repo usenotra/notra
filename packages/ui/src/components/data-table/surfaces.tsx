@@ -47,7 +47,7 @@ export function TableHeaderSurface({
       )}
     >
       {toolbar ? (
-        <div className="border-border bg-background rounded-t-[14px] border-b">
+        <div className={TABLE_BODY_CLASS}>
           {toolbar}
         </div>
       ) : null}

@@ -89,6 +89,8 @@ export function pinRowsFirst<T>(
 }
 
 const FR_WIDTH_REGEX = /^([\d.]+)fr$/;
+const PERCENT_WIDTH_REGEX = /^([\d.]+)%$/;
+const FULL_PERCENT = 100;
 
 const PERCENT_DECIMALS = 4;
 
@@ -116,26 +118,81 @@ export function headerMinWidth(
   return `${minColumnWidth}px`;
 }
 
-/** Sum of column floors so `table-layout: fixed` cannot crush titles. */
+/**
+ * The width a column actually occupies at its narrowest: fixed widths never
+ * shrink below their declared size (see `colWidthStyle`), flexible ones stop
+ * at their header floor.
+ */
+export function columnFloorCss<T>(
+  column: Pick<
+    TableColumn<T>,
+    "header" | "hint" | "sortable" | "minWidth" | "width"
+  >,
+  minColumnWidth: number
+): string {
+  const floor = headerMinWidth(column, minColumnWidth);
+  if (
+    !column.width ||
+    isFrWidth(column.width) ||
+    percentWidth(column.width) != null
+  ) {
+    return floor;
+  }
+  return `max(${column.width}, ${floor})`;
+}
+
+/** Share of the table a `"20%"` width takes, or null for any other width. */
+function percentWidth(width: string | undefined): number | null {
+  const match = width ? PERCENT_WIDTH_REGEX.exec(width) : null;
+  return match ? Number.parseFloat(match[1] ?? "0") : null;
+}
+
+/**
+ * Sum of column floors so `table-layout: fixed` cannot crush titles. Fixed
+ * widths count in full: WebKit fits a fixed table to its `min-width`, so a
+ * smaller sum squeezes the flexible columns to nothing on narrow screens.
+ */
 export function tableMinWidthCss<T>(
   columns: readonly Pick<
     TableColumn<T>,
-    "header" | "hint" | "sortable" | "minWidth"
+    "header" | "hint" | "sortable" | "minWidth" | "width"
   >[],
   minColumnWidth: number,
   extraFixedWidths: readonly string[] = []
 ): string {
-  const parts = [
-    ...extraFixedWidths,
-    ...columns.map((column) => headerMinWidth(column, minColumnWidth)),
-  ];
+  const floors = columns.map((column) => columnFloorCss(column, minColumnWidth));
+  const parts = [...extraFixedWidths, ...floors];
   if (parts.length === 0) {
     return "0px";
   }
-  if (parts.length === 1) {
-    return parts[0] ?? "0px";
+  const sum = parts.length === 1 ? (parts[0] ?? "0px") : `calc(${parts.join(" + ")})`;
+
+  // A `"20%"` column takes its share of the table, not of the container, so
+  // the table has to grow until both that column and the rest fit.
+  const percentTotal = columns.reduce(
+    (total, column) => total + (percentWidth(column.width) ?? 0),
+    0
+  );
+  if (percentTotal === 0 || percentTotal >= FULL_PERCENT) {
+    return sum;
   }
-  return `calc(${parts.join(" + ")})`;
+  const rest = [
+    ...extraFixedWidths,
+    ...floors.filter((_, index) => percentWidth(columns[index]?.width) == null),
+  ];
+  const candidates = [sum];
+  if (rest.length > 0) {
+    candidates.push(
+      `calc((${rest.join(" + ")}) * ${FULL_PERCENT / (FULL_PERCENT - percentTotal)})`
+    );
+  }
+  for (const [index, column] of columns.entries()) {
+    const share = percentWidth(column.width);
+    if (share) {
+      candidates.push(`calc(${floors[index]} * ${FULL_PERCENT / share})`);
+    }
+  }
+  return `max(${candidates.join(", ")})`;
 }
 
 export function colWidthStyle(
@@ -304,11 +361,20 @@ export function tableLayout<T>(
   // Shrink-wrap only after every column has an explicit resized width.
   const sized =
     columns.length > 0 && columns.every((column) => widths[column.key] != null);
+  // A resized column floors at its dragged width, not the declared one.
+  const floorColumns = columns.map((column) => {
+    const override = widths[column.key];
+    return override == null ? column : { ...column, width: `${override}px` };
+  });
   return {
     className: sized ? "w-max min-w-full" : "w-full",
     style: {
       tableLayout: "fixed" as const,
-      minWidth: tableMinWidthCss(columns, minColumnWidth, extraFixedWidths),
+      minWidth: tableMinWidthCss(
+        floorColumns,
+        minColumnWidth,
+        extraFixedWidths
+      ),
     },
   };
 }

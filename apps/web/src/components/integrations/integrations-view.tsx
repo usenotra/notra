@@ -1,5 +1,7 @@
 import { ArrowRight02Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ctaButtonVariants } from "@notra/ui/components/shared/cta-button";
+import { cn } from "@notra/ui/lib/utils";
 
 import { HeroDither } from "@/components/landing/hero-dither";
 import type { IntegrationsViewProps } from "@/types/integrations";
@@ -62,7 +64,10 @@ export function IntegrationsView({
                 />
               </div>
               <a
-                className="cta-gradient-primary-flat flex shrink-0 cursor-pointer items-center justify-center rounded-full px-4.5 py-2 font-sans text-[0.875rem] leading-[1.29] font-semibold text-white"
+                className={cn(
+                  ctaButtonVariants({ size: "sm", variant: "flat" }),
+                  "h-auto px-4.5 py-2 font-sans leading-[1.29] font-semibold"
+                )}
                 href="#all-integrations"
               >
                 Browse all

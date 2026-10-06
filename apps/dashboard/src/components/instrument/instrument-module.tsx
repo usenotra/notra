@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@notra/ui/components/ui/card";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -250,34 +251,7 @@ export function InstrumentEmpty({
               "bg-background/85 rounded-full px-3 py-1.5 shadow-xs backdrop-blur-[2px]"
           )}
         >
-          {busy ? (
-            <span
-              aria-hidden="true"
-              className="text-muted-foreground inline-flex size-4 motion-safe:animate-spin"
-            >
-              <svg
-                aria-hidden="true"
-                className="size-full"
-                fill="none"
-                viewBox="0 0 16 16"
-              >
-                <circle
-                  cx="8"
-                  cy="8"
-                  r="6"
-                  stroke="currentColor"
-                  strokeOpacity="0.25"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M14 8A6 6 0 0 0 8 2"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                />
-              </svg>
-            </span>
-          ) : null}
+          {busy ? <Spinner className="text-muted-foreground" /> : null}
           <p className="text-muted-foreground text-sm first-letter:uppercase">
             {busy && message ? <Shimmer as="span">{message}</Shimmer> : message}
           </p>

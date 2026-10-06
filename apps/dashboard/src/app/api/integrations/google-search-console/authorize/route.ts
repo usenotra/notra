@@ -4,6 +4,7 @@ import {
 } from "@notra/ai/constants/google-search-console";
 import { getGscOAuthCredentials } from "@notra/ai/integrations/google-search-console";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   GSC_OAUTH_STATE_KEY_PREFIX,
   GSC_OAUTH_STATE_TTL_SECONDS,
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
 
     return redirectResponse(authUrl.toString());
   } catch (error) {
-    console.error("Error initiating Google Search Console OAuth:", error);
+    logError("Error initiating Google Search Console OAuth", error);
     return redirectResponse(`${baseUrl}/?error=gsc_auth_failed`);
   }
 }

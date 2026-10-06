@@ -5,9 +5,7 @@ description: The input between two rules, with the permission mode, PR link and 
 
 <Component path="claude-code/examples/claude-code-prompt" />
 
-```bash
-bunx shadcn@latest add @notra/claude-code-prompt
-```
+<RegistryInstall name="claude-code-prompt" />
 
 `ClaudeCodePrompt` is a shadcn `InputGroup` restyled as Claude Code's input: the `❯` sits in an `InputGroupAddon` and the `InputGroupInput` runs between two thin gray rules, with a block cursor while it is empty. The line below shows the permission mode in its color with the `(shift+tab to cycle)` hint, the key in a shadcn `Kbd`, an optional link to the branch's pull request and the effort level on the right. The example cycles modes on Shift+Tab like Claude Code and picks mode and effort with a shadcn `ToggleGroup`.
 

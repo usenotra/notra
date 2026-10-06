@@ -35,7 +35,7 @@ interface RunChatMessageArgs {
   organizationId: string;
   existingChatId: string | null;
   body: SendChatMessageInput;
-  log: ReturnType<typeof useLogger>;
+  log: ReturnType<typeof useLogger<Record<string, unknown>>>;
   requestId: string;
 }
 
@@ -57,10 +57,8 @@ export async function runChatMessage({
     try {
       billing = await checkChatBilling(organizationId);
     } catch (checkError) {
-      console.error("[Autumn] Check error:", {
-        requestId,
-        customerId: organizationId,
-        error: checkError,
+      log.error(checkError instanceof Error ? checkError : String(checkError), {
+        errorCode: "billing_check_failed",
       });
       return c.json(
         { error: "Failed to check usage limits", code: "BILLING_ERROR" },

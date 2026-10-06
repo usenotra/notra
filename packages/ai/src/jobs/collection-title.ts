@@ -12,6 +12,7 @@ import type {
   GenerateCollectionTitleParams,
   MaybeGenerateCollectionTitleParams,
 } from "@notra/ai/types/collection-title";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { db } from "@notra/db/drizzle";
 import { organizations, postCollections, posts } from "@notra/db/schema";
@@ -104,7 +105,10 @@ export async function generateCollectionTitle(
     instructions: COLLECTION_TITLE_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
     providerOptions: withRouterDefaults(
-      { gateway: { tags: ["content-collection-title"] } },
+      {
+        gateway: { tags: ["content-collection-title"] },
+        openai: { reasoningEffort: "none" },
+      },
       {
         modelId: COLLECTION_TITLE_MODEL_ID,
       }
@@ -179,10 +183,9 @@ export async function maybeGenerateCollectionTitle(
       nameSource: collection.nameSource,
     });
   } catch (error) {
-    console.error("[CollectionTitle] Failed to generate collection title", {
+    logError("[CollectionTitle] Failed to generate collection title", error, {
       collectionId: params.collectionId,
       organizationId: params.organizationId,
-      error,
     });
   }
 }

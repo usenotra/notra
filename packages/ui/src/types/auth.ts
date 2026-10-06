@@ -21,13 +21,6 @@ export type AuthMethod = "email" | SocialProvider;
 export type ChallengeMode = "totp" | "backup";
 export type EnrollmentStep = "scan" | "manual" | "code" | "backup";
 
-export interface MfaSubmitButtonProps {
-  isPending: boolean;
-  disabled: boolean;
-  pendingLabel: string;
-  label: string;
-}
-
 export interface CopyValueFieldProps {
   label: string;
   value: string;
@@ -215,7 +208,6 @@ export interface EmailVerificationFormLabels {
   description: (email?: string) => string;
   codeLabel: string;
   submit: string;
-  submitting: string;
   errorFallback: string;
 }
 
@@ -224,7 +216,6 @@ export interface MfaChallengeFormLabels {
   description: (email?: string) => string;
   codeLabel: string;
   submit: string;
-  submitting: string;
   useBackupCode: string;
   backToSignIn: string;
   backupTitle: string;
@@ -232,7 +223,6 @@ export interface MfaChallengeFormLabels {
   backupCodeLabel: string;
   backupCodePlaceholder: string;
   backupSubmit: string;
-  backupSubmitting: string;
   useAuthenticator: string;
   issuedCodesTitle: string;
   issuedCodesDescription: string;
@@ -287,7 +277,6 @@ export interface LoginFormLabels {
   or: string;
   lastUsed: string;
   submit: string;
-  submitting: string;
   forgotPassword: string;
   resetPassword: string;
   noAccount: string;

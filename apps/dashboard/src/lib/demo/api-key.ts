@@ -1,3 +1,5 @@
+import { NotFoundErrorResponse } from "@unkey/api/models/errors";
+
 import { API_KEY_PERMISSIONS } from "@/constants/api-keys";
 import { DEMO_API_KEY_PREFIX, DEMO_API_KEY_RATE_LIMIT } from "@/constants/demo";
 import { unkey } from "@/lib/api-keys/unkey";
@@ -60,5 +62,11 @@ export async function deleteDemoApiKey(keyId: string): Promise<void> {
   if (!unkey) {
     return;
   }
-  await unkey.keys.deleteKey({ keyId, permanent: true });
+  try {
+    await unkey.keys.deleteKey({ keyId, permanent: true });
+  } catch (error) {
+    if (!(error instanceof NotFoundErrorResponse)) {
+      throw error;
+    }
+  }
 }

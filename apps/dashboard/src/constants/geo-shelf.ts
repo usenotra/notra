@@ -52,6 +52,7 @@ export const GEO_SHELF_BOARD_COLUMN_SCROLL_HEIGHT =
 
 export const GEO_SHELF_TABLE_ROW_HEIGHT = 56;
 export const GEO_SHELF_TABLE_HEIGHT = 560;
+export const GEO_SHELF_MIN_VIEWPORT_RATIO = 0.6;
 /** `title` flexes; other columns size to their header/content so the row fits. */
 export const GEO_SHELF_TABLE_COLUMN = {
   title: { width: "1fr", minWidth: "10rem" },

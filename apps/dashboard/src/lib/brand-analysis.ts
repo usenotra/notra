@@ -5,6 +5,7 @@ import {
   updateBrandAnalysisJob,
 } from "@notra/ai/jobs/brand-analysis";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { brandSettings } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
@@ -104,11 +105,10 @@ async function dispatchBrandAnalysisWorkflow({
     const message =
       error instanceof Error ? error.message : "Failed to trigger workflow";
 
-    console.error("[Onboarding] Brand analysis workflow dispatch failed", {
+    logError("[Onboarding] Brand analysis workflow dispatch failed", error, {
       organizationId,
       brandIdentityId,
       jobId,
-      error: message,
     });
 
     if (redis) {

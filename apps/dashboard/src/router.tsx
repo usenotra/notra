@@ -20,6 +20,8 @@ export function getRouter() {
     routeTree: dashboardRouteTree,
     scrollRestoration: true,
     defaultErrorComponent: RouteError,
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 0,
     defaultPreload: "intent",
     // A loader preloaded on hover serves the click that follows instead of
     // running again, so the click no longer waits for a server round trip.

@@ -139,6 +139,7 @@ export function DataTableBodyRow<T>({
         <TableCell className={cn("h-auto p-0 text-center", cellBorder)}>
           <div className="flex items-center justify-center">
             <Checkbox
+              className="cursor-pointer"
               aria-label={labels.selectRow(String(index + 1))}
               checked={isSelected}
               onCheckedChange={() => onToggleRow(entry.id)}

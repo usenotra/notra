@@ -28,7 +28,7 @@ export const FEEDBACK_MD_DESCRIPTION =
   "feedback.md is a Markdown file at the root of your site. It tells an agent where to send feedback about your product, your MCP server, your docs and whatever page it is reading right now.";
 
 export const FEEDBACK_MD_HERO_LEAD =
-  "You already talk to your users. Their agents hit dead ends and find bugs nobody reports, then quietly move on. feedback.md gives them a place to say so.";
+  "You already talk to your users. Their agents hit dead ends and find bugs nobody reports, then move on. feedback.md gives them a place to report it.";
 
 export const FEEDBACK_MD_CLIENTS: FeedbackMdClient[] = [
   {
@@ -147,12 +147,12 @@ export const FEEDBACK_MD_TERMINAL_PROMPT_PLACEHOLDER =
 
 export const FEEDBACK_MD_PRINCIPLES: FeedbackMdPrinciple[] = [
   {
-    title: "A file, not a protocol",
+    title: "Just a Markdown file",
     description:
-      "Plain Markdown at /feedback.md. No handshake and no schema to validate against. If an agent can read llms.txt it can read this.",
+      "/feedback.md is plain Markdown with no handshake or schema. Any agent that can read llms.txt can read it.",
   },
   {
-    title: "Where, not how",
+    title: "Where feedback goes",
     description:
       "auth.md explains how to sign in. feedback.md only says where feedback goes and what to put in it. Bring your own endpoint, MCP tool or inbox.",
   },
@@ -180,13 +180,13 @@ export const FEEDBACK_MD_SECTIONS: FeedbackMdSection[] = [
     heading: "What to include",
     required: false,
     description:
-      "Shapes the report without a schema. What the agent tried, what happened and the URL or tool involved is enough for a human to act on.",
+      "Asks for what the agent tried, what happened and the URL or tool involved. That is enough for a person to act on.",
   },
   {
     heading: "What happens next",
     required: false,
     description:
-      "Sets expectations. Say who reads it and roughly when. Tell the agent not to wait for a reply.",
+      "Say who reads the feedback and roughly when, and tell the agent not to wait for a reply.",
   },
 ];
 
@@ -263,7 +263,7 @@ export const FEEDBACK_MD_QUESTIONS: FeedbackMdQuestion[] = [
     id: "no-endpoint",
     question: "What if I do not have a feedback endpoint?",
     answer:
-      "An email address or a link to your issue tracker is a valid channel. The file gives agents an address. It does not ask you to run infrastructure. You can upgrade the channel later without changing anything an agent has already learned.",
+      "An email address or a link to your issue tracker is a valid channel. The file only gives agents an address, so you don't need to run any infrastructure. You can upgrade the channel later without changing anything an agent has already learned.",
   },
   {
     id: "need-notra",

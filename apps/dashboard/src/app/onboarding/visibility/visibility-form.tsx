@@ -9,7 +9,7 @@ import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-heade
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -54,7 +54,6 @@ function VisibilityReview({
   skipHref,
 }: VisibilityReviewProps) {
   const t = useTranslations("onboarding.visibility");
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
@@ -184,15 +183,8 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={busy} type="submit">
-        {busy ? (
-          <>
-            <Loader2Icon className="size-4 animate-spin" />
-            {tOnboardingShared("saving")}
-          </>
-        ) : (
-          tCommon("actions.continue")
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {tCommon("actions.continue")}
       </CtaButton>
 
       <div className="text-center">
@@ -337,7 +329,7 @@ export function VisibilityForm({
               />
               {isAnalyzing ? (
                 <span className="text-muted-foreground flex h-full items-center px-3.5">
-                  <Loader2Icon className="size-4 animate-spin" />
+                  <Spinner />
                 </span>
               ) : null}
             </div>
@@ -366,6 +358,7 @@ export function VisibilityForm({
             </div>
             <GeoLanguagePicker
               disabled={isAnalyzing}
+              inputClassName="h-11 rounded-xl"
               inputId={`${id}-languages`}
               labeled={false}
               lockedLanguage={lockedLanguage}

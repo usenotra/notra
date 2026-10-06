@@ -5,6 +5,7 @@ import { ConsoleCallout } from "@/components/integrations/console-callout";
 import { IntegrationModal } from "@/components/integrations/integration-modal";
 import { IntegrationsMarketplace } from "@/components/integrations/integrations-marketplace";
 import { IntegrationsMarketplaceFallback } from "@/components/integrations/integrations-marketplace-fallback";
+import { DYNAMIC_PAGE_CACHE_CONTROL } from "@/constants/proxy";
 import { getIntegration, getIntegrations } from "@/lib/integrations/functions";
 import { buildCategoryFilters } from "@/lib/integrations/helpers";
 import { integrationsSearchSchema } from "@/schemas/integrations";
@@ -63,6 +64,7 @@ export const Route = createFileRoute("/_site/integrations/")({
     return { integrations, modalIntegration };
   },
   head: () => buildHead(metadata),
+  headers: () => ({ "Cache-Control": DYNAMIC_PAGE_CACHE_CONTROL }),
   component: IntegrationsPage,
 });
 

@@ -5,11 +5,18 @@ import { isRedirect } from "@tanstack/react-router";
  * client; nothing navigates. Navigate to the target instead. The returned promise never settles
  * because the page is leaving, so callers don't treat the redirect as failure.
  */
-export async function followServerRedirect<T>(call: Promise<T>): Promise<T> {
+export async function followServerRedirect<T>(
+  call: Promise<T>,
+  shouldNavigate?: () => boolean
+): Promise<T> {
   try {
     return await call;
   } catch (error) {
-    if (isRedirect(error) && typeof window !== "undefined") {
+    if (
+      isRedirect(error) &&
+      typeof window !== "undefined" &&
+      (shouldNavigate?.() ?? true)
+    ) {
       const { href, to } = error.options;
       const target = href ?? (typeof to === "string" ? to : undefined);
       if (target) {

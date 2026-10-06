@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { isNotFound, isRedirect } from "@tanstack/react-router";
 
 import { getAuthSession } from "@/lib/auth/server";
@@ -8,7 +9,7 @@ export async function getServerSession(_params?: GetServerSessionParams) {
     if (isRedirect(error) || isNotFound(error)) {
       throw error;
     }
-    console.error("Error getting server session", error);
+    logError("Error getting server session", error);
     return null;
   });
   return { session: data?.session, user: data?.user };

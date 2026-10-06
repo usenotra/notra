@@ -1,4 +1,5 @@
 import "@tanstack/react-start/server-only";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   members,
@@ -122,7 +123,7 @@ export async function syncBrewContacts(userIds?: string[]) {
   const { failed, errors } = await upsertBrewContacts(contacts);
 
   if (errors.length > 0) {
-    console.error("[BrewContacts] Upsert failed", {
+    logError("[BrewContacts] Upsert failed", undefined, {
       failed,
       errors: errors.slice(0, BREW_CONTACTS_LOGGED_ERROR_LIMIT),
     });
