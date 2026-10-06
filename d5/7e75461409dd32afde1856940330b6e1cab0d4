@@ -1,0 +1,20 @@
+apps/web/src/components/offering-check/offering-sentence-field.tsx
+  s_6a2418f3350ad8::t_5cd6babafdfea3 48-52
+  s_6a2418f3350ad8::t_a0b8620866d17d 2,17-18,25-27,29-41,43-44,47,53,72,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d57e75461409dd32afde1856940330b6e1cab0d4",
+  "prompts": {},
+  "sessions": {
+    "s_6a2418f3350ad8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2491fe07-3c1b-4db8-89bd-1d1e5b0410c4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
