@@ -1,0 +1,23 @@
+apps/dashboard/src/components/design-system/sections/confirm-dialog-section.tsx
+  s_d2a045b30093ab::t_c41e0cc5ec90bf 1-79,82-97,100-105
+packages/ui/src/components/shared/confirm-dialog.tsx
+  s_d2a045b30093ab::t_7e8df9570a1126 1-62,65-94
+packages/ui/src/types/confirm-dialog.ts
+  s_d2a045b30093ab::t_815f8b7493cf9a 1-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "493c3f65244f5e2b147d465da48ff0f09262709c",
+  "prompts": {},
+  "sessions": {
+    "s_d2a045b30093ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ccd557e9-a7c3-4dad-b32c-8e30b2e1f532",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
