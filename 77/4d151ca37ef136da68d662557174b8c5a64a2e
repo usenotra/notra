@@ -1,0 +1,87 @@
+apps/dashboard/src/constants/chat-annotations.ts
+  s_f139c6879e9952::t_15e3af6cb2a30f 12-15
+  s_f139c6879e9952::t_4f300dc2c6835b 10-11
+  s_f139c6879e9952::t_8dd4d06e00d2a4 8-9
+  s_f139c6879e9952::t_f961fe8453fd12 1-7
+apps/dashboard/src/styles/globals.css
+  s_f139c6879e9952::t_4f300dc2c6835b 339-342
+  s_f139c6879e9952::t_8dd4d06e00d2a4 334-338
+packages/ai/src/prompts/standalone-chat.ts
+  s_f139c6879e9952::t_bf8e92b9ff4128 98
+apps/dashboard/src/types/components/chat-annotation-note-form.ts
+  s_f139c6879e9952::t_12af798a56dce6 1,3-7
+  s_f139c6879e9952::t_bf8e92b9ff4128 2
+apps/dashboard/src/types/chat-annotations.ts
+  s_f139c6879e9952::t_4f300dc2c6835b 7-8
+  s_f139c6879e9952::t_f961fe8453fd12 1-6,9-15
+apps/dashboard/src/utils/chat-annotations.ts
+  s_f139c6879e9952::t_44e779aaef9b0f 34-37
+  s_f139c6879e9952::t_f961fe8453fd12 1-2,5-33,38-45,52-90,102-104
+  s_f139c6879e9952::t_15e3af6cb2a30f 3-4,46-51,91-101
+apps/dashboard/src/components/chat/chat-quote.tsx
+  s_f139c6879e9952::t_30b4d62c554f07 4-8,39,61,74,80-81,279-293,296-311
+  s_f139c6879e9952::t_4f300dc2c6835b 34-38,63-65,76,86,123,134-137,140-142,169-180,186-190,192,198-234,239,243,250-252,256-257,265-267,272-275,277-278,294-295
+  s_f139c6879e9952::t_15e3af6cb2a30f 66-68
+  ai_agent 253-255
+apps/dashboard/src/components/chat/chat-content-panel.tsx
+  s_f139c6879e9952::t_fc8b47f1ab86d8 47-53,275-277,417-419,422-426
+  s_f139c6879e9952::t_4b1937c67543fb 278-281,284,368-382
+  s_f139c6879e9952::t_8dd4d06e00d2a4 61,105-109,132
+apps/dashboard/src/components/chat/chat-annotations-preview.tsx
+  s_f139c6879e9952::t_7578904ccae22b 1-6,8-14,16-17,19-22,24-30,32-52,54-58,60-61,106-134
+  ai_agent 7
+  s_f139c6879e9952::t_bf8e92b9ff4128 15,18,23,31,53,59,62-105
+apps/dashboard/src/lib/hooks/use-annotation-highlights.ts
+  s_f139c6879e9952::t_8dd4d06e00d2a4 1-7,9-40,43-45,48-51,53-71,73-74
+  s_f139c6879e9952::t_94e849356c09e3 8,41-42,46-47,52,72
+apps/dashboard/messages/en.json
+  s_f139c6879e9952::t_eed77a8947b43b 5713-5714,5732-5734
+  s_f139c6879e9952::t_bf8e92b9ff4128 5735-5742
+apps/dashboard/src/types/components/chat-annotations-preview.ts
+  s_f139c6879e9952::t_7578904ccae22b 1-3
+apps/dashboard/src/types/components/chat-message-annotations.ts
+  s_f139c6879e9952::t_e2193be0d58e3b 1-6
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_f139c6879e9952::t_e2193be0d58e3b 831-839,1449-1451,2295-2296,2300-2309,2311-2315
+  ai_agent 83,153,2310
+apps/dashboard/src/constants/design-system-todo-list.ts
+  s_f139c6879e9952::t_e1782afbad1b23 65-79,81-82
+  s_f139c6879e9952::t_3c8541fa2ae8ed 11-18,80
+apps/dashboard/src/types/components/chat-quote.ts
+  s_f139c6879e9952::t_30b4d62c554f07 3-4,24-26
+  s_f139c6879e9952::t_4f300dc2c6835b 31-32
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_f139c6879e9952::t_7578904ccae22b 79,105,114-117,1079,1267,1293,1337-1341,2431,2496,2500,2503,2511,2545,2823,2928
+apps/dashboard/src/components/chat/chat-message-annotations.tsx
+  s_f139c6879e9952::t_e2193be0d58e3b 1-19,21-23,25-26,38-44
+  s_f139c6879e9952::t_bf8e92b9ff4128 20,24,27-37
+apps/dashboard/src/components/chat/chat-annotation-note-form.tsx
+  s_f139c6879e9952::t_5ae157bc06e926 33-42
+  s_f139c6879e9952::t_bf8e92b9ff4128 5,14,25
+  s_f139c6879e9952::t_12af798a56dce6 1-3,6-13,15-24,26-30,32,44-71
+  s_f139c6879e9952::t_4f300dc2c6835b 4,31,43
+apps/dashboard/src/components/ai/chat-todo-list.tsx
+  s_f139c6879e9952::t_e1782afbad1b23 12,15,97-115,139-145,147-148,150-151,153-184
+  s_f139c6879e9952::t_3bc37e96e5f375 146,149,152
+apps/dashboard/src/lib/hooks/use-scroll-edges.ts
+  s_f139c6879e9952::t_e1782afbad1b23 1-46
+apps/dashboard/messages/de.json
+  s_f139c6879e9952::t_bf8e92b9ff4128 5735-5742
+  s_f139c6879e9952::t_eed77a8947b43b 5713-5714,5732-5734
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "774d151ca37ef136da68d662557174b8c5a64a2e",
+  "prompts": {},
+  "sessions": {
+    "s_f139c6879e9952": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f1ecc6e4-b772-423a-95ad-3c5d44ed694d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
