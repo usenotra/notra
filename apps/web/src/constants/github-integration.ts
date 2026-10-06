@@ -96,8 +96,6 @@ export const GITHUB_TOOLS: IntegrationTool[] = [
   },
 ];
 
-export const GITHUB_CTA_BADGE_LABEL = "Get 10% off the yearly plan";
-
 export const GITHUB_CTA_HEADING = "Publish a changelog every week";
 
 export const GITHUB_CTA_SUBCOPY =

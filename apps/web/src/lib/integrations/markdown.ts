@@ -2,7 +2,6 @@ import { AUTH_SIGNUP_URL } from "@/constants/auth";
 import {
   GITHUB_CONNECT_HREF,
   GITHUB_CONNECT_LABEL,
-  GITHUB_CTA_BADGE_LABEL,
   GITHUB_CTA_CONTACT_HREF,
   GITHUB_CTA_HEADING,
   GITHUB_CTA_PRIMARY_LABEL,
@@ -24,7 +23,6 @@ import {
 import {
   GRANOLA_CONNECT_HREF,
   GRANOLA_CONNECT_LABEL,
-  GRANOLA_CTA_BADGE_LABEL,
   GRANOLA_CTA_CONTACT_HREF,
   GRANOLA_CTA_HEADING,
   GRANOLA_CTA_PRIMARY_LABEL,
@@ -52,7 +50,6 @@ import {
 import {
   LINEAR_CONNECT_HREF,
   LINEAR_CONNECT_LABEL,
-  LINEAR_CTA_BADGE_LABEL,
   LINEAR_CTA_CONTACT_HREF,
   LINEAR_CTA_HEADING,
   LINEAR_CTA_PRIMARY_LABEL,
@@ -74,7 +71,6 @@ import {
 import {
   SLACK_CONNECT_HREF,
   SLACK_CONNECT_LABEL,
-  SLACK_CTA_BADGE_LABEL,
   SLACK_CTA_CONTACT_HREF,
   SLACK_CTA_HEADING,
   SLACK_CTA_PRIMARY_LABEL,
@@ -288,8 +284,6 @@ export function buildSlackIntegrationMarkdown(): string {
     markdownSection(SLACK_CTA_HEADING, [
       SLACK_CTA_SUBCOPY,
       "",
-      SLACK_CTA_BADGE_LABEL,
-      "",
       `- [${SLACK_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
       `- [${SLACK_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(SLACK_CTA_CONTACT_HREF)})`,
     ]),
@@ -337,8 +331,6 @@ export function buildGithubIntegrationMarkdown(): string {
     markdownSection(GITHUB_CTA_HEADING, [
       GITHUB_CTA_SUBCOPY,
       "",
-      GITHUB_CTA_BADGE_LABEL,
-      "",
       `- [${GITHUB_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
       `- [${GITHUB_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(GITHUB_CTA_CONTACT_HREF)})`,
     ]),
@@ -383,8 +375,6 @@ export function buildLinearIntegrationMarkdown(): string {
     markdownSection("Tools", renderToolLines(LINEAR_TOOLS)),
     markdownSection(LINEAR_CTA_HEADING, [
       LINEAR_CTA_SUBCOPY,
-      "",
-      LINEAR_CTA_BADGE_LABEL,
       "",
       `- [${LINEAR_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
       `- [${LINEAR_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(LINEAR_CTA_CONTACT_HREF)})`,
@@ -433,8 +423,6 @@ export function buildGranolaIntegrationMarkdown(): string {
     markdownSection("Tools", renderToolLines(GRANOLA_TOOLS)),
     markdownSection(GRANOLA_CTA_HEADING, [
       GRANOLA_CTA_SUBCOPY,
-      "",
-      GRANOLA_CTA_BADGE_LABEL,
       "",
       `- [${GRANOLA_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
       `- [${GRANOLA_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(GRANOLA_CTA_CONTACT_HREF)})`,

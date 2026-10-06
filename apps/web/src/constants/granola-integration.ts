@@ -92,8 +92,6 @@ export const GRANOLA_TOOLS: IntegrationTool[] = [
   },
 ];
 
-export const GRANOLA_CTA_BADGE_LABEL = "Get 10% off the yearly plan";
-
 export const GRANOLA_CTA_HEADING = "Publish stories from your customer calls";
 
 export const GRANOLA_CTA_SUBCOPY =

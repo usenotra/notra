@@ -94,9 +94,7 @@ export const LINEAR_TOOLS: IntegrationTool[] = [
   },
 ];
 
-export const LINEAR_CTA_BADGE_LABEL = "Get 10% off the yearly plan";
-
-export const LINEAR_CTA_HEADING = "Write release notes when the cycle ends";
+export const LINEAR_CTA_HEADING = "Write release notes when the sprint ends";
 
 export const LINEAR_CTA_SUBCOPY =
   "Connect Linear and turn this cycle's finished issues into release notes ready to publish.";

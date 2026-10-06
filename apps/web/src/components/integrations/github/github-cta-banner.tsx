@@ -1,12 +1,9 @@
-import { Megaphone01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Link } from "@tanstack/react-router";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
-  GITHUB_CTA_BADGE_LABEL,
   GITHUB_CTA_CONTACT_HREF,
   GITHUB_CTA_HEADING,
   GITHUB_CTA_PRIMARY_LABEL,
@@ -30,16 +27,6 @@ export function GithubCtaBanner() {
       />
       <div className="relative flex w-full max-w-[53.3125rem] flex-col items-center gap-10.5">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-0.75 rounded-[0.5625rem] bg-[#FFFFFF80] py-1 pr-2 pl-1 [outline:0.0625rem_solid_#F6F8FA80] -outline-offset-1 backdrop-blur-[0.15rem] dark:bg-white/10 dark:[outline:0.0625rem_solid_#FFFFFF1F]">
-            <HugeiconsIcon
-              className="shrink-0 text-[#1E1E1ECC] dark:text-white/80"
-              icon={Megaphone01Icon}
-              size={16}
-            />
-            <span className="font-sans text-xs leading-4 font-medium text-[#1E1E1ECC] dark:text-white/80">
-              {GITHUB_CTA_BADGE_LABEL}
-            </span>
-          </div>
           <div className="flex flex-col items-center gap-4.5">
             <h2 className="font-display max-w-[46.625rem] text-center text-[2.5rem] leading-[114%] font-medium tracking-[-0.125rem] text-balance text-[#1E1E1E] sm:text-[3rem] lg:text-[4rem] dark:text-white">
               {GITHUB_CTA_HEADING}

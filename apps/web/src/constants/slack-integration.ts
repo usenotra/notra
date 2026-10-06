@@ -123,8 +123,6 @@ export const SLACK_TOOLS: IntegrationTool[] = [
   },
 ];
 
-export const SLACK_CTA_BADGE_LABEL = "Get 10% off the yearly plan";
-
 export const SLACK_CTA_HEADING = "Announce what you ship from Slack";
 
 export const SLACK_CTA_SUBCOPY =
