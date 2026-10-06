@@ -1,9 +1,10 @@
 import { ResponsiveDialogContent } from "@notra/ui/components/shared/responsive-dialog";
 import { DialogContent } from "@notra/ui/components/ui/dialog";
 import { cn } from "@notra/ui/lib/utils";
-import type { ComponentProps } from "react";
-
-import type { SplitModalContentProps } from "@/types/components/split-modal";
+import type {
+  SplitModalContentProps,
+  SplitModalPaneProps,
+} from "@notra/ui/types/split-modal";
 
 export function SplitModalContent({
   className,
@@ -26,7 +27,7 @@ export function SplitModalContent({
 export function SplitModalPane({
   className,
   ...props
-}: ComponentProps<"section">) {
+}: SplitModalPaneProps) {
   return (
     <section
       className={cn(
