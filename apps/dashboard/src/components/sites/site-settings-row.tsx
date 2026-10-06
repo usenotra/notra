@@ -1,6 +1,5 @@
 import type { SiteSettingsRowProps } from "@/types/components/sites";
 
-/** One setting: label and hint on the left, the control on the right (stacked below `lg`). */
 export function SiteSettingsRow({
   label,
   htmlFor,

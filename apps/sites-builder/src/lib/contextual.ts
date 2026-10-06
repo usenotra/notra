@@ -12,10 +12,6 @@ import type {
 import { lucideIcon } from "../utils/icons";
 import { absoluteUrl, config } from "./params";
 
-/**
- * `{url}` at the very start is the whole link target and stays as is;
- * anywhere else it's a query value and gets encoded.
- */
 function fillTemplate(
   template: string,
   values: Record<string, string>
@@ -29,12 +25,10 @@ function fillTemplate(
   );
 }
 
-/** `contextual.options` in their configured order. */
 export function contextualActions(page: ContextualPage): ContextualActions {
   if (config.contextual.display === "none") {
     return { copy: false, menu: [] };
   }
-  // The chat app reads the Markdown twin itself; the prompt only points at it.
   const prompt = encodeURIComponent(
     `Read the article "${page.title}" at ${absoluteUrl(page.markdownHref)} and help me with any questions I have about it.`
   );

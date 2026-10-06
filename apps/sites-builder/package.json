@@ -13,6 +13,7 @@
     "test": "bun test tests",
     "fixture:build": "bun compiler/cli.ts build --source fixtures/acme --target fixtures/acme.target.json --out .notra/fixture-out",
     "fixture:dev": "bun compiler/cli.ts dev --source fixtures/acme",
+    "demo:dev": "bun compiler/cli.ts dev --source fixtures/demo",
     "snapshot": "bun scripts/create-box-snapshot.ts"
   },
   "dependencies": {

@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { areaTitle, config, href, params } from "../lib/params";
 
 const notFound = config.errors[404];
-const title = notFound.title ?? "This page doesn’t exist";
+const title = notFound.title ?? "This page doesn't exist";
 const description = notFound.description ?? "It may have moved, or the link is wrong.";
 const target = href();
 ---
@@ -14,7 +14,6 @@ const target = href();
       <Fragment slot="head">
         <meta http-equiv="refresh" content={`0; url=${target}`} />
         <script is:inline define:vars={{ target }}>
-          // Faster than the refresh, and keeps the broken URL out of the history.
           location.replace(target);
         </script>
       </Fragment>

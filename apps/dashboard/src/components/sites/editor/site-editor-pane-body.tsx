@@ -11,7 +11,6 @@ import { SITE_EDITOR_LOADING_LINES } from "@/constants/site-editor";
 import type { SiteEditorPaneBodyProps } from "@/types/components/site-editor";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** What the open file shows below its bar: loading, an error, the editor, or the diff. */
 export function SiteEditorPaneBody({
   path,
   isLoading,

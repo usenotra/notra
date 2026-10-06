@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import type { SiteOverviewDomainsProps } from "@/types/components/sites";
 import { displayUrl, siteHref, siteUrlOnOrigin } from "@/utils/site-links";
 
-/** The custom domains (primary first), or the Notra address and a way to add one. */
 export function SiteOverviewDomains({
   domains,
   aliasUrl,

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 
-/** Asks the browser to confirm leaving the page while `active` (e.g. unsaved edits). */
 export function useWarnBeforeUnload(active: boolean) {
   useEffect(() => {
     if (!active) {

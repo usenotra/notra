@@ -20,10 +20,6 @@ import type {
 } from "./types/deployments";
 import type { Site } from "./types/sites";
 
-/**
- * Cleanup may have removed the files of a build that sat ready for long;
- * pointing the state at them would serve errors.
- */
 async function hasStoredFiles(
   site: Site,
   deployment: SiteDeployment
@@ -39,11 +35,6 @@ function liveUnlessSuperseded(
   return outcome.outcome === "superseded" ? "not_live" : "live";
 }
 
-/**
- * Points the serving state at a finished deployment. The R2 state is the only
- * record of what is live; nothing is mirrored into the database, so there is
- * no second copy that could disagree after a crash.
- */
 export async function activateDeployment(
   site: Site,
   deployment: SiteDeployment
@@ -72,10 +63,6 @@ export async function activateDeployment(
   );
 }
 
-/**
- * Instant rollback to a stored production deployment. It takes a fresh
- * generation, so builds that were already running cannot override it later.
- */
 export async function restoreProductionDeployment(
   site: Site,
   deployment: SiteDeployment
@@ -92,7 +79,6 @@ export async function restoreProductionDeployment(
   );
 }
 
-/** What the site serves right now: every open preview, and the ids of all referenced deployments. */
 export async function readLiveDeployments(
   siteId: string
 ): Promise<LiveDeployments> {

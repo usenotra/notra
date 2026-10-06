@@ -17,25 +17,21 @@ export function getSitesR2Env() {
   };
 }
 
-/** Domain the sites worker serves aliases and previews under, e.g. `notra.site`. */
 export function getSitesHostingDomain(): string {
   return required("SITES_HOSTING_DOMAIN").toLowerCase();
 }
 
-/** `https` in production; local dev against `*.localhost` uses `http`. */
 export function getSitesHostingProtocol(): "http" | "https" {
   return process.env.SITES_HOSTING_PROTOCOL?.trim() === "http"
     ? "http"
     : "https";
 }
 
-/** Local dev only (`wrangler dev` on :8787); production serves on 443. */
 export function getSitesHostingPortSuffix(): string {
   const port = process.env.SITES_HOSTING_PORT?.trim();
   return port ? `:${port}` : "";
 }
 
-/** CNAME target customers point their subdomain at. */
 export function siteCnameTarget(): string {
   return (
     process.env.SITES_CNAME_TARGET?.trim() || `cname.${getSitesHostingDomain()}`

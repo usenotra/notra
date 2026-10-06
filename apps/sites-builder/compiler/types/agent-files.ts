@@ -1,4 +1,3 @@
-/** Written by the theme's `notra-pages.json` endpoint for every area build. */
 export interface AreaPages {
   area: "blog" | "changelog";
   title: string;
@@ -8,7 +7,6 @@ export interface AreaPages {
     path: string;
     title: string;
     description?: string;
-    /** First paragraph of the body, for listings when there is no description. */
     summary?: string;
     date: string;
     updated?: string;
@@ -21,14 +19,12 @@ export interface AreaPages {
 
 export type AreaPageEntry = AreaPages["entries"][number];
 
-/** https://llmstxt.org input: one site, or one mounted area of it. */
 export interface LlmsTxtParams {
   name: string;
   description?: string;
   areas: AreaPages[];
   origin: string;
   fullTextPath: string;
-  /** notra.json `markdown.instructions`, normalized to a list. */
   instructions: readonly string[];
 }
 
@@ -39,6 +35,5 @@ export interface WriteAgentFilesParams {
   siteDescription?: string;
   areas: AreaPages[];
   pageHtml: ReadonlyMap<string, string>;
-  /** notra.json `markdown.instructions`, normalized to a list. */
   instructions: readonly string[];
 }

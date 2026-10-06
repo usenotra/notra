@@ -20,7 +20,6 @@ import type {
 import { resolveLinkUrl } from "./links";
 import { isAccentColor, normalizeHexColor } from "./starter-color";
 
-/** Text for MDX children: no `{`, `<`, `*` or `[` can start an expression, a tag or Markdown. */
 export function escapeMdxText(value: string): string {
   let result = "";
   for (const char of value) {
@@ -31,7 +30,6 @@ export function escapeMdxText(value: string): string {
   return result;
 }
 
-/** A JSX attribute string; quotes and braces are removed rather than escaped. */
 function attributeText(value: string): string {
   return value.replace(/["{}<>\\`]/g, "").trim();
 }
@@ -60,7 +58,6 @@ function webFont(family: string | null | undefined): string | null {
   return STARTER_SYSTEM_FONTS.has(trimmed.toLowerCase()) ? null : trimmed;
 }
 
-/** Brand identity first; the landing page only fills gaps. */
 function resolveColors(input: StarterBrandInput) {
   const landing = input.landing;
   const landingAccent = normalizeHexColor(landing?.themeColor);
@@ -72,7 +69,6 @@ function resolveColors(input: StarterBrandInput) {
   return { primary, primaryDark };
 }
 
-/** Fonts the page already loads from Google Fonts are known to work; brand fonts are the fallback. */
 function resolveFonts(input: StarterBrandInput) {
   const pageFonts = (input.landing?.fontFamilies ?? [])
     .map(webFont)
@@ -131,12 +127,6 @@ function siteDescription(input: StarterBrandInput): string | null {
     : null;
 }
 
-/**
- * notra.json: name, logo, favicon, colors, fonts and background match the
- * landing page. Links live in header.mdx and footer.mdx, which replace the
- * theme's own header and footer; socials stay here because structured data
- * reads them.
- */
 export function buildStarterConfig(input: StarterBrandInput) {
   const name = siteName(input);
   const description = siteDescription(input);
@@ -186,7 +176,6 @@ export function buildStarterConfig(input: StarterBrandInput) {
   if (parsed.success) {
     return config;
   }
-  // Something on the page did not fit the schema; a plain config still builds.
   return description ? { name, description } : { name };
 }
 
@@ -215,7 +204,6 @@ function renderLogo(input: StarterBrandInput, name: string): string[] {
   return lines;
 }
 
-/** header.mdx: logo, name and the landing page's header links, in plain Tailwind. */
 function buildStarterHeader(input: StarterBrandInput): string {
   const name = siteName(input);
   const home = homeUrl(input) ?? "/";
@@ -227,8 +215,6 @@ function buildStarterHeader(input: StarterBrandInput): string {
     `    <a href="${home}" className="flex items-center gap-2.5 text-[0.9375rem] font-semibold tracking-tight">`,
     ...renderLogo(input, name),
     "    </a>",
-    // Built-ins: the blog/changelog switch and the light/dark toggle a custom
-    // header would otherwise lose.
     "    <SiteAreas />",
   ];
   if (links.length > 0) {
@@ -243,7 +229,6 @@ function buildStarterHeader(input: StarterBrandInput): string {
       `    <a href="${cta.href}" className="${links.length > 0 ? "" : "ml-auto "}rounded-full bg-primary-button px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">${escapeMdxText(cta.label)}</a>`
     );
   }
-  // Pushed right only when nothing before it already is.
   lines.push(
     links.length > 0 || cta
       ? "    <ThemeToggle />"
@@ -255,7 +240,6 @@ function buildStarterHeader(input: StarterBrandInput): string {
   return lines.join("\n");
 }
 
-/** footer.mdx: name, description and the landing page's footer links. */
 function buildStarterFooter(input: StarterBrandInput): string {
   const name = siteName(input);
   const description = siteDescription(input);
@@ -289,23 +273,21 @@ function buildStarterFooter(input: StarterBrandInput): string {
   return lines.join("\n");
 }
 
-/** A first post, so the first build has something to show and the frontmatter has an example. */
 function buildStarterPost(input: StarterBrandInput, now: Date): string {
   const name = siteName(input);
   const date = now.toISOString().slice(0, 10);
   return [
     "---",
-    // JSON strings are valid YAML double-quoted scalars.
     `title: ${JSON.stringify(`Welcome to the ${name} blog`)}`,
     `description: ${JSON.stringify(`The first post on the ${name} blog.`)}`,
     `date: ${date}`,
     "---",
     "",
-    `This blog is built by Notra Sites from this repository. Every Markdown file in \`blog/\` becomes a post.`,
+    `Notra Sites builds this blog from this repository. Every Markdown file in \`blog/\` becomes a post.`,
     "",
     "## Where things live",
     "",
-    "- `notra.json` sets the name, logo, colors and fonts.",
+    "- `blog.json` sets the name, logo, colors and fonts.",
     "- `header.mdx` and `footer.mdx` are the header and footer, written in MDX with Tailwind classes.",
     "- `blog/` holds the posts. Each one starts with a title, a description and a date.",
     "",
@@ -314,7 +296,6 @@ function buildStarterPost(input: StarterBrandInput, now: Date): string {
   ].join("\n");
 }
 
-/** All starter files, relative to the site root. */
 export function buildSiteStarterFiles(
   input: StarterBrandInput,
   now: Date = new Date()

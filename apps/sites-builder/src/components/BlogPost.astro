@@ -27,14 +27,12 @@ const image = assetUrl(entry.data.image);
 const authors = options.authorCard ? authorsOf(entry) : [];
 const updated =
   config.metadata.timestamp && entry.data.updated && isoDate(entry.data.updated) !== isoDate(entry.data.date) ? entry.data.updated : undefined;
-// Newest first: the next post is the newer one.
 const entries = options.pagination ? await getBlogEntries() : [];
 const index = entries.findIndex((other) => other.id === entry.id);
 const next = index > 0 ? entries[index - 1] : undefined;
 const previous = index >= 0 ? entries[index + 1] : undefined;
 const post = slotPost(entry);
 const hasSidebarSlot = Boolean(slotComponent("sidebar"));
-// Narrow posts are one reading column: no sidebar, so the byline moves under the title.
 const wide = options.width === "wide" && (authors.length > 0 || options.toc || hasSidebarSlot);
 ---
 

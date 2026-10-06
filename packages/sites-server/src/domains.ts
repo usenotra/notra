@@ -42,7 +42,6 @@ import type { Site } from "./types/sites";
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
 
-/** A domain of this site, or a SiteInputError when it does not exist. */
 export async function requireSiteDomain(
   siteId: string,
   domainId: string
@@ -106,10 +105,6 @@ function assertPublicHostname(hostname: string) {
   }
 }
 
-/**
- * Cloudflare holds one entry per hostname. An abandoned, unverified claim from
- * another site may still own it; replace it, since only DNS control decides who verifies.
- */
 async function claimCustomHostname(
   config: CloudflareSaasConfig,
   hostname: string
@@ -138,10 +133,6 @@ async function claimCustomHostname(
   }
 }
 
-/**
- * `subdomain`: the customer CNAMEs e.g. blog.acme.com to us (Cloudflare for SaaS issues TLS).
- * `proxy`: the customer keeps acme.com and forwards /blog and /changelog to the site alias.
- */
 export async function addSiteDomain(
   site: Site,
   input: AddSiteDomainInput
@@ -156,7 +147,6 @@ export async function addSiteDomain(
     throw new SiteInputError("Enter a domain like blog.acme.com");
   }
   assertPublicHostname(hostname);
-  // Unverified claims by other sites do not block anyone; only a verified domain is taken.
   const claims = await db
     .select()
     .from(siteDomains)
@@ -202,11 +192,6 @@ async function fetchWithTimeout(url: string): Promise<Response> {
   });
 }
 
-/**
- * Checks that the customer's proxy forwards every mount to this site:
- * the probe file must name this site, and the landing page must be served
- * without a noindex header leaking through. Returns the problem, or null.
- */
 async function probeProxyOrigin(
   site: Site,
   origin: string
@@ -246,7 +231,6 @@ async function checkProxyDomain(
   };
 }
 
-/** Verified once Cloudflare has the hostname and its certificate active; then the host is claimed. */
 async function checkSubdomain(
   site: Site,
   domain: SiteDomain
@@ -278,7 +262,6 @@ async function checkSubdomain(
   };
 }
 
-/** A domain that was live and stopped verifying is "failed"; one that never verified is still "verifying". */
 function nextDomainStatus(
   previous: SiteDomain["status"],
   verified: boolean
@@ -289,7 +272,6 @@ function nextDomainStatus(
   return previous === "active" ? "failed" : "verifying";
 }
 
-/** Re-checks a domain; on success it becomes the site's canonical origin and the site is rebuilt for it. */
 export async function refreshSiteDomain(
   site: Site,
   domainId: string,
@@ -355,7 +337,6 @@ export async function removeSiteDomain(
       : undefined,
   ]);
   await db.delete(siteDomains).where(eq(siteDomains.id, domain.id));
-  // Falling back to the alias rebuilds canonicals/feeds for it.
   return site.publicOrigin === `https://${domain.hostname}`
     ? await setSitePublicOrigin(site, aliasOrigin, userId)
     : null;

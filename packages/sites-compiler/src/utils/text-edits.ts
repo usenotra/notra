@@ -1,7 +1,6 @@
 import { FRONTMATTER_BLOCK } from "../constants/frontmatter";
 import type { BlankedFrontmatter, TextEdit } from "../types/mdx";
 
-/** Replaces the frontmatter with same-length whitespace so parser offsets stay absolute. */
 export function blankFrontmatter(source: string): BlankedFrontmatter {
   const match = FRONTMATTER_BLOCK.exec(source);
   if (!match) {
@@ -14,7 +13,6 @@ export function blankFrontmatter(source: string): BlankedFrontmatter {
   };
 }
 
-/** Applies edits back to front, so earlier offsets stay valid. */
 export function applyEdits(source: string, edits: readonly TextEdit[]): string {
   let output = source;
   for (const edit of [...edits].sort(

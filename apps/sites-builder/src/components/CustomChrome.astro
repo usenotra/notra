@@ -9,13 +9,11 @@ interface Props {
 
 const { part } = Astro.props;
 const Component = chromeComponent(part);
-// The badge is part of the plan, not the theme: a custom footer keeps it as a slim row.
 const showBranding = part === "footer" && params.branding;
 ---
 
 {
   Component && (
-    // The customer's file brings its own <header>/<footer> element; this wrapper only marks the spot.
     <div data-custom-chrome={part}>
       <Component />
       {showBranding && (

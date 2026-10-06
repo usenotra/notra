@@ -185,7 +185,6 @@ function scanExport(
   }
 }
 
-/** Import and export statements: resolves imports, sorts exports into inline components and values. */
 function scanModule(pass: MdxPass, tree: Root): ModuleScan {
   const scan: ModuleScan = {
     imports: [],
@@ -222,10 +221,6 @@ function scanModule(pass: MdxPass, tree: Root): ModuleScan {
   return scan;
 }
 
-/**
- * Inline components run in the browser as islands, so they cannot see values
- * imported by the MDX file (those only exist at build time).
- */
 function checkInlineComponents(pass: MdxPass, scan: ModuleScan) {
   for (const inline of scan.inline) {
     const used = new Set(
@@ -244,10 +239,6 @@ function checkInlineComponents(pass: MdxPass, scan: ModuleScan) {
   }
 }
 
-/**
- * Snippets take props by bare name: `{word}` in a snippet means the prop
- * `word`. Returns the offsets of free identifiers to prefix with `props.`.
- */
 function snippetPropOffsets(
   program: Program,
   localNames: ReadonlySet<string>
@@ -268,7 +259,6 @@ function snippetPropOffsets(
     .map((reference) => reference.start);
 }
 
-/** Expressions and JSX in the content: checks, prop rewrites, client directives, built-ins. */
 function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
   const localNames = new Set([...scan.importedNames, ...scan.exportedNames]);
   const usedBuiltins = new Set<string>();
@@ -322,7 +312,6 @@ function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
   return usedBuiltins;
 }
 
-/** Moves inline components into `<file>.notra-inline.jsx` (hooks injected) and imports them back. */
 function buildInlineModule(
   pass: MdxPass,
   scan: ModuleScan
@@ -363,13 +352,6 @@ function buildInlineModule(
   };
 }
 
-/**
- * Validates one MDX file against the site contract and rewrites it for the
- * Astro build: site imports go through the `@site` alias, inline components
- * move into a hydratable module, custom React components get `client:load`,
- * built-in components are imported, and snippet `{props}` resolve.
- * Nothing here executes customer code.
- */
 export function analyzeMdxFile(
   path: string,
   source: string,

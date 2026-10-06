@@ -6,10 +6,6 @@ import { areaDescription, areaTitle, href, params } from "../lib/params";
 import { isoDate } from "../utils/dates";
 import { excerpt } from "../utils/excerpt";
 
-/**
- * Build-time page list for the notra-sites CLI, which turns every page into
- * Markdown and writes llms.txt. It is consumed during the build and never deployed.
- */
 export const GET: APIRoute = async () => {
   const common = {
     area: params.area,

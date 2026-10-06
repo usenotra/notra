@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-import { authorsOf } from "../lib/authors";
+import { authorNamesOf } from "../lib/authors";
 import { getAreaEntries } from "../lib/entries";
 import {
   absoluteUrl,
@@ -10,15 +10,8 @@ import {
   namedAreaTitle,
   params,
 } from "../lib/params";
-import type { BlogEntry, ChangelogEntry } from "../types/entries";
 import { excerpt } from "../utils/excerpt";
 import { escapeXml } from "../utils/xml";
-
-function authors(entry: BlogEntry | ChangelogEntry): string[] {
-  return entry.collection === "blog"
-    ? authorsOf(entry).map((author) => author.name)
-    : [];
-}
 
 export const GET: APIRoute = async () => {
   const entries = await getAreaEntries();
@@ -30,7 +23,7 @@ export const GET: APIRoute = async () => {
       const description = summary
         ? `<description>${escapeXml(summary)}</description>`
         : "";
-      const creators = authors(entry)
+      const creators = authorNamesOf(entry)
         .map((name) => `<dc:creator>${escapeXml(name)}</dc:creator>`)
         .join("");
       const categories = entry.data.tags

@@ -25,10 +25,6 @@ import type { SiteDeploymentMenuProps } from "@/types/components/sites";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import { isDeploymentInProgress, shortSha } from "@/utils/site-deployments";
 
-/**
- * Row and header actions for one deployment. A deployment's URL only shows
- * that deployment while it is live, so Visit and Copy URL need it to be live.
- */
 export function SiteDeploymentMenu({
   deployment,
   canRollback,

@@ -7,10 +7,6 @@ import { reapExhaustedSiteJobs } from "@notra/sites-server/runner";
 import { startSiteJobRun } from "@/lib/workflows/start";
 import type { SiteJobSweepResult } from "@/types/sites-server";
 
-/**
- * Starts a workflow per outbox job. Losing this call is harmless: the job row
- * stays pending and the per-minute sweep dispatches it again.
- */
 export async function dispatchSiteJobs(jobIds: string[]): Promise<void> {
   const results = await Promise.allSettled(
     jobIds.map((jobId) => startSiteJobRun(jobId))
@@ -34,8 +30,6 @@ export async function dispatchSiteJobs(jobIds: string[]): Promise<void> {
 }
 
 export async function sweepSiteJobs(): Promise<SiteJobSweepResult> {
-  // Independent: reaping takes jobs out of retries, the listing only returns
-  // jobs that still have attempts left.
   const [reaped, jobs] = await Promise.all([
     reapExhaustedSiteJobs(),
     listDispatchableSiteJobs(),

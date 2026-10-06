@@ -20,6 +20,7 @@ import type {
   SiteDraftChange,
   SiteEditorLanguage,
   SiteEditorSaveState,
+  SiteFileEditor,
   SiteFileTreeFile,
 } from "@/types/site-editor";
 import type {
@@ -58,10 +59,6 @@ export function siteFileIcon(path: string): IconSvgElement {
   return SITE_EDITOR_FILE_ICONS[siteEditorLanguage(path)];
 }
 
-/**
- * Every file the tree lists: the repository's site files plus files that only exist as
- * drafts. Deleted drafts drop out; other drafts mark their file.
- */
 export function listSiteEditorFiles(
   files: readonly SiteEditorFile[],
   drafts: readonly SiteEditorDraft[]
@@ -90,7 +87,6 @@ export function listSiteEditorFiles(
   return result;
 }
 
-/** Where a blog or changelog entry is served on the live site; null for other files. */
 export function siteFileLiveUrl(
   path: string,
   publicOrigin: string,
@@ -122,7 +118,6 @@ export function siteFileGithubUrl(
   return `https://github.com/${site.repository.owner}/${site.repository.name}/blob/${encodeURIComponent(site.productionBranch)}/${fullPath}`;
 }
 
-/** `My first post!` → `my-first-post`. */
 export function slugifyFileName(input: string): string {
   return input
     .toLowerCase()
@@ -147,7 +142,6 @@ export function siteNewFileTemplate(
   return `---\ntitle: ${safeTitle}\ndescription: ""\ndate: ${day}\n---\n\nStart writing here.\n`;
 }
 
-/** Paths a publish conflict reported, or null when the error is not a conflict. */
 export function publishConflictPaths(error: unknown): string[] | null {
   if (!(error instanceof ORPCError) || error.code !== "CONFLICT") {
     return null;
@@ -166,12 +160,10 @@ export function publishConflictPaths(error: unknown): string[] | null {
   return [];
 }
 
-/** Typed text that hasn't reached the server yet; leaving would lose it. */
 export function isSiteEditorUnsaved(saveState: SiteEditorSaveState): boolean {
   return saveState.status === "dirty" || saveState.status === "saving";
 }
 
-/** The open file has a draft: stored before, or saved (or saving) since. */
 export function siteEditorHasDraft(
   document: SiteEditorDocument | null,
   saveState: SiteEditorSaveState
@@ -183,12 +175,10 @@ export function siteEditorHasDraft(
   );
 }
 
-/** Key for Pierre's in-memory undo history of one site file. */
 export function siteEditStateKey(siteId: string, path: string): string {
   return `${SITE_EDITOR_EDIT_STATE_PREFIX}:${siteId}:${path}`;
 }
 
-/** Lines added and removed across a diff's hunks. */
 export function diffLineCounts(fileDiff: FileDiffMetadata): SiteDiffLineCounts {
   let additions = 0;
   let deletions = 0;
@@ -199,7 +189,6 @@ export function diffLineCounts(fileDiff: FileDiffMetadata): SiteDiffLineCounts {
   return { additions, deletions };
 }
 
-/** Pierre follows the dashboard theme; before next-themes resolves it follows the OS. */
 export function siteCodeThemeType(
   resolvedTheme: string | undefined
 ): ThemeTypes {
@@ -209,7 +198,6 @@ export function siteCodeThemeType(
   return "system";
 }
 
-/** How publishing a draft changes the repository. */
 export function siteDraftChange(
   draft: SiteEditorDraft,
   sourcePaths: ReadonlySet<string>
@@ -220,7 +208,6 @@ export function siteDraftChange(
   return sourcePaths.has(draft.path) ? "modified" : "added";
 }
 
-/** Every folder above a file path, outermost first. */
 export function siteFileAncestors(path: string): string[] {
   const parts = path.split("/");
   return parts
@@ -236,10 +223,6 @@ export function siteFileTreeFolderHandle(
   return item && "expand" in item ? item : null;
 }
 
-/**
- * Moves real focus onto a row inside Pierre's shadow root, so the tree's own keyboard
- * handling (arrows, Enter, Escape) takes over from the filter input.
- */
 export function focusSiteFileTreeRow(
   model: FileTreeModel,
   path: string
@@ -262,7 +245,6 @@ function isSiteFolderCollapsedByDefault(folder: string): boolean {
   );
 }
 
-/** Folders open on first render: everything but asset folders, plus the open file's. */
 export function siteFileTreeInitialExpandedFolders(
   paths: readonly string[],
   selectedPath: string | null
@@ -293,4 +275,16 @@ export function siteFileTreeGitStatus(
     }
   }
   return entries;
+}
+
+export function focusSiteEditorLine(
+  editor: SiteFileEditor | null,
+  surface: HTMLElement | null,
+  line: number
+) {
+  editor?.focus({ lineNumber: line, preventScroll: true });
+  surface
+    ?.querySelector("diffs-container")
+    ?.shadowRoot?.querySelector(`[data-line="${line}"]`)
+    ?.scrollIntoView({ block: "center" });
 }

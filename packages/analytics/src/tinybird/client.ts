@@ -496,7 +496,6 @@ export function queryGeoJourneyDetail(
   );
 }
 
-/** Human page views; written by the same batcher window as AI traffic. */
 export function ingestWebPageViews(
   rows: WebPageViewRow[]
 ): Promise<IngestResult | null> {

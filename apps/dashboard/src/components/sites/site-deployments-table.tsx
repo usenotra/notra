@@ -33,12 +33,6 @@ import {
 } from "@/utils/site-deployments";
 import { siteDeploymentHref } from "@/utils/site-links";
 
-/**
- * Deployments as rows, laid out like the feedback table: commit, environment
- * pill, status, author and time. The
- * deployments page and the overview's activity share it, so a build reads
- * the same everywhere; the page adds a row menu, the overview stays bare.
- */
 export function SiteDeploymentsTable({
   organizationId,
   organizationSlug,
@@ -60,20 +54,17 @@ export function SiteDeploymentsTable({
   const [rollbackTarget, setRollbackTarget] = useState<SiteDeployment | null>(
     null
   );
-  // Only builds created while the page is open glow; filtering never does.
   const [mountedAt] = useState(() => Date.now());
   const href = (deployment: SiteDeployment) =>
     siteDeploymentHref(organizationSlug, siteId, deployment.id);
 
   const [requestedPage, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(deployments.length / pageSize));
-  // Filters can shrink the list under the current page.
   const page = Math.min(requestedPage, pageCount);
   const pageRowCount = Math.min(
     pageSize,
     deployments.length - (page - 1) * pageSize
   );
-  // The table grows with the page's rows; the header takes one row's height.
   const tableHeight =
     deployments.length > 0
       ? (pageRowCount + 1) * SITE_DEPLOYMENT_ROW_HEIGHT
@@ -204,7 +195,6 @@ export function SiteDeploymentsTable({
       width: "3.25rem",
       align: "right",
       cell: (deployment) => (
-        // Menu events bubble through the portal to the row; keep them here.
         <span
           className="-my-1 flex justify-end"
           onClick={(event) => event.stopPropagation()}

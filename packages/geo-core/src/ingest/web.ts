@@ -5,6 +5,7 @@ import type { WebPageViewRow } from "@notra/analytics/tinybird/datasources";
 import { toClickHouseDateTime } from "@notra/analytics/utils/datetime";
 import { GEO_NON_AI_BOT_PATTERNS } from "@notra/geo-core/constants/geo";
 import {
+  ISO_DATE_LENGTH,
   WEB_AI_PRODUCTS,
   WEB_BROWSERS,
   WEB_MACHINE_PATH_PATTERN,
@@ -24,9 +25,6 @@ import type {
   WebSession,
 } from "../types/ingest";
 
-const ISO_DATE_LENGTH = 10;
-
-/** People only: no crawler, no non-AI bot, no prefetch, no file for machines. */
 export function isHumanPageView(
   input: Pick<WebPageViewInput, "classification" | "payload" | "url">
 ): boolean {
@@ -54,11 +52,6 @@ export function isHumanPageView(
   return !WEB_MACHINE_PATH_PATTERN.test(url.pathname);
 }
 
-/**
- * The same person on the same site on the same UTC day. Keyed with the ingest
- * secret and the day, so it can't be reversed or linked across days; no IP is
- * stored.
- */
 export function webVisitorId(
   scope: string,
   ip: string | undefined,
@@ -73,15 +66,6 @@ export function webVisitorId(
     .slice(0, WEB_VISITOR_ID_LENGTH);
 }
 
-/**
- * Continues the visitor's session if they viewed a page in the last 30
- * minutes, otherwise starts one. Arriving from a different outside source (a
- * search, social post, AI answer or campaign) also starts one, as in Google
- * Analytics, so each source keeps its own session. The same source again, as
- * after a redirect or a reload that keeps the referer, continues it. Without
- * Redis every view is its own session (index 0), which the rollups count as a
- * landing.
- */
 async function resolveSession(
   visitorId: string,
   origin: string | null
@@ -123,7 +107,6 @@ function matchHost(host: string, table: Record<string, string>): string | null {
   return null;
 }
 
-/** Search, AI, social, internal, other or direct, plus a short source name. */
 export function classifyWebReferrer(
   referer: string | undefined,
   pageHost: string,
@@ -169,7 +152,6 @@ function firstMatch(
   return fallback;
 }
 
-/** Coarse classes only: device, browser family and OS, never versions. */
 export function describeUserAgent(raw: string | undefined) {
   const userAgent = raw?.toLowerCase() ?? "";
   let device = "desktop";
@@ -185,7 +167,6 @@ export function describeUserAgent(raw: string | undefined) {
   };
 }
 
-/** One row for web_page_views, or null when this request isn't a person reading a page. */
 export async function buildWebPageView(
   input: WebPageViewInput
 ): Promise<WebPageViewRow | null> {

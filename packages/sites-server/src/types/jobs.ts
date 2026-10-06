@@ -10,7 +10,6 @@ export interface SiteJobOutcome {
   outcome?: DeploymentOutcome["kind"];
 }
 
-/** The deployment a build job is for, with its site. */
 export interface JobDeployment {
   site: Site;
   deployment: SiteDeployment;

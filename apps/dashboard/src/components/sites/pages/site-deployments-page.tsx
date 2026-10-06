@@ -57,7 +57,6 @@ export function SiteDeploymentsPage() {
   const [filters, setFilters] = useState<SiteDeploymentFilters>(
     SITE_DEPLOYMENT_NO_FILTERS
   );
-  // The site layout already holds the latest 30; show those until the full list arrives.
   const deployments: SiteDeployment[] = listQuery.data ?? detail.deployments;
   const visible = deployments.filter((deployment) =>
     deploymentMatchesFilters(deployment, filters)

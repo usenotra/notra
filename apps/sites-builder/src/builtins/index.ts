@@ -1,4 +1,3 @@
-// Not a convenience barrel: astro.config.mjs aliases `@notra/builtins` here, and the MDX compiler auto-imports every builtin from it.
 export { default as Accordion } from "./Accordion.astro";
 export { default as AccordionGroup } from "./AccordionGroup.astro";
 export { default as Badge } from "./Badge.astro";
@@ -16,7 +15,6 @@ export { default as Step } from "./Step.astro";
 export { default as Steps } from "./Steps.astro";
 export { default as Tab } from "./Tab.astro";
 export { default as Tabs } from "./Tabs.astro";
-// For a custom header.mdx / footer.mdx: the theme's light/dark switch and Blog/Changelog pills.
 export { default as SiteAreas } from "../components/SiteAreas.astro";
 export { default as ThemeToggle } from "../components/ThemeToggle.astro";
 export { default as Tip } from "./Tip.astro";

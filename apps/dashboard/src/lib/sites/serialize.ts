@@ -47,7 +47,6 @@ export function serializeSite(
     mounts: site.mounts,
     previewsEnabled: site.previewsEnabled,
     previewVisibility: site.previewVisibility,
-    /** Only whether a preview password is set and since when; the hash never leaves the server. */
     previewPasswordSetAt: site.previewPassword?.updatedAt ?? null,
     publishMode: site.publishMode,
     showBranding: site.showBranding,

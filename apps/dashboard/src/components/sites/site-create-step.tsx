@@ -5,11 +5,6 @@ import { useId } from "react";
 import { cn } from "@/lib/utils";
 import type { SiteCreateStepProps } from "@/types/components/sites";
 
-/**
- * One card on the new-site stage. Only the active card is interactive; the
- * others stay visible, dimmed, above and below it. A done card is a way
- * back: clicking it makes it the active one again.
- */
 export function SiteCreateStep({
   title,
   description,
@@ -36,7 +31,6 @@ export function SiteCreateStep({
             footer ? "mb-0" : null
           )}
         >
-          {/* Wide screens show the title beside the card instead. */}
           <div className="mb-5 space-y-1 @min-[64rem]/main:sr-only">
             <h2
               className="text-base font-semibold tracking-tight"
@@ -59,7 +53,6 @@ export function SiteCreateStep({
         ) : null}
       </div>
       {state === "done" && onActivate ? (
-        // The whole dimmed card leads back to its step.
         <button
           aria-label={title}
           className="focus-visible:ring-ring/50 absolute inset-0 cursor-pointer rounded-2xl outline-none focus-visible:ring-[3px]"

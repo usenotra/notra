@@ -375,7 +375,6 @@ export function createEventBatcher<R extends BatchedRow>(
 
 export type GeoEventBatcher = EventBatcher<GeoTrafficEventRow>;
 
-/** The AI traffic batcher: `geo_traffic_events` unless a test passes its own writer. */
 export function createGeoEventBatcher(
   options: EventBatcherOptions<GeoTrafficEventRow>
 ): GeoEventBatcher {

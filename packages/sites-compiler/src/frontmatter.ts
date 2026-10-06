@@ -18,11 +18,6 @@ function frontmatterError(
   return { severity: "error", file: path, line: 1, code, message };
 }
 
-/**
- * Parses and checks a post's or changelog entry's frontmatter. Used by
- * validation and by build steps that need the data before Astro runs
- * (share images).
- */
 export function parseEntryFrontmatter(
   path: string,
   area: SiteEntry["area"],

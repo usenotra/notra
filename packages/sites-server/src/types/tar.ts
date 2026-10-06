@@ -1,5 +1,4 @@
 export interface ArchiveFile {
-  /** Normalized relative path, forward slashes, no leading `./` or `/`. */
   path: string;
   data: Uint8Array<ArrayBuffer>;
 }

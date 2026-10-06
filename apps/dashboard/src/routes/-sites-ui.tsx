@@ -1,7 +1,7 @@
 import { type AnyRoute, createRoute, Outlet } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/sites/site-layout";
-import type { SiteSection } from "@/types/sites";
+import type { SiteSectionUiPage } from "@/types/ui-route";
 import { lazyPage } from "@/utils/lazy-page";
 
 import { createUiRoute } from "./-ui-route";
@@ -73,11 +73,7 @@ const Settings = lazyPage(() =>
   }))
 );
 
-/** A site's sections all read the site from the layout's context. */
-const SITE_SECTION_PAGES: readonly {
-  section: Exclude<SiteSection, "overview">;
-  page: ReturnType<typeof lazyPage>;
-}[] = [
+const SITE_SECTION_PAGES: readonly SiteSectionUiPage[] = [
   { section: "analytics", page: Analytics },
   { section: "deployments", page: Deployments },
   { section: "previews", page: Previews },
@@ -87,7 +83,6 @@ const SITE_SECTION_PAGES: readonly {
   { section: "settings", page: Settings },
 ];
 
-/** Notra Sites: the list, the new-site flow and one site's sections. */
 export function createSitesUiRoutes(organization: AnyRoute) {
   function SiteRouteLayout() {
     const { slug, siteId } = site.useParams();

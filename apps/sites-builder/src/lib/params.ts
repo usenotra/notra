@@ -13,17 +13,14 @@ export const params: BuildParams = JSON.parse(readFileSync(paramsPath, "utf8"));
 export const config = params.config;
 const publicFiles = new Set(params.publicFiles);
 
-/** Path inside the current area: `href("post")` → `/blog/post`. */
 export function href(path = ""): string {
   return mountPath(params.mount, path);
 }
 
-/** Absolute URL on the customer's public origin. */
 export function absoluteUrl(path: string): string {
   return new URL(path, params.publicOrigin).toString();
 }
 
-/** Files from `public/` are served below the mount. Unknown absolute paths and URLs pass through. */
 export function assetUrl(path: string | undefined): string | undefined {
   if (!path) {
     return undefined;
@@ -39,7 +36,6 @@ export function areaTitle(area: BuildParams["area"]): string {
   return configuredAreaTitle(config, area);
 }
 
-/** The area title as feed readers list it: "Changelog" alone says nothing next to other feeds. */
 export function namedAreaTitle(area: BuildParams["area"]): string {
   return withSiteName(config.name, areaTitle(area));
 }
@@ -55,12 +51,10 @@ export function areaHref(area: BuildParams["area"]): string | null {
   return params.mounts[area] ?? null;
 }
 
-/** The Markdown twin of a page: `/blog/post` → `/blog/post.md`, the area index → `/blog/index.md`. */
 export function markdownHref(pagePath?: string): string {
   return pagePath ? `${pagePath}.md` : href("index.md");
 }
 
-/** llms.txt for this area; at the root mount it is the site-wide one. */
 export function llmsHref(): string {
   return href("llms.txt");
 }

@@ -1248,11 +1248,9 @@ export interface GeoIngestIdentity {
   organizationId: string;
   projectId: string | null;
   generation: number;
-  /** Set when a Notra Site reports its own traffic with a site token. */
   site?: GeoIngestSiteScope;
 }
 
-/** A Notra Site as ingest sees it: who owns it and which hosts it serves. */
 export interface GeoIngestSiteScope {
   id: string;
   hosts: string[];
@@ -1263,7 +1261,6 @@ export interface GeoIngestSite extends GeoIngestSiteScope {
   projectId: string;
 }
 
-/** Where an organization's sites live, so an SDK event for the same page is not counted twice. */
 export interface GeoIngestSitePrefix {
   host: string;
   mounts: string[];
@@ -2036,13 +2033,11 @@ export interface GeoWebsiteGenerationWrite {
   seedLanguages: readonly string[] | null;
 }
 
-/** Where web analytics reads from: a project (and its hosts) or one Notra Site. */
 export interface WebAnalyticsScope {
   organizationId: string;
   projectId: string | null;
   includeUnassigned: boolean;
   siteId: string;
-  /** Exact hostnames, empty for every host. */
   hosts: string[];
 }
 
@@ -2088,7 +2083,6 @@ export interface WebAnalyticsBreakdown {
   visitors: number;
 }
 
-/** How a session behaves after landing; source "" is every session. */
 export interface WebAnalyticsOutcome {
   source: string;
   sessions: number;
@@ -2104,11 +2098,8 @@ export interface WebAnalyticsHost {
 
 export interface WebAnalyticsResponse {
   configured: boolean;
-  /** People are counted for this scope (a Notra Site, or the project switch is on). */
   tracking: boolean;
-  /** The project's own switch for SDK traffic; Notra Sites count regardless. */
   trackVisitors: boolean;
-  /** Hosts that saw at least one person in the window, ignoring the host filter. */
   hosts: WebAnalyticsHost[];
   totals: WebAnalyticsTotals;
   points: WebAnalyticsPoint[];

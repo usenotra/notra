@@ -78,7 +78,6 @@ export async function deleteCustomHostname(
   await request(config, `/custom_hostnames/${id}`, { method: "DELETE" });
 }
 
-/** Best effort: used on cleanup paths where a missing hostname is fine. */
 export async function deleteCustomHostnameQuietly(
   id: string | null
 ): Promise<void> {

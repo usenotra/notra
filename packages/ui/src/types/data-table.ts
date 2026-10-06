@@ -139,10 +139,6 @@ export interface DataTableProps<T> {
   getRowClassName?: (row: T) => string | undefined;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
-  /**
-   * Content-sized rows only: a full-width panel under the row, e.g. its
-   * expanded settings. Return null to keep the row closed.
-   */
   renderRowDetail?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */
   onRowPointerEnter?: (row: T) => void;
@@ -336,9 +332,7 @@ export interface DataTableBodyRowProps<T> extends Pick<
   entry: TableRow<T>;
   index: number;
   isLastRow: boolean;
-  /** Set when the table renders row details: whether this row's is open. */
   expanded?: boolean;
-  /** Id of the open detail row, for aria-controls. */
   detailId?: string;
   rowHeight: number;
   selectable: boolean;

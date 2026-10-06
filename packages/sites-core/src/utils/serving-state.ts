@@ -28,11 +28,6 @@ export function createInitialServingState(
   };
 }
 
-/**
- * A pointer only ever moves forward. A late build of an older push, or a
- * retried activation after a crash, can therefore never undo a newer release
- * or a rollback (rollbacks allocate a fresh generation).
- */
 export function activateProductionInState(
   state: SiteServingState,
   pointer: ProductionPointerInput,
@@ -62,7 +57,6 @@ export function activateProductionInState(
   };
 }
 
-/** Previews are ordered per key by a sequence (the DB row counter), same forward-only rule. */
 export function activatePreviewInState(
   state: SiteServingState,
   previewKey: string,
@@ -73,7 +67,6 @@ export function activatePreviewInState(
   if (current && current.sequence > pointer.sequence) {
     return { outcome: "superseded", activeSequence: current.sequence };
   }
-  // The preview was removed (PR closed) after this build was queued.
   const removedAt = state.removedPreviews[previewKey];
   if (removedAt !== undefined && removedAt > pointer.sequence) {
     return { outcome: "superseded", activeSequence: removedAt };
@@ -91,10 +84,6 @@ export function activatePreviewInState(
   };
 }
 
-/**
- * Removes a preview and leaves a tombstone at `generation`, so a build of that
- * preview that was still running cannot re-activate it afterwards.
- */
 export function removePreviewFromState(
   state: SiteServingState,
   previewKey: string,
@@ -138,7 +127,6 @@ export function isPreviewExpired(
   );
 }
 
-/** Every deployment the serving state still references; cleanup must never delete these. */
 export function referencedDeploymentIds(state: SiteServingState): Set<string> {
   const ids = new Set<string>();
   if (state.production) {

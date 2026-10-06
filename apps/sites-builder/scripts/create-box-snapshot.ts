@@ -1,12 +1,3 @@
-/**
- * Bakes the build toolchain into an Upstash Box snapshot. Builds restore from
- * it with networking disabled, so everything (Astro, React, Tailwind) must be
- * installed here.
- *
- *   bun --env-file=../../.env scripts/create-box-snapshot.ts [--write-env ../../.env]
- *
- * Prints SITES_BUILDER_SNAPSHOT_ID; with --write-env it updates that file.
- */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -80,7 +71,6 @@ try {
       "npm install --omit=dev --no-audit --no-fund --loglevel=error > npm.log 2>&1",
     ].join(" && ")
   );
-  // exec output is unreliable when the command writes to stderr, so check files instead.
   const installedVersion = (
     await box.files.read(`${WORKDIR}/toolchain/VERSION`)
   ).trim();

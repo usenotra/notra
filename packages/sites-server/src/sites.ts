@@ -77,10 +77,6 @@ async function uniqueSlug(base: string): Promise<string> {
   );
 }
 
-/**
- * Creates a site bound to a repository the organization already connected
- * through the GitHub App, claims its alias host and queues the first build.
- */
 export async function createSite(
   input: CreateSiteInput
 ): Promise<CreateSiteResult> {
@@ -115,7 +111,6 @@ export async function createSite(
     slug,
   });
 
-  // Claim the hostname first: R2's create-only write is the global uniqueness check for hosts.
   await claimHostRecord(aliasHost, { siteId, kind: "alias" });
   let site: Site | undefined;
   try {
@@ -163,7 +158,6 @@ export async function createSite(
   return { site, jobId };
 }
 
-/** Takedown. The worker re-reads state within seconds and fails closed, edge caches included. */
 export async function setSiteSuspended(
   site: Site,
   suspended: boolean,
@@ -218,7 +212,6 @@ export async function updateSiteSettings(
   ) {
     await setServingPreviewVisibility(updated, patch.previewVisibility);
   }
-  // Path, branch, root or branding changes need a new build. The current release stays live until it succeeds.
   const needsRebuild =
     (values.mounts &&
       JSON.stringify(values.mounts) !== JSON.stringify(site.mounts)) ||
@@ -238,7 +231,6 @@ export async function updateSiteSettings(
   return { site: updated, rebuildJobId, previewRemovalJobIds };
 }
 
-/** Switches the canonical origin (verified domain) and rebuilds; the old release serves until the new one is live. */
 export async function setSitePublicOrigin(
   site: Site,
   origin: string,
@@ -255,7 +247,6 @@ export async function setSitePublicOrigin(
   return await deployBranchHead(updated, { trigger: "config", userId });
 }
 
-/** Takes the site offline first, then frees its hostnames and deletes the row and its stored files. */
 export async function deleteSite(site: Site): Promise<void> {
   await setServingStatus(site, "suspended");
   const subdomains = await db

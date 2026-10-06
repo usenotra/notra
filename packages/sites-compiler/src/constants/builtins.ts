@@ -1,6 +1,5 @@
 import { SITE_INJECTED_REACT_HOOKS } from "@notra/sites-core/constants/sites";
 
-/** Components every MDX file can use without importing them (globals). */
 export const BUILTIN_COMPONENTS = [
   "Note",
   "Tip",
@@ -36,10 +35,8 @@ export const SITE_IMPORT_ALIAS = "@site";
 export const INLINE_MODULE_SUFFIX = ".notra-inline.jsx";
 export const IMPORTABLE_EXTENSIONS = [".mdx", ".md", ".jsx", ".js"] as const;
 
-/** Capitalized names are components (`<Card>`, `Counter`); lowercase ones are HTML elements or values. */
 export const COMPONENT_NAME = /^[A-Z]/;
 
-/** Identifiers the browser or React provide; never rewritten to `props.x` in snippets. */
 export const KNOWN_GLOBALS = new Set([
   "props",
   "Math",

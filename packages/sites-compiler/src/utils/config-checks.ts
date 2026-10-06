@@ -5,7 +5,6 @@ import type { SiteConfig } from "@notra/sites-core/types/site-config";
 
 import type { SiteEntry } from "../types/entries";
 
-/** Edit distance, for "did you mean" on misspelled keys. */
 function distance(a: string, b: string): number {
   const row = Array.from({ length: b.length + 1 }, (_, index) => index);
   for (let i = 1; i <= a.length; i += 1) {
@@ -24,10 +23,6 @@ function distance(a: string, b: string): number {
   return row[b.length] ?? 0;
 }
 
-/**
- * Top-level keys the schema doesn't know. They are ignored rather than
- * rejected, so a typo like `navBar` would otherwise silently do nothing.
- */
 export function unknownConfigKeyWarnings(raw: unknown): SiteDiagnostic[] {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return [];
@@ -55,7 +50,6 @@ export function unknownConfigKeyWarnings(raw: unknown): SiteDiagnostic[] {
     });
 }
 
-/** `blog.featured` slugs that match no post. */
 export function featuredSlugWarnings(
   config: SiteConfig,
   entries: SiteEntry[]

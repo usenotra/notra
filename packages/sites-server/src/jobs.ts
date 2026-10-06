@@ -24,10 +24,6 @@ import {
 import type { SiteJob } from "./types/jobs";
 import { errorMessage } from "./utils/errors";
 
-/**
- * Builds wait (instead of failing) when the global or per-site sandbox budget
- * is used up. Returns false and pushes the job back a little when over budget.
- */
 export async function reserveBuildCapacity(
   job: Pick<SiteJob, "id" | "siteId">
 ): Promise<boolean> {
@@ -60,10 +56,6 @@ export async function reserveBuildCapacity(
   return false;
 }
 
-/**
- * Claims a job for one worker. A running job whose lease expired (crashed
- * function, lost workflow step) can be claimed again; attempts are capped.
- */
 export async function claimSiteJob(jobId: string): Promise<SiteJob | null> {
   const [job] = await db
     .update(siteJobs)
@@ -99,7 +91,6 @@ export async function completeSiteJob(jobId: string): Promise<void> {
     .where(eq(siteJobs.id, jobId));
 }
 
-/** Transient failure: back off and let the sweep dispatch it again, until attempts run out. */
 export async function failSiteJob(
   job: SiteJob,
   error: unknown,
@@ -121,11 +112,6 @@ export async function failSiteJob(
   return exhausted ? "failed" : "retrying";
 }
 
-/**
- * A worker that died during its last attempt leaves the job `running` with an
- * expired lease that nobody may claim again. Close those out as failed so the
- * deployment and its GitHub check do not stay "in progress" forever.
- */
 export async function takeExhaustedSiteJobs(): Promise<SiteJob[]> {
   return await db
     .update(siteJobs)
@@ -154,7 +140,6 @@ export async function markSiteJobsDispatched(jobIds: string[]): Promise<void> {
     .where(inArray(siteJobs.id, jobIds));
 }
 
-/** Jobs the sweep should (re)dispatch: due and never dispatched, dispatched but unclaimed, or with an expired lease. */
 export async function listDispatchableSiteJobs(): Promise<SiteJob[]> {
   const staleDispatch = new Date(Date.now() - REDISPATCH_AFTER_MS);
   return await db

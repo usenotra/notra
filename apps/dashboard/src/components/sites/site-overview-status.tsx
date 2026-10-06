@@ -20,7 +20,6 @@ import {
 } from "@/utils/site-deployments";
 import { siteDeploymentHref } from "@/utils/site-links";
 
-/** The production build that runs now or failed after the live one, as a link in the module header. */
 function PendingProduction({ deployment }: SitePendingProductionProps) {
   const t = useTranslations("sites.overviewPage");
   const { organizationSlug, siteId } = useSite();
@@ -49,7 +48,6 @@ function PendingProduction({ deployment }: SitePendingProductionProps) {
   );
 }
 
-/** The production module's header status: a pending build, offline, or live. */
 export function SiteOverviewStatus({
   pendingProduction,
   suspended,

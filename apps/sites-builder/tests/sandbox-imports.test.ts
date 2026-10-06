@@ -3,7 +3,6 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const SRC = join(import.meta.dir, "..", "src");
-// Value imports of workspace packages: they are not in the build sandbox.
 const RUNTIME_WORKSPACE_IMPORT =
   /^import\s+(?!type\b)[^;]*?from\s+"@notra\/(?!builtins|custom-css)[^"]+"/ms;
 

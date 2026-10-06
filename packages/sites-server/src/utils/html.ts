@@ -5,11 +5,6 @@ import {
 } from "../constants/html";
 import type { HtmlToken } from "../types/html";
 
-/**
- * A deliberately small HTML reader for one landing page: it only needs tags,
- * attributes and text, never a DOM. Malformed markup degrades to fewer
- * tokens, not to an error.
- */
 const TAG =
   /<!--[\s\S]*?-->|<![^>]*>|<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*(\/?)>/g;
 const ATTRIBUTE =
@@ -35,7 +30,6 @@ export function decodeHtmlEntities(value: string): string {
   });
 }
 
-/** Decoded text with whitespace runs collapsed, as a browser renders it. */
 export function collapseHtmlText(value: string): string {
   return decodeHtmlEntities(value).replace(WHITESPACE, " ").trim();
 }
@@ -73,7 +67,6 @@ export function* tokenizeHtml(html: string): Generator<HtmlToken> {
         attrs: parseAttributes(rawAttrs ?? ""),
         void: isVoid,
       };
-      // Script and style bodies are not markup; jump to their end tag.
       if (HTML_RAW_TEXT_ELEMENTS.has(name) && !isVoid) {
         const end = html.toLowerCase().indexOf(`</${name}`, last);
         const resume = end === -1 ? html.length : end;

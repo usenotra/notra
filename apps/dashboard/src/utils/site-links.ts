@@ -62,7 +62,6 @@ export function githubPullRequestUrl(
   return `https://github.com/${repository.owner}/${repository.name}/pull/${pullRequestNumber}`;
 }
 
-/** The live URL's path (a mount such as /blog) on another origin of the same site. */
 export function siteUrlOnOrigin(origin: string, liveUrl: string): string {
   const base = origin.replace(/\/$/, "");
   try {

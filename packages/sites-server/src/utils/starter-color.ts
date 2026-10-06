@@ -2,10 +2,6 @@ const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const RGB =
   /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*[\d.%]+)?\s*\)$/i;
 
-/**
- * `#rrggbb` for the color formats brand profiles and theme-color use: hex with
- * or without alpha and rgb()/rgba(). Anything else (oklch, names) is null.
- */
 export function normalizeHexColor(
   value: string | null | undefined
 ): string | null {
@@ -38,10 +34,6 @@ function channels(hex: string): [number, number, number] {
   ];
 }
 
-/**
- * Whether a color can be an accent: theme-color is often just the page
- * background (near white or near black), which would make links invisible.
- */
 export function isAccentColor(hex: string): boolean {
   const [red, green, blue] = channels(hex);
   const max = Math.max(red, green, blue);

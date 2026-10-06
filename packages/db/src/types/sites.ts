@@ -1,4 +1,3 @@
-/** DNS record the customer must add, shown in the dashboard. */
 export interface SiteDomainVerificationRecord {
   type: "CNAME" | "TXT" | "A";
   name: string;

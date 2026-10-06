@@ -30,13 +30,8 @@ import { writeFileEnsured } from "./utils/fs";
 
 let fontsPromise: Promise<SatoriFont[]> | null = null;
 
-/**
- * Loads the bundled Inter files once per process. The same array is passed to
- * every render, which lets satori reuse its parsed fonts.
- */
 function loadFonts(): Promise<SatoriFont[]> {
   fontsPromise ??= (async () => {
-    // Resolved next to this module, so it works from source and from the bundled dist/cli.mjs.
     const require = createRequire(import.meta.url);
     const specs = OG_FONT_SUBSETS.flatMap((subset) =>
       OG_FONT_WEIGHTS.map((weight) => ({ subset, weight }))
@@ -66,7 +61,6 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-/** `thumbnails.background` as a data URI, or a warning when it cannot be used. */
 async function loadBackground(
   params: WriteOgImagesParams
 ): Promise<{ dataUri?: string; diagnostic?: SiteDiagnostic }> {
@@ -76,14 +70,13 @@ async function loadBackground(
   }
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const mimeType = OG_BACKGROUND_MIME_TYPES[extname(normalized).toLowerCase()];
-  // Only files the collector accepted, so the path cannot leave public/.
   if (!(mimeType && params.publicFiles.includes(normalized))) {
     return {
       diagnostic: {
         severity: "warning",
         file: SITE_CONFIG_FILENAME,
         code: "thumbnail_background",
-        message: `thumbnails.background: ${path} is not a PNG, JPEG or SVG file in public/. Share images are drawn without it.`,
+        message: `thumbnails.background: ${path} is not a PNG, JPEG or SVG file in public/. Share images are generated without it.`,
       },
     };
   }
@@ -109,12 +102,6 @@ async function renderPng(
     .asPng();
 }
 
-/**
- * Draws a share image for every post and changelog entry without its own
- * frontmatter `image`, into the public dir before `astro build`, and writes
- * `og-manifest.json` so the theme knows which entries have one. The manifest
- * is always written (empty when `thumbnails.enabled` is false).
- */
 export async function writeOgImages(
   params: WriteOgImagesParams
 ): Promise<OgImagesResult> {
@@ -153,7 +140,6 @@ export async function writeOgImages(
         const version = "version" in data ? data.version : undefined;
         const png = await renderPng(
           {
-            // "Acme Blog" stays as it is; "Changelog" becomes "Acme · Changelog".
             eyebrow: withSiteName(
               config.name,
               configuredAreaTitle(config, entry.area),
@@ -178,7 +164,6 @@ export async function writeOgImages(
       })
     );
   }
-  // Sorted keys keep the file stable between builds of the same content.
   const sorted = Object.fromEntries(
     Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b))
   );

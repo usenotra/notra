@@ -41,10 +41,6 @@ async function runBuildJob(job: SiteJob): Promise<SiteJobOutcome> {
   return { status: "done", outcome: outcome.kind };
 }
 
-/**
- * Removes a preview behind a tombstone with its own generation: builds of that
- * preview that are still running can no longer activate it afterwards.
- */
 async function runRemovePreviewJob(job: SiteJob): Promise<SiteJobOutcome> {
   const site = await getSite(job.siteId);
   const previewKey =
@@ -65,10 +61,6 @@ async function failJobDeployment(job: SiteJob, message: string): Promise<void> {
   }
 }
 
-/**
- * Entry point for a dispatched job. Safe to call more than once for the same
- * job: only the caller that wins the lease does any work.
- */
 export async function runSiteJob(jobId: string): Promise<SiteJobOutcome> {
   const [pending] = await db
     .select()
@@ -110,7 +102,6 @@ export async function runSiteJob(jobId: string): Promise<SiteJobOutcome> {
   }
 }
 
-/** Called by the sweep: fails jobs whose worker died on their last attempt. */
 export async function reapExhaustedSiteJobs(): Promise<number> {
   const jobs = await takeExhaustedSiteJobs();
   await Promise.all(

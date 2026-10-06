@@ -30,12 +30,6 @@ export async function readSiteFiles(siteRoot: string): Promise<SiteFiles> {
   return { collected, files };
 }
 
-/**
- * Validates the customer site and lays it out for Astro:
- * `work/site/**` mirrors the repo (with transformed MDX/JSX) and is what `@site/…`
- * imports resolve to; `work/entries/<area>/<slug>.mdx` holds only real entries.
- * Drafts are copied too; the theme hides them unless the build includes drafts.
- */
 export async function prepareSite(
   params: PrepareSiteParams
 ): Promise<PreparedSite> {
@@ -56,8 +50,6 @@ export async function prepareSite(
 
   await rm(join(params.workDir, "site"), { recursive: true, force: true });
   await rm(join(params.workDir, "entries"), { recursive: true, force: true });
-  // Both collections always exist, so a site without posts in one area
-  // doesn't fill the build log with "collection does not exist" warnings.
   await Promise.all(
     SITE_AREAS.map((area) =>
       mkdir(join(params.workDir, "entries", area), { recursive: true })
@@ -84,8 +76,6 @@ export async function prepareSite(
       )
   );
 
-  // Every customer stylesheet (`style.css`, `buttons.css`, `styles/*.css`,
-  // `snippets/button.css`), imported after the theme so it can override it.
   const customCss = collected.files
     .filter((file) => isSiteStylesheet(file.path))
     .map(
@@ -95,9 +85,6 @@ export async function prepareSite(
     .join("\n");
   await writeFileEnsured(join(params.workDir, "custom.css"), `${customCss}\n`);
 
-  // Customer JavaScript (`script.js`, `scripts/*.js`): copied byte for byte, never run here. Placed in
-  // the public dir so every area build and the dev server serve it below the mount; the content
-  // hash in the name lets it be cached like the theme's own assets.
   await mkdir(join(params.workDir, "site", "public", SITE_ASSETS_DIR), {
     recursive: true,
   });
@@ -108,7 +95,6 @@ export async function prepareSite(
         const name = path
           .replace(/\.js$/i, "")
           .replace(/[^A-Za-z0-9_-]+/g, "-");
-        // The dev server reads its params once, so names there must survive edits.
         const fileName = params.stableAssetNames
           ? `custom-${name}.js`
           : `custom-${name}.${createHash("sha256").update(source).digest("hex").slice(0, 10)}.js`;

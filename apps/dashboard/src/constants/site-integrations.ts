@@ -5,11 +5,6 @@ import { PostHog } from "@notra/ui/components/ui/svgs/posthog";
 
 import type { SiteIntegrationProvider } from "@/types/site-integrations";
 
-/**
- * The analytics presets notra.json supports, in the order the Integrations tab
- * shows them. Field keys are notra.json keys; labels and hints live in the
- * `sites.integrationsPage` messages. The first field is the one the card shows.
- */
 export const SITE_INTEGRATION_PROVIDERS: readonly SiteIntegrationProvider[] = [
   {
     id: "databuddy",

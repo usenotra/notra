@@ -16,10 +16,6 @@ async function importKey(secret: string): Promise<CryptoKey> {
   );
 }
 
-/**
- * Signed preview access token: `base64url(claims).base64url(hmac)`.
- * The dashboard mints it for members and share links; the sites worker only verifies.
- */
 export async function signSitePreviewToken(
   claims: SitePreviewTokenClaims,
   secret: string
@@ -32,7 +28,6 @@ export async function signSitePreviewToken(
   return `${payload}.${toBase64Url(signature)}`;
 }
 
-/** Checks the signature and shape only; `expired` tells whether `exp` has passed. */
 export async function readSitePreviewToken(
   token: string,
   secret: string,
@@ -74,7 +69,6 @@ export async function verifySitePreviewToken(
   return read && !read.expired ? read.claims : null;
 }
 
-/** A token is scoped to one site and optionally one preview; `previewKey: null` unlocks all previews of the site. */
 export function previewTokenAllows(
   claims: SitePreviewTokenClaims,
   siteId: string,

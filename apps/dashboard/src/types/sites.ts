@@ -30,7 +30,6 @@ type SitePreview = SiteDetail["previews"][number];
 export type SiteDomain = SiteDetail["domains"][number];
 export type SiteRepository = SitesOutputs["connectRepository"];
 export type SiteCreateStepId = (typeof SITE_CREATE_STEP_IDS)[number];
-/** A repository the GitHub App can see; `integrationId` is set once it is connected to Notra. */
 export type SiteImportableRepository =
   SitesOutputs["importableRepositories"]["repositories"][number];
 type SiteEditorFiles = SitesOutputs["editor"]["files"];
@@ -44,7 +43,6 @@ export type SiteSection = (typeof SITE_DETAIL_TABS)[number];
 
 export interface SiteSectionConfig {
   section: SiteSection;
-  /** Below `/[slug]/sites/[siteId]`; empty for the overview. */
   path: string;
   icon: IconSvgElement;
 }
@@ -55,7 +53,6 @@ export type SitePublishMode = SiteRecord["publishMode"];
 export type SiteMounts = SiteRecord["mounts"];
 export type SiteDomainKind = SiteDomain["kind"];
 
-/** A GitHub repository as the site links to it. */
 export interface SiteRepositoryRef {
   owner: string;
   name: string;
@@ -71,7 +68,6 @@ export interface SitesPageClientProps {
   organizationSlug: string;
 }
 
-/** Route context of the Domain Connect callback `/sites/domain-connect/[token]`. */
 export interface SiteDomainConnectRouteContext {
   params: Promise<{ token: string }>;
 }
@@ -95,11 +91,8 @@ export interface SitePreviewRow extends Omit<
 > {
   visibility: SitePreview["visibility"] | null;
   activatedAt: SitePreview["activatedAt"] | null;
-  /** False while the first build runs and nothing is served yet. */
   served: boolean;
-  /** "ready" while served, or the status of a newer build that runs or failed. */
   status: SiteDeploymentStatus;
-  /** The deployment the row links to: the newest build worth looking at. */
   latestDeploymentId: string;
   updatedAt: Date | string;
 }
@@ -115,25 +108,20 @@ export interface SiteSettingsForm {
   publishMode: SitePublishMode;
 }
 
-/** The new-site form; text fields hold what was typed, untrimmed. */
 export interface SiteCreateFormValues {
   repositoryId: string | null;
   name: string;
-  /** Empty uses the address derived from the name. */
   slug: string;
   branch: string;
   rootDirectory: string;
-  /** URL paths; null follows what the repository has, empty turns the section off. */
   blogPath: string | null;
   changelogPath: string | null;
   previewVisibility: SitePreviewVisibility;
   publishMode: SitePublishMode;
 }
 
-/** Server messages for the new-site form, keyed by the field they are about. */
 export type SiteCreateFieldErrors = Partial<Record<SiteInputField, string>>;
 
-/** Where a new site goes: its organization, repository and (optionally) project. */
 export interface SiteCreateTarget {
   organizationId: string;
   repositoryId: string;
@@ -151,7 +139,6 @@ export interface SiteSettingsPatch {
 export type SiteDomainRecord = SiteDomain["records"][number];
 export type SiteDomainConnectOutcome =
   (typeof SITE_DOMAIN_CONNECT_OUTCOMES)[number];
-/** What the domain status chip says; `pending` splits by kind. */
 export type SiteDomainChipStatus =
   | "active"
   | "dnsRequired"
@@ -159,7 +146,6 @@ export type SiteDomainChipStatus =
   | "verifying"
   | "failed";
 
-/** A row of the domains table: the Notra address or one custom domain. */
 export type SiteDomainRow =
   | { id: string; kind: "alias"; isPrimary: boolean }
   | { id: string; kind: "domain"; domain: SiteDomain };
@@ -179,30 +165,25 @@ export type SiteBuildLogTone =
   | "warning"
   | "error";
 
-/** One line of a build log, split into its own timestamp column when the line has one. */
 export interface SiteBuildLogLine {
   number: number;
   timestamp: string | null;
   text: string;
   tone: SiteBuildLogTone;
-  /** Indented detail under a warning or error; it takes that line's tone. */
   continued: boolean;
 }
 
-/** A build log line, or a run of noisy lines folded behind a "show more" row. */
 export type SiteBuildLogEntry =
   | { kind: "line"; line: SiteBuildLogLine }
   | {
       kind: "fold";
       id: string;
       lines: SiteBuildLogLine[];
-      /** Code frames fold under their warning or error and take its tone. */
       tone: SiteBuildLogTone;
     };
 
 export type SiteBuildLogFold = Extract<SiteBuildLogEntry, { kind: "fold" }>;
 
-/** A build log line split into its tool tag (`[build]`) and the message. */
 export interface SiteBuildLogTagParts {
   tag: string | null;
   rest: string;
@@ -221,38 +202,29 @@ export type SiteDeploymentStatusFilter =
 
 export type SiteDeploymentEnvironmentFilter = SiteDeploymentKind | "all";
 
-/** The deployments page filters by one environment and one status at a time. */
 export interface SiteDeploymentFilters {
   environment: SiteDeploymentEnvironmentFilter;
   status: SiteDeploymentStatusFilter | "all";
 }
 
-/**
- * The new site's section paths (empty = off): typed, or suggested from the
- * repository. `counts` is null until GitHub answered.
- */
 export interface SiteCreateSectionPlan {
   blogPath: string;
   changelogPath: string;
   counts: RepositoryContentCount | null;
 }
 
-/** What the new-site and settings forms suggest from the repository. */
 export interface RepositorySuggestionsResult {
   branches: string[];
   defaultBranch: string | null;
   configDirectories: string[];
-  /** Posts per folder; undefined until GitHub answered. */
   contentCounts: Record<string, RepositoryContentCount> | undefined;
   isLoading: boolean;
 }
 
-/** Suggestions for a repository picked in the new-site form, or an existing site's repository. */
 export type RepositorySuggestionsScope =
   | { organizationId: string; repositoryId: string | null; branch: string }
   | { organizationId: string; siteId: string; branch: string };
 
-/** The repository, branch and folder the starter files are for. */
 export interface SiteStarterInput {
   organizationId: string;
   repositoryId: string;

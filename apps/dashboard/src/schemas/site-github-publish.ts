@@ -1,10 +1,6 @@
 import { SITE_AUTHOR_ID } from "@notra/sites-core/constants/site-config";
 import { z } from "zod";
 
-/**
- * Only the author names out of notra.json. Deliberately loose: the build
- * validates the full config, publishing must not fail on unrelated keys.
- */
 export const siteConfigAuthorsSchema = z.object({
   authors: z
     .record(

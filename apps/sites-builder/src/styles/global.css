@@ -2,18 +2,11 @@
 @import "@fontsource-variable/inter";
 @plugin "@tailwindcss/typography";
 
-/* Customer snippets use Tailwind classes, so scan the prepared site too. */
 @source "../../.notra/work/site";
 @source "../../.notra/work/entries";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/*
- * The "notra" theme: the Notra dashboard's design system (packages/ui) applied
- * to a public blog and changelog. Tokens are the dashboard's, 1:1; only
- * --primary (and its dark-mode/button variants) come from notra.json.
- * Deliberately quiet: one typeface, hairline borders, no decoration.
- */
 :root {
   --primary: oklch(0.6056 0.2189 292.7172);
   --primary-dark-mode: var(--primary);
@@ -37,7 +30,6 @@
     "Segoe UI", sans-serif;
   --font-heading: var(--font-body);
   --font-code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  /* notra.json `layout.width` scales these (src/lib/theme.ts); the values are the base width's. */
   --layout-index: 55rem;
   --layout-post: 80rem;
   --layout-reading: 48rem;
@@ -108,7 +100,6 @@
   }
 }
 
-/* notra.json `background.image`: one picture behind every page, fixed so long pages don't stretch it. */
 body {
   background-image: var(--page-image, none);
   background-position: center top;
@@ -116,7 +107,6 @@ body {
   background-attachment: fixed;
 }
 
-/* Hidden until focused, then the first thing keyboard users reach. */
 .skip-link {
   position: absolute;
   top: 0.5rem;
@@ -135,7 +125,6 @@ body {
   transform: none;
 }
 
-/* notra.json `banner`. */
 .site-banner {
   background: var(--banner-light);
   color: var(--banner-foreground);
@@ -164,7 +153,6 @@ body {
   font-size: 0.8125rem;
 }
 
-/* Page background decorations (notra.json `background.decoration`). */
 .decoration-grid {
   background-image:
     linear-gradient(
@@ -198,11 +186,6 @@ body {
 }
 
 @layer components {
-  /*
-   * For customer header.mdx / footer.mdx / slots: the same width and side
-   * padding as the theme's post pages (and `layout.width`), so custom chrome
-   * lines up with the content below it.
-   */
   .site-container {
     box-sizing: content-box;
     max-width: var(--layout-post);
@@ -215,17 +198,12 @@ body {
     }
   }
 
-  /*
-   * The blog's look, after usenotra.com/blog: a wash behind the area title
-   * and tinted cards, both following the site's primary color.
-   */
   .hero-wash {
     background: color-mix(in oklab, var(--accent) 22%, var(--background));
   }
   .dark .hero-wash {
     background: color-mix(in oklab, var(--accent) 16%, var(--background));
   }
-  /* `hero.style: image`: the picture with a scrim so the title stays readable. */
   .hero-image {
     background-color: hsl(240 6% 10%);
     background-image:
@@ -250,7 +228,6 @@ body {
     background: color-mix(in oklab, var(--foreground) 4%, var(--background));
   }
 
-  /* The dashboard's raised primary and secondary buttons. */
   .btn {
     display: inline-flex;
     height: 2rem;
@@ -347,7 +324,6 @@ body {
   }
 }
 
-/* Mobile navbar menu: a popover sheet that drops from under the header (light dismiss + Esc built in). */
 .site-menu {
   position: fixed;
   inset: 3.5rem 0 auto;
@@ -404,7 +380,6 @@ body {
   }
 }
 
-/* Article typography, tuned to the dashboard's type scale. */
 .prose-notra {
   --tw-prose-body: color-mix(in oklab, var(--foreground) 82%, transparent);
   --tw-prose-headings: var(--foreground);
@@ -478,7 +453,6 @@ body {
   border-radius: 0.75rem;
 }
 
-/* A neutral 1px edge so images keep their shape on any background. */
 .image-outline,
 .prose-notra :where(img):not(:where(.not-prose *)) {
   outline: 1px solid oklch(0 0 0 / 0.1);
@@ -503,7 +477,6 @@ body {
   content: none;
 }
 
-/* Code blocks: a hairline box on the muted surface. */
 .prose-notra :where(pre):not(:where(.not-prose *)) {
   position: relative;
   margin: 1.5em 0;
@@ -565,7 +538,6 @@ body {
   color: var(--foreground);
 }
 
-/* Shiki dual themes: light by default, dark under .dark. */
 .astro-code,
 .astro-code span {
   background-color: transparent !important;
@@ -578,7 +550,6 @@ body {
   font-weight: var(--shiki-dark-font-weight) !important;
 }
 
-/* styling.codeblocks = "dark": code stays dark in light mode too. */
 .code-dark .code-frame-body,
 .code-dark .prose-notra :where(pre) {
   background: hsl(240 6% 10%) !important;
@@ -597,7 +568,6 @@ body {
   margin-top: 0;
 }
 
-/* Menus drop in from their trigger. */
 @keyframes menu-in {
   from {
     opacity: 0;

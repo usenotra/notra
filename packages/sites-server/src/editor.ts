@@ -41,10 +41,6 @@ import { errorMessage, isNotFoundError } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
 import { repositoryPath } from "./utils/root-directory";
 
-/**
- * Only text files the site actually uses are editable, never anything outside
- * the site root and never a hidden file or folder.
- */
 function assertEditablePath(path: string): void {
   const editable =
     isSiteSourcePath(path) &&
@@ -64,7 +60,6 @@ function readAccess(site: Site) {
   return siteRepositoryAccess(site, { contents: "read" });
 }
 
-/** The site's files on the production branch head, from one recursive tree call. */
 export async function listSiteSourceFiles(
   site: Site
 ): Promise<SiteSourceListing> {
@@ -115,7 +110,6 @@ export async function readSiteSourceFile(
   });
 }
 
-/** One file of a repository at `ref`, by its path from the repository root; null when missing. */
 export async function readRepositoryFile(
   repository: SiteRepository,
   token: string,
@@ -148,7 +142,6 @@ export async function readRepositoryFile(
   }
 }
 
-/** A new branch at `sha`, for changes that go through a pull request. */
 export async function createRepositoryBranch(
   repository: SiteRepository,
   token: string,
@@ -163,10 +156,6 @@ export async function createRepositoryBranch(
   });
 }
 
-/**
- * One signed commit on `branch` through the GraphQL API, so no git objects
- * are built by hand. Fails when the branch moved past `expectedHeadOid`.
- */
 export async function commitRepositoryFiles(
   repository: SiteRepository,
   token: string,
@@ -224,7 +213,6 @@ export async function listSiteDrafts(siteId: string): Promise<SiteDraft[]> {
     .where(eq(siteDrafts.siteId, siteId));
 }
 
-/** Drafts are stored in Notra only; the live site and the repository do not change until publish. */
 export async function saveSiteDraft(
   site: Site,
   input: SaveSiteDraftInput
@@ -247,7 +235,6 @@ export async function saveSiteDraft(
     })
     .onConflictDoUpdate({
       target: [siteDrafts.siteId, siteDrafts.path],
-      // The client sends the version it edits on top of; a rebase after a conflict moves it forward.
       set: {
         content: input.content,
         deleted: input.deleted ?? false,
@@ -264,11 +251,6 @@ export async function saveSiteDraft(
   return draft;
 }
 
-/**
- * Resolves a publish conflict without losing the edit: the draft keeps its
- * content but is now based on the file as it is on GitHub right now. The user
- * reviews it against the published version before publishing again.
- */
 export async function rebaseSiteDraft(
   site: Site,
   path: string
@@ -328,16 +310,10 @@ async function validateWithDrafts(site: Site, drafts: SiteDraft[]) {
   return validateSite({ files });
 }
 
-/**
- * Validates the site as it would look with all drafts applied. Unchanged MDX
- * is only checked for existence (imports); snippets and notra.json are read so
- * named imports and the config can be checked too. Nothing is executed.
- */
 export async function validateSiteDrafts(site: Site) {
   return await validateWithDrafts(site, await listSiteDrafts(site.id));
 }
 
-/** Whether the branch only accepts changes through a pull request (classic protection or a ruleset). */
 async function requiresPullRequest(
   repository: SiteRepository,
   token: string,
@@ -346,7 +322,6 @@ async function requiresPullRequest(
   if ((await getBranchHead(repository, token, branch)).protected) {
     return true;
   }
-  // Repository rulesets do not show up as classic protection.
   const { data: rules } = await createOctokit(token).request(
     "GET /repos/{owner}/{repo}/rules/branches/{branch}",
     {
@@ -359,7 +334,6 @@ async function requiresPullRequest(
   return rules.some((rule) => PULL_REQUEST_RULE_TYPES.has(rule.type));
 }
 
-/** Direct publishing needs the site to allow it and the branch to be unprotected; it never bypasses protection. */
 async function assertDirectPublishAllowed(
   site: Site,
   repository: SiteRepository,
@@ -377,12 +351,6 @@ async function assertDirectPublishAllowed(
   }
 }
 
-/**
- * Publishes all drafts as one commit, the way the repository allows it:
- * directly to the production branch when nothing protects it and the site
- * allows it, otherwise as a branch + pull request. Never bypasses protection.
- * A file that changed on GitHub since its draft was started is a conflict.
- */
 export async function publishSiteDrafts(
   site: Site,
   input: PublishSiteDraftsInput
@@ -470,8 +438,6 @@ export async function publishSiteDrafts(
           body: `Edited in Notra.\n\n${drafts.map((draft) => `- ${draft.deleted ? "Delete" : "Update"} \`${draft.path}\``).join("\n")}`,
         })
       : null;
-  // Only drafts whose content is exactly what was committed. The upsert keeps the row id,
-  // so an autosave that landed while publishing changed the content and must stay.
   await Promise.all(
     drafts.map((draft) =>
       db

@@ -296,13 +296,6 @@ export const geoTrafficPagesByHostDaily = defineDatasource(
   }
 );
 
-/**
- * Human page views of Notra Sites and opted-in SDK projects. AI crawlers
- * never land here (they stay in geo_traffic_events); AI referrals land in
- * both, because a person who clicked out of ChatGPT is also a visitor.
- * No IP or cookie: visitor_id is a daily-rotating HMAC, session_id comes
- * from a 30-minute inactivity window kept by ingest.
- */
 export const webPageViews = defineDatasource("web_page_views", {
   description:
     "Append-only log of human page views (Notra Sites and opted-in SDK projects); AI referrals are also recorded in geo_traffic_events",
@@ -338,12 +331,6 @@ export const webPageViews = defineDatasource("web_page_views", {
   }),
 });
 
-/**
- * Daily views per site, host, page and status. Every overview number comes
- * from here: uniqMerge across pages is still an exact-enough union of
- * visitors. A session is counted on its first page (landing) and as engaged
- * when it reaches a second page.
- */
 export const webPagesDaily = defineDatasource("web_pages_daily", {
   description:
     "Daily rollup of web_page_views per site, host, path and status; read with countMerge/uniqMerge/countIfMerge/uniqIfMerge",
@@ -376,7 +363,6 @@ export const webPagesDaily = defineDatasource("web_pages_daily", {
   jsonPaths: false,
 });
 
-/** Where sessions came from: counted on each session's first page only. */
 export const webSourcesDaily = defineDatasource("web_sources_daily", {
   description:
     "Daily rollup of session landings in web_page_views per referrer and campaign; read with countMerge/uniqMerge",
@@ -411,7 +397,6 @@ export const webSourcesDaily = defineDatasource("web_sources_daily", {
   jsonPaths: false,
 });
 
-/** Who visits: country, device class, browser and OS. */
 export const webAudienceDaily = defineDatasource("web_audience_daily", {
   description:
     "Daily rollup of web_page_views visitors per country, device, browser and OS; read with countMerge/uniqMerge",

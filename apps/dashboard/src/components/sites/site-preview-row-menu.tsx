@@ -20,7 +20,6 @@ import { Button } from "@/components/button";
 import type { SitePreviewRowMenuProps } from "@/types/components/sites";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 
-/** A preview row's menu: copy its link (or share link), view the deployment, delete it. */
 export function SitePreviewRowMenu({
   row,
   onCopyShareLink,

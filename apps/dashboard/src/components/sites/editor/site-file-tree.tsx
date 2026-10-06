@@ -38,10 +38,6 @@ function SiteFileTreeView({
     [files]
   );
   const gitStatus = useMemo(() => siteFileTreeGitStatus(files), [files]);
-  // Clicking or pressing Enter on a row selects it; editable files open. The
-  // tree reports changes as events, so a pick opens once and the page selecting
-  // its own file (selectedPath) never re-opens it. The model keeps the first
-  // options it got, so the listener reads the latest props through a ref.
   const latest = useRef({ selectedPath, editablePaths, onSelect });
   useLayoutEffect(() => {
     latest.current = { selectedPath, editablePaths, onSelect };
@@ -77,7 +73,6 @@ function SiteFileTreeView({
   const pathsKey = paths.join("\n");
   const appliedPathsKey = useRef(pathsKey);
 
-  // A new or removed draft file changes the list; keep the folders the user opened.
   useEffect(() => {
     if (appliedPathsKey.current === pathsKey) {
       return;
@@ -101,7 +96,6 @@ function SiteFileTreeView({
     model.setGitStatus(gitStatus);
   }, [model, gitStatus]);
 
-  // Opening a file from elsewhere (a problem, a conflict, the URL) reveals it here.
   useEffect(() => {
     if (!selectedPath) {
       return;
@@ -124,7 +118,6 @@ function SiteFileTreeView({
   const noMatches = query.length > 0 && search.matchingPaths.length === 0;
   const filterRef = useRef<HTMLInputElement>(null);
 
-  // Typing keeps focus in the filter; Pierre only tracks the first match as its cursor.
   const handleFilterKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -148,7 +141,6 @@ function SiteFileTreeView({
       }
       return;
     }
-    // Enter opens the first match, like a quick-open list.
     if (event.key === "Enter" && focused && editablePaths.has(focused)) {
       event.preventDefault();
       search.setValue(null);
@@ -156,8 +148,6 @@ function SiteFileTreeView({
     }
   };
 
-  // ArrowUp from the first match hands focus back to the filter. Capture runs before
-  // the tree's own handler inside its shadow root.
   const handleTreeKeyDownCapture = (
     event: React.KeyboardEvent<HTMLElement>
   ) => {
@@ -220,7 +210,6 @@ function SiteFileTreeView({
   );
 }
 
-/** The site's files through Pierre's tree: search, keyboard navigation, draft dots. */
 export function SiteFileTree({
   files,
   selectedPath,

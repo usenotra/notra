@@ -8,7 +8,9 @@ describe("unnestLinks", () => {
       unnestLinks(
         '<a href="mailto:a@b.co"><a href="mailto:a@b.co">a@b.co</a></a> <a href="/x">x</a>'
       )
-    ).toBe('<a href="mailto:a@b.co">a@b.co</a> <a href="/x">x</a>');
+    ).toBe(
+      '<a href="mailto:a@b.co"><span>a@b.co</span></a> <a href="/x">x</a>'
+    );
   });
 
   test("leaves scripts, comments and lookalike tags alone", () => {

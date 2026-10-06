@@ -59,18 +59,11 @@ function previewGate(
   );
 }
 
-/** Host-only cookie for this preview host. `Secure` everywhere except plain-http local dev. */
 function sessionCookie(url: URL, value: string, maxAge: number): string {
   const secure = url.protocol === "https:" ? "; Secure" : "";
   return `${SITE_PREVIEW_COOKIE}=${value}; Path=/; Max-Age=${maxAge}; HttpOnly${secure}; SameSite=Lax`;
 }
 
-/**
- * A session opens this preview when it is signed for it, its member was not
- * revoked since it was issued (sign-out, removed from the organization) and,
- * for password sessions, it was opened with the password that is set right
- * now. Changing or removing the password ends every password session at once.
- */
 function previewSessionAllows(
   claims: SitePreviewTokenClaims,
   state: SiteServingState,
@@ -92,7 +85,6 @@ function previewSessionAllows(
   );
 }
 
-/** `GET /_notra/auth?token=…`: a member or share-link token from the dashboard becomes the session cookie. */
 async function acceptToken(
   context: PreviewRequestContext,
   next: string
@@ -100,11 +92,9 @@ async function acceptToken(
   const { deps, url, state, siteId, previewKey } = context;
   const token = url.searchParams.get("token");
   if (!token) {
-    // The dashboard sends members without access back with `?error=forbidden`.
     const error =
       url.searchParams.get("error") === "forbidden" ? "forbidden" : null;
     const gate = previewGate(context, next, error ? 403 : 401, error);
-    // The dashboard said no: drop the old session so it is not renewed again (no redirect loop).
     if (error) {
       gate.headers.set("Set-Cookie", sessionCookie(url, "", 0));
     }
@@ -115,7 +105,6 @@ async function acceptToken(
     deps.previewSecret,
     nowSeconds(deps)
   );
-  // Password sessions are minted here only; one in a URL is never accepted.
   if (
     !claims ||
     claims.kind === "password" ||
@@ -123,7 +112,6 @@ async function acceptToken(
   ) {
     return previewGate(context, next, 401, "invalid_link");
   }
-  // Member cookies outlive their 1 h token so an expired one can be renewed without a click.
   const maxAge =
     claims.kind === "member"
       ? SITE_PREVIEW_MEMBER_RENEW_SECONDS
@@ -163,13 +151,11 @@ function isPageNavigation(request: Request): boolean {
   );
 }
 
-/** Requests from another origin never reach the password check (login CSRF, scripted guessing from other sites). */
 function isCrossOrigin(request: Request, origin: string): boolean {
   const requestOrigin = request.headers.get("Origin");
   return requestOrigin !== null && requestOrigin !== origin;
 }
 
-/** `POST /_notra/auth`: the preview password opens a session like a Notra login does. */
 async function acceptPassword(
   context: PreviewRequestContext
 ): Promise<Response> {
@@ -226,14 +212,12 @@ export async function handlePreviewAuth(
   );
 }
 
-/** Clears this host's preview session and shows the gate again. */
 export function handlePreviewSignOut(context: PreviewRequestContext): Response {
   return noStoreRedirect("/", 303, {
     "Set-Cookie": sessionCookie(context.url, "", 0),
   });
 }
 
-/** Protected previews need a valid session cookie for exactly this site and preview. */
 export async function previewAccessDenied(
   context: PreviewRequestContext
 ): Promise<Response | null> {
@@ -249,8 +233,6 @@ export async function previewAccessDenied(
   if (allowed && !session.expired) {
     return null;
   }
-  // An expired member session that was never revoked: the dashboard re-checks
-  // membership and sends the member straight back, no gate, no click.
   if (
     allowed &&
     session.claims.kind === "member" &&

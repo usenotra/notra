@@ -41,13 +41,7 @@ function findMarkdownRoot(tree: HastRoot): Element | null {
   return root;
 }
 
-/**
- * Rewrites the theme's components into plain HTML that maps cleanly to
- * Markdown: callouts become quotes with their label, tab and accordion titles
- * become bold lines, Shiki blocks keep their language, chrome is dropped.
- */
 function simplify(root: Element) {
-  // Astro's island markers and hydration comments are not content.
   visit(root, "comment", (_node, index, parent) => {
     if (parent && index !== undefined) {
       parent.children.splice(index, 1);
@@ -91,7 +85,6 @@ function simplify(root: Element) {
       node.children = [strong(textOf(node))];
       return SKIP;
     }
-    // A card is one link around a title and a description: keep it as one Markdown link.
     if (
       node.tagName === "a" &&
       node.children.some(
@@ -136,7 +129,6 @@ function textOf(node: Element | ElementContent): string {
   return node.children.map(textOf).join("").trim();
 }
 
-/** Text of each paragraph or heading inside `node`, in order. */
 function textBlocks(node: Element): string[] {
   const blocks: string[] = [];
   for (const child of node.children) {
@@ -155,20 +147,18 @@ function textBlocks(node: Element): string[] {
   return blocks.filter(Boolean);
 }
 
-/** Links and images become absolute, so the Markdown works wherever an agent stores it. */
 function absolutize(tree: MdastRoot, pageUrl: string) {
   visit(tree, (node) => {
     if ((node.type === "link" || node.type === "image") && node.url) {
       try {
         node.url = new URL(node.url, pageUrl).toString();
       } catch {
-        // leave malformed URLs as written
+        return;
       }
     }
   });
 }
 
-/** Converts the `[data-md-root]` part of a built page to Markdown. */
 export function htmlToMarkdown(html: string, pageUrl: string): string {
   const root = findMarkdownRoot(fromHtml(html));
   if (!root) {

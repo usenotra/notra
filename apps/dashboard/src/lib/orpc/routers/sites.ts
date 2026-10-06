@@ -143,7 +143,6 @@ import type {
 } from "@/types/sites-server";
 import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
 
-/** Every site procedure: Sites must be configured, and domain errors become UI errors. */
 const sitesProcedure = authorizedProcedure.use(async ({ next }) => {
   if (!isSitesConfigured()) {
     throw serviceUnavailable(
@@ -187,10 +186,6 @@ async function servingState(siteId: string) {
   return (await readServingState(siteId))?.state ?? null;
 }
 
-/**
- * Deployments as the dashboard lists them. Only a ready production build that
- * isn't live and was built for the site's current settings can be restored.
- */
 async function serializeDeploymentList(
   site: Site,
   deployments: Awaited<ReturnType<typeof listSiteDeployments>>,
@@ -218,7 +213,6 @@ export const sitesRouter = {
         organizationId: input.organizationId,
       });
       const configured = isSitesConfigured();
-      // Shown in onboarding as `{slug}.{hostingDomain}` before the first site exists.
       const hostingDomain = configured
         ? `${getSitesHostingDomain()}${getSitesHostingPortSuffix()}`
         : null;
@@ -260,10 +254,6 @@ export const sitesRouter = {
       };
     }),
 
-  /**
-   * Every repository the GitHub App can see, connected to Notra or not, so the
-   * new-site page can import any of them without a detour to Integrations.
-   */
   importableRepositories: authorizedProcedure
     .input(organizationIdInputSchema)
     .handler(async ({ context, input }) => {
@@ -312,7 +302,6 @@ export const sitesRouter = {
       };
     }),
 
-  /** Connects one more GitHub App repository (keeping the others) and returns it as a site source. */
   connectRepository: authorizedProcedure
     .input(connectSiteRepositoryInputSchema)
     .handler(async ({ context, input }) => {
@@ -352,7 +341,6 @@ export const sitesRouter = {
       return repository;
     }),
 
-  /** Branches and notra.json folders for the new-site form. */
   repositorySuggestions: sitesProcedure
     .input(repositorySuggestionsInputSchema)
     .handler(async ({ context, input }) => {
@@ -367,7 +355,6 @@ export const sitesRouter = {
       });
     }),
 
-  /** Whether the picked branch and folder already have a notra.json, for the starter offer. */
   starterStatus: sitesProcedure
     .input(siteStarterInputSchema)
     .handler(async ({ context, input }) => {
@@ -378,7 +365,6 @@ export const sitesRouter = {
       return await siteStarterStatus(input);
     }),
 
-  /** Opens a pull request with starter files built from the brand identity and landing page. */
   createStarter: sitesProcedure
     .input(siteStarterInputSchema)
     .handler(async ({ context, input }) => {
@@ -390,7 +376,6 @@ export const sitesRouter = {
       return await createSiteStarter(input);
     }),
 
-  /** The same for an existing site's settings. */
   siteRepositorySuggestions: sitesProcedure
     .input(siteRepositorySuggestionsInputSchema)
     .handler(async ({ context, input }) => {
@@ -412,8 +397,6 @@ export const sitesRouter = {
         listSiteDrafts(site.id),
       ]);
       const live = liveDeploymentsFromState(state);
-      // Repair: a state.json that lost or missed the password or the traffic
-      // token gets them back.
       if (
         state &&
         (state.previewPassword?.version !== site.previewPassword?.version ||
@@ -611,7 +594,6 @@ export const sitesRouter = {
         return { ok: true };
       }),
 
-    /** Signs the member into a protected preview, or creates a 7-day share link. */
     accessUrl: sitesProcedure
       .input(sitePreviewAccessInputSchema)
       .handler(async ({ context, input }) => {
@@ -627,7 +609,6 @@ export const sitesRouter = {
         });
       }),
 
-    /** Sets, changes (`password`) or removes (`null`) the preview password. Admins only. */
     setPassword: sitesProcedure
       .input(siteSetPreviewPasswordInputSchema)
       .handler(async ({ context, input }) => {
@@ -666,7 +647,6 @@ export const sitesRouter = {
         };
       }),
 
-    /** One-click DNS via Domain Connect; `ready` carries the signed URL to open at the DNS provider. */
     connect: sitesProcedure
       .input(siteDomainInputSchema)
       .handler(async ({ context, input }) => {
@@ -752,7 +732,6 @@ export const sitesRouter = {
         return { path: draft.path, updatedAt: draft.updatedAt };
       }),
 
-    /** Keeps the draft's content and bases it on the current GitHub version (after a conflict). */
     rebaseDraft: sitesProcedure
       .input(siteFilePathInputSchema)
       .handler(async ({ context, input }) => {
@@ -790,7 +769,6 @@ export const sitesRouter = {
       }),
   },
 
-  /** Analytics presets in notra.json, edited as a draft and published like any edit. */
   integrations: {
     get: sitesProcedure
       .input(siteScopeInputSchema)

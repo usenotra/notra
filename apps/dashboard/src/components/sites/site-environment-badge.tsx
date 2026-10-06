@@ -7,10 +7,6 @@ import { SITE_ENVIRONMENT_ICONS } from "@/constants/sites";
 import { cn } from "@/lib/utils";
 import type { SiteEnvironmentBadgeProps } from "@/types/components/sites";
 
-/**
- * Production or the preview's name. Only the production build that is live
- * gets the filled brand pill; everything else stays outlined and neutral.
- */
 export function SiteEnvironmentBadge({
   kind,
   previewKey,

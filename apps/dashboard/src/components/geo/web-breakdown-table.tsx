@@ -13,7 +13,6 @@ import type { WebBreakdownRow, WebBreakdownTableProps } from "@/types/geo";
 import { formatChartInteger } from "@/utils/geo-charts";
 import { webTableHeight } from "@/utils/web-analytics";
 
-/** Name, an optional "from AI" count, and the value with its bar. */
 export function WebBreakdownTable({
   title,
   nameHeader,

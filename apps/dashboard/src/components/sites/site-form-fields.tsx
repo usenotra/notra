@@ -24,7 +24,6 @@ import type {
   SiteSectionsFieldsProps,
 } from "@/types/components/sites";
 
-/** Radio cards for explicit either/or settings (preview visibility, publish mode). */
 export function SiteChoiceGroup<T extends string>({
   label,
   value,

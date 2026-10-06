@@ -33,10 +33,6 @@ import {
   siteIntegrationSettingsFromValues,
 } from "@/utils/site-integrations";
 
-/**
- * Sets up one provider. Fields are checked against the same schema the build
- * uses; saving writes notra.json as a draft that goes live on publish.
- */
 export function SiteIntegrationDialog({
   scope,
   provider,
@@ -103,7 +99,6 @@ export function SiteIntegrationDialog({
         >
           {provider.fields.map((field) => {
             const fieldId = `${id}-${field.key}`;
-            // Field keys are notra.json keys, typed as strings; the messages mirror them.
             const label = t(
               `fields.${provider.id}.${field.key}` as Parameters<typeof t>[0]
             );

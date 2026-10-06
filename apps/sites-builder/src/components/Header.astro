@@ -14,7 +14,6 @@ const hasSections = Boolean(params.mounts.blog && params.mounts.changelog);
 const links = navbarLinks();
 const cta = navbarCta();
 const primary = navbarPrimary();
-// Below `md` the external links and the buttons move into a menu; the sections always stay visible.
 const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
 ---
 
@@ -68,15 +67,16 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
       <ThemeToggle />
       {
         primary && (
-          <a href={primary.href} class="btn btn-secondary btn-sm ml-2 hidden md:inline-flex">
-            <LinkIcon icon={primary.icon} size={14} />
-            {primary.label}
-          </a>
+          <div id="topbar-primary-button" class="ml-2 hidden md:flex">
+            <a href={primary.href} class="btn btn-secondary btn-sm">
+              <LinkIcon icon={primary.icon} size={14} />
+              {primary.label}
+            </a>
+          </div>
         )
       }
       {
         cta && (
-          /* Same hook as hosted docs: `#topbar-cta-button > a` restyles it from the site CSS. */
           <div id="topbar-cta-button" class="ml-2 hidden md:flex">
             <a href={cta.href} class="btn btn-primary btn-sm">
               {cta.label}
@@ -129,7 +129,6 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
 </header>
 
 <script>
-  // The hairline only appears once content scrolls under the header.
   const header = document.querySelector<HTMLElement>("[data-site-header]");
   if (header) {
     const sync = () => header.toggleAttribute("data-scrolled", window.scrollY > 4);

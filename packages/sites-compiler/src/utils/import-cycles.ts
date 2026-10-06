@@ -1,6 +1,5 @@
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
 
-/** Import cycles make the MDX compiler recurse forever; each one is reported once. */
 export function importCycleDiagnostics(
   paths: readonly string[],
   importsOf: (path: string) => readonly string[]

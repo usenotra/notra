@@ -42,7 +42,6 @@ function InfoRow({ icon, label, children }: SiteOverviewInfoRowProps) {
   );
 }
 
-/** What visitors see and where: a live preview next to the site's addresses, in a house module. */
 export function SiteOverviewHero() {
   const t = useTranslations("sites.overviewPage");
   const { organizationSlug, siteId, detail, liveDeployment } = useSite();
@@ -63,7 +62,6 @@ export function SiteOverviewHero() {
   return (
     <InstrumentModule
       action={
-        // The header keeps room for a status only when there is one.
         hasStatus ? (
           <SiteOverviewStatus
             live={liveDeployment !== null}

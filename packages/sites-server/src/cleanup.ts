@@ -12,7 +12,6 @@ import { getSite, transitionDeployment } from "./deployments";
 import { r2DeletePrefix, r2ListPrefixes } from "./r2";
 import type { SiteCleanupResult } from "./types/sites";
 
-/** Deployments that are building, or finished within the settle window. */
 async function listUnsettledDeploymentIds(siteId: string) {
   const settledBefore = new Date(Date.now() - DEPLOYMENT_SETTLE_MS);
   return await db
@@ -37,7 +36,6 @@ async function listUnsettledDeploymentIds(siteId: string) {
     );
 }
 
-/** The latest stored production deployments, kept for rollback. */
 async function listRollbackDeploymentIds(siteId: string) {
   return await db
     .select({ id: siteDeployments.id })
@@ -53,14 +51,6 @@ async function listRollbackDeploymentIds(siteId: string) {
     .limit(ROLLBACK_HISTORY);
 }
 
-/**
- * Deletes stored deployments nobody can reach anymore. Kept: everything the
- * serving state references (live + open previews), anything still building or
- * finished within the settle window (a build is marked ready before it is
- * activated), and the latest production deployments as rollback history.
- * The serving state is read last, so a build activated while the database
- * was queried is still seen as live.
- */
 export async function cleanupSiteDeployments(
   siteId: string
 ): Promise<SiteCleanupResult> {

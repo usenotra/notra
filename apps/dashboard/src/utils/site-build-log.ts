@@ -11,12 +11,10 @@ import type {
 } from "@/types/sites";
 import { stripAnsi } from "@/utils/site-deployments";
 
-/** Astro and the Notra builder start lines with `HH:MM:SS`. */
 const TIMESTAMP_PREFIX = /^(\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?) (.*)$/;
 const ERROR_LINE = /\[error\]|\berror\b|\bERR!|✘|✖/i;
 const WARNING_LINE = /\[warn\]|\bwarn(?:ing)?\b/i;
 const SUCCESS_LINE = /[✓✔]/;
-/** Code frames and hints that tools print under a warning or error. */
 const CONTINUATION_LINE = /^[\s│╭╰─┬┴├└┌]/;
 const LINE_BREAK = /\r?\n/;
 
@@ -33,7 +31,6 @@ function toneOf(text: string): SiteBuildLogTone {
   return "default";
 }
 
-/** Splits a raw build log into display lines: ANSI stripped, timestamps split off, tones detected. */
 export function parseBuildLog(log: string): SiteBuildLogLine[] {
   const rawLines = stripAnsi(log).replace(/\s+$/, "").split(LINE_BREAK);
   const lines: SiteBuildLogLine[] = [];
@@ -75,7 +72,6 @@ export function countLogLines(
   return count;
 }
 
-/** Case-insensitive match ranges of `query` in `text`. */
 export function findMatches(
   text: string,
   query: string
@@ -94,9 +90,7 @@ export function findMatches(
   return ranges;
 }
 
-/** Route trees and stack frames: useful once, noise at length. */
 const NOISE_LINE = /^\s*(?:[├└│]|at\s)/;
-/** A tool tag such as `[build]` or `[vite]` at the start of a line. */
 const TAG_PREFIX = /^(\[[\w:@/-]+\])\s?(.*)$/;
 const CLOCK = /^(\d{2}):(\d{2}):(\d{2})/;
 const SECONDS_PER_MINUTE = 60;
@@ -105,7 +99,6 @@ const SECONDS_PER_DAY = 86_400;
 
 const STACK_FRAME = /^\s+at\s/;
 
-/** The lines from `start` on that match, up to the first that doesn't. */
 function takeRun(
   lines: readonly SiteBuildLogLine[],
   start: number,
@@ -135,7 +128,6 @@ function foldEntry(
 
 const isStackFrame = (line: SiteBuildLogLine) => STACK_FRAME.test(line.text);
 
-/** Keeps an error's message and hints; three or more stack frames fold after the first. */
 function foldStackFrames(
   run: readonly SiteBuildLogLine[]
 ): SiteBuildLogEntry[] {
@@ -164,10 +156,6 @@ function foldStackFrames(
   return entries;
 }
 
-/**
- * Folds the noise in a build log: code frames under warnings and errors,
- * and long runs of route trees or stack frames (the first two lines stay).
- */
 export function groupBuildLog(
   lines: readonly SiteBuildLogLine[]
 ): SiteBuildLogEntry[] {
@@ -182,7 +170,6 @@ export function groupBuildLog(
       const run = takeRun(lines, index, (candidate) => candidate.continued);
       index += run.length;
       if (line.tone === "error") {
-        // An error's frame is the point of the log: keep it, fold only its stack.
         entries.push(...foldStackFrames(run));
       } else if (run.length >= SITE_BUILD_LOG_FRAME_FOLD_MIN) {
         entries.push(foldEntry(run, line.tone));
@@ -214,7 +201,6 @@ export function groupBuildLog(
   return entries;
 }
 
-/** Splits `[build] Collecting…` into its tool tag and the message. */
 export function splitLogTag(text: string): SiteBuildLogTagParts {
   const match = TAG_PREFIX.exec(text);
   return match
@@ -234,10 +220,6 @@ function clockSeconds(timestamp: string): number | null {
   );
 }
 
-/**
- * Seconds since the first timestamped line, as `m:ss`, only where it changes:
- * the log reads against the build's own clock instead of a wall of times.
- */
 export function logOffsets(
   lines: readonly SiteBuildLogLine[]
 ): Map<number, string> {

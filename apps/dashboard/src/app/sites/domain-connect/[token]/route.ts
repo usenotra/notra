@@ -9,11 +9,6 @@ import type {
   SiteDomainConnectRouteContext,
 } from "@/types/sites";
 
-/**
- * Domain Connect sends the browser back here after the customer approved (or
- * cancelled) the DNS change. The token lives in the path because Cloudflare
- * drops `state`. Errors arrive as OAuth-style `error` / `error_description`.
- */
 export async function GET(
   request: Request,
   { params }: SiteDomainConnectRouteContext

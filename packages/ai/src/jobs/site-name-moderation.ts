@@ -12,11 +12,6 @@ import type {
   SiteNameModerationVerdict,
 } from "@notra/ai/types/site-name-moderation";
 
-/**
- * Screens a site's name and public address with Jev. Fails open: when the
- * classifier is off or unreachable the name is allowed and the miss is logged,
- * so an outage never blocks creating a site.
- */
 export async function moderateSiteName(
   params: ModerateSiteNameParams
 ): Promise<SiteNameModerationVerdict> {

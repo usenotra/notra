@@ -26,7 +26,6 @@ const items = Astro.props.headings.filter((heading) => heading.depth === 2 || he
 }
 
 <script>
-  // Marks the section being read: the last heading above a line near the top of the viewport.
   const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
   const headings = links
     .map((link) => document.getElementById(link.dataset.tocLink ?? ""))

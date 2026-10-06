@@ -40,7 +40,6 @@ describe("generation ordering", () => {
         now
       ).outcome
     ).toBe("already_active");
-    // A rollback re-activates an old deployment under a new generation.
     expect(
       activateProductionInState(
         state,
@@ -78,7 +77,6 @@ describe("generation ordering", () => {
     expect([...referencedDeploymentIds(state)]).toEqual(["p4"]);
     const removed = removePreviewFromState(state, "pr-1", 9, now);
     expect(removed.previews).toEqual({});
-    // A build queued before the PR closed must not bring the preview back; a reopened PR (newer) may.
     expect(
       activatePreviewInState(
         removed,

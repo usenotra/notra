@@ -56,13 +56,6 @@ import {
   withSiteRepository,
 } from "@/utils/site-create";
 
-/**
- * The new-site page, after Cloudflare's "Create an app": three step cards on
- * a stage that never scrolls. Importing a repository (connecting it on the
- * way) glides the settings into the middle, Create glides in the deploy log;
- * dimmed earlier cards and the step list lead back. Previews and publishing
- * start from their defaults and are changed later on the site.
- */
 export function SiteCreateForm({
   organizationId,
   organizationSlug,
@@ -81,7 +74,6 @@ export function SiteCreateForm({
     SITE_CREATE_FORM_DEFAULTS
   );
   const [errors, setErrors] = useState<SiteCreateFieldErrors>({});
-  // Kept across steps so the deploy card can point at it if notra.json is still missing.
   const [starterPullRequestUrl, setStarterPullRequestUrl] = useState<
     string | null
   >(null);
@@ -96,7 +88,6 @@ export function SiteCreateForm({
     branch: form.branch.trim(),
   });
   const sections = siteCreateSectionPlan(form, suggestions.contentCounts);
-  // Untyped section paths come from the repository scan, so creating waits for it.
   const isReady =
     isSiteCreateReady(form, repository) &&
     hasSiteCreateSection(sections) &&
@@ -130,16 +121,13 @@ export function SiteCreateForm({
     setForm((current) => ({ ...current, [key]: value }));
     const field = SITE_CREATE_VALUE_FIELDS[key];
     if (field) {
-      // An empty address follows the name, so renaming also retries the address.
       clearErrors(
         key === "name" && !form.slug.trim() ? [field, "slug"] : [field]
       );
     }
   };
 
-  /** Moves to a step; the stage glides it into the middle, then focus follows. */
   const goTo = (step: SiteCreateStepId, focusId?: string) => {
-    // Once the site exists the earlier steps are history, not settings.
     if (createMutation.isSuccess && step !== "deploy") {
       return;
     }
@@ -233,14 +221,12 @@ export function SiteCreateForm({
   }[activeStep];
 
   return (
-    // Fills the panel: nothing on this page scrolls, the stage moves instead.
     <div className="flex min-h-0 flex-1 flex-col gap-6" data-site-fill>
       <PageHeading description={t("description")} title={t("title")} />
       <div className="flex min-h-[32rem] min-w-0 flex-1 flex-col">
         <SiteCreateStage
           activeIndex={activeIndex}
           left={
-            // Keyed per step: the title swaps with a short fade as the card arrives.
             <div
               aria-hidden="true"
               className="animate-in fade-in motion-safe:slide-in-from-bottom-1 space-y-1.5 pt-1 duration-500"
@@ -300,7 +286,6 @@ export function SiteCreateForm({
           >
             <MotionConfig reducedMotion="user">
               <LazyMotion features={domAnimation} strict>
-                {/* Keyed per repository: each import replays the rows' entrance. */}
                 <m.div
                   animate="shown"
                   className="space-y-4"

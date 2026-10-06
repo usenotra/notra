@@ -5,7 +5,6 @@ import type {
   SiteIntegrationValues,
 } from "@/types/site-integrations";
 
-/** The provider's block from notra.json, or null when it isn't set up. */
 export function siteIntegrationSettings(
   integrations: Record<string, unknown> | undefined,
   provider: SiteIntegrationProvider
@@ -16,7 +15,6 @@ export function siteIntegrationSettings(
     : null;
 }
 
-/** Form values for a provider: its saved settings, blanks for the rest. */
 export function siteIntegrationFormValues(
   provider: SiteIntegrationProvider,
   settings: Record<string, unknown> | null
@@ -29,7 +27,6 @@ export function siteIntegrationFormValues(
   return values;
 }
 
-/** What goes into notra.json: trimmed text, blank optional fields left out. */
 export function siteIntegrationSettingsFromValues(
   provider: SiteIntegrationProvider,
   values: SiteIntegrationValues
@@ -44,7 +41,6 @@ export function siteIntegrationSettingsFromValues(
   return settings;
 }
 
-/** Per-field messages from the same schema the build uses; empty when valid. */
 export function siteIntegrationFieldErrors(
   provider: SiteIntegrationProvider,
   settings: Record<string, unknown>

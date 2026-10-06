@@ -10,12 +10,6 @@ import {
   vercelInstallUrl,
 } from "./vercel-dns";
 
-/**
- * One-click DNS for a pending custom subdomain, from whichever provider can do
- * it: Domain Connect (Cloudflare, GoDaddy, …) first, else Vercel DNS through
- * the Notra integration. Otherwise the provider and zone still label the
- * manual records.
- */
 export async function dnsSetupForDomain({
   site,
   domainId,

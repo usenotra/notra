@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 
 import type { SiteBuildLogFilterProps } from "@/types/components/sites";
 
-/** Filters the log to matching lines; Escape clears it. */
 export function SiteBuildLogFilter({
   value,
   onChange,

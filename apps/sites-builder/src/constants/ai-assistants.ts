@@ -1,9 +1,5 @@
 import type { AiAssistant } from "../types/ai-assistants";
 
-/**
- * Chat apps a reader can open a post in. Each takes the prompt in `?q=`;
- * logos are from svgl.app (T3 Chat has none there, so it gets a wordmark).
- */
 export const AI_ASSISTANTS: readonly AiAssistant[] = [
   {
     id: "chatgpt",

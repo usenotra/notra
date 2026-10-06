@@ -23,8 +23,6 @@ import {
   webSourcesDaily,
 } from "../datasources";
 
-// A session counts on its first page; index 0 means ingest had no session
-// store, so every view stands alone.
 const LANDING = "session_page_index <= 1";
 
 export const webPagesDailyMv = defineMaterializedView("web_pages_daily_mv", {
@@ -387,8 +385,6 @@ export const webAiOutcomes = defineEndpoint("web_ai_outcomes", {
   params: WEB_PARAMS,
   nodes: [
     node({
-      // Reads raw views: sessions only exist there, and the window is capped
-      // by the 90-day TTL.
       name: "outcome_sessions",
       sql: `
         SELECT

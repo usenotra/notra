@@ -1,5 +1,5 @@
 {
-  "$schema": "https://usenotra.com/schemas/notra.json",
+  "$schema": "https://usenotra.com/schemas/blog.json",
   "name": "Acme",
   "description": "Notes from the Acme team on building calm software.",
   "markdown": {

@@ -35,11 +35,6 @@ import { toErrorMessage } from "@/utils/error-message";
 import { detectSiteDomainKind } from "@/utils/site-domains";
 import { mountedPaths } from "@/utils/site-proxy-recipes";
 
-/**
- * One field for any domain. blog.acme.com connects with a DNS record,
- * acme.com or acme.com/blog through rewrites on the customer's own site;
- * the line under the field says which, with a way to pick the other.
- */
 export function SiteDomainAddDialog({
   organizationId,
   siteId,
@@ -52,13 +47,11 @@ export function SiteDomainAddDialog({
   const id = useId();
   const invalidateSites = useInvalidateSites();
   const [value, setValue] = useState("");
-  // Set when the reader switches away from what the address suggests.
   const [override, setOverride] = useState<SiteDomainKind | null>(null);
   const trimmed = value.trim();
   const detected = detectSiteDomainKind(trimmed);
   const kind = detected ? (override ?? detected) : null;
   const hostname = trimmed.split("/")[0] ?? "";
-  // Where the site will answer: the same paths on every host it serves.
   const urls = mountedPaths(mounts).map((path) =>
     path === "/" ? hostname : `${hostname}${path}`
   );
@@ -123,7 +116,6 @@ export function SiteDomainAddDialog({
                   SITE_DOMAIN_URL_SCHEME_PATTERN,
                   ""
                 );
-                // A different kind of address drops the earlier switch.
                 if (detectSiteDomainKind(next) !== detected) {
                   setOverride(null);
                 }

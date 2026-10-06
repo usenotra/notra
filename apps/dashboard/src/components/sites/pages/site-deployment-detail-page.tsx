@@ -22,6 +22,10 @@ import { SiteDeploymentSummary } from "@/components/sites/site-deployment-summar
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SiteRollbackDialog } from "@/components/sites/site-rollback-dialog";
 import {
+  SITE_DEPLOYMENT_LOG_SURFACE_CLASS,
+  SITE_DEPLOYMENT_SHELL_CLASS,
+} from "@/constants/sites";
+import {
   useRedeployDeployment,
   useSiteDeployment,
 } from "@/lib/hooks/use-site-deployments";
@@ -41,10 +45,6 @@ import {
   shortSha,
 } from "@/utils/site-deployments";
 import { siteHref } from "@/utils/site-links";
-
-const LOG_SHELL = "border-shell-border bg-shell rounded-2xl border p-0.5";
-const LOG_SURFACE =
-  "bg-background shadow-lift h-96 overflow-hidden rounded-[14px] border";
 
 export function SiteDeploymentDetailPage({
   deploymentId,
@@ -87,10 +87,6 @@ export function SiteDeploymentDetailPage({
   );
 }
 
-/**
- * One deployment: what changed, a card with the page it serves and its
- * facts, why it failed if it did, then the build log.
- */
 function DeploymentDetail({
   organizationId,
   siteId,
@@ -111,7 +107,6 @@ function DeploymentDetail({
   );
   const wasInProgress = useRef(inProgress);
 
-  // A build that just finished changes the site too (live pointer, lists).
   useEffect(() => {
     if (wasInProgress.current && !inProgress) {
       invalidateSites();
@@ -168,8 +163,8 @@ function DeploymentDetail({
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium">{t("log.title")}</h2>
-        <div className={LOG_SHELL}>
-          <div className={LOG_SURFACE}>
+        <div className={SITE_DEPLOYMENT_SHELL_CLASS}>
+          <div className={SITE_DEPLOYMENT_LOG_SURFACE_CLASS}>
             <SiteBuildLogs
               inProgress={inProgress}
               log={log}
@@ -194,7 +189,6 @@ function DeploymentDetail({
   );
 }
 
-/** Restore (an older production build), redeploy once the build is over, and visit while live. */
 function DeploymentActions({
   organizationId,
   siteId,
@@ -256,7 +250,6 @@ function DeploymentActions({
   );
 }
 
-/** Why a deployment stopped short, in one quiet line. */
 function DeploymentNote({ deployment }: SiteDeploymentRecordProps) {
   const t = useTranslations("sites.deploymentPage.notice");
   if (

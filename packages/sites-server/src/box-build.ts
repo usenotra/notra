@@ -75,7 +75,6 @@ async function downloadBytes(
   return bytes;
 }
 
-/** Reads the growing build log out of the box until stopped; each new version goes to `onLog`. */
 function followBuildLog(
   box: EphemeralBox,
   onLog: (log: string) => Promise<void>
@@ -107,7 +106,6 @@ function followBuildLog(
   };
 }
 
-/** Why a build left no valid result: `timeout` exits with 124 when it kills the build. */
 function crashReason(exitText: string | null, wroteResult: boolean): string {
   if (exitText?.trim() === "124") {
     return `The build took longer than ${SITE_BUILD_LIMITS.buildTimeoutSeconds / 60} minutes`;
@@ -117,12 +115,6 @@ function crashReason(exitText: string | null, wroteResult: boolean): string {
     : "The build stopped before it produced a result. See the build log.";
 }
 
-/**
- * Builds a customer site inside a fresh Upstash Box restored from the toolchain
- * snapshot. The box has no network access and no credentials: the repository
- * archive goes in, a tarball of static files comes out. Customer components
- * may run arbitrary JavaScript during the build, but only in here.
- */
 export async function runSandboxBuild(
   params: SandboxBuildParams
 ): Promise<SandboxBuildResult> {
@@ -157,7 +149,6 @@ export async function runSandboxBuild(
       `cd ${BOX_WORKDIR} || exit 3`,
       "rm -rf src out out.tgz result.json build.log exit-code",
       "mkdir -p src",
-      // GitHub tarballs wrap everything in one owner-repo-sha/ directory.
       "tar xzf source.tgz -C src --strip-components=1 --no-same-owner --no-same-permissions || exit 3",
       "rm -f source.tgz",
       "cd toolchain || exit 3",

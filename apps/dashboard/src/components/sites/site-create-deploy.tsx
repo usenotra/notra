@@ -29,10 +29,6 @@ import {
 } from "@/utils/site-deployments";
 import { siteDeploymentHref, siteHref } from "@/utils/site-links";
 
-/**
- * The last step of the new-site page, Vercel-style: the first deployment
- * with its build log streaming in, then the live site or the error.
- */
 export function SiteCreateDeploy({
   organizationId,
   organizationSlug,
@@ -41,7 +37,6 @@ export function SiteCreateDeploy({
   starterPullRequestUrl = null,
 }: SiteCreateDeployProps) {
   const t = useTranslations("sites.new.deploy");
-  // The first deployment shows up a moment after the site exists.
   const detail = useQuery(
     dashboardOrpc.sites.get.queryOptions({
       input: { organizationId, siteId: site.id },
@@ -60,11 +55,9 @@ export function SiteCreateDeploy({
   const record = deployment.data?.deployment ?? null;
   const status = record?.status ?? "queued";
   const inProgress = isDeploymentInProgress(status);
-  // Nothing was queued (GitHub didn't answer, or the branch is empty): there is no build to wait for.
   const failed =
     !deploymentQueued || status === "failed" || status === "canceled";
   const ready = record !== null && !(inProgress || failed);
-  // The site was created before the starter pull request was merged.
   const awaitsStarterMerge =
     failed &&
     starterPullRequestUrl !== null &&

@@ -22,7 +22,6 @@ import type { Site } from "./types/sites";
 import { summarizeDiagnostics } from "./utils/diagnostics";
 import { isNotFoundError } from "./utils/errors";
 
-/** The same object is overwritten while the build runs, so the dashboard can tail it. */
 async function writeBuildLog(
   siteId: string,
   deploymentId: string,
@@ -33,7 +32,6 @@ async function writeBuildLog(
   });
 }
 
-/** The commit `branch` points at now; null when the branch is gone. */
 async function currentBranchHead(
   { repository, token }: SiteRepositoryAccess,
   branch: string
@@ -48,14 +46,6 @@ async function currentBranchHead(
   }
 }
 
-/**
- * Webhooks arrive late, out of order or redelivered. A push/PR build whose
- * commit is no longer its branch head would publish older content under a
- * newer generation; the push that moved the branch has its own deployment.
- * The head is checked first, so a late webhook for an older commit (which
- * gets a higher generation) skips itself instead of displacing the build of
- * the current head.
- */
 async function whyNotBuild(
   access: SiteRepositoryAccess,
   deployment: SiteDeployment
@@ -77,11 +67,6 @@ async function whyNotBuild(
   return null;
 }
 
-/**
- * Sandbox build + upload. Returns an outcome when the deployment ends here
- * (skipped, failed, canceled meanwhile); null when it is `ready` to go live.
- * Every status change is a guarded transition, so a concurrent cancel always wins.
- */
 async function buildAndPublish(
   site: Site,
   deployment: SiteDeployment
@@ -126,7 +111,6 @@ async function buildAndPublish(
       mounts: deployment.target.mounts,
       noindex: deployment.target.noindex,
       includeDrafts: deployment.kind === "preview",
-      // Rows from before the setting carry no flag; they were built with the badge.
       branding: deployment.target.branding !== false,
     },
     onLog: (log) => writeBuildLog(site.id, deployment.id, log),
@@ -185,10 +169,6 @@ async function activationOutcome(
   return live ? { kind: "live" } : { kind: "not_live" };
 }
 
-/**
- * One deployment, start to finish: decide → build → publish → activate → report.
- * Resumable: a deployment that crashed after its upload (`ready`) skips straight to activation.
- */
 export async function runDeploymentPipeline(
   site: Site,
   queued: SiteDeployment
@@ -204,7 +184,6 @@ export async function runDeploymentPipeline(
   return outcome;
 }
 
-/** Final failure outside the build itself (crash on the last attempt, permanent error). */
 export async function failDeployment(
   site: Site,
   deployment: SiteDeployment,

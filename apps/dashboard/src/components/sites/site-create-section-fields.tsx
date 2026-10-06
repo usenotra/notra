@@ -10,10 +10,6 @@ import {
 } from "@/constants/sites";
 import type { SiteCreateSectionFieldsProps } from "@/types/components/sites";
 
-/**
- * Blog and changelog paths, filled in from what the repository has; clearing
- * a path turns its section off.
- */
 export function SiteCreateSectionFields({
   idPrefix,
   plan,

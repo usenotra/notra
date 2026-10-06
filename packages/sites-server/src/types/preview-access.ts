@@ -5,7 +5,6 @@ export interface PreviewAccessUrlParams {
   previewKey: string;
   next?: string;
   kind: "member" | "share";
-  /** The member the session is for, or who created the share link. */
   userId: string;
 }
 

@@ -14,7 +14,6 @@ import type { Site } from "./types/sites";
 import { deploymentDashboardUrl, primaryMountUrl } from "./urls";
 import { errorMessage } from "./utils/errors";
 
-/** Reporting never fails a deployment: GitHub being slow or a missing `checks` permission is not a build problem. */
 async function safely<T>(
   label: string,
   fn: () => Promise<T>
@@ -43,7 +42,6 @@ async function dashboardUrl(
   });
 }
 
-/** Opens the "in progress" GitHub check for a deployment once; returns the deployment with its check id. */
 export async function openCheckRun(
   site: Site,
   deployment: SiteDeployment
@@ -126,7 +124,6 @@ function checkFor(
   }
 }
 
-/** The single place a deployment's result reaches GitHub. */
 export async function reportOutcome(
   site: Site,
   deployment: SiteDeployment,

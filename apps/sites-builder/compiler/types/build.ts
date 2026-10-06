@@ -8,7 +8,6 @@ export interface BuildSiteOptions {
   workDir?: string;
 }
 
-/** The part of astro's package.json used to find its CLI entry. */
 export interface AstroPackageJson {
   bin: string | Record<string, string>;
 }

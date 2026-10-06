@@ -33,16 +33,12 @@ export interface EnqueuedDeployment {
   jobId: string;
 }
 
-/** How a deployment ended. Every path reports through `reportOutcome`, nowhere else. */
 export type DeploymentOutcome =
   | { kind: "live" }
-  /** Built and stored, but a newer deployment was already live. */
   | { kind: "not_live" }
-  /** Not built: suspended site, newer commit, or preview closed. */
   | { kind: "skipped"; reason: string }
   | { kind: "failed"; summary: string; diagnostics: SiteDiagnostic[] };
 
-/** Whether an activation reached the serving state, or a newer deployment kept it. */
 export type ActivationOutcome = "live" | "not_live";
 
 export interface LiveDeployments {

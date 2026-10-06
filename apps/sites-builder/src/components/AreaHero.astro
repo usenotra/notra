@@ -10,9 +10,7 @@ interface Props {
 const { title, description } = Astro.props;
 const hero = heroOptions(params.area);
 const image = hero.style === "image" ? assetUrl(hero.image) : undefined;
-// An image hero without an image falls back to the wash rather than an empty dark box.
 const style = hero.style === "image" && !image ? "wash" : hero.style;
-// "Acme Blog" → "Acme" + accented "Blog", like the Notra blog's own header.
 const lastSpace = title.lastIndexOf(" ");
 const lead = lastSpace > 0 ? title.slice(0, lastSpace + 1) : "";
 const accent = lastSpace > 0 ? title.slice(lastSpace + 1) : title;

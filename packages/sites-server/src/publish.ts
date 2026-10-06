@@ -16,11 +16,6 @@ import type { PublishDeploymentFilesParams } from "./types/deployments";
 import { mapWithConcurrency } from "./utils/concurrency";
 import { contentTypeForPath } from "./utils/content-types";
 
-/**
- * Uploads the sandbox output under the deployment's immutable prefix and
- * writes the manifest last: a deployment without a manifest is incomplete and
- * is never served. The manifest is computed here, not trusted from the sandbox.
- */
 export async function publishDeploymentFiles(
   params: PublishDeploymentFilesParams
 ): Promise<SiteManifest> {

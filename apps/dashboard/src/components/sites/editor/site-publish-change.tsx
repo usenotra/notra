@@ -21,7 +21,6 @@ import type { SitePublishChangeProps } from "@/types/components/site-editor";
 import { toErrorMessage } from "@/utils/error-message";
 import { diffLineCounts, siteFileIcon } from "@/utils/site-editor";
 
-/** One file in the publish dialog: path and line counts, its diff on expand. */
 export function SitePublishChange({
   organizationId,
   siteId,

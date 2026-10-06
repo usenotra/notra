@@ -18,7 +18,6 @@ import type { SiteProxyRecipeId } from "@/types/sites";
 import { displayUrl } from "@/utils/site-links";
 import { buildProxyRecipes, mountedPaths } from "@/utils/site-proxy-recipes";
 
-/** Ready-to-paste rewrites for the customer's platform, picked from a select in the code header. */
 export function SiteProxySetup({ aliasOrigin, mounts }: SiteProxySetupProps) {
   const t = useTranslations("sites.domainsPage.proxy");
   const recipes = buildProxyRecipes(aliasOrigin, mounts);

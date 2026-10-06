@@ -10,7 +10,6 @@ import type {
 } from "./types/github";
 import type { RepositorySuggestionsParams } from "./types/sites";
 
-/** A repository connected through the GitHub App, only if it belongs to the organization. */
 export async function requireOrganizationRepository(
   organizationId: string,
   repositoryId: string
@@ -47,7 +46,6 @@ export async function requireOrganizationRepository(
   };
 }
 
-/** Branch and root-directory suggestions for a repository picked in the new-site form. */
 export async function organizationRepositorySuggestions(
   params: RepositorySuggestionsParams
 ): Promise<RepositorySuggestions> {

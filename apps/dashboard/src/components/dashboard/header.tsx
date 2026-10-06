@@ -297,7 +297,6 @@ function brandIdentityHeaderBreadcrumbs(
   ];
 }
 
-/** `/sites/{siteId}[/deployments/{deploymentId}]` → Sites › Site name › sha. */
 function sitesHeaderBreadcrumbs(
   breadcrumbSegments: string[],
   id: string,
@@ -344,7 +343,6 @@ function sitesHeaderBreadcrumbs(
             <HugeiconsIcon icon={ArrowRight01Icon} />
           </BreadcrumbSeparator>,
           <BreadcrumbItem
-            // On phones the deployment crumb needs the room; the sidebar still shows the section.
             className={cn(
               "shrink-0",
               deploymentId && "hover:underline max-sm:hidden"

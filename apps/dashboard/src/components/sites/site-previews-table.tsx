@@ -71,7 +71,6 @@ function OpenPreviewButton({
   );
 }
 
-/** Open previews in Vercel-style rows; a row opens the deployment behind it. */
 export function SitePreviewsTable({
   organizationId,
   organizationSlug,
@@ -181,7 +180,6 @@ export function SitePreviewsTable({
     collapsePriority: 2,
     cell: (row) => {
       if (!row.visibility) {
-        // The overview has no status column; show the first build here instead.
         return compact ? (
           <SiteStatusDot status={row.status} />
         ) : (
@@ -216,7 +214,6 @@ export function SitePreviewsTable({
   const actionsColumn: TableColumn<SitePreviewRow> = {
     key: "actions",
     header: <span className="sr-only">{tCommon("labels.actions")}</span>,
-    // The overview's compact table only opens previews; the menu lives on the Previews page.
     width: compact ? "3.25rem" : "4.75rem",
     align: "right",
     cell: (row) => (

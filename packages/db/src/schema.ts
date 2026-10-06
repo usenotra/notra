@@ -1422,7 +1422,6 @@ export const projects = pgTable(
     gscLastSyncedAt: timestamp("gsc_last_synced_at"),
     gscLastError: text("gsc_last_error"),
     isSample: boolean("is_sample").notNull().default(false),
-    /** Count human visitors from the GEO SDK too, not only AI traffic. */
     trackVisitors: boolean("track_visitors").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -4085,11 +4084,6 @@ export const SITE_JOB_STATUSES = [
   "failed",
 ] as const;
 
-/**
- * A hosted blog/changelog built from a customer GitHub repository.
- * `publicOrigin` + `mounts` decide every URL; they only change through the
- * dashboard (after verification), never through a commit.
- */
 export const sites = pgTable(
   "sites",
   {
@@ -4125,19 +4119,10 @@ export const sites = pgTable(
     publishMode: text("publish_mode", { enum: SITE_PUBLISH_MODES })
       .notNull()
       .default("pull_request"),
-    /** "Powered by Notra" badge in the site footer; part of the build target. */
     showBranding: boolean("show_branding").notNull().default(true),
-    /**
-     * Preview password as a salted PBKDF2 hash (never the password). Source of
-     * truth; every serving-state write mirrors it into state.json for the worker.
-     */
     previewPassword: jsonb("preview_password").$type<SitePreviewPassword>(),
     status: text("status", { enum: SITE_STATUSES }).notNull().default("active"),
     suspendedReason: text("suspended_reason"),
-    /**
-     * Counter for deployment and activation generations; only ever incremented in SQL.
-     * What is live is not stored here: R2 `sites/{id}/state.json` is the only authority.
-     */
     lastGeneration: integer("last_generation").notNull().default(0),
     createdByUserId: text("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
@@ -4165,7 +4150,6 @@ export const siteDomains = pgTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    /** Normalized host: `blog.acme.com` (subdomain) or `acme.com` (proxy origin). */
     hostname: text("hostname").notNull(),
     kind: text("kind", { enum: SITE_DOMAIN_KINDS }).notNull(),
     status: text("status", { enum: SITE_DOMAIN_STATUSES })
@@ -4191,7 +4175,6 @@ export const siteDomains = pgTable(
       table.siteId,
       table.hostname
     ),
-    // Only a verified domain is exclusive; unverified claims must not block the real owner.
     uniqueIndex("siteDomains_active_hostname_uidx")
       .on(table.hostname)
       .where(sql`${table.status} = 'active'`),
@@ -4215,7 +4198,6 @@ export const siteDeployments = pgTable(
     status: text("status", { enum: SITE_DEPLOYMENT_STATUSES })
       .notNull()
       .default("queued"),
-    /** Per-site ordering for activation; a pointer never moves to a lower generation. */
     generation: integer("generation").notNull(),
     branch: text("branch").notNull(),
     commitSha: text("commit_sha").notNull(),
@@ -4258,11 +4240,6 @@ export const siteDeployments = pgTable(
   ]
 );
 
-/**
- * Transactional outbox for site work. Rows are written in the same transaction
- * as the deployment they belong to and claimed with a lease, so a crash or a
- * lost dispatch only delays work; the sweep picks it up again.
- */
 export const siteJobs = pgTable(
   "site_jobs",
   {
@@ -4300,11 +4277,6 @@ export const siteJobs = pgTable(
   ]
 );
 
-/**
- * Hand-granted site addresses. Reserved addresses (popular companies) are
- * refused unless the creator has a matching company email; a row here lets
- * one organization take the address anyway. Insert it by hand for support.
- */
 export const siteSlugGrants = pgTable("site_slug_grants", {
   slug: text("slug").primaryKey(),
   organizationId: text("organization_id")
@@ -4314,16 +4286,13 @@ export const siteSlugGrants = pgTable("site_slug_grants", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-/** Durable GitHub delivery dedup: the insert is the claim. */
 export const siteWebhookDeliveries = pgTable("site_webhook_deliveries", {
   deliveryId: text("delivery_id").primaryKey(),
   event: text("event").notNull(),
   receivedAt: timestamp("received_at").defaultNow().notNull(),
-  /** Set once the delivery's work is stored; a claim without it can be retried after a crash. */
   processedAt: timestamp("processed_at"),
 });
 
-/** Saved editor drafts. They never touch the live site until published as a commit or PR. */
 export const siteDrafts = pgTable(
   "site_drafts",
   {
@@ -4333,7 +4302,6 @@ export const siteDrafts = pgTable(
       .references(() => sites.id, { onDelete: "cascade" }),
     path: text("path").notNull(),
     content: text("content").notNull(),
-    /** Git blob SHA the draft started from; null for new files. */
     baseBlobSha: text("base_blob_sha"),
     baseCommitSha: text("base_commit_sha"),
     deleted: boolean("deleted").notNull().default(false),

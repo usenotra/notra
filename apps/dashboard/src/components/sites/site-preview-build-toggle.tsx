@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 import { useSite } from "@/components/sites/site-context";
 import type { SitePreviewBuildToggleProps } from "@/types/components/site-preview-access";
 
-/** Previews on or off, and what turning them off does to the open ones. */
 export function SitePreviewBuildToggle({
   id,
   enabled,

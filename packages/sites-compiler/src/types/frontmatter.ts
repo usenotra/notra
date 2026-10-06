@@ -10,7 +10,6 @@ export type EntryFrontmatter =
   | z.infer<typeof changelogFrontmatterSchema>;
 
 export interface ParsedFrontmatter {
-  /** Null when the frontmatter is missing or invalid; `diagnostics` says why. */
   data: EntryFrontmatter | null;
   diagnostics: SiteDiagnostic[];
 }

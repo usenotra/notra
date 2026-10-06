@@ -18,11 +18,6 @@ import {
   resolveSiteConfigPath,
 } from "@/utils/site-github-publish";
 
-/**
- * The Notra Site that builds from this repository, if any. Sites link the
- * same GitHub integration row; the GitHub id and owner/name catch a site
- * whose link was reset when the integration was reconnected.
- */
 export async function findSiteGitHubPublishTarget(params: {
   organizationId: string;
   contentType: GitHubPublishContentType;
@@ -63,7 +58,6 @@ export async function findSiteGitHubPublishTarget(params: {
   }
 
   const section = SITE_ENTRY_DIRECTORIES[params.contentType];
-  // One repository can hold several sites; prefer one that serves the section.
   const site =
     candidates.find((candidate) => Boolean(candidate.mounts[section])) ??
     candidates[0];
@@ -98,7 +92,6 @@ async function readRepositoryTextFile(
     }
     return Buffer.from(data.content, "base64").toString("utf8");
   } catch {
-    // Missing files and failed reads only cost the author line.
     return null;
   }
 }
@@ -114,11 +107,6 @@ async function readPublisherName(userId: string | undefined) {
   return user?.name ?? null;
 }
 
-/**
- * The `author:` value for a blog post. A republish keeps the author already
- * on the pull request branch; otherwise the publisher is matched against
- * `authors` in notra.json and falls back to their display name.
- */
 export async function resolveSiteEntryAuthor(params: {
   token: string;
   owner: string;

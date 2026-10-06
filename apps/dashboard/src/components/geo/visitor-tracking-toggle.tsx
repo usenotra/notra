@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 import { useSetTrackVisitors } from "@/lib/hooks/use-geo";
 import type { VisitorTrackingToggleProps } from "@/types/geo";
 
-/** SDK projects count people only after switching this on. */
 export function VisitorTrackingToggle({
   organizationId,
   enabled,

@@ -180,7 +180,6 @@ function TrafficSourceSheetContent({
   };
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
-  // The per-domain rollup has no Markdown counts, so a domain filter hides it.
   const showMarkdown = group.band !== "ai_referral" && trafficHost === "";
   const stats: SheetStat[] = [
     {

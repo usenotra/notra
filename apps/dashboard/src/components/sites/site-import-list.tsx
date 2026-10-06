@@ -26,20 +26,10 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
-import { SITE_IMPORT_SKELETON_ROWS } from "@/constants/site-create";
+import { SITE_IMPORT_SKELETON_KEYS } from "@/constants/site-create";
 import { startGitHubInstall } from "@/lib/integrations/github/install";
 import type { SiteImportListProps } from "@/types/components/sites";
 
-const SKELETON_ROWS = Array.from(
-  { length: SITE_IMPORT_SKELETON_ROWS },
-  (_, index) => `skeleton-${index}`
-);
-
-/**
- * Every repository the GitHub App can see, Vercel-style: an account filter, a
- * search and an Import button per row. Repositories that aren't connected to
- * Notra yet are connected on import, so nobody has to leave this page.
- */
 export function SiteImportList({
   organizationId,
   organizationSlug,
@@ -58,7 +48,6 @@ export function SiteImportList({
   const [installing, setInstalling] = useState(false);
   const activeOwner = owner ?? owners[0] ?? null;
   const query = search.trim().toLowerCase();
-  // Repositories already connected to Notra first, then by name.
   const visible = repositories
     .toSorted(
       (a, b) =>
@@ -147,7 +136,7 @@ export function SiteImportList({
       </div>
       <ul className="max-h-[22.5rem] divide-y overflow-y-auto overscroll-contain rounded-xl border">
         {isLoading
-          ? SKELETON_ROWS.map((key) => (
+          ? SITE_IMPORT_SKELETON_KEYS.map((key) => (
               <li className="flex h-14 items-center gap-3 px-3" key={key}>
                 <Skeleton className="size-8 rounded-lg" />
                 <Skeleton className="h-3.5 w-48 rounded-sm" />

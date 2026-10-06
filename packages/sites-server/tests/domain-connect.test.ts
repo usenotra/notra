@@ -16,7 +16,6 @@ import {
 } from "../src/domain-connect";
 import type { DomainConnectDeps } from "../src/types/domain-connect";
 
-/** What a DNS provider does (Domain-Connect/domainconnectzone sigutil.get_publickey). */
 function publicKeyFromTxt(records: string[]): string {
   const parts = records
     .map((record) => {
@@ -35,7 +34,6 @@ describe("signed apply URL", () => {
       modulusLength: 2048,
     });
     const pem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
-    // Single-line env form with literal \n.
     process.env.SITES_DOMAIN_CONNECT_PRIVATE_KEY = pem.replaceAll("\n", "\\n");
     const config = getDomainConnectConfig();
     expect(config).not.toBeNull();
@@ -125,7 +123,6 @@ describe("discovery", () => {
       domain: "acme.co.uk",
       host: "docs.blog",
     });
-    // The hostname itself is never a candidate: its CNAME cannot sit at a zone apex.
     expect(queried).toEqual([
       "_domainconnect.blog.acme.co.uk",
       "_domainconnect.acme.co.uk",

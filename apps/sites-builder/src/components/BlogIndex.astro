@@ -11,7 +11,6 @@ import SiteSlot from "./SiteSlot.astro";
 const entries = await getBlogEntries();
 const { layout, featured: featuredSetting } = blogOptions;
 const split = splitFeatured(entries, featuredSetting);
-// Magazine leads with a large card even when nothing is pinned: the newest post.
 const lead = layout === "magazine" && split.featured.length === 0 ? splitFeatured(entries, "latest") : split;
 const { featured, rest } = lead;
 ---

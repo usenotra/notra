@@ -1,5 +1,3 @@
-// Builds ONE area (blog or changelog) of a customer site. The notra-sites CLI
-// prepares `.notra/work` and calls `astro build` once per mounted area.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -18,7 +16,6 @@ const params = JSON.parse(readFileSync(paramsPath, "utf8"));
 const workDir = resolve(params.workDir);
 const siteDir = resolve(workDir, "site");
 const codeblocks = params.config.styling?.codeblocks ?? "system";
-// notra.json `styling.codeblocks`: follow the site mode, always dark, one Shiki theme, or a light/dark pair.
 function shikiThemesFor(setting) {
   if (setting === "system") {
     return { light: "github-light", dark: "github-dark" };
@@ -46,7 +43,6 @@ export default defineConfig({
   },
   devToolbar: { enabled: false },
   telemetry: false,
-  // MDX does not pick up markdown.shikiConfig under Astro 7's default processor, so pass it to both.
   integrations: [
     mdx({ shikiConfig: { themes: shikiThemes, wrap: false } }),
     react(),
@@ -61,8 +57,6 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: {
       rollupOptions: {
-        // Astro's own `"use astro:head-inject"` directive in every MDX entry: harmless, and
-        // customers can't act on it, so it must not fill their build log with warnings.
         onwarn(warning, warn) {
           if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
             return;
@@ -75,7 +69,6 @@ export default defineConfig({
       alias: {
         "@site": siteDir,
         "@notra/builtins": resolve("src/builtins/index.ts"),
-        // The customer's style.css / styles/*.css, loaded after the theme.
         "@notra/custom-css": resolve(workDir, "custom.css"),
       },
     },

@@ -38,12 +38,6 @@ export async function deletePreview(
   return await enqueuePreviewRemoval(site.id, previewKey);
 }
 
-/**
- * Turning previews off closes every preview like a closed pull request: it
- * stops being served, its running builds are canceled, and the tombstone keeps
- * a late build from bringing it back. The next push after turning previews on
- * builds them again.
- */
 export async function closeAllPreviews(site: Site): Promise<string[]> {
   const [live, building] = await Promise.all([
     readLiveDeployments(site.id),

@@ -175,7 +175,7 @@ describe("content security policy", () => {
     );
   });
 
-  test("turned off in notra.json", () => {
+  test("turned off in blog.json", () => {
     expect(
       buildSiteContentSecurityPolicy({
         integrations: {},

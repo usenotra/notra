@@ -1,11 +1,3 @@
-/**
- * Writes the `notra.json` JSON Schema to apps/web/public, which serves it at
- * https://usenotra.com/schemas/notra.json. Run after changing siteConfigSchema:
- *
- *   bun run generate:json-schema
- *
- * tests/json-schema.test.ts fails while the committed file is stale.
- */
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 

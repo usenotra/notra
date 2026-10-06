@@ -5,7 +5,6 @@ import { useTranslations } from "use-intl";
 import { SitePreviewFrame } from "@/components/sites/site-preview-frame";
 import type { SiteOverviewPreviewProps } from "@/types/components/sites";
 
-/** A live look at the site, linking to it; otherwise why there is nothing to show. */
 export function SiteOverviewPreview({
   url,
   suspended,

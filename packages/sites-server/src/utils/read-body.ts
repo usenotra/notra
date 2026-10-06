@@ -1,6 +1,5 @@
 import type { CappedBody } from "../types/http";
 
-/** Reads a response body until it ends or grows past `maxBytes`, then stops downloading. */
 export async function readBodyUpTo(
   response: Response,
   maxBytes: number

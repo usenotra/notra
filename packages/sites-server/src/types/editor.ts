@@ -5,7 +5,6 @@ export type SiteDraft = typeof siteDrafts.$inferSelect;
 export type SiteDraftPublishMode = "direct" | "pull_request";
 
 export interface SiteSourceEntry {
-  /** Relative to the site root. */
   path: string;
   sha: string;
   size: number;
@@ -21,7 +20,6 @@ export interface SiteSourceFileContent {
   sha: string;
 }
 
-/** A file by its path from the repository root, at `ref`. */
 export interface RepositoryFileRef {
   path: string;
   ref: string;
@@ -61,7 +59,6 @@ export interface RepositoryCommitInput {
   branch: string;
   headline: string;
   expectedHeadOid: string;
-  /** Paths from the repository root, with UTF-8 contents. */
   additions: Array<{ path: string; content: string }>;
   deletions: string[];
 }

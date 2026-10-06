@@ -65,8 +65,6 @@ export function runAstro(
         stdio: ["ignore", "pipe", "pipe"],
       }
     );
-    // A blog without a changelog (or none yet) is normal; Astro's warnings
-    // about the empty collection would only confuse the customer's build log.
     const forward = (chunk: Buffer) => {
       const text = chunk
         .toString()
@@ -86,7 +84,6 @@ export function runAstro(
   });
 }
 
-/** Writes the params one `astro build`/`astro dev` reads through NOTRA_BUILD_PARAMS. */
 export async function writeBuildParams(
   path: string,
   params: BuildParams
@@ -109,10 +106,6 @@ function failedBuild(
   };
 }
 
-/**
- * Builds every mounted area with its own `base`, then merges the outputs into
- * `outDir` at their mount paths (`out/blog/**`, `out/changelog/**`).
- */
 export async function buildSite(
   options: BuildSiteOptions
 ): Promise<SiteBuildResult> {
@@ -129,7 +122,6 @@ export async function buildSite(
     return failedBuild(diagnostics);
   }
 
-  // Share images go into the public dir, so they must exist before Astro copies it.
   const ogImages = await writeOgImages({
     workDir,
     config,
@@ -141,16 +133,12 @@ export async function buildSite(
   const ogImagePaths = Object.values(ogImages.manifest);
   if (ogImagePaths.length > 0) {
     process.stderr.write(
-      `Drew ${ogImagePaths.length} share images in ${ogImages.durationMs} ms\n`
+      `Generated ${ogImagePaths.length} share images in ${ogImages.durationMs} ms\n`
     );
   }
-  // Listed like the customer's public files, so the theme's assetUrl() and the
-  // HTML rewrite below put the mount in front of them.
   const publicFileList = [...prepared.publicFiles, ...ogImagePaths];
 
   await rm(join(workDir, "out"), { recursive: true, force: true });
-  // Astro's content layer caches rendered entries by content, not by config (theme, code
-  // block styling), so a stale cache would render with old settings.
   await rm(join(workDir, "cache"), { recursive: true, force: true });
   await rm(options.outDir, { recursive: true, force: true });
   await mkdir(options.outDir, { recursive: true });
@@ -159,7 +147,6 @@ export async function buildSite(
   const publicFiles = new Set(publicFileList);
   const areas: SiteBuildResult["areas"] = [];
   const areaPages: AreaPages[] = [];
-  /** Built HTML by URL path, the source for each page's Markdown twin. */
   const pageHtml = new Map<string, string>();
   for (const { area, mount } of listMountedAreas(mounts)) {
     const paramsPath = join(workDir, `params.${area}.json`);
@@ -213,7 +200,7 @@ export async function buildSite(
           severity: "error",
           file: null,
           code: "mount_collision",
-          message: `The ${area} page ${urlPath} would sit inside another section's path. Rename it.`,
+          message: `The ${area} page ${urlPath} overlaps another section's path. Rename it.`,
         });
         continue;
       }
@@ -231,7 +218,6 @@ export async function buildSite(
         await cp(file, target);
       }
     }
-    // Lets the dashboard verify a customer proxy: {origin}{mount}/_notra/probe.txt must name this site.
     const probePath = join(options.outDir, mount, "_notra", "probe.txt");
     await mkdir(dirname(probePath), { recursive: true });
     await writeFile(
@@ -251,8 +237,6 @@ export async function buildSite(
     instructions: normalizeAgentInstructions(config.markdown.instructions),
   });
 
-  // One policy for every page: the theme's inline scripts are the same everywhere, so the
-  // union of all pages stays small. Computed from the final HTML, after URL rewriting.
   const scriptHashes = new Set(
     [...pageHtml.values()].flatMap((html) => inlineScriptHashes(html))
   );
@@ -265,7 +249,7 @@ export async function buildSite(
       severity: "error",
       file: null,
       code: "csp_too_many_inline_scripts",
-      message: `The pages contain ${scriptHashes.size} different inline scripts; the limit is ${SITE_CSP_MAX_SCRIPT_HASHES}. Move them into scripts/*.js, or set security.contentSecurityPolicy to false in notra.json.`,
+      message: `The pages contain ${scriptHashes.size} different inline scripts; the limit is ${SITE_CSP_MAX_SCRIPT_HASHES}. Move them into scripts/*.js, or set security.contentSecurityPolicy to false in blog.json.`,
     });
   } else {
     contentSecurityPolicy = buildSiteContentSecurityPolicy({

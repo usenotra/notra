@@ -4,9 +4,7 @@ import type {
 } from "@notra/sites-core/types/build";
 
 export interface SandboxBuildResult {
-  /** Validated against the shared contract; null when the sandbox produced no (valid) result. */
   result: SiteBuildResult | null;
-  /** Human-readable reason when `result` is null. */
   crash: string | null;
   log: string;
   outputArchive: Uint8Array<ArrayBuffer> | null;
@@ -18,7 +16,6 @@ export interface SandboxBuildParams {
   sourceArchive: Uint8Array<ArrayBuffer>;
   rootDirectory: string;
   target: SiteBuildRequestInput;
-  /** Receives the build log while the build runs, so the dashboard can follow it live. */
   onLog?: (log: string) => Promise<void>;
 }
 

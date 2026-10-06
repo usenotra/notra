@@ -68,7 +68,6 @@ function entryCandidate(path: string): EntryCandidate | null {
   };
 }
 
-/** Files whose body gets notra.json `variables`: entries, the chrome and slots. */
 function takesVariables(path: string): boolean {
   return (
     entryCandidate(path) !== null ||
@@ -77,10 +76,6 @@ function takesVariables(path: string): boolean {
   );
 }
 
-/**
- * `slots/` holds exactly one MDX file per place the theme renders; anything
- * else there is a typo the customer would otherwise never notice.
- */
 function validateSlotFile(path: string): SiteDiagnostic[] {
   if (!path.startsWith(`${SITE_SLOTS_DIR}/`)) {
     return [];
@@ -103,7 +98,6 @@ function validateSlotFile(path: string): SiteDiagnostic[] {
   ];
 }
 
-/** Text settings that may use `{{ name }}`, by path in notra.json. */
 function substituteSettingVariables(config: SiteConfig): {
   config: SiteConfig;
   diagnostics: SiteDiagnostic[];
@@ -162,10 +156,6 @@ function configError(code: string, message: string): SiteDiagnostic {
   return { severity: "error", file: SITE_CONFIG_FILENAME, code, message };
 }
 
-/**
- * Parses notra.json. Absent areas get their defaults here, once, so the theme
- * (which runs in the build sandbox without the schema package) never parses.
- */
 function parseSiteConfig(raw: string | null | undefined): ParsedSiteConfig {
   if (raw === undefined || raw === null) {
     return {
@@ -217,7 +207,6 @@ function parseSiteConfig(raw: string | null | undefined): ParsedSiteConfig {
   };
 }
 
-/** Replaces `{{ name }}` in every file that takes variables; unknown names become warnings. */
 function applyVariables(
   files: ReadonlyMap<string, string | null>,
   variables: Readonly<Record<string, string>>
@@ -236,17 +225,13 @@ function applyVariables(
         file: path,
         ...offsetToLineColumn(content, unknown.offset),
         code: "variable_unknown",
-        message: `Unknown variable {{ ${unknown.name} }}: add "${unknown.name}" to variables in ${SITE_CONFIG_FILENAME}. It is shown as written.`,
+        message: `Unknown variable {{ ${unknown.name} }}. Add "${unknown.name}" to variables in ${SITE_CONFIG_FILENAME}. It is shown as written.`,
       });
     }
   }
   return { sources, diagnostics };
 }
 
-/**
- * `script.js` / `scripts/*.js` run in the browser as classic deferred scripts.
- * Only parsed here, so a syntax error shows up in the build instead of the console.
- */
 function validateCustomScript(path: string, source: string): SiteDiagnostic[] {
   try {
     Parser.parse(source, { ecmaVersion: "latest", sourceType: "script" });
@@ -265,14 +250,8 @@ function validateCustomScript(path: string, source: string): SiteDiagnostic[] {
   }
 }
 
-/**
- * Validates a whole site without executing any of its code and produces the
- * transformed sources the Astro build consumes. Safe to run in the control
- * plane (dashboard editor, webhook pre-check) and inside the build sandbox.
- */
 export function validateSite(input: SiteValidationInput): SiteValidationResult {
   const outputs = new Map<string, string>();
-  // Custom scripts are page-level JavaScript, not snippets: MDX cannot import them.
   const paths = new Set(
     [...input.files.keys()].filter((path) => !isCustomScriptPath(path))
   );
@@ -281,7 +260,6 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
     input.files.get(SITE_CONFIG_FILENAME)
   );
 
-  // Without a valid config there are no variables; leave `{{ }}` alone instead of warning about each.
   const { sources, diagnostics: variableDiagnostics } = config
     ? applyVariables(input.files, config.variables)
     : { sources: new Map(input.files), diagnostics: [] };
@@ -311,8 +289,6 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
     MDX_FILE.test(path)
   );
   const analyses = new Map<string, MdxAnalysis>();
-  // Header, footer and slots are not entries: like snippets, `{post.title}` reads the
-  // props the theme renders them with (`post`, `entry`, `site`, `area`).
   const analyze = (path: string, isEntry: boolean) => {
     analyses.set(
       path,
@@ -327,7 +303,6 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
     analyze(path, entryCandidate(path) !== null);
   }
 
-  // A file another file imports is a snippet, even when it sits in blog/.
   const importedPaths = new Set(
     [...analyses.values()].flatMap((analysis) => analysis.imports)
   );
@@ -356,7 +331,6 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
 
   const entries: SiteEntry[] = [];
   const seenSlugs = new Map<string, string>();
-  // The dashboard validates drafts without downloading unchanged posts (content null).
   let unreadEntries = 0;
   for (const [path, content] of input.files) {
     const candidate = entryCandidate(path);
@@ -372,7 +346,7 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
         severity: "error",
         file: path,
         code: "slug_invalid",
-        message: `The URL "${candidate.slug}" comes from the file name; use lowercase letters, digits and dashes`,
+        message: `The URL "${candidate.slug}" comes from the file name. Use lowercase letters, digits and dashes.`,
       });
       continue;
     }
@@ -393,7 +367,6 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
     );
     if (candidate.format === "md") {
       diagnostics.push(...blockedMarkdownHtml(path, content));
-      // Plain Markdown is not transformed, but still gets its variables.
       const substituted = sources.get(path);
       if (typeof substituted === "string" && substituted !== content) {
         outputs.set(path, substituted);

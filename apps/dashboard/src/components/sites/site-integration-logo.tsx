@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { SiteIntegrationLogoProps } from "@/types/components/sites";
 
-/** The provider's mark on a small tile; its initial when there is no logo. */
 export function SiteIntegrationLogo({
   provider,
   className,

@@ -1,8 +1,3 @@
-/**
- * Typed questions for a Notra Site's name and address. The address becomes a
- * public subdomain of Notra's hosting domain, so it must not embarrass Notra,
- * insult anyone or pose as somebody else.
- */
 export const SITE_NAME_MODERATION_QUESTIONS = {
   offensive: {
     type: "boolean",

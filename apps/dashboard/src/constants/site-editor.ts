@@ -11,10 +11,8 @@ import type { SupportedLanguages, ThemesType } from "@pierre/diffs";
 
 import type { SiteEditorLanguage } from "@/types/site-editor";
 
-/** Folders that start collapsed in the file tree (assets nobody edits here). */
 export const SITE_EDITOR_COLLAPSED_FOLDERS: readonly string[] = ["public"];
 
-/** Placeholder line widths while a file loads in the editor pane. */
 export const SITE_EDITOR_LOADING_LINES = [
   "w-1/3",
   "w-2/3",
@@ -23,7 +21,6 @@ export const SITE_EDITOR_LOADING_LINES = [
   "w-1/4",
 ] as const;
 
-/** Placeholder row widths while the file tree loads. */
 export const SITE_FILE_TREE_SKELETON_ROWS = [
   "w-1/2",
   "w-3/4",
@@ -34,7 +31,6 @@ export const SITE_FILE_TREE_SKELETON_ROWS = [
   "w-1/3",
 ] as const;
 
-/** Namespace for Pierre's in-memory undo history, one entry per site file. */
 export const SITE_EDITOR_EDIT_STATE_PREFIX = "notra-site";
 
 export const SITE_EDITOR_LANGUAGES: Record<string, SiteEditorLanguage> = {
@@ -84,7 +80,6 @@ export const SITE_CODE_THEME: ThemesType = {
   dark: "pierre-dark",
 };
 
-/** Site file languages plus the grammars MDX and Markdown embed. */
 export const SITE_CODE_LANGUAGES: readonly SupportedLanguages[] = [
   "mdx",
   "markdown",
@@ -96,18 +91,9 @@ export const SITE_CODE_LANGUAGES: readonly SupportedLanguages[] = [
   "shellscript",
 ];
 
-/**
- * Pierre renders in a shadow root; custom properties still inherit through it, so the
- * dashboard tokens and fonts reach the code surface from the host element.
- * 16px on phones keeps iOS from zooming into the editor on focus.
- */
 export const SITE_CODE_SURFACE_CLASS =
   "[--diffs-font-family:var(--font-geist-mono)] [--diffs-header-font-family:var(--font-inter)] [--diffs-font-size:16px] [--diffs-line-height:26px] [--diffs-tab-size:2] [--diffs-min-number-column-width:3ch] [--diffs-gap-inline:12px] md:[--diffs-font-size:13px] md:[--diffs-line-height:22px]";
 
-/**
- * Pierre's own chrome turned down so the code carries the surface: the dashboard
- * background, quiet line numbers, the brand ring for selections.
- */
 const SITE_CODE_BASE_CSS = `
 :host {
   --diffs-light-bg: var(--background);
@@ -136,13 +122,6 @@ ${SITE_CODE_BASE_CSS}
 }
 `.trim();
 
-/**
- * The tree renders in a shadow root too. Rows take the house look: quiet labels, the
- * open file lifted onto the background like a selected tab, and one dot for drafts.
- * Pierre's focus ring is gone: the keyboard cursor is a background tint, shown only
- * while focus is inside the tree (typing in the filter leaves every row calm).
- * Names end in a plain ellipsis; Pierre's middle truncation misfires on some widths.
- */
 export const SITE_FILE_TREE_CSS = `
 :host {
   --trees-bg-override: transparent;

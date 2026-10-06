@@ -18,7 +18,6 @@ import {
   siteDiagnosticSeverityRank,
 } from "@/utils/site-diagnostics";
 
-/** Validation results docked under the editor; a row with a file opens it at the line. */
 export function SiteEditorProblems({
   diagnostics,
   onSelect,

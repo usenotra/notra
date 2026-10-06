@@ -77,7 +77,6 @@ export function SiteOverviewPage() {
   const { site } = detail;
   const suspended = site.status === "suspended";
   const deployLatest = useDeployLatest({ organizationId, siteId });
-  // The site layout holds the latest 30; the full list pages through the rest.
   const deploymentsList = useSiteDeploymentsList({ organizationId, siteId });
   const deployments = deploymentsList.data ?? detail.deployments;
   const previews = sitePreviewRows(detail);
@@ -124,7 +123,6 @@ export function SiteOverviewPage() {
 
       <InstrumentSection
         action={
-          // Starts a build of the branch head right away, no confirmation.
           <Button
             disabled={suspended}
             loading={deployLatest.isPending}

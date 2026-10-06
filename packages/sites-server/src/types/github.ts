@@ -6,7 +6,6 @@ export interface SiteRepository {
   repo: string;
 }
 
-/** A repository the organization connected through the GitHub App. */
 export interface OrganizationRepository {
   integration: typeof githubIntegrations.$inferSelect;
   repository: SiteRepository;
@@ -17,7 +16,6 @@ export interface SiteRepositoryAccess {
   token: string;
 }
 
-/** The repository columns of a site row. */
 export interface SiteRepositoryColumns {
   githubInstallationId: string | null;
   repositoryOwner: string | null;
@@ -71,15 +69,11 @@ export interface CompleteCheckRunParams {
   annotations?: CheckRunAnnotation[];
 }
 
-/** What the new-site and settings forms suggest for branch and root directory. */
 export interface RepositorySuggestions {
   branches: string[];
   defaultBranch: string | null;
-  /** Folders with a notra.json, `""` for the repository root. */
   configDirectories: string[];
-  /** Posts per folder (`""` for the root), so a new site turns on the sections that have content. */
   contentCounts: Record<string, RepositoryContentCount>;
-  /** GitHub cut the file tree short; some folders may be missing. */
   truncated: boolean;
 }
 

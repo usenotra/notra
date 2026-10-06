@@ -37,12 +37,6 @@ import {
 } from "./utils/dns";
 import { errorMessage } from "./utils/errors";
 
-/**
- * Domain Connect (synchronous flow, signed requests): the customer's DNS provider
- * applies our template `domain-connect/usenotra.com.sites.json` after they log in there.
- * Spec: https://github.com/Domain-Connect/spec/blob/master/Domain%20Connect%20Spec%20Draft.adoc
- */
-
 function defaultDeps(): DomainConnectDeps {
   const resolver = createDnsResolver();
   return {
@@ -51,7 +45,6 @@ function defaultDeps(): DomainConnectDeps {
   };
 }
 
-/** Literal `\n` is accepted so the PEM fits single-line env editors. */
 export function getDomainConnectConfig(): DomainConnectConfig | null {
   const pem = process.env.SITES_DOMAIN_CONNECT_PRIVATE_KEY?.trim();
   if (!pem) {
@@ -92,7 +85,7 @@ async function lookupDiscoveryHost(
       }
     }
   } catch {
-    // ENOTFOUND / ENODATA / timeouts: no Domain Connect at this level.
+    return null;
   }
   return null;
 }
@@ -111,10 +104,6 @@ async function fetchJson(
   return { status: response.status, body };
 }
 
-/**
- * Finds the customer's DNS provider. Returns null when nothing along the way
- * supports Domain Connect; never throws for that case.
- */
 export async function discoverDomainConnect(
   hostname: string,
   deps: DomainConnectDeps = defaultDeps()
@@ -126,7 +115,6 @@ export async function discoverDomainConnect(
       continue;
     }
     try {
-      // A `_domainconnect` record can exist without the provider hosting this zone (404).
       const { body } = await fetchJson(
         `https://${discoveryHost}/v2/${zone}/settings`,
         deps
@@ -140,13 +128,12 @@ export async function discoverDomainConnect(
         };
       }
     } catch {
-      // Unreachable settings endpoint: try the next zone up.
+      continue;
     }
   }
   return null;
 }
 
-/** GET `{urlAPI}/v2/domainTemplates/providers/{providerId}/services/{serviceId}`: 2xx = onboarded. */
 async function isTemplateSupported(
   settings: Pick<DomainConnectSettings, "urlAPI">,
   template: Pick<DomainConnectConfig, "providerId" | "serviceId">,
@@ -163,10 +150,6 @@ async function isTemplateSupported(
   }
 }
 
-/**
- * Signed apply URL. The signature (RSA-SHA256, base64) covers exactly the query
- * string before `&key=`; `sig` is last because Cloudflare requires it.
- */
 export function buildApplyUrl(params: BuildApplyUrlParams): string {
   const { settings, config } = params;
   if (!settings.urlSyncUX) {
@@ -204,10 +187,6 @@ export function buildApplyUrl(params: BuildApplyUrlParams): string {
   return `${base}?${signed}&key=${encodeURIComponent(config.keyHost)}&sig=${encodeURIComponent(signature)}`;
 }
 
-/**
- * TXT records for `{keyHost}.{syncPubKeyDomain}`: the SPKI public key in base64,
- * split as `p={n},a=RS256,d={chunk}` so every record stays far below 255 bytes.
- */
 export function publicKeyTxtRecords(publicKey: KeyObject): string[] {
   const der = publicKey
     .export({ type: "spki", format: "der" })
@@ -227,10 +206,6 @@ function hmac(payload: string, label: string): Buffer {
     .digest();
 }
 
-/**
- * Callback token in the redirect path, not in `state`: Cloudflare ignores `state`.
- * HMAC with the preview secret under its own label, so preview tokens never verify here.
- */
 export function signDomainConnectCallback(
   claims: Omit<DomainConnectCallbackClaims, "exp">,
   nowSeconds: number = Math.floor(Date.now() / 1000),
@@ -284,11 +259,6 @@ function settingsName(
   return settings?.providerDisplayName ?? settings?.providerName;
 }
 
-/**
- * One-click DNS for an unverified custom subdomain: the same CNAME + ownership TXT
- * the Domains tab lists, applied by the customer's DNS provider when it supports
- * Domain Connect and has onboarded our template.
- */
 export async function domainConnectForDomain({
   siteId,
   domain,
@@ -301,8 +271,6 @@ export async function domainConnectForDomain({
     return { status: "unavailable", reason: "already_active" };
   }
 
-  // The provider is worth naming even when one-click setup can't run: the
-  // records still go there, and some providers deep-link to their DNS page.
   const settings = await discoverDomainConnect(domain.hostname, deps);
   const manual: DomainConnectResult = {
     status: "unsupported",

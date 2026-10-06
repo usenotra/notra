@@ -15,14 +15,10 @@ export const POST = withEvlog(async (request: Request) => {
   const event = request.headers.get("x-github-event");
   const signature = request.headers.get("x-hub-signature-256");
 
-  // Notra Sites: deployments and previews. Its outbox rows are committed before
-  // we answer, so dispatching after the response cannot lose work.
   let sitesFailed = false;
-  // Same (trimmed) secret as the mention path, so both verify a delivery identically.
   const secret = getGitHubAppWebhookSecret();
   if (event && secret) {
     try {
-      // Loaded on use, so mention-only deliveries skip the Sites runtime.
       const [{ handleSitesWebhook }, { dispatchSiteJobs }] = await Promise.all([
         import("@notra/sites-server/webhooks"),
         import("@/lib/sites/dispatch"),
@@ -77,7 +73,6 @@ export const POST = withEvlog(async (request: Request) => {
     afterResponse(() => writeMentionWebhookLog(log, deliveryId));
   }
 
-  // GitHub redelivers on 5xx; Sites released its delivery claim, mentions dedupe on their own.
   if (sitesFailed) {
     return Response.json({ error: "Sites webhook failed" }, { status: 500 });
   }

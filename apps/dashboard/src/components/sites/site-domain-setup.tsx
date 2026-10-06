@@ -22,7 +22,6 @@ import type {
   SiteDomainSetupStepProps,
 } from "@/types/components/sites";
 
-/** How to connect a domain, under its row: DNS records or proxy rewrites, then a check. */
 export function SiteDomainSetup({
   organizationId,
   siteId,
@@ -97,7 +96,6 @@ export function SiteDomainSetup({
   );
 }
 
-/** One numbered setup step, joined to the next by a thin line. */
 function DomainSetupStep({
   number,
   isLast = false,

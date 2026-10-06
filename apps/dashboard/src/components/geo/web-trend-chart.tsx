@@ -26,7 +26,6 @@ import {
   webTrendShare,
 } from "@/utils/web-analytics";
 
-/** Page views of people and AI agents per day, stacked, with each side's share. */
 export function WebTrendChart({
   web,
   traffic,

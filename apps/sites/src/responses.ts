@@ -65,7 +65,6 @@ export function noStoreRedirect(
   });
 }
 
-/** `crawlable` is the manifest whose sitemaps are listed; null disallows everything. */
 export function robotsTxt(
   origin: string,
   crawlable: SiteManifest | null
@@ -97,7 +96,6 @@ function fileCacheControl(file: SiteManifestFile, isPreview: boolean): string {
     : "public, max-age=0, must-revalidate";
 }
 
-/** Edge cache first, then R2; a body read from R2 is copied into the cache in the background. */
 async function readFileBody(
   deps: SitesDeps,
   siteId: string,
@@ -144,7 +142,6 @@ export async function serveFile(params: ServeFileParams): Promise<Response> {
   if (isPreview) {
     headers.set("X-Robots-Tag", "noindex, nofollow");
   }
-  // Customer pages only; the worker's own pages (password form, errors) go through `html()`.
   if (
     params.contentSecurityPolicy &&
     file.contentType.startsWith("text/html")
@@ -167,10 +164,6 @@ export async function serveFile(params: ServeFileParams): Promise<Response> {
   });
 }
 
-/**
- * A 404 an agent can act on: what was missing and where the page list is.
- * Links are relative so they stay right behind a customer proxy.
- */
 export function markdownNotFound(params: MarkdownNotFoundParams): Response {
   const lines = [
     "# Not found",

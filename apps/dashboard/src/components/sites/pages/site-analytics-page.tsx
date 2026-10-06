@@ -16,7 +16,6 @@ import {
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useSiteAnalytics } from "@/lib/hooks/use-sites";
 
-/** The site's own people and the AI agents reading it, in one view. */
 export function SiteAnalyticsPage() {
   const t = useTranslations("sites.analyticsPage");
   const { organizationId, siteId } = useSite();

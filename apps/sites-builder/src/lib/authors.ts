@@ -1,8 +1,7 @@
 import type { ResolvedAuthor } from "../types/authors";
-import type { BlogEntry } from "../types/entries";
+import type { BlogEntry, ChangelogEntry } from "../types/entries";
 import { absoluteUrl, assetUrl, config, href } from "./params";
 
-/** Path of an author's page in the blog: `/blog/author/jan`. */
 function authorHref(id: string): string {
   return href(`author/${id}`);
 }
@@ -27,7 +26,6 @@ function knownAuthor(id: string): ResolvedAuthor | null {
   };
 }
 
-/** `author: jan` names a notra.json author; anything else is a plain name. */
 function resolveAuthor(value: string): ResolvedAuthor {
   return knownAuthor(value) ?? { id: null, name: value, links: [] };
 }
@@ -40,14 +38,18 @@ export function authorsOf(entry: BlogEntry): ResolvedAuthor[] {
   return (Array.isArray(author) ? author : [author]).map(resolveAuthor);
 }
 
-/** Every author in notra.json, for author pages. */
+export function authorNamesOf(entry: BlogEntry | ChangelogEntry): string[] {
+  return entry.collection === "blog"
+    ? authorsOf(entry).map((author) => author.name)
+    : [];
+}
+
 export function allAuthors(): ResolvedAuthor[] {
   return Object.keys(config.authors)
     .map(knownAuthor)
     .filter((author): author is ResolvedAuthor => author !== null);
 }
 
-/** schema.org Person: the page and profiles that identify the author. */
 export function personNode(author: ResolvedAuthor) {
   return {
     "@type": "Person",

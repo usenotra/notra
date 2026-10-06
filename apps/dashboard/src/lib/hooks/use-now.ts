@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 const DEFAULT_TICK_MS = 1000;
 
-/** Current time that re-renders every `intervalMs` while `enabled`, for live elapsed timers. */
 export function useNow(enabled: boolean, intervalMs = DEFAULT_TICK_MS): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {

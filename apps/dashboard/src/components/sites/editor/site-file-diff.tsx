@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import type { SiteFileDiffProps } from "@/types/components/site-editor";
 import { siteCodeThemeType } from "@/utils/site-editor";
 
-/** One file's draft against its published version, stacked, rendered by Pierre. */
 export function SiteFileDiff({
   path,
   before,

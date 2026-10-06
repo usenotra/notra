@@ -44,7 +44,6 @@ function view(path: string, referer?: string): WebPageViewInput {
 test("a source opens one session; the same source again continues it", async () => {
   const google = "https://www.google.com/";
   const landing = await buildWebPageView(view("/", google));
-  // A redirect or reload keeps the original referer.
   const redirected = await buildWebPageView(view("/en", google));
   const clicked = await buildWebPageView(
     view("/en/pricing", "https://acme.com/en")

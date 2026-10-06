@@ -101,7 +101,6 @@ async function main() {
   }
 
   if (command === "dev") {
-    // Same toolchain and theme as production; previews one area at a time.
     const workDir = join(TOOLCHAIN_ROOT, ".notra", "work");
     const prepare = async () => {
       const prepared = await prepareSite({
@@ -110,7 +109,6 @@ async function main() {
         stableAssetNames: true,
       });
       const config = prepared.validation.config;
-      // Drafts are previewed in dev, so they get share images too.
       const ogImages =
         prepared.validation.ok && config
           ? await writeOgImages({
@@ -191,8 +189,6 @@ async function main() {
         process.stderr.write(chunk);
       }
     );
-    // Outside an interactive terminal Astro starts the dev server in the background and
-    // returns. Keep watching the source and stop that server when this command stops.
     if (exitCode === 0 && devOutput.includes("astro dev stop")) {
       const stop = async () => {
         await runAstro(

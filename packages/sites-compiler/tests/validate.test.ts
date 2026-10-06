@@ -13,7 +13,7 @@ const post = (body: string, frontmatter = "title: Hello\ndate: 2026-10-01") =>
 
 function run(files: Record<string, string | null>) {
   return validateSite({
-    files: new Map(Object.entries({ "notra.json": CONFIG, ...files })),
+    files: new Map(Object.entries({ "blog.json": CONFIG, ...files })),
   });
 }
 
@@ -125,7 +125,7 @@ describe("site contract", () => {
     const result = validateSite({
       files: new Map(
         Object.entries({
-          "notra.json": '{"name": ""}',
+          "blog.json": '{"name": ""}',
           "blog/No Spaces.mdx": post("x"),
           "blog/missing.mdx": "no frontmatter",
           "changelog/bad-date.mdx": post("x", "title: A\ndate: not-a-date"),
@@ -161,7 +161,6 @@ describe("site contract", () => {
 describe("custom scripts", () => {
   test("script.js and scripts/*.js are browser scripts, not snippets", () => {
     const result = run({
-      // Snippet rules (no default export, no imports) do not apply here.
       "script.js": "window.dataLayer = window.dataLayer || [];",
       "scripts/chat.js":
         "document.addEventListener('DOMContentLoaded', () => {});",
@@ -233,7 +232,7 @@ describe("variables", () => {
     validateSite({
       files: new Map(
         Object.entries({
-          "notra.json": JSON.stringify({
+          "blog.json": JSON.stringify({
             name: "Acme",
             variables: { product: "Acme Cloud", version: "2.1" },
           }),
@@ -295,7 +294,7 @@ describe("content safety and config checks", () => {
     ] as const) {
       const result = validateSite({
         files: new Map([
-          ["notra.json", config],
+          ["blog.json", config],
           [path, body],
         ]),
       });
@@ -308,7 +307,7 @@ describe("content safety and config checks", () => {
   test("keeps script tags inside code blocks", () => {
     const result = validateSite({
       files: new Map([
-        ["notra.json", config],
+        ["blog.json", config],
         ["blog/a.md", post("```html\n<script>x</script>\n```")],
       ]),
     });
@@ -318,7 +317,7 @@ describe("content safety and config checks", () => {
   test("warns about unknown settings with a suggestion", () => {
     const result = validateSite({
       files: new Map([
-        ["notra.json", JSON.stringify({ name: "Acme", navBar: {} })],
+        ["blog.json", JSON.stringify({ name: "Acme", navBar: {} })],
         ["blog/a.md", post("Hi")],
       ]),
     });
@@ -333,7 +332,7 @@ describe("content safety and config checks", () => {
     const result = validateSite({
       files: new Map([
         [
-          "notra.json",
+          "blog.json",
           JSON.stringify({
             name: "Acme",
             blog: { featured: ["a", "missing"] },

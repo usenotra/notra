@@ -58,7 +58,6 @@ export async function signOut(options?: SignOutActionOptions) {
     await clearSignedCookie(DEMO_SESSION_COOKIE);
     throw redirect({ href: DEMO_EXIT_URL });
   }
-  // Preview hosts keep their own cookies; end those sessions before the dashboard one.
   const identity = await getAuthIdentity().catch(() => null);
   if (identity) {
     await revokeSitePreviewSessions(identity.user.id);

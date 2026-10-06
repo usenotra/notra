@@ -138,11 +138,6 @@ export const GEO_HOST_FILTER_SQL = `AND (
             )
           )`;
 
-/**
- * Domains as the domain selector lists them; each also matches its
- * subdomains (www included), like the single `host` filter. Empty for every
- * host.
- */
 export const GEO_HOSTS_PARAMS = {
   hosts: p
     .string()
@@ -161,5 +156,4 @@ export const GEO_HOSTS_SQL = `AND (
             )
           )`;
 
-/** True when the request narrows to hosts; selects the by-host rollup. */
 export const GEO_HOSTS_SET = `{{String(hosts, '')}} != ''`;

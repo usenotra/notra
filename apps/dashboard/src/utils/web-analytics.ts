@@ -21,7 +21,6 @@ import {
 } from "@/constants/web-analytics";
 import type { WebTrendRow } from "@/types/geo";
 
-/** People per day next to AI agents (crawlers) per day, on one day axis. */
 export function buildWebTrendRows(
   webPoints: readonly WebAnalyticsPoint[],
   aiPoints: readonly GeoTrafficPoint[],
@@ -63,7 +62,6 @@ export function buildWebTrendRows(
   }));
 }
 
-/** Percent share of each side, or null when nothing was seen. */
 export function webTrendShare(
   rows: readonly WebTrendRow[]
 ): { people: number; agents: number } | null {
@@ -81,7 +79,6 @@ export function webTrendShare(
   return { people: peopleShare, agents: 100 - peopleShare };
 }
 
-/** Whole percent, but never "0" or "100" for a side that is there. */
 export function formatWebShare(share: number): string {
   if (share > 0 && share < 1) {
     return "<1";
@@ -92,7 +89,6 @@ export function formatWebShare(share: number): string {
   return String(Math.round(share));
 }
 
-/** Bare hostnames that saw people, for the domain selector. */
 export function webHostsForSelect(
   web: WebAnalyticsResponse | undefined
 ): string[] {
@@ -106,11 +102,6 @@ export function webHostsForSelect(
   return [...hosts];
 }
 
-/**
- * People data exists or is being collected, so the visitors view is worth
- * showing. Narrowed to one domain, only when that domain has seen people:
- * an AI-only domain keeps the AI view instead of a row of zeros.
- */
 export function hasWebAnalytics(
   web: WebAnalyticsResponse | undefined,
   host = ""
@@ -141,7 +132,6 @@ export function webSourceName(
   return WEB_SOURCE_LABELS[source.source] ?? source.source;
 }
 
-/** Header plus rows, never shorter than the minimum. */
 export function webTableHeight(rowCount: number): number {
   return (Math.max(rowCount, WEB_TABLE_MIN_ROWS) + 1) * WEB_TABLE_ROW_HEIGHT;
 }

@@ -9,7 +9,6 @@ export function toBase64Url(bytes: Uint8Array): string {
     .replace(/=+$/, "");
 }
 
-/** Throws on input that is not base64url. */
 export function fromBase64Url(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
   const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);

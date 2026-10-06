@@ -6,7 +6,6 @@ export interface SitePreviewAccessDialogProps {
 }
 
 export interface SitePreviewAccessFormProps {
-  /** Closes the dialog (after saving or on cancel). */
   onDone: () => void;
 }
 
@@ -24,12 +23,9 @@ export interface SitePreviewAccessModesProps {
 
 export interface SitePreviewPasswordFieldProps {
   idPrefix: string;
-  /** When the current password was set; null without one. */
   passwordSetAt: Date | string | null;
-  /** Typing a new password, rather than showing the one that is set. */
   editing: boolean;
   onEdit: () => void;
-  /** The new password being typed. */
   value: string;
   onChange: (value: string) => void;
   tooShort: boolean;

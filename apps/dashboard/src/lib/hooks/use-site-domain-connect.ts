@@ -4,10 +4,6 @@ import { SITE_DOMAIN_CONNECT_STALE_MS } from "@/constants/sites";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { UseSiteDomainConnectParams } from "@/types/hooks/sites";
 
-/**
- * Asks whether the domain's DNS provider supports one-click setup (Domain Connect).
- * Discovery takes up to a second, so it runs once per pending subdomain and is cached.
- */
 export function useSiteDomainConnect({
   organizationId,
   siteId,

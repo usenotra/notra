@@ -15,13 +15,6 @@ import type {
 import type { Site } from "./types/sites";
 import { isRecord, safeJson } from "./utils/json";
 
-/**
- * Integrations live in the repository's notra.json like every other setting.
- * The Integrations tab edits that file's `integrations` block as an editor
- * draft, so a change goes live through the same publish (commit or pull
- * request) as any other edit, and the repository stays the source of truth.
- */
-
 async function currentConfig(site: Site) {
   const [file, drafts] = await Promise.all([
     readSiteSourceFile(site, SITE_CONFIG_FILENAME),
@@ -32,7 +25,6 @@ async function currentConfig(site: Site) {
   return { file, draft, content };
 }
 
-/** The config as an object; `{}` for an empty file, null when it is not a JSON object. */
 function parseConfig(
   content: string | undefined
 ): Record<string, unknown> | null {
@@ -55,11 +47,6 @@ export async function readSiteIntegrations(
   };
 }
 
-/**
- * Replaces one provider's settings (or removes them with `settings: null`)
- * and keeps everything else in notra.json as it is. Saving the published
- * version back drops the draft instead of leaving an empty change behind.
- */
 export async function saveSiteIntegration(
   site: Site,
   input: SaveSiteIntegrationsInput
@@ -67,7 +54,6 @@ export async function saveSiteIntegration(
   const { file, draft, content } = await currentConfig(site);
   const config = parseConfig(content);
   if (!config) {
-    // The tab can't safely rewrite a file it can't read.
     throw new SiteInputError(
       `${SITE_CONFIG_FILENAME} isn't valid JSON. Fix it in the editor first.`
     );

@@ -7,11 +7,6 @@ import {
   TYPE_ATTRIBUTE,
 } from "../constants/inline-scripts";
 
-/**
- * Base64 SHA-256 of every executable inline script in `html`, the form a
- * CSP `'sha256-…'` source expects. Line breaks are normalized first because
- * the browser hashes the parsed text, where CRLF is already LF.
- */
 export function inlineScriptHashes(html: string): string[] {
   const hashes: string[] = [];
   for (const [, attributes = "", body = ""] of html.matchAll(SCRIPT_ELEMENT)) {

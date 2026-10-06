@@ -38,7 +38,6 @@ export function geoHostQueryInput(
   host: string | undefined
 ) {
   const filter = trafficLogHostFilter(host);
-  // No host key without a filter: the input must match the server prefetch.
   return {
     ...geoOverviewQueryInput(scope, range),
     ...(filter ? { host: filter } : {}),

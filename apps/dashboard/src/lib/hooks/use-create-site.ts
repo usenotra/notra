@@ -7,7 +7,6 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteCreateInput } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Creates a site; the new-site page then follows its first deployment. */
 export function useCreateSite() {
   const t = useTranslations("sites.new");
   const invalidateSites = useInvalidateSites();

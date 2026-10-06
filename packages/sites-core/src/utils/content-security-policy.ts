@@ -6,12 +6,6 @@ function sortedUnique(values: Iterable<string>): string[] {
   return [...new Set(values)].sort();
 }
 
-/**
- * The Content-Security-Policy for every HTML page of a deployment, or null
- * when the site turned it off. Scripts: same origin, the exact inline scripts
- * of the build (by hash), the integrations' hosts and `security.allowedOrigins`.
- * Images, styles, fonts and frames stay open so posts can embed external media.
- */
 export function buildSiteContentSecurityPolicy(
   params: SiteContentSecurityPolicyParams
 ): string | null {
@@ -22,7 +16,6 @@ export function buildSiteContentSecurityPolicy(
   const allowed = params.security.allowedOrigins;
   const scriptOrigins = [
     ...integrations.scriptSrc,
-    // WebSocket origins can only ever be connected to.
     ...allowed.filter((origin) => origin.startsWith("https://")),
   ];
   const scriptSrc = [

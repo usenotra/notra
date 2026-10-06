@@ -14,11 +14,6 @@ import type {
   SiteIntegrations,
 } from "@notra/sites-core/types/site-integrations";
 
-/**
- * A value as a JavaScript literal that is safe inside an inline <script>:
- * JSON-encoded, with `<` and the JS line separators escaped so it can never
- * close the element or break the string.
- */
 export function inlineScriptLiteral(value: unknown): string {
   return JSON.stringify(value)
     .replaceAll("<", "\\u003c")
@@ -26,7 +21,6 @@ export function inlineScriptLiteral(value: unknown): string {
     .replaceAll("\u2029", "\\u2029");
 }
 
-/** The `<head>` scripts for every configured integration, in a fixed order. */
 export function integrationHeadScripts(
   integrations: SiteIntegrations
 ): SiteHeadScript[] {
@@ -75,7 +69,6 @@ export function integrationHeadScripts(
   return scripts;
 }
 
-/** The origins the configured integrations load scripts from and send events to. */
 export function integrationCspSources(
   integrations: SiteIntegrations
 ): SiteCspSources {
@@ -88,7 +81,6 @@ export function integrationCspSources(
     connectSrc.push(DATABUDDY_CONNECT_ORIGIN);
   }
   if (plausible) {
-    // The classic script posts to `/api/event` on its own origin.
     const origin = new URL(PLAUSIBLE_SCRIPT_URL).origin;
     scriptSrc.push(origin);
     connectSrc.push(origin);
@@ -97,7 +89,6 @@ export function integrationCspSources(
     scriptSrc.push(POSTHOG_CSP_ORIGIN);
     connectSrc.push(POSTHOG_CSP_ORIGIN);
     if (posthog.apiHost) {
-      // A reverse proxy serves array.js and takes events on its own origin.
       const origin = new URL(posthog.apiHost).origin;
       scriptSrc.push(origin);
       connectSrc.push(origin);

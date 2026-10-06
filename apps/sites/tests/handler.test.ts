@@ -242,7 +242,7 @@ describe("production serving", () => {
     expect(await page.text()).toBe("dep_live:/blog/404.html");
   });
 
-  test("redirects from notra.json, including wildcards", async () => {
+  test("redirects from blog.json, including wildcards", async () => {
     const { request } = setup();
     const exact = await request("https://acme.notra.site/blog/old/");
     expect([exact.status, exact.headers.get("Location")]).toEqual([
@@ -260,7 +260,6 @@ describe("production serving", () => {
 
   test("path traversal and unknown hosts never reach the bucket", async () => {
     const { request } = setup();
-    // The URL parser already resolves %2e%2e; an encoded slash survives it and must still be rejected.
     expect(
       (
         await request(
@@ -318,7 +317,6 @@ describe("production serving", () => {
       "Bearer nst.site_a.sig"
     );
     const payload = JSON.parse(String(report?.init.body));
-    // Proxied from acme.com: the page is acme.com's, the visitor is the forwarded one.
     expect(payload.url).toBe("https://acme.com/blog/post?ref=x");
     expect(payload.userAgent).toBe("GPTBot/1.2");
     expect(payload.ip).toBe("203.0.113.9");
@@ -331,7 +329,6 @@ describe("production serving", () => {
     await request("https://acme.notra.site/blog/", {
       referer: "https://app.example.com/acme/sites/site_a",
     });
-    // A click inside the frame.
     await request("https://acme.notra.site/blog/post", {
       referer: "https://acme.notra.site/blog/",
       "sec-fetch-dest": "iframe",

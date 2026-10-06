@@ -24,7 +24,6 @@ import {
   isDeploymentInProgress,
 } from "@/utils/site-deployments";
 
-/** Full deployment history for the deployments page; polls every 2s while a build runs. */
 export function useSiteDeploymentsList({ organizationId, siteId }: SiteScope) {
   return useQuery(
     dashboardOrpc.sites.deployments.list.queryOptions({
@@ -39,11 +38,6 @@ export function useSiteDeploymentsList({ organizationId, siteId }: SiteScope) {
   );
 }
 
-/**
- * One deployment and its build log. While the build runs the builder
- * re-uploads the log every ~2s, so polling at the same pace follows it live.
- * A finished deployment never changes, so polling stops.
- */
 export function useSiteDeployment({
   organizationId,
   siteId,

@@ -15,7 +15,6 @@ import type { SitePollingQuery } from "@/types/hooks/sites";
 import type { SiteDetail, SiteListResult } from "@/types/sites";
 import { hasDeploymentInProgress } from "@/utils/site-deployments";
 
-/** Org id for the page's slug; empty until the organization list loads. */
 export function useSitesOrganizationId(organizationSlug: string): string {
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organization =
@@ -53,7 +52,6 @@ export function useSitesList(organizationId: string) {
   );
 }
 
-/** Site detail; polls every 2s while any build runs, otherwise every 15s. */
 export function useSiteDetail(organizationId: string, siteId: string) {
   return useQuery(
     dashboardOrpc.sites.get.queryOptions({
@@ -68,7 +66,6 @@ export function useSiteDetail(organizationId: string, siteId: string) {
   );
 }
 
-/** People and AI traffic for one site; refreshes every minute while open. */
 export function useSiteAnalytics(
   organizationId: string,
   siteId: string,

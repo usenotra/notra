@@ -1,6 +1,5 @@
 import type { SiteDetail, SiteSection } from "@/types/sites";
 
-/** The count a site section shows in the sidebar: previews, domains or drafts; 0 hides it. */
 export function siteSectionCount(
   section: SiteSection,
   detail: SiteDetail | undefined

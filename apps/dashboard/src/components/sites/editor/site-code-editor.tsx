@@ -23,20 +23,7 @@ import type {
   SiteCodeEditorProps,
 } from "@/types/components/site-editor";
 import type { SiteCodeAnnotation, SiteFileEditor } from "@/types/site-editor";
-import { siteCodeThemeType } from "@/utils/site-editor";
-
-/** Puts the caret on a line and centers it, so the diagnostic under it shows too. */
-function focusLine(
-  editor: SiteFileEditor | null,
-  surface: HTMLElement | null,
-  line: number
-) {
-  editor?.focus({ lineNumber: line, preventScroll: true });
-  surface
-    ?.querySelector("diffs-container")
-    ?.shadowRoot?.querySelector(`[data-line="${line}"]`)
-    ?.scrollIntoView({ block: "center" });
-}
+import { focusSiteEditorLine, siteCodeThemeType } from "@/utils/site-editor";
 
 function SiteCodeAnnotationRow({ annotation }: SiteCodeAnnotationRowProps) {
   const t = useTranslations("sites.diagnostics");
@@ -65,7 +52,6 @@ function SiteCodeAnnotationRow({ annotation }: SiteCodeAnnotationRowProps) {
   );
 }
 
-/** Pierre's File in edit mode: highlighting, line numbers, undo history per file. */
 export function SiteCodeEditor({
   path,
   initialValue,
@@ -78,10 +64,8 @@ export function SiteCodeEditor({
 }: SiteCodeEditorProps) {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<SiteFileEditor | null>(null);
-  // The editor owns the live document; the component only seeds it once.
   const [file] = useState<FileContents>(() => {
     const retained = EditStateManager.get("file", editStateKey);
-    // Retained undo history only applies to the same text (not after a discard or publish).
     if (retained && retained.document.getText() !== initialValue) {
       EditStateManager.clear("file", editStateKey);
     }
@@ -116,17 +100,15 @@ export function SiteCodeEditor({
   const surfaceRef = useRef<HTMLDivElement>(null);
 
   const moveCaretToLine = useEffectEvent((line: number) => {
-    focusLine(editorRef.current, surfaceRef.current, line);
+    focusSiteEditorLine(editorRef.current, surfaceRef.current, line);
   });
 
-  // A new nonce means a new jump request, even to the same line.
   useEffect(() => {
     if (jump) {
       moveCaretToLine(jump.line);
     }
   }, [jump]);
 
-  // Creation-time options: Pierre reads them once per editor, so they never change.
   const initialJumpRef = useRef(jump);
   const [attached, setAttached] = useState(false);
   const [editorOptions] = useState<
@@ -137,7 +119,7 @@ export function SiteCodeEditor({
       setAttached(true);
       const initialJump = initialJumpRef.current;
       if (initialJump) {
-        focusLine(editor, surfaceRef.current, initialJump.line);
+        focusSiteEditorLine(editor, surfaceRef.current, initialJump.line);
       }
     },
   }));
@@ -149,10 +131,6 @@ export function SiteCodeEditor({
     }
   };
 
-  // The editable surface lives in a shadow root, so page-wide single-key shortcuts
-  // (F for feedback, S for a demo) can't tell typing apart from a shortcut. Plain
-  // keystrokes stay inside the editor; ⌘/Ctrl shortcuts like the command palette still
-  // reach the page. Native, because React and the shortcuts both listen on the document.
   useEffect(() => {
     const surface = surfaceRef.current;
     if (!surface) {

@@ -3,11 +3,6 @@ import { posix } from "node:path";
 import { IMPORTABLE_EXTENSIONS } from "../constants/builtins";
 import type { LineColumn, ResolvedImport } from "../types/paths";
 
-/**
- * Resolves a site import (`/snippets/a.jsx`, `./b.mdx`, `../c`) to a
- * site-relative path. Bare specifiers, URLs and anything that leaves the site
- * root are rejected.
- */
 export function resolveSiteImport(
   fromPath: string,
   source: string,

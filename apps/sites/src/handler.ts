@@ -56,7 +56,6 @@ import {
   twinPagePath,
 } from "./utils/routing";
 
-/** Resolves which host a request is for. The dev override exists only when its secret is configured. */
 function requestHost(deps: SitesDeps, request: Request, url: URL): string {
   const override = request.headers.get("x-notra-host");
   if (
@@ -77,7 +76,6 @@ async function resolvePreview(
 ): Promise<ResolvedDeployment | Response> {
   const { deps, url, origin } = context;
   const pointer = state.previews[previewKey];
-  // Closed pull requests and deleted previews leave a tombstone: say so instead of a bare 404.
   if (!pointer) {
     return previewKey in state.removedPreviews
       ? html(previewClosedPage(), 410)
@@ -110,10 +108,6 @@ async function resolvePreview(
   };
 }
 
-/**
- * Host → site → serving state → deployment. Returns a Response whenever the
- * request ends here (unknown host, takedown, locked preview, preview login).
- */
 async function resolveDeployment(
   context: SiteRequestContext,
   parsedHost: ParsedSiteHost
@@ -132,7 +126,6 @@ async function resolveDeployment(
   if (!state || (!isCustom && parsedHost.slug !== state.slug)) {
     return html(notFoundPage(), 404);
   }
-  // Checked before anything is served or read from cache, so a takedown wins over every cache.
   if (state.status !== "active") {
     return html(unavailablePage(), 410);
   }
@@ -171,8 +164,6 @@ async function serveDeployment(
     deps.trafficIngestUrl &&
     isReportablePageView(request, response, deps.dashboardUrl)
   ) {
-    // Reported under the public origin, so a page proxied from acme.com/blog
-    // counts for acme.com, the same page the SDK would have reported.
     const { publicOrigin } = loaded.manifest.target;
     deps.waitUntil(
       reportTraffic({
@@ -189,7 +180,6 @@ async function serveDeployment(
   return response;
 }
 
-/** The bare hosting domain: who runs it and where to report abuse, as the PSL asks. */
 function hostingApexResponse(deps: SitesDeps, url: URL): Response {
   if (url.pathname === "/.well-known/security.txt") {
     return plainText(securityTxt(url.origin, deps.now()), 86_400);
@@ -197,10 +187,6 @@ function hostingApexResponse(deps: SitesDeps, url: URL): Response {
   return html(hostingApexPage(deps.hostingDomain), 200);
 }
 
-/**
- * Points search engines from a Markdown twin to its HTML page on the public
- * origin, so the twin never competes with the page in results.
- */
 function canonicalPageLink(
   publicOrigin: string,
   twinPath: string
@@ -211,7 +197,6 @@ function canonicalPageLink(
     : {};
 }
 
-/** Robots, redirects, the file itself, or the area's own 404 page. */
 async function serveFromManifest(
   context: SiteRequestContext,
   resolved: ResolvedDeployment,
@@ -224,8 +209,6 @@ async function serveFromManifest(
     return html(notFoundPage(), 400);
   }
   if (path === "/robots.txt") {
-    // Only the canonical host is crawlable. When the customer proxies acme.com/blog to the alias,
-    // the alias disallows everything and acme.com's own robots.txt governs the proxied paths.
     const crawlable = new URL(publicOrigin).hostname === host && !noindex;
     return robotsTxt(origin, crawlable ? manifest : null);
   }
@@ -258,7 +241,6 @@ async function serveFromManifest(
   }
   const wantsMarkdown = prefersMarkdown(request.headers.get("accept"));
   const file = resolveFile(files, path);
-  // Every page has a Markdown twin: agents get it by asking for text/markdown.
   const twin = file ? markdownTwin(files, file) : null;
   if (twin && wantsMarkdown) {
     return await serveFile({
@@ -310,7 +292,6 @@ export async function handleSiteRequest(
   deps: SitesDeps
 ): Promise<Response> {
   const url = new URL(request.url);
-  // The only POST is the preview password form.
   const allowsPost = url.pathname === SITE_PREVIEW_AUTH_PATH;
   const allowed = allowsPost ? ["GET", "HEAD", "POST"] : ["GET", "HEAD"];
   if (!allowed.includes(request.method)) {

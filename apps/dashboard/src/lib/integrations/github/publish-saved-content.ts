@@ -226,8 +226,6 @@ export async function publishSavedContentToGitHub(
   const outputConfig = repositoryContentDirectoryConfigSchema.safeParse(
     contentOutput.config
   );
-  // A Notra Site building from this repository only reads frontmatter
-  // entries from `<root>/blog` and `<root>/changelog`; configured paths win.
   const siteTarget = await findSiteGitHubPublishTarget({
     organizationId: input.organizationId,
     contentType: input.contentType,

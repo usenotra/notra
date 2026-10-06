@@ -3,10 +3,8 @@ import type { ResolveLinkUrlOptions } from "../types/starter";
 
 const URL_SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i;
 const HTTP_SCHEME = /^http:\/\//i;
-/** Quotes and braces would need escaping in MDX attributes. */
 const MDX_UNSAFE_URL_CHARACTER = /["'<>{}`\\]/;
 
-/** An absolute http(s)/mailto URL, or null for anchors, scripts and junk. */
 export function resolveLinkUrl(
   href: string,
   baseUrl: string,
@@ -39,7 +37,6 @@ export function resolveLinkUrl(
   return value;
 }
 
-/** `https://` in front of a bare domain; plain http is upgraded, never fetched. */
 export function normalizeWebsiteUrl(value: string | null): string | null {
   const trimmed = value?.trim() ?? "";
   if (!trimmed) {
@@ -56,7 +53,6 @@ export function normalizeWebsiteUrl(value: string | null): string | null {
   }
 }
 
-/** Hostname without a leading `www.`, or null for an unparsable URL. */
 export function bareHostname(url: string): string | null {
   try {
     return new URL(url).hostname.toLowerCase().replace(/^www\./, "");

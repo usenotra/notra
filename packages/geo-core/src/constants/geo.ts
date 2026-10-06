@@ -485,7 +485,6 @@ export const GEO_COMPETITOR_SUGGESTIONS_CACHE_PREFIX =
   "geo:competitor-suggestions:v1";
 export const GEO_INGEST_HOSTS_CACHE_PREFIX = "geo:ingest-hosts:v2";
 export const GEO_INGEST_SITE_CACHE_PREFIX = "geo:ingest-site:v1";
-/** A site token that resolved to nothing is retried after this long. */
 export const GEO_INGEST_SITE_INACTIVE_TTL_SECONDS = 60;
 export const GEO_INGEST_SITE_MEMORY_TTL_MS = 60_000;
 export const GEO_INGEST_SITE_MEMORY_MAX_ENTRIES = 5000;
@@ -559,9 +558,7 @@ export const GEO_INGEST_FRAMEWORK_OPTIONS = [
 export const GEO_INGEST_SECRET_ENV = "GEO_INGEST_SECRET";
 export const GEO_INGEST_SECRET_FALLBACK_ENV = "BEACON_INGEST_SECRET";
 export const GEO_INGEST_TOKEN_SEPARATOR = ".";
-/** Notra Sites report their own traffic with a per-site token: `nst.<siteId>.<signature>`. */
 export const GEO_INGEST_SITE_TOKEN_PREFIX = "nst.";
-/** Signed apart from project tokens, so a site signature can never pass as one. */
 export const GEO_INGEST_SITE_TOKEN_SIGNING_DOMAIN = "notra-sites-traffic:";
 export const GEO_INGEST_BEARER_PREFIX = "Bearer ";
 export const GEO_MAX_STORED_UA_LENGTH = 200;

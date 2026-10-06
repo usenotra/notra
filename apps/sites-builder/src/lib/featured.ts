@@ -1,9 +1,5 @@
 import type { BlogEntry } from "../types/entries";
 
-/**
- * `blog.featured`: the newest post, nothing, or the listed slugs in their
- * order (unknown slugs are skipped). Featured posts leave the regular list.
- */
 export function splitFeatured(
   entries: BlogEntry[],
   featured: "latest" | "none" | string[]

@@ -12,7 +12,6 @@ import type {
 } from "@/types/sites";
 import { mountedPaths } from "@/utils/site-proxy-recipes";
 
-/** What the status chip says; `pending` splits into DNS or proxy setup by kind. */
 export function siteDomainChipStatus(domain: SiteDomain): SiteDomainChipStatus {
   if (domain.status === "pending") {
     return domain.kind === "proxy" ? "proxyRequired" : "dnsRequired";
@@ -20,14 +19,12 @@ export function siteDomainChipStatus(domain: SiteDomain): SiteDomainChipStatus {
   return domain.status;
 }
 
-/** Where a custom domain serves the site; proxied domains serve it below the first mount. */
 export function siteDomainUrl(domain: SiteDomain, mounts: SiteMounts): string {
   const firstPath = mountedPaths(mounts)[0];
   const path = domain.kind === "proxy" && firstPath !== "/" ? firstPath : "";
   return `https://${domain.hostname}${path ?? ""}`;
 }
 
-/** The Domain Connect outcome in a query parameter, or null when it isn't one. */
 export function parseSiteDomainConnectOutcome(
   value: string | null
 ): SiteDomainConnectOutcome | null {
@@ -36,11 +33,6 @@ export function parseSiteDomainConnectOutcome(
   );
 }
 
-/**
- * How a typed domain most likely connects: a path (acme.com/blog) or a bare
- * apex (acme.com) means the customer's own site forwards paths, anything
- * deeper (blog.acme.com) gets a DNS record. Null until there is a hostname.
- */
 export function detectSiteDomainKind(value: string): SiteDomainKind | null {
   const [host = "", ...path] = value
     .trim()
@@ -56,10 +48,6 @@ export function detectSiteDomainKind(value: string): SiteDomainKind | null {
   return "subdomain";
 }
 
-/**
- * The provider's DNS records page for a zone, where one is known. Cloudflare
- * resolves `:account` itself after login.
- */
 export function siteDnsProviderDashboardUrl(
   providerName: string | undefined,
   zone: string | undefined

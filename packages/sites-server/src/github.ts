@@ -6,6 +6,7 @@ import {
   BRANCH_SUGGESTION_LIMIT,
   CONFIG_SEARCH_SKIPPED_SEGMENTS,
   CONTENT_FILE,
+  EMPTY_TREE_SCAN,
   GITHUB_API_VERSION_HEADER,
   GITHUB_PAGE_SIZE,
   MAX_TARBALL_BYTES,
@@ -25,12 +26,6 @@ import type {
 } from "./types/github";
 import { readBodyUpTo } from "./utils/read-body";
 
-const EMPTY_TREE_SCAN: RepositoryTreeScan = {
-  directories: [],
-  contentCounts: {},
-  truncated: false,
-};
-
 export function requireSiteRepository(
   site: SiteRepositoryColumns
 ): SiteRepository {
@@ -48,7 +43,6 @@ export function requireSiteRepository(
   };
 }
 
-/** The site's repository and a token for it with `permissions`. */
 export async function siteRepositoryAccess(
   site: SiteRepositoryColumns,
   permissions: SiteRepositoryPermissions
@@ -60,7 +54,6 @@ export async function siteRepositoryAccess(
   };
 }
 
-/** Least-privilege token: one repository, only what the operation needs. */
 export async function siteRepositoryToken(
   repository: SiteRepository,
   permissions: SiteRepositoryPermissions
@@ -229,10 +222,6 @@ async function listBranches(
   return branches.slice(0, BRANCH_SUGGESTION_LIMIT);
 }
 
-/**
- * Every folder on `ref` that holds a notra.json, and the posts under each
- * folder's blog/ and changelog/, read from one recursive tree call.
- */
 async function listConfigDirectories(
   repository: SiteRepository,
   token: string,
@@ -286,10 +275,6 @@ async function listConfigDirectories(
   return { directories, contentCounts, truncated: data.truncated };
 }
 
-/**
- * Branches and notra.json folders for the forms. `ref` picks the branch whose
- * tree is searched; it defaults to the repository's default branch.
- */
 export async function getRepositorySuggestions(
   repository: SiteRepository,
   ref: string | null
@@ -309,7 +294,6 @@ export async function getRepositorySuggestions(
     scanConfig(),
   ]);
   return {
-    // The default branch leads; it is almost always the production branch.
     branches: branches.includes(defaultBranch)
       ? [
           defaultBranch,

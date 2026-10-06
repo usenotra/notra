@@ -54,11 +54,6 @@ function WebMetric({ label, value, previous }: WebMetricProps) {
   );
 }
 
-/**
- * People and AI side by side for the selected domains: the KPI strip, page
- * views of both over time, then where people land, come from and what the
- * ones sent by an AI answer do next.
- */
 export function WebVisitorsSection({
   web,
   traffic,
@@ -73,7 +68,6 @@ export function WebVisitorsSection({
     aiTraffic.previousConversions
   );
 
-  // The same path on two domains is two pages; name the domain when it matters.
   const showPageHost = new Set(web.pages.map((page) => page.host)).size > 1;
   const pageRows: WebBreakdownRow[] = web.pages
     .slice(0, WEB_LIST_LIMIT)

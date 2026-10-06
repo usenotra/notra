@@ -1,4 +1,5 @@
 ---
+import { CHANGELOG_SLOT_SPACING } from "../constants/changelog";
 import { getChangelogEntries } from "../lib/entries";
 import { changelogOptions } from "../lib/options";
 import { areaDescription, areaTitle } from "../lib/params";
@@ -9,8 +10,7 @@ import SiteSlot from "./SiteSlot.astro";
 
 const entries = await getChangelogEntries();
 const { layout } = changelogOptions;
-// The slot lines up with the entry's content column, not its date column.
-const slotSpacing = { timeline: "mt-8 sm:pl-[10rem]", cards: "", compact: "pb-4 sm:pl-[10rem]" }[layout];
+const slotSpacing = CHANGELOG_SLOT_SPACING[layout];
 ---
 
 <SiteSlot name="changelog-hero" data={{ site: slotSite(), area: slotArea() }}>

@@ -1,13 +1,3 @@
-/**
- * Rebuilds src/constants/reserved-brand-slugs.json from the Tranco top sites
- * list and the Public Suffix List: the first label of each popular registrable
- * domain becomes a reserved site address, mapped to the domain that may use it.
- *
- *   bun scripts/generate-reserved-slugs.ts [listId] [count]
- *
- * The list id pins a Tranco snapshot (https://tranco-list.eu) so reruns are
- * reproducible.
- */
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -39,10 +29,6 @@ const suffixes = new Set(
     .filter((line) => line && !line.startsWith("//") && !line.startsWith("!"))
 );
 
-/**
- * Brand TLDs (`blog.google`, `news.microsoft`) are skipped: their first label
- * is a generic word, not the company's name.
- */
 const GENERIC_TLDS = new Set([
   "app",
   "biz",
@@ -67,7 +53,6 @@ function isCompanyDomain(domain: string): boolean {
   return tld.length === 2 || GENERIC_TLDS.has(tld);
 }
 
-/** `bbc.co.uk` → `bbc`, `google.com` → `google`; null for bare suffixes. */
 function brandLabel(domain: string): string | null {
   const labels = domain.toLowerCase().split(".");
   for (let start = 1; start < labels.length; start += 1) {

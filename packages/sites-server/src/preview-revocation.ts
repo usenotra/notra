@@ -12,7 +12,6 @@ async function revokeOnSite(
   userId: string,
   scope: PreviewRevocationScope
 ): Promise<void> {
-  // A site without serving state has no previews to protect; don't create one.
   if (!(await readServingState(site.id))) {
     return;
   }
@@ -51,11 +50,6 @@ async function revokeOnSites(
   }
 }
 
-/**
- * A member left or was removed from an organization: their preview sessions
- * and the share links they created stop working on every site of it, within
- * the worker's state re-read (≤ 5 s).
- */
 export async function revokeOrganizationMemberPreviewAccess(
   organizationId: string,
   userId: string
@@ -67,7 +61,6 @@ export async function revokeOrganizationMemberPreviewAccess(
   await revokeOnSites(rows, userId, "access_lost");
 }
 
-/** The user signed out of the dashboard: end their preview sessions on every site they can reach. */
 export async function revokeUserPreviewSessions(userId: string): Promise<void> {
   const organizations = db
     .select({ organizationId: members.organizationId })

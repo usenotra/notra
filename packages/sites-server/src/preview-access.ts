@@ -22,10 +22,6 @@ import type {
 import type { ServingSiteRef } from "./types/state";
 import { sitePreviewOrigin } from "./urls";
 
-/**
- * URL that signs a member into a protected preview: the worker verifies the
- * token, sets an HttpOnly cookie for that preview host and redirects to `next`.
- */
 export async function previewAccessUrl(
   params: PreviewAccessUrlParams
 ): Promise<PreviewAccessUrl> {
@@ -41,7 +37,6 @@ export async function previewAccessUrl(
       previewKey: params.previewKey,
       exp,
       kind: params.kind,
-      // Lets the worker end the session when this member signs out or loses access.
       userId: params.userId,
       issuedAt,
     },
@@ -57,11 +52,6 @@ export async function previewAccessUrl(
   return { url: url.toString(), expiresAt: new Date(exp * 1000) };
 }
 
-/**
- * Sets (or with `null` removes) the password that opens the site's protected
- * previews next to Notra login. Only a salted PBKDF2 hash reaches the serving
- * state the worker reads; every change ends the existing password sessions.
- */
 export async function setSitePreviewPassword(
   site: ServingSiteRef,
   password: string | null
@@ -75,7 +65,6 @@ export async function setSitePreviewPassword(
       `The password needs ${SITE_PREVIEW_PASSWORD_MIN_LENGTH} to ${SITE_PREVIEW_PASSWORD_MAX_LENGTH} characters`
     );
   }
-  // The database is the source of truth; state.json only mirrors the hash for the worker.
   await db
     .update(sites)
     .set({

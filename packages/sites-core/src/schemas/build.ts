@@ -5,14 +5,8 @@ import {
 } from "@notra/sites-core/schemas/deployment";
 import { z } from "zod";
 
-/**
- * Contract between the control plane and the `notra-sites build` CLI inside
- * the sandbox. The server writes the request and parses the result with these
- * same schemas; the result is untrusted, so it is validated, never cast.
- */
 export const siteDiagnosticSchema = z.object({
   severity: z.enum(["error", "warning"]),
-  /** Path relative to the site root, e.g. `blog/hello.mdx`; null for site-wide problems. */
   file: z.string().nullable(),
   line: z.number().int().positive().optional(),
   column: z.number().int().positive().optional(),
@@ -28,7 +22,6 @@ export const siteBuildRequestSchema = z.object({
   mounts: siteMountsSchema,
   noindex: z.boolean().default(false),
   includeDrafts: z.boolean().default(false),
-  /** "Powered by Notra" badge in the footer. */
   branding: z.boolean().default(true),
 });
 
@@ -53,9 +46,7 @@ export const siteBuildResultSchema = z.object({
   ),
   fileCount: z.number().int().nonnegative(),
   totalBytes: z.number().int().nonnegative(),
-  /** From notra.json. */
   redirects: z.array(siteBuildRedirectSchema).max(500),
-  /** From notra.json and the built HTML; null when turned off or built by an older toolchain. */
   contentSecurityPolicy: siteContentSecurityPolicySchema
     .nullable()
     .default(null),

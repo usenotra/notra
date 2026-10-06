@@ -35,7 +35,6 @@ import { loadAiTraffic } from "./programs";
 import { resolveGeoScope } from "./projects";
 import { geoTrafficWindowParams } from "./window";
 
-/** The selected domain as the hosts filter; it matches subdomains (www too). */
 export function webHostFilter(host: string | undefined): string[] {
   const bare = trafficLogHostFilter(host);
   return bare.length === 0 ? [] : [bare];
@@ -159,10 +158,6 @@ const loadWebAnalyticsForScope = Effect.fn("web.analytics")(function* (
   return response;
 });
 
-/**
- * People on a project's domains. A project counts them when it has a Notra
- * Site or switched visitor tracking on for its SDK.
- */
 export const loadWebAnalytics = Effect.fn("web.projectAnalytics")(function* (
   input: { organizationId: string; projectId?: string },
   window: GeoWindowInput,
@@ -196,7 +191,6 @@ export const loadWebAnalytics = Effect.fn("web.projectAnalytics")(function* (
   );
 });
 
-/** Turns people counting on or off for an SDK project; ingest follows within seconds. */
 export const setVisitorTracking = Effect.fn("web.setTracking")(function* (
   input: { organizationId: string; projectId?: string },
   enabled: boolean
@@ -225,10 +219,6 @@ export const setVisitorTracking = Effect.fn("web.setTracking")(function* (
   return { enabled };
 });
 
-/**
- * One Notra Site: its people by site id, and the AI traffic on its host from
- * the project it reports to (the oldest one when it has none).
- */
 export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
   site: {
     id: string;

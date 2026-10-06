@@ -21,7 +21,6 @@ import {
   siteEditStateKey,
 } from "@/utils/site-editor";
 
-/** One open file: loads it, autosaves edits as a draft, compares it with what's live. */
 export function SiteEditorPane({
   organizationId,
   siteId,
@@ -49,9 +48,7 @@ export function SiteEditorPane({
     status: "idle",
   });
   const [mode, setMode] = useState<SiteEditorMode>("edit");
-  // Remounts the editor with fresh text (and a fresh undo history) after a discard.
   const [revision, setRevision] = useState(0);
-  // Jumping to a problem's line always lands in the editor.
   const [seenJump, setSeenJump] = useState(jump);
   if (jump !== seenJump) {
     setSeenJump(jump);
@@ -77,7 +74,6 @@ export function SiteEditorPane({
     baseCommitSha,
   });
 
-  // The publish dialog diffs drafts from this cache; keep it on what was saved.
   const rememberSaved = (text: string) => {
     queryClient.setQueryData(readOptions.queryKey, (current) =>
       current ? { ...current, content: text, hasDraft: true } : current
@@ -139,7 +135,6 @@ export function SiteEditorPane({
     }
   };
 
-  // Leaving the file (or the page) saves what was typed instead of dropping it.
   const flushOnLeave = useEffectEvent(() => {
     cancelPending();
     const pending = pendingRef.current;

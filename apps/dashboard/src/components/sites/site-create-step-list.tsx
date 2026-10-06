@@ -5,7 +5,6 @@ import { useTranslations } from "use-intl";
 import { cn } from "@/lib/utils";
 import type { SiteCreateStepListProps } from "@/types/components/sites";
 
-/** Where the flow stands, beside the stage: a dot per step, done ones lead back. */
 export function SiteCreateStepList({
   steps,
   onSelect,

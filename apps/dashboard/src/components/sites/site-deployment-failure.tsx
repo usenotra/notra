@@ -15,10 +15,6 @@ import {
   withDiagnosticKeys,
 } from "@/utils/site-diagnostics";
 
-/**
- * Why a build failed and what its checks found, in a tinted panel; nothing
- * for a build that passed cleanly.
- */
 export function SiteDeploymentFailure({
   deployment,
 }: SiteDeploymentRecordProps) {
@@ -40,7 +36,6 @@ export function SiteDeploymentFailure({
   );
 }
 
-/** The error a failed build ended with, then what the checks found, by file and line. */
 function FailureSummary({ deployment }: SiteDeploymentRecordProps) {
   const t = useTranslations("sites.deploymentPage");
   const tDiagnostics = useTranslations("sites.diagnostics");
@@ -56,7 +51,6 @@ function FailureSummary({ deployment }: SiteDeploymentRecordProps) {
       {failed ? (
         <div className="space-y-1" role="alert">
           <p className="font-medium">{t("notice.failed")}</p>
-          {/* The message repeats the diagnostics when there are any. */}
           {deployment.errorMessage && diagnostics.length === 0 ? (
             <p className="text-muted-foreground font-mono text-xs leading-5 [overflow-wrap:anywhere] whitespace-pre-wrap">
               {deployment.errorMessage}

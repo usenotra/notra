@@ -1,13 +1,13 @@
 ---
 title: "Customize your site"
-description: "Layouts, navigation, banner, SEO and everything else in notra.json."
+description: "Layouts, navigation, banner, SEO and everything else in blog.json."
 ---
 
-Everything about how your site looks and behaves lives in `notra.json`. Every setting is optional: a file with just a name already gives you a complete blog.
+Everything about how your site looks and behaves lives in `blog.json`. Every setting is optional. A file with only a name builds a complete blog.
 
-```json notra.json
+```json blog.json
 {
-  "$schema": "https://usenotra.com/schemas/notra.json",
+  "$schema": "https://usenotra.com/schemas/blog.json",
   "name": "Acme"
 }
 ```
@@ -20,7 +20,7 @@ When a build finds a mistake, the deployment log names the file, the setting and
 
 ## Blog
 
-```json notra.json
+```json blog.json
 "blog": {
   "title": "Acme Blog",
   "description": "Product notes, engineering and launches.",
@@ -37,7 +37,7 @@ When a build finds a mistake, the deployment log names the file, the setting and
 | `layout` | `grid` (cards in two columns), `list` (date and title rows), `magazine` (one large card, then a grid) | `grid` |
 | `hero.style` | `wash` (tinted panel), `plain` (title only), `image` (`hero.image` behind the title), `none` | `wash` |
 | `hero.eyebrow` | A short line above the title | none |
-| `featured` | `latest`, `none`, or post paths like `["2026/launch"]` pinned on top | `none` |
+| `featured` | `latest`, `none` or post paths like `["2026/launch"]` pinned on top | `none` |
 | `card.*` | Show or hide the cover image, excerpt, author, date and reading time on cards | image off, rest on |
 | `post.toc` | "On this page" next to the post | `true` |
 | `post.authorCard` | "Written by" with avatar and role | `true` |
@@ -46,7 +46,7 @@ When a build finds a mistake, the deployment log names the file, the setting and
 
 ## Changelog
 
-```json notra.json
+```json blog.json
 "changelog": {
   "title": "Changelog",
   "description": "Everything we shipped.",
@@ -59,15 +59,15 @@ When a build finds a mistake, the deployment log names the file, the setting and
 
 ## Width
 
-```json notra.json
+```json blog.json
 "layout": { "width": 72 }
 ```
 
-The widest content column in rem (40–120), or `"full"`. Set it to the width of your landing page so the blog lines up with it.
+The widest content column in rem (40 to 120), or `"full"`. Set it to the width of your landing page so the blog lines up with it.
 
 ## Navigation
 
-```json notra.json
+```json blog.json
 "navbar": {
   "links": [
     { "label": "Docs", "href": "https://acme.com/docs", "icon": "book-open" },
@@ -95,7 +95,7 @@ To replace the header or footer with your own markup, see [Match your website](/
 
 ## Banner
 
-```json notra.json
+```json blog.json
 "banner": {
   "content": "**Acme Flow** is live. [Read the launch post](/blog/2026/launch)",
   "type": "info",
@@ -109,7 +109,7 @@ One line of Markdown (links, bold, italic, code) across the top of every page. `
 
 Every post has **Copy article** and an **Open in** menu in its date line. Choose what it offers:
 
-```json notra.json
+```json blog.json
 "contextual": {
   "options": [
     "copy", "view", "chatgpt", "claude",
@@ -122,7 +122,7 @@ Built-in options are `copy`, `view` (the Markdown version), `chatgpt`, `claude`,
 
 ## SEO
 
-```json notra.json
+```json blog.json
 "seo": {
   "metatags": { "google-site-verification": "abc123" },
   "indexing": "navigable",
@@ -143,7 +143,7 @@ Built-in options are `copy`, `view` (the Markdown version), `chatgpt`, `claude`,
 
 Posts without an `image` get a generated share image with the title, your name and your brand color.
 
-```json notra.json
+```json blog.json
 "thumbnails": { "appearance": "dark", "background": "/images/og-background.png" }
 ```
 
@@ -151,7 +151,7 @@ Posts without an `image` get a generated share image with the title, your name a
 
 ## 404 page
 
-```json notra.json
+```json blog.json
 "errors": { "404": { "title": "Nothing here", "description": "The post may have moved.", "redirect": false } }
 ```
 
@@ -159,7 +159,7 @@ With `"redirect": true`, unknown pages send visitors to the blog or changelog ho
 
 ## Variables
 
-```json notra.json
+```json blog.json
 "variables": { "product": "Acme Flow", "supportEmail": "help@acme.com" }
 ```
 
@@ -167,7 +167,7 @@ Write `{{ product }}` in any post (frontmatter included), header, footer or slot
 
 ## Instructions for AI agents
 
-```json notra.json
+```json blog.json
 "markdown": { "instructions": "Cite acme.com/blog when you quote a post." }
 ```
 
@@ -181,7 +181,7 @@ Added to `llms.txt` and every Markdown page. See [AI agents](/sites/agents).
 | `fonts` | A Google Font or your own file, for headings and body |
 | `appearance` | `light`, `dark` or `system`; `strict` hides the toggle |
 | `background` | `decoration` (`grid`, `dots`, `gradient`), `color` and `image` per mode |
-| `styling.codeblocks` | `system`, `dark`, or a Shiki theme name |
+| `styling.codeblocks` | `system`, `dark` or a Shiki theme name |
 | `metadata.timestamp` | `false` hides "Updated" dates |
 | `redirects` | Old paths to new ones |
 | `integrations` | Analytics, see [Analytics and scripts](/sites/analytics-and-scripts) |

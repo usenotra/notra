@@ -7,7 +7,6 @@ import { SITE_OVERVIEW_LINK_CLASS } from "@/constants/sites";
 import { cn } from "@/lib/utils";
 import type { SiteOverviewExternalLinkProps } from "@/types/components/sites";
 
-/** An address on the overview, opening in a new tab. */
 export function SiteOverviewExternalLink({
   href,
   children,

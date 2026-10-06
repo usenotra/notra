@@ -4,7 +4,6 @@ import type { ComponentType, SVGProps } from "react";
 export type { SiteIntegrationName };
 
 interface SiteIntegrationField {
-  /** The key in notra.json under `integrations.<provider>`. */
   key: string;
   placeholder?: string;
   optional?: boolean;
@@ -13,11 +12,9 @@ interface SiteIntegrationField {
 export interface SiteIntegrationProvider {
   id: SiteIntegrationName;
   name: string;
-  /** Null shows the name's initial on a tile. */
   logo: ComponentType<SVGProps<SVGSVGElement>> | null;
   docsUrl: string;
   fields: readonly SiteIntegrationField[];
 }
 
-/** One provider's form, field key to the typed text. */
 export type SiteIntegrationValues = Record<string, string>;

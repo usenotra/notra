@@ -1,7 +1,5 @@
-/**
- * `/blog` + `post` → `/blog/post`, `/` + `post` → `/post`, `/blog` + `` → `/blog`.
- * Same as joinMountPath in @notra/sites-core, which the theme can't import at runtime.
- */
+import type { EntryIdOptions } from "../types/entries";
+
 export function mountPath(mount: string, path = ""): string {
   const tail = path.replace(/^\/+/, "");
   if (mount === "/") {
@@ -9,3 +7,6 @@ export function mountPath(mount: string, path = ""): string {
   }
   return tail ? `${mount}/${tail}` : mount;
 }
+
+export const entryId = ({ entry }: EntryIdOptions) =>
+  entry.replace(/\.(?:mdx|md)$/, "");

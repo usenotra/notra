@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import type { SiteEditorEmptyStateProps } from "@/types/components/site-editor";
 
-/** No file open yet: pick one (on small screens) or start a new one. */
 export function SiteEditorEmptyState({
   filesLoading,
   canCreateFile,

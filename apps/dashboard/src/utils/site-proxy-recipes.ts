@@ -142,10 +142,6 @@ function nginxRecipe(origin: string, mounts: string[]): string {
     .join("\n\n")}\n`;
 }
 
-/**
- * Ready-to-paste configs that forward each mount (and everything below it)
- * to the site alias, keeping the path as is.
- */
 export function buildProxyRecipes(
   aliasOrigin: string,
   mounts: SiteMounts

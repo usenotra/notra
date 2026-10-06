@@ -6,7 +6,6 @@ import type {
 import { HTML_TYPES, MARKDOWN_TYPES } from "../constants/routing";
 import type { RedirectMatch } from "../types/serving";
 
-/** `/a/../b`, encoded slashes and NUL bytes never reach the bucket. */
 export function normalizeRequestPath(pathname: string): string | null {
   let decoded: string;
   try {
@@ -75,10 +74,6 @@ export function matchRedirect(
   return null;
 }
 
-/**
- * `/blog/post.md` and `/blog/post/index.md` both name the Markdown twin the
- * builder writes next to `/blog/post/index.html`.
- */
 export function resolveMarkdownFile(
   files: Map<string, SiteManifestFile>,
   path: string
@@ -98,7 +93,6 @@ export function markdownTwin(
     : null;
 }
 
-/** `/blog/post/index.md` → `/blog/post`: the HTML page a Markdown twin stands for. */
 export function twinPagePath(twinPath: string): string | null {
   if (!twinPath.endsWith("/index.md")) {
     return null;
@@ -106,7 +100,6 @@ export function twinPagePath(twinPath: string): string | null {
   return twinPath.slice(0, -"/index.md".length) || "/";
 }
 
-/** True when the client asks for Markdown at least as much as for HTML (agents do; browsers never). */
 export function prefersMarkdown(accept: string | null): boolean {
   if (!accept) {
     return false;

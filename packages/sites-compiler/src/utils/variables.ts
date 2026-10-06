@@ -20,11 +20,6 @@ function lookup(
   return Object.hasOwn(variables, name) ? variables[name] : undefined;
 }
 
-/**
- * Splits `source` (from `start` on) into prose and fenced code blocks, so
- * `{{ name }}` in a code sample is shown as written. An unclosed fence runs to
- * the end of the file, like in Markdown.
- */
 function splitFencedCode(source: string, start: number): TextSegment[] {
   const segments: TextSegment[] = [];
   let segmentStart = start;
@@ -43,7 +38,6 @@ function splitFencedCode(source: string, start: number): TextSegment[] {
       }
     } else {
       const close = CODE_FENCE_CLOSE.exec(line)?.[1];
-      // A fence closes with the same character, at least as many times.
       if (close && close[0] === fence[0] && close.length >= fence.length) {
         segments.push({ start: segmentStart, end: lineEnd, code: true });
         segmentStart = lineEnd;
@@ -60,13 +54,6 @@ function splitFencedCode(source: string, start: number): TextSegment[] {
   return segments.filter((segment) => segment.end > segment.start);
 }
 
-/**
- * Replaces `{{ name }}` with notra.json `variables` in a post, slot, header or
- * footer, frontmatter included (see `substituteFrontmatter`). Fenced code
- * blocks and inline code are left as written. Values are inserted as-is, so they may contain Markdown.
- * An unknown name is kept as literal text (braces escaped, so MDX does not
- * read it as an expression) and reported.
- */
 export function substituteVariables(
   source: string,
   variables: Readonly<Record<string, string>>
@@ -110,11 +97,6 @@ export function substituteVariables(
   return { text: parts.join(""), unknown };
 }
 
-/**
- * Frontmatter is YAML, so a value is only inserted when it can't change how
- * the line parses (no quotes, colons, brackets…). Anything else stays as
- * written and is reported like an unknown name.
- */
 function substituteFrontmatter(
   block: string,
   variables: Readonly<Record<string, string>>
@@ -134,7 +116,6 @@ function substituteFrontmatter(
   return { text, unknown };
 }
 
-/** `{{ name }}` in a short setting like `banner.content`; unknown names stay as written. */
 export function substituteSettingText(
   text: string,
   variables: Readonly<Record<string, string>>

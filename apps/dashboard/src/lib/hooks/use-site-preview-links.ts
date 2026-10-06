@@ -7,7 +7,6 @@ import type { SitePreviewRow, SiteScope } from "@/types/sites";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Opening a preview and copying its share link; protected previews need a signed URL first. */
 export function useSitePreviewLinks({ organizationId, siteId }: SiteScope) {
   const t = useTranslations("sites.previewsPage");
 
@@ -16,7 +15,6 @@ export function useSitePreviewLinks({ organizationId, siteId }: SiteScope) {
       window.open(row.url, "_blank", "noopener,noreferrer");
       return;
     }
-    // Open synchronously so the popup isn't blocked, then point it at the signed URL.
     const popup = window.open("", "_blank");
     try {
       const { url } = await dashboardOrpc.sites.previews.accessUrl.call({

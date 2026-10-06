@@ -26,7 +26,6 @@ let password: SitePreviewPassword;
 const MEMBER = "user_member";
 const NOW_SECONDS = Math.floor(NOW.getTime() / 1000);
 
-/** A member session issued `minutesAgo` minutes before NOW, valid for an hour from issue. */
 function memberClaims(
   minutesAgo = 1,
   overrides: Partial<SitePreviewTokenClaims> = {}
@@ -112,7 +111,6 @@ function setup(previewPassword: SitePreviewPassword | null = password) {
   };
   const writeState = (next: SiteServingState) => {
     objects.set(`sites/${SITE}/state.json`, JSON.stringify(next));
-    // The worker re-reads state at most every few seconds; tests skip the wait.
     resetCachesForTests();
   };
   objects.set(
@@ -248,7 +246,6 @@ describe("preview password", () => {
     const page = await get(`${PREVIEW}/blog`, session);
     expect(page.status).toBe(200);
     expect(await page.text()).toBe("preview");
-    // The session belongs to this preview only.
     expect(
       (await get("https://pr-8--acme.notra.site/blog", session)).status
     ).toBe(401);
@@ -261,7 +258,6 @@ describe("preview password", () => {
     );
     expect((await get(`${PREVIEW}/blog`, session)).status).toBe(200);
 
-    // Same password set again: new salt and version, so old sessions still end.
     writeState({
       ...state,
       previewPassword: await hashPreviewPassword(PASSWORD, NOW),
@@ -315,7 +311,6 @@ describe("preview password", () => {
     );
     expect((await get(`${PREVIEW}/blog`, unsigned)).status).toBe(401);
 
-    // A valid password session in a link is refused: those only come from the form.
     const valid = await signSitePreviewToken(
       {
         siteId: SITE,
@@ -442,11 +437,9 @@ describe("member session revocation", () => {
       ),
     });
     expect((await get(`${PREVIEW}/blog`, before)).status).toBe(401);
-    // Signing in again after the sign-out works.
     expect(
       (await get(`${PREVIEW}/blog`, await sign(memberClaims(1)))).status
     ).toBe(200);
-    // Other members are not affected.
     const colleague = await sign(memberClaims(10, { userId: "user_other" }));
     expect((await get(`${PREVIEW}/blog`, colleague)).status).toBe(200);
   });
@@ -508,7 +501,6 @@ describe("member session revocation", () => {
     const location = new URL(renew.headers.get("Location") ?? "");
     expect(location.origin).toBe("https://app.example.com");
     expect(location.searchParams.get("next")).toBe("/blog?x=1");
-    // Assets and fetches get no redirect, and a revoked member gets the gate.
     expect((await get(`${PREVIEW}/blog`, expired)).status).toBe(401);
     writeState({
       ...state,

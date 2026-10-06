@@ -8,6 +8,5 @@ export type PublishSavedContentInput = z.infer<typeof contentInputSchema> &
   z.infer<typeof publishContentToGitHubSchema>;
 
 export interface PublishSavedContentOptions {
-  /** Notra user behind the publish; becomes the post author on Notra Sites. */
   publisherUserId?: string;
 }

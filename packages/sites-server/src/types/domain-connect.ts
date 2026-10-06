@@ -16,15 +16,12 @@ export interface DomainConnectSettings {
   providerDisplayName?: string;
   urlSyncUX?: string;
   urlAPI: string;
-  /** Zone the provider hosts (`acme.com`). */
   domain: string;
-  /** Label(s) below the zone (`blog`); never empty, a CNAME cannot sit at the apex. */
   host: string;
 }
 
 export type DomainConnectResult =
   | { status: "unavailable"; reason: "not_subdomain" | "already_active" }
-  /** No one-click setup; the provider and zone, when found, still help with the records. */
   | { status: "unsupported"; providerName?: string; zone?: string }
   | { status: "ready"; providerName: string; applyUrl: string };
 

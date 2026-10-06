@@ -13,7 +13,6 @@ import type {
 import { exists, writeFileEnsured } from "./utils/fs";
 import { htmlToMarkdown } from "./utils/html-to-markdown";
 
-/** `/blog/post` → `/blog/post/index.<extension>`, where Astro writes the page. */
 function pageFile(pagePath: string, extension: "html" | "md"): string {
   return joinMountPath(pagePath, `index.${extension}`);
 }
@@ -58,7 +57,6 @@ function entryLink(entry: AreaPageEntry, origin: string): string {
   return `- [${entry.title}](${new URL(`${entry.path}.md`, origin)})${description} (${details})`;
 }
 
-/** The area index as Markdown: every entry with a link to its own Markdown page. */
 function indexMarkdown(pages: AreaPages, origin: string): string {
   const parts = [`# ${pages.title}`];
   if (pages.description) {
@@ -72,7 +70,6 @@ function indexMarkdown(pages: AreaPages, origin: string): string {
   return `${parts.join("\n\n")}\n`;
 }
 
-/** notra.json `markdown.instructions` as a list; empty when the site has none. */
 export function normalizeAgentInstructions(
   instructions: string | readonly string[] | undefined
 ): string[] {
@@ -81,10 +78,6 @@ export function normalizeAgentInstructions(
   return list.map((line) => line.trim()).filter(Boolean);
 }
 
-/**
- * The customer's own notes for agents, in a section of its own so a reader
- * can tell them apart from what Notra writes about the site.
- */
 export function instructionsSection(
   instructions: readonly string[]
 ): string | null {
@@ -98,13 +91,11 @@ export function instructionsSection(
   return `${AGENT_INSTRUCTIONS_HEADING}\n\n${body}`;
 }
 
-/** https://llmstxt.org: a Markdown map of the site for language models. */
 export function llmsTxt(params: LlmsTxtParams): string {
   const parts = [`# ${params.name}`];
   if (params.description) {
     parts.push(`> ${params.description}`);
   }
-  // Right after the summary, before the page lists, so agents read it first.
   const instructions = instructionsSection(params.instructions);
   if (instructions) {
     parts.push(instructions);
@@ -140,12 +131,6 @@ export function llmsTxt(params: LlmsTxtParams): string {
   return `${parts.join("\n\n")}\n`;
 }
 
-/**
- * Makes the site readable for agents: a Markdown twin next to every page
- * (`/blog/post/index.md`, served for `/blog/post.md` and `Accept: text/markdown`),
- * plus llms.txt and llms-full.txt for the whole site and for each mounted area
- * (a customer proxy only forwards the mount). A customer's own public file wins.
- */
 export async function writeAgentFiles(
   params: WriteAgentFilesParams
 ): Promise<void> {
@@ -159,7 +144,6 @@ export async function writeAgentFiles(
       const url = new URL(entry.path, origin).toString();
       const html = params.pageHtml.get(pageFile(entry.path, "html")) ?? "";
       const markdown = entryMarkdown(entry, url, htmlToMarkdown(html, url));
-      // The page's own Markdown carries the instructions too; llms-full.txt has them once at the top.
       writes.push(
         writeFileEnsured(
           join(outDir, pageFile(entry.path, "md")),
@@ -186,7 +170,6 @@ export async function writeAgentFiles(
       .filter((area) => area.indexPath !== "/")
       .map((area) => ({ prefix: area.indexPath, areas: [area] })),
   ];
-  // Every scope writes its own two files; a customer's own file wins.
   await Promise.all(
     scopes.map(async (scope) => {
       const fullTextPath = `${scope.prefix}/llms-full.txt`;

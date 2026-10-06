@@ -27,7 +27,6 @@ import {
   sitePreviewAccessPlan,
 } from "@/utils/site-preview-access";
 
-/** The form, mounted fresh on every open so it always starts from the saved settings. */
 function PreviewAccessForm({ onDone }: SitePreviewAccessFormProps) {
   const t = useTranslations("sites.previewAccess");
   const tCommon = useTranslations("common");
@@ -119,7 +118,6 @@ function PreviewAccessForm({ onDone }: SitePreviewAccessFormProps) {
   );
 }
 
-/** Previews on or off, and who can open them: Notra login, a password too, or anyone. */
 export function SitePreviewAccessDialog({
   open,
   onOpenChange,

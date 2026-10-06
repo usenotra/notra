@@ -3,10 +3,7 @@ import { defineCollection } from "astro:content";
 
 import { params } from "./lib/params";
 import { blogEntrySchema, changelogEntrySchema } from "./schemas/entries";
-import type { EntryIdOptions } from "./types/entries";
-
-const entryId = ({ entry }: EntryIdOptions) =>
-  entry.replace(/\.(?:mdx|md)$/, "");
+import { entryId } from "./utils/paths";
 
 const blog = defineCollection({
   loader: glob({

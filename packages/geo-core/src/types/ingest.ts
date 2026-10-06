@@ -17,7 +17,6 @@ export interface GeoIngestBuffer {
    * pipeline writes it to Tinybird directly.
    */
   enqueue: (event: GeoTrafficEventRow) => boolean;
-  /** The same for human page views (web_page_views); absent buffers write directly. */
   enqueueWeb?: (row: WebPageViewRow) => boolean;
   /** Writes an organization's buffered events now, for open live views. */
   expedite: (organizationId: string) => void;
@@ -78,7 +77,6 @@ export interface GeoJourneyResolution {
   path: string;
 }
 
-/** `site`: a Notra Site serves this page and reports it itself. */
 export type GeoIngestDropReason =
   | "visitor_type"
   | "host"
@@ -106,12 +104,10 @@ export type GeoIngestResult =
 
 export type GeoIngestRuntime = "railway" | "vercel" | "local";
 
-/** What the batcher needs from a row: the organization it expedites for live views. */
 export interface BatchedRow {
   organization_id: string;
 }
 
-/** The request envelope as ingest validated it; newer than the published SDK types. */
 export type GeoIngestPayload = z.infer<typeof geoRequestPayloadSchema>;
 
 export interface WebPageViewInput {
@@ -124,7 +120,6 @@ export interface WebPageViewInput {
 
 export interface WebReferrer {
   host: string;
-  /** search, ai, social, internal, other or direct */
   group: string;
   source: string;
   aiProduct: string;
@@ -132,8 +127,6 @@ export interface WebReferrer {
 
 export interface WebSession {
   id: string;
-  /** 1 for the first page of a session; 0 when there is no session store. */
   index: number;
-  /** Where the session came from (referrer source or campaign); a different one starts a new session. */
   origin?: string;
 }

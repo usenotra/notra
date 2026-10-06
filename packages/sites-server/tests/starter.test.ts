@@ -144,7 +144,6 @@ describe("url helpers", () => {
     expect(resolveLinkUrl("mailto:hi@acme.com", "https://acme.com")).toBe(
       "mailto:hi@acme.com"
     );
-    // Built from parts so the linter does not mistake the fixture for a script URL.
     const scriptUrl = ["javascript", "alert(1)"].join(":");
     expect(resolveLinkUrl(scriptUrl, "https://acme.com")).toBe(null);
     expect(
@@ -199,7 +198,6 @@ describe("buildSiteStarterFiles", () => {
     );
     expect(config.name).toBe("Acme");
     expect(config.colors.primary).toBe("#2563eb");
-    // The page's per-scheme theme-color is its background; the site keeps the theme's white and dark.
     expect(config.background.color).toBeUndefined();
     expect(config.fonts?.family).toBe("Inter");
     expect(config.favicon).toBe("https://acme.com/icon.svg");
@@ -231,7 +229,6 @@ describe("buildSiteStarterFiles", () => {
       dark: "https://cdn.acme.com/mark-dark.svg",
       href: "https://acme.com/",
     });
-    // Helvetica is a system font Google Fonts cannot serve.
     expect(config.fonts?.family).toBe("Space Grotesk");
   });
 
@@ -241,7 +238,7 @@ describe("buildSiteStarterFiles", () => {
       new Date("2026-10-05T12:00:00Z")
     );
     expect(files.map((file) => file.path)).toEqual([
-      "notra.json",
+      "blog.json",
       "header.mdx",
       "footer.mdx",
       "blog/hello-world.md",

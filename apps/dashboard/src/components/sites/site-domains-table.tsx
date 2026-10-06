@@ -147,11 +147,6 @@ function RowMenu({ hostname, url, canOpen, onRemove }: SiteDomainRowMenuProps) {
   );
 }
 
-/**
- * The Notra address and every custom domain in one house table. A domain
- * that still needs setup opens its DNS records or rewrites under its row;
- * active ones fold them away until clicked.
- */
 export function SiteDomainsTable({
   organizationId,
   siteId,
@@ -162,7 +157,6 @@ export function SiteDomainsTable({
 }: SiteDomainsTableProps) {
   const t = useTranslations("sites.domainsPage");
   const scope = { organizationId, siteId };
-  // Rows the reader toggled away from their default (pending open, active closed).
   const [toggled, setToggled] = useState<ReadonlySet<string>>(new Set());
   const rows: SiteDomainRow[] = [
     {
@@ -230,7 +224,6 @@ export function SiteDomainsTable({
             <span className="text-muted-foreground truncate text-xs">
               {primary ? `${detail} · ${t("primary")}` : detail}
             </span>
-            {/* Narrow screens drop the status column; keep the status here. */}
             <span className="@min-[30rem]/main:hidden">
               <StatusDot status={rowStatus(row)} />
             </span>
@@ -267,7 +260,6 @@ export function SiteDomainsTable({
             <span className="whitespace-nowrap">{t("notChecked")}</span>
           );
         }
-        // Centred on the two-line domain cell, like the status beside it.
         return (
           <span className="text-muted-foreground flex h-10 items-center justify-end">
             {checked}
@@ -286,13 +278,11 @@ export function SiteDomainsTable({
             ? aliasOrigin
             : siteDomainUrl(row.domain, mounts);
         return (
-          // Menu events bubble through the portal to the row; keep them here.
           <span
             className="flex h-10 items-center justify-end gap-0.5"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
-            {/* An open setup has its own "Verify now". */}
             {row.kind === "domain" && !isExpanded(row) ? (
               <CheckButton domain={row.domain} scope={scope} />
             ) : null}

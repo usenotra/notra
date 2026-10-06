@@ -37,7 +37,6 @@ export function navbarCta(): ResolvedLink | undefined {
   return config.navbar.cta ? plainLink(config.navbar.cta) : undefined;
 }
 
-/** The typed button next to the CTA (e.g. GitHub). */
 export function navbarPrimary(): ResolvedLink | undefined {
   const primary = config.navbar.primary;
   if (!primary) {
@@ -51,7 +50,6 @@ export function navbarPrimary(): ResolvedLink | undefined {
   };
 }
 
-/** Flat links stay one inline row; columns get their own grid. */
 export function footerColumns(): FooterColumn[] {
   return config.footer.links.flatMap((item) =>
     "items" in item

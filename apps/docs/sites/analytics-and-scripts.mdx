@@ -1,13 +1,13 @@
 ---
 title: "Analytics and scripts"
-description: "Add an analytics provider, run your own JavaScript, and control which origins your site may load from."
+description: "Add an analytics provider, run your own JavaScript and control which origins your site may load from."
 ---
 
 ## Analytics integrations
 
-Add an analytics provider under `integrations` in `notra.json`. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
+Add an analytics provider under `integrations` in `blog.json`. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
 
-```json notra.json
+```json blog.json
 {
   "name": "Acme",
   "integrations": {
@@ -34,7 +34,7 @@ Previews use the same integrations as your live site. To keep previews out of yo
 
 ## Custom scripts
 
-Every `.js` file outside the content folders runs on every page: `script.js`, a `scripts/` folder, or a file like `analytics.js` at the root. They work like [custom CSS](/sites/repository#custom-css), but for JavaScript. A `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
+Every `.js` file outside the content folders runs on every page: `script.js`, a `scripts/` folder or a file like `analytics.js` at the root. They work like [custom CSS](/sites/repository#custom-css), but for JavaScript. A `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
 
 ```text
 script.js               # runs first
@@ -63,13 +63,13 @@ for (const link of document.querySelectorAll("main a[href^='http']")) {
 
 Every page comes with a `Content-Security-Policy` header that says where scripts may come from and which servers they may connect to. Notra builds it from your repository:
 
-- **Scripts** can come from your site, the analytics integrations you turned on, and your `allowedOrigins`. Inline scripts are allowed only if they were on the page at build time: Notra hashes every one of them, so nobody can inject a new one later.
+- **Scripts** can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Inline scripts are allowed only if they were on the page at build time. Notra hashes each of them, so a script injected later doesn't run.
 - **Connections** (`fetch`, beacons, WebSockets) are allowed to your site, your integrations and your `allowedOrigins`.
 - **Images, styles, fonts, videos and embeds** are not limited, so posts can still show images and videos from anywhere.
 
 If your custom scripts or components load code from another host or call an API, add that origin:
 
-```json notra.json
+```json blog.json
 {
   "security": {
     "allowedOrigins": [
@@ -85,7 +85,7 @@ Origins must start with `https://` or `wss://` and have no path. `https://*.exam
 
 To turn the policy off entirely:
 
-```json notra.json
+```json blog.json
 {
   "security": { "contentSecurityPolicy": false }
 }

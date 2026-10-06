@@ -14,7 +14,6 @@ import type { SiteScope } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
 import { listSiteEditorFiles } from "@/utils/site-editor";
 
-/** The editor's file list and drafts, plus the two ways the page keeps them current. */
 export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
   const queryClient = useQueryClient();
   const filesOptions = dashboardOrpc.sites.editor.files.queryOptions({
@@ -32,7 +31,6 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
   );
   const sourcePaths = new Set((data?.files ?? []).map((file) => file.path));
 
-  // Not all of `sites`: open files must not refetch (and hit GitHub) on every autosave.
   const refreshDrafts = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: filesOptions.queryKey }),
@@ -42,7 +40,6 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
     ]);
   };
 
-  // Autosaves update the file list in place; refetching it would ask GitHub on every save.
   const applyDraftChange = (path: string, updatedAt: Date | null) => {
     queryClient.setQueryData(filesOptions.queryKey, (current) => {
       if (!current) {
@@ -85,7 +82,6 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
   };
 }
 
-/** Moves conflicting drafts onto the files as they are on GitHub now. */
 export function useRebaseSiteDrafts({
   organizationId,
   siteId,
@@ -94,7 +90,6 @@ export function useRebaseSiteDrafts({
   const t = useTranslations("sites.editor");
   const queryClient = useQueryClient();
   return useMutation({
-    // Each draft is its own row, so they rebase independently.
     mutationFn: async (paths: string[]) => {
       await Promise.all(
         paths.map((path) =>
@@ -126,7 +121,6 @@ export function useRebaseSiteDrafts({
   });
 }
 
-/** Checks the site as it would build with every draft applied. */
 export function useValidateSiteDrafts({
   organizationId,
   siteId,
@@ -143,7 +137,6 @@ export function useValidateSiteDrafts({
   });
 }
 
-/** Creates a new file as a draft, then opens it. */
 export function useCreateSiteFile({
   organizationId,
   siteId,

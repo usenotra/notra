@@ -15,7 +15,6 @@ const NON_SLUG_CHARACTERS = /[^a-z0-9]+/g;
 const EDGE_DASHES = /^-|-$/g;
 const COMBINING_MARKS = /[\u0300-\u036f]/g;
 
-/** Lowercase letters and digits joined by single dashes. */
 function dashCase(value: string): string {
   return value
     .toLowerCase()
@@ -23,7 +22,6 @@ function dashCase(value: string): string {
     .replace(EDGE_DASHES, "");
 }
 
-/** Lowercases, drops a trailing dot and a port. Returns null for anything that is not a plain DNS name. */
 export function normalizeHostname(input: string): string | null {
   const host = input
     .trim()
@@ -60,13 +58,11 @@ export function siteAliasHost(slug: string, hostingDomain: string): string {
   return `${slug}.${hostingDomain}`;
 }
 
-/** `pr-12`, `br-feature-x`. Keys become a DNS label prefix, so they stay short and dash-safe. */
 export function pullRequestPreviewKey(prNumber: number): string {
   return `pr-${prNumber}`;
 }
 
 function shortHash(value: string): string {
-  // FNV-1a, enough to keep two long branches with the same prefix apart.
   let hash = 0x811c9dc5;
   for (let index = 0; index < value.length; index += 1) {
     hash ^= value.charCodeAt(index);
@@ -75,11 +71,6 @@ function shortHash(value: string): string {
   return (hash >>> 0).toString(36).padStart(7, "0").slice(0, 6);
 }
 
-/**
- * `br-feature-x`. The preview host is one DNS label (`{key}--{slug}`, max 63
- * chars), so long branch names are cut to fit the site's slug and get a short
- * hash of the full branch name to stay unique.
- */
 export function branchPreviewKey(branch: string, siteSlug: string): string {
   const maxLength = Math.min(
     SITE_PREVIEW_KEY_MAX_LENGTH,
@@ -101,10 +92,6 @@ export function sitePreviewHost(
   return `${previewKey}${SITE_PREVIEW_HOST_SEPARATOR}${slug}.${hostingDomain}`;
 }
 
-/**
- * Classifies a request host. Only hosts directly below the hosting domain are
- * aliases or previews; everything else must be a registered custom domain.
- */
 export function parseSiteHost(
   host: string,
   hostingDomain: string

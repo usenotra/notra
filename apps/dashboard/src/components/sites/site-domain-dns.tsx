@@ -42,10 +42,6 @@ function RecordValue({ value, label }: SiteDnsRecordValueProps) {
   );
 }
 
-/**
- * Type | Name | Value with a copy button per value. It lives inside the
- * domains table, so it is a plain grid rather than another framed table.
- */
 export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
   const t = useTranslations("sites.domainsPage.dns");
   if (records.length === 0) {
@@ -130,10 +126,6 @@ function ProviderButton({
   );
 }
 
-/**
- * The DNS step: one-click setup when the provider has our Domain Connect
- * template, else the records with a link to the provider's DNS page.
- */
 export function SiteDnsSetup({
   organizationId,
   siteId,

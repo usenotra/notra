@@ -1,4 +1,3 @@
-/** Named character references a landing page commonly uses; others stay as written. */
 export const HTML_NAMED_ENTITIES: Readonly<Record<string, string>> = {
   amp: "&",
   lt: "<",
@@ -10,7 +9,6 @@ export const HTML_NAMED_ENTITIES: Readonly<Record<string, string>> = {
   copy: "©",
 };
 
-/** Elements whose content is not markup; the tokenizer skips straight to their end tag. */
 export const HTML_RAW_TEXT_ELEMENTS: ReadonlySet<string> = new Set([
   "script",
   "style",

@@ -49,7 +49,6 @@ const TRACING_HEADERS = ["traceparent", "b3", "x-b3-traceid"];
 
 const PREFETCH_PURPOSE_HEADERS = ["sec-purpose", "purpose", "x-moz"];
 
-/** Browsers send Sec-Purpose / Purpose; Next.js marks its router prefetches. */
 function isPrefetch(headers: Headers): boolean {
   return (
     headers.has("next-router-prefetch") ||

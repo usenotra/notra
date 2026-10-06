@@ -9,9 +9,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteStarterInput } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Whether the picked branch and folder have a notra.json; waits for typing to settle. */
 export function useSiteStarterStatus(scope: SiteStarterInput) {
-  // Strings, not an object: the debouncer compares values by identity.
   const [branch] = useDebouncedValue(scope.branch.trim(), {
     wait: SITE_CREATE_STARTER_DEBOUNCE_MS,
   });
@@ -33,7 +31,6 @@ export function useSiteStarterStatus(scope: SiteStarterInput) {
   });
 }
 
-/** Opens the "Set up Notra Sites" pull request with files built from the brand. */
 export function useCreateSiteStarter() {
   const t = useTranslations("sites.new.starter");
   const queryClient = useQueryClient();

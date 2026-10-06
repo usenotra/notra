@@ -30,7 +30,6 @@ export function sitePreviewOrigin(slug: string, previewKey: string): string {
   );
 }
 
-/** The first mounted area is the landing URL (`/blog` if both exist). */
 export function primaryMountUrl(origin: string, mounts: SiteMounts): string {
   const first = listMountedAreas(mounts)[0];
   return `${origin}${first && first.mount !== "/" ? first.mount : "/"}`;

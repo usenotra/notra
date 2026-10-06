@@ -143,8 +143,6 @@ export const geoTrafficOverview = defineEndpoint("geo_traffic_overview", {
       `,
     }),
     node({
-      // With hosts set, counts come from the by-host rollup; agent details
-      // still come from the daily rollup, they don't depend on the host.
       name: "per_source_hosts",
       sql: `
         SELECT

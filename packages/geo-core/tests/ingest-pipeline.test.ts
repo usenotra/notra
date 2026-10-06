@@ -283,7 +283,6 @@ describe("runGeoIngest ordering", () => {
   });
 
   test("a site token ingests under the site's project and only for its host", async () => {
-    // The real lookup answers a site identity with the site's own hosts.
     loadIngestAllowedHosts.mockImplementation(
       async (identity?: GeoIngestIdentity) =>
         identity?.site ? identity.site.hosts : ["example.com"]

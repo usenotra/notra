@@ -10,7 +10,6 @@ export function configuredAreaTitle(
   return config[area]?.title ?? AREA_DEFAULT_TITLES[area];
 }
 
-/** "Changelog" → "Acme Changelog"; a title that already names the site ("Acme Blog") stays. */
 export function withSiteName(
   siteName: string,
   title: string,

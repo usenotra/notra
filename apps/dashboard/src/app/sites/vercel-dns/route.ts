@@ -16,12 +16,6 @@ import {
 } from "@/lib/sites/dns-callback";
 import type { SiteDomainConnectOutcome } from "@/types/sites";
 
-/**
- * The Notra Vercel integration's redirect URL. Vercel sends `code` and our
- * `state` back after the customer installed it on the team that owns the
- * domain; the records go into their Vercel DNS zone and the integration is
- * uninstalled again, so no Vercel access is kept.
- */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const claims = verifyVercelDnsState(searchParams.get("state") ?? "");

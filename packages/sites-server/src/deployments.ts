@@ -21,11 +21,6 @@ import type { Site } from "./types/sites";
 import { buildTargetForDeployment } from "./urls";
 import { prefixedId } from "./utils/ids";
 
-/**
- * Next generation for a site. Deployments, rollbacks and preview removals all
- * take one, and the serving state only ever moves to a higher one; the row
- * lock makes concurrent callers get distinct, ordered values.
- */
 export async function allocateGeneration(
   executor: DeploymentExecutor,
   siteId: string
@@ -41,12 +36,6 @@ export async function allocateGeneration(
   return site;
 }
 
-/**
- * The only way a deployment's status changes: a conditional update from the
- * statuses `SITE_DEPLOYMENT_TRANSITIONS` allows. Returns false when the row was
- * not in an allowed status (e.g. a preview canceled while its build ran), so
- * callers never overwrite a concurrent decision.
- */
 export async function transitionDeployment(
   id: string,
   to: SiteDeploymentStatus,
@@ -65,7 +54,6 @@ export async function transitionDeployment(
   return updated.length > 0;
 }
 
-/** Stops every build of a preview that has not finished (PR closed, preview deleted). */
 export async function cancelPreviewBuilds(
   siteId: string,
   previewKey: string
@@ -84,10 +72,6 @@ export async function cancelPreviewBuilds(
     );
 }
 
-/**
- * Creates the deployment row and its build job in one transaction, under the
- * site row lock taken by `allocateGeneration`.
- */
 export async function enqueueSiteDeployment(
   input: EnqueueDeploymentInput
 ): Promise<EnqueuedDeployment> {
@@ -154,7 +138,6 @@ export async function enqueueSiteDeployment(
   });
 }
 
-/** Queues removal of a preview (PR closed, manual delete) through the same outbox. */
 export async function enqueuePreviewRemoval(
   siteId: string,
   previewKey: string
@@ -169,7 +152,6 @@ export async function enqueuePreviewRemoval(
   return jobId;
 }
 
-/** Builds a previous deployment's commit again, for the same slot, with the site's current settings. */
 export function redeploymentInput(
   previous: SiteDeployment,
   requestedByUserId: string | null
@@ -188,12 +170,6 @@ export function redeploymentInput(
   };
 }
 
-/**
- * Whether a later deployment for the same slot (production, or this preview)
- * will build instead. With `branchHead`, a later push or pull request build
- * of another commit doesn't count: its webhook arrived late and it gets
- * skipped itself because the branch moved on, so it must not displace this one.
- */
 export async function hasNewerDeployment(
   deployment: SiteDeployment,
   branchHead: string | null

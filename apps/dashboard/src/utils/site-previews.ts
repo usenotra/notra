@@ -1,7 +1,6 @@
 import type { SiteDeployment, SiteDetail, SitePreviewRow } from "@/types/sites";
 import { isDeploymentInProgress } from "@/utils/site-deployments";
 
-/** The newest deployment per preview key; the list arrives newest first. */
 function latestPreviewDeployments(
   deployments: readonly SiteDeployment[]
 ): Map<string, SiteDeployment> {
@@ -15,10 +14,6 @@ function latestPreviewDeployments(
   return latest;
 }
 
-/**
- * Open previews plus previews whose first build is still running. A served
- * preview shows the status of a newer build while that one runs or failed.
- */
 export function sitePreviewRows(detail: SiteDetail): SitePreviewRow[] {
   const latest = latestPreviewDeployments(detail.deployments);
 

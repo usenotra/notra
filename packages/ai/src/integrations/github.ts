@@ -188,7 +188,6 @@ function createGitHubAppJwt() {
   return `${header}.${payload}.${signature}`;
 }
 
-/** Installation token narrowed to the given repositories and permissions (least privilege). */
 export async function createScopedGitHubAppInstallationToken(
   installationId: string,
   scope: GitHubInstallationTokenScope

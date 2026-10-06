@@ -4,6 +4,5 @@ export interface ResolvedBanner {
   storageKey: string;
   light: string;
   dark: string;
-  /** `info` follows the brand color, whose readable text color may be dark. */
   foreground: string;
 }

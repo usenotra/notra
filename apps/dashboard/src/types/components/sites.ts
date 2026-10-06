@@ -63,10 +63,8 @@ export interface SiteCreateSourceFieldsProps {
     key: K,
     value: SiteCreateFormValues[K]
   ) => void;
-  /** The picked repository; null until one is. */
   repository: SiteRepository | null;
   slugInvalid: boolean;
-  /** Messages from a rejected create call, shown under their fields. */
   errors: SiteCreateFieldErrors;
   starterPullRequestUrl: string | null;
   onStarterPullRequestOpened: (url: string) => void;
@@ -79,7 +77,6 @@ export interface SiteCreateSectionFieldsProps {
   plan: SiteCreateSectionPlan;
   onBlogPathChange: (value: string) => void;
   onChangelogPathChange: (value: string) => void;
-  /** A rejected create call's message about the sections. */
   error?: string;
 }
 
@@ -89,7 +86,6 @@ export interface SiteAddressInputProps {
   onValueChange: (value: string) => void;
   invalid: boolean;
   placeholder: string;
-  /** Shown after the input, e.g. `notra.site`; hidden when unknown. */
   hostingDomain: string | null;
   describedBy?: string;
 }
@@ -122,13 +118,11 @@ export interface SiteChoiceGroupProps<T extends string> {
   options: SiteChoiceOption<T>[];
   onValueChange: (value: T) => void;
   disabled?: boolean;
-  /** Keeps the label for screen readers only, when a surrounding row already shows it. */
   hideLabel?: boolean;
 }
 
 export interface SiteSettingsRowProps {
   label: string;
-  /** Id of the control the label belongs to; without it the label is plain text. */
   htmlFor?: string;
   description?: ReactNode;
   children: ReactNode;
@@ -144,7 +138,6 @@ export interface SiteDeleteDialogProps extends SiteScope {
 export interface SiteMetaProps {
   icon: IconSvgElement;
   children: ReactNode;
-  /** For SHAs and branch names. */
   mono?: boolean;
   className?: string;
 }
@@ -152,15 +145,12 @@ export interface SiteMetaProps {
 export interface SiteRelativeTimeProps {
   date: Date | string;
   className?: string;
-  /** Mid-sentence use: "Live since just now", not "Just now". */
   inline?: boolean;
 }
 
 export interface SiteStatusDotProps {
   status: SiteDeploymentStatus;
-  /** A ready build that visitors see right now reads "Live". */
   live?: boolean;
-  /** Shown muted after the label, e.g. "17s". */
   duration?: string | null;
   className?: string;
 }
@@ -168,7 +158,6 @@ export interface SiteStatusDotProps {
 export interface SitePreviewFrameProps {
   url: string | null;
   className?: string;
-  /** Shown instead of "Preview unavailable" when there is no URL, e.g. while the first build runs. */
   fallback?: ReactNode;
 }
 
@@ -204,26 +193,20 @@ export interface SitePendingProductionProps {
 }
 
 export interface SiteOverviewStatusProps {
-  /** A production build running now or failed after the live one. */
   pendingProduction: SiteDeployment | null;
   suspended: boolean;
-  /** A deployment is live. */
   live: boolean;
 }
 
 export interface SiteOverviewPreviewProps {
-  /** The live site; null when it's offline or nothing is live. */
   url: string | null;
   suspended: boolean;
-  /** The very first build is still running. */
   firstBuild: boolean;
   live: boolean;
 }
 
 export interface SiteOverviewDomainsProps {
-  /** Custom domains, primary first. */
   domains: SiteDomain[];
-  /** The site on its Notra address. */
   aliasUrl: string;
 }
 
@@ -259,10 +242,8 @@ export interface SiteBuildLogFoldRowProps {
 
 export interface SiteBuildLogRowsProps {
   entries: SiteBuildLogEntry[];
-  /** Lines matching `query`; unused without one. */
   matchingLines: SiteBuildLogLine[];
   offsets: Map<number, string>;
-  /** The trimmed filter text; empty shows every entry. */
   query: string;
 }
 
@@ -288,9 +269,7 @@ export interface SiteBuildLogCopyButtonProps {
 export interface SiteBuildLogsProps {
   log: string | null;
   inProgress: boolean;
-  /** Still waiting for a builder; the log starts once the sandbox boots. */
   queued: boolean;
-  /** Open scrolled to the end, e.g. for a failed build whose error is last. */
   startAtEnd?: boolean;
 }
 
@@ -300,13 +279,11 @@ export interface SiteDeploymentMenuProps {
     "id" | "live" | "status" | "url" | "commitSha"
   >;
   canRollback: boolean;
-  /** Adds "View details"; for lists. */
   detailHref?: string;
   redeployPending: boolean;
   onRedeploy: () => void;
   onRollback: () => void;
   triggerVariant?: "ghost" | "outline";
-  /** Off where a Visit button already sits next to the menu. */
   showVisit?: boolean;
   className?: string;
 }
@@ -317,12 +294,9 @@ export interface SiteDeploymentsTableProps {
   siteId: string;
   deployments: SiteDeployment[];
   emptyState?: ReactNode;
-  /** Row menu with Redeploy and Restore. */
   withActions?: boolean;
-  /** Glow rows that arrive after the first render, e.g. a build that just started. */
   highlightNewRows?: boolean;
   emptyHeight?: number;
-  /** Rows per page; the table grows with the page and pages below it. */
   pageSize: number;
 }
 
@@ -340,12 +314,10 @@ export interface SiteDeploymentActionsProps extends SiteScope {
   deployment: SiteDeploymentRecord;
   live: boolean;
   primaryUrl: string;
-  /** The deployment's list entry, which knows whether it can be restored. */
   rollbackEntry: SiteDeployment | null;
   onRollback: () => void;
 }
 
-/** Parts of the deployment page that only read the deployment (note, failure summary). */
 export interface SiteEnvironmentBadgeProps {
   kind: SiteDeployment["kind"];
   previewKey: string | null;
@@ -385,7 +357,6 @@ export interface SitePreviewsTableProps extends SiteScope {
   organizationSlug: string;
   rows: SitePreviewRow[];
   repository: SiteRecord["repository"];
-  /** Overview variant: fewer columns, no row menu. */
   compact?: boolean;
   emptyState?: ReactNode;
 }
@@ -398,7 +369,6 @@ export interface SitePreviewRowMenuProps {
 }
 
 export interface SitePreviewDeleteDialogProps extends SiteScope {
-  /** The preview to delete; null keeps the dialog closed. */
   preview: SitePreviewRow | null;
   onOpenChange: (open: boolean) => void;
 }
@@ -426,7 +396,6 @@ export interface SiteSettingsDangerZoneProps extends SiteScope {
 }
 
 export interface SiteSettingsSaveBarProps {
-  /** The changed settings are complete enough to save. */
   canSave: boolean;
   isSaving: boolean;
   onReset: () => void;
@@ -437,9 +406,7 @@ export interface SitePublishDialogProps extends SiteScope {
   onOpenChange: (open: boolean) => void;
   site: SiteRecord;
   draftCount: number;
-  /** Listed in the dialog so it's clear what goes out. */
   drafts: SiteEditorDraft[];
-  /** Files on GitHub today; drafts outside it are new files. */
   sourcePaths: ReadonlySet<string>;
   onPublished: () => void;
   onConflict: (paths: string[]) => void;
@@ -461,16 +428,13 @@ export interface SiteNewFileFolderTabsProps {
 }
 
 export interface SiteNewFileNameFieldProps {
-  /** Prefix for the input and hint ids. */
   id: string;
   folder: SiteNewFileFolder;
   value: string;
   onValueChange: (value: string) => void;
   placeholder: string;
-  /** The typed name, or the one derived from the title. */
   slug: string;
   slugValid: boolean;
-  /** A file already lives at `path`. */
   exists: boolean;
   path: string;
 }
@@ -495,7 +459,6 @@ export interface SiteDnsRecordsTableProps {
 
 export interface SiteDomainSetupStepProps {
   number: number;
-  /** The last step draws no line to a next one. */
   isLast?: boolean;
   children: ReactNode;
 }
@@ -503,7 +466,6 @@ export interface SiteDomainSetupStepProps {
 export interface SiteDnsProviderButtonProps {
   providerName: string;
   href: string;
-  /** Domain Connect: applies the records at the provider, then comes back. */
   oneClick?: boolean;
 }
 
@@ -555,7 +517,6 @@ export interface SiteSuggestInputProps {
   suggestions: string[];
   icon: IconSvgElement;
   placeholder?: string;
-  /** Shown when the typed text matches no suggestion. */
   emptyLabel: string;
   invalid?: boolean;
   describedBy?: string;
@@ -568,7 +529,6 @@ export interface SiteIntegrationLogoProps {
 
 export interface SiteIntegrationRowProps {
   provider: SiteIntegrationProvider;
-  /** The site already has this provider in notra.json. */
   isSetUp: boolean;
   onOpen: () => void;
   onRemove: () => void;
@@ -586,10 +546,8 @@ export interface SiteImportListProps {
   organizationId: string;
   organizationSlug: string;
   repositories: SiteImportableRepository[];
-  /** The GitHub App is installed for the organization. */
   installed: boolean;
   isLoading: boolean;
-  /** GitHub id of the repository being connected right now. */
   importingId: string | null;
   onImport: (repository: SiteImportableRepository) => void;
 }
@@ -600,9 +558,7 @@ export interface SiteCreateStepProps {
   title: string;
   description?: string;
   state: SiteCreateStepState;
-  /** The action band under the card. */
   footer?: ReactNode;
-  /** Makes a done step the active one again. */
   onActivate?: () => void;
   children: ReactNode;
 }
@@ -613,11 +569,8 @@ export interface SiteCreateStepListProps {
 }
 
 export interface SiteCreateStageProps {
-  /** Index of the card to centre. */
   activeIndex: number;
-  /** Beside the active card on the left: its title and description. */
   left: ReactNode;
-  /** Beside the active card on the right: the step list. */
   right: ReactNode;
   children: ReactNode;
 }
@@ -625,21 +578,16 @@ export interface SiteCreateStageProps {
 export interface SiteCreateDeployProps {
   organizationId: string;
   organizationSlug: string;
-  /** The site the create call returned. */
   site: { id: string; liveUrl: string };
-  /** False when creating the site couldn't start its first build. */
   deploymentQueued: boolean;
-  /** A starter pull request opened before creating the site; a missing notra.json points there. */
   starterPullRequestUrl?: string | null;
 }
 
 export interface SiteCreateStarterProps {
   organizationId: string;
   repositoryId: string;
-  /** As typed; empty means the default branch. */
   branch: string;
   rootDirectory: string;
-  /** The starter pull request opened from this page, if any. */
   pullRequestUrl: string | null;
   onPullRequestOpened: (url: string) => void;
 }

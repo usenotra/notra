@@ -174,9 +174,6 @@ export const removeMembershipFromWebhook = Effect.fn(
     catch: (cause) =>
       new WebhookSyncError({ message: "Failed to remove membership", cause }),
   });
-  // Loaded on use: the revocation module pulls in Redis and the Sites state,
-  // which every other webhook event (and an install without Sites) can do
-  // without.
   if (!isSitesConfigured()) {
     return;
   }

@@ -1,8 +1,6 @@
 "use client";
 
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
-import { Editor } from "@pierre/diffs/edit";
-import type { EditorFactory } from "@pierre/diffs/edit";
 import { EditProvider } from "@pierre/diffs/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useCallback, useMemo, useState } from "react";
@@ -31,12 +29,7 @@ import { useInvalidateSites } from "@/lib/hooks/use-sites";
 import type { SiteEditorJump, SiteEditorSaveState } from "@/types/site-editor";
 import type { SiteDiagnostic } from "@/types/sites";
 import { isSiteEditorUnsaved, siteEditorLanguage } from "@/utils/site-editor";
-
-const createSiteEditor: EditorFactory<unknown, undefined> = (
-  editorType,
-  options,
-  editStateKey
-) => new Editor(editorType, options, editStateKey);
+import { createSiteEditor } from "@/utils/site-editor-factory";
 
 export function SiteEditorPage() {
   const { organizationId, siteId, detail } = useSite();
@@ -68,7 +61,6 @@ export function SiteEditorPage() {
   const [conflicts, setConflicts] = useState<string[]>([]);
   const [diagnostics, setDiagnostics] = useState<SiteDiagnostic[] | null>(null);
   const [problemsOpen, setProblemsOpen] = useState(false);
-  // Bumped after publishing or rebasing so the open file reloads.
   const [editorEpoch, setEditorEpoch] = useState(0);
 
   const selectedPath =

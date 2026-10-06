@@ -3,7 +3,7 @@ title: "AI agents"
 description: "Every page of your site is readable by AI agents as Markdown, with no setup."
 ---
 
-Notra Sites serve the same content to people and to AI agents. Nothing to configure.
+Notra Sites serve the same content to people and to AI agents. You don't need to configure anything.
 
 ## Markdown for every page
 
@@ -36,8 +36,8 @@ If you forward paths from your own website, `/llms.txt` belongs to your website.
 - `robots.txt` allows search engines and AI crawlers (GPTBot, ClaudeBot, PerplexityBot and others) on your canonical address and links to `llms.txt` and the sitemaps. Your Notra address disallows crawling once traffic reaches the site through your own domain, and every page names the canonical address, so the same post is never indexed twice.
 - Previews, drafts, `noindex: true` posts and 404 pages are marked `noindex`.
 - Each section has a sitemap (`/blog/sitemap.xml`) with the last change of every page and an RSS feed (`/blog/feed.xml`) with summaries, authors and tags. Every page links to the feeds of both sections.
-- Every page includes schema.org data: `BlogPosting` for posts and `TechArticle` for changelog entries (headline, description, publish and update dates, authors, image), `Blog` or `CollectionPage` for the indexes, breadcrumbs, and your company as publisher (`name`, `logo` and the profiles in `footer.socials`).
-- Open Graph and X tags use the post's `image`, or your logo when it has none. Use a PNG or JPEG for `image`: social networks don't show SVG. The X account comes from an `x` or `twitter` entry in `footer.socials`.
+- Every page includes schema.org data: `BlogPosting` for posts and `TechArticle` for changelog entries (headline, description, publish and update dates, authors, image), `Blog` or `CollectionPage` for the indexes, breadcrumbs and your company as publisher (`name`, `logo` and the profiles in `footer.socials`).
+- Open Graph and X tags use the post's `image`, or your logo when it has none. Use a PNG or JPEG for `image`, because social networks don't show SVG. The X account comes from an `x` or `twitter` entry in `footer.socials`.
 - Pages without a `description` use their first paragraph for search results and link previews.
 
 ## AI traffic analytics

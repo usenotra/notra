@@ -12,7 +12,6 @@ import {
 
 import type { SiteSuggestInputProps } from "@/types/components/sites";
 
-/** A text field that suggests values from the repository but accepts anything typed. */
 export function SiteSuggestInput({
   id,
   value,

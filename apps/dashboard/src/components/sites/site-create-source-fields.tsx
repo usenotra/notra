@@ -22,11 +22,6 @@ import { SITE_CREATE_ROW_VARIANTS } from "@/constants/site-create";
 import { useSiteRootDirectoryToggle } from "@/lib/hooks/use-site-root-directory-toggle";
 import type { SiteCreateSourceFieldsProps } from "@/types/components/sites";
 
-/**
- * The configure step: name and address, branch and folder, and the sections
- * found in the repository.
- * Each row rises in after the one above it.
- */
 export function SiteCreateSourceFields({
   idPrefix: id,
   organizationId,

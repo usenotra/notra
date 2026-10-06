@@ -19,14 +19,12 @@ export const siteScopeInputSchema = z.object({ organizationId, siteId });
 
 const analyticsDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-/** Same window as the GEO pages: trailing days or an inclusive day range. */
 export const siteAnalyticsInputSchema = siteScopeInputSchema.extend({
   days: z.number().int().min(1).max(365).optional(),
   from: analyticsDay.optional(),
   to: analyticsDay.optional(),
 });
 
-/** Which branch's file tree to search for notra.json; the default branch when unset. */
 const suggestionRef = z.string().trim().max(250).optional();
 
 export const repositorySuggestionsInputSchema = z.object({
@@ -49,7 +47,6 @@ export const createSiteInputSchema = z.object({
   mounts: siteMountsInputSchema,
   previewVisibility: z.enum(["public", "protected"]).default("protected"),
   publishMode: z.enum(["pull_request", "direct"]).default("pull_request"),
-  /** The project its AI traffic is attributed to; the organization's oldest one when unset. */
   projectId: z.string().min(1).optional(),
 });
 
@@ -90,7 +87,6 @@ export const sitePreviewAccessInputSchema = sitePreviewInputSchema.extend({
   next: z.string().max(500).optional(),
 });
 
-/** `null` removes the password; previews then open with Notra login and share links only. */
 export const siteSetPreviewPasswordInputSchema = siteScopeInputSchema.extend({
   password: z.string().min(8).max(128).nullable(),
 });
@@ -122,17 +118,14 @@ export const publishSiteDraftsInputSchema = siteScopeInputSchema.extend({
 
 export const saveSiteIntegrationInputSchema = siteScopeInputSchema.extend({
   provider: z.enum(SITE_INTEGRATION_NAMES),
-  /** Checked against the notra.json schema on the server; null removes the provider. */
   settings: z.record(z.string(), z.unknown()).nullable(),
 });
 
 export const connectSiteRepositoryInputSchema = z.object({
   organizationId,
-  /** GitHub's numeric repository id, as the GitHub App lists it. */
   githubRepositoryId: z.string().trim().min(1).max(40),
 });
 
-/** The repository, branch and root directory picked in the new-site form, for the starter files. */
 export const siteStarterInputSchema = z.object({
   organizationId,
   repositoryId: z.string().min(1),

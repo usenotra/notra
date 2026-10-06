@@ -3,7 +3,7 @@ title: "Domains"
 description: "Serve your site on a subdomain or under paths of your existing website."
 ---
 
-Every site gets a Notra address. You can add your own:
+Every site gets a Notra address. You can also add your own domain.
 
 ## Subdomain
 
@@ -70,7 +70,7 @@ export default {
 
 Do not forward cookies or `Authorization` headers; Notra never needs them.
 
-Then click **Check** in the dashboard. Notra requests `/blog/_notra/probe.txt` (and the same for `/changelog`) through your website. Once both answer, your domain becomes the canonical address: links, feeds, sitemaps and social previews are rebuilt for it. The current version stays live until that build finishes.
+Then click **Check** in the dashboard. Notra requests `/blog/_notra/probe.txt` (and the same for `/changelog`) through your website. Once both answer, your domain becomes the canonical address and Notra rebuilds links, feeds, sitemaps and social previews for it. The current version stays live until that build finishes.
 
 ### Search engines
 

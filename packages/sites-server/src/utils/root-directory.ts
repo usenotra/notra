@@ -12,7 +12,6 @@ export function isSafeRootDirectory(rootDirectory: string): boolean {
   );
 }
 
-/** A root directory as typed in a form: trimmed, without edge slashes, and safe to build from. */
 export function parseRootDirectory(input: string): string {
   const rootDirectory = input.trim().replace(EDGE_SLASHES, "");
   if (!isSafeRootDirectory(rootDirectory)) {
@@ -24,7 +23,6 @@ export function parseRootDirectory(input: string): string {
   return rootDirectory;
 }
 
-/** A path below the site root, from the repository root. */
 export function repositoryPath(rootDirectory: string, path: string): string {
   return rootDirectory ? `${rootDirectory}/${path}` : path;
 }

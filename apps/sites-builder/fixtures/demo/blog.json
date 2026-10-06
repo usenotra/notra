@@ -1,0 +1,25 @@
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Demo",
+  "description": "Custom navbar and content buttons from the site CSS.",
+  "navbar": {
+    "links": [
+      {
+        "label": "Docs",
+        "href": "https://usenotra.com/docs"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/usenotra/notra"
+    },
+    "cta": {
+      "label": "Dashboard",
+      "href": "https://app.usenotra.com"
+    }
+  },
+  "blog": {
+    "title": "Demo Blog",
+    "description": "Bring your own buttons."
+  }
+}

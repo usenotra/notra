@@ -36,7 +36,6 @@ COPY packages/db ./packages/db
 COPY packages/geo-core ./packages/geo-core
 COPY packages/posthog ./packages/posthog
 COPY packages/schemas ./packages/schemas
-# @notra/db imports Sites constants and types.
 COPY packages/sites-core ./packages/sites-core
 COPY packages/utils ./packages/utils
 COPY packages/typescript-config ./packages/typescript-config

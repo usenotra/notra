@@ -9,7 +9,6 @@ import { absoluteUrl, config, href, params } from "../../lib/params";
 import { breadcrumbs, pageTitle } from "../../lib/seo";
 import type { ResolvedAuthor } from "../../types/authors";
 
-/** One page per notra.json author with at least one post; blog builds only. */
 export async function getStaticPaths() {
   if (params.area !== "blog") {
     return [];
@@ -28,7 +27,6 @@ const { author } = Astro.props;
 const posts = (await getBlogEntries()).filter((entry) => authorsOf(entry).some((byline) => byline.id === author.id));
 const url = absoluteUrl(author.href ?? href());
 const description = author.bio ?? `Posts by ${author.name}.`;
-// `seo.indexing: navigable` keeps author pages out of search: they only list posts that are indexed anyway.
 const noindex = config.seo.indexing !== "all";
 const jsonLd = [
   { "@type": "ProfilePage", "@id": `${url}#page`, url, name: author.name, mainEntity: { ...personNode(author), "@id": `${url}#person` } },

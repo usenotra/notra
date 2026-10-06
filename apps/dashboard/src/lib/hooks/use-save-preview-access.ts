@@ -8,7 +8,6 @@ import type { UseSavePreviewAccessParams } from "@/types/hooks/sites";
 import type { SitePreviewAccessPlan } from "@/types/site-preview-access";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Saves the preview settings first, then sets or removes the password. */
 export function useSavePreviewAccess({
   organizationId,
   siteId,

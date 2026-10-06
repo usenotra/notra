@@ -56,7 +56,6 @@ if (process.env.NOTRA_MENTION_WORKFLOW_TEST !== "1") {
   }));
   mock.module("@/lib/framework/server", () => ({ after: mock() }));
   mock.module("@notra/ai/utils/github-mention-ingest", () => ({
-    // No secret: the route skips the Notra Sites half of the delivery.
     getGitHubAppWebhookSecret: () => null,
     ingestGitHubAppMentionWebhook: async () => ({
       httpStatus: 202,

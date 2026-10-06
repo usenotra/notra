@@ -11,7 +11,6 @@ import { getBranchHead, siteRepositoryAccess } from "./github";
 import type { DeployBranchHeadOptions, Site } from "./types/sites";
 import { buildTargetForDeployment } from "./urls";
 
-/** Builds the current head of the production branch (manual deploy / first deploy / config change). */
 export async function deployBranchHead(
   site: Site,
   options: DeployBranchHeadOptions
@@ -36,7 +35,6 @@ export async function deployBranchHead(
   return jobId;
 }
 
-/** Redeploys a previous deployment's commit with the site's current settings. */
 export async function redeploy(
   site: Site,
   deploymentId: string,
@@ -52,10 +50,6 @@ export async function redeploy(
   return jobId;
 }
 
-/**
- * Instant rollback to a stored production deployment built for the same URLs.
- * Nothing is rebuilt; see `restoreProductionDeployment`.
- */
 export async function rollbackToDeployment(
   site: Site,
   deploymentId: string

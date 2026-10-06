@@ -30,7 +30,6 @@ export function sitePreviewAccessModeConfig(
   return config;
 }
 
-/** Compares the form with the saved settings: what to save, and whether it can be. */
 export function sitePreviewAccessPlan(
   site: Pick<
     SiteRecord,

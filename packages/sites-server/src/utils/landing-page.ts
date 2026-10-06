@@ -1,4 +1,5 @@
 import {
+  GOOGLE_FONTS_STYLESHEET_HREF,
   STARTER_CTA_LABEL,
   STARTER_MAX_FOOTER_LINKS,
   STARTER_MAX_LABEL_LENGTH,
@@ -48,11 +49,9 @@ function clampLabel(label: string): string | null {
   if (!label) {
     return null;
   }
-  // A long "label" is a card or a sentence, not a navigation link.
   return label.length > STARTER_MAX_LABEL_LENGTH ? null : label;
 }
 
-/** Google Fonts family names from a css / css2 stylesheet URL. */
 export function googleFontFamilies(href: string): string[] {
   let url: URL;
   try {
@@ -65,7 +64,6 @@ export function googleFontFamilies(href: string): string[] {
   }
   const families: string[] = [];
   for (const value of url.searchParams.getAll("family")) {
-    // css2: one family per parameter; css (v1): `A:400,700|B`.
     for (const part of value.split("|")) {
       const family = part.split(":")[0]?.trim();
       if (family && !families.includes(family)) {
@@ -120,10 +118,6 @@ function isHiddenElement(attrs: Map<string, string>): boolean {
   );
 }
 
-/**
- * Reads the facts the starter needs from a landing page: name, icon, colors,
- * Google Fonts, header links and footer links. URLs come back absolute.
- */
 export function extractLandingPage(
   html: string,
   pageUrl: string
@@ -147,7 +141,6 @@ export function extractLandingPage(
   const anchors: CapturedAnchor[] = [];
   let anchor: OpenAnchor | null = null;
   let titleText: string[] | null = null;
-  // Depth of the first <header> / <nav>; -1 before, null once closed.
   let headerDepth: number | null = -1;
   let navDepth: number | null = -1;
   let footerDepth: number | null = null;
@@ -240,7 +233,7 @@ export function extractLandingPage(
             size: iconSize(attrs.get("sizes") ?? ""),
           });
         }
-      } else if (href.includes("fonts.googleapis.com")) {
+      } else if (GOOGLE_FONTS_STYLESHEET_HREF.test(href)) {
         for (const family of googleFontFamilies(href)) {
           if (!facts.fontFamilies.includes(family)) {
             facts.fontFamilies.push(family);
@@ -303,8 +296,6 @@ function readMeta(attrs: Map<string, string>, facts: LandingPageFacts): void {
   if (!content) {
     return;
   }
-  // A theme-color per color scheme is the page background; the site keeps
-  // the theme's own white and dark, so only a plain one can be an accent.
   if (key === "theme-color") {
     if (!attrs.has("media")) {
       facts.themeColor ??= normalizeHexColor(content);
@@ -316,7 +307,6 @@ function readMeta(attrs: Map<string, string>, facts: LandingPageFacts): void {
   }
 }
 
-/** The first <header> holds the real navigation; the first <nav> is the fallback. */
 function collectHeaderLinks(
   anchors: CapturedAnchor[],
   pageUrl: string,
@@ -337,7 +327,6 @@ function collectHeaderLinks(
   for (const candidate of candidates) {
     const link = { label: candidate.label, href: candidate.href };
     if (STARTER_CTA_LABEL.test(candidate.label)) {
-      // The last call to action wins; landing pages put the primary one last.
       facts.cta = link;
       continue;
     }
@@ -349,7 +338,6 @@ function collectHeaderLinks(
   );
 }
 
-/** The last <footer> is the page footer; earlier ones belong to articles or cards. */
 function collectFooterLinks(
   anchors: CapturedAnchor[],
   footerCount: number,

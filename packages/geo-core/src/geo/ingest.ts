@@ -160,20 +160,12 @@ export function buildGeoIngestToken(
 function signaturesMatch(signature: string, expected: string): boolean {
   const signatureBytes = Buffer.from(signature);
   const expectedBytes = Buffer.from(expected);
-  // Compare byte lengths: a multi-byte signature with the right character
-  // count would otherwise make timingSafeEqual throw.
   return (
     signatureBytes.length === expectedBytes.length &&
     timingSafeEqual(signatureBytes, expectedBytes)
   );
 }
 
-/**
- * The token a Notra Site's worker reports its traffic with. It names only the
- * site: organization and project are looked up at ingest, so moving a site to
- * another project never needs a new token. It never rotates; deleting the
- * site is what revokes it.
- */
 export function buildGeoIngestSiteToken(siteId: string): string | null {
   const secret = getGeoIngestSecret();
   if (!secret) {
@@ -190,7 +182,6 @@ export function isGeoIngestSiteToken(token: string): boolean {
   return token.startsWith(GEO_INGEST_SITE_TOKEN_PREFIX);
 }
 
-/** The site id a site token was issued for, or null when the signature is wrong. */
 export function verifyGeoIngestSiteToken(token: string): string | null {
   const secret = getGeoIngestSecret();
   if (!(secret && isGeoIngestSiteToken(token))) {

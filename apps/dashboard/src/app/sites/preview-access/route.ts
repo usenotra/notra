@@ -7,11 +7,6 @@ import { sitePreviewOrigin } from "@notra/sites-server/urls";
 import { SITE_PREVIEW_KEY_PATTERN } from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 
-/**
- * Protected previews send signed-out visitors here. The proxy already forced a
- * login; membership in the site's organization decides access, then the
- * visitor is bounced back to the preview with a short-lived signed token.
- */
 export async function GET(request: Request) {
   const siteId = new URL(request.url).searchParams.get("site") ?? "";
   const previewKey = new URL(request.url).searchParams.get("preview") ?? "";
@@ -35,7 +30,6 @@ export async function GET(request: Request) {
     });
     userId = access.user.id;
   } catch {
-    // Back to the preview's own gate, which explains it and still offers the password.
     const denied = new URL(
       SITE_PREVIEW_AUTH_PATH,
       sitePreviewOrigin(site.slug, previewKey)

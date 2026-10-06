@@ -21,7 +21,6 @@ export type SitePreviewPointer = z.infer<typeof sitePreviewPointerSchema>;
 export type SiteHostRecord = z.infer<typeof siteHostRecordSchema>;
 export type SitePreviewPassword = z.infer<typeof sitePreviewPasswordSchema>;
 
-/** One enabled area and the path it is mounted at. */
 export interface SiteMountedArea {
   area: SiteArea;
   mount: string;

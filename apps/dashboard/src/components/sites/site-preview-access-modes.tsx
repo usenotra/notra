@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 import type { SitePreviewAccessModesProps } from "@/types/components/site-preview-access";
 import type { SitePreviewAccessMode } from "@/types/site-preview-access";
 
-/** Who can open previews, one row per mode: team only, team or password, anyone. */
 export function SitePreviewAccessModes({
   idPrefix: id,
   mode,

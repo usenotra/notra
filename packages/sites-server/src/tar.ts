@@ -48,11 +48,6 @@ function normalizeArchivePath(raw: string): string | null {
   return segments.join("/");
 }
 
-/**
- * Reads a (gzipped) tar produced by the build sandbox. Only regular files are
- * returned; links, devices and any path that escapes the archive root make
- * the whole archive invalid, since the sandbox output is untrusted.
- */
 export function readTarGz(
   archive: Uint8Array,
   limits: ArchiveLimits

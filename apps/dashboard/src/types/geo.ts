@@ -662,7 +662,6 @@ export interface AiTrafficCardProps {
   pages: readonly GeoTrafficPage[];
   settingsHref: string;
   isPending?: boolean;
-  /** Off when the visitors section above already shows the one traffic chart. */
   showHero?: boolean;
 }
 
@@ -1859,10 +1858,8 @@ export interface WebOutcomesTableProps {
 export interface WebBreakdownRow {
   key: string;
   label: ReactNode;
-  /** Plain text for sorting and the tooltip. */
   sortLabel: string;
   value: number;
-  /** AI-referred visitors, for tables that show them. */
   fromAi?: number;
 }
 
@@ -1871,7 +1868,6 @@ export interface WebBreakdownTableProps {
   nameHeader: string;
   valueHeader: string;
   rows: readonly WebBreakdownRow[];
-  /** Adds a "From AI" column. */
   showFromAi?: boolean;
 }
 
@@ -1882,6 +1878,5 @@ export interface TrafficDomainSelectProps {
 export interface VisitorTrackingToggleProps {
   organizationId: string;
   enabled: boolean;
-  /** A Notra Site already counts people; the switch adds the SDK's domains. */
   siteCounts: boolean;
 }

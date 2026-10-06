@@ -19,7 +19,6 @@ import type {
 } from "./types/pages";
 import { escapeHtml } from "./utils/html";
 
-/** Shared shell of every page the worker renders itself: Notra mark top left, one calm centered panel. */
 function page({ title, body }: SystemPageContent): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="referrer" content="same-origin"><title>${escapeHtml(title)}</title><style>${SYSTEM_PAGE_CSS}</style></head><body><header><a class="brand" href="${NOTRA_HOME_URL}" aria-label="Notra">${NOTRA_MARK_SVG}<span>Notra</span></a></header><main><div class="panel">${body}</div></main></body></html>`;
 }
@@ -101,10 +100,6 @@ export function previewLockedPage(params: PreviewGatePage): string {
   });
 }
 
-/**
- * The hosting domain itself (`notra.site`): what it is and where to report a
- * site on it. Every customer site lives on a subdomain.
- */
 export function hostingApexPage(hostingDomain: string): string {
   const domain = escapeHtml(hostingDomain);
   return page({
@@ -113,7 +108,6 @@ export function hostingApexPage(hostingDomain: string): string {
   });
 }
 
-/** RFC 9116 security.txt for the hosting domain. */
 export function securityTxt(origin: string, now: Date): string {
   const expires = new Date(
     now.getTime() + SECURITY_TXT_LIFETIME_DAYS * 24 * 60 * 60 * 1000

@@ -15,7 +15,6 @@ export function hasClientDirective(element: MdxJsxElement): boolean {
   );
 }
 
-/** The JavaScript of `{expressions}` and of JSX attribute expressions on a node. */
 export function expressionPrograms(node: Nodes): Program[] {
   if (node.type === "mdxFlowExpression" || node.type === "mdxTextExpression") {
     return node.data?.estree ? [node.data.estree] : [];

@@ -25,7 +25,6 @@ export function parseJsxModule(source: string): Program {
   }) as unknown as Program;
 }
 
-/** Hooks the code uses but neither imports nor declares; the compiler injects their import. */
 export function missingHookImports(
   program: Program,
   ownNames: ReadonlySet<string>
@@ -42,11 +41,6 @@ export function missingHookImports(
   return [...missing].sort();
 }
 
-/**
- * Checks a `.jsx`/`.js` snippet against the documented contract (named exports,
- * no imports except React, no dynamic code loading) and returns the module with
- * hook imports injected.
- */
 export function analyzeJsxSnippet(
   path: string,
   source: string

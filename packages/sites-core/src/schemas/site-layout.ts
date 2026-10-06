@@ -10,7 +10,6 @@ import {
 } from "@notra/sites-core/constants/site-layout";
 import { z } from "zod";
 
-/** A repository path or URL; notra.json caps both at 300 characters. */
 export const sitePathSchema = z.string().trim().min(1).max(300);
 
 const href = z
@@ -35,7 +34,6 @@ const siteLinkSchema = z.object({
   icon: icon.optional(),
 });
 
-/** A navbar link: a labelled link, or a typed one (`github`, `discord`) that brings its own icon. */
 const siteNavbarLinkSchema = z.union([
   siteLinkSchema,
   z.object({
@@ -48,9 +46,7 @@ const siteNavbarLinkSchema = z.union([
 export const siteNavbarSchema = z
   .object({
     links: z.array(siteNavbarLinkSchema).max(8).default([]),
-    /** The highlighted button on the right. */
     cta: siteLinkSchema.optional(),
-    /** A typed link shown as a button next to the CTA, e.g. the GitHub star button. */
     primary: z
       .object({ type: z.enum(SITE_NAVBAR_LINK_TYPES), href: z.url() })
       .optional(),
@@ -62,10 +58,6 @@ const footerColumnSchema = z.object({
   items: z.array(siteLinkSchema).min(1).max(12),
 });
 
-/**
- * Footer links: a flat list (one column) or columns with a header each.
- * Socials are keyed by platform and render as icons.
- */
 export const siteFooterSchema = z
   .object({
     links: z
@@ -80,17 +72,13 @@ export const siteFooterSchema = z
   })
   .default({ links: [], socials: {} });
 
-/** An announcement bar across the top of every page. */
 export const siteBannerSchema = z.object({
-  /** One line of Markdown: links, bold and italic. */
   content: z.string().trim().min(1).max(300),
   dismissible: z.boolean().default(false),
   type: z.enum(["info", "warning", "critical"]).default("info"),
-  /** Overrides the color `type` implies; text stays white. */
   color: colorByMode.optional(),
 });
 
-/** The "Copy article / Open in" actions on every post. */
 export const siteContextualSchema = z
   .object({
     options: z
@@ -101,14 +89,13 @@ export const siteContextualSchema = z
             title: z.string().trim().min(1).max(60),
             description: z.string().trim().max(120).optional(),
             icon: icon.optional(),
-            /** `{url}` and `{markdownUrl}` are replaced with the page's URLs. */
             href: z
               .string()
               .trim()
               .max(500)
               .regex(
                 /^(?:https?:\/\/|\/(?!\/)|mailto:)/,
-                "Use an https:// URL or a path; {url} and {markdownUrl} are filled in"
+                "Use an https:// URL or a path. Notra fills in {url} and {markdownUrl}."
               ),
           }),
         ])
@@ -123,7 +110,6 @@ export const siteContextualSchema = z
         "perplexity",
         "grok",
       ]),
-    /** `meta`: in the post's date line; `none`: hidden. */
     display: z.enum(["meta", "none"]).default("meta"),
   })
   .default({
@@ -141,13 +127,10 @@ export const siteContextualSchema = z
 
 export const siteSeoSchema = z
   .object({
-    /** Extra `<meta>` tags on every page, by name or property. */
     metatags: z
       .record(z.string().regex(/^[a-z][a-z0-9:_.-]*$/i), z.string().max(500))
       .default({}),
-    /** `navigable`: index pages and entries; `all` also lets search engines index author pages. */
     indexing: z.enum(["navigable", "all"]).default("navigable"),
-    /** Replaces the publisher derived from `name`, `logo` and `footer.socials` in structured data. */
     organization: z
       .object({
         name: z.string().trim().min(1).max(120),
@@ -166,28 +149,23 @@ export const siteErrorsSchema = z
       .object({
         title: z.string().trim().max(120).optional(),
         description: z.string().trim().max(300).optional(),
-        /** Send unknown paths to the area index instead of showing the page. */
         redirect: z.boolean().default(false),
       })
       .default({ redirect: false }),
   })
   .default({ 404: { redirect: false } });
 
-/** Generated share images for posts without a cover. */
 export const siteThumbnailsSchema = z
   .object({
     enabled: z.boolean().default(true),
     appearance: z.enum(["light", "dark"]).default("light"),
-    /** A repository image drawn behind the title. */
     background: sitePathSchema.optional(),
-    /** Defaults to the heading font. */
     font: z.string().trim().max(80).optional(),
   })
   .default({ enabled: true, appearance: "light" });
 
 export const siteMarkdownSchema = z
   .object({
-    /** Added to llms.txt and every Markdown page, for AI agents reading the site. */
     instructions: z
       .union([
         z.string().trim().max(2000),
@@ -197,7 +175,6 @@ export const siteMarkdownSchema = z
   })
   .default({});
 
-/** `{{ name }}` in posts, slots, header and footer is replaced with the value. */
 export const siteVariablesSchema = z
   .record(
     z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,39}$/),
@@ -207,7 +184,6 @@ export const siteVariablesSchema = z
 
 export const siteLayoutSchema = z
   .object({
-    /** Widest content column, in rem, or `full`; match the landing page. */
     width: z
       .union([z.number().min(40).max(120), z.literal("full")])
       .default(72),
@@ -217,9 +193,7 @@ export const siteLayoutSchema = z
 const blogHeroSchema = z
   .object({
     style: z.enum(["wash", "plain", "image", "none"]).default("wash"),
-    /** Small line above the title. */
     eyebrow: z.string().trim().max(60).optional(),
-    /** Used by the `image` style. */
     image: sitePathSchema.optional(),
   })
   .default({ style: "wash" });
@@ -229,7 +203,6 @@ export const siteBlogSchema = z.object({
   description: z.string().trim().max(400).optional(),
   layout: z.enum(["grid", "list", "magazine"]).default("grid"),
   hero: blogHeroSchema,
-  /** Pinned at the top: the newest post, none, or these slugs in order. */
   featured: z
     .union([
       z.enum(["latest", "none"]),
@@ -277,7 +250,6 @@ export const siteChangelogSchema = z.object({
 
 export const siteMetadataSchema = z
   .object({
-    /** Show "Updated" dates from `updated` in frontmatter. */
     timestamp: z.boolean().default(true),
   })
   .default({ timestamp: true });

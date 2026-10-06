@@ -7,10 +7,6 @@ import type {
   RepositorySuggestionsScope,
 } from "@/types/sites";
 
-/**
- * Branches and notra.json folders from GitHub. The folders follow `branch`
- * once it names a real branch, so typing never refetches on each keystroke.
- */
 export function useRepositorySuggestions(
   scope: RepositorySuggestionsScope
 ): RepositorySuggestionsResult {

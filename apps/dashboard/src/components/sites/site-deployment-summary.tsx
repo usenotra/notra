@@ -13,6 +13,10 @@ import { SiteEnvironmentBadge } from "@/components/sites/site-environment-badge"
 import { SitePreviewFrame } from "@/components/sites/site-preview-frame";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SiteStatusDot } from "@/components/sites/site-status-dot";
+import {
+  SITE_DEPLOYMENT_SHELL_CLASS,
+  SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS,
+} from "@/constants/sites";
 import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import type {
@@ -34,10 +38,6 @@ import {
   githubCommitUrl,
   githubPullRequestUrl,
 } from "@/utils/site-links";
-
-const SHELL = "border-shell-border bg-shell rounded-2xl border p-0.5";
-const SURFACE =
-  "bg-background shadow-lift grid gap-6 rounded-[14px] border p-5 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]";
 
 function Fact({ label, children }: SiteDeploymentFactProps) {
   return (
@@ -72,10 +72,6 @@ function ExternalLink({
   );
 }
 
-/**
- * One card for a deployment: a look at the page it serves next to its facts,
- * status, environment, domains, source, output and when it was created.
- */
 export function SiteDeploymentSummary({
   detail,
   deployment,
@@ -121,8 +117,8 @@ export function SiteDeploymentSummary({
   const created = new Date(deployment.createdAt);
 
   return (
-    <div className={SHELL}>
-      <div className={SURFACE}>
+    <div className={SITE_DEPLOYMENT_SHELL_CLASS}>
+      <div className={SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS}>
         <SitePreviewFrame
           className="aspect-[16/10] w-full rounded-lg border"
           fallback={

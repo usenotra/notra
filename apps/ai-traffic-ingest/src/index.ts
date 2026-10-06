@@ -33,7 +33,6 @@ const batcher =
         onWritten: announceGeoTrafficRows,
       })
     : null;
-// Human page views ride the same window, so they add no active minutes of their own.
 const webBatcher =
   flushIntervalMs > 0
     ? createEventBatcher({

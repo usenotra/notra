@@ -4,11 +4,6 @@ import {
   revokeUserPreviewSessions,
 } from "@notra/sites-server/preview-revocation";
 
-/**
- * Ends a member's access to the organization's protected previews right away
- * (their sessions and the share links they created). Never throws: losing
- * this only leaves the short member session (1 h) as the upper bound.
- */
 export async function revokeSitePreviewAccess(
   organizationId: string,
   userId: string
@@ -27,7 +22,6 @@ export async function revokeSitePreviewAccess(
   }
 }
 
-/** Dashboard sign-out also signs the user out of every preview. Never throws. */
 export async function revokeSitePreviewSessions(userId: string): Promise<void> {
   if (!isSitesConfigured()) {
     return;

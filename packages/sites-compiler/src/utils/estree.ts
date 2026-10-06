@@ -8,13 +8,11 @@ import type {
   SourceRange,
 } from "../types/estree";
 
-/** Offsets acorn adds to every node; the estree types leave them out. */
 export function nodeRange(node: EstreeNode): SourceRange {
   const ranged = node as EstreeNode & Partial<SourceRange>;
   return { start: ranged.start ?? 0, end: ranged.end ?? 0 };
 }
 
-/** Names bound by a declaration pattern (`const { a, b: [c] } = …` → a, c). */
 function patternNames(pattern: EstreeNode | null | undefined): string[] {
   if (!pattern) {
     return [];
@@ -39,7 +37,6 @@ function patternNames(pattern: EstreeNode | null | undefined): string[] {
   }
 }
 
-/** `export const a = …` / `export function b` / `export class C` → their names. */
 export function exportedDeclarationNames(
   statement: Statement | ModuleDeclaration
 ): string[] {
@@ -61,7 +58,6 @@ export function exportedDeclarationNames(
   return [];
 }
 
-/** Every name a node declares locally (params, variables, functions, classes, catch bindings). */
 export function declaredNames(root: EstreeNode): Set<string> {
   const names = new Set<string>();
   visitEstree(root, (node) => {
@@ -101,11 +97,6 @@ export function declaredNames(root: EstreeNode): Set<string> {
   return names;
 }
 
-/**
- * Identifiers used as values (not property keys, member names or JSX attribute
- * names). Over-approximates scope on purpose: callers only use it to decide
- * whether something might reference an outer binding.
- */
 export function referencedIdentifiers(root: EstreeNode): IdentifierReference[] {
   const references: IdentifierReference[] = [];
   visitEstree(root, (node, key, _index, ancestors) => {
@@ -129,7 +120,6 @@ export function referencedIdentifiers(root: EstreeNode): IdentifierReference[] {
       });
       return;
     }
-    // JSX element names reference components too (`<Counter />`); estree has no JSX types.
     const jsx = node as { type: string; name?: string } & Partial<SourceRange>;
     if (
       jsx.type === "JSXIdentifier" &&
@@ -166,7 +156,6 @@ export function containsJsxOrFunction(root: EstreeNode): boolean {
   return found;
 }
 
-/** Dynamic imports, `require`, `eval` and `new Function` are never allowed in site code. */
 function findForbiddenSyntax(root: EstreeNode): ForbiddenSyntax[] {
   const found: ForbiddenSyntax[] = [];
   visitEstree(root, (node) => {
@@ -202,11 +191,6 @@ function findForbiddenSyntax(root: EstreeNode): ForbiddenSyntax[] {
   return found;
 }
 
-/**
- * Site components run in the browser (and once at build time in the sandbox).
- * Node-only globals are part of neither contract, so using them is an error
- * even though the sandbox would contain it anyway.
- */
 function findNodeApiUsage(
   root: EstreeNode,
   declared: ReadonlySet<string>
@@ -222,7 +206,6 @@ function findNodeApiUsage(
     }));
 }
 
-/** Forbidden syntax, then Node.js globals that `declared` doesn't shadow. */
 export function forbiddenUsage(
   root: EstreeNode,
   declared: ReadonlySet<string> = new Set()

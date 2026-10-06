@@ -36,7 +36,6 @@ import type {
   SitesWebhookResult,
 } from "./types/webhooks";
 
-/** A suspended site or an exhausted quota skips that site instead of failing (and redelivering) the webhook. */
 async function enqueueOrSkip(
   input: EnqueueDeploymentInput
 ): Promise<string | null> {
@@ -54,7 +53,6 @@ async function enqueueOrSkip(
   }
 }
 
-/** A branch preview is open while it is served or still building. */
 async function isPreviewOpen(
   siteId: string,
   previewKey: string
@@ -119,7 +117,6 @@ async function handlePush(payload: PushPayload): Promise<string[]> {
     payload.repository.id,
     payload.installation?.id
   )) {
-    // Manual branch previews follow their branch: a new commit updates the preview.
     const previewKey =
       branch === site.productionBranch
         ? null
@@ -159,7 +156,6 @@ async function handlePullRequest(
     if (!(PREVIEW_PR_ACTIONS.has(payload.action) && site.previewsEnabled)) {
       continue;
     }
-    // Previews only for pull requests into the deployment branch, from this repository only.
     const fromSameRepository =
       payload.pull_request.head.repo?.id === payload.repository.id;
     if (
@@ -197,7 +193,6 @@ async function handleCheckRun(payload: CheckRunPayload): Promise<string[]> {
   if (!previous) {
     return [];
   }
-  // Several sites can share a repository; re-run the one this check belongs to.
   const site = (
     await sitesForRepository(payload.repository.id, payload.installation?.id)
   ).find((candidate) => candidate.id === previous.siteId);
@@ -208,11 +203,6 @@ async function handleCheckRun(payload: CheckRunPayload): Promise<string[]> {
   return jobId ? [jobId] : [];
 }
 
-/**
- * Handles the GitHub App events Sites cares about. The delivery row is the
- * claim: a redelivered webhook is acknowledged without queueing twice, and a
- * failed attempt releases the claim so GitHub's retry can run again.
- */
 export async function handleSitesWebhook(
   params: SitesWebhookParams
 ): Promise<SitesWebhookResult | null> {
@@ -239,8 +229,6 @@ export async function handleSitesWebhook(
       jobIds: [],
     };
   }
-  // A claim is taken over when it was never finished and has gone stale, so a
-  // process that crashed mid-delivery doesn't turn every redelivery into a duplicate.
   const claimed = await db
     .insert(siteWebhookDeliveries)
     .values({ deliveryId: params.deliveryId, event: params.event })

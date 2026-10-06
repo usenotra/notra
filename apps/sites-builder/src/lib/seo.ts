@@ -19,21 +19,15 @@ const origin = new URL(params.publicOrigin).origin;
 const ORGANIZATION_ID = `${origin}/#organization`;
 const WEBSITE_ID = `${origin}/#website`;
 
-/** `<title>`: "Post · Acme"; an area named after the site stays "Acme Blog", not "Acme Blog · Acme". */
 export function pageTitle(title: string, isAreaIndex = false): string {
   const named = title === config.name || title.startsWith(`${config.name} `);
   return isAreaIndex && named ? title : `${title} · ${config.name}`;
 }
 
-/** The area's own node id, so entries can say which blog or changelog they belong to. */
 export function areaNodeId(): string {
   return `${absoluteUrl(href())}#${params.area}`;
 }
 
-/**
- * The publisher: the customer's company, linked to its profiles from `footer.socials`,
- * or exactly what `seo.organization` says when the derived one is wrong (legal name, parent company).
- */
 function organization(): JsonLdNode {
   const override = config.seo.organization;
   if (override) {
@@ -72,7 +66,6 @@ function socialUrls(): string[] {
   );
 }
 
-/** The Notra site itself: the root mount, else the first mounted area. */
 function website(): JsonLdNode {
   const home =
     params.mounts.blog === "/" || params.mounts.changelog === "/"
@@ -97,7 +90,6 @@ export function websiteRef(): JsonLdNode {
   return { "@id": WEBSITE_ID };
 }
 
-/** Area index → page, as search results show it. */
 export function breadcrumbs(title: string, url: string): JsonLdNode {
   return {
     "@type": "BreadcrumbList",
@@ -113,21 +105,14 @@ export function breadcrumbs(title: string, url: string): JsonLdNode {
   };
 }
 
-/** One JSON-LD document per page: the page's own nodes plus the publisher and website. */
 export function structuredData(nodes: JsonLdNode[]): string {
   const graph = {
     "@context": "https://schema.org",
     "@graph": [...nodes, website(), organization()],
   };
-  // `<` would let content close the script element.
   return JSON.stringify(graph).replaceAll("<", "\\u003c");
 }
 
-/**
- * The page's share image: its cover, else the generated thumbnail, else the site
- * logo. Platforms crop a logo badly into a large card, so only the first two get
- * `summary_large_image`.
- */
 export function socialImage(
   image: string | undefined,
   generated?: string
@@ -142,7 +127,6 @@ export function socialImage(
   return logo ? { url: absoluteUrl(logo), large: false } : undefined;
 }
 
-/** `seo.metatags`: Open Graph style keys (`og:`, `article:`, `fb:`) are properties, the rest names. */
 export function extraMetaTags(): ExtraMetaTag[] {
   return Object.entries(config.seo.metatags).map(([value, content]) => ({
     key: PROPERTY_META_TAG.test(value) ? "property" : "name",
@@ -151,7 +135,6 @@ export function extraMetaTags(): ExtraMetaTag[] {
   }));
 }
 
-/** `@acme` from an x.com / twitter.com profile URL in `footer.socials`. */
 export function twitterHandle(): string | undefined {
   for (const url of socialUrls()) {
     try {
@@ -161,13 +144,12 @@ export function twitterHandle(): string | undefined {
         return `@${handle}`;
       }
     } catch {
-      // Validated as URLs by notra.json; skip anything odd.
+      continue;
     }
   }
   return undefined;
 }
 
-/** Browser chrome color, matching the page background in each mode. */
 export function themeColors(): { light: string; dark: string } {
   return {
     light: config.background.color?.light ?? DEFAULT_THEME_COLORS.light,
@@ -175,7 +157,6 @@ export function themeColors(): { light: string; dark: string } {
   };
 }
 
-/** iOS home screen icon: the favicon or logo, when it is a raster image (iOS ignores SVG). */
 export function touchIcon(): string | undefined {
   return [faviconFor("light"), logoFor("light")].find(
     (path) => path && TOUCH_ICON_EXTENSIONS.test(path)

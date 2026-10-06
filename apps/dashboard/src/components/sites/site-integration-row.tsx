@@ -20,10 +20,6 @@ import { Button } from "@/components/button";
 import { SiteIntegrationLogo } from "@/components/sites/site-integration-logo";
 import type { SiteIntegrationRowProps } from "@/types/components/sites";
 
-/**
- * One provider as a plain row, like an app list: logo, name and what it does.
- * "+" sets it up; a provider the site already uses gets a menu instead.
- */
 export function SiteIntegrationRow({
   provider,
   isSetUp,
@@ -35,7 +31,6 @@ export function SiteIntegrationRow({
     <div className="group/integration hover:bg-muted/40 duration-fast relative flex items-center gap-4 rounded-xl p-3 transition-colors">
       <SiteIntegrationLogo className="size-11 rounded-xl" provider={provider} />
       <div className="min-w-0 flex-1">
-        {/* The whole row opens the provider; the stretched button keeps it one tab stop. */}
         <button
           className="focus-visible:ring-ring/50 rounded-sm text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:ring-[3px]"
           onClick={onOpen}

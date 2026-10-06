@@ -10,7 +10,6 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SitePreviewDeleteDialogProps } from "@/types/components/sites";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Confirms taking a preview down; open while `preview` is set. */
 export function SitePreviewDeleteDialog({
   organizationId,
   siteId,

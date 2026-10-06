@@ -12,7 +12,6 @@ import { useTranslations } from "use-intl";
 import { SITE_NEW_FILE_EXTENSION } from "@/constants/sites";
 import type { SiteNewFileNameFieldProps } from "@/types/components/sites";
 
-/** The file name between its folder and extension, with the resulting path (or what's wrong with it) below. */
 export function SiteNewFileNameField({
   id,
   folder,

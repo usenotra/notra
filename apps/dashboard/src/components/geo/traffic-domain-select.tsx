@@ -17,7 +17,6 @@ import {
   trafficHostSelectValue,
 } from "@/utils/ai-traffic-pages";
 
-/** Narrows the whole traffic page, people and AI, to one domain. */
 export function TrafficDomainSelect({ hosts }: TrafficDomainSelectProps) {
   const t = useTranslations("geo.trafficPagesCard");
   const [hostQuery, setHostQuery] = useGeoTrafficHostQuery();

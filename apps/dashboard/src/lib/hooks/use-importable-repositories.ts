@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 
-/** Every repository the GitHub App can see, for the new-site import list. */
 export function useImportableRepositories(organizationId: string) {
   return useQuery(
     dashboardOrpc.sites.importableRepositories.queryOptions({
@@ -12,7 +11,6 @@ export function useImportableRepositories(organizationId: string) {
   );
 }
 
-/** Connects a repository on import; already-connected ones skip the call. */
 export function useConnectSiteRepository(organizationId: string) {
   const queryClient = useQueryClient();
   return useMutation({

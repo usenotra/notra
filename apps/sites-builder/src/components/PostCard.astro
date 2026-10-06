@@ -1,4 +1,5 @@
 ---
+import { POST_CARD_RADIUS } from "../constants/post-card";
 import { authorsOf } from "../lib/authors";
 import { blogOptions } from "../lib/options";
 import { assetUrl, href } from "../lib/params";
@@ -11,9 +12,7 @@ import AuthorAvatar from "./AuthorAvatar.astro";
 interface Props {
   entry: BlogEntry;
   headingLevel?: "h2" | "h3";
-  /** `card`: grid tile; `feature`: the large pinned card; `row`: one line of the list layout. */
   variant?: "card" | "feature" | "row";
-  /** Marks a pinned post in layouts that don't otherwise single it out. */
   featured?: boolean;
 }
 
@@ -21,12 +20,10 @@ const { entry, headingLevel: Heading = "h2", variant = "card", featured = false 
 const show = blogOptions.card;
 const [author] = show.author ? authorsOf(entry) : [];
 const summary = show.excerpt ? (entry.data.description ?? excerpt(entry.body)) : undefined;
-// Only real covers: the generated share image repeats the title the card already shows.
 const image = show.image && variant !== "row" ? assetUrl(entry.data.image) : undefined;
 const minutes = show.readingTime ? readingMinutes(entry.body) : undefined;
 const hasMeta = Boolean(author) || show.date || minutes !== undefined || entry.data.draft;
-const radius = { card: "after:rounded-2xl", feature: "after:rounded-3xl", row: "after:rounded-xl" }[variant];
-// The title link stretches over the whole card; author links sit above it.
+const radius = POST_CARD_RADIUS[variant];
 const linkClass = `after:absolute after:inset-0 after:z-10 ${radius} focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-primary`;
 ---
 

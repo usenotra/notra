@@ -20,7 +20,6 @@ import { siteSectionCount } from "@/utils/site-sections";
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
-/** The site's own navigation, shown in place of the main sidebar on every page of a site. */
 export function NavSite({ slug }: NavSiteProps) {
   const t = useTranslations("sites.detail.tabs");
   const pathname = usePathname();

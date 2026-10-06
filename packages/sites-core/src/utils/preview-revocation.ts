@@ -8,11 +8,6 @@ import type {
   SitePreviewTokenClaims,
 } from "@notra/sites-core/types/preview-token";
 
-/**
- * Records that a member's preview sessions end now. Losing access also ends
- * the share links they created; signing out keeps those, since they were
- * made for other people. Entries whose tokens have all expired are dropped.
- */
 export function revokePreviewSessionsInState(
   revoked: RevokedPreviewSessions,
   userId: string,
@@ -35,7 +30,6 @@ function prunePreviewRevocations(
   revoked: RevokedPreviewSessions,
   nowMs: number
 ): RevokedPreviewSessions {
-  // Expired member tokens can still trigger a silent renewal, so they count until the cookie is gone.
   const sessionsCutoff = nowMs - SITE_PREVIEW_MEMBER_RENEW_SECONDS * 1000;
   const shareCutoff = nowMs - SITE_PREVIEW_SHARE_LINK_SECONDS * 1000;
   const pruned: RevokedPreviewSessions = {};
@@ -55,11 +49,6 @@ function prunePreviewRevocations(
   return pruned;
 }
 
-/**
- * Member sessions must name their member and issue time; share links do when
- * they were created after revocation existed. Password sessions are tied to
- * the password version instead.
- */
 export function isPreviewTokenRevoked(
   claims: SitePreviewTokenClaims,
   revoked: RevokedPreviewSessions

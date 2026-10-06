@@ -122,7 +122,6 @@ function FoldRow({ entry, offsets }: SiteBuildLogFoldRowProps) {
   );
 }
 
-/** The log's rows: every entry with noise folded, or only the lines matching the filter. */
 export function SiteBuildLogRows({
   entries,
   matchingLines,

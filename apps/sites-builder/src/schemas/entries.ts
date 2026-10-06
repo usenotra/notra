@@ -1,6 +1,5 @@
 import { z } from "astro/zod";
 
-// Frontmatter was validated strictly by the notra-sites CLI; these schemas only coerce types.
 export const blogEntrySchema = z.object({
   title: z.string(),
   description: z.string().optional(),

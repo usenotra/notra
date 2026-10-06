@@ -15,7 +15,6 @@ import { WEB_TABLE_ROW_HEIGHT } from "@/constants/web-analytics";
 import type { WebOutcomesTableProps } from "@/types/geo";
 import { webTableHeight } from "@/utils/web-analytics";
 
-/** What sessions do after landing, overall and per AI source. */
 export function WebOutcomesTable({ outcomes }: WebOutcomesTableProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();

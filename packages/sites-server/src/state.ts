@@ -37,7 +37,6 @@ import type {
   ServingStateObject,
 } from "./types/state";
 
-/** Field by field: jsonb and the schema order keys differently. */
 function samePreviewPassword(
   a: SitePreviewPassword | null,
   b: SitePreviewPassword | null
@@ -55,11 +54,6 @@ function samePreviewPassword(
   );
 }
 
-/**
- * The site's preview access as the database has it now. Read on every state
- * write attempt, so a build that started before an access change never
- * writes the old value back.
- */
 async function readPreviewAccessFromDb(
   siteId: string
 ): Promise<ServingPreviewAccess> {
@@ -90,11 +84,6 @@ export async function readServingState(
   };
 }
 
-/**
- * Read-modify-write of `state.json` guarded by the object's ETag. Concurrent
- * writers (two builds finishing, a rollback during a deploy) retry on 412
- * instead of overwriting each other.
- */
 export async function mutateServingState<T>(
   site: ServingSiteRef,
   mutate: (
@@ -111,13 +100,9 @@ export async function mutateServingState<T>(
         slug: site.slug,
         now: new Date(),
       });
-    // Preview access is read before mutating: if it changes after this read,
-    // the change's own state write moves the ETag and this attempt retries.
     const { previewPassword, previewVisibility } =
       await readPreviewAccessFromDb(site.id);
     const outcome = mutate(state, { previewVisibility });
-    // The preview password and the traffic token are derived on every write,
-    // so a lost or stale state.json gets them back with the next state write.
     const trafficToken = buildGeoIngestSiteToken(site.id);
     const derivedInSync =
       samePreviewPassword(state.previewPassword, previewPassword) &&
@@ -153,7 +138,6 @@ export async function mutateServingState<T>(
   );
 }
 
-/** Writes the new state only when the activation went through. */
 function writeIfActivated<
   T extends ProductionActivationResult | PreviewActivationResult,
 >(outcome: T): ServingStateMutation<T> {
@@ -171,10 +155,6 @@ export async function activateProductionDeployment(
   );
 }
 
-/**
- * Points a preview at a finished build. Its visibility is the site's current
- * one from the database; `pointer.visibility` only covers a missing site row.
- */
 export async function activatePreviewDeployment(
   site: ServingSiteRef,
   previewKey: string,
@@ -236,16 +216,10 @@ export async function setServingPreviewVisibility(
   }));
 }
 
-/**
- * Re-mirrors the database's preview access and the traffic token into an
- * existing state.json. Every state write does this anyway; this is the repair
- * path when nothing else writes.
- */
 export async function syncServingPreviewAccess(site: ServingSiteRef) {
   await mutateServingState(site, () => ({ skip: true, result: undefined }));
 }
 
-/** The host record stored for `hostname`, or null when there is none (or it is unreadable). */
 async function readHostRecord(
   hostname: string
 ): Promise<SiteHostRecord | null> {
@@ -257,10 +231,6 @@ async function readHostRecord(
   return parsed.success ? parsed.data : null;
 }
 
-/**
- * Host records map a hostname to a site. They are created only once (If-None-Match)
- * so one tenant can never take over a hostname another tenant registered.
- */
 export async function claimHostRecord(
   hostname: string,
   record: Omit<SiteHostRecord, "version">

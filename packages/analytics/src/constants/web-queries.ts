@@ -2,7 +2,6 @@ import { p } from "@tinybirdco/sdk";
 
 import { GEO_HOSTS_PARAMS, GEO_HOSTS_SQL } from "./geo-queries";
 
-// Narrows web analytics to one Notra Site and/or a set of hosts.
 export const WEB_SCOPE_PARAMS = {
   site_id: p
     .string()

@@ -12,7 +12,6 @@ import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 export async function isGeoIngestIdentityActive(
   identity: GeoIngestIdentity
 ): Promise<boolean> {
-  // A site identity was just resolved from the database (or its short cache).
   if (identity.site) {
     return true;
   }

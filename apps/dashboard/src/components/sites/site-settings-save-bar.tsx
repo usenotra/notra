@@ -5,7 +5,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import type { SiteSettingsSaveBarProps } from "@/types/components/sites";
 
-/** Appears only with unsaved changes and stays in reach while scrolling. */
 export function SiteSettingsSaveBar({
   canSave,
   isSaving,

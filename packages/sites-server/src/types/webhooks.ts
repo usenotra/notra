@@ -1,7 +1,6 @@
 export interface SitesWebhookResult {
   httpStatus: number;
   body: Record<string, unknown>;
-  /** Outbox jobs to dispatch after the response is decided. */
   jobIds: string[];
 }
 

@@ -1,5 +1,4 @@
 ---
-// Titles come from the rendered panels, so Tabs works without inspecting its children.
 ---
 
 <div data-notra-tabs class="tabs not-prose my-6 overflow-hidden rounded-lg border border-border">
@@ -35,7 +34,6 @@
         button.tabIndex = active ? 0 : -1;
         panels[buttonIndex]!.hidden = !active;
         if (active) {
-          // One style write: the indicator has no other inline styles.
           indicator.style.cssText = `width: ${button.offsetWidth}px; transform: translateX(${button.offsetLeft}px)`;
           if (focus) button.focus();
         }

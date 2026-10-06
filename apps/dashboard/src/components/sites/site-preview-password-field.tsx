@@ -19,7 +19,6 @@ import { Button } from "@/components/button";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import type { SitePreviewPasswordFieldProps } from "@/types/components/site-preview-access";
 
-/** The previews' password: when it was set and a way to change it, or the field for a new one. */
 export function SitePreviewPasswordField({
   idPrefix: id,
   passwordSetAt,

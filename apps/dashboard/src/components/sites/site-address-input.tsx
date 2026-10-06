@@ -9,7 +9,6 @@ import {
 
 import type { SiteAddressInputProps } from "@/types/components/sites";
 
-/** The site's subdomain, with the hosting domain after it. */
 export function SiteAddressInput({
   id,
   value,

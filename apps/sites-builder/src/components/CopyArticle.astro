@@ -4,19 +4,15 @@ import Icon from "./Icon.astro";
 import LinkIcon from "./LinkIcon.astro";
 
 interface Props {
-  /** The page's Markdown twin. */
   markdownHref: string;
-  /** The page itself, for `{url}` in custom actions. */
   pagePath: string;
   title: string;
 }
 
 const { markdownHref, pagePath, title } = Astro.props;
-// notra.json `contextual`: which actions show, in the configured order.
 const { copy, menu } = contextualActions({ title, pagePath, markdownHref });
 ---
 
-<!-- Sits in the post's date line, so it uses the same separators and type. -->
 {
   copy && (
     <>
@@ -95,7 +91,6 @@ const { copy, menu } = contextualActions({ title, pagePath, markdownHref });
       }, 2000);
     });
   }
-  // The menu closes on outside clicks and Escape, like a native menu.
   for (const menu of document.querySelectorAll<HTMLDetailsElement>("[data-open-in]")) {
     document.addEventListener("click", (event) => {
       if (menu.open && !menu.contains(event.target as Node)) {

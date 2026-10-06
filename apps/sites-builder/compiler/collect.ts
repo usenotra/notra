@@ -15,12 +15,6 @@ import type {
   SiteSourceFile,
 } from "./types/source";
 
-/**
- * Lists the files a site may use: the known top-level entries in full, and
- * stylesheets and plain scripts anywhere else;
- * symlinks, dotfiles and unknown extensions are skipped so nothing outside the
- * site (or an `.env` someone committed) ever reaches the build.
- */
 export async function collectSiteSource(
   siteRoot: string
 ): Promise<CollectedSource> {
@@ -28,15 +22,11 @@ export async function collectSiteSource(
   const diagnostics: SiteDiagnostic[] = [];
   let totalBytes = 0;
 
-  // Each entry is checked on its own so a directory is stat'ed in parallel;
-  // results are applied in directory order, and `files` is sorted at the end.
   async function inspect(relativePath: string): Promise<Inspected> {
     const name = relativePath.slice(relativePath.lastIndexOf("/") + 1);
     if (name.startsWith(".") || name === "node_modules") {
       return { kind: "skip" };
     }
-    // Outside the content folders only stylesheets and plain scripts count;
-    // everything else there is the rest of the repository, skipped quietly.
     const content = isSiteContentPath(relativePath);
     if (!(content || SAFE_SEGMENT.test(name))) {
       return { kind: "skip" };
@@ -110,7 +100,6 @@ export async function collectSiteSource(
     await visit(entries.map((name) => `${relativeDir}/${name}`));
   }
 
-  // The content folders in full; elsewhere only stylesheets and plain scripts.
   await visit(await readdir(siteRoot));
 
   if (files.length > SITE_BUILD_LIMITS.maxSourceFiles) {

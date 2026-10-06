@@ -6,7 +6,6 @@ import { Button } from "@/components/button";
 import type { SiteEditorFilesErrorProps } from "@/types/components/site-editor";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** The file list couldn't load; nothing can open until it does. */
 export function SiteEditorFilesError({
   error,
   onRetry,

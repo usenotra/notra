@@ -10,7 +10,6 @@ import type {
   SiteSettingsPatch,
 } from "@/types/sites";
 
-/** `blog/` and `/blog` are the same path; invalid input is left for the server to reject. */
 function comparableMountPath(value: string): string {
   try {
     return normalizeMountPath(value);
@@ -32,7 +31,6 @@ export function siteSettingsFormFromSite(site: SiteRecord): SiteSettingsForm {
   };
 }
 
-/** Only the fields that changed, so untouched settings never trigger a rebuild. */
 export function siteSettingsPatch(
   form: SiteSettingsForm,
   site: SiteRecord

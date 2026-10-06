@@ -5,7 +5,6 @@ import { getAreaEntries } from "../lib/entries";
 import { absoluteUrl, config, href, params } from "../lib/params";
 import { isoDate } from "../utils/dates";
 
-/** One sitemap per area; the customer references it from their root sitemap or robots.txt. */
 export const GET: APIRoute = async () => {
   const entries = await getAreaEntries();
   const indexable = params.noindex
@@ -19,7 +18,6 @@ export const GET: APIRoute = async () => {
       ? entry.data.updated
       : entry.data.date
   );
-  // The index changes whenever any entry does.
   const newest = lastModified.reduce<Date | null>(
     (latest, date) => (latest && latest > date ? latest : date),
     null
@@ -30,7 +28,6 @@ export const GET: APIRoute = async () => {
       (entry, index) =>
         `<url><loc>${absoluteUrl(href(entry.id))}</loc><lastmod>${isoDate(lastModified[index] ?? entry.data.date)}</lastmod></url>`
     ),
-    // Author pages of people with at least one listed post, when `seo.indexing` lets them be indexed.
     ...allAuthors()
       .filter(
         (author) =>

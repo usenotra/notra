@@ -22,7 +22,6 @@ export async function getChangelogEntries(): Promise<ChangelogEntry[]> {
   return entries.sort(byDateDesc);
 }
 
-/** The entries of the area this build renders. */
 export function getAreaEntries(): Promise<BlogEntry[] | ChangelogEntry[]> {
   return params.area === "blog" ? getBlogEntries() : getChangelogEntries();
 }

@@ -8,12 +8,6 @@ import { cn } from "@/lib/utils";
 import type { SiteStatusDotProps } from "@/types/components/sites";
 import { isDeploymentInProgress } from "@/utils/site-deployments";
 
-/**
- * Build status as a colored dot and label: building amber, ready green,
- * failed red, everything else grey. The color lives on the dot only; a
- * running build shimmers its label. Uploading takes a second and reads as
- * part of the build.
- */
 export function SiteStatusDot({
   status,
   duration,

@@ -9,10 +9,6 @@ import {
 } from "../constants/elements";
 import { offsetToLineColumn } from "./paths";
 
-/**
- * Plain Markdown passes raw HTML through untouched, so blocked elements are
- * checked on its HTML nodes; code blocks are other node types and stay free.
- */
 export function blockedMarkdownHtml(
   path: string,
   source: string

@@ -5,7 +5,6 @@ import { useTranslations } from "use-intl";
 
 import type { SiteNewFileFolderTabsProps } from "@/types/components/sites";
 
-/** Blog or changelog, when the site has both; one folder needs no choice. */
 export function SiteNewFileFolderTabs({
   folders,
   value,

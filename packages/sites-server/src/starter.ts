@@ -47,7 +47,6 @@ import { readBodyUpTo } from "./utils/read-body";
 import { parseRootDirectory, repositoryPath } from "./utils/root-directory";
 import { buildSiteStarterFiles } from "./utils/starter-files";
 
-/** The repository, branch and root a starter is for; only repositories the organization connected. */
 async function resolveStarterTarget(
   scope: SiteStarterScope,
   permissions: SiteRepositoryPermissions
@@ -65,7 +64,6 @@ async function resolveStarterTarget(
   return { repository, token, branch, rootDirectory };
 }
 
-/** An open pull request Notra already opened with starter files for `base`. */
 async function findOpenStarterPullRequest(
   repository: SiteRepository,
   token: string,
@@ -88,7 +86,6 @@ async function findOpenStarterPullRequest(
   return pullRequest?.html_url ?? null;
 }
 
-/** Whether the picked branch + root already has a notra.json, and any open starter pull request. */
 export async function siteStarterStatus(
   scope: SiteStarterScope
 ): Promise<SiteStarterStatus> {
@@ -107,16 +104,11 @@ export async function siteStarterStatus(
   return { hasConfig: config !== null, pullRequestUrl };
 }
 
-/** The head and the header sit at the top; a cut-off tail only loses the footer. */
 async function readCapped(response: Response): Promise<string> {
   const { bytes } = await readBodyUpTo(response, STARTER_FETCH_MAX_BYTES);
   return new TextDecoder().decode(bytes).slice(0, STARTER_FETCH_MAX_BYTES);
 }
 
-/**
- * One fetch of the public landing page through the SSRF-safe fetcher (public
- * addresses only, pinned DNS, ≤3 redirects, 8 s). Any failure means no facts.
- */
 async function fetchLandingPageFacts(
   websiteUrl: string
 ): Promise<LandingPageFacts | null> {
@@ -150,7 +142,6 @@ async function fetchLandingPageFacts(
   }
 }
 
-/** The organization's default brand identity, flattened to what the starter uses. */
 async function loadStarterBrand(
   organizationId: string
 ): Promise<Omit<StarterBrandInput, "landing">> {
@@ -199,7 +190,6 @@ async function loadStarterBrand(
   const primary = colorFor("primary") ?? colorFor("accent");
   const fontFor = (role: (typeof fonts)[number]["role"]) =>
     fonts.find((font) => font.role === role)?.family ?? null;
-  // A mark next to the name reads best in a header; a wordmark replaces the name.
   const logoAssets = assets.filter((asset) => asset.kind === "logo");
   const logoKind = logoAssets.length > 0 ? "logo" : "wordmark";
   const assetFor = (variant: "light" | "dark") =>
@@ -237,7 +227,7 @@ function pullRequestBody(paths: string[], websiteUrl: string | null): string {
     ? `your Brand Identity in Notra and ${websiteUrl}`
     : "your Brand Identity in Notra";
   return [
-    `Starter files for Notra Sites, generated from ${source}.`,
+    `Notra generated these starter files from ${source}.`,
     "",
     ...paths.map((path) => `- \`${path}\``),
     "",
@@ -245,12 +235,6 @@ function pullRequestBody(paths: string[], websiteUrl: string | null): string {
   ].join("\n");
 }
 
-/**
- * Opens a pull request (never a direct commit) with notra.json, header.mdx,
- * footer.mdx and a first post under the root directory. Files that already
- * exist are left out; an open starter pull request is returned instead of a
- * second one.
- */
 export async function createSiteStarter(
   scope: SiteStarterScope,
   now: Date = new Date()

@@ -31,7 +31,6 @@ async function derivePasswordBits(
   );
 }
 
-/** Compares every byte, so the time taken does not tell how much matched. */
 function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   let difference = a.length ^ b.length;
   for (let index = 0; index < a.length; index += 1) {
@@ -40,7 +39,6 @@ function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return difference === 0;
 }
 
-/** Salted PBKDF2-SHA256 hash plus a fresh version; runs in Workers, Node and Bun. */
 export async function hashPreviewPassword(
   password: string,
   now: Date = new Date()

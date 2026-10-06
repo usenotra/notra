@@ -55,7 +55,6 @@ import { loadIngestSite, loadOrganizationSitePrefixes } from "./sites";
 import { buildWebPageView, isHumanPageView } from "./web";
 import { isVisitorTrackingEnabled } from "./web-tracking";
 
-/** A site token names a site; owner and hosts come from the database. */
 const readSiteIdentity = Effect.fn("geoIngest.readSiteIdentity")(function* (
   token: string
 ) {
@@ -148,7 +147,6 @@ const parseUrl = Effect.fn("geoIngest.parseUrl")(function* (value: string) {
   });
 });
 
-/** Fails open: an unavailable limiter must not cost a page view. */
 const admitWebPageView = Effect.fn("geoIngest.admitWebPageView")(function* (
   admissionKey: string
 ) {
@@ -160,11 +158,6 @@ const admitWebPageView = Effect.fn("geoIngest.admitWebPageView")(function* (
   );
 });
 
-/**
- * Buffers a human page view, or writes it when there is no buffer. A failed
- * write never fails the request: AI traffic in the same request still has to
- * be stored.
- */
 const storeWebPageView = Effect.fn("geoIngest.storeWebPageView")(function* (
   row: WebPageViewRow,
   buffer: GeoIngestBuffer | undefined
@@ -289,10 +282,6 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     signals: payload.signals,
   });
   const isAi = isTrackedGeoVisitorType(classification.visitorType);
-  // A person reading a page (pure CPU, so prefetches, bots and files for
-  // machines cost nothing more). People only count where visitor tracking is
-  // on (always for Notra Sites); otherwise they are dropped here, before any
-  // other lookup, as before.
   const countsVisitors =
     isHumanPageView({ classification, payload, url }) &&
     (yield* Effect.promise(() =>
@@ -302,9 +291,6 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     return droppedResult(identity, classification.visitorType, "visitor_type");
   }
 
-  // AI requests share the admission limit. People have their own, larger
-  // budget: a busy site must never push its AI traffic into a 429, and
-  // views over it are dropped quietly before any lookup.
   if (isAi) {
     yield* enforceRateLimit(
       identity.organizationId,

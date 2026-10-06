@@ -12,10 +12,6 @@ import {
 import { SiteInputError } from "./errors";
 import type { SiteNameRejection, SiteNameRejectionParams } from "./types/sites";
 
-/**
- * A reserved address belongs to whoever controls its company's mailboxes: a
- * verified `@stripe.com` (or `@eu.stripe.com`) address may take `stripe`.
- */
 async function ownsReservedDomain(
   userId: string,
   domain: string
@@ -31,14 +27,6 @@ async function ownsReservedDomain(
   return emailDomain === domain || emailDomain.endsWith(`.${domain}`);
 }
 
-/**
- * Every site lives on a public subdomain of Notra's hosting domain, so its
- * name and address are screened before they go live: offensive names and
- * names posing as another organization are refused, and popular companies'
- * addresses are kept for the companies themselves. Returns why a name is
- * refused (and whether the name or the address has to change), or null when
- * it may be used.
- */
 async function siteNameRejection(
   params: SiteNameRejectionParams
 ): Promise<SiteNameRejection | null> {
@@ -50,7 +38,6 @@ async function siteNameRejection(
         field: "slug",
       };
     }
-    // A hand-granted address belongs to one organization, reserved or not.
     const grant = await db.query.siteSlugGrants.findFirst({
       columns: { organizationId: true },
       where: eq(siteSlugGrants.slug, slug),
@@ -62,7 +49,6 @@ async function siteNameRejection(
     }
     const reservedFor = SITE_RESERVED_BRAND_SLUGS[slug];
     if (reservedFor) {
-      // The company's own people pass; nobody else gets its address.
       return (await ownsReservedDomain(params.userId, reservedFor))
         ? null
         : { message: reservedSlugMessage(slug, reservedFor), field: "slug" };
@@ -83,7 +69,6 @@ async function siteNameRejection(
     : null;
 }
 
-/** Throws the reason a site name or address is refused, pointing at the field to change. */
 export async function assertSiteNameAllowed(
   params: SiteNameRejectionParams
 ): Promise<void> {

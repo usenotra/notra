@@ -11,10 +11,6 @@ import { afterResponse } from "@/lib/framework/after-response";
 import { dispatchSiteJobs } from "@/lib/sites/dispatch";
 import type { SiteDomainConnectOutcome } from "@/types/sites";
 
-/**
- * The site a DNS provider sent the browser back for, when the signed-in user
- * may manage it; otherwise the response to send instead.
- */
 export async function loadDnsCallbackSite(
   request: Request,
   siteId: string
@@ -34,11 +30,6 @@ export async function loadDnsCallbackSite(
   }
 }
 
-/**
- * Checks the domain right away after a successful one-click setup (DNS may
- * still be propagating; the Domains tab shows the status either way), then
- * returns to the Domains tab with the outcome.
- */
 export async function finishDnsCallback({
   request,
   site,

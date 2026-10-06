@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import type { SiteEditorConflictBannerProps } from "@/types/components/site-editor";
 
-/** Shown when publishing failed because someone pushed to the same files. */
 export function SiteEditorConflictBanner({
   paths,
   isRebasing,

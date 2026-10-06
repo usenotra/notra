@@ -5,12 +5,11 @@ import { SITE_CONFIG_JSON_SCHEMA_PATH } from "../src/constants/json-schema";
 import { SITE_CONFIG_SCHEMA_URL } from "../src/constants/sites";
 import { buildSiteConfigJsonSchema } from "../src/utils/site-config-json-schema";
 
-describe("notra.json JSON Schema", () => {
+describe("blog.json JSON Schema", () => {
   test("the served file matches siteConfigSchema (run `bun run generate:json-schema`)", async () => {
     const committed = JSON.parse(
       await readFile(SITE_CONFIG_JSON_SCHEMA_PATH, "utf8")
     ) as unknown;
-    // Compared as data, so reformatting the file does not fail the test.
     expect(committed).toEqual(buildSiteConfigJsonSchema());
   });
 

@@ -7,7 +7,6 @@
   "workers_dev": false,
   "observability": { "enabled": true },
   "r2_buckets": [{ "binding": "SITES_BUCKET", "bucket_name": "notra-sites" }],
-  // Preview password attempts: 10 per minute per client IP and preview, per Cloudflare location.
   "ratelimits": [
     {
       "name": "PREVIEW_PASSWORD_LIMITER",
@@ -18,15 +17,12 @@
   "vars": {
     "HOSTING_DOMAIN": "notra.site",
     "DASHBOARD_URL": "https://app.usenotra.com",
-    // Production page views go to AI traffic analytics (auth: per-site token in state.json).
     "TRAFFIC_INGEST_URL": "https://ingest.usenotra.com/api/geo/ingest",
   },
-  // Secrets: PREVIEW_SECRET (required), DEV_HOST_OVERRIDE_TOKEN (dev only, never in production)
   "env": {
     "dev": {
       "name": "notra-sites-dev",
       "workers_dev": true,
-      // `remote: true` makes `wrangler dev --env dev` read the real dev bucket the dashboard writes to.
       "r2_buckets": [
         {
           "binding": "SITES_BUCKET",
@@ -44,7 +40,6 @@
       "vars": {
         "HOSTING_DOMAIN": "sites.localhost",
         "DASHBOARD_URL": "http://localhost:3000",
-        // Local dashboard ingest; `wrangler dev --var TRAFFIC_INGEST_URL:…` points it elsewhere.
         "TRAFFIC_INGEST_URL": "http://localhost:3000/api/geo/ingest",
       },
     },

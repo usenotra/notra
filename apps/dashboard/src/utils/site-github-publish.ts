@@ -17,7 +17,6 @@ import type {
   SiteMarkdownNode,
 } from "@/types/integrations/site-github-publish";
 
-/** Same block the Sites compiler reads; it must be the very start of the file. */
 const FRONTMATTER_BLOCK = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
 const FRONTMATTER_TITLE_KEY = /^title[ \t]*:/m;
 const FRONTMATTER_DATE_KEY = /^date[ \t]*:/m;
@@ -39,17 +38,14 @@ function joinRepositoryPath(...segments: string[]): string {
     .join("/");
 }
 
-/** Root directory as stored on the site, without surrounding slashes. */
 export function normalizeSiteRootDirectory(rootDirectory: string): string {
   return rootDirectory.replace(SURROUNDING_SLASHES, "");
 }
 
-/** `docs/notra.json`, or `notra.json` at the repository root. */
 export function resolveSiteConfigPath(rootDirectory: string): string {
   return joinRepositoryPath(rootDirectory, SITE_CONFIG_FILENAME);
 }
 
-/** `docs` + blog post → `docs/blog`; the repo root gives `blog`. */
 export function resolveSiteEntryDirectory(
   rootDirectory: string,
   contentType: GitHubPublishContentType
@@ -57,12 +53,10 @@ export function resolveSiteEntryDirectory(
   return joinRepositoryPath(rootDirectory, SITE_ENTRY_DIRECTORIES[contentType]);
 }
 
-/** The folder the site serves from `/`, e.g. `docs/public`. */
 export function resolveSitePublicDirectory(rootDirectory: string): string {
   return joinRepositoryPath(rootDirectory, SITE_PUBLIC_DIRECTORY);
 }
 
-/** `docs/public/images/blog/:slug/image`, referenced as `/images/blog/<slug>/…`. */
 export function resolveSiteImagePathTemplate(
   rootDirectory: string,
   contentType: GitHubPublishContentType
@@ -75,7 +69,6 @@ export function resolveSiteImagePathTemplate(
   );
 }
 
-/** File name = URL slug: lowercase letters, digits and dashes. */
 export function resolveSiteEntrySlug(params: {
   contentId: string;
   slug: string | null;
@@ -89,7 +82,6 @@ export function resolveSiteEntrySlug(params: {
   );
 }
 
-/** Matches a notra.json author by name; anything else stays a plain name. */
 export function resolveSiteAuthor(
   authors: SiteConfigAuthorNames,
   name: string | null | undefined
@@ -105,7 +97,6 @@ export function resolveSiteAuthor(
   return match ? match[0] : trimmed;
 }
 
-/** Author ids and names from a raw notra.json; empty when it can't be read. */
 export function parseSiteConfigAuthors(raw: string): SiteConfigAuthorNames {
   let json: unknown;
   try {
@@ -137,14 +128,12 @@ function parseYamlScalar(value: string): string | null {
       ? trimmed.slice(1, -1).replaceAll("''", "'")
       : null;
   }
-  // Lists, maps and block scalars are kept out; only a single name carries over.
   if (!trimmed || "[{|>&*!".includes(trimmed[0] ?? "")) {
     return null;
   }
   return trimmed.replace(UNQUOTED_YAML_COMMENT, "") || null;
 }
 
-/** The single `author:` value of an existing entry, if it has one. */
 export function readSiteEntryAuthor(markdown: string): string | null {
   const block = FRONTMATTER_BLOCK.exec(markdown)?.[1];
   const line = block ? FRONTMATTER_AUTHOR_LINE.exec(block)?.[1] : undefined;
@@ -155,7 +144,6 @@ function normalizeHeadingText(value: string): string {
   return value.replace(WHITESPACE_RUN, " ").trim().toLowerCase();
 }
 
-/** Sites renders the title itself, so a leading `# Title` would show it twice. */
 function stripLeadingTitleHeading(body: string, title: string): string {
   const withoutBlankLines = body.replace(LEADING_BLANK_LINES, "");
   const heading = LEADING_ATX_HEADING.exec(withoutBlankLines);
@@ -195,7 +183,6 @@ function truncateOnWordBoundary(text: string, maxLength: number): string {
   return `${cut.replace(TRAILING_PUNCTUATION, "")}${ELLIPSIS}`;
 }
 
-/** Plain text of the first paragraph with words in it, at most `maxLength` characters. */
 export function extractMarkdownExcerpt(
   markdown: string,
   maxLength: number = SITE_ENTRY_DESCRIPTION_MAX_LENGTH
@@ -226,7 +213,6 @@ function findFirstImageUrl(node: SiteMarkdownNode): string | null {
   return null;
 }
 
-/** The first inline image when Sites can load it (a site path or an https URL). */
 function findSiteEntryImage(markdown: string): string | null {
   const url = findFirstImageUrl(fromMarkdown(markdown) as SiteMarkdownNode);
   return url && SITE_IMAGE_URL.test(url) ? url : null;
@@ -236,16 +222,10 @@ function formatSiteEntryDate(date: Date): string {
   return date.toISOString().slice(0, "YYYY-MM-DD".length);
 }
 
-/** JSON strings are valid YAML double-quoted scalars, escapes included. */
 function yamlString(value: string): string {
   return JSON.stringify(value);
 }
 
-/**
- * Turns saved markdown into a Notra Sites entry: YAML frontmatter on top and
- * no duplicate title heading. Markdown that already brings frontmatter keeps
- * it; only a missing title or date is added.
- */
 export function buildSiteEntryMarkdown(
   params: BuildSiteEntryMarkdownParams
 ): string {

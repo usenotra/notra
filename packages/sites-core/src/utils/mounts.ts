@@ -14,7 +14,6 @@ class SiteMountError extends Error {
   readonly name = "SiteMountError";
 }
 
-/** `"Blog/"` → `"/blog"`, `""` or `"/"` → `"/"`. Rejects anything that is not plain lowercase path segments. */
 export function normalizeMountPath(input: string): string {
   const trimmed = input.trim().toLowerCase();
   const segments = trimmed.split("/").filter(Boolean);
@@ -43,11 +42,6 @@ function isWithin(path: string, mount: string): boolean {
   return path === mount || path.startsWith(`${mount}/`);
 }
 
-/**
- * Normalizes and checks both mounts. A root mount may coexist with a nested
- * one (`/` + `/changelog`); the build then refuses root pages that would land
- * inside the nested mount.
- */
 export function normalizeSiteMounts(mounts: SiteMounts): SiteMounts {
   const normalized: SiteMounts = {};
   for (const area of SITE_AREAS) {
@@ -88,7 +82,6 @@ export function listMountedAreas(mounts: SiteMounts): SiteMountedArea[] {
   return areas;
 }
 
-/** Most specific mount wins, so `/changelog/x` resolves to the changelog even when the blog sits at `/`. */
 export function resolveAreaForPath(
   mounts: SiteMounts,
   pathname: string
@@ -105,7 +98,6 @@ export function resolveAreaForPath(
   return best;
 }
 
-/** `/blog` + `post/a` → `/blog/post/a`, `/` + `post` → `/post`. */
 export function joinMountPath(mount: string, path: string): string {
   const tail = path.replace(/^\/+/, "");
   if (mount === "/") {
@@ -114,7 +106,6 @@ export function joinMountPath(mount: string, path: string): string {
   return tail ? `${mount}/${tail}` : mount;
 }
 
-/** True when a file the root-mounted area produced would shadow the other mount. */
 export function pathCollidesWithOtherMount(
   mounts: SiteMounts,
   area: SiteArea,

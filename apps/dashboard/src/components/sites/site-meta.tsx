@@ -3,7 +3,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@/lib/utils";
 import type { SiteMetaProps } from "@/types/components/sites";
 
-/** One piece of metadata with its icon: a branch, a commit, an author, a domain. */
 export function SiteMeta({
   icon,
   children,

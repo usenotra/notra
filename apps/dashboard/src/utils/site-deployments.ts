@@ -18,7 +18,6 @@ import { hostFromOrigin } from "@/utils/site-links";
 const MS_PER_SECOND = 1000;
 
 const ESCAPE = String.fromCharCode(27);
-/** Terminal color and cursor sequences the build tools print into the log. */
 const ANSI_SEQUENCE = new RegExp(`${ESCAPE}\\[[0-9;?]*[A-Za-z]`, "g");
 
 const SECONDS_PER_MINUTE = 60;
@@ -43,7 +42,6 @@ export function shortSha(sha: string): string {
   return sha.slice(0, SITE_SHORT_SHA_LENGTH);
 }
 
-/** First line of a commit message; GitHub shows the same as the title. */
 export function commitTitle(message: string | null): string | null {
   const title = message?.split("\n", 1)[0]?.trim();
   return title ? title : null;
@@ -62,7 +60,6 @@ export function formatBuildDuration(ms: number | null): string | null {
   return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
 }
 
-/** Wall time of a deployment from when work started until it finished (or now). */
 export function deploymentElapsedMs(
   deployment: Pick<
     SiteDeployment,
@@ -78,7 +75,6 @@ export function deploymentElapsedMs(
   return end - new Date(start).getTime();
 }
 
-/** Whether visitors see this deployment right now, from the site's serving state. */
 export function isDeploymentLive(
   deployment: SiteDeploymentRecord,
   detail: SiteDetail
@@ -91,7 +87,6 @@ export function isDeploymentLive(
   );
 }
 
-/** The latest production build when it runs now or failed after the live one; null otherwise. */
 export function pendingProductionDeployment(
   detail: SiteDetail,
   liveDeployment: SiteDeployment | null
@@ -107,7 +102,6 @@ export function pendingProductionDeployment(
     : null;
 }
 
-/** A preview that asks visitors to sign in or enter a password first. */
 export function isDeploymentProtected(
   deployment: SiteDeploymentRecord,
   detail: SiteDetail
@@ -118,7 +112,6 @@ export function isDeploymentProtected(
   return deployment.kind === "preview" && visibility !== "public";
 }
 
-/** Every URL a live deployment answers on; the first is the primary one. */
 export function deploymentServedUrls(
   deployment: SiteDeploymentRecord,
   detail: SiteDetail,
@@ -152,7 +145,6 @@ function deploymentMatchesStatus(
   if (filter === "all") {
     return true;
   }
-  // Uploading takes a second; it reads as part of the build.
   if (filter === "building") {
     return (
       deployment.status === "building" || deployment.status === "uploading"

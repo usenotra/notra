@@ -1,11 +1,5 @@
 import { SRCSET_ATTRIBUTE, URL_ATTRIBUTE } from "../constants/public-assets";
 
-/**
- * Files from `public/` are served below each mount (`/images/a.png` →
- * `/blog/images/a.png`) because a customer proxy only forwards the mount.
- * Rewrites exact references to such files in built HTML; every other absolute
- * link points at the customer's own site and stays as written.
- */
 export function rewritePublicAssetUrls(
   html: string,
   mount: string,
@@ -21,7 +15,7 @@ export function rewritePublicAssetUrls(
     try {
       decoded = decodeURI(path);
     } catch {
-      // keep the raw path
+      decoded = path;
     }
     return publicFiles.has(decoded)
       ? `${mount}${path}${match?.[2] ?? ""}`

@@ -28,14 +28,6 @@ import {
 } from "./utils/dns";
 import { errorMessage } from "./utils/errors";
 
-/**
- * One-click DNS for domains on Vercel DNS. Vercel has no Domain Connect, so the
- * customer installs Notra's Vercel integration (domain scope), we exchange the
- * code for a token, write the records into their zone and uninstall again: the
- * token is used once and never stored.
- * Docs: https://vercel.com/docs/integrations/create-integration/vercel-api-integrations
- */
-
 function defaultDeps(): VercelDnsDeps {
   const resolver = createDnsResolver();
   return {
@@ -58,7 +50,6 @@ function vercelDnsRedirectUri(): string {
   return `${getDashboardUrl()}${VERCEL_DNS_CALLBACK_PATH}`;
 }
 
-/** The zone hosting `hostname` when its nameservers are Vercel's, else null. */
 export async function findVercelZone(
   hostname: string,
   deps: Pick<VercelDnsDeps, "resolveNs"> = defaultDeps()
@@ -68,7 +59,6 @@ export async function findVercelZone(
     try {
       nameservers = await deps.resolveNs(zone);
     } catch {
-      // ENODATA below the apex: no delegation at this level, try one up.
       continue;
     }
     if (nameservers.length === 0) {
@@ -83,7 +73,6 @@ export async function findVercelZone(
   return null;
 }
 
-/** Starts the integration install; Vercel hands `state` back to the redirect URL. */
 export function vercelInstallUrl(
   config: VercelDnsConfig,
   claims: Omit<DomainConnectCallbackClaims, "exp">
@@ -108,7 +97,6 @@ function withTeam(path: string, teamId: string | null): string {
     : `${VERCEL_API_URL}${path}`;
 }
 
-/** POST /v2/oauth/access_token: the install code (valid once, 30 min) for a token. */
 export async function exchangeVercelCode(
   config: VercelDnsConfig,
   code: string,
@@ -138,10 +126,6 @@ export async function exchangeVercelCode(
   };
 }
 
-/**
- * Writes the domain's records into the Vercel zone. A record that already
- * exists (409) counts as written; the domain check says whether it is right.
- */
 export async function applyVercelDnsRecords({
   grant,
   zone,
@@ -176,7 +160,6 @@ export async function applyVercelDnsRecords({
   }
 }
 
-/** Uninstalls the integration again so no Vercel access outlives this setup. Never throws. */
 export async function removeVercelInstallation(
   grant: VercelDnsGrant,
   deps: Pick<VercelDnsDeps, "fetch"> = defaultDeps()

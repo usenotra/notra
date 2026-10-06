@@ -362,7 +362,6 @@ export interface PrepareGitHubContentAssetsParams {
   imagePathTemplate: string;
   markdown: string;
   organizationId: string;
-  /** Folder served from the site root, e.g. `docs/public`. Defaults to `public`. */
   publicDirectory?: string;
   publicUrl: string | null;
   slug: string;

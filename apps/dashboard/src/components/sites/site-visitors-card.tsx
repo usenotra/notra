@@ -15,7 +15,6 @@ import { SITE_OVERVIEW_ANALYTICS_DAYS } from "@/constants/sites";
 import { useSiteAnalytics } from "@/lib/hooks/use-sites";
 import { siteHref } from "@/utils/site-links";
 
-/** A week of people and agents at a glance, linking to the Analytics tab. */
 export function SiteVisitorsCard() {
   const t = useTranslations("sites.analyticsPage");
   const tWeb = useTranslations("geo.webVisitors");

@@ -24,12 +24,10 @@ function normalizeBuildTarget(target: SiteBuildTarget): SiteBuildTarget {
   };
 }
 
-/** Same hash = same URLs and footer branding, so a rollback to that deployment keeps canonicals, feeds and assets valid. */
 export async function hashBuildTarget(
   target: SiteBuildTarget
 ): Promise<string> {
   const { branding, ...normalized } = normalizeBuildTarget(target);
-  // Only the non-default branding value enters the hash, so deployments from before the setting stay restorable.
   const hashed = branding ? normalized : { ...normalized, branding };
   const digest = await sha256Hex(
     new TextEncoder().encode(stableStringify(hashed))

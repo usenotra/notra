@@ -6,23 +6,10 @@ import {
   OG_IMAGE_HEIGHT,
   OG_IMAGE_WIDTH,
   OG_THEME,
-  OG_TITLE_SIZES,
 } from "../constants/og-images";
 import type { OgCardContent } from "../types/og-images";
+import { titleSize } from "../utils/og-card";
 
-function titleSize(title: string): number {
-  // The last step has no length limit, so a step always matches.
-  const step =
-    OG_TITLE_SIZES.find((candidate) => title.length <= candidate.maxLength) ??
-    OG_TITLE_SIZES[2];
-  return step.size;
-}
-
-/**
- * The share image, as markup for satori (flexbox only, every element with
- * more than one child needs `display: flex`). Rendered at build time, never
- * shipped to the browser.
- */
 export function OgCard(content: OgCardContent): ReactElement {
   const colors = OG_THEME[content.appearance];
   return (

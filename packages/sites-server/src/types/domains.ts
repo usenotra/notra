@@ -8,7 +8,6 @@ export interface AddSiteDomainInput {
   value: string;
 }
 
-/** The outcome of one domain verification attempt. */
 export interface DomainCheck {
   verified: boolean;
   lastError: string | null;

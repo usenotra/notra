@@ -18,11 +18,6 @@ import { urlHost } from "@notra/geo-core/utils/url-host";
 import { listMountedAreas } from "@notra/sites-core/utils/mounts";
 import { eq } from "drizzle-orm";
 
-/**
- * Every page view of a site reaches ingest, humans included, and the token is
- * resolved before classification. Hot sites are answered from memory so
- * dropped human traffic stays free of I/O.
- */
 const memory = new Map<string, { site: GeoIngestSite | null; until: number }>();
 
 async function cached<T>(
@@ -54,13 +49,6 @@ async function cached<T>(
   return value;
 }
 
-/**
- * The site a site token names, or null when it is gone, its organization has
- * no project to attribute traffic to, or it is taken down. A site without a
- * project counts for the organization's oldest one, like a legacy
- * organization token. Deleting the site revokes its token
- * within the cache TTL.
- */
 export async function loadIngestSite(
   siteId: string
 ): Promise<GeoIngestSite | null> {
@@ -114,7 +102,6 @@ function lookupIngestSite(siteId: string): Promise<GeoIngestSite | null> {
   });
 }
 
-/** Host and mount paths of every site in the organization. Null when the lookup failed. */
 export async function loadOrganizationSitePrefixes(
   organizationId: string
 ): Promise<GeoIngestSitePrefix[] | null> {

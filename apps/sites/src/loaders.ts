@@ -19,7 +19,6 @@ import type { SiteBucketObject, SitesDeps } from "./types/worker";
 
 const hostCache = new Map<string, TimedCacheEntry<SiteHostRecord | null>>();
 const stateCache = new Map<string, TimedCacheEntry<SiteServingState | null>>();
-/** Deployments are immutable, so a manifest never needs revalidation. */
 const manifestCache = new Map<string, LoadedManifest>();
 
 export function resetCachesForTests() {
@@ -44,7 +43,6 @@ async function readJson(deps: SitesDeps, key: string): Promise<unknown> {
   return object ? JSON.parse(await object.text()) : null;
 }
 
-/** Serves `cache` entries younger than `ttlMs`; anything older is loaded again. */
 async function loadWithTtl<T>(
   deps: SitesDeps,
   cache: Map<string, TimedCacheEntry<T>>,
@@ -83,7 +81,6 @@ export function loadState(
     }
     const parsed = siteServingStateSchema.safeParse(raw);
     if (!parsed.success) {
-      // A state we cannot read is treated like an outage: fail closed.
       throw new StateUnavailableError(`Invalid serving state for ${siteId}`);
     }
     return parsed.data;

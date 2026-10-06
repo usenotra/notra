@@ -28,11 +28,6 @@ import { toErrorMessage } from "@/utils/error-message";
 import { siteIntegrationSettings } from "@/utils/site-integrations";
 import { siteHref } from "@/utils/site-links";
 
-/**
- * Analytics for the site, picked from a provider list. Everything is
- * stored in the repository's notra.json, so a change is a draft until it is
- * published from the editor.
- */
 export function SiteIntegrationsPage() {
   const t = useTranslations("sites.integrationsPage");
   const { organizationId, organizationSlug, siteId } = useSite();
@@ -45,7 +40,6 @@ export function SiteIntegrationsPage() {
   );
 
   return (
-    // Fills the panel so the publish bar can rest at its bottom on short pages.
     <div className="flex flex-1 flex-col gap-6" data-site-fill>
       <PageHeading description={t("description")} title={t("title")} />
 
@@ -97,7 +91,6 @@ export function SiteIntegrationsPage() {
       </div>
 
       {query.data?.hasDraft ? (
-        // Floats over the page bottom like the settings save bar, centred in the main panel.
         <div className="pointer-events-none sticky bottom-6 z-10 mt-auto flex justify-center">
           <div className="bg-background/90 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 pointer-events-auto flex max-w-full items-center gap-6 rounded-xl border py-2 pr-2 pl-4 shadow-lg backdrop-blur motion-safe:duration-200">
             <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -119,7 +112,6 @@ export function SiteIntegrationsPage() {
 
       {open ? (
         <SiteIntegrationDialog
-          // Remounts per provider so the form starts from its saved settings.
           key={open.id}
           onOpenChange={(next) => {
             if (!next) {

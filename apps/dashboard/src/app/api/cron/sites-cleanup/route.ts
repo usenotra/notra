@@ -9,7 +9,6 @@ import { SITES_CLEANUP_CONCURRENCY } from "@/constants/sites";
 
 export const maxDuration = 300;
 
-/** Deletes stored deployments that are neither live, an open preview, nor recent rollback history. */
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (
@@ -24,7 +23,6 @@ export async function GET(request: Request) {
   let deleted = 0;
   const failed: string[] = [];
   const allSites = await db.select({ id: sites.id }).from(sites);
-  // A few sites at a time keeps R2 and the database calm on a large fleet.
   await mapWithConcurrency(
     allSites,
     SITES_CLEANUP_CONCURRENCY,
@@ -40,7 +38,6 @@ export async function GET(request: Request) {
       }
     }
   );
-  // GitHub only redelivers recent deliveries, so the dedup rows can go after two weeks.
   await db
     .delete(siteWebhookDeliveries)
     .where(

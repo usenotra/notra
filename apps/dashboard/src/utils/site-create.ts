@@ -16,12 +16,10 @@ import type {
   SiteRepository,
 } from "@/types/sites";
 
-/** The address as the server will store it. */
 function siteCreateSlug(form: SiteCreateFormValues): string {
   return form.slug.trim().toLowerCase();
 }
 
-/** The create call for a filled-in form; blank optional fields fall back to server defaults. */
 export function siteCreateInput(
   form: SiteCreateFormValues,
   sections: SiteCreateSectionPlan,
@@ -44,22 +42,15 @@ export function siteCreateInput(
   };
 }
 
-/** A typed address the server would reject; empty is fine (derived from the name). */
 export function isSiteCreateSlugInvalid(form: SiteCreateFormValues): boolean {
   const slug = siteCreateSlug(form);
   return slug.length > 0 && !isValidSiteSlug(slug);
 }
 
-/** Named; sections are checked against the repository plan. */
 function isSiteCreateFormComplete(form: SiteCreateFormValues): boolean {
   return form.name.trim().length > 0;
 }
 
-/**
- * The section paths a new site starts with. A typed path wins; otherwise a
- * section is suggested when it has posts under the root directory, and both
- * are while the repository has none yet (a fresh starter).
- */
 export function siteCreateSectionPlan(
   form: SiteCreateFormValues,
   contentCounts: Record<string, RepositoryContentCount> | undefined
@@ -82,12 +73,10 @@ export function siteCreateSectionPlan(
   };
 }
 
-/** At least one section has a path. */
 export function hasSiteCreateSection(plan: SiteCreateSectionPlan): boolean {
   return Boolean(plan.blogPath.trim() || plan.changelogPath.trim());
 }
 
-/** Picking a repository starts on its default branch and names the site after it. */
 export function withSiteRepository(
   form: SiteCreateFormValues,
   repository: SiteRepository
@@ -97,13 +86,11 @@ export function withSiteRepository(
     repositoryId: repository.id,
     branch: repository.defaultBranch ?? "",
     name: form.name.trim() ? form.name : (repository.repo ?? ""),
-    // A new repository suggests its own sections again.
     blogPath: null,
     changelogPath: null,
   };
 }
 
-/** The branch the first build will use; null until a repository (with a branch) is picked. */
 function siteCreateProductionBranch(
   form: SiteCreateFormValues,
   repository: SiteRepository | null
@@ -114,7 +101,6 @@ function siteCreateProductionBranch(
   return form.branch.trim() || repository.defaultBranch || null;
 }
 
-/** Everything the create call needs: a repository, a name, a valid address and a branch. */
 export function isSiteCreateReady(
   form: SiteCreateFormValues,
   repository: SiteRepository | null
@@ -134,10 +120,6 @@ function isSiteInputField(value: unknown): value is SiteInputField {
   );
 }
 
-/**
- * The field a failed create call is about. Rejections carry it; a conflict on
- * create can only be the address, which another site already claimed.
- */
 export function siteCreateErrorField(error: unknown): SiteInputField | null {
   if (!(error instanceof ORPCError)) {
     return null;

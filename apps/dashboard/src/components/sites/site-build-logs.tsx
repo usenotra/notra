@@ -35,7 +35,6 @@ import {
 } from "@/utils/site-build-log";
 import { stripAnsi } from "@/utils/site-deployments";
 
-/** Streaming while the build runs; afterwards line, error and warning counts. */
 function BuildLogSummary({ lines, inProgress }: SiteBuildLogSummaryProps) {
   const t = useTranslations("sites.deploymentPage.log");
   if (inProgress) {
@@ -61,7 +60,6 @@ function BuildLogSummary({ lines, inProgress }: SiteBuildLogSummaryProps) {
   return parts.join(" · ");
 }
 
-/** No output yet: waiting for a builder, starting, or nothing was logged. */
 function BuildLogEmpty({ inProgress, queued }: SiteBuildLogEmptyProps) {
   const t = useTranslations("sites.deploymentPage.log");
   let message = t("empty");
@@ -85,7 +83,6 @@ function BuildLogEmpty({ inProgress, queued }: SiteBuildLogEmptyProps) {
   );
 }
 
-/** Copies the whole log without terminal color codes. */
 function BuildLogCopyButton({ log }: SiteBuildLogCopyButtonProps) {
   const t = useTranslations("sites.deploymentPage.log");
   return (
@@ -112,13 +109,6 @@ function BuildLogCopyButton({ log }: SiteBuildLogCopyButtonProps) {
   );
 }
 
-/**
- * The build log as part of the build's story: the dashboard's own code
- * surface, the build's clock instead of wall times, tool tags quieted,
- * warnings and errors marked in the gutter, and the noise (route trees,
- * stack frames, code frames) folded. While the build runs it follows new
- * output unless the reader scrolled up.
- */
 export function SiteBuildLogs({
   log,
   inProgress,
@@ -147,9 +137,6 @@ export function SiteBuildLogs({
     [lines, trimmedQuery]
   );
 
-  // Follow new output while the build runs, unless the reader scrolled up.
-  // The final upload lands together with the finished status, so a log that
-  // was followed live keeps following once more.
   useEffect(() => {
     if (inProgress) {
       followedLiveRef.current = true;

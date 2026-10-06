@@ -6,7 +6,6 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(number >> 16) & 255, (number >> 8) & 255, number & 255];
 }
 
-/** WCAG relative luminance; picks white or near-black text for a brand color. */
 export function readableOn(hex: string): string {
   const [r, g, b] = hexToRgb(hex).map((channel) => {
     const value = channel / 255;

@@ -3,15 +3,15 @@ title: "Match your website"
 description: "Your own header, footer and page sections, so the blog looks like the rest of your site."
 ---
 
-Your blog should feel like part of your website, not a separate product. Three files get you there: your own header, your own footer, and slots that fill fixed places on every page.
+Three kinds of files make the blog match your website: your own header, your own footer and slots that fill fixed places on every page.
 
 <Tip>
-When you create a site from a repository without `notra.json`, Notra offers **Create starter from your brand**. It reads your Brand Identity and landing page and opens a pull request with `notra.json`, `header.mdx`, `footer.mdx` and a first post that already use your logo, colors and links.
+When you create a site from a repository without `blog.json`, Notra offers **Create starter from your brand**. It reads your Brand Identity and landing page and opens a pull request with `blog.json`, `header.mdx`, `footer.mdx` and a first post that already use your logo, colors and links.
 </Tip>
 
 ## Header and footer
 
-Add `header.mdx` or `footer.mdx` next to `notra.json`. Each replaces the theme's own. Write plain markup with Tailwind classes, and paste HTML from your landing page if you like (change `class` to `className`).
+Add `header.mdx` or `footer.mdx` next to `blog.json`. Each replaces the theme's own. Write plain markup with Tailwind classes, and paste HTML from your landing page if you like (change `class` to `className`).
 
 ```mdx header.mdx
 <header className="border-b border-border">
@@ -56,13 +56,13 @@ Slots add your own content at fixed places. Each is a file in `slots/`:
 
 ```mdx slots/after-post.mdx
 <div className="mt-12 rounded-xl border border-border p-6">
-  <p className="font-semibold">Enjoyed “{post.title}”?</p>
+  <p className="font-semibold">Enjoyed "{post.title}"?</p>
   <p className="mt-1 text-sm text-muted-foreground">Try Acme free for 14 days.</p>
   <a href="https://acme.com/signup" className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm text-white">Start free trial</a>
 </div>
 ```
 
-A call to action under every post, a newsletter form from any provider, or a product card in the sidebar are all just a slot. A file in `slots/` with any other name stops the build with the list of valid names.
+A call to action under every post, a newsletter form or a product card in the sidebar each fit in a slot. A file in `slots/` with any other name stops the build with the list of valid names.
 
 ## Your own CSS
 
@@ -70,4 +70,4 @@ For anything the settings and files don't cover, add `style.css`. It loads after
 
 ## What isn't allowed
 
-Header, footer and slots are compiled like posts: nothing runs during the build, imports only come from your repository, and `<script>` tags aren't allowed. Put JavaScript in `script.js`; see [Analytics and scripts](/sites/analytics-and-scripts).
+Header, footer and slots are compiled like posts: nothing runs during the build, imports only come from your repository and `<script>` tags aren't allowed. Put JavaScript in `script.js`; see [Analytics and scripts](/sites/analytics-and-scripts).

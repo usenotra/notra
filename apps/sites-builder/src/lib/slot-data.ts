@@ -17,8 +17,6 @@ import {
   params,
 } from "./params";
 
-// Plain data only: slot MDX renders these as text, so dates are display strings.
-
 export function slotSite(): SlotSite {
   return { name: config.name, description: config.description };
 }

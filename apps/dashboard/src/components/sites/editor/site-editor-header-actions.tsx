@@ -7,7 +7,6 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import type { SiteEditorHeaderActionsProps } from "@/types/components/site-editor";
 
-/** New file and publish (checking runs from the status bar), next to the editor page's title. */
 export function SiteEditorHeaderActions({
   canCreateFile,
   unsaved,

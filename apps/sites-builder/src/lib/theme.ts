@@ -11,7 +11,6 @@ function fontStack(family: string | undefined, fallback: string): string {
   return family ? `"${family}", ${fallback}` : fallback;
 }
 
-/** Inline `:root` / `.dark` overrides for the brand colors, background and fonts from notra.json. */
 export function themeStyle(): string {
   const { colors, background, fonts } = config;
   const button = colors.dark ?? colors.primary;
@@ -48,20 +47,16 @@ export function themeStyle(): string {
   if (heading) {
     root.push(`--font-heading: ${fontStack(heading, "var(--font-body)")}`);
   }
-  // `html:root` / `html.dark` outrank the theme stylesheet's `:root` / `.dark`, which loads later.
   const css = `html:root{${root.join(";")}}${dark.length ? `html.dark{${dark.join(";")}}` : ""}`;
-  // Paths and font names come from notra.json; `<` must never close the inline <style>.
   return css.replaceAll("<", "\\3c ");
 }
 
-/** Container widths from `layout.width`; the stylesheet's defaults match the base width, so nothing is emitted there. */
 function layoutWidths(): string[] {
   const width = config.layout.width;
   if (width === BASE_LAYOUT_WIDTH_REM) {
     return [];
   }
   if (width === "full") {
-    // Reading columns keep their measure; only the wide containers go edge to edge.
     return ["--layout-index: 100%", "--layout-post: 100%"];
   }
   const scale = width / BASE_LAYOUT_WIDTH_REM;
@@ -90,7 +85,6 @@ function declaredFonts(): FontFace[] {
   return all;
 }
 
-/** Self-hosted fonts become @font-face rules; everything else loads from Google Fonts. */
 export function fontFaces(): string {
   return declaredFonts()
     .filter((font) => font.source)

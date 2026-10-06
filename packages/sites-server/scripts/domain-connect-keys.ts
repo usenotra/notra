@@ -1,13 +1,3 @@
-/**
- * Domain Connect signing key.
- *
- *   bun scripts/domain-connect-keys.ts                 new RSA 2048 key pair
- *   bun --env-file=../../.env scripts/domain-connect-keys.ts --check
- *                                                      compares DNS with SITES_DOMAIN_CONNECT_PRIVATE_KEY
- *
- * Options: --key-host (default SITES_DOMAIN_CONNECT_KEY_HOST or _dck1),
- * --domain (the template's syncPubKeyDomain, default domainconnect.usenotra.com).
- */
 import { createPublicKey, generateKeyPairSync } from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
 import { parseArgs } from "node:util";

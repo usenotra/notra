@@ -14,10 +14,6 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteSettingsDangerZoneProps } from "@/types/components/sites";
 import { toErrorMessage } from "@/utils/error-message";
 
-/**
- * Notra branding on or off, take the site offline (or bring it back) and
- * delete it; offline and delete ask first.
- */
 export function SiteSettingsDangerZone({
   organizationId,
   organizationSlug,

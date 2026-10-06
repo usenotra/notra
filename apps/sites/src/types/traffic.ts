@@ -1,4 +1,3 @@
-/** One page view for Notra's AI traffic ingest; mirrors the `@usenotra/geo` SDK payload. */
 export interface TrafficPayload {
   timestamp: string;
   method: string;
@@ -31,10 +30,7 @@ export interface TrafficReport {
   ingestUrl: string;
   token: string;
   request: Request;
-  /** The page under the site's public origin, also when the request came through a proxy. */
   publicUrl: string;
-  /** True when the request reached the alias through the customer's own proxy. */
   proxied: boolean;
-  /** What the site answered, so ingest can tell a page from a 404. */
   status: number;
 }

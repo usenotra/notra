@@ -13,7 +13,6 @@ describe("preview password hashing", () => {
     expect(JSON.stringify(stored)).not.toContain("s3cret");
     expect(stored.iterations).toBe(SITE_PREVIEW_PASSWORD_ITERATIONS);
     expect(await verifyPreviewPassword("s3cret-préview", stored)).toBe(true);
-    // NFC and NFD spellings of the same text are one password.
     expect(await verifyPreviewPassword("s3cret-préview", stored)).toBe(true);
     expect(await verifyPreviewPassword("s3cret-preview", stored)).toBe(false);
     expect(await verifyPreviewPassword("", stored)).toBe(false);
@@ -38,7 +37,6 @@ describe("preview password hashing", () => {
     expect(
       await verifyPreviewPassword("password one", { ...stored, salt: "%%%" })
     ).toBe(false);
-    // An attacker-raised iteration count would be a CPU bomb in the worker.
     expect(
       await verifyPreviewPassword("password one", {
         ...stored,

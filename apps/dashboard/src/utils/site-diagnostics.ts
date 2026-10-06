@@ -1,6 +1,5 @@
 import type { SiteDiagnostic } from "@/types/sites";
 
-/** `file:line:column` as far as the diagnostic knows it; null without a file. */
 export function siteDiagnosticLocation(
   diagnostic: SiteDiagnostic
 ): string | null {
@@ -15,15 +14,10 @@ export function siteDiagnosticLocation(
     : `${diagnostic.file}:${diagnostic.line}:${diagnostic.column}`;
 }
 
-/** Sort key that lists errors before warnings. */
 export function siteDiagnosticSeverityRank(diagnostic: SiteDiagnostic): number {
   return diagnostic.severity === "error" ? 0 : 1;
 }
 
-/**
- * Diagnostics carry no id. File, position, code and message identify one; the
- * occurrence count separates exact repeats, so keys survive re-sorting.
- */
 export function withDiagnosticKeys<T extends SiteDiagnostic>(
   diagnostics: readonly T[]
 ): { diagnostic: T; key: string }[] {

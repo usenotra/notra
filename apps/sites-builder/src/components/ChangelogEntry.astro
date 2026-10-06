@@ -8,9 +8,7 @@ import Icon from "./Icon.astro";
 
 interface Props {
   entry: ChangelogEntry;
-  /** On the index every entry links to its own page; on the entry page the title is the h1. */
   standalone?: boolean;
-  /** notra.json `changelog.layout`; the entry page always uses the timeline form. */
   layout?: "timeline" | "cards" | "compact";
 }
 

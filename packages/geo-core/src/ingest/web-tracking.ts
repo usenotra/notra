@@ -11,11 +11,6 @@ import { and, eq } from "drizzle-orm";
 
 const memory = new Map<string, { value: boolean; until: number }>();
 
-/**
- * Whether human page views are kept for this token. Notra Sites always count
- * their visitors; an SDK project only after it switched on visitor tracking.
- * Without that switch people are dropped at ingest, exactly as before.
- */
 export async function isVisitorTrackingEnabled(
   identity: GeoIngestIdentity
 ): Promise<boolean> {
@@ -48,11 +43,6 @@ export async function isVisitorTrackingEnabled(
   return value;
 }
 
-/**
- * Called when the switch changes. Writes the new value rather than deleting
- * it, so an ingest read that started before the change can't put the old
- * value back for a whole TTL.
- */
 export async function rememberVisitorTracking(
   projectId: string,
   value: boolean

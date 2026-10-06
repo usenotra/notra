@@ -53,7 +53,6 @@ const jsonLd = [
     keywords: entry.data.tags.length > 0 ? entry.data.tags.join(", ") : undefined,
     articleSection: areaTitle(params.area),
     inLanguage: "en",
-    // Changelog entries and unsigned posts are written by the company itself.
     author: authors.length > 0 ? authors.map(personNode) : publisherRef(),
     version: props.kind === "changelog" ? props.entry.data.version : undefined,
     publisher: publisherRef(),

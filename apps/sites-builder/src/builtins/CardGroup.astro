@@ -1,9 +1,11 @@
 ---
+import { CARD_GROUP_GRID } from "../constants/builtins";
+
 interface Props {
   cols?: number;
 }
 const cols = Math.min(Math.max(Number(Astro.props.cols ?? 2), 1), 4);
-const grid = { 1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-2 lg:grid-cols-4" }[cols];
+const grid = CARD_GROUP_GRID[cols];
 ---
 
 <div class:list={["card-group columns not-prose my-6 grid gap-3", grid]}><slot /></div>

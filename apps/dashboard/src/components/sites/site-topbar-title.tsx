@@ -18,7 +18,6 @@ import type {
 } from "@/types/components/sites";
 import { shortSha } from "@/utils/site-deployments";
 
-/** Site name for the top bar; shares the page's `sites.get` cache. */
 export function SiteTopbarTitle({ siteId, href }: SiteTopbarTitleProps) {
   const tCommon = useTranslations("common");
   const { activeOrganization } = useOrganizationsContext();
@@ -60,7 +59,6 @@ export function DeploymentTopbarTitle({
   );
 }
 
-/** Section of a site (Deployments, Domains, …) in the top bar. */
 export function SiteSectionTopbarTitle({
   section,
   href,

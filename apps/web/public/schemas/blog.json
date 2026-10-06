@@ -1090,7 +1090,7 @@
     }
   },
   "required": ["name"],
-  "$id": "https://usenotra.com/schemas/notra.json",
-  "title": "notra.json",
+  "$id": "https://usenotra.com/schemas/blog.json",
+  "title": "blog.json",
   "description": "Configuration of a Notra Sites blog and changelog. Every option except name is optional."
 }

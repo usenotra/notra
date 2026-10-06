@@ -6,7 +6,7 @@ description: "The files Notra Sites reads from your repository."
 A site lives at the repository root or in a subfolder you choose when creating the site (useful for monorepos).
 
 ```text
-notra.json              # settings, see Customize your site
+blog.json              # settings, see Customize your site
 header.mdx, footer.mdx  # optional: your own header and footer
 slots/*.mdx             # optional: content at fixed places on every page
 blog/*.mdx              # blog posts, one file per post
@@ -20,9 +20,9 @@ public/                 # images and other static files
 
 Files and folders starting with `_` are never published as pages. Everything else in `blog/` and `changelog/` becomes a page; the file path is the URL (`blog/2026/launch.mdx` → `/blog/2026/launch`).
 
-## notra.json
+## blog.json
 
-```json notra.json
+```json blog.json
 {
   "name": "Acme",
   "description": "Notes from the Acme team.",
@@ -48,7 +48,7 @@ The domain and the paths (`/blog`, `/changelog`) are configured in the dashboard
 
 Sites use the `notra` theme, with a light and a dark mode. Change it to fit your brand with the settings below; for layouts, navigation, banner and SEO see [Customize your site](/sites/customize).
 
-```json notra.json
+```json blog.json
 {
   "theme": "notra",
   "colors": { "primary": "#0D9373", "light": "#55D799", "dark": "#0D9373" },
@@ -65,7 +65,7 @@ Sites use the `notra` theme, with a light and a dark mode. Change it to fit your
 | `appearance` | `system`, `light` or `dark`. `strict: true` hides the dark mode toggle. |
 | `fonts` | A Google Fonts family, or your own file with `source` (`/fonts/brand.woff2`) and `format`. `heading` and `body` override each part. |
 | `background` | `decoration`: `none`, `grid`, `dots` or `gradient`, plus page colors per mode. |
-| `styling.codeblocks` | `system`, `dark`, a [Shiki theme](https://shiki.style/themes) name, or `{ "light": …, "dark": … }`. |
+| `styling.codeblocks` | `system`, `dark`, a [Shiki theme](https://shiki.style/themes) name or `{ "light": …, "dark": … }`. |
 
 ### Custom CSS
 
@@ -80,6 +80,7 @@ Stable IDs and class names to target from your CSS:
 | `#banner` | Announcement banner above the navbar |
 | `#navbar` | Top navigation bar |
 | `#topbar-cta-button` | Call-to-action button in the navbar (`#topbar-cta-button > a`) |
+| `#topbar-primary-button` | Button next to the call to action, for example GitHub (`#topbar-primary-button > a`) |
 | `#mobile-nav`, `#mobile-nav-content` | Mobile menu and its links |
 | `#body-content` | The page body |
 | `#content-area`, `#content` | Main area and its inner content |
@@ -125,13 +126,13 @@ tags: [Feature]
 
 `draft: true` hides a post on the live site but shows it in previews. `noindex: true` keeps a published post out of search engines.
 
-`description` shows in search results and link previews; without it, the first paragraph is used. `image` is the cover and the social preview image (PNG or JPEG, 1200×630 works everywhere). Add `updated: 2026-10-02` to a blog post when you change it substantially: the post shows the date, and search engines and the sitemap pick it up.
+`description` shows in search results and link previews; without it, the first paragraph is used. `image` is the cover and the social preview image (PNG or JPEG, 1200×630 works everywhere). Add `updated: 2026-10-02` to a blog post when you make a major change. The post then shows the date, and the sitemap and search engines pick it up.
 
 ## Authors
 
-Describe the people who write for you once in `notra.json`, then name them by id in a post's `author`:
+Describe the people who write for you once in `blog.json`, then name them by id in a post's `author`:
 
-```json notra.json
+```json blog.json
 "authors": {
   "jan": {
     "name": "Jan Burzinski",
@@ -146,9 +147,9 @@ Describe the people who write for you once in `notra.json`, then name them by id
 }
 ```
 
-A known author gets an avatar and role next to the post, an author page at `/blog/author/<id>` with all their posts, and a schema.org `Person` with their profiles as `sameAs`. That is how search engines and AI answers attribute the post to a real person. Any other value in `author` (`author: Guest Writer`) is shown as a plain name.
+A known author gets an avatar and role next to the post, an author page at `/blog/author/<id>` with all their posts and a schema.org `Person` with their profiles as `sameAs`. That is how search engines and AI answers attribute the post to a real person. Any other value in `author` (`author: Guest Writer`) is shown as a plain name.
 
-Posts you publish from Notra get their frontmatter automatically: title, description, date, the cover image and you as the author (your notra.json id when the name matches).
+Posts you publish from Notra get their frontmatter automatically: title, description, date, the cover image and you as the author (your blog.json id when the name matches).
 
 ## Images
 

@@ -31,7 +31,6 @@ import type { SiteEditorMode } from "@/types/site-editor";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import { siteFileGithubUrl, siteFileLiveUrl } from "@/utils/site-editor";
 
-/** Autosave is silent; only a failed save speaks up. */
 function SiteEditorSaveError({ error }: SiteEditorSaveErrorProps) {
   const t = useTranslations("sites.editorPage.state");
   return (
@@ -78,7 +77,6 @@ export function SiteEditorFileBar({
   const breadcrumb = (
     <span className="flex min-w-0 items-center gap-1 truncate text-[13px]">
       {segments.slice(0, -1).map((segment, index) => (
-        // The path up to a segment is unique even when folder names repeat.
         <Fragment key={segments.slice(0, index + 1).join("/")}>
           <span className="text-muted-foreground hidden sm:inline">
             {segment}

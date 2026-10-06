@@ -15,11 +15,6 @@ import {
 } from "@/lib/hooks/use-site-starter";
 import type { SiteCreateStarterProps } from "@/types/components/sites";
 
-/**
- * A one-line offer under the branch and folder: when there is no notra.json
- * yet, Notra opens a pull request with starter files that match the brand.
- * Silent while checking, on errors and when the config already exists.
- */
 export function SiteCreateStarter({
   organizationId,
   repositoryId,

@@ -10,7 +10,6 @@ import { useTranslations } from "use-intl";
 
 import type { SiteEditorFilePickerProps } from "@/types/components/site-editor";
 
-/** The file tree in a sheet, for screens too narrow for the sidebar. */
 export function SiteEditorFilePicker({
   open,
   onOpenChange,
@@ -21,7 +20,6 @@ export function SiteEditorFilePicker({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent
         className="gap-0 p-0"
-        // On touch, focusing the filter would pop the keyboard over the tree.
         initialFocus={(openType) => openType !== "touch"}
         side="left"
       >

@@ -7,7 +7,6 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { UseSiteDomainCheckParams } from "@/types/hooks/sites";
 import { toErrorMessage } from "@/utils/error-message";
 
-/** Re-checks a custom domain now and toasts whether it verified. */
 export function useSiteDomainCheck({
   organizationId,
   siteId,

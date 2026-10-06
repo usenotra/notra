@@ -88,7 +88,7 @@ test("excerpts stay under the limit on a word boundary", () => {
   expect(excerpt).toBe("word word word word word word word word…");
 });
 
-test("matches notra.json authors by name", () => {
+test("matches blog.json authors by name", () => {
   const authors = parseSiteConfigAuthors(
     JSON.stringify({ name: "Acme", authors: { jan: { name: "Jan B" } } })
   );
