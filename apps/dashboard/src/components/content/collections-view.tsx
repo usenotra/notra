@@ -2,16 +2,7 @@
 
 import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { TablePagination } from "@notra/ui/components/shared/table-pagination";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -159,59 +150,44 @@ export function CollectionsView({
     onDelete: setDeleteTarget,
   };
   const deleteDialog = (
-    <ResponsiveAlertDialog
+    <ConfirmDialog
+      confirmLabel={tCommon("actions.delete")}
+      description={
+        deleteTarget?.postCount === 1
+          ? tCommon("messages.thisWillPermanentlyDeleteTitle", {
+              title: collectionTitle(deleteTarget),
+            })
+          : t("actions.deleteDescription", {
+              title: deleteTarget ? collectionTitle(deleteTarget) : "",
+              count: deleteTarget?.postCount ?? 0,
+            })
+      }
+      onConfirm={async () => {
+        if (!deleteTarget) {
+          return;
+        }
+        const deleted = await deleteCollection(deleteTarget.id);
+        if (deleted) {
+          setDeleteTarget(null);
+          if (collections.length === 1 && pagination.page > 1) {
+            void pagination.setPage(pagination.page - 1);
+          }
+        }
+      }}
       onOpenChange={(open) => {
-        if (!(open || isDeleting)) {
+        if (!open) {
           setDeleteTarget(null);
         }
       }}
       open={deleteTarget !== null}
-    >
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {deleteTarget?.postCount === 1
-              ? tCommon("labels.deletePost")
-              : t("actions.deleteTitle")}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {deleteTarget?.postCount === 1
-              ? tCommon("messages.thisWillPermanentlyDeleteTitle", {
-                  title: collectionTitle(deleteTarget),
-                })
-              : t("actions.deleteDescription", {
-                  title: deleteTarget ? collectionTitle(deleteTarget) : "",
-                  count: deleteTarget?.postCount ?? 0,
-                })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isDeleting}>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isDeleting}
-            onClick={async () => {
-              if (!deleteTarget || isDeleting) {
-                return;
-              }
-              const deleted = await deleteCollection(deleteTarget.id);
-              if (deleted) {
-                setDeleteTarget(null);
-                if (collections.length === 1 && pagination.page > 1) {
-                  void pagination.setPage(pagination.page - 1);
-                }
-              }
-            }}
-            variant="destructive"
-          >
-            {isDeleting
-              ? tCommon("actions.deleting")
-              : tCommon("actions.delete")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+      pending={isDeleting}
+      title={
+        deleteTarget?.postCount === 1
+          ? tCommon("labels.deletePost")
+          : t("actions.deleteTitle")
+      }
+      variant="destructive"
+    />
   );
   const dateFnsLocale = useDateFnsLocale();
   const now = useNow({ updateInterval: 60_000 });

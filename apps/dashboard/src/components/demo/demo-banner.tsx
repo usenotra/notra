@@ -2,16 +2,7 @@
 
 import { Refresh03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Button } from "@notra/ui/components/ui/button";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
 import { useState } from "react";
@@ -95,33 +86,16 @@ export function DemoBanner() {
         />
       ) : null}
 
-      <ResponsiveAlertDialog onOpenChange={setResetOpen} open={resetOpen}>
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              {t("resetTitle")}
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              {t("resetDescription")}
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={resetting}>
-              {t("cancel")}
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={resetting}
-              onClick={(event) => {
-                event.preventDefault();
-                void handleReset();
-              }}
-              type="button"
-            >
-              {resetting ? t("resetting") : t("resetConfirm")}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+      <ConfirmDialog
+        cancelLabel={t("cancel")}
+        confirmLabel={t("resetConfirm")}
+        description={t("resetDescription")}
+        onConfirm={handleReset}
+        onOpenChange={setResetOpen}
+        open={resetOpen}
+        pending={resetting}
+        title={t("resetTitle")}
+      />
     </div>
   );
 }

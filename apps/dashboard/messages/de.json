@@ -488,8 +488,7 @@
       "resendDescription": "Wir senden einen neuen Einladungslink an <strong>{email}</strong>.",
       "resending": "Wird gesendet…",
       "cancelTitle": "Einladung zurückziehen?",
-      "cancelDescription": "Die an {email} gesendete Einladung wird zurückgezogen und kann danach nicht mehr angenommen werden.",
-      "canceling": "Wird zurückgezogen…"
+      "cancelDescription": "Die an {email} gesendete Einladung wird zurückgezogen und kann danach nicht mehr angenommen werden."
     },
     "invite": {
       "sent": "Einladung erfolgreich gesendet",
@@ -506,8 +505,7 @@
       "selectRole": "Rolle auswählen",
       "updateRole": "Rolle aktualisieren",
       "removeTitle": "{name} entfernen?",
-      "removeDescription": "{name} wird aus {organization} entfernt, verliert den Zugriff auf alle Inhalte der Organisation und muss für einen erneuten Beitritt wieder eingeladen werden.",
-      "removing": "Wird entfernt…"
+      "removeDescription": "{name} wird aus {organization} entfernt, verliert den Zugriff auf alle Inhalte der Organisation und muss für einen erneuten Beitritt wieder eingeladen werden."
     },
     "shared": {
       "resendInvitation": "Einladung erneut senden",
@@ -1932,7 +1930,6 @@
       "failedToAddSitemap": "Sitemap konnte nicht hinzugefügt werden",
       "sitemapOrSiteUrl": "Sitemap- oder Website-URL",
       "adding": "Wird hinzugefügt…",
-      "removing": "Wird entfernt…",
       "url": "URL",
       "links": "Links",
       "today": "Heute",
@@ -3069,7 +3066,6 @@
       "archiveDescription": "Diese Persona wird aus zukünftigen Scans entfernt. Ihr bisheriger Scan-Verlauf bleibt erhalten.",
       "nounSingular": "Persona",
       "nounPlural": "Personas",
-      "archiving": "Wird archiviert…",
       "archiveTitle": "Persona archivieren?"
     },
     "projectBrandSection": {
@@ -4612,7 +4608,6 @@
         "updateCredentials": "Zugangsdaten aktualisieren",
         "disconnectTitle": "{name} trennen?",
         "disconnectDescription": "Die Tools stehen dieser Organisation dann nicht mehr zur Verfügung. Du kannst die Integration später wieder verbinden.",
-        "disconnecting": "Wird getrennt…",
         "auth": {
           "none": "Keine Authentifizierung"
         }
@@ -6283,6 +6278,7 @@
     "chatHistory": {
       "options": "Chat-Optionen",
       "pinned": "Angeheftet",
+      "loadFailed": "Chatverlauf konnte nicht geladen werden.",
       "groups": {
         "lastMonth": "Letzter Monat"
       }
@@ -6607,7 +6603,6 @@
       "resetDescription": "Alle deine Änderungen werden verworfen und die Beispieldaten wiederhergestellt. Demo-ID, API-Key und Anpassung bleiben gleich.",
       "cancel": "Abbrechen",
       "resetConfirm": "Workspace zurücksetzen",
-      "resetting": "Wird zurückgesetzt…",
       "resetFailed": "Der Workspace konnte nicht zurückgesetzt werden. Bitte versuch es erneut."
     },
     "playground": {

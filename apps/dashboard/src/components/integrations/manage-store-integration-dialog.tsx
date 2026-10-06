@@ -8,16 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MAX_MCP_HEADERS } from "@notra/schemas/dashboard/integrations";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -430,30 +421,16 @@ function DisconnectDialog({
   const tCommon = useTranslations("common");
 
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {t("disconnectTitle", { name: integrationName })}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {t("disconnectDescription")}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={disconnecting}
-            onClick={onDisconnect}
-          >
-            {disconnecting ? t("disconnecting") : tCommon("actions.disconnect")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={tCommon("actions.disconnect")}
+      description={t("disconnectDescription")}
+      onConfirm={onDisconnect}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={disconnecting}
+      title={t("disconnectTitle", { name: integrationName })}
+      variant="destructive"
+    />
   );
 }
 

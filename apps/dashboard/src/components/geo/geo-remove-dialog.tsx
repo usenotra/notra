@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { useTranslations } from "use-intl";
 
 import type { GeoRemoveDialogProps } from "@/types/geo";
@@ -24,12 +15,9 @@ export function GeoRemoveDialog({
   description,
   actionLabel,
   destructive = true,
-  pendingLabel,
   title,
 }: GeoRemoveDialogProps) {
   const t = useTranslations("geo.geoRemoveDialog");
-  const tCommon2 = useTranslations("common");
-  const tCommon = useTranslations("common.actions");
   const isBulk = items.length > 1;
   const noun = isBulk ? nouns.plural : nouns.singular;
   const defaultTitle = isBulk
@@ -39,31 +27,15 @@ export function GeoRemoveDialog({
     typeof description === "function" ? description(items) : description;
 
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {title ?? defaultTitle}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {descriptionText}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isPending}
-            onClick={onConfirm}
-            variant={destructive ? "destructive" : "default"}
-          >
-            {isPending
-              ? (pendingLabel ?? tCommon2("labels.removing"))
-              : (actionLabel ?? t("confirm", { noun }))}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={actionLabel ?? t("confirm", { noun })}
+      description={descriptionText}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={isPending}
+      title={title ?? defaultTitle}
+      variant={destructive ? "destructive" : "default"}
+    />
   );
 }

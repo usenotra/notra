@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { useTranslations } from "use-intl";
 
 import type { SkillDeleteDialogProps } from "@/types/skills/page";
@@ -22,29 +13,16 @@ export function SkillDeleteDialog({
   onConfirm,
 }: SkillDeleteDialogProps) {
   const t = useTranslations("skills.delete");
-  const tCommon = useTranslations("common.actions");
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription className="wrap-anywhere">
-            {t("description", { name })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={pending}>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={pending}
-            onClick={onConfirm}
-          >
-            {pending ? tCommon("deleting") : t("confirm")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={t("confirm")}
+      description={t("description", { name })}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={pending}
+      title={t("title")}
+      variant="destructive"
+    />
   );
 }

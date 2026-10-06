@@ -10,17 +10,8 @@ import {
   PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   DataTable,
@@ -624,64 +615,41 @@ function ScheduleDeleteDialog({
   const tCommon = useTranslations("common.actions");
   const formatFrequency = useScheduleFrequencyLabel();
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {t("deleteTitle")}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {t.rich("deleteDescription", {
-              target: () =>
-                triggerToDelete ? (
-                  <Tooltip>
-                    <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
-                      {triggerToDelete.name}
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs" side="top">
-                      <div className="space-y-1 text-xs wrap-anywhere">
-                        <p>
-                          {t("runs", {
-                            value: formatFrequency(
-                              triggerToDelete.sourceConfig.cron
-                            ),
-                          })}
-                        </p>
-                        <p>
-                          {t("repositories", {
-                            value: deleteTriggerRepositoryNames.join(", "),
-                          })}
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  t("thisSchedule")
-                ),
-            })}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            disabled={isPending}
-            onClick={onConfirm}
-            variant="destructive"
-          >
-            {isPending ? (
-              <>
-                <Spinner />
-                {tCommon("deleting")}
-              </>
-            ) : (
-              tCommon("delete")
-            )}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={tCommon("delete")}
+      description={t.rich("deleteDescription", {
+        target: () =>
+          triggerToDelete ? (
+            <Tooltip>
+              <TooltipTrigger className="text-foreground cursor-help font-medium wrap-anywhere underline decoration-dotted underline-offset-2">
+                {triggerToDelete.name}
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs" side="top">
+                <div className="space-y-1 text-xs wrap-anywhere">
+                  <p>
+                    {t("runs", {
+                      value: formatFrequency(triggerToDelete.sourceConfig.cron),
+                    })}
+                  </p>
+                  <p>
+                    {t("repositories", {
+                      value: deleteTriggerRepositoryNames.join(", "),
+                    })}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            t("thisSchedule")
+          ),
+      })}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={isPending}
+      title={t("deleteTitle")}
+      variant="destructive"
+    />
   );
 }
 

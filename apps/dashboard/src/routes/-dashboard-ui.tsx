@@ -6,7 +6,7 @@ import {
   redirect,
   type Router,
 } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 
 import { AnalyticsProvider } from "@/components/analytics/analytics-context";
 import { AnalyticsShell } from "@/components/analytics/analytics-shell";
@@ -54,8 +54,11 @@ const Skills = lazyPage(
 const SkillDetail = lazyPage(
   () => import("@/app/(dashboard)/[slug]/skills/[name]/page-client")
 );
-const Chat = lazyPage(
-  () => import("@/app/(dashboard)/[slug]/chat/page-client")
+const Chat = lazyPage(() =>
+  Promise.all([
+    import("@/app/(dashboard)/[slug]/chat/page-client"),
+    import("@/components/dashboard/chat-history-nav"),
+  ]).then(([page]) => page)
 );
 const ApiKeys = lazyPage(
   () => import("@/app/(dashboard)/[slug]/api-keys/page")
@@ -123,6 +126,12 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
   function OrganizationLayout() {
     const { organizationShell } =
       organization.useRouteContext<Router<typeof organization>>();
+    useEffect(() => {
+      clientShellCache = {
+        slug: organizationShell.initialActiveOrganization.slug,
+        shell: organizationShell,
+      };
+    }, [organizationShell]);
     return (
       <DashboardClientWrapper {...organizationShell}>
         <Suspense fallback={<DashboardLoading />}>

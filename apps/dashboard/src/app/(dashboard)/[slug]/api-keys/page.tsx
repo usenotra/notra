@@ -22,18 +22,9 @@ import {
   createApiKeySchema,
   updateApiKeySchema,
 } from "@notra/schemas/dashboard/api-keys";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { ConnectedCards } from "@notra/ui/components/shared/connected-cards";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -799,34 +790,19 @@ function DeleteApiKeyDialog({
 }) {
   const t = useTranslations("apiKeys.delete");
   const tApiKeysShared = useTranslations("apiKeys.shared");
-  const tCommon = useTranslations("common");
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={!!apiKey}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>{t("title")}</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription className="wrap-anywhere">
-            {apiKey
-              ? t("descriptionNamed", { name: apiKey.name })
-              : t("description")}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {tCommon("actions.cancel")}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={!apiKey || isPending}
-            onClick={onConfirm}
-          >
-            {isPending
-              ? tCommon("actions.deleting")
-              : tApiKeysShared("deleteApiKey")}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={tApiKeysShared("deleteApiKey")}
+      description={
+        apiKey ? t("descriptionNamed", { name: apiKey.name }) : t("description")
+      }
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={!!apiKey}
+      pending={isPending}
+      title={t("title")}
+      variant="destructive"
+    />
   );
 }
 
