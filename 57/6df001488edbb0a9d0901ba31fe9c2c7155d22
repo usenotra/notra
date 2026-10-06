@@ -1,0 +1,95 @@
+packages/sites-server/src/editor.ts
+  s_2e1b04b64a383c::t_1809ebc221ff51 10,51,117
+apps/sites-builder/src/components/CodeBlocks.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 27
+apps/sites-builder/src/components/ChangelogEntry.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 56,61
+apps/sites-builder/src/layouts/Base.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 124-125,128-129
+apps/sites-builder/src/builtins/Card.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 17
+apps/sites-builder/src/builtins/CardGroup.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 9
+apps/sites-builder/src/builtins/Step.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 8
+apps/sites-builder/src/components/Header.astro
+  s_2e1b04b64a383c::t_167198bf9727cd 79
+  s_2e1b04b64a383c::t_c427fbfc031923 80-84
+  s_2e1b04b64a383c::t_9187ec32d437fc 22,89,100-101
+apps/docs/sites/analytics-and-scripts.mdx
+  s_2e1b04b64a383c::t_73c0657cf78b83 37,41-42
+apps/sites-builder/src/builtins/Update.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 11
+apps/docs/sites/components.mdx
+  s_2e1b04b64a383c::t_57ba149c378e5a 49-82
+packages/sites-core/src/utils/source-files.ts
+  s_2e1b04b64a383c::t_b00b01f84ce775 2,4,7-12,18-21,23,25-27
+  s_2e1b04b64a383c::t_9966031eec63d6 1,3,5-6,13-17,22,24,28-29
+packages/sites-compiler/tests/validate.test.ts
+  s_2e1b04b64a383c::t_28b40c4f8ad4b7 29,31-47
+  s_2e1b04b64a383c::t_afa91595a115fd 2,6-9,30
+apps/sites-builder/compiler/prepare.ts
+  s_2e1b04b64a383c::t_746bdc800176b7 9
+  s_2e1b04b64a383c::t_c427fbfc031923 85-86,88
+apps/sites-builder/src/components/BlogPost.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 47,59,84
+apps/sites-builder/src/builtins/Frame.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 8
+apps/sites-builder/src/components/Footer.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 15
+apps/sites-builder/compiler/collect.ts
+  s_2e1b04b64a383c::t_c427fbfc031923 5
+  s_2e1b04b64a383c::t_1809ebc221ff51 7-10,16-17,35-40,70-71,110-111
+apps/sites-builder/src/pages/404.astro
+  s_2e1b04b64a383c::t_cab53b2f296e8b 25
+apps/sites-builder/src/pages/author/[author].astro
+  s_2e1b04b64a383c::t_cab53b2f296e8b 45
+apps/sites-builder/src/components/Toc.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 13
+apps/sites-builder/src/builtins/Callout.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 15
+apps/sites-builder/src/components/AreaHero.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 23,36
+  s_2e1b04b64a383c::t_cab53b2f296e8b 35
+apps/sites-builder/src/builtins/Accordion.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 9
+packages/sites-core/src/constants/sites.ts
+  s_2e1b04b64a383c::t_9966031eec63d6 93
+apps/sites-builder/src/builtins/AccordionGroup.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 1
+apps/docs/sites/repository.mdx
+  s_2e1b04b64a383c::t_57ba149c378e5a 17,72-73
+  s_2e1b04b64a383c::t_73c0657cf78b83 18,74-97
+packages/sites-core/tests/integrations.test.ts
+  s_2e1b04b64a383c::t_1809ebc221ff51 131,136,139-140,146-147
+apps/sites-builder/src/builtins/Tab.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 8
+apps/sites-builder/src/builtins/CodeGroup.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 1
+apps/sites-builder/src/components/Banner.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 12
+apps/sites-builder/src/builtins/Steps.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 1
+packages/sites-core/src/utils/custom-scripts.ts
+  s_2e1b04b64a383c::t_b00b01f84ce775 4,7-12,14-17,20-21,25
+apps/sites-builder/src/builtins/Tabs.astro
+  s_2e1b04b64a383c::t_9221c980bfa650 5
+apps/sites-builder/src/components/PostPagination.astro
+  s_2e1b04b64a383c::t_9187ec32d437fc 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "576df001488edbb0a9d0901ba31fe9c2c7155d22",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
