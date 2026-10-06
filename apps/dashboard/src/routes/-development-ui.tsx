@@ -37,6 +37,9 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
   const GeoFirstScan = lazyPage(
     () => import("@/app/design-system/geo-first-scan/page.dev")
   );
+  const EngineSwitcher = lazyPage(
+    () => import("@/app/design-system/engine-switcher/page.dev")
+  );
   const GeoGaps = lazyPage(
     () => import("@/app/design-system/geo-gaps/page.dev")
   );
@@ -112,6 +115,12 @@ export function createDevelopmentUiRoutes(parent: AnyRoute) {
         path: "geo-first-scan",
         preload: GeoFirstScan.preload,
         component: () => <GeoFirstScan />,
+      }),
+      createUiRoute({
+        parent: preview,
+        path: "engine-switcher",
+        preload: EngineSwitcher.preload,
+        component: () => <EngineSwitcher />,
       }),
       createUiRoute({
         parent: preview,

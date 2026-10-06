@@ -1849,3 +1849,8 @@ export interface PromptTranslationTextProps {
   onEdit: () => void;
   onReset: () => void;
 }
+
+export interface EngineMenuDemoProps extends PromptEngineSwitcherProps {
+  className?: string;
+  showCounter?: boolean;
+}
