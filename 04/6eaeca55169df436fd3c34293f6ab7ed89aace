@@ -1,0 +1,2187 @@
+apps/dashboard/src/components/geo/persona-profile-editor.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/sites/editor/site-editor-file-picker.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 9
+.github/workflows/production-deploy.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 25-26,33-76,85
+apps/dashboard/src/components/confetti.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/lib/after-response.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-27
+apps/dashboard/src/components/geo/writer/write-brand-select.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/lib/orpc/utils/analytics-errors.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/google-search-console/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,17-20,28,33,41,51,62,147,204,219-248,250-267,299-318,330-337
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/granola/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,26
+.github/workflows/react-doctor.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30
+apps/dashboard/src/components/dashboard/nav-mode-primary-action.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,22
+apps/api/src/errors/brand-identities.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-7
+apps/dashboard/src/lib/auth/client.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-7,41,68,80-85,87-96,99-111
+apps/dashboard/src/app/(dashboard)/[slug]/geo/personas/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-8,18,23,169,215,220,223
+apps/dashboard/src/components/sites/site-overview-status.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 7
+apps/dashboard/src/lib/auth/security-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22,45,229,253,282,308,377,413
+apps/dashboard/src/components/geo/competitor-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/geo/scan-answer-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/lib/hooks/use-active-project.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24,26-30,35,42-46
+apps/dashboard/src/components/automation/triggers/trigger-row-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/app/(dashboard)/[slug]/geo/write/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,19,31-35,37
+apps/dashboard/src/components/geo/geo-scan-schedule.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27
+apps/dashboard/src/components/dashboard/dashboard-agent-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,9
+apps/dashboard/src/app/api/integrations/mcp/oauth/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,28-33,46,54,60-61,69-73,97-100,104-117,137-146,158
+apps/dashboard/src/components/content/editors/linkedin-editor.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/geo/writer/page-gate.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,21
+apps/dashboard/src/lib/hooks/use-settings-nav-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/onboarding/billing-gate.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+packages/ui/src/types/data-table.ts
+  s_2e1b04b64a383c::t_67b212dcb551e7 142-146,153,155-156,158,160,162,167-182,190,194-342
+apps/dashboard/src/components/dashboard/home-feedback-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-82
+apps/dashboard/src/app/api/demo/sandbox/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/integrations/store-integrations-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,16
+apps/dashboard/src/components/sites/site-visitors-card.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 7,11
+  s_2e1b04b64a383c::t_a2e525accb3322 8
+apps/dashboard/src/components/dashboard/brand-topbar-identity-selector.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27,31
+apps/dashboard/src/components/geo/sentiment-themes-empty.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/geo/traffic-empty.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/app/onboarding/workspace/workspace-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,22,25,39,47,111-112,117-119,127,162,164,174-175,180,381-385,435,437,605-606
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-assets-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,9
+apps/dashboard/src/components/ai/chat-tool-block/tool-output-images/index.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-8
+apps/dashboard/src/components/integrations/edit-linear-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/components/integrations/framer-setup-guide-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,19
+apps/dashboard/src/lib/auth/short-lived-cookie.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-6,13,21,30,34-36
+apps/dashboard/src/lib/databuddy.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,21,27,59,67,70,92,99,101,123,130,132
+apps/dashboard/src/lib/onboarding-agent.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,207-209
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,84,93,888,1553-1555
+apps/dashboard/src/lib/auth/route-handler.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-26,28-36,38-42,44-45
+apps/dashboard/src/components/geo/shelf/shelf-ticket-assignee-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/sites/site-build-log-filter.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 6
+apps/dashboard/src/routes/sites.vercel-dns.ts
+  s_2e1b04b64a383c::t_33271c499d21a5 1-18
+apps/dashboard/src/app/api/social-accounts/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,12,34,46,67,96,104,129,133,143
+apps/dashboard/src/components/chat/chat-suggestions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/integrations/mcp-authentication-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/components/evilcharts/ui/echarts-tooltip.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-5,326-327,330-331,334
+apps/dashboard/src/app/onboarding/visibility/visibility-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,14,17,35,186-187,332,361
+apps/dashboard/src/components/sites/editor/site-editor-conflict-banner.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/components/settings/panes/credits-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,18,24,26
+apps/dashboard/src/app/auth/initiate/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,6,8
+apps/dashboard/src/components/sites/editor/site-publish-change.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 14
+apps/dashboard/src/components/geo/answer-sentiment.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/settings/settings-modal.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8,17,19-32,58-59
+apps/dashboard/src/components/chat/chat-queue.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-11,27-28,62-119
+apps/dashboard/src/components/content/content-chat-activity-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42,52,208-216,257-271
+apps/dashboard/src/components/iris/iris-pause-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/automation/events/event-type-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,16-19
+apps/dashboard/src/components/content/collections-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,13-17,20,26,28,36,70,153-176,178,183-190,193-200,204,338-341,349,353-361
+apps/dashboard/src/lib/hooks/use-geo-db.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22,25,34,200-207,326-327
+apps/dashboard/src/components/sites/site-preview-row-menu.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 17
+apps/dashboard/src/components/geo/shelf/shelf-table-context-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/components/billing/zdr-consent-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/comments/comment-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30
+apps/dashboard/src/components/icons/x-verified-gold-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/lib/orpc/routers/organization.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-72
+apps/dashboard/src/lib/hooks/use-content-detail-chat.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 33,44,54,107-108,113,179-187,217-227,325-327,565,580-587,605-614,657-661,708-709,724,727-731,734,804,815,842,858
+apps/dashboard/src/lib/orpc/routers/feedback.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 68
+apps/dashboard/src/components/agent-feedback/feedback-detail-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,7-11,27,45,58,185
+apps/dashboard/src/components/toast-message.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/sites/site-preview-delete-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5
+apps/dashboard/src/components/geo/share-of-voice-brand-tag.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/app/(dashboard)/[slug]/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8,14,18,131,151-155
+apps/dashboard/src/app/api/internal/geo/sequence-run/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,7,73
+apps/dashboard/src/components/analytics/account-filter.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,36,39-40,45-46,71
+apps/ai-traffic-ingest/src/http.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,23-24,26,45-48
+apps/dashboard/src/lib/auth/actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-5,10,15,19,27,29-31,48,50,70-84,86-87,89-91,94-99,102-110,113-115,117-137,139-141,143,163
+apps/dashboard/src/components/automation/events/event-trigger-rules-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-identity-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/billing/credit-activity.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8,13,73-82,104,110,117,124,128-136
+apps/dashboard/src/components/automation/schedules/create-schedule-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 61
+apps/dashboard/src/components/agent-feedback/feedback-badges.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/content/editor/plugins/floating-toolbar-plugin.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/components/analytics/analytics-shell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6,31-34,36,94-97
+apps/dashboard/src/components/members/invitation-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,28,34,205-209,211-214
+.github/workflows/blog.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/lib/auth/action-messages.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/prompt-receipt-history.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,7,10-12,24,32-36,44-48,51-56,60-66,68-85,87-110,112,114-115,118-129,133-137,144-189,191-192,195-212
+apps/dashboard/src/app/rpc/[[...rest]]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,14,16,31,43,84
+apps/dashboard/src/components/dashboard/nav-recent-content-item.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,26,30,139-150,153,155-158
+apps/dashboard/src/components/geo/prompt-receipt-analysis.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-5,11-14,16,20,40,47,50-51,57,59-68,88-115,119,121-136,144,146-158,166-172,174-192,194-228,232,243-244,252,281,283-287,297-298,300-307
+apps/dashboard/src/components/geo/sentiment-distribution-bar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/sites/site-deployments-table.tsx
+  s_2e1b04b64a383c::t_d8fe16c7500019 4-7,228
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 9,23
+  s_2e1b04b64a383c::t_9946f452b6e919 244-253
+apps/dashboard/src/components/ai/linkedin-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 26
+apps/dashboard/src/components/dashboard/nav-lock-hint.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-5,7,10,33,35,62,68,74
+apps/dashboard/src/components/motion/checkbox.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/sites/site-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 22
+apps/dashboard/src/components/sites/site-create-starter.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 9
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/references-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/geo/daily-trend-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/integrations/github/github-publishing-path-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/analytics/analytics-nav.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6-7
+apps/dashboard/src/components/geo/mention-trend-agents.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18
+apps/api/src/types/brand-identities.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,40
+apps/dashboard/src/components/chat/chat-skill-tag-chips.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6
+apps/dashboard/src/components/geo/scan-model-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21
+apps/api/src/lib/internal-dashboard.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/components/comments/comment-edit-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-log-source-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/navigation.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-66
+apps/dashboard/src/lib/hooks/use-brand-color-role-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/analytics/leaderboard-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-8,15-18,27,46,315
+apps/dashboard/src/components/dashboard/nav-brand-identity.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/app/api/internal/geo/writer-plan/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,69
+apps/dashboard/src/components/dashboard/content-activity-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21
+apps/dashboard/src/components/integrations/add-mcp-server-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 32,34
+apps/dashboard/src/lib/auth/route-handler.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5-11,13-21,23-26,29-43,47-48,50-51,53-57,60-64,66-70,72-82,85-86,88-90,92-94
+apps/dashboard/src/lib/hooks/use-brief-status-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+.gitignore
+  s_2e1b04b64a383c::t_a5ebb762b4b197 65-66
+apps/dashboard/src/lib/hooks/use-nav-brand-identity.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/sites/pages/site-analytics-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+  s_2e1b04b64a383c::t_799f738e3f3b6b 35
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+  s_2e1b04b64a383c::t_e2f84a9561953d 33
+apps/dashboard/Dockerfile
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19-20,33-34,38
+apps/dashboard/src/components/charts/chart-download-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/demo/demo-customize-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/components/settings/panes/notifications-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,10,145-146
+apps/dashboard/src/components/geo/share-of-voice-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,29,306,308-309,312
+apps/dashboard/src/lib/hooks/use-log-status-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/routes/sites.domain-connect.$token.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13-14
+  s_2e1b04b64a383c::t_33271c499d21a5 1-12,15-19
+apps/dashboard/src/components/sites/editor/site-editor-files-error.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+apps/dashboard/Dockerfile.dockerignore
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19-20
+apps/dashboard/src/components/integrations/mcp-integration-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,12
+apps/dashboard/src/app/sites/vercel-dns/route.ts
+  s_2e1b04b64a383c::t_97567cb8a77eff 25-26
+apps/dashboard/src/lib/hooks/use-mcp-connection-toast.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/app/(dashboard)/[slug]/geo/personas/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,17,22-23
+apps/dashboard/src/lib/onboarding/skip.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-8,13,23,26,31,66
+apps/dashboard/src/components/sites/site-new-file-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 14
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42
+apps/dashboard/src/lib/email/send.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,25-32,35-58,61-84,87-95,103-115,118-126,129-141,144-154,159-175,177-186,189-213,216-252
+apps/dashboard/src/components/design-system/sections/confirm-dialog-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-105
+apps/dashboard/src/components/agent-feedback/feedback-setup-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,26,44
+apps/dashboard/src/components/demo/demo-banner.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,10,55,89-98
+apps/dashboard/src/lib/organizations/action-messages.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/webhooks/create-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/api/src/routes/chats.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 192-193
+apps/dashboard/src/components/chat/chat-quote.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28
+apps/dashboard/src/lib/auth/auth-flow.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19,56-61
+apps/dashboard/src/lib/hooks/use-plan.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,40-61
+apps/dashboard/src/lib/hooks/use-format-relative.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/i18n/use-logo-stack-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/design-system/sections/split-modal-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-348
+apps/dashboard/src/components/geo/competitor-detail-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22-25,33,242-267
+apps/dashboard/src/components/sites/editor/site-code-editor.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13
+apps/dashboard/src/lib/auth/return-to.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-25,38
+apps/dashboard/src/lib/orpc/routers/user.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,12,31,34-35,223-225,228-230,233-236,353-355,358-360,363-366,373-375
+apps/dashboard/src/components/geo/geo-engine-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,28,31,429-432,439-440,442-447,454-455
+apps/dashboard/src/components/geo/share-of-voice-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9-13,15,208
+apps/dashboard/src/components/automation/events/ignore-commit-patterns-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/components/automation/sources-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/geo/prompt-add-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28,36,91-95,139-143,222-224,311
+apps/dashboard/src/constants/chart-tooltip.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2
+apps/dashboard/src/app/onboarding/workspace/actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-53,56,74,90-92,114,116-119,123-147,230,232,252-259,275-282,285-295,299-305,311,322,324,335-342,352,355,410,414,429,447,510,524,528,532,554-558
+apps/dashboard/src/lib/hooks/use-geo-writer.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/integrations/integrations-back-link.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,8,10,14,17
+apps/dashboard/src/components/geo/journey-detail-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13-15,25,223
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 184,238,240,244-249,484-485,487-504,506-557,559-561,564,566,569-639,642,645,647-648,651-657,659-663,665-672,678-687,689-693,695-698,700-830,832-889,891-944,946-997,999-1090,1092-1162,1164-1169,1171-1180,1183-1209,1213,1215-1220,1222-1246,1249-1313,1315-1366,1369-1528,1530-1546,1548-1628,1630-1634,1636-1640,1642-1660,1662-1741,1743-1745,1747-1748,1750-1807,1809-1848,1850-1905,1907-1912,1915-1918,1920-1921,1924,1926,1928-1929,1931-1936,1938-1945,1947-1994
+apps/dashboard/src/components/evilcharts/charts/echarts-bar-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,69,1052-1054,1078,1085,1099,1127
+apps/dashboard/src/components/geo/prompt-keyword-textarea.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/components/geo/traffic-domain-select.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 11
+apps/dashboard/src/components/comments/discussion.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12-13,36-43,153
+apps/dashboard/src/components/content/content-skeleton-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,13,42
+apps/dashboard/src/components/geo/directions/direction-delta.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/geo/content-gaps-refresh.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,49-51
+apps/dashboard/src/lib/hooks/use-geo-personas.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/auth/pixel-blast-background.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/geo/project-brand-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/billing/credit-summary-cards.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/api/src/middleware/observability.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5,15-45
+apps/dashboard/src/lib/hooks/use-site-deployments.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+apps/dashboard/src/lib/hooks/use-heard-about-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,53
+apps/dashboard/src/components/analytics/impressions-share-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-6,8
+apps/dashboard/src/app/api/demo/enter/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,28,32-34
+apps/dashboard/src/components/geo/traffic-sources-group.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-8,12-16,91-92,96-98,100,107-122,149
+apps/dashboard/src/components/geo/journey-path-tree.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/shelf/shelf-ticket-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18
+apps/dashboard/src/hooks/use-github-settings.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,17
+apps/dashboard/src/components/geo/agent-readiness/readiness-score-gauge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/sites/editor/site-file-tree.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 14
+apps/dashboard/src/components/content/content-detail-chat-shell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,16,19
+apps/api/src/routes/legacy-redirects.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,10,13-15,38-40,64-66
+apps/dashboard/src/lib/orpc/routers/chat.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-7,17-22,28-246
+apps/dashboard/src/lib/auth/membership-upsert.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,164
+apps/dashboard/src/components/automation/schedules/schedule-frequency-tabs.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6,19,21,25,28
+apps/dashboard/src/components/agent-feedback/feedback-setup.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,12-16,31-37,59-76,94,99-113,128-129,131-132
+apps/dashboard/src/lib/orpc/router.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,18,37,48
+apps/dashboard/src/components/content/content-detail-loaded-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,18,21
+apps/dashboard/src/components/empty-state-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,60-61,76-97
+apps/dashboard/src/components/billing/plan-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/components/geo/geo-prompt-answer-thread.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/geo/journey-paths-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8-11,13,97
+apps/dashboard/src/routes/api.cron.sites.ts
+  s_2e1b04b64a383c::t_33271c499d21a5 1-18
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7,43,58
+apps/dashboard/src/components/logs/log-retention-hint.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/geo/geo-answer-mention-components.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23
+apps/dashboard/src/lib/hooks/use-brand-guidelines.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19
+apps/dashboard/src/components/dashboard/nav-site.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 11
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 15
+apps/api/src/programs/geo.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 76-87,89
+apps/dashboard/src/components/geo/writer/write-sitemap-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,13
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,74,963
+apps/dashboard/src/components/integrations/github/github-create-branch-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/onboarding/account-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21,26
+apps/dashboard/src/components/members/invite-member-popover.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18
+apps/dashboard/src/components/integrations/github/github-app-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/onboarding/email-prefs.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/geo/skeleton-parts.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/design-system/design-system-section-header.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,13-15,18-27,31,33-35
+apps/dashboard/src/lib/auth/banned.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-5,20,37,50-52
+apps/dashboard/src/components/geo/lazy-geo-prompt-answer-thread.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-site-choice-options.ts
+  s_2e1b04b64a383c::t_a2e525accb3322 1
+apps/dashboard/src/app/design-system/webhooks/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-6
+apps/dashboard/src/components/geo/persona-add-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,18,57
+apps/dashboard/src/lib/analytics/posthog-server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,24-25,27-30
+apps/dashboard/src/routes/api.cron.sites-cleanup.ts
+  s_2e1b04b64a383c::t_33271c499d21a5 1-18
+apps/dashboard/src/components/settings/attachments/attachments-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9-10,26,190,215-226,233-236
+apps/dashboard/src/components/onboarding/skip-onboarding-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-23
+apps/dashboard/src/lib/sitemap/context-dev.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/prompt-tags-action-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/integrations/add-google-search-console-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/lib/onboarding/company-logo-cache.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,67-70
+apps/dashboard/src/app/(dashboard)/[slug]/geo/directions/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,10,27-31,41
+apps/dashboard/src/components/not-found-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,7-8
+apps/dashboard/src/components/command-palette/command-palette.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 39,54
+apps/dashboard/src/lib/i18n/catalog.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-4,6-55,57,60-62,64-81,83-89
+apps/dashboard/src/lib/orpc/handler-plugins.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-5,7-17
+apps/dashboard/src/app/sites/domain-connect/[token]/route.ts
+  s_2e1b04b64a383c::t_97567cb8a77eff 18,35,37
+apps/dashboard/src/components/settings/panes/appearance-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/lib/auth/workos.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-11,13,15-19,21-26,28-37,39-47,49-59
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-typography-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,17,85-90,105-112,130-142
+apps/dashboard/src/components/auth/auth-legal-notice.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-5
+apps/dashboard/src/components/dashboard/nav-mode-switch.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/geo/prompt-scan-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/billing/usage-alert-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/content/publish-content-to-github-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/hooks/use-github-install-callbacks.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/app/api/workflows/gsc-sync/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,32-34
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/sitemap-selector.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/geo/geo-page-gate.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,7-11,15
+apps/dashboard/src/components/sites/pages/site-deployments-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5,22
+  s_2e1b04b64a383c::t_799f738e3f3b6b 119,124
+apps/dashboard/src/components/geo/writer/writer-execute.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,14,139,194
+apps/dashboard/src/lib/orpc/client.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,21-24
+apps/dashboard/src/components/iris/iris-artifact-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,4-5
+apps/dashboard/src/lib/integrations/github/github-publish-failure-state.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,80,82,109,111
+apps/dashboard/src/components/geo/shelf/shelf-board.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27-35,37,251-267,274,385,413-416,567-568
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 7
+apps/dashboard/src/lib/hooks/use-output-type-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/web-visitors-section.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13-16,19
+apps/dashboard/src/lib/framework/after-response.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,5,7-14,16
+apps/dashboard/src/lib/auth/workos.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5-68,70,72-74
+apps/dashboard/src/components/design-system/sections/instrument-module-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-213
+apps/dashboard/src/components/sites/editor/site-editor-header-actions.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 32,41,52,79,179-181,184-192,201-212,214-219,222,335,339,396,403,407-429,431,568-578,580-584,586-589,592-603,617
+apps/dashboard/src/constants/analytics-events.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/sites/site-create-section-fields.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/components/content/create/step-formats.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21
+apps/dashboard/src/components/content/editors/index.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-5
+apps/dashboard/src/lib/sitemap/brand-identity.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/search-gap-detail.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,17,179,224
+apps/dashboard/src/components/agent-feedback/feedback-activity-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-109
+apps/dashboard/src/routes/-dashboard-ui.tsx
+  s_2e1b04b64a383c::t_6a0c6ba6b50878 38-523
+apps/dashboard/src/components/integrations/integration-connect-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,11
+apps/dashboard/src/lib/auth/sign-out-action.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-14
+apps/dashboard/src/lib/hooks/use-brand-sitemaps.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12-29,36-41,50,61-65,68,76,94-98,102,110
+apps/dashboard/src/components/dashboard/onboarding-agent-banner.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19,24,73,86
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31-33,53,57,59,67,81,85,98-109,118,125,150-156,247-252,329,371-374,376-384,562,576
+apps/dashboard/src/app/(dashboard)/[slug]/skills/[name]/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,15
+apps/dashboard/src/app/api/healthcheck/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/content/create-content-button-group.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/geo/traffic-hero.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,18
+apps/dashboard/src/components/integrations/add-granola-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/dashboard/src/components/api-keys/tracking-token-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,7,54-64
+apps/dashboard/src/components/geo/directions/direction-pages-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-10,70
+apps/dashboard/src/components/dashboard/chat-history-nav-loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,4-5,7-15
+apps/dashboard/src/lib/auth/session-cookie.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,6-12
+apps/dashboard/src/components/geo/sentiment-breakdown-placeholder.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,8
+apps/dashboard/src/components/geo/competitor-engine-matrix-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-253
+apps/dashboard/src/lib/demo/ui-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,64
+apps/dashboard/src/components/geo/prompt-tags-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/routes/-ui-route.tsx
+  s_2e1b04b64a383c::t_6a0c6ba6b50878 65-66
+apps/dashboard/src/lib/hooks/use-save-preview-access.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+apps/dashboard/src/components/chat/message-author-avatar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/components/automation/events/event-trigger-repositories-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/geo/shelf/shelf-member-avatar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/app/api/workflows/schedule/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,33-35
+apps/dashboard/src/components/automation/events/event-trigger-event-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/onboarding/competitor-search-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/settings/panes/logs-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,13,16,41-47,79,128,153-154
+apps/dashboard/src/components/sites/site-import-list.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 25
+apps/dashboard/src/lib/hooks/use-site-domain-check.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+apps/dashboard/src/app/api/command-palette/navigate/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 210,223,230,240,256,318,325,338
+apps/dashboard/src/components/geo/traffic-provider-legend.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/dashboard/org-selector.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 44,46,56,61-62,102,106-111,182,185-187
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-reference-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 29,39,482,568
+apps/dashboard/src/components/automation/events-skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,10
+apps/dashboard/src/components/settings/panes/webhooks-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/lib/onboarding/notification-settings.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-6,31-34
+apps/dashboard/src/components/sites/site-domain-add-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 26
+apps/dashboard/src/lib/hooks/use-ai-traffic-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/sites/editor/site-editor-pane.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 6
+apps/dashboard/src/components/geo/engine-rate-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15-22,25,50-58,60,69-72,74-75,83-93,155,157-162,168-171,173-176,183,211,285,288
+apps/dashboard/src/lib/sites/dns-callback.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 10
+  s_2e1b04b64a383c::t_97567cb8a77eff 19,49,59,78
+apps/dashboard/src/lib/orpc/utils/social-connect.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,8,53
+apps/dashboard/src/components/sites/site-integration-row.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 17
+apps/api/src/lib/chat/direct-stream.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,128-136,194,196-200,208-212
+apps/dashboard/src/components/geo/twemoji.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3
+apps/dashboard/src/components/sites/site-preview-access-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 12
+apps/dashboard/src/components/billing/credit-balance-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/lib/hooks/use-day-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/dashboard/chat-history-nav.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15-16,43,50,56,58,94-96,99-102,263-265,403-410,412-429,433-438,440,445-448
+apps/dashboard/src/components/dashboard/dashboard-shell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17,36,43,223,234-237
+apps/dashboard/src/lib/geo/rescan.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,21,24
+apps/dashboard/src/app/(dashboard)/[slug]/automation/events/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-9,22,529
+apps/dashboard/src/lib/auth/request-cache.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-12,14-18,20
+apps/dashboard/src/app/api/integrations/google-search-console/authorize/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,17,25,42,56,67,74,96,98-99
+apps/dashboard/src/app/api/autumn/[...all]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,21-22,47-48
+apps/dashboard/src/lib/hooks/use-engine-family-sheet.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/design-system/sections/page-heading-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,5,8,10-11,13-21,23-34,36-76
+apps/dashboard/src/components/integrations/add-linear-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/components/charts/echarts-plot-frame.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6,15,18-24,63
+apps/dashboard/src/app/api/uploads/content-images/[...key]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,12,14-15
+apps/dashboard/src/components/billing/usage-breakdown-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18
+apps/dashboard/src/components/billing/credit-usage-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/linkedin-post.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 32,36
+apps/dashboard/src/components/sites/site-deployment-summary.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 11
+apps/dashboard/src/components/geo/sentiment-engine-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-7,11-15,24,28-31,37-89
+apps/dashboard/src/components/content/editor/plugins/image-upload-plugin.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 26
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 9-10,14
+  s_2e1b04b64a383c::t_799f738e3f3b6b 90,112
+  s_2e1b04b64a383c::t_a2e525accb3322 11
+apps/dashboard/src/lib/actions/run-action.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/calendar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/components/skills/skill-delete-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,17-26
+apps/dashboard/src/components/integrations/mcp-dialog-footer.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-geo-shelf.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/content/create-content-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/lib/analytics/programs.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,538
+apps/dashboard/src/components/geo/competitor-logo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,11
+apps/dashboard/src/components/delete-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/chat/attachment-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,17,19,57
+apps/dashboard/src/app/(auth)/forgot-password/page.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,10
+apps/dashboard/src/components/geo/personas-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15-17,25,242
+apps/dashboard/src/components/agent-feedback/feedback-setup-nudge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5-6,8-14,16-20,22,24-47,49-52
+apps/dashboard/src/components/onboarding/split-layout-context.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-7
+apps/dashboard/src/lib/hooks/use-linear-connection-toast.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/geo/competitor-modal.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,13
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/framer/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8,10,47-51
+apps/dashboard/src/lib/organizations/actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20-21,23,44,69,71,78,270,286,307-320,439,450,514-521,529,569,597,607,643-645,714,750,851,865-867,952-954,987,1093,1121
+apps/dashboard/src/components/framework/link.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,4-5,7-36,38-39
+apps/dashboard/AGENTS.md
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-5,7-9,11-13,15-16
+apps/dashboard/src/app/(dashboard)/[slug]/settings/billing/success/page.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,14,18
+apps/dashboard/src/components/geo/ai-traffic-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18-22,25
+apps/dashboard/src/components/sites/site-deployment-failure.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 8
+apps/dashboard/src/components/demo/demo-api-callout.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/evilcharts/charts/echarts-pie-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,49,803
+apps/dashboard/src/components/skills/skill-detail-header.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,15
+apps/dashboard/src/app/sites/preview-access/route.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 18-20
+  s_2e1b04b64a383c::t_97567cb8a77eff 15-17
+apps/dashboard/public/robots.txt
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-7
+apps/dashboard/src/components/geo/geo-prompt-answer-skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5,37
+apps/dashboard/src/lib/auth/organization.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,163,180
+apps/dashboard/src/components/agent-feedback/feedback-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-44
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-tokens-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/sites/pages/site-integrations-page.tsx
+  s_2e1b04b64a383c::t_e2f84a9561953d 50
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5,14,17
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-screenshot-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/dashboard/src/components/automation/onboarding-suggestions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/components/geo/conversation-results-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/api/src/utils/geo-visibility.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/lib/auth/mfa.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-post-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/sites/site-create-form.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3,13
+apps/dashboard/src/components/geo/language-performance-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16-17,19-22,30,88,260,272-275,282-283
+apps/dashboard/src/lib/orpc/routers/api-keys.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30
+apps/dashboard/src/components/geo/persona-activity-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-7,10
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/brand-identity-workspace.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/auth/signup-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,23,141,311,314
+apps/dashboard/src/components/content/content-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,22,24-25,249-255,257-260
+apps/dashboard/src/components/onboarding/org-logo-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/settings/panes/dev-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,13
+apps/dashboard/src/lib/hooks/use-write-section-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/onboarding/submit-workspace-form.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,58,72-81,90,101-105,169-178
+apps/dashboard/src/components/geo/geo-language-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,25,48,87
+apps/dashboard/src/components/sites/pages/site-editor-page.tsx
+  s_2e1b04b64a383c::t_e2f84a9561953d 189
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3,9
+  s_2e1b04b64a383c::t_799f738e3f3b6b 197
+apps/dashboard/src/app/connect/linkedin/page.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,16,19,24,232
+apps/dashboard/src/components/sites/site-publish-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 18
+apps/dashboard/src/constants/outbound-webhooks.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/settings/settings-modal-nav.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/lib/hooks/use-content-chat-input.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,18,53,120,123-136
+AGENTS.md
+  s_2e1b04b64a383c::t_a5ebb762b4b197 43,78-79,81-83,89-91,93
+apps/dashboard/src/components/billing/invoices-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-8,74
+apps/dashboard/src/constants/content-collections.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9-10
+apps/dashboard/src/components/sites/site-previews-table.tsx
+  s_2e1b04b64a383c::t_d8fe16c7500019 255
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13-15,22,35
+apps/dashboard/src/lib/i18n/locale-cookie.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-5,15,23,33
+apps/dashboard/src/components/content/content-plan-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30
+apps/dashboard/src/components/auth/login-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/chat/chat-composer-attachments.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10-11,18,20,134
+apps/dashboard/src/components/ai/chat-activity-group.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,19
+apps/dashboard/src/lib/organizations/workos-sync.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/geo/shelf/shelf-detail-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/twitter-post.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 29
+.github/workflows/pr-triage.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7,10,18-21,53-61,68,83-86,95-98,104
+apps/dashboard/src/app/(dashboard)/[slug]/geo/gaps/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,27,44,49
+apps/dashboard/src/components/demo/demo-playground-provider.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,15
+apps/dashboard/src/lib/orpc/routers/usage-alerts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 35,49,78,81-82,110-114,258-261,266,275,282,290,294,352,713,1164,1189,1196,1201-1206,1875-1886,1894,2402,2420,2707,2775-2815
+apps/dashboard/src/app/api/organizations/[organizationId]/agent/[...eve]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,37,46,48,62,71,80,90,106,108,117,137,163,171-172,181,185,189,214,223,225,234,251,263
+apps/dashboard/src/components/geo/gap-detail-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/content/collection-menu-items.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23,25
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/voice-selector.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 39
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-resource-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/content/create/step-activity.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/route-error.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,6-7,23-27
+apps/dashboard/src/components/settings/panes/billing-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,12,22-23,79-82
+apps/dashboard/src/components/content/editor/nodes/kibo-code-block-component.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,24,199-206
+apps/dashboard/src/components/demo/demo-start.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6,68
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/columns.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,14
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,79,1275
+apps/dashboard/src/components/geo/shelf/shelf-placement-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/lib/orpc/utils/github-publish-error.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,80,98,101-104
+apps/dashboard/src/lib/auth/mfa-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-24,41,111,180,287
+apps/dashboard/src/components/logs/log-technical-details.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/shelf/shelf-placements-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-9,18,167
+apps/dashboard/src/app/onboarding/pricing-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,12,14,16-17,19,21-25,35-37,50,54,62,91-102,212,214-223,225-233,235-239,241-245,247-281
+apps/dashboard/src/components/members/member-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,35,41,317-324,326-329
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21,67,73,84,411-426,537-538
+apps/dashboard/nitro.config.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,4-8,10-15,17-42,44-64,66-76
+apps/dashboard/src/components/settings/language-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/sites/site-new-file-name-field.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 10
+apps/dashboard/src/components/geo/conversation-replay-thread.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-font-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/dashboard/src/app/design-system/break-ui/page.dev.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-4
+apps/dashboard/src/lib/orpc/routers/iris.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,33,92,108,301,307,317
+apps/dashboard/src/components/automation/schedules/schedule-day-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,13,46,48,52,58
+apps/dashboard/src/components/settings/panes/general-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27,44
+apps/dashboard/src/components/agent-feedback/feedback-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14-19,131,153-154,169,176-178
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6,9,21,23-26,34,41
+apps/dashboard/src/components/integrations/github/github-repository-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/app/api/integrations/linear/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,16,30,48,58,65,85-86,100,112,123,144,154,176-179,181,205,231,237,245
+apps/dashboard/src/components/providers/organization-provider.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/webhooks/attempt-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/geo/initial-project.server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/constants/nav.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 91,104,193
+apps/dashboard/src/lib/orpc/utils/localize-server-failure.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4
+apps/dashboard/src/lib/auth/middleware.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-22,24-43,46-50,54-61,63,66-83
+apps/dashboard/src/lib/sitemap/api-client.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,18-23
+apps/dashboard/src/components/sites/site-create-step-list.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+apps/dashboard/src/components/geo/mention-trend-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10-13,15
+apps/dashboard/src/components/content/content-detail-not-found.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5
+apps/dashboard/src/components/geo/gap-answer-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/integrations/github/github-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/sites/site-overview-preview.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+apps/dashboard/src/components/billing/geo-upgrade-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,17,29,65-66,192-196,212,216,218,220
+apps/dashboard/src/lib/hooks/use-locale-preference.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8
+apps/dashboard/src/components/dashboard/sidebar-onboarding.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42,67,74,102,118,139,143,162,181-184,186,194,209,227,275,282,287-289,364,380-381,561,621,631
+apps/dashboard/src/components/integrations/legacy/add-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31,38
+apps/dashboard/src/components/chat/chat-input-context-row.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,12
+apps/dashboard/src/lib/orpc/routers/skills.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19
+apps/api/src/lib/chat/run.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 38,60-61
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-colors-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/geo/geo-rate-sparkline.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/geo/prompt-badges.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,17
+apps/dashboard/src/app/onboarding/competitors/competitors-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,38,303-304
+apps/dashboard/src/lib/analytics/workflow-lifecycle.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 95,161
+apps/dashboard/src/components/geo/traffic-source-group-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+packages/ui/src/components/data-table/body.tsx
+  s_2e1b04b64a383c::t_67b212dcb551e7 86-193,217,222,227,232-233,235,238-242,244-245,247,252,259,261,264,269,271,282,286-298
+apps/dashboard/src/components/geo/prompt-translations-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,8,12,102,142,221-222,258
+apps/dashboard/src/lib/orpc/routers/upload.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/api/src/routes/event-triggers.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 41-42,69-70
+apps/dashboard/src/components/geo/journey-overview-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-15,111
+apps/dashboard/src/components/geo/project-create-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/geo/competitors-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-9,13,229
+apps/dashboard/src/app/auth/social/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,14,43,123-125,128,131-132,141,161,171,181,185,188
+apps/dashboard/src/components/integrations/manage-store-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,27,30,424-433
+apps/dashboard/src/lib/iris/access.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/hooks/use-schedule-summary.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/demo/demo-missions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/geo/visitor-tracking-toggle.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5
+apps/dashboard/src/components/onboarding/competitor-search.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6,55
+apps/dashboard/src/components/ai/chat-tool-block.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 40,50
+apps/dashboard/src/components/sites/site-rollback-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5
+apps/agent/agent/lib/utils/model.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 88
+apps/api/src/utils/brand-identities.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 74-76
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/[chatId]/mirror-stream/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,28,36,44,48
+apps/dashboard/src/app/api/integrations/linear/authorize/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,7,11,28,42,51,75,77-78
+apps/dashboard/src/app/api/webhooks/[provider]/[organizationId]/[integrationId]/[repositoryId]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,64,148
+apps/dashboard/src/constants/geo-prompts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/scripts/vercel-build.sh
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8
+apps/dashboard/src/lib/orpc/routers/user-account.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-59
+apps/dashboard/README.md
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-12
+apps/dashboard/src/lib/email/daily-summary.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,115,288,290,308-310
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/page-client.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+  s_2e1b04b64a383c::t_a2e525accb3322 4
+apps/dashboard/src/app/(dashboard)/[slug]/geo/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/geo/scan-preflight-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/automation/triggers/trigger-status-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/geo/directions/direction-instrument.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,133,138
+apps/dashboard/src/components/demo/demo-api-console.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,16
+apps/dashboard/src/app/(dashboard)/[slug]/skills/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,33
+apps/dashboard/src/components/content/add-reference-control.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-12,43
+apps/dashboard/src/components/geo/journeys-tab.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-8,11,18,29-30,42,59
+apps/dashboard/src/lib/hooks/use-site-starter.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 4
+apps/dashboard/src/components/settings/organization-details-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,19,24,220
+apps/dashboard/src/components/dashboard/dashboard-client-wrapper.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,27-30,99,110,126
+apps/dashboard/src/components/content/editors/image-editor.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6
+apps/dashboard/src/components/geo/persona-prompts.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/geo/directions/direction-cockpit.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-7,10-13,15,214,274,276-277,282
+apps/dashboard/src/components/geo/shelf/shelf-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8-10,20,22,115-121,127-130,132,231-232,281-283,324,329-330
+apps/dashboard/src/components/integrations/github/connect-github-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5,21,27
+apps/dashboard/src/lib/auth/social-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-10,15-17,28,32,40,46,49,55,62,77
+apps/dashboard/src/components/geo/conversations-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16-18,34,43,277,328
+apps/dashboard/src/components/analytics/connect-accounts-buttons.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,16,58
+apps/dashboard/src/lib/hooks/use-language-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/demo/demo-request-feed.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,11
+apps/dashboard/src/components/integrations/github/github-directory-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30,34,162,208
+apps/dashboard/src/components/integrations/github/select-repositories-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,5-9,11-17,20,22-44,46,48,50-55
+apps/dashboard/src/lib/hooks/use-schedule-frequency-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/content/github-publish-dialog-footer.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,9
+apps/dashboard/src/lib/geo-shelf/preview.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,143
+apps/dashboard/src/components/geo/agent-readiness/readiness-scan-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,17-25
+apps/dashboard/src/components/billing/usage-alerts-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-10,16,22,146-190,192-258
+apps/dashboard/src/app/(dashboard)/[slug]/geo/competitors/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,10,35,39-49,162-171
+apps/dashboard/src/components/chat-input.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,33,48,234-250,252-264
+apps/api/src/routes/posts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 514-515
+apps/dashboard/src/components/analytics/posting-performance-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8,13
+apps/dashboard/src/components/geo/geo-answer-search.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23
+apps/dashboard/src/components/geo/journey-count-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/lib/hooks/use-chat-model-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/content/create-content-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 34,46
+apps/dashboard/src/components/ai/chat-tool-block/document-diff.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/design-system/design-system-composer-demo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-133
+apps/dashboard/src/components/billing/zdr-addon-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,14
+apps/dashboard/src/components/settings/attachments/attachment-columns.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/skills/skill-editor-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/chat/chat-context-connect-suggestions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,13
+apps/api/tests/feedback-program.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-7
+apps/dashboard/src/lib/hooks/use-social-connect-callback-toasts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/sites/editor/site-editor-empty-state.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/lib/analytics/posthog-lazy.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/lib/auth/authkit-metadata.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19
+apps/dashboard/src/lib/integrations/github/publish-saved-content.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,40,473-474,476-477,494-498,502,510-514,534-535,537-538
+apps/api/src/utils/analytics.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,143-144,155
+apps/dashboard/src/components/error-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/analytics/account-modal.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,12
+apps/dashboard/src/lib/hooks/use-posts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/lib/realtime/comments.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,16
+apps/dashboard/src/components/providers/geo-live-provider.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,17,24,118-120
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/modal-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,24
+apps/dashboard/src/components/dashboard/theme-toggle.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/app/api/workflows/iris/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,36-38
+apps/dashboard/src/components/ai/blog-changelog-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+packages/geo-core/src/constants/geo.ts
+  s_2e1b04b64a383c::t_ea86bcf79d4df3 330,347-352,369-373,488-489
+apps/dashboard/src/components/ai/chat-tool-block/tool-draft-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6
+apps/dashboard/src/components/content/post-social-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,32
+apps/dashboard/src/components/sites/pages/site-domains-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5,9,18
+  s_2e1b04b64a383c::t_e2f84a9561953d 123
+  s_2e1b04b64a383c::t_799f738e3f3b6b 128
+apps/dashboard/src/components/geo/geo-stat-delta.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/app/(dashboard)/[slug]/sites/skeleton.tsx
+  s_2e1b04b64a383c::t_c28aef269237d6 3-4,18
+  s_2e1b04b64a383c::t_a2e525accb3322 6
+apps/dashboard/src/components/content/post-social-intent-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/analytics/account-series-chart-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-7
+apps/dashboard/src/components/geo/writer/write-competitor-choices.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/iris/iris-stats.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/settings/delete-account-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27,32,35,317
+apps/dashboard/src/components/integrations/github/github-webhook-settings.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/comments/comment-replies.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/lib/demo/session.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,29
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,10
+apps/dashboard/src/components/integrations/github/github-repositories-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/api-keys/permission-selector.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/components/analytics/followers-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-6,12
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/[chatId]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,9,21,32-40,43
+apps/dashboard/src/components/geo/agent-readiness/readiness-score-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,15
+apps/dashboard/src/components/iris/iris-run-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,12
+apps/dashboard/src/components/members/columns.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10-11,14,63
+apps/dashboard/src/components/geo/share-of-voice-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-7
+apps/api/src/utils/agent-credits.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,16-17
+apps/dashboard/src/components/integrations/github/github-branch-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,12-13,52
+apps/dashboard/src/components/ai/blog-preview-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,4
+apps/dashboard/src/components/design-system/sections/icon-tabs-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-6,9-22,24,26-27,29-34,36-79
+apps/dashboard/src/app/api/integrations/github/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,11,17,35-41,49,62,69,89,191,203,225
+apps/dashboard/src/lib/auth/webhook-sync.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5-33,35-81,83-140,142-144,146-153,155-196,198-200
+apps/dashboard/src/app/(dashboard)/[slug]/content/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5,30
+apps/dashboard/src/components/geo/competitor-choices-search.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/sites/site-new-file-folder-tabs.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 4
+apps/dashboard/src/components/sites/site-overview-hero.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 12,15
+  s_2e1b04b64a383c::t_a2e525accb3322 13
+apps/dashboard/src/components/geo/prompt-copy-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8,12,22,28-31,41-43,46,49,63,75
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/raycast/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8,10,47-51
+apps/dashboard/src/components/dashboard/feedback-popover.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,14
+apps/dashboard/src/components/geo/engine-family-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,20-23,31,420,431
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13-14,16-19,28,44,618-652,812,861
+apps/dashboard/src/components/geo/traffic-source-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18-20,29,245,270
+apps/dashboard/src/components/design-system/design-system-category.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5-6,9,12,15-32
+apps/dashboard/src/components/sites/site-preview-build-toggle.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/chat/[chatId]/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,29,43,52,55
+apps/dashboard/src/app/api/integrations/slack/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,16,26,37,54,64,71,91,103,115,126,147-149,151,164-168,178,197,222,228,236
+apps/dashboard/src/components/settings/connected-account-row.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/app/(dashboard)/[slug]/geo/shelf-space/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7,12,68-71,106-109,120,136
+apps/dashboard/src/lib/auth/sync.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,12,22-23,277-285
+apps/dashboard/src/components/geo/scan-activity-status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,12-15,35,38,45-47,65,67
+apps/api/src/types/env.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,6-7,30
+apps/dashboard/src/components/design-system/design-system-frame.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6-7,9-11,22-23,25-39,41-42
+.github/workflows/code-quality.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17,76-81,93
+apps/dashboard/src/app/api/session/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,7,18,20-24
+apps/dashboard/src/lib/auth/http.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3
+apps/dashboard/src/constants/cookies.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8-10
+apps/dashboard/src/components/geo/shelf/shelf-view-toggle.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,52
+apps/dashboard/src/components/geo/shelf/shelf-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,8-11,34,38-110,117,120,125,146,157
+apps/dashboard/src/lib/orpc/routers/brand.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,50,70,101,111,316-317,373-382,388,455-457,631,634,972,1154-1155,1260,1283,1291-1292,1336,1672,1680-1681
+apps/dashboard/src/lib/orpc/routers/geo.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21,77,292,303-306,318,511,546-547,579,593-594,608,634,659,910-917,921-922,981,985,1022-1028,2073,2140,2163,2185,2205-2206,2309
+apps/dashboard/src/components/auth/auth-brand-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8-9,23-31,54
+apps/dashboard/src/app/(dashboard)/[slug]/content/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,15-18,20
+apps/dashboard/src/lib/analytics/request-headers.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/mention-rate-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21-24,30,40,154
+apps/dashboard/src/lib/orpc/routers/comments.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/providers/autumn-org-provider.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/app/design-system/scan-filters/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-10,117-119,134,136,138-143,145
+apps/dashboard/src/lib/analytics/record-post.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,43
+apps/dashboard/src/components/sites/site-build-logs.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 15
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-status-line.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,20
+apps/dashboard/src/app/(dashboard)/[slug]/iris/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/integrations/raycast-setup-guide-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,19
+apps/dashboard/src/lib/hooks/use-site-editor-files.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 4
+apps/dashboard/src/lib/hooks/use-format-metric.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/dashboard/app-sidebar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,19,21,24
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 15
+apps/dashboard/src/lib/content/image-export.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,27
+apps/dashboard/src/components/sites/site-build-log-rows.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 6
+apps/dashboard/src/components/ai/twitter-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 26
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/[chatId]/relay-approval/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,26,31,41,49,54,62,80,86
+apps/dashboard/src/lib/hooks/use-analytics-range.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/components.json
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/orpc/routers/integrations.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 79,143,619-621,1405-1415
+apps/dashboard/src/components/geo/geo-setup-empty.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/content/post-social-error-notice.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5
+apps/dashboard/src/components/content/editors/twitter-editor.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/dashboard/sidebar-nav-link.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8-10,19
+apps/dashboard/src/components/ai/chat-activity-status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/settings/connected-accounts-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,41
+apps/dashboard/src/components/content/editor/nodes/content-video-player.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/dashboard/create-org-modal.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,22
+apps/dashboard/src/components/integrations/github/github-branch-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,10,14,110
+apps/dashboard/src/components/geo/purpose-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/geo/directions/direction-engine-bars.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-7,9,70
+apps/dashboard/src/components/design-system/design-system-topbar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-111
+apps/dashboard/src/components/skills/skill-unsaved-changes-toast.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/app/design-system/geo-gaps/page.dev.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-7,97
+apps/dashboard/src/components/content/create/step-brand-identities.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/geo/shelf/shelf-add-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 32
+apps/dashboard/src/routes/sites.preview-access.ts
+  s_2e1b04b64a383c::t_33271c499d21a5 1-18
+apps/dashboard/src/lib/geo/configure.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 24
+apps/dashboard/src/app/api/cron/brew-contacts/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,4,6-18,20-26,29-33
+apps/dashboard/src/components/billing/credit-topup-modal.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/geo/journey-path-summary.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/design-system/sections/copy-button-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-167
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23,61-62,65-77,87,89,94-97,143-154
+apps/dashboard/src/components/integrations/add-repository-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23
+packages/geo-core/src/ingest/sites.ts
+  s_2e1b04b64a383c::t_ea86bcf79d4df3 6,56
+apps/dashboard/src/components/sites/site-topbar-title.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 10
+  s_2e1b04b64a383c::t_a2e525accb3322 8
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,9,119
+apps/dashboard/src/components/integrations/github/github-repository-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21
+apps/dashboard/src/components/geo/geo-csv-import-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 38,42,348
+apps/dashboard/src/constants/billing.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 89-95
+apps/dashboard/src/lib/geo/initial-project.server.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16-18
+apps/dashboard/src/components/geo/geo-range-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/lib/sitemap/storage.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/webhooks/delivery-summary.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/hooks/use-social-analytics.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/api/src/index.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 281-282,287-288,293-294,299-300,305-306,373-374
+apps/dashboard/src/components/design-system/design-system-search.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-17,19-24,26-30,32-35,37-42,45,51-60,63-70,72-90,92-98,100-115
+apps/dashboard/src/lib/agent-feedback/activity.server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-4,6-9,11-44
+apps/dashboard/src/components/geo/sentiment-breakdown.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-5,85,105
+apps/dashboard/src/components/dashboard/nav-user.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23,30
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16-20,39,68-71,258-272,282,311,315-320,345,349-354,502,521,610-633
+apps/dashboard/src/lib/analytics/flag-client.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 34
+apps/dashboard/src/components/integrations/connect-store-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/brand-identity-tabs.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/geo/agent-readiness/readiness-checklist.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,12,14-15,27,40-41,48,50,53-54
+apps/dashboard/src/components/sites/editor/site-editor-pane-body.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 6
+apps/dashboard/src/app/(dashboard)/[slug]/automation/events/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5
+apps/dashboard/src/components/sites/site-settings-save-bar.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+apps/dashboard/src/components/integrations/mcp-server-details-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/sites/site-layout.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 8
+  s_2e1b04b64a383c::t_a2e525accb3322 4
+apps/dashboard/src/app/design-system/icon-preview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17,100
+apps/dashboard/src/components/geo/competitor-edit-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 39
+apps/dashboard/src/components/geo/citations-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13-16,23,343
+apps/dashboard/src/components/content/github-publish-result-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/app/(dashboard)/[slug]/geo/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6,9,58
+apps/dashboard/src/components/automation/events/event-trigger-dialog-footer.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/lib/framework/runtime.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-38
+apps/dashboard/src/components/integrations/github/account-select.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/lib/hooks/use-billing-customer.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8-14,16-31
+apps/dashboard/src/lib/hooks/use-event-trigger-form.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/settings/two-factor-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/lib/hooks/use-blog-post-subtype-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/design-system/write-dialog-demo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-12,23-29,39-50
+apps/dashboard/src/components/settings/marketing-emails-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-67
+apps/dashboard/src/lib/onboarding/continue-after-workspace.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-4,6-24
+apps/dashboard/src/app/(dashboard)/[slug]/geo/write/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,8,13,27,136-149,154
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-asset-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28
+apps/dashboard/src/components/geo/writer/brief-history.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-16,19,45,64-70,121-123,184
+apps/dashboard/src/components/design-system/code-research-sandbox-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,65
+apps/dashboard/src/components/dashboard/sidebar-toggle.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,14-17
+apps/dashboard/src/app/api/organizations/[organizationId]/dashboard-agent/chat/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-5,8-22
+apps/dashboard/src/components/onboarding/progress.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3,31,47,56
+apps/dashboard/src/lib/hooks/use-api-key-expiration-items.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/geo/geo-answer-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/iris/iris-readiness-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/integrations/github/github-publishing-settings.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/lib/hooks/use-geo-gaps-page.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,20
+apps/dashboard/src/components/comments/discussion-composer.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8
+apps/dashboard/src/components/geo/package-manager-icon.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/hooks/use-active-section.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-30,33-35,37,39-43,45-54
+apps/dashboard/src/components/content/diff-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/lib/hooks/use-discussion.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/sites/site-deployment-menu.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 22
+  s_2e1b04b64a383c::t_a2e525accb3322 19
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_2e1b04b64a383c::t_e2f84a9561953d 109
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 4,11
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-color-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/dashboard/src/lib/orpc/link-plugins.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-50
+apps/dashboard/src/components/iris/iris-run-status-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/logs/log-details-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,17
+apps/api/src/routes/schedules.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 34-36,59-61,84-86,110-112
+apps/dashboard/src/app/api/integrations/google-search-console/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,24,30,42,53,60,79-80,91,100,112,128,139,168-169,202-203,213,221,228,234,240-241
+apps/dashboard/src/components/geo/directions/direction-leaderboard.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-15,94,202
+apps/dashboard/src/components/geo/agent-readiness/readiness-scanning-notice.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6,34
+apps/dashboard/src/lib/hooks/use-geo-scan-history.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/company-profile-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/geo/geo-setup-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/iris/iris-unavailable-state.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/settings/organizations-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,26
+apps/dashboard/src/components/geo/search-console-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42,45,172,208,291
+apps/dashboard/src/lib/hooks/use-geo-scan-interval-noun.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/sites/sites-table.tsx
+  s_2e1b04b64a383c::t_d8fe16c7500019 5-8,146
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 9,14
+apps/dashboard/src/components/onboarding/split-layout.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5-6,9,13-17,24-25,27
+apps/dashboard/src/components/geo/geo-answer-mention-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/chat/assistant-metadata-hover.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18
+apps/api/src/programs/brand-identities.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15,57,239,365,383-387,487
+apps/dashboard/src/components/geo/prompt-suggestion-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,15,34
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/[chatId]/relay/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,30,35,45,53,58,66,92
+apps/dashboard/src/components/iris/iris-signals-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/api/src/programs/website-url.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,5,7-23
+apps/dashboard/knip.json
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-9,21-22,26
+apps/dashboard/src/lib/hooks/use-brand-analysis.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/app/auth/external/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,10-13,16,23,42,45
+apps/dashboard/src/components/webhooks/status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/constants/geo-competitors.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-14
+apps/dashboard/src/lib/orpc/utils/errors.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 68-73
+apps/dashboard/src/components/geo/prompt-mentioned-instead-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-5,7-10,12-13,16-17,19-32,35-37,39-41,43,46-51,53-85
+apps/dashboard/src/lib/demo/api-key.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,65-70
+apps/dashboard/src/components/iris/iris-running-state.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/sites/site-delete-dialog.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 16,20
+apps/dashboard/src/lib/hooks/use-gsc-connection-toast.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/agent-feedback/feedback-empty.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,7,47-48,50-51
+apps/dashboard/src/components/geo/prompt-suggestions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7-10,12,60,75,231-244,247-249,264,285,289,296-363,389-390,408-413,436,458
+apps/agent/agent/lib/hooks/usage.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,178-181,243-247
+apps/dashboard/src/components/analytics/account-detail-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10-13,21,48,67-68,73,155,157,159-168,174-203,205-208,211-311,369
+apps/dashboard/src/components/dashboard/content-topbar-title.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-geo-shelf-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/instrumentation.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5-7,9,19-31,36-42,44-47,51-69
+apps/dashboard/src/components/auth/testimonial-carousel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,9
+apps/dashboard/src/components/dashboard/sidebar-project-switcher.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27,38,44,54,71,75-76,83-84,90-94,100,104,115
+apps/dashboard/src/lib/auth/password-actions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-36,54,76,110,157,191,243
+apps/dashboard/src/components/icons/x-verified-government-badge.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+.env.example
+  s_2e1b04b64a383c::t_a5ebb762b4b197 77-79,196
+apps/ai-traffic-ingest/README.md
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27-32
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,16,19,37,192-195,216-219
+apps/dashboard/src/components/dashboard/restore-sidebar-home.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,17,25-30
+apps/dashboard/src/lib/hooks/use-geo-prompt-intent-label.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/components/geo/geo-ingest-setup.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,15-19,30-31,34-40,81-83,87-98,111,116-127,138-142
+apps/dashboard/src/components/comments/comment-item-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/settings/login-details-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/lib/hooks/use-active-generations.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,12
+apps/dashboard/src/components/analytics/top-posts-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8,15-18,24,165
+apps/dashboard/src/lib/hooks/use-available-table-height.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6-9,21
+apps/dashboard/src/components/dashboard/sidebar-resize-handle.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/constants/geo-shelf.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 55
+apps/dashboard/src/components/content/create-post-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31,41
+apps/dashboard/src/hooks/use-github-repository-migration.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/sites/sites-unavailable-state.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 5
+apps/dashboard/src/components/framework/image.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-7,9-12,14-54,57-86
+apps/dashboard/src/lib/hooks/use-right-panel-state.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/content/create/event-row.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/app/(dashboard)/[slug]/geo/components/geo-tabs.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6,12,93
+apps/dashboard/src/components/settings/chat-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-3,13,148
+apps/dashboard/src/lib/email/brew-contacts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-198
+apps/dashboard/src/components/dashboard/nav-main.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/app/(dashboard)/[slug]/automation/schedules/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/[chatId]/stream/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31,41,53,62
+apps/dashboard/src/components/content/create/format-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/providers/geo-scan-controls-provider.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/workflows/github-mention.test.ts
+  s_2e1b04b64a383c::t_1740827153d949 31,57,59-60
+apps/dashboard/src/components/integrations/mcp-connection-test-status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,23
+apps/dashboard/src/components/integrations/integration-card-dither.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/lib/orpc/routers/automation.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,35,392,688,702,870
+apps/dashboard/src/components/ai/chat-tool-block/types.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/sites/pages/site-previews-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 11,33
+  s_2e1b04b64a383c::t_e2f84a9561953d 145
+  s_2e1b04b64a383c::t_799f738e3f3b6b 165
+apps/dashboard/src/app/api/geo/ingest/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6
+apps/dashboard/src/components/chat/chat-skill-slash-menu.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/geo/shelf/shelf-presence-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/onboarding/dismissal.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/lib/chat/history.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,7,14-27,36,43
+apps/dashboard/src/components/auth/banned-notice.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/constants/email/brew-contacts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-10
+apps/dashboard/src/components/geo/sentiment-themes.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,60
+apps/dashboard/src/components/sites/site-preview-password-field.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 16
+apps/dashboard/src/components/settings/privacy-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/geo/persona-table-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 27
+apps/dashboard/src/components/geo/project-logo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,10
+apps/dashboard/src/components/integrations/github/github-repository-row.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/members/invitation-columns.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-8,10,34,36,73-89
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/chat/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28,46,64,68,72,97,118-122,129-130,133,146,171,185,211-212,326,336,381,390,400-401
+apps/dashboard/src/components/integrations/github/github-repository-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/linear/[id]/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,20
+apps/dashboard/src/components/comments/comment-item.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/lib/analytics/access.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/settings/panes/members-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,14,28,95,103,112,124
+apps/dashboard/src/components/sites/site-relative-time.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+apps/dashboard/src/components/content/editor/content-editor-media-insert.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/routes/-sites-ui.tsx
+  s_2e1b04b64a383c::t_eafc5fab9ebb74 92-99,105
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 66-68
+  s_2e1b04b64a383c::t_6a0c6ba6b50878 1,3-5,7,9-65,69-74,76-88,90-91,101-104,108-124,126-137,139-158
+apps/dashboard/src/lib/hooks/use-analytics-range-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/hooks/use-brand-identity-analysis.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/lib/hooks/use-breadcrumb-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/sites/site-create-deploy.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 11
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 14
+apps/dashboard/src/lib/agent-feedback/snippet.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,43-44
+apps/dashboard/src/components/geo/shelf/shelf-title-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-7,37
+apps/dashboard/src/lib/auth/org-selection.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/brand-identity-header.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7,46-49,63
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/dashboard/nav-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/lib/auth/session.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,9-12
+apps/dashboard/src/lib/hooks/use-create-site.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 3
+apps/dashboard/src/app/design-system/break-ui/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-354
+apps/dashboard/src/components/integrations/wehook-setup-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,20,26,29,31,34-38,40,42,191,218
+apps/dashboard/src/components/webhooks/deliveries.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-6,8-16,24-25,40,75-77,79,84,88-149,151-166
+apps/dashboard/src/components/webhooks/payload.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/constants/workflows.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-70
+apps/dashboard/src/lib/i18n/use-auth-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/geo/ai-traffic-log-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13-16,29
+apps/dashboard/src/lib/brand-analysis.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,13-14,108,145
+apps/dashboard/src/components/geo/journey-stat-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-6,13-15,47,82
+apps/dashboard/src/components/onboarding/competitor-brand-logo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6,8
+apps/dashboard/src/components/geo/journey-group-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16-18,27,162,177,334
+apps/dashboard/src/lib/analytics/effect.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,19-21,57-59
+apps/dashboard/src/lib/hooks/use-privacy-preferences.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/geo/traffic-purpose-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/integrations/github/github-account-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-5,7-142,146-200
+apps/dashboard/src/lib/i18n/server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,7,10-11,15-21,24-28,30-36
+apps/dashboard/src/lib/hooks/use-collections.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,19,38
+apps/dashboard/src/constants/framework.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-6,9-18,20-21,23,25,27-82
+apps/dashboard/src/components/integrations/edit-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/sitemap-pages-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7-9,18,177,179-185
+apps/dashboard/src/components/geo/geo-settings-form.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,25,132-135
+apps/dashboard/.gitignore
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8
+apps/dashboard/src/components/integrations/add-repository-button.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/automation/events/event-trigger-format-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/content/editor/plugins/component-picker-plugin.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 41
+apps/dashboard/src/components/integrations/integration-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 26,31
+apps/dashboard/src/lib/hooks/use-wizard-step-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/ai/chat-subagent-block.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/integrations/mcp-server-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,25,192-198,201-203
+apps/dashboard/src/components/automation/schedules/schedule-quick-start.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/app/(dashboard)/[slug]/skills/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3
+apps/dashboard/src/lib/orpc/routers/agent-feedback.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,11,82-91
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/reference-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 44
+apps/dashboard/src/components/geo/directions/prompt-results-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-8,10,106
+apps/dashboard/src/components/billing/credit-topup-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/linear/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,27,37
+apps/dashboard/src/lib/hooks/use-connected-accounts.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/add-sitemap-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/app/(dashboard)/[slug]/feedback/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,9,13,18-19,22,24,28-30
+apps/dashboard/src/app/(dashboard)/[slug]/sites/page-client.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 6
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5,11
+apps/dashboard/src/app/(dashboard)/[slug]/geo/agent-readiness/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,9,126-129,148-151
+apps/dashboard/src/components/integrations/github/github-webhook-rotation-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/api/src/utils/logging.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-4
+apps/dashboard/src/components/geo/writer/write-prompt-input.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/data-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5-6,10-11,15,22,29,31-36,59,64-72,74
+apps/dashboard/src/components/dashboard/nav-recent-content.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,14
+apps/dashboard/src/components/geo/project-brand-selection.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/lib/hooks/use-geo-prompt-source-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/iris/iris-start-state.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6
+apps/dashboard/src/lib/hooks/use-usage-feature-name.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/analytics/summary-stats.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,6
+apps/dashboard/src/components/settings/delete-account.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/content/editor/plugins/table-action-menu-plugin.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31
+apps/dashboard/src/components/content/lazy-create-content-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/dashboard/studio-free-home.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6-11,13-14,17-22,24-30,33-35,37,40-42,44-47
+apps/dashboard/src/lib/hooks/use-content-detail-document.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/sites/site-overview-domains.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 3
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 5
+apps/dashboard/src/components/affected-triggers-warning.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/dashboard/sidebar-upgrade.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,20
+apps/dashboard/src/components/sites/site-domain-proxy.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13
+apps/dashboard/src/lib/orpc/routers/notifications.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-7,10,13-18,105-108,111-123
+apps/dashboard/src/lib/auth/server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,5-7,14,25-26,144,150-153,156-159,167,187,190,192-195,222
+apps/api/src/routes/agent-chats.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 117-118,123,149-158,168-170,211-213,215-216,222,293-295,297-298,304
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/analysis-stepper.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,14,22
+apps/dashboard/src/components/content/content-detail-source-metadata.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 15
+apps/dashboard/src/lib/geo-shelf/service.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-6,25,96,104,336-346,395,421
+apps/dashboard/src/app/(auth-public)/reset-password/page.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,13,15
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/sitemap-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,19,178-185,192-195
+apps/dashboard/src/components/integrations/store-integration-logo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5
+apps/dashboard/src/components/settings/organization-membership-action-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5,16,30-39
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/github/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/(dashboard)/[slug]/collection/[id]/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8,16
+apps/dashboard/src/lib/orpc/utils/geo-errors.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,4,14,19,25,27,31,35,37-38,40,42-44,48,50-51,53,55-56,58-60,62,64,66,71,74,76,78,83-84,88,90,92,97,100,104-105
+apps/dashboard/src/components/demo/demo-playground-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/app/(dashboard)/[slug]/analytics/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,7
+apps/dashboard/src/components/sites/editor/site-editor-file-bar.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 22
+apps/dashboard/src/app/api/webhooks/workos/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,4,24,61
+apps/dashboard/src/components/chat/user-message-actions.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,26,30-31,43-44,76-78,206-207,214
+apps/dashboard/src/components/sites/site-preview-access-modes.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 8
+apps/dashboard/src/components/automation/brand-voice-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/geo/shelf/shelf-toolbar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,46,48,50,54,67-70,104-107
+apps/dashboard/src/components/geo/writer/write-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19-22,34,50
+apps/dashboard/src/constants/framework-image.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-50
+apps/dashboard/src/components/automation/suggestion-details-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/app/(dashboard)/[slug]/geo/prompts/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-15,18,22,56,127,129-132,155,157-160,172,184-186,188-190,193-195,197-199,202-206,209-211,221-226,233-234
+apps/dashboard/src/components/webhooks/workspace.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11-15,17,74-78,80-84,91-92,119-121,123
+apps/dashboard/src/components/billing/usage-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 18,56
+apps/dashboard/src/components/chat/slack-relay-footer-notice.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/content/recommendations-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/agent/agent/lib/utils/slack-input-request.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,179-182
+apps/dashboard/src/components/chat/chat-image-attachment.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7
+apps/dashboard/src/components/sites/site-preview-frame.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 4
+apps/dashboard/src/components/auth/auth-wordmark.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/app/api/integrations/slack/authorize/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,10,15,32,46,55,60,86,88-89
+apps/dashboard/src/components/geo/code-snippet.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 180
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5-7,9,13-19,25-30,32-33,64-152,158,178-179,181-183,185-190,193-194
+apps/dashboard/src/lib/email/marketing-consent.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-2,4-9,12-17,19-34,36-40,43-54,56-87,89-90,92-99,101,103-121,124-127,129-133,135-143,145-162,165-176
+apps/dashboard/src/lib/orpc/routers/github.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42
+apps/api/tests/oauth-consent.test.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4
+packages/ui/src/components/data-table/root.tsx
+  s_2e1b04b64a383c::t_67b212dcb551e7 5-30,32-35,42,44-45,60,62,65,69,81-82,87-89,100,112,125-139,141-147,161,174-175,177-178,188-190,192,194-198,204,210,212-213,215,221,223,249,252,254-257,262-264,267-275,278,280
+apps/dashboard/src/components/content/group/rename-collection-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/components/analytics/platform-tabs.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/components/geo/shelf/shelf-due-date-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11
+apps/dashboard/src/app/api/uploads/content-image/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,23,25-26,38,48,54,71
+apps/dashboard/src/components/webhooks/columns.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-3
+apps/dashboard/src/components/dashboard/deferred-sidebar-status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/components/geo/project-delete-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,8,63-67,69-72
+apps/dashboard/src/lib/demo/sandbox.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,57,258,328,331,393,557,559,633,647,681
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/sites/site-confirm-dialog.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 11
+apps/dashboard/public/design.md
+  s_2e1b04b64a383c::t_a5ebb762b4b197 42,71-72,207
+apps/dashboard/src/components/skills/skill-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,7
+apps/dashboard/src/components/sites/site-domain-dns.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 8
+apps/dashboard/src/lib/i18n/ui-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,7-8,14,29-34,55-58,70-74
+apps/dashboard/src/components/geo/what-changed-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28-31,33-36,43,59,376-403,458,473-479
+apps/dashboard/src/lib/hooks/use-github-repositories-db.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/lib/framework/follow-server-redirect.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-11,13,15-27,29
+apps/dashboard/src/components/integrations/legacy/edit-token-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 21
+apps/dashboard/src/lib/nav/org-root-redirect.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,6,12,40
+apps/dashboard/src/components/geo/conversation-builder-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20,22,126-134,136-145
+apps/dashboard/src/components/settings/dev-sample-data-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,7,9,19,82-100
+apps/dashboard/src/lib/hooks/use-mcp-server-form.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/i18n/date-fns.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,9,22-25,31
+apps/dashboard/src/lib/hooks/use-onboarding.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 28-31,139-148,152-155,157-163,165-174
+apps/dashboard/src/components/auth/social-enrollment-resume.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6,40
+apps/dashboard/src/components/dashboard/lazy-content-activity-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4-5
+apps/dashboard/src/components/geo/directions/direction-report.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/geo/gaps-table.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 30-32,51,57,61,145-149,303,321,414,438,643,1260,1270-1271
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 13,17
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/audience-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/billing/subscription.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9,16,20-29,44-63,99,101,103-123,126-142,156-157,237-238
+apps/dashboard/src/lib/orpc/routers/onboarding.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 23
+apps/dashboard/src/components/sites/site-environment-badge.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 4
+apps/dashboard/src/hooks/use-github-repository-selection.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/dashboard/dashboard-agent-panel.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,29,42-43,67-69,81-84,224-228
+apps/dashboard/src/lib/hooks/use-geo-prompt-translations.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/lib/hooks/use-geo-shelf-sources.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/sites/site-copy-button.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 12
+apps/dashboard/src/app/api/organizations/[organizationId]/chat/[chatId]/stop/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 11,22,32,46,58,78,97,107
+apps/api/src/middleware/subscription.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,36
+apps/dashboard/src/app/(dashboard)/[slug]/geo/gaps/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,17,66,87
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/mcp/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5,12
+apps/dashboard/src/components/geo/prompt-detail-status.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/components/logs/log-event-summary.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/empty-brand-identity-state.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/settings/profile-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12,17,148
+apps/dashboard/src/app/(dashboard)/[slug]/geo/agent-readiness/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,6,41-44
+apps/dashboard/src/components/api-keys/api-key-reveal-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5,8-9,13,44,46-47,49-50
+apps/dashboard/src/components/geo/journeys-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10-18,20,23,143,158
+apps/dashboard/src/components/design-system/design-system-sidebar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-123
+apps/dashboard/src/components/dashboard/nav-utility.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,10
+apps/api/package.json
+  s_2e1b04b64a383c::t_a5ebb762b4b197 36
+apps/dashboard/src/components/integrations/store-integration-card.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/content/github-publish-recovery-alert.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/webhooks/overview.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-6,9-16,20,183-197,219
+apps/dashboard/src/lib/hooks/use-site-preview-links.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 2
+apps/dashboard/src/components/comments/comment-timestamp.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/integrations/add-slack-integration-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/components/content/editors/long-form-editor.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/geo/shelf/shelf-member-select.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/lib/geo-shelf/request-service.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-3,5-13,15-21,23-36,38-41,43-53,55-61,65-75,77,79-124,126-157,159-193
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-token-edit-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 22
+apps/dashboard/src/lib/hooks/use-content-detail-title-slug.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/orpc/routers/brand-sitemaps.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2-7,10-11,14-29,33,36,38-157
+apps/dashboard/src/types/ui-route.ts
+  s_2e1b04b64a383c::t_6a0c6ba6b50878 1-2,4,6-11,13-23,25-29,31-36,38-70,72-75,77-83
+apps/dashboard/src/app/(dashboard)/[slug]/geo/shelf-space/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,6,18-21,23,30
+apps/dashboard/src/components/chat/chat-file-attachment.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,3-5,7-8,10-15,17-19,21-26,28-41
+apps/dashboard/src/app/auth/callback/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,6,12-20
+.github/workflows/knip.yml
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/app/(dashboard)/[slug]/api-keys/page.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 25,27,38-41,83,87,104-105,258-264,274-278,437,794-805,827-851,854-856,887-891,893-894,896,910-912,1086-1089
+apps/dashboard/src/components/content/content-detail-main-document.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/dashboard/nav-geo.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/components/geo/geo-tag-list.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/lib/content/content-publishing-metrics.server.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1
+apps/dashboard/src/lib/hooks/use-brand-form.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 8
+apps/dashboard/src/components/geo/geo-remove-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,30-39
+apps/dashboard/src/lib/auth/workos-mfa.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2
+apps/dashboard/src/app/api/internal/content/sync-github/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1,73
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/guidelines-screenshots-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,9
+apps/dashboard/src/components/dashboard/nav-studio.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/app/api/workflows/social-analytics-sync/route.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 2,33-35
+apps/dashboard/src/app/(dashboard)/[slug]/settings/logs/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3-4,15
+apps/dashboard/src/lib/hooks/use-agent-feedback-labels.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/geo/geo-upgrade-gate.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7,21,33,91
+apps/dashboard/src/components/sites/site-status-dot.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 4
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 31,38,40,62,72,125-126,148,166,183,532,536-541,652-653,655-658,666-688,713-740,743,745,757,877-880,892-895,899-906,916,1109-1112,1116-1117,1121-1123,1157,1217-1221,1427-1430,1451,1546-1549,1618,1625,1734-1740,1759,1761,1763-1764,1792,1870-1874,1896,1898,1919-1929,2075,2226-2227,2229-2231,2384-2395,2752-2754,2799,2801,2807
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/slack/page-client.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10,40,50
+apps/dashboard/src/components/content/create/repo-section.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/geo/writer/write-brand-option.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 17
+apps/dashboard/src/components/sites/editor/site-editor-problems.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 10
+apps/dashboard/src/app/(dashboard)/[slug]/integrations/google-search-console/loading.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 3,5
+apps/dashboard/src/components/integrations/github/repository-multi-select.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14
+apps/dashboard/src/components/dashboard/chat-topbar-title.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13,26,33,45,50,53-62,108,253,299-308,310,315-318
+apps/dashboard/src/components/agent-feedback/feedback-inbox.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-395
+apps/dashboard/src/lib/hooks/use-chat-sessions.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4,12,17,118,135-139,198-199,288-294,321-327,342-344
+apps/dashboard/src/components/content/github-publish-repository-field.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16,19
+apps/dashboard/src/app/(dashboard)/[slug]/content/[id]/skeleton.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 5
+apps/dashboard/src/components/settings/panes/account-pane.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 16
+apps/dashboard/src/app/(dashboard)/[slug]/brand/identity/components/tone-language-fields.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 29
+apps/dashboard/src/components/agent-feedback/feedback-agent-icon.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19
+apps/dashboard/src/components/ai/chat-tool-block/tool-output-chart.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 10
+apps/dashboard/src/components/ai/chat-empty-dither.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 20
+apps/dashboard/src/components/geo/traffic-page-sources-cell.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 14,63-65
+apps/dashboard/src/components/sites/editor/site-editor-status-bar.tsx
+  s_2e1b04b64a383c::t_a2e525accb3322 10
+apps/dashboard/src/components/geo/prompt-receipt-view-switch.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 7
+apps/dashboard/src/constants/design-system-break-ui.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 1-541
+apps/dashboard/src/components/content/editor/nodes/content-image-view.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9
+apps/dashboard/src/components/logs/log-filters.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6-10,20,67-71,81-94,96
+apps/dashboard/src/lib/hooks/use-slack-connection-toast.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 6
+apps/dashboard/src/components/automation/events/create-event-trigger-dialog.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 13
+apps/dashboard/src/components/automation/schedules/schedule-interval-picker.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 9-13,16,64-65,74,77-78,80,94,103,106-107
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 114
+  s_2e1b04b64a383c::t_97567cb8a77eff 159,418
+apps/dashboard/src/components/sites/site-domains-table.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 19-21,35
+  s_2e1b04b64a383c::t_d8fe16c7500019 442
+apps/dashboard/src/components/webhooks/details-sheet.tsx
+  s_2e1b04b64a383c::t_a5ebb762b4b197 12
+apps/dashboard/src/components/sites/site-form-fields.tsx
+  s_2e1b04b64a383c::t_a74e3a0cf78ac3 18
+apps/dashboard/src/constants/auth-routes.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 4
+apps/dashboard/src/lib/hooks/use-chat-composer-attachments.ts
+  s_2e1b04b64a383c::t_a5ebb762b4b197 19,35,266-284,366
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "046eaeca55169df436fd3c34293f6ab7ed89aace",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
