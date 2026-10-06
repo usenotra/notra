@@ -6,6 +6,14 @@ type LogFields = Record<string, unknown>;
 
 function errorFields(error: unknown): LogFields {
   if (!(error instanceof Error)) {
+    // SDK results (Resend, Brew, …) hand back plain { name, message } objects.
+    if (error && typeof error === "object" && "message" in error) {
+      const { name, message } = error as { name?: unknown; message?: unknown };
+      return {
+        ...(typeof name === "string" ? { name } : {}),
+        message: String(message),
+      };
+    }
     return { message: String(error) };
   }
   return {
@@ -50,7 +58,11 @@ export function logError(
     const cause =
       error instanceof Error
         ? error
-        : new Error(error === undefined ? message : String(error));
+        : new Error(
+            error === undefined
+              ? message
+              : String(errorFields(error).message ?? message)
+          );
     requestLogger.error(cause, fields);
     // Keep the caller's description next to the error it explains.
     requestLogger.set({ error: { summary: message } });

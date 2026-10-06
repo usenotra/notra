@@ -42,8 +42,8 @@ export async function enqueueContentEmailDigest({
       if (!appended) {
         logWarn("Redis not configured, skipping delayed content email", {
           workflow: logPrefix,
+          organizationId,
           kind,
-          recipientEmail,
         });
         return;
       }
@@ -66,8 +66,8 @@ export async function enqueueContentEmailDigest({
         await releaseContentEmailDigestWindow(digestKey);
         logWarn("Failed to start delayed content email workflow", {
           workflow: logPrefix,
+          organizationId,
           kind,
-          recipientEmail,
           error: error instanceof Error ? error.message : String(error),
         });
         throw error;
