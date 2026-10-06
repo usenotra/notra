@@ -14,8 +14,6 @@ node_modules
 
 # Testing
 coverage
-apps/ai-traffic-ingest/latency-results.json
-apps/ai-traffic-ingest/latency-service.log
 
 # Turbo
 .turbo

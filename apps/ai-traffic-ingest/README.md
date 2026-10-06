@@ -47,44 +47,7 @@ bun run --filter=ai-traffic-ingest check-types
 The root dev command loads the root `.env`. The default local port is `3101`.
 See `.env.example` in this directory for the service-specific variables.
 
-## Isolated latency harness
-
-`bun run --filter=ai-traffic-ingest bench:latency` runs the built HTTP service
-against a local Postgres fixture and mock Redis REST/Tinybird servers. Set
-`INGEST_BENCH_DATABASE_URL` to a disposable database named `notra_ingest_bench`
-on loopback, without URL query parameters or fragments. The harness refuses other
-database names and remote hosts, disables
-the service's automatic `.env` loading, and passes only synthetic credentials
-to the service. The child HTTP service, mock endpoints and TCP proxy bind to
-`127.0.0.1`, and the harness verifies the child service's reported listener.
-It requires Bun 1.4.0 or newer and `psql` on `PATH`.
-
-```sh
-createdb notra_ingest_bench
-INGEST_BENCH_DATABASE_URL=postgresql://localhost/notra_ingest_bench \
-  bun run --filter=ai-traffic-ingest bench:latency
-```
-
-The run covers human/AI traffic, a concurrent burst, a request after the pool's
-idle timeout, delayed database connections, host cache misses, revoked tokens,
-Redis timeouts/outages, slow Postgres queries and unbuffered Tinybird writes.
-It also reproduces a low median
-with a high p99 using 98% human traffic and 2% tracked traffic. Each scenario
-reports nearest-rank p50/p95/p99, status counts, foreground Redis commands and
-Tinybird writes, plus new database connections through a local TCP proxy;
-deferred analytics commands are excluded from the Redis count.
-Assertions check status codes, the human zero-I/O path, buffering and shutdown
-flushes. The test write window places its next wall-clock boundary about an hour
-ahead so a scheduled flush cannot race the buffering assertions. The Redis
-fixture allows rate-limit requests rather than implementing
-the sliding-window quota, so this is not a quota correctness test.
-
-Results go to `latency-results.json` and service logs to `latency-service.log`
-in the command's working directory. Override these paths with
-`INGEST_BENCH_OUTPUT` and `INGEST_BENCH_LOGS`. Keep both outside Git. The reported
-upstream-delay scenarios are deliberately injected, not evidence that production
-Redis, Postgres or Tinybird experienced those delays. Run in an isolated sandbox
-(for example Daytona), not against a customer database.
+## Connection pooling
 
 The standalone service retains established Postgres connections up to its
 existing pool maximum instead of discarding them after the default 10-second

@@ -17,13 +17,12 @@ export async function startService(
       throw new Error(`Ingest service exited before listening: ${output}`);
     }
     output += decoder.decode(value, { stream: true });
-    const match = output.match(/Listening on port (\d+) \(([^)]+)\)/);
+    const match = output.match(/Listening on port (\d+)/);
     if (match) {
       reader.releaseLock();
       return {
         url: `http://127.0.0.1:${match[1]}`,
         child,
-        hostname: match[2],
         async stop() {
           child.kill("SIGTERM");
           return await child.exited;

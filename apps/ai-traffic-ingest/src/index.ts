@@ -45,7 +45,7 @@ const app = createIngestApp((task) => {
 }, batcher ?? undefined);
 
 const server = Bun.serve({
-  hostname: process.env.GEO_INGEST_HOST ?? "0.0.0.0",
+  hostname: "0.0.0.0",
   port: process.env.PORT ?? INGEST_DEFAULT_PORT,
   maxRequestBodySize: INGEST_MAX_BODY_BYTES,
   idleTimeout: 60,
@@ -56,9 +56,7 @@ const server = Bun.serve({
   },
 });
 
-console.info(
-  `[geo-ingest] Listening on port ${server.port} (${server.hostname})`
-);
+console.info(`[geo-ingest] Listening on port ${server.port}`);
 
 async function drain() {
   const stopped = server.stop();

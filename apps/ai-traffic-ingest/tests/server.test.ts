@@ -8,7 +8,6 @@ let unconfigured: Awaited<ReturnType<typeof startService>>;
 beforeAll(async () => {
   [configured, unconfigured] = await Promise.all([
     startService({
-      GEO_INGEST_HOST: "127.0.0.1",
       DATABASE_URL: "postgres://test:test@127.0.0.1:1/test",
       UPSTASH_REDIS_REST_URL: "http://127.0.0.1:1",
       UPSTASH_REDIS_REST_TOKEN: "test",
@@ -24,11 +23,6 @@ afterAll(async () => {
 });
 
 describe("standalone ingest HTTP service", () => {
-  test("supports loopback binding without changing the production default", () => {
-    expect(configured.hostname).toBe("127.0.0.1");
-    expect(unconfigured.hostname).toBe("0.0.0.0");
-  });
-
   test("rejects missing and invalid tokens before reading the payload", async () => {
     for (const authorization of ["", "Bearer invalid-token"]) {
       const response = await fetch(`${configured.url}/api/geo/ingest`, {

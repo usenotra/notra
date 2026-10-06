@@ -7,8 +7,7 @@
     "build": "NODE_ENV=production bun build src/index.ts --target=bun --outdir=dist",
     "start": "bun dist/index.js",
     "check-types": "tsc --noEmit",
-    "test": "bun run build && bun test tests",
-    "bench:latency": "bun run build && bun --no-env-file scripts/latency.mjs"
+    "test": "bun run build && bun test tests"
   },
   "dependencies": {
     "@notra/ai": "workspace:*",
