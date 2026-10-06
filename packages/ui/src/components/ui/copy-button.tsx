@@ -94,10 +94,12 @@ export function CopyButton({
   ...props
 }: CopyButtonProps) {
   const labels = useUiLabels();
-  const { copied, copy } = useCopyToClipboard({
+  const { copiedText, copy } = useCopyToClipboard({
     timeout,
     onError: onCopyError,
   });
+  // Only the value that actually landed on the clipboard reads as copied.
+  const copied = copiedText === value;
   const hasLabel = children !== undefined && children !== null;
   const swapsLabel = hasLabel && copiedLabel !== undefined;
   const { finishSwap, isSwapping } = useCopiedSwap(copied);

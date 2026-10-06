@@ -12,6 +12,9 @@ export interface UseCopyToClipboardOptions {
 
 export interface UseCopyToClipboardResult {
   copied: boolean;
+  /** The text of the last successful copy while `copied` is true. Compare it
+   with the current value so a changed value doesn't keep showing copied. */
+  copiedText: string | null;
   /** Writes `text` to the clipboard. Resolves `true` once it landed. */
   copy: (text: string) => Promise<boolean>;
 }

@@ -16,7 +16,7 @@ export function useCopyToClipboard({
   timeout = DEFAULT_COPIED_TIMEOUT_MS,
   onError,
 }: UseCopyToClipboardOptions = {}): UseCopyToClipboardResult {
-  const [copied, setCopied] = useState(false);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
@@ -32,7 +32,16 @@ export function useCopyToClipboard({
 
   const copy = useCallback(
     async (text: string) => {
+      // A failed attempt must not keep showing the previous success.
+      const clear = () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+        setCopiedText(null);
+      };
       if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+        clear();
         onErrorRef.current?.("unsupported");
         return false;
       }
@@ -40,16 +49,17 @@ export function useCopyToClipboard({
       try {
         await navigator.clipboard.writeText(text);
       } catch (error) {
+        clear();
         onErrorRef.current?.("failed", error);
         return false;
       }
 
-      setCopied(true);
+      setCopiedText(text);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
       timerRef.current = setTimeout(() => {
-        setCopied(false);
+        setCopiedText(null);
         timerRef.current = null;
       }, timeout);
       return true;
@@ -57,5 +67,5 @@ export function useCopyToClipboard({
     [timeout]
   );
 
-  return { copied, copy };
+  return { copied: copiedText !== null, copiedText, copy };
 }

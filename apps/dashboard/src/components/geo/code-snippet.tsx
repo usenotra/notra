@@ -99,7 +99,10 @@ export function CopyPromptButton({
   className,
 }: CopyPromptButtonProps) {
   const tCommon = useTranslations("common");
-  const { copied, copy } = useCopyToClipboard({ onError: toastCopyError });
+  const { copiedText, copy } = useCopyToClipboard({
+    onError: toastCopyError,
+  });
+  const copied = copiedText === prompt;
   const fade =
     "col-start-1 row-start-1 transition-[opacity,filter,translate,scale] duration-normal ease-emphasized motion-reduce:transition-none";
   const hidden = "opacity-0 blur-[2px]";
