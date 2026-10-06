@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { LinearCtaBanner } from "@/components/integrations/linear/linear-cta-banner";
 import { LinearDemoSection } from "@/components/integrations/linear/linear-demo-section";
 import { LinearFeatureList } from "@/components/integrations/linear/linear-feature-list";
 import { LinearHero } from "@/components/integrations/linear/linear-hero";
 import { LinearToolsSection } from "@/components/integrations/linear/linear-tools-section";
+import { CtaBanner } from "@/components/landing/cta-banner";
+import {
+  LINEAR_CTA_HEADING,
+  LINEAR_CTA_SUBCOPY,
+  LINEAR_SIGNUP_SOURCE,
+} from "@/constants/linear-integration";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -68,7 +73,11 @@ function LinearIntegrationPage() {
         <LinearToolsSection />
       </div>
       <section className="w-full px-6">
-        <LinearCtaBanner />
+        <CtaBanner
+          heading={LINEAR_CTA_HEADING}
+          signupSource={LINEAR_SIGNUP_SOURCE}
+          subcopy={LINEAR_CTA_SUBCOPY}
+        />
       </section>
     </div>
   );

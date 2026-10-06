@@ -1,8 +1,15 @@
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
+import { IntegrationDraftCard } from "@/components/integrations/integration-draft-card";
 import { LinearCycleCard } from "@/components/integrations/linear/linear-cycle-card";
-import { LinearDraftCard } from "@/components/integrations/linear/linear-draft-card";
+import {
+  LINEAR_DRAFT_ACTION_LABEL,
+  LINEAR_DRAFT_BODY,
+  LINEAR_DRAFT_HEADLINE,
+  LINEAR_DRAFT_META,
+  LINEAR_DRAFT_TITLE,
+} from "@/constants/linear-integration";
 
 export function LinearDemoSection() {
   return (
@@ -14,7 +21,13 @@ export function LinearDemoSection() {
         size={28}
         strokeWidth={2.2}
       />
-      <LinearDraftCard />
+      <IntegrationDraftCard
+        actionLabel={LINEAR_DRAFT_ACTION_LABEL}
+        body={LINEAR_DRAFT_BODY}
+        headline={LINEAR_DRAFT_HEADLINE}
+        meta={LINEAR_DRAFT_META}
+        title={LINEAR_DRAFT_TITLE}
+      />
     </div>
   );
 }

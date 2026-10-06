@@ -2,10 +2,7 @@ import { AUTH_SIGNUP_URL } from "@/constants/auth";
 import {
   GITHUB_CONNECT_HREF,
   GITHUB_CONNECT_LABEL,
-  GITHUB_CTA_CONTACT_HREF,
   GITHUB_CTA_HEADING,
-  GITHUB_CTA_PRIMARY_LABEL,
-  GITHUB_CTA_SECONDARY_LABEL,
   GITHUB_CTA_SUBCOPY,
   GITHUB_DRAFT_BODY,
   GITHUB_DRAFT_HEADLINE,
@@ -23,10 +20,7 @@ import {
 import {
   GRANOLA_CONNECT_HREF,
   GRANOLA_CONNECT_LABEL,
-  GRANOLA_CTA_CONTACT_HREF,
   GRANOLA_CTA_HEADING,
-  GRANOLA_CTA_PRIMARY_LABEL,
-  GRANOLA_CTA_SECONDARY_LABEL,
   GRANOLA_CTA_SUBCOPY,
   GRANOLA_DRAFT_BODY,
   GRANOLA_DRAFT_HEADLINE,
@@ -48,12 +42,14 @@ import {
   STATIC_INTEGRATION_PAGE_SLUGS,
 } from "@/constants/integrations";
 import {
+  CTA_BANNER_CONTACT_HREF,
+  CTA_BANNER_PRIMARY_LABEL,
+  CTA_BANNER_SECONDARY_LABEL,
+} from "@/constants/landing/cta-banner";
+import {
   LINEAR_CONNECT_HREF,
   LINEAR_CONNECT_LABEL,
-  LINEAR_CTA_CONTACT_HREF,
   LINEAR_CTA_HEADING,
-  LINEAR_CTA_PRIMARY_LABEL,
-  LINEAR_CTA_SECONDARY_LABEL,
   LINEAR_CTA_SUBCOPY,
   LINEAR_CYCLE_NAME,
   LINEAR_DRAFT_BODY,
@@ -71,10 +67,7 @@ import {
 import {
   SLACK_CONNECT_HREF,
   SLACK_CONNECT_LABEL,
-  SLACK_CTA_CONTACT_HREF,
   SLACK_CTA_HEADING,
-  SLACK_CTA_PRIMARY_LABEL,
-  SLACK_CTA_SECONDARY_LABEL,
   SLACK_CTA_SUBCOPY,
   SLACK_DRAFT_BODY,
   SLACK_DRAFT_HEADLINE,
@@ -284,8 +277,8 @@ export function buildSlackIntegrationMarkdown(): string {
     markdownSection(SLACK_CTA_HEADING, [
       SLACK_CTA_SUBCOPY,
       "",
-      `- [${SLACK_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
-      `- [${SLACK_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(SLACK_CTA_CONTACT_HREF)})`,
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
     ]),
   ].join("\n");
 }
@@ -331,8 +324,8 @@ export function buildGithubIntegrationMarkdown(): string {
     markdownSection(GITHUB_CTA_HEADING, [
       GITHUB_CTA_SUBCOPY,
       "",
-      `- [${GITHUB_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
-      `- [${GITHUB_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(GITHUB_CTA_CONTACT_HREF)})`,
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
     ]),
   ].join("\n");
 }
@@ -376,8 +369,8 @@ export function buildLinearIntegrationMarkdown(): string {
     markdownSection(LINEAR_CTA_HEADING, [
       LINEAR_CTA_SUBCOPY,
       "",
-      `- [${LINEAR_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
-      `- [${LINEAR_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(LINEAR_CTA_CONTACT_HREF)})`,
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
     ]),
   ].join("\n");
 }
@@ -424,8 +417,8 @@ export function buildGranolaIntegrationMarkdown(): string {
     markdownSection(GRANOLA_CTA_HEADING, [
       GRANOLA_CTA_SUBCOPY,
       "",
-      `- [${GRANOLA_CTA_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
-      `- [${GRANOLA_CTA_SECONDARY_LABEL}](${toAbsoluteUrl(GRANOLA_CTA_CONTACT_HREF)})`,
+      `- [${CTA_BANNER_PRIMARY_LABEL}](${AUTH_SIGNUP_URL})`,
+      `- [${CTA_BANNER_SECONDARY_LABEL}](${toAbsoluteUrl(CTA_BANNER_CONTACT_HREF)})`,
     ]),
   ].join("\n");
 }

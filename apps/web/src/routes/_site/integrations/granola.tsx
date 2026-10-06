@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GranolaCtaBanner } from "@/components/integrations/granola/granola-cta-banner";
 import { GranolaDemoSection } from "@/components/integrations/granola/granola-demo-section";
 import { GranolaFeatureList } from "@/components/integrations/granola/granola-feature-list";
 import { GranolaHero } from "@/components/integrations/granola/granola-hero";
 import { GranolaToolsSection } from "@/components/integrations/granola/granola-tools-section";
+import { CtaBanner } from "@/components/landing/cta-banner";
+import {
+  GRANOLA_CTA_HEADING,
+  GRANOLA_CTA_SUBCOPY,
+  GRANOLA_SIGNUP_SOURCE,
+} from "@/constants/granola-integration";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -68,7 +73,11 @@ function GranolaIntegrationPage() {
         <GranolaToolsSection />
       </div>
       <section className="w-full px-6">
-        <GranolaCtaBanner />
+        <CtaBanner
+          heading={GRANOLA_CTA_HEADING}
+          signupSource={GRANOLA_SIGNUP_SOURCE}
+          subcopy={GRANOLA_CTA_SUBCOPY}
+        />
       </section>
     </div>
   );

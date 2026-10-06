@@ -128,10 +128,4 @@ export const SLACK_CTA_HEADING = "Announce what you ship from Slack";
 export const SLACK_CTA_SUBCOPY =
   "Add Notra to Slack and turn this week's threads into posts ready to publish.";
 
-export const SLACK_CTA_PRIMARY_LABEL = "Start for free";
-
-export const SLACK_CTA_SECONDARY_LABEL = "Book a Call";
-
-export const SLACK_CTA_CONTACT_HREF = "/contact";
-
 export const SLACK_SIGNUP_SOURCE = "slack_integration";

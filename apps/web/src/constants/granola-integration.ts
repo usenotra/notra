@@ -97,10 +97,4 @@ export const GRANOLA_CTA_HEADING = "Publish stories from your customer calls";
 export const GRANOLA_CTA_SUBCOPY =
   "Connect Granola and turn this week's customer calls into stories ready to publish.";
 
-export const GRANOLA_CTA_PRIMARY_LABEL = "Start for free";
-
-export const GRANOLA_CTA_SECONDARY_LABEL = "Book a Call";
-
-export const GRANOLA_CTA_CONTACT_HREF = "/contact";
-
 export const GRANOLA_SIGNUP_SOURCE = "granola_integration";

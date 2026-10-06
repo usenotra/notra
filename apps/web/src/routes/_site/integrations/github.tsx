@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GithubCtaBanner } from "@/components/integrations/github/github-cta-banner";
 import { GithubDemoSection } from "@/components/integrations/github/github-demo-section";
 import { GithubFeatureList } from "@/components/integrations/github/github-feature-list";
 import { GithubHero } from "@/components/integrations/github/github-hero";
 import { GithubToolsSection } from "@/components/integrations/github/github-tools-section";
+import { CtaBanner } from "@/components/landing/cta-banner";
+import {
+  GITHUB_CTA_HEADING,
+  GITHUB_CTA_SUBCOPY,
+  GITHUB_SIGNUP_SOURCE,
+} from "@/constants/github-integration";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -68,7 +73,11 @@ function GithubIntegrationPage() {
         <GithubToolsSection />
       </div>
       <section className="w-full px-6">
-        <GithubCtaBanner />
+        <CtaBanner
+          heading={GITHUB_CTA_HEADING}
+          signupSource={GITHUB_SIGNUP_SOURCE}
+          subcopy={GITHUB_CTA_SUBCOPY}
+        />
       </section>
     </div>
   );

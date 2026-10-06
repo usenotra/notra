@@ -101,10 +101,4 @@ export const GITHUB_CTA_HEADING = "Publish a changelog every week";
 export const GITHUB_CTA_SUBCOPY =
   "Connect a repository and turn this week's merged PRs into a changelog ready to publish.";
 
-export const GITHUB_CTA_PRIMARY_LABEL = "Start for free";
-
-export const GITHUB_CTA_SECONDARY_LABEL = "Book a Call";
-
-export const GITHUB_CTA_CONTACT_HREF = "/contact";
-
 export const GITHUB_SIGNUP_SOURCE = "github_integration";

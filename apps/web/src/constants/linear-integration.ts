@@ -99,10 +99,4 @@ export const LINEAR_CTA_HEADING = "Write release notes when the sprint ends";
 export const LINEAR_CTA_SUBCOPY =
   "Connect Linear and turn this cycle's finished issues into release notes ready to publish.";
 
-export const LINEAR_CTA_PRIMARY_LABEL = "Start for free";
-
-export const LINEAR_CTA_SECONDARY_LABEL = "Book a Call";
-
-export const LINEAR_CTA_CONTACT_HREF = "/contact";
-
 export const LINEAR_SIGNUP_SOURCE = "linear_integration";

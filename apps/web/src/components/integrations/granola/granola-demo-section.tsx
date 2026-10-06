@@ -1,8 +1,15 @@
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { GranolaDraftCard } from "@/components/integrations/granola/granola-draft-card";
 import { GranolaNoteCard } from "@/components/integrations/granola/granola-note-card";
+import { IntegrationDraftCard } from "@/components/integrations/integration-draft-card";
+import {
+  GRANOLA_DRAFT_ACTION_LABEL,
+  GRANOLA_DRAFT_BODY,
+  GRANOLA_DRAFT_HEADLINE,
+  GRANOLA_DRAFT_META,
+  GRANOLA_DRAFT_TITLE,
+} from "@/constants/granola-integration";
 
 export function GranolaDemoSection() {
   return (
@@ -14,7 +21,13 @@ export function GranolaDemoSection() {
         size={28}
         strokeWidth={2.2}
       />
-      <GranolaDraftCard />
+      <IntegrationDraftCard
+        actionLabel={GRANOLA_DRAFT_ACTION_LABEL}
+        body={GRANOLA_DRAFT_BODY}
+        headline={GRANOLA_DRAFT_HEADLINE}
+        meta={GRANOLA_DRAFT_META}
+        title={GRANOLA_DRAFT_TITLE}
+      />
     </div>
   );
 }
