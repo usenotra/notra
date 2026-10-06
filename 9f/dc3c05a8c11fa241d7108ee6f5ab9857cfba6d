@@ -1,0 +1,23 @@
+packages/ai/src/utils/server-log.ts
+  s_69a291ada5b8da::t_ebe2e917c9faf2 9-16,61-65
+apps/dashboard/tests/route-wiring.test.ts
+  s_69a291ada5b8da::t_bc7480d637156b 45
+apps/dashboard/src/lib/workflows/shared/content-email-digest-enqueue.ts
+  s_69a291ada5b8da::t_d53f96ed6b449c 45,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9fdc3c05a8c11fa241d7108ee6f5ab9857cfba6d",
+  "prompts": {},
+  "sessions": {
+    "s_69a291ada5b8da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d72cc19f-9bad-4ab4-993d-b91bbde61195",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
