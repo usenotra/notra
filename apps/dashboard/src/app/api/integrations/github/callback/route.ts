@@ -5,6 +5,7 @@ import {
   upsertGitHubAppInstallation,
 } from "@notra/ai/integrations/github";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
 import { getCookie } from "@tanstack/react-start/server";
@@ -221,10 +222,7 @@ export async function GET(request: Request) {
         code: "github_installation_forbidden",
       });
     }
-    console.error(
-      "Error in GitHub App callback:",
-      error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-    );
+    logError("Error in GitHub App callback", error);
     return buildErrorRedirect({
       request,
       baseUrl,

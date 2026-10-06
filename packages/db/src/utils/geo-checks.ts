@@ -22,6 +22,9 @@ import type {
   GeoCheckCompetitorShareTimeseriesRow,
   GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
+  GeoCheckBrandKey,
+  GeoCheckEngineBrandRow,
+  GeoCheckEngineTotalRow,
   GeoCheckFilterOptions,
   GeoCheckInsertSummary,
   GeoCheckLanguageShareRow,
@@ -703,6 +706,73 @@ export async function queryGeoCheckCompetitorShare(
   );
 
   return rows.map((row) => ({
+    brand: row.brand,
+    mentions: toNumber(row.mentions),
+  }));
+}
+
+/**
+ * Checks and own-brand mentions per engine, with the same filters as the
+ * competitor share so both sides of the brand × engine matrix line up.
+ */
+export async function queryGeoCheckEngineTotals(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined
+): Promise<GeoCheckEngineTotalRow[]> {
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        engine: geoMentionChecks.engine,
+        checks: sql<number>`count(*)::int`,
+        mentions: sql<number>`count(*) filter (where ${geoMentionChecks.mentioned})::int`,
+      })
+      .from(geoMentionChecks)
+      .where(mentionFilters(scope, window))
+      .groupBy(geoMentionChecks.engine)
+  );
+
+  return rows.map((row) => ({
+    engine: row.engine,
+    checks: toNumber(row.checks),
+    mentions: toNumber(row.mentions),
+  }));
+}
+
+/**
+ * Answers per engine that mention each brand. `brands` maps brand keys
+ * (trimmed, lowercased) onto the name to report, so synonyms fold onto one
+ * brand and an answer naming two of them still counts once.
+ */
+export async function queryGeoCheckEngineBrandMentions(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined,
+  brands: readonly GeoCheckBrandKey[]
+): Promise<GeoCheckEngineBrandRow[]> {
+  if (brands.length === 0) {
+    return [];
+  }
+  const brandName = sql<string>`brand_map.name`;
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        engine: geoMentionChecks.engine,
+        brand: brandName,
+        mentions: sql<number>`count(distinct ${geoMentionChecks.id})::int`,
+      })
+      .from(geoMentionChecks)
+      .crossJoinLateral(unnestedCompetitorBrand)
+      .innerJoin(
+        sql`unnest(${sql.param(brands.map((brand) => brand.key))}::text[], ${sql.param(brands.map((brand) => brand.name))}::text[]) as brand_map(key, name)`,
+        sql`brand_map.key = lower(trim(${competitorBrand}))`
+      )
+      .where(mentionFilters(scope, window))
+      .groupBy(geoMentionChecks.engine, brandName)
+  );
+
+  return rows.map((row) => ({
+    engine: row.engine,
     brand: row.brand,
     mentions: toNumber(row.mentions),
   }));

@@ -36,6 +36,17 @@ import dynamic from "@/utils/lazy-component";
 
 import { GeoCompetitorsSkeleton } from "./skeleton";
 
+const CompetitorEngineMatrixCard = dynamic(
+  () =>
+    import("@/components/geo/competitor-engine-matrix-card").then(
+      (module) => module.CompetitorEngineMatrixCard
+    ),
+  {
+    loading: () => <Skeleton className="h-96 w-full rounded-2xl" />,
+    ssr: false,
+  }
+);
+
 const CompetitorShareCard = dynamic(
   () =>
     import("@/components/geo/competitor-share-card").then(
@@ -148,6 +159,16 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             timeseries={timeseries}
           />
         )}
+        <CompetitorEngineMatrixCard
+          aliases={settings.aliases}
+          companyName={settings.companyName}
+          competitors={competitors}
+          isScanning={isScanning}
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          range={geoRange.query}
+          trackedEngines={settings.engines}
+        />
         <CompetitorsTable
           aliases={settings.aliases}
           companyName={settings.companyName}

@@ -1,14 +1,15 @@
 "use client";
 
 import { trackedPromptScanId } from "@notra/geo-core/geo/prompts";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { LanguageLabel } from "@/components/geo/geo-language-picker";
+import { ReceiptSection } from "@/components/geo/prompt-receipt-analysis";
 import {
   useGeoPromptTranslationMutations,
   useGeoPromptTranslations,
@@ -98,9 +99,7 @@ function PromptTranslationText({
     <div className="flex items-start gap-2">
       {waiting ? (
         <p className="text-muted-foreground flex min-w-0 flex-1 items-center gap-1.5 text-sm">
-          {translating ? (
-            <Loader2Icon className="size-3.5 animate-spin" />
-          ) : null}
+          {translating ? <Spinner className="size-3.5" /> : null}
           {translating ? t("translating") : t("translatedOnScan")}
         </p>
       ) : (
@@ -140,7 +139,7 @@ function PromptTranslationRow({
   const hint = lock ? t(lock, { limit, language }) : null;
 
   return (
-    <li className="space-y-1.5">
+    <li className="space-y-1.5 px-4 py-3">
       <div className="flex items-center gap-2">
         <LanguageLabel language={plan.language} />
         <span className="text-muted-foreground text-xs tabular-nums">
@@ -192,7 +191,6 @@ export function PromptTranslationsSection({
   open,
 }: PromptTranslationsSectionProps) {
   const t = useTranslations("geo.promptTranslations");
-  const headingId = useId();
   const promptId = trackedPromptScanId(row);
   const { data } = useGeoPromptTranslations(organizationId, open);
   const { select, update, reset, translate } =
@@ -220,11 +218,8 @@ export function PromptTranslationsSection({
 
   const busy = select.isPending || update.isPending || reset.isPending;
   return (
-    <section aria-labelledby={headingId} className="space-y-2">
-      <h3 className="text-sm font-medium" id={headingId}>
-        {t("title")}
-      </h3>
-      <ul className="space-y-3">
+    <ReceiptSection title={t("title")}>
+      <ul className="divide-border/60 divide-y">
         {data.languages.map((plan) => (
           <PromptTranslationRow
             busy={busy}
@@ -260,6 +255,6 @@ export function PromptTranslationsSection({
           />
         ))}
       </ul>
-    </section>
+    </ReceiptSection>
   );
 }

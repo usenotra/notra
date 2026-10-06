@@ -5,9 +5,7 @@ description: The Codex prompt band with its status line and shortcut hints.
 
 <Component path="codex/examples/codex-composer" />
 
-```bash
-bunx shadcn@latest add @notra/codex-composer
-```
+<RegistryInstall name="codex-composer" />
 
 `CodexComposer` is a shadcn `InputGroup` on a full-width band with a bold `›`. While it is empty, a pink block cursor sits on the first letter of the placeholder. Under it, the status line shows the model and effort in yellow, the directory in green and the current task, then `← for agents · ? for shortcuts` with the keys in shadcn `Kbd`.
 

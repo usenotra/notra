@@ -12,6 +12,7 @@ import {
 import { geoModelFeedSchema } from "../schemas/geo-model-feed";
 import type { GeoModelCatalog, GeoResolvedModelCatalog } from "../types/geo";
 import { resolveGroundedEngines } from "../utils/geo-grounded-engines";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   buildGeoModelCatalogFromFeed,
   seedGeoModelCatalog,
@@ -59,7 +60,12 @@ async function loadSharedGeoModelCatalog(): Promise<GeoModelCatalog> {
     };
     return catalog;
   } catch (error) {
-    console.error("[geo] model feed unavailable, using seed catalog", error);
+    logGeoFailure(
+      "geo.model_catalog.feed_unavailable",
+      "Model feed unavailable, using seed catalog",
+      error,
+      { hasCachedCatalog: cached !== null }
+    );
     return cached?.catalog ?? seedGeoModelCatalog();
   }
 }

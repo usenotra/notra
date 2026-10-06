@@ -1237,9 +1237,7 @@ const runGeoScanTaskBatchBody = Effect.fn("geo.runScanTaskBatch.body")(
               Effect.retry({
                 times: 1,
                 while: (error) =>
-                  (error._tag === "GeoScanError" ||
-                    error._tag === "GeoJudgeError") &&
-                  error.timedOut === true,
+                  error._tag === "GeoScanError" && error.timedOut === true,
               }),
               Effect.catchTag("GeoEmptyAnswerError", (error) =>
                 Effect.sync(() => droppedCheckOutcome(fields, error))

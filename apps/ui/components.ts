@@ -7,6 +7,10 @@ export default defineComponents({
   layout: { Footer: SiteFooter },
   mdx: {
     DuotoneTooltip,
+    RegistryInstall: {
+      client: "load",
+      component: "./src/components/registry-install.tsx",
+    },
     PreviewToaster: {
       client: "only",
       component: "./src/components/preview-toaster.tsx",

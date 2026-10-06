@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { geoContentGapSnapshots, geoSettings } from "@notra/db/schema";
 import { refreshGeoContentGaps } from "@notra/geo-core/geo/gaps";
@@ -45,10 +46,9 @@ export async function refreshDueGeoContentGaps() {
       refreshed++;
     } catch (error) {
       failed++;
-      console.error(
-        `[GEO] Content gaps refresh failed for ${project.projectId}:`,
-        error
-      );
+      logError("[GEO] Content gaps refresh failed", error, {
+        projectId: project.projectId,
+      });
     }
   }
   return { refreshed, failed };

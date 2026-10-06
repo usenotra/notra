@@ -5,9 +5,7 @@ description: The mode and model list with a Rewrite button that opens from Rewri
 
 <Component path="perplexity/examples/perplexity-rewrite-panel" />
 
-```bash
-bunx shadcn@latest add @notra/perplexity-rewrite-panel
-```
+<RegistryInstall name="perplexity-rewrite-panel" />
 
 Perplexity shows this panel when you rewrite an answer. It lists the modes, Search, Deep research and Learn step by step, with a check on the selected one. Below a separator sit the "Access the top AI models" row and the model list in a shadcn `ScrollArea`, and a full-width Rewrite button closes it. Locked modes and models show a lock. `PerplexityActions` opens it from the Rewrite action in a shadcn `Popover`, and from More → Rewrite in a `DropdownMenuSub`.
 

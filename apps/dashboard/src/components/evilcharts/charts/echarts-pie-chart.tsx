@@ -46,6 +46,7 @@ import {
   resolveTooltipPosition,
   tooltipShell,
 } from "@/components/evilcharts/ui/echarts-tooltip";
+import { withTooltipSizeMotion } from "@/utils/chart-tooltip-size";
 import type {
   ChartConfig,
   TooltipBodyItem,
@@ -799,7 +800,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
     padding: 0,
     extraCssText: "box-shadow:none;",
     position: resolveTooltipPosition(tooltipSlot.position),
-    formatter: createTooltipFormatter(ctx),
+    formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
 

@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { geoShelfSourceSchema } from "@notra/schemas/dashboard/geo-shelf";
 import {
@@ -70,10 +71,7 @@ export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
     try {
       await syncGeoShelfCitationsForScope(target);
     } catch (error) {
-      console.error("Could not refresh GEO shelf citations", {
-        ...target,
-        error,
-      });
+      logError("Could not refresh GEO shelf citations", error, { ...target });
     }
   });
 }

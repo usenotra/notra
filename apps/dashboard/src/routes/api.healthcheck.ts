@@ -1,3 +1,5 @@
+// evlog-map-disable -- high-volume, deliberately silent: one event per probe
+// or optimized image would only add drain volume
 import { createFileRoute } from "@tanstack/react-router";
 
 import { dispatchRouteHandler } from "@/lib/auth/route-handler";

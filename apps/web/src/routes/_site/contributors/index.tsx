@@ -20,7 +20,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Contributors & Community";
 const description =
-  "Meet the developers who build Notra. Explore open issues, pull requests, and join our community.";
+  "Meet the developers who build Notra. Explore open issues, pull requests and join our community.";
 const url = `${SITE_URL}/contributors`;
 
 const metadata: Metadata = {

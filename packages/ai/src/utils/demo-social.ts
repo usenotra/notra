@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { setDemoSocialSourceProvider } from "@notra/analytics/tinybird/demo-social";
 import type {
   DemoPublishedPost,
@@ -90,7 +91,9 @@ async function loadDemoSocialSource(
   const [accounts, published] = await Promise.all([
     listDemoSocialAccounts(organizationId),
     listDemoPublishedPosts(organizationId).catch((error: unknown) => {
-      console.error("[demo] Failed to load published posts", error);
+      logError("[demo] Failed to load published posts", error, {
+        organizationId,
+      });
       return [];
     }),
   ]);

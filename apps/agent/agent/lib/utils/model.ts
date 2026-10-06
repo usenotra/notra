@@ -85,7 +85,7 @@ export function createAssistantModel() {
     throw new Error("autoModel no longer resolves on step.started");
   }
   const fallbackModel = createAgentModel(ASSISTANT_MODEL_ID);
-  const taskModel = createAgentModel(ASSISTANT_TASK_MODEL_ID);
+  const taskModel = createAgentModel(ASSISTANT_TASK_MODEL_ID, "agent-task");
 
   return defineDynamic({
     events: {

@@ -11,6 +11,7 @@ import {
   withGscIntegrationLock,
 } from "@notra/ai/utils/gsc-integration-lock";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import {
   GSC_OAUTH_CALLBACK_PATH,
   GSC_OAUTH_STATE_KEY_PREFIX,
@@ -75,8 +76,8 @@ export async function GET(request: Request) {
           { ex: restoreTtlSeconds }
         );
       } catch (restoreError) {
-        console.error(
-          "Failed to restore Google Search Console OAuth state:",
+        logError(
+          "Failed to restore Google Search Console OAuth state",
           restoreError
         );
       }
@@ -164,8 +165,8 @@ export async function GET(request: Request) {
           });
         } catch (exchangeError) {
           signal.throwIfAborted();
-          console.error(
-            "Google Search Console token exchange failed:",
+          logError(
+            "Google Search Console token exchange failed",
             exchangeError
           );
           return "token_exchange_failed" as const;
@@ -198,8 +199,8 @@ export async function GET(request: Request) {
     );
     const connectResult = await connect.catch((error: unknown) => {
       if (error instanceof GscIntegrationLockLostError && connectionCommitted) {
-        console.error(
-          "[GSC] Integration lock lost after the connection was saved:",
+        logError(
+          "[GSC] Integration lock lost after the connection was saved",
           error
         );
         return "connected" as const;
@@ -236,7 +237,7 @@ export async function GET(request: Request) {
         })
       );
     }
-    console.error("Error in Google Search Console OAuth callback:", error);
+    logError("Error in Google Search Console OAuth callback", error);
     return redirectResponse(
       buildCallbackUrl(baseUrl, callbackPath, { error: "gsc_auth_failed" })
     );

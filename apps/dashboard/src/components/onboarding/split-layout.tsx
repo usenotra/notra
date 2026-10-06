@@ -1,20 +1,16 @@
-import { useServerFn } from "@tanstack/react-start";
 import { useContext } from "react";
-import { useTranslations } from "use-intl";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AuthWordmark } from "@/components/auth/auth-wordmark";
+import { SkipOnboardingForm } from "@/components/onboarding/skip-onboarding-form";
 import { OnboardingSplitLayoutContext } from "@/components/onboarding/split-layout-context";
-import { skipOnboarding } from "@/lib/onboarding/skip";
 import type { OnboardingStepLayoutProps } from "@/types/onboarding";
 
 export function OnboardingSplitLayout({
   children,
   step,
 }: OnboardingStepLayoutProps) {
-  const tOnboardingShared = useTranslations("onboarding.shared");
   const context = useContext(OnboardingSplitLayoutContext);
-  const skip = useServerFn(skipOnboarding);
   if (!context) {
     throw new Error("Onboarding layout requires its server-loaded context");
   }
@@ -26,21 +22,9 @@ export function OnboardingSplitLayout({
         <AuthWordmark />
         <div className="w-full max-w-md min-w-0 py-6">{children}</div>
         {organizationSlug && canSkip ? (
-          <form
-            action={async () => {
-              await skip(organizationSlug, step);
-            }}
-            className="flex justify-center py-2"
-          >
-            <button
-              className="text-muted-foreground hover:text-foreground cursor-pointer px-3 py-2 text-sm hover:underline"
-              type="submit"
-            >
-              {tOnboardingShared("skipOnboarding")}
-            </button>
-          </form>
+          <SkipOnboardingForm slug={organizationSlug} step={step} />
         ) : (
-          <div aria-hidden="true" className="h-7" />
+          <div aria-hidden="true" className="h-12" />
         )}
       </section>
 

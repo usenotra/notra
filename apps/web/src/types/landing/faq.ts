@@ -10,3 +10,7 @@ export type FaqContent = {
   subcopy: string;
   items: FaqItem[];
 };
+
+export type FaqSectionProps = {
+  content?: FaqContent;
+};

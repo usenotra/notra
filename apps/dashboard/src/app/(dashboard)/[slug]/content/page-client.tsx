@@ -13,6 +13,7 @@ import { LazyCreateContentDialog } from "@/components/content/lazy-create-conten
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
+import { PageHeading } from "@/components/layout/page-heading";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   CONTENT_COLLECTION_VIEWS,
@@ -91,21 +92,16 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {tCommon2("labels.content")}
-            </h1>
-            <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-              {t("description")}
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon2("labels.content")}
+        >
           <LazyCreateContentDialog
             entry="content_list"
             organizationId={organizationId}
             organizationSlug={organizationSlug}
           />
-        </header>
+        </PageHeading>
 
         <div className="space-y-3">
           <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">

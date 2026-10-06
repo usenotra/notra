@@ -4,19 +4,19 @@ import { markdownResponse } from "@/utils/http";
 
 const AUTH_MD = `# Notra Agent Authentication
 
-Notra exposes an authenticated API and MCP server for agents that track AI visibility, manage GEO projects and prompts, analyze competitors and AI traffic, and create content in a saved brand voice. Use this guide to discover the supported auth metadata, request an OAuth or API-key credential, and recover from common errors.
+Notra exposes an authenticated API and MCP server for agents that track AI visibility, manage GEO projects and prompts, analyze competitors and AI traffic and create content in a saved brand voice. Use this guide to discover the supported auth metadata, request an OAuth or API-key credential and recover from common errors.
 
 ## Discover
 
-Start at \`/.well-known/agent.json\`, \`/.well-known/agent-card.json\`, and \`/.well-known/api-catalog\`. The API resource server is \`https://api.usenotra.com\`, and its protected resource metadata is published at \`https://api.usenotra.com/.well-known/oauth-protected-resource\`. The MCP resource server is \`https://mcp.usenotra.com\`, and its protected resource metadata is published at \`https://mcp.usenotra.com/.well-known/oauth-protected-resource\`. Unauthenticated API and MCP requests return a \`WWW-Authenticate\` header with a \`resource_metadata\` url.
+Start at \`/.well-known/agent.json\`, \`/.well-known/agent-card.json\` and \`/.well-known/api-catalog\`. The API resource server is \`https://api.usenotra.com\`, and its protected resource metadata is published at \`https://api.usenotra.com/.well-known/oauth-protected-resource\`. The MCP resource server is \`https://mcp.usenotra.com\`, and its protected resource metadata is published at \`https://mcp.usenotra.com/.well-known/oauth-protected-resource\`. Unauthenticated API and MCP requests return a \`WWW-Authenticate\` header with a \`resource_metadata\` url.
 
 ## Pick a method
 
-OAuth-capable clients should follow the authorization server advertised by the protected resource metadata. The production authorization server is \`https://oauth.usenotra.com\`, with standard endpoints at \`/oauth2/authorize\`, \`/oauth2/token\`, \`/oauth2/register\`, and \`/oauth2/revoke\`, and signing keys at \`/oauth2/jwks\`. Manual clients can use API keys created in the Notra dashboard.
+OAuth-capable clients should follow the authorization server advertised by the protected resource metadata. The production authorization server is \`https://oauth.usenotra.com\`, with standard endpoints at \`/oauth2/authorize\`, \`/oauth2/token\`, \`/oauth2/register\` and \`/oauth2/revoke\` and signing keys at \`/oauth2/jwks\`. Manual clients can use API keys created in the Notra dashboard.
 
 ## Register
 
-Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Request \`openid\` and include \`offline_access\` for refresh tokens. The consent screen lets the user select a workspace and one access level: Read only, Write only, or Full access across all resources, including GEO. These signed choices are enforced as granular API permissions; missing choices grant no access. GEO tools also require a plan that includes GEO.
+Call \`POST https://oauth.usenotra.com/oauth2/register\` for dynamic OAuth client registration, or identify with a Client ID Metadata Document if your client supports it. Request \`openid\` and include \`offline_access\` for refresh tokens. The consent screen lets the user select a workspace and one access level: Read only, Write only or Full access across all resources, including GEO. These signed choices are enforced as granular API permissions; missing choices grant no access. GEO tools also require a plan that includes GEO.
 
 ## Authorize
 

@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
 import type { GeoSkipFields } from "../types/geo";
-import { logGeoSkip } from "../utils/geo-log";
+import { logGeoFailure, logGeoSkip } from "../utils/geo-log";
 import { GeoDatabaseError, GeoTinybirdError } from "./errors";
 
 export function geoQuery<A>(
@@ -13,7 +13,7 @@ export function geoQuery<A>(
     catch: (cause) => new GeoTinybirdError({ label, cause }),
   }).pipe(
     Effect.catch((error) => {
-      console.error(`[GEO] ${error.label}:`, error.cause);
+      logGeoFailure("geo.query.failed", error.label, error.cause);
       return Effect.succeed(null);
     })
   );

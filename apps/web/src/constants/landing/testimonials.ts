@@ -1,7 +1,7 @@
 import type { Testimonial } from "@/types/landing/testimonials";
 
 export const TESTIMONIALS_SUBHEADING =
-  "They use Notra for changelogs and launch posts every week. Here is what they say.";
+  "Teams that ship every week use Notra for their changelogs and launch posts.";
 
 export const FEATURED_TESTIMONIAL: Testimonial = {
   quote:

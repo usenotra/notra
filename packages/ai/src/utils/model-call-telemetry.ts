@@ -91,6 +91,9 @@ export function createModelCallTelemetry({
       }
       const inputTokens = result.usage.inputTokens.total;
       const outputTokens = result.usage.outputTokens.total;
+      const serviceTier =
+        result.providerMetadata?.gateway?.serviceTier ??
+        result.providerMetadata?.openai?.serviceTier;
       const failed = result.finishReason.unified === "error";
       finish(
         failed ? "error" : "info",
@@ -103,6 +106,9 @@ export function createModelCallTelemetry({
               ? inputTokens + outputTokens
               : undefined,
           cacheReadTokens: result.usage.inputTokens.cacheRead,
+          cacheWriteTokens: result.usage.inputTokens.cacheWrite,
+          serviceTier:
+            typeof serviceTier === "string" ? serviceTier : undefined,
           reasoningTokens: result.usage.outputTokens.reasoning,
           finishReason: result.finishReason.unified,
           responseId: result.responseId,

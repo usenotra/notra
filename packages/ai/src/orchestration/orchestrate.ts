@@ -9,6 +9,7 @@ import type {
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
 import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import {
   convertToModelMessages,
@@ -150,6 +151,7 @@ export async function orchestrateChat(
     model: modelWithMemory,
     instructions: systemPrompt,
     messages: await convertToModelMessages(messagesForModel, {
+      tools,
       ignoreIncompleteToolCalls: true,
     }),
     tools,
@@ -182,10 +184,9 @@ export async function orchestrateChat(
       );
     },
     onError({ error }) {
-      console.error("[Chat Stream Error]", {
+      logError("[Chat] Stream failed", error, {
         organizationId,
         model: routingDecision.model,
-        error: error instanceof Error ? error.message : String(error),
       });
     },
   });

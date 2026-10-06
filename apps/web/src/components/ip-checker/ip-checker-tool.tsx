@@ -1,4 +1,4 @@
-import { Loading03Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
@@ -145,25 +145,10 @@ export function IpCheckerTool({
           </div>
           <CtaButton
             className="font-display h-auto shrink-0 rounded-[2.5625rem] px-6 py-3 text-[1.125rem] leading-[1.14] font-medium tracking-[-0.015em]"
-            disabled={isChecking}
+            loading={isChecking}
             type="submit"
           >
-            <span className="grid place-items-center">
-              <span
-                aria-hidden={isChecking}
-                className={
-                  isChecking ? "invisible [grid-area:1/1]" : "[grid-area:1/1]"
-                }
-              >
-                Check IP
-              </span>
-              {isChecking ? (
-                <HugeiconsIcon
-                  className="size-5 animate-spin [grid-area:1/1]"
-                  icon={Loading03Icon}
-                />
-              ) : null}
-            </span>
+            Check IP
           </CtaButton>
         </div>
       </form>

@@ -2,6 +2,7 @@ import "@/workflows/runtime";
 import { randomUUID } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
+import { logWarn } from "@notra/ai/utils/server-log";
 import type { EmailResult } from "@notra/email/types/brew";
 
 import {
@@ -157,10 +158,10 @@ function assertEmailSent({
     return;
   }
 
-  console.warn(
-    `[ContentEmailDigest] Failed to send ${kind} notification to ${recipientEmail}:`,
-    result.error
-  );
+  logWarn("[ContentEmailDigest] Failed to send notification", {
+    kind,
+    error: result.error.message,
+  });
 
   throw new Error(
     `Failed to send ${kind} notification to ${recipientEmail}: ${result.error.message}`

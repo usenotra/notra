@@ -4,7 +4,10 @@ import type { Plugin } from "vite";
 import { workflow } from "workflow/vite";
 
 // Relative: vite.config.ts loads this file without the "@" alias.
-import { WORKFLOW_ESBUILD_IDLE_STOP_MS } from "../constants/framework.ts";
+import {
+  SOURCE_MAPPING_URL_COMMENT,
+  WORKFLOW_ESBUILD_IDLE_STOP_MS,
+} from "../constants/framework.ts";
 
 export function traceWorkflowDependencies(files: string[], packages: string[]) {
   const require = createRequire(import.meta.url);
@@ -42,8 +45,25 @@ function createEsbuildReleaser() {
 
 type NitroSetup = (nitro: {
   options: { dev: boolean };
-  hooks: { hook: (name: string, fn: () => void) => void };
+  hooks: { hook: (name: string, fn: (...args: never[]) => void) => void };
 }) => unknown;
+
+function withoutInputSourceMaps<T extends object>(plugin: T): T {
+  const transform = "transform" in plugin ? plugin.transform : undefined;
+  if (typeof transform !== "function") {
+    return plugin;
+  }
+  return {
+    ...plugin,
+    transform(this: unknown, code: string, ...rest: unknown[]) {
+      return transform.call(
+        this,
+        code.replace(SOURCE_MAPPING_URL_COMMENT, ""),
+        ...rest
+      );
+    },
+  };
+}
 
 export function dashboardWorkflow(): Plugin[] {
   const releaseEsbuild = createEsbuildReleaser();
@@ -51,7 +71,7 @@ export function dashboardWorkflow(): Plugin[] {
   return workflow().map((plugin): Plugin => {
     if (plugin.name === "workflow:transform") {
       return {
-        ...plugin,
+        ...withoutInputSourceMaps(plugin),
         applyToEnvironment: (environment) => environment.name !== "nitro",
       };
     }
@@ -64,6 +84,19 @@ export function dashboardWorkflow(): Plugin[] {
           ...nitroPlugin.nitro,
           setup: async (nitro) => {
             await setup(nitro);
+            nitro.hooks.hook(
+              "rollup:before",
+              (_nitro: unknown, config: { plugins?: unknown }) => {
+                if (!Array.isArray(config.plugins)) {
+                  return;
+                }
+                config.plugins = config.plugins.map((rollupPlugin) =>
+                  rollupPlugin?.name === "workflow:transform"
+                    ? withoutInputSourceMaps(rollupPlugin)
+                    : rollupPlugin
+                );
+              }
+            );
             if (nitro.options.dev) {
               // Registered after the workflow module's own hooks, so these
               // run once its builds have finished.

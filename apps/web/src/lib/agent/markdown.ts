@@ -7,7 +7,7 @@ export function buildAgentPageMarkdown() {
   return [
     "# Notra Agent Interface",
     "",
-    "Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini, and Perplexity, compare your share of voice with competitors, and turn content gaps into articles in your brand voice.",
+    "Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini and Perplexity, compare your share of voice with competitors and turn content gaps into articles in your brand voice.",
     "",
     markdownSection(
       "What you can do with Notra",

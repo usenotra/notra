@@ -3,6 +3,8 @@ import { appendFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 
+import { requireReleaseCI } from "./utils/release-ci.mjs";
+
 const projects = [
   {
     name: "notra",
@@ -63,7 +65,6 @@ const railwayActiveStates = [
   "DEPLOYING",
 ];
 const railwayLiveStates = ["SUCCESS", "SLEEPING"];
-const requiredWorkflows = ["code-quality.yml", "knip.yml"];
 const activeStates = new Set(["QUEUED", "INITIALIZING", "BUILDING"]);
 
 function deploymentSha(deployment) {
@@ -215,23 +216,7 @@ export async function release({
     }
   };
 
-  // Require the latest push run for this exact SHA, including any rerun.
-  for (const workflow of requiredWorkflows) {
-    const result = await request(
-      "github",
-      `/repos/${env.GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?head_sha=${sha}&branch=main&event=push&per_page=1`
-    );
-    const run = result.workflow_runs[0];
-    if (
-      run?.head_sha !== sha ||
-      run.status !== "completed" ||
-      run.conclusion !== "success"
-    ) {
-      throw new Error(
-        `${workflow} has not passed for ${sha}; no builds started`
-      );
-    }
-  }
+  await requireReleaseCI({ env, fetchImpl, sleep, report });
   await report(`Release commit: \`${sha}\``);
 
   const unkey = async (path, body) => {

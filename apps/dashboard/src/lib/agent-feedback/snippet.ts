@@ -1,3 +1,5 @@
+import { NOTRA_AGENT_FEEDBACK_PROMPT } from "@notra/utils/constants/agent-feedback-prompt";
+
 import {
   AGENT_FEEDBACK_API_BASE_URL,
   AGENT_FEEDBACK_API_PATH,
@@ -38,6 +40,8 @@ function buildPromptSnippet(
     "4. Mention the tool in the server instructions so agents know they can use it when a user hits a problem or asks for something we do not support.",
     "",
     `Docs: ${AGENT_FEEDBACK_DOCS_URL}`,
+    "",
+    NOTRA_AGENT_FEEDBACK_PROMPT,
   ].join("\n");
 }
 

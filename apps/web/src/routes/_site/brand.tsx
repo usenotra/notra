@@ -94,8 +94,8 @@ function BrandPage() {
               Logo
             </h2>
             <p className="text-muted-foreground text-sm leading-6">
-              The Notra mark. Keep it on a light surface and give it room to
-              breathe. Hover a card to download the logo as SVG or PNG.
+              Keep the Notra mark on a light surface with clear space around it.
+              Hover a card to download the logo as SVG or PNG.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -167,7 +167,7 @@ function BrandPage() {
               Colors
             </h2>
             <p className="text-muted-foreground text-sm leading-6">
-              Our palette pairs a violet primary with the lavender, ink, and
+              Our palette pairs a violet primary with the lavender, ink and
               cream of the mark. Click a swatch to copy its hex value.
             </p>
           </div>
@@ -184,8 +184,8 @@ function BrandPage() {
               Typography
             </h2>
             <p className="text-muted-foreground text-sm leading-6">
-              Satoshi sets marketing headlines. Inter carries product UI and
-              body copy. Instrument Serif is a rare editorial accent.
+              Marketing headlines use Satoshi, and product UI and body copy use
+              Inter. Instrument Serif is a rare editorial accent.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

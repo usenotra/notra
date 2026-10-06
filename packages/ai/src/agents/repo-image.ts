@@ -38,6 +38,7 @@ import {
   injectHumanizerSkill,
 } from "@notra/ai/utils/repo-image-skills";
 import { extractRepoImageUsage } from "@notra/ai/utils/repo-image-usage";
+import { logError, logInfo, logWarn } from "@notra/ai/utils/server-log";
 import { withLongFetchTimeouts } from "@notra/ai/utils/undici-dispatcher";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
 import { Agent, Box } from "@upstash/box";
@@ -125,7 +126,7 @@ async function cloneRepositoryToBox(params: {
     }
     await params.box.cd(params.repo);
   } catch (error) {
-    console.error("[repo-image] repository clone failed", {
+    logError("[repo-image] Repository clone failed", undefined, {
       owner: params.owner,
       repo: params.repo,
       branch: params.branch,
@@ -141,7 +142,7 @@ async function cloneRepositoryToBox(params: {
       await params.box.exec
         .command(`rm -f ${shellQuote(REPO_CLONE_TOKEN_PATH)}`)
         .catch((error: unknown) => {
-          console.warn("[repo-image] failed to remove temporary clone token", {
+          logWarn("[repo-image] Failed to remove temporary clone token", {
             error: getErrorMessage(error),
           });
         });
@@ -166,13 +167,17 @@ async function runRepoImageAgentStream(params: {
 
   for await (const chunk of stream) {
     if (chunk.type === "tool-call") {
-      console.log(`[repo-image] ${params.label} tool: ${chunk.toolName}`);
+      logInfo("[repo-image] Agent tool call", {
+        label: params.label,
+        toolName: chunk.toolName,
+      });
     }
   }
 
-  console.log(
-    `[repo-image] ${params.label} stream completed in ${Date.now() - startedAt}ms`
-  );
+  logInfo("[repo-image] Agent stream completed", {
+    label: params.label,
+    durationMs: Date.now() - startedAt,
+  });
 
   return {
     cost:
@@ -192,9 +197,11 @@ async function runRepoImageAgentStreamAllowTimeout(
       throw error;
     }
 
-    console.warn(
-      `[repo-image] ${params.label} stream timed out after ${params.timeout}ms; checking for ${REPO_IMAGE_OUTPUT_HTML_PATH}`
-    );
+    logWarn("[repo-image] Agent stream timed out; checking for output", {
+      label: params.label,
+      timeoutMs: params.timeout,
+      outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
+    });
     return null;
   }
 }
@@ -493,7 +500,9 @@ export async function generateRepoImage(params: {
       try {
         await cleanupRepoImageSandbox({ box });
       } catch (error) {
-        console.warn("[repo-image] sandbox cleanup skipped after error", error);
+        logWarn("[repo-image] Sandbox cleanup skipped after error", {
+          error: getErrorMessage(error),
+        });
       }
 
       if (!restoreSnapshotId) {
@@ -534,9 +543,11 @@ export async function generateRepoImage(params: {
           attempt <= MISSING_OUTPUT_RECOVERY_ATTEMPTS;
           attempt++
         ) {
-          console.warn(
-            `[repo-image] missing ${REPO_IMAGE_OUTPUT_HTML_PATH}; recovery attempt ${attempt}/${MISSING_OUTPUT_RECOVERY_ATTEMPTS}`
-          );
+          logWarn("[repo-image] Missing output; running recovery attempt", {
+            outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
+            attempt,
+            maxAttempts: MISSING_OUTPUT_RECOVERY_ATTEMPTS,
+          });
           const recoveryRun = await runRepoImageAgentStreamAllowTimeout({
             box,
             prompt: buildMarketingAssetMissingOutputPrompt(),
@@ -560,10 +571,10 @@ export async function generateRepoImage(params: {
             `pwd 2>&1; echo ---; ls -la 2>&1 | head -50; echo ---; find . /workspace/home -maxdepth 4 -name "output.html" 2>/dev/null`
           )
         );
-        console.error(
-          "[repo-image] missing output.html, cwd contents:\n",
-          diag.result
-        );
+        logError("[repo-image] Missing output after recovery", undefined, {
+          outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
+          cwdContents: diag.result,
+        });
         throw new RepoImageError(
           "agent_failed",
           `Agent did not produce ${REPO_IMAGE_OUTPUT_HTML_PATH}`
@@ -586,7 +597,9 @@ export async function generateRepoImage(params: {
           organizationId: input.organizationId,
         });
       } catch (error) {
-        console.warn("[repo-image] logo review skipped after error", error);
+        logWarn("[repo-image] Logo review skipped after error", {
+          error: getErrorMessage(error),
+        });
       }
 
       if (review?.needsRevision) {
@@ -594,9 +607,9 @@ export async function generateRepoImage(params: {
           review.revisionPrompt ??
           "Review the rendered image for unofficial or fabricated company logos. Replace any questionable logos with official assets from the brand-logos skill or real repo assets, or remove them if no official source is available. Preserve the current layout as much as possible.";
 
-        console.log(
-          `[repo-image] logo review requested revision: ${review.reason}`
-        );
+        logInfo("[repo-image] Logo review requested revision", {
+          reason: review.reason,
+        });
 
         const reviewRevisionRun = await runRepoImageAgentStream({
           box,
@@ -633,7 +646,7 @@ export async function generateRepoImage(params: {
       );
     } finally {
       await box.delete().catch((error: unknown) => {
-        console.error("Failed to delete repo-image box", error);
+        logError("[repo-image] Failed to delete box", error);
       });
     }
 

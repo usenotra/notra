@@ -1,4 +1,5 @@
 import { getBaseUrl } from "@notra/ai/qstash/triggers";
+import { logError } from "@notra/ai/utils/server-log";
 import { scheduleWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 
 import { verifyQstashSignature } from "@/lib/workflows/qstash-verify";
@@ -29,10 +30,9 @@ export async function POST(request: Request) {
 
   const parsed = scheduleWorkflowPayloadSchema.safeParse(body);
   if (!parsed.success) {
-    console.error(
-      "[Schedule] Invalid cron delivery payload:",
-      parsed.error.flatten()
-    );
+    logError("[Schedule] Invalid cron delivery payload", undefined, {
+      issues: parsed.error.flatten(),
+    });
     return new Response("Invalid payload", { status: 400 });
   }
 

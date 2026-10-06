@@ -70,6 +70,11 @@ export interface ChatImageAttachmentProps {
 
 export interface ChatInputHandle {
   setText: (text: string) => void;
+  /**
+   * Puts files back into the composer, e.g. when a queued message is edited.
+   * Returns false and changes nothing when they would not all fit.
+   */
+  setAttachments: (attachments: ChatAttachment[]) => boolean;
   submit: () => void;
   focus: () => void;
 }

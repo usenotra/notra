@@ -4,6 +4,7 @@ export const PAYWALL_KINDS = {
   TRIAL_EXPIRED: "trial_expired",
   UPGRADE_CARD: "upgrade_card",
   NAV_LOCK: "nav_lock",
+  ONBOARDING_PRICING: "onboarding_pricing",
 } as const;
 
 export const PLAN_SURFACES = {

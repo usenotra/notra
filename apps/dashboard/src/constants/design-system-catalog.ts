@@ -56,6 +56,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     level: "section",
   },
   {
+    id: "composer",
+    label: "Composer",
+    href: "/design-system#composer",
+    level: "section",
+  },
+  {
     id: "chat-queue",
     label: "Chat Queue",
     href: "/design-system#chat-queue",
@@ -83,6 +89,12 @@ export const DESIGN_SYSTEM_CATALOG: DesignSystemCatalogItem[] = [
     id: "onboarding",
     label: "Onboarding",
     href: "/design-system#onboarding",
+    level: "section",
+  },
+  {
+    id: "spinner",
+    label: "Spinner",
+    href: "/design-system#spinner",
     level: "section",
   },
   {

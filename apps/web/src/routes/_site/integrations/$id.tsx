@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { IntegrationDetailView } from "@/components/integrations/integration-detail-view";
+import { DYNAMIC_PAGE_CACHE_CONTROL } from "@/constants/proxy";
 import { getIntegration } from "@/lib/integrations/functions";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_site/integrations/$id")({
       },
     });
   },
+  headers: () => ({ "Cache-Control": DYNAMIC_PAGE_CACHE_CONTROL }),
   component: IntegrationDetailPage,
 });
 

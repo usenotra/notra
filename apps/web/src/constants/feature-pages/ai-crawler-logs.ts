@@ -43,7 +43,7 @@ export const AI_CRAWLER_LOGS_PAGE: FeatureDetailCopy = {
           "Add your ingest token to your middleware or edge config. It takes a few minutes and works on any stack.",
       },
       {
-        title: "Bots get sorted",
+        title: "Notra sorts the bots",
         description:
           "Notra matches each request to a known AI crawler and labels why it came, so a stray scraper never counts as ChatGPT.",
       },
@@ -57,7 +57,7 @@ export const AI_CRAWLER_LOGS_PAGE: FeatureDetailCopy = {
   cta: {
     heading: "See your site the way AI engines do",
     subcopy:
-      "Connect your site and see which pages AI crawlers read. Free to start.",
+      "Connect your site and see which pages AI crawlers read. It's free to start.",
   },
 };
 
