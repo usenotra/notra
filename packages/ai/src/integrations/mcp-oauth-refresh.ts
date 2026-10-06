@@ -1,5 +1,6 @@
 import { refreshAuthorization } from "@modelcontextprotocol/sdk/client/auth.js";
 import type { OAuthTokens } from "@modelcontextprotocol/sdk/shared/auth.js";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { mcpOAuthCredentials, mcpServerIntegrations } from "@notra/db/schema";
 import { and, eq, isNull, lt, ne, or, sql } from "drizzle-orm";
@@ -346,7 +347,7 @@ function startMcpOAuthRefreshHeartbeat(
         )
       )
       .catch((error) => {
-        console.error("[MCP OAuth Refresh Heartbeat Error]", {
+        logError("[MCP OAuth Refresh] Heartbeat failed", undefined, {
           integrationId,
           organizationId,
           error: error instanceof Error ? error.message : String(error),
@@ -450,7 +451,7 @@ async function releaseMcpOAuthRefreshClaim(
       )
     );
 
-  console.error("[MCP OAuth Refresh Error]", {
+  logError("[MCP OAuth Refresh] Refresh failed", undefined, {
     integrationId,
     organizationId,
     error: error instanceof Error ? error.message : String(error),

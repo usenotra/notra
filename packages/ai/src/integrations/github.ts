@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   githubAppInstallations,
@@ -361,9 +362,10 @@ async function getInstallationOrgMembership(params: {
       params.installationId
     );
   } catch (error) {
-    console.error(
-      "Failed to create GitHub App installation token for org membership check:",
-      error instanceof Error ? error.message : String(error)
+    logError(
+      "[GitHub] Failed to create installation token for org membership check",
+      undefined,
+      { error: error instanceof Error ? error.message : String(error) }
     );
     return { verified: false };
   }
@@ -390,9 +392,13 @@ async function getInstallationOrgMembership(params: {
       return { verified: true, isAdmin: false };
     }
     if (getErrorStatus(error) !== 403) {
-      console.error(
-        "GitHub org membership check via installation token failed:",
-        error instanceof Error ? error.message : String(error)
+      logError(
+        "[GitHub] Org membership check via installation token failed",
+        undefined,
+        {
+          status: getErrorStatus(error),
+          error: error instanceof Error ? error.message : String(error),
+        }
       );
     }
     return { verified: false };

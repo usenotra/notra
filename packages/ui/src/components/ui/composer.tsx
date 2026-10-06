@@ -6,31 +6,33 @@ import {
   Edit02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import type { ComponentProps } from "react";
-import { useTranslations } from "use-intl";
-
 import {
-  COMPOSER_FRAME_TRANSITION,
-  COMPOSER_INNER_FRAME,
+  COMPOSER_CHIP_ACTION,
   COMPOSER_NUDGE_ENTER,
   COMPOSER_SEND_BUTTON,
   COMPOSER_TOOLBAR_BUTTON,
-} from "@/constants/composer";
-import { cn } from "@/lib/utils";
+  COMPOSER_TRAY_TRANSITION,
+} from "@notra/ui/constants/composer";
+import { cn } from "@notra/ui/lib/utils";
 import type {
   ComposerChipProps,
   ComposerFrameProps,
   ComposerNudgeProps,
   ComposerSendProps,
+  ComposerToolbarButtonProps,
   ComposerToolbarProps,
-} from "@/types/components/composer";
+} from "@notra/ui/types/composer";
 
+// A muted tray around the input card. The nudge (queue, chips, notices) sits
+// directly on the tray above the card. Flat composers only show the tray
+// while there is a nudge.
 function ComposerFrame({
   children,
   nudge,
@@ -39,26 +41,27 @@ function ComposerFrame({
   className,
 }: ComposerFrameProps) {
   const hasNudge = Boolean(nudge);
+  const showTray = hasNudge || !flat;
 
   return (
     <div
       className={cn(
-        "w-full min-w-0 p-1",
-        flat ? "rounded-xl" : "rounded-2xl",
-        COMPOSER_FRAME_TRANSITION,
-        hasNudge ? "bg-muted" : "bg-transparent",
-        connectedTop ? "rounded-t-none" : null,
+        "flex w-full min-w-0 flex-col",
+        COMPOSER_TRAY_TRANSITION,
+        showTray ? "bg-muted p-1" : "bg-transparent",
+        flat ? "rounded-xl" : "rounded-[18px]",
+        connectedTop && "rounded-t-none",
         className
       )}
     >
       {nudge}
       <div
         className={cn(
-          COMPOSER_INNER_FRAME,
-          hasNudge ? "rounded-xl" : "rounded-2xl",
-          flat && (hasNudge ? "rounded-lg" : "rounded-xl"),
-          flat && "shadow-none",
-          connectedTop && !hasNudge ? "rounded-t-none border-t-0" : null
+          "border-border/70 bg-background min-w-0 overflow-hidden border",
+          flat
+            ? "rounded-lg"
+            : "rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none",
+          connectedTop && !hasNudge && "rounded-t-none border-t-0"
         )}
       >
         {children}
@@ -73,9 +76,9 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2 pb-1",
+        "flex min-w-0 items-center gap-2 px-1.5 pt-0.5 pb-1",
         COMPOSER_NUDGE_ENTER,
-        hasChips ? "flex-wrap" : null
+        hasChips && "flex-wrap"
       )}
     >
       {title && !hasChips ? (
@@ -84,7 +87,7 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
         </p>
       ) : null}
       {hasChips ? (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [&_.text-warning]:mt-0.5 [&_.text-warning]:self-start [&_.text-warning+span]:min-w-0 [&_.text-warning+span]:flex-1 [&_.text-warning+span]:overflow-visible [&_.text-warning+span]:leading-5 [&_.text-warning+span]:text-clip [&_.text-warning+span]:whitespace-normal">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           {children}
         </div>
       ) : null}
@@ -107,43 +110,42 @@ function ComposerChip({
   className,
   labelClassName,
 }: ComposerChipProps) {
-  const t = useTranslations("composer");
-  const tCommon = useTranslations("common");
+  const labels = useUiLabels();
   const labelClasses = cn("max-w-[12rem] truncate", labelClassName);
+  const content = (
+    <>
+      {icon}
+      <span className={labelClasses} title={label}>
+        {label}
+      </span>
+    </>
+  );
 
   return (
     <span
       aria-busy={pending || undefined}
       className={cn(
         "border-foreground/25 bg-background text-foreground inline-flex max-w-full items-center gap-1.5 rounded-md border border-dashed py-1 pr-1 pl-1.5 text-xs",
-        pending ? "border-foreground/15 text-muted-foreground" : null,
+        pending && "border-foreground/15 text-muted-foreground",
         className
       )}
     >
       {onClick ? (
         <button
-          aria-label={t("preview", { label })}
+          aria-label={labels.composerPreview(label)}
           className="hover:text-foreground flex min-w-0 items-center gap-1.5 rounded-sm text-left transition-colors"
           onClick={onClick}
           type="button"
         >
-          {icon}
-          <span className={labelClasses} title={label}>
-            {label}
-          </span>
+          {content}
         </button>
       ) : (
-        <>
-          {icon}
-          <span className={labelClasses} title={label}>
-            {label}
-          </span>
-        </>
+        content
       )}
       {onSteer && !pending ? (
         <button
-          aria-label={steerLabel ?? t("steerWith", { label })}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
+          aria-label={steerLabel ?? labels.composerSteer(label)}
+          className={COMPOSER_CHIP_ACTION}
           onClick={onSteer}
           type="button"
         >
@@ -152,8 +154,8 @@ function ComposerChip({
       ) : null}
       {onEdit && !pending ? (
         <button
-          aria-label={editLabel ?? tCommon("labels.editLabel", { label })}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
+          aria-label={editLabel ?? labels.composerEdit(label)}
+          className={COMPOSER_CHIP_ACTION}
           onClick={onEdit}
           type="button"
         >
@@ -162,8 +164,8 @@ function ComposerChip({
       ) : null}
       {onRemove ? (
         <button
-          aria-label={removeLabel ?? tCommon("labels.removeLabel", { label })}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 shrink-0 items-center justify-center rounded transition-colors"
+          aria-label={removeLabel ?? labels.composerRemove(label)}
+          className={COMPOSER_CHIP_ACTION}
           onClick={onRemove}
           type="button"
         >
@@ -176,7 +178,7 @@ function ComposerChip({
 
 function ComposerToolbar({ children, className }: ComposerToolbarProps) {
   return (
-    <div className={cn("flex items-center gap-1 px-2 pb-2", className)}>
+    <div className={cn("flex items-center gap-1 px-2 pt-1 pb-2", className)}>
       {children}
     </div>
   );
@@ -186,7 +188,7 @@ function ComposerToolbarButton({
   className,
   type = "button",
   ...props
-}: ComponentProps<"button">) {
+}: ComposerToolbarButtonProps) {
   return (
     <button
       className={cn(COMPOSER_TOOLBAR_BUTTON, className)}
@@ -198,31 +200,38 @@ function ComposerToolbarButton({
 
 function ComposerSend({
   children,
+  label,
+  tooltip,
   busy = false,
   disabled = false,
-  tooltip,
-  label,
   onClick,
 }: ComposerSendProps) {
+  const isInert = disabled && !busy;
+  const buttonProps = {
+    "aria-busy": busy,
+    "aria-disabled": disabled,
+    "aria-label": label,
+    className: cn(
+      COMPOSER_SEND_BUTTON,
+      isInert
+        ? "bg-foreground/[0.08] text-muted-foreground/70"
+        : "bg-foreground text-background hover:bg-foreground/85",
+      disabled && "pointer-events-none"
+    ),
+    onClick: disabled ? undefined : onClick,
+    type: "button" as const,
+  };
+
+  const content = busy ? <Spinner className="size-3.5" /> : children;
+
+  if (!tooltip) {
+    return <button {...buttonProps}>{content}</button>;
+  }
+
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={
-          <button
-            aria-busy={busy}
-            aria-disabled={disabled}
-            aria-label={label}
-            className={cn(
-              COMPOSER_SEND_BUTTON,
-              disabled ? "pointer-events-none" : null,
-              disabled && !busy ? "opacity-30" : null
-            )}
-            onClick={disabled ? undefined : onClick}
-            type="button"
-          />
-        }
-      >
-        {busy ? <Spinner className="size-3.5" /> : children}
+      <TooltipTrigger render={<button {...buttonProps} />}>
+        {content}
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>

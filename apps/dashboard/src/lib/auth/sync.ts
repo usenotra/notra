@@ -9,6 +9,7 @@ import { isFreeEmail } from "free-email-domains-list";
 import { isValid as isNotDisposableEmail } from "mailchecker";
 
 import { FIRST_LOGIN_WINDOW_MS } from "@/constants/analytics-events";
+import { runAfterResponse } from "@/lib/after-response";
 import { toAnalyticsAuthMethod } from "@/lib/analytics/auth-method";
 import {
   setPersonProperties,
@@ -18,7 +19,8 @@ import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { SocialConnectionError, UserSyncError } from "@/lib/auth/errors";
 import { upsertMembership } from "@/lib/auth/membership-upsert";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
-import { sendWelcomeEmailAction } from "@/lib/email/actions";
+import { syncBrewContacts } from "@/lib/email/brew-contacts";
+import { sendWelcomeEmail } from "@/lib/email/send";
 import type {
   OAuthProviderTokens,
   SyncAuthenticatedUserInput,
@@ -272,7 +274,15 @@ export const ensureLocalUser = Effect.fn("auth.sync.ensureLocalUser")(
 
     yield* linkWorkOSExternalId(workosUser.id, created.id);
     yield* Effect.sync(() => {
-      sendWelcomeEmailAction({ userEmail: created.email });
+      runAfterResponse("[Signup] Welcome email failed", async () => {
+        const { error } = await sendWelcomeEmail({ userEmail: created.email });
+        if (error) {
+          throw new Error(`${error.name}: ${error.message}`);
+        }
+      });
+      runAfterResponse("[BrewContacts] Sync failed", () =>
+        syncBrewContacts([created.id])
+      );
     });
 
     const signupMethod = toAnalyticsAuthMethod(authenticationMethod);

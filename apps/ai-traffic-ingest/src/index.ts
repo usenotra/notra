@@ -1,4 +1,5 @@
 import { flushGeoLog } from "@notra/ai/evlog";
+import { logError } from "@notra/ai/utils/server-log";
 import { getGeoTrafficFlushIntervalMs } from "@notra/analytics/utils/geo-flush-interval";
 import { createGeoEventBatcher } from "@notra/geo-core/ingest/batcher";
 import { announceGeoTrafficRows } from "@notra/geo-core/ingest/live";
@@ -32,7 +33,7 @@ const batcher =
 const app = createIngestApp((task) => {
   const promise = task()
     .catch((error) => {
-      console.error("[geo-ingest] Background task failed", error);
+      logError("[geo-ingest] Background task failed", error);
     })
     .finally(() => pending.delete(promise));
   pending.add(promise);

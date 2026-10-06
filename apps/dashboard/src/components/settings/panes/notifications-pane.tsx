@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { MarketingEmailsCard } from "@/components/settings/marketing-emails-card";
 import {
   NotificationToggleRow,
   NotificationToggleRowSkeleton,
@@ -33,13 +34,11 @@ export function NotificationsSettingsPane() {
   const groupLabels: Record<NotificationToggleGroup["id"], string> = {
     content: tLabels("content"),
     geo: tLabels("geo"),
-    marketing: t("groups.marketing"),
   };
   const toggleLabels: Record<NotificationToggleKey, string> = {
     scheduledContentCreation: tLabels("created"),
     scheduledContentFailed: tLabels("failed"),
     scheduledContentSkipped: tLabels("skipped"),
-    marketingEmails: tLabels("productUpdates"),
     dailySummary: t("toggles.dailySummary.label"),
   };
   const queryClient = useQueryClient();
@@ -143,6 +142,8 @@ export function NotificationsSettingsPane() {
       {!(isLoadingMembers || isOwner) && (
         <p className="text-muted-foreground text-xs">{t("ownerOnly")}</p>
       )}
+
+      <MarketingEmailsCard />
     </SettingsPane>
   );
 }

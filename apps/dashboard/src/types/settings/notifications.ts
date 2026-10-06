@@ -4,14 +4,27 @@ export interface NotificationSettings {
   scheduledContentCreation: boolean;
   scheduledContentFailed: boolean;
   scheduledContentSkipped: boolean;
-  marketingEmails: boolean;
   dailySummary: boolean;
 }
+
+/**
+ * The user's own marketing email state. `blockedByUnsubscribe` means they
+ * unsubscribed from all marketing via an email footer, which only Notra
+ * support can lift in Brew.
+ */
+export interface MarketingEmailsState {
+  enabled: boolean;
+  blockedByUnsubscribe: boolean;
+}
+
+/** Where a marketing opt-in was given, kept as proof of consent. */
+export type MarketingOptInSource = "onboarding" | "settings";
 
 export type NotificationToggleKey = keyof NotificationSettings;
 
 export interface NotificationToggleConfig {
-  key: NotificationToggleKey;
+  /** Organization settings, plus the user's own marketing opt-in. */
+  key: NotificationToggleKey | "marketingEmails";
   label: string;
   description: string;
   defaultValue: boolean;
@@ -20,11 +33,11 @@ export interface NotificationToggleConfig {
 
 export type NotificationToggleDefinition = Omit<
   NotificationToggleConfig,
-  "label" | "description"
->;
+  "label" | "description" | "key"
+> & { key: NotificationToggleKey };
 
 export interface NotificationToggleGroup {
-  id: "content" | "geo" | "marketing";
+  id: "content" | "geo";
   toggles: NotificationToggleDefinition[];
 }
 

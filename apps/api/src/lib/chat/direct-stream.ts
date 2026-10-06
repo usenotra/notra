@@ -10,6 +10,7 @@ import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { withChatStreamCleanup } from "@notra/ai/utils/with-chat-stream-cleanup";
 import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
@@ -124,11 +125,15 @@ export async function createDirectStandaloneChatResponse({
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after standalone chat:", {
-              requestId,
-              customerId: organizationId,
-              error: trackError,
-            });
+            logError(
+              "[Autumn] Track failed after standalone chat",
+              trackError,
+              {
+                chatRequestId: requestId,
+                organizationId,
+                chatId,
+              }
+            );
           }
         },
         log,
@@ -186,9 +191,13 @@ export async function createDirectStandaloneChatResponse({
           streamId
         );
         if (!saved) {
-          console.warn(
+          logWarn(
             "[Standalone Chat] Skipped saving response: chat was deleted",
-            { requestId, organizationId, chatId }
+            {
+              chatRequestId: requestId,
+              organizationId,
+              chatId,
+            }
           );
         }
       },
@@ -196,9 +205,11 @@ export async function createDirectStandaloneChatResponse({
         const isAbort =
           combinedAbortSignal.aborted ||
           (error instanceof Error && error.name === "AbortError");
-        console.error("[Standalone Chat] Direct stream error:", {
-          requestId,
-          error,
+        logError("[Standalone Chat] Direct stream error", error, {
+          chatRequestId: requestId,
+          organizationId,
+          chatId,
+          aborted: isAbort,
         });
         if (isAbort) {
           return "Generation stopped.";

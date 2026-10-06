@@ -1,3 +1,4 @@
+import { logWarn } from "@notra/ai/utils/server-log";
 import { runWithGeoRequestMemo } from "@notra/geo-core/utils/request-memo";
 import { createRouterClient } from "@orpc/server";
 import { dehydrate } from "@tanstack/react-query";
@@ -22,7 +23,7 @@ async function canPrefetchGeoQueries(organizationId: string, headers: Headers) {
   try {
     return (await resolveGeoEntitlement(organizationId, headers)) !== "denied";
   } catch (error) {
-    console.warn("[geo] Skipping prefetch: entitlement lookup unavailable", {
+    logWarn("[geo] Skipping prefetch: entitlement lookup unavailable", {
       organizationId,
       error: error instanceof Error ? error.name : "UnknownError",
     });

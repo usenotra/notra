@@ -6,7 +6,6 @@ import {
   Heading,
   Html,
   Img,
-  Link,
   Preview,
   Row,
   Section,
@@ -16,7 +15,9 @@ import {
 
 import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
+import { EmailLayout } from "../components/layout";
 import { EmailLogo } from "../components/logo";
+import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import { EmailTitleCard } from "../components/title-card";
 import { EMAIL_THEME } from "../constants/theme";
 import type {
@@ -32,15 +33,15 @@ const PILL: Record<
 > = {
   up: {
     backgroundColor: EMAIL_THEME.geoUpWash,
-    color: EMAIL_THEME.geoUp,
+    color: EMAIL_THEME.geoUpText,
   },
   down: {
     backgroundColor: EMAIL_THEME.geoDownWash,
-    color: EMAIL_THEME.geoDown,
+    color: EMAIL_THEME.geoDownText,
   },
   neutral: {
     backgroundColor: EMAIL_THEME.muted,
-    color: EMAIL_THEME.mutedForeground,
+    color: EMAIL_THEME.subtleForeground,
   },
 };
 
@@ -59,7 +60,7 @@ function toneMark(tone: DailySummaryChangeTone): string {
     return "+";
   }
   if (tone === "down") {
-    return "-";
+    return "\u2212";
   }
   return "0";
 }
@@ -133,103 +134,69 @@ export const DailySummaryEmail = ({
   const subtext = dailySummarySubtext(organizationName, scansCompleted);
 
   return (
-    <Html>
-      <Head />
-      <Preview>{headline}</Preview>
-      <Tailwind>
-        <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto mt-[16px] mb-[40px] max-w-[465px] rounded px-[20px] pt-0 pb-[20px]">
-            <EmailLogo className="mt-0 text-center" variant="wordmark" />
-
-            <Heading className="mt-5 mb-3 text-center text-2xl font-medium text-black">
-              {headline}
-            </Heading>
-            <Text className="mt-0 mb-8 text-center text-base leading-relaxed text-[#737373]">
-              {subtext}
+    <EmailLayout heading={headline} preview={headline} subtext={subtext}>
+      <Section>
+        <EmailTitleCard
+          action={
+            <Text
+              style={{
+                color: EMAIL_THEME.subtleForeground,
+                fontSize: "12px",
+                margin: 0,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {dateLabel}
             </Text>
+          }
+          heading="GEO"
+        >
+          <Row>
+            <MetricCell
+              label="Visibility"
+              pill={ratePill}
+              tone={rateTone}
+              value={mentionRateLabel}
+            />
+            <MetricCell last label="Mentions" value={mentionChangesLabel} />
+          </Row>
+        </EmailTitleCard>
+      </Section>
 
-            <Section>
-              <EmailTitleCard
-                action={
-                  <Text
-                    style={{
-                      color: EMAIL_THEME.mutedForeground,
-                      fontSize: "12px",
-                      margin: 0,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {dateLabel}
-                  </Text>
-                }
-                heading="GEO"
+      {items.length > 0 ? (
+        <Section className="mt-4">
+          <EmailTitleCard heading="What changed">
+            {items.map((item, index) => (
+              <ChangeRow
+                first={index === 0}
+                item={item}
+                key={item.id}
+                last={index === items.length - 1}
+              />
+            ))}
+            {remainingCount > 0 ? (
+              <Text
+                style={{
+                  color: EMAIL_THEME.subtleForeground,
+                  fontSize: "13px",
+                  margin: "12px 0 0",
+                  textAlign: "center",
+                }}
               >
-                <Row>
-                  <MetricCell
-                    label="Visibility"
-                    pill={ratePill}
-                    tone={rateTone}
-                    value={mentionRateLabel}
-                  />
-                  <MetricCell
-                    last
-                    label="Mentions"
-                    value={mentionChangesLabel}
-                  />
-                </Row>
-              </EmailTitleCard>
-            </Section>
-
-            {items.length > 0 ? (
-              <Section className="mt-4">
-                <EmailTitleCard heading="What changed">
-                  {items.map((item, index) => (
-                    <ChangeRow
-                      first={index === 0}
-                      item={item}
-                      key={item.id}
-                      last={index === items.length - 1}
-                    />
-                  ))}
-                  {remainingCount > 0 ? (
-                    <Text
-                      style={{
-                        color: EMAIL_THEME.mutedForeground,
-                        fontSize: "13px",
-                        margin: "12px 0 0",
-                        textAlign: "center",
-                      }}
-                    >
-                      And {remainingCount} more in Notra
-                    </Text>
-                  ) : null}
-                </EmailTitleCard>
-              </Section>
-            ) : null}
-
-            <Section className="my-8 text-center">
-              <EmailCtaButton href={dashboardLink}>
-                Open in Notra
-              </EmailCtaButton>
-            </Section>
-
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
+                And {remainingCount} more in Notra
               </Text>
-            </Section>
+            ) : null}
+          </EmailTitleCard>
+        </Section>
+      ) : null}
 
-            <EmailFooter showPhysicalAddress />
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <EmailCtaButton href={dashboardLink}>Open in Notra</EmailCtaButton>
+
+      <EmailNotificationSettingsNote
+        organizationName={organizationName}
+        organizationSlug={organizationSlug}
+      />
+    </EmailLayout>
   );
 };
 
@@ -258,7 +225,7 @@ function MetricCell({
     >
       <Text
         style={{
-          color: EMAIL_THEME.mutedForeground,
+          color: EMAIL_THEME.subtleForeground,
           fontSize: "12px",
           margin: 0,
         }}
@@ -318,25 +285,25 @@ function ChangeRow({
       </Text>
       <Row>
         <Column style={{ paddingTop: "6px" }}>
+          {/* Spacing via text: Outlook ignores margins on inline elements. */}
           {item.changes.map((change) => (
             <span
               key={change.id}
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
-                marginRight: "8px",
                 verticalAlign: "middle",
               }}
             >
               <GeoToneMark tone={change.tone} />
-              {change.detail}
+              {`\u00a0${change.detail}\u00a0\u00a0\u00a0`}
             </span>
           ))}
           {item.engineLabel ? (
             <span
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
                 verticalAlign: "middle",
@@ -366,33 +333,26 @@ function ChangeRow({
 
 function GeoToneMark({ tone }: { tone: DailySummaryChangeTone }) {
   const colors = PILL[tone];
-  const isMinus = tone === "down";
 
+  // Plain glyphs: Outlook drops background-image, so no drawn minus bar.
   return (
     <span
       style={{
         backgroundColor: colors.backgroundColor,
-        backgroundImage: isMinus
-          ? `linear-gradient(${colors.color}, ${colors.color})`
-          : undefined,
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "8px 2px",
         borderRadius: "9999px",
         color: colors.color,
         display: "inline-block",
         fontFamily: "Arial, Helvetica, sans-serif",
-        fontSize: isMinus ? 0 : "12px",
+        fontSize: "12px",
         fontWeight: 600,
         height: "16px",
         lineHeight: "16px",
-        marginRight: "6px",
         textAlign: "center",
         verticalAlign: "middle",
         width: "16px",
       }}
     >
-      {isMinus ? "\u00a0" : toneMark(tone)}
+      {toneMark(tone)}
     </span>
   );
 }

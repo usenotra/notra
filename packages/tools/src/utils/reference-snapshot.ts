@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { logError } from "@notra/ai/utils/server-log";
 
 import {
   REFERENCE_SNAPSHOT_CONTENT_TYPE,
@@ -105,7 +106,10 @@ export async function saveReferenceSnapshot({
       }
     );
   } catch (error) {
-    console.error("Failed to persist reference snapshot", error);
+    logError("Failed to persist reference snapshot", error, {
+      organizationId,
+      sourceContentHash,
+    });
     return null;
   }
 

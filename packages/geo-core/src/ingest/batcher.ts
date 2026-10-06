@@ -10,6 +10,7 @@ import {
   GEO_INGEST_LIVE_RETRY_DELAY_MS,
   GEO_INGEST_MAX_BUFFERED_EVENTS,
 } from "../constants/ingest";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   getGeoIngestRegion,
   getGeoIngestRuntime,
@@ -151,7 +152,12 @@ export function createGeoEventBatcher(
     try {
       onWritten?.(rows);
     } catch (error) {
-      console.error("[geo-ingest] Write listener failed", error);
+      logGeoFailure(
+        "geo.ingest.write_listener_failed",
+        "Write listener failed",
+        error,
+        { rows: rows.length }
+      );
     }
   }
 

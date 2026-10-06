@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import {
   ingestSocialAccountStats,
   ingestSocialAccounts,
@@ -534,7 +535,7 @@ export const trackTwitterAccount = Effect.fn("analytics.trackAccount")(
       verified: false,
     }).pipe(
       Effect.catch((error) => {
-        console.error("[Analytics] tracked account sync failed:", error.cause);
+        logError("[Analytics] tracked account sync failed", error.cause);
         return Effect.succeed(undefined);
       })
     );

@@ -15,6 +15,7 @@ import type {
   GeoIngestResult,
 } from "../types/ingest";
 import { geoIngestAdmissionKey } from "../utils/geo-ingest-admission-key";
+import { logGeoFailure } from "../utils/geo-log";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -269,11 +270,15 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
       try {
         await Effect.runPromise(trackGeoIngestAnalytics({ identity, event }));
       } catch (error) {
-        console.error("[geo-ingest] Deferred analytics failed", {
+        logGeoFailure(
+          "geo.ingest.analytics_failed",
+          "Deferred ingest analytics failed",
           error,
-          organizationId: identity.organizationId,
-          projectId: identity.projectId,
-        });
+          {
+            organizationId: identity.organizationId,
+            projectId: identity.projectId,
+          }
+        );
       }
       await announced;
     })

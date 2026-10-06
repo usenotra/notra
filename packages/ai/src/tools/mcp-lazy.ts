@@ -1,4 +1,5 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { mcpServerIntegrations } from "@notra/db/schema";
 import { assertPublicHttpUrlResolution } from "@notra/utils/url";
@@ -74,9 +75,8 @@ export async function createLazyMcpRuntime({
   if (!hasActiveIndexedTools) {
     await refreshMcpToolIndexForOrganization({ organizationId }).catch(
       (error) => {
-        console.error("[Lazy MCP Runtime Index Refresh Error]", {
+        logError("[Lazy MCP] Runtime index refresh failed", error, {
           organizationId,
-          error: error instanceof Error ? error.message : String(error),
         });
       }
     );
@@ -509,10 +509,9 @@ async function connectMcpClient({
       redirect: "error",
     },
     onUncaughtError: (error) => {
-      console.error("[Lazy MCP Client Error]", {
+      logError("[Lazy MCP] Uncaught client error", error, {
         integrationId,
         organizationId,
-        error: error instanceof Error ? error.message : String(error),
       });
     },
   });

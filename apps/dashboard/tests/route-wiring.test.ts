@@ -42,7 +42,7 @@ test("every original handler has a native route registered in the generated tree
     paths.add(routePath);
     representedPaths.set(handler, paths);
     expect(source).toMatch(
-      /dispatchRouteHandler\(\s*handlers\s*,\s*request\s*,\s*(?:params\s*\)|\{\s*\.\.\.params\s*,)/
+      /dispatchRouteHandler\(\s*handlers\s*,\s*(?:ctx\.)?request\s*,\s*(?:(?:ctx\.)?params\s*\)|\{\s*\.\.\.(?:ctx\.)?params\s*,)/
     );
     if (handler.includes("[...")) {
       if (routePath.endsWith("/$")) {

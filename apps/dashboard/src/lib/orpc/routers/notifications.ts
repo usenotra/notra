@@ -1,11 +1,20 @@
 import { db } from "@notra/db/drizzle";
 import { organizationNotificationSettings } from "@notra/db/schema";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
-import { updateNotificationSettingsInputSchema } from "@notra/schemas/dashboard/notification-settings";
+import {
+  updateMarketingEmailsInputSchema,
+  updateNotificationSettingsInputSchema,
+} from "@notra/schemas/dashboard/notification-settings";
 import { eq } from "drizzle-orm";
 
+import { runAfterResponse } from "@/lib/after-response";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { syncBrewContactsForOrganizationOwners } from "@/lib/email/brew-contacts";
+import {
+  getMarketingEmailsState,
+  setMarketingEmails,
+} from "@/lib/email/marketing-consent";
 import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 
@@ -34,7 +43,6 @@ export const notificationsRouter = {
           scheduledContentCreation: false,
           scheduledContentFailed: false,
           scheduledContentSkipped: false,
-          marketingEmails: true,
           dailySummary: true,
         },
       };
@@ -74,10 +82,6 @@ export const notificationsRouter = {
         updates.scheduledContentSkipped = input.scheduledContentSkipped;
       }
 
-      if (input.marketingEmails !== undefined) {
-        updates.marketingEmails = input.marketingEmails;
-      }
-
       if (input.dailySummary !== undefined) {
         updates.dailySummary = input.dailySummary;
       }
@@ -90,7 +94,6 @@ export const notificationsRouter = {
           scheduledContentCreation: input.scheduledContentCreation ?? false,
           scheduledContentFailed: input.scheduledContentFailed ?? false,
           scheduledContentSkipped: input.scheduledContentSkipped ?? false,
-          marketingEmails: input.marketingEmails ?? true,
           dailySummary: input.dailySummary ?? true,
         })
         .onConflictDoUpdate({
@@ -99,6 +102,23 @@ export const notificationsRouter = {
         })
         .returning();
 
+      runAfterResponse("[BrewContacts] Sync failed", () =>
+        syncBrewContactsForOrganizationOwners(input.organizationId)
+      );
+
       return { settings: updated };
     }),
+  /** The signed-in user's own marketing email consent. */
+  marketing: authorizedProcedure.handler(({ context }) =>
+    getMarketingEmailsState(context.user.id)
+  ),
+  updateMarketing: authorizedProcedure
+    .input(updateMarketingEmailsInputSchema)
+    .handler(({ context, input }) =>
+      setMarketingEmails({
+        userId: context.user.id,
+        enabled: input.enabled,
+        source: "settings",
+      })
+    ),
 };

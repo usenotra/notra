@@ -3,6 +3,7 @@ import {
   brandSettings,
   organizationNotificationSettings,
   organizations,
+  users,
 } from "@notra/db/schema";
 import { normalizeCompetitorDomain } from "@notra/geo-core/geo/domain";
 import {
@@ -53,7 +54,7 @@ async function onboardingContext({ searchParams }: UiRouteInput) {
       : undefined;
   const replay =
     process.env.NODE_ENV === "development" && searchParams.replay === "1";
-  return { organization, projectId, replay };
+  return { organization, projectId, replay, userId: session.user.id };
 }
 
 async function onboardingBrandContext(input: UiRouteInput) {
@@ -124,7 +125,8 @@ export const loadOnboardingEntry = createServerFn({ method: "GET" })
 export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
   .validator((data: UiRouteInput) => data)
   .handler(async ({ data }) => {
-    const { organization, projectId, replay } = await onboardingContext(data);
+    const { organization, projectId, replay, userId } =
+      await onboardingContext(data);
     if (!organization) {
       await redirectIfAnyOrganizationHasPaidHistory();
       return { existingOrg: undefined, progressHrefs: undefined };
@@ -135,8 +137,8 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
       projectId,
       replay
     );
-    const [brand, existingOrg, notificationSettings, stage] = await Promise.all(
-      [
+    const [brand, existingOrg, notificationSettings, stage, user] =
+      await Promise.all([
         db.query.brandSettings.findFirst({
           where: eq(brandSettings.organizationId, organization.id),
           columns: { id: true, websiteUrl: true },
@@ -157,17 +159,21 @@ export const loadOnboardingWorkspace = createServerFn({ method: "GET" })
             organizationNotificationSettings.organizationId,
             organization.id
           ),
-          columns: { dailySummary: true, marketingEmails: true },
+          columns: { dailySummary: true },
         }),
         getGeoOnboardingStage(organization.id, projectId),
-      ]
-    );
+        // Marketing consent is the user's own, not the organization's.
+        db.query.users.findFirst({
+          where: eq(users.id, userId),
+          columns: { marketingOptInAt: true },
+        }),
+      ]);
     return {
       existingOrg: existingOrg
         ? {
             ...existingOrg,
             dailySummary: notificationSettings?.dailySummary ?? true,
-            marketingEmails: notificationSettings?.marketingEmails ?? true,
+            marketingEmails: Boolean(user?.marketingOptInAt),
             hasBrand: Boolean(brand),
             websiteUrl: brand?.websiteUrl ?? null,
           }

@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { workosWebhookPayloadSchema } from "@notra/schemas/dashboard/workos-webhook";
 import type { Event as WorkOSEvent } from "@workos-inc/node";
 import { getWorkOS } from "@workos/authkit-session";
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       secret,
     });
   } catch (error) {
-    console.error("WorkOS webhook verification failed", error);
+    logError("WorkOS webhook verification failed", error);
     return Response.json({ error: "invalid_signature" }, { status: 401 });
   }
 
