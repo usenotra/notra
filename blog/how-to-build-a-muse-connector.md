@@ -8,9 +8,9 @@ Under the hood, a connector is an MCP server. Muse writes its own MCP client whe
 
 There are two flavors: directory connectors that Meta reviews and lists for any user to tap, and custom connectors that Muse builds on-demand for a single user from any API without Meta reviewing them. You want the first kind. The second kind already exists whether you build anything or not. Your users can wire Muse up to your API right now without you doing a thing. A directory listing makes it official and discoverable 🎉
 
-## What you actually need to build
+## What your server needs before you submit
 
-A Muse connector is an MCP server, so the list is short:
+A Muse connector is an MCP server, so the checklist is short. Before you submit, make sure yours covers:
 
 - A hosted MCP server reachable over HTTPS (Muse runs in the cloud, so localhost won't work)
 - Streamable HTTP transport, which is what Muse uses to talk to remote servers
