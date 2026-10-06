@@ -1,0 +1,26 @@
+packages/ai/src/evlog.ts
+  s_69a291ada5b8da::t_606024342e2829 6-7,73,80
+packages/ai/src/utils/evlog-request.ts
+  s_69a291ada5b8da::t_606024342e2829 8-9,11-29
+  s_69a291ada5b8da::t_be74eac77342bf 10
+packages/ai/src/utils/server-log.ts
+  s_69a291ada5b8da::t_5777f0bf0b8b64 55-56
+  s_69a291ada5b8da::t_a5cd348113db6d 50-54
+  s_69a291ada5b8da::t_606024342e2829 2,24-41,48-49,57-58,67-71,77-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4bd71e72f42ba025d75cfebd2cff30a15b1905e8",
+  "prompts": {},
+  "sessions": {
+    "s_69a291ada5b8da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d72cc19f-9bad-4ab4-993d-b91bbde61195",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
