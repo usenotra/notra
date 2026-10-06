@@ -7,6 +7,7 @@
     "./api-scopes": "./src/api-scopes.ts",
     "./oauth-consent": "./src/oauth-consent.ts",
     "./constants/oauth-consent": "./src/constants/oauth-consent.ts",
+    "./constants/agent-feedback-prompt": "./src/constants/agent-feedback-prompt.ts",
     "./url": "./src/url.ts",
     "./website-url": "./src/website-url.ts",
     "./logo-link": "./src/logo-link.ts",
