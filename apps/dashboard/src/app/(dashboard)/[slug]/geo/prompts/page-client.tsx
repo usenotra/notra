@@ -9,14 +9,13 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import {
+  IconTabsList,
+  IconTabsTrigger,
+} from "@notra/ui/components/ui/icon-tabs";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Google } from "@notra/ui/components/ui/svgs/google";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@notra/ui/components/ui/tabs";
+import { Tabs, TabsContent } from "@notra/ui/components/ui/tabs";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -33,8 +32,6 @@ import { PromptAddDialog } from "@/components/geo/prompt-add-dialog";
 import { PromptSuggestions } from "@/components/geo/prompt-suggestions";
 import { PromptsTable } from "@/components/geo/prompts-table";
 import { ScanRunDetail } from "@/components/geo/scan-run-detail";
-import { SlideInTabIcon } from "@/components/geo/slide-in-tab-icon";
-import { SlidingTabIndicator } from "@/components/geo/sliding-tab-indicator";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { GeoScanControlsProvider } from "@/components/providers/geo-scan-controls-provider";
@@ -184,36 +181,34 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="max-w-full overflow-x-auto">
-                <TabsList indicator={false}>
-                  <SlidingTabIndicator value={tab} />
-                  <TabsTrigger className="group/tab" value="prompts">
-                    <SlideInTabIcon>
+                <IconTabsList value={tab}>
+                  <IconTabsTrigger
+                    icon={
                       <HugeiconsIcon icon={BubbleChatQuestionIcon} size={15} />
-                    </SlideInTabIcon>
+                    }
+                    value="prompts"
+                  >
                     {tCommon("labels.prompts")}
                     <TabCount count={prompts.length} />
-                  </TabsTrigger>
-                  <TabsTrigger className="group/tab" value="conversations">
-                    <SlideInTabIcon>
+                  </IconTabsTrigger>
+                  <IconTabsTrigger
+                    icon={
                       <HugeiconsIcon icon={MessageMultiple01Icon} size={15} />
-                    </SlideInTabIcon>
+                    }
+                    value="conversations"
+                  >
                     {tGeoShared("conversations")}
                     <TabCount count={sequences.length} />
-                  </TabsTrigger>
-                  <TabsTrigger className="group/tab" value="suggestions">
-                    <SlideInTabIcon>
-                      <Google className="size-3.5" />
-                    </SlideInTabIcon>
+                  </IconTabsTrigger>
+                  <IconTabsTrigger
+                    icon={<Google className="size-3.5" />}
+                    value="suggestions"
+                  >
                     {t("tabs.suggestions")}
                     <TabCount count={suggestionsData?.suggestions.length} />
-                  </TabsTrigger>
-                  <TabsTrigger
-                    className="group/tab"
-                    onFocus={prefetchAnswers}
-                    onPointerEnter={prefetchAnswers}
-                    value="answers"
-                  >
-                    <SlideInTabIcon pinned={isScanning}>
+                  </IconTabsTrigger>
+                  <IconTabsTrigger
+                    icon={
                       <HugeiconsIcon
                         className={
                           isScanning
@@ -223,15 +218,20 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                         icon={isScanning ? Loading03Icon : AiChat02Icon}
                         size={15}
                       />
-                    </SlideInTabIcon>
+                    }
+                    iconPinned={isScanning}
+                    onFocus={prefetchAnswers}
+                    onPointerEnter={prefetchAnswers}
+                    value="answers"
+                  >
                     {t("tabs.answers")}
                     {isScanning ? (
                       <span className="sr-only">
                         {tGeoShared("scanningEngines")}
                       </span>
                     ) : null}
-                  </TabsTrigger>
-                </TabsList>
+                  </IconTabsTrigger>
+                </IconTabsList>
               </div>
               {tab === "prompts" ? <GeoRangePicker control={geoRange} /> : null}
               <div

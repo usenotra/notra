@@ -1228,6 +1228,35 @@
       ]
     },
     {
+      "name": "icon-tabs",
+      "type": "registry:component",
+      "title": "Icon Tabs",
+      "description": "A segmented tab selector where only the active tab shows its icon, sliding in beside the label. Built on the Base UI Tabs.",
+      "dependencies": ["@base-ui/react", "cn"],
+      "files": [
+        {
+          "path": "registry/notra/icon-tabs/components/icon-tabs.tsx",
+          "type": "registry:component",
+          "target": "components/icon-tabs/components/icon-tabs.tsx"
+        },
+        {
+          "path": "registry/notra/icon-tabs/constants/icon-tabs.ts",
+          "type": "registry:lib",
+          "target": "components/icon-tabs/constants/icon-tabs.ts"
+        },
+        {
+          "path": "registry/notra/icon-tabs/lib/icon-tabs.ts",
+          "type": "registry:lib",
+          "target": "components/icon-tabs/lib/icon-tabs.ts"
+        },
+        {
+          "path": "registry/notra/icon-tabs/types/icon-tabs.ts",
+          "type": "registry:lib",
+          "target": "components/icon-tabs/types/icon-tabs.ts"
+        }
+      ]
+    },
+    {
       "name": "chat-minimap",
       "type": "registry:component",
       "title": "Chat Minimap",

@@ -243,6 +243,7 @@ import { DesignSystemSectionHeader } from "@/components/design-system/design-sys
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
 import { ConfirmDialogSection } from "@/components/design-system/sections/confirm-dialog-section";
 import { CopyButtonSection } from "@/components/design-system/sections/copy-button-section";
+import { IconTabsSection } from "@/components/design-system/sections/icon-tabs-section";
 import { InstrumentModuleSection } from "@/components/design-system/sections/instrument-module-section";
 import { PageHeadingSection } from "@/components/design-system/sections/page-heading-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
@@ -1249,6 +1250,8 @@ export default function DesignSystemClientPage() {
         <ConfirmDialogSection />
 
         <CopyButtonSection />
+
+        <IconTabsSection />
 
         <InstrumentModuleSection />
 
