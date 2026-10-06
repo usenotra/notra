@@ -22,6 +22,7 @@ import {
   ResponsiveAlertDialogHeader,
   ResponsiveAlertDialogTitle,
 } from "@notra/ui/components/shared/responsive-alert-dialog";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -104,7 +105,10 @@ export function ChatHistoryNav() {
     );
   }
 
-  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
+  const { sessions, generatingTitleChatIds, isLoading, isError } =
+    useChatSessions();
+  const showError = isError && sessions.length === 0;
+  const showLoading = !showError && isLoading && sessions.length === 0;
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
@@ -405,9 +409,21 @@ export function ChatHistoryNav() {
 
       {!isCollapsed && (
         <div className="flex-1 overflow-x-hidden overflow-y-auto">
-          {isLoading && sessions.length === 0 ? (
-            <ChatHistoryNavLoading />
-          ) : (
+          {showError && (
+            <div className="space-y-2 p-3" role="alert">
+              <p className="text-muted-foreground text-xs">{t("loadFailed")}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {tCommon("refresh")}
+              </Button>
+            </div>
+          )}
+          {showLoading && <ChatHistoryNavLoading />}
+          {!(showError || showLoading) && (
             <div>
               {renderSessions(t("pinned"), pinnedSessions)}
               {historyGroups.map((group) =>

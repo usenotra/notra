@@ -115,7 +115,7 @@ export function useChatSessions() {
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id;
-  const { projectId, isResolved } = useActiveProject();
+  const { projectId, isResolved, isError: isProjectError } = useActiveProject();
   const queryKey = chatSessionsQueryKey(organizationId, projectId);
   const pendingQueryKey = chatSessionsPendingQueryKey(
     organizationId,
@@ -132,15 +132,11 @@ export function useChatSessions() {
       if (!organizationId) {
         return [];
       }
-      try {
-        const { sessions } = await dashboardOrpcClient.chat.sessions.list({
-          organizationId,
-          projectId,
-        });
-        return sessions;
-      } catch {
-        return [];
-      }
+      const { sessions } = await dashboardOrpcClient.chat.sessions.list({
+        organizationId,
+        projectId,
+      });
+      return sessions;
     },
     enabled: Boolean(organizationId) && isResolved,
     staleTime: 1000 * 60,
@@ -199,7 +195,8 @@ export function useChatSessions() {
   return {
     sessions,
     generatingTitleChatIds: new Set(generatingQuery.data ?? []),
-    isLoading: !isResolved || query.isPending,
+    isLoading: !isProjectError && (!isResolved || query.isPending),
+    isError: isProjectError || query.isError,
     organizationId,
     queryKey,
   };

@@ -21,20 +21,27 @@ export function useActiveProject(): ActiveProjectState {
     useGeoProjectsDb(organizationId);
 
   if (!organizationId) {
-    return { projectId: null, isResolved: false };
+    return { projectId: null, isResolved: false, isError: false };
   }
-  if (isLoading || isError || !isReady) {
-    return { projectId: null, isResolved: false };
+  if (isError) {
+    return { projectId: null, isResolved: false, isError: true };
+  }
+  if (isLoading || !isReady) {
+    return { projectId: null, isResolved: false, isError: false };
   }
 
   const fromParam = projects.find((project) => project.id === projectParam);
   if (fromParam) {
-    return { projectId: fromParam.id, isResolved: true };
+    return { projectId: fromParam.id, isResolved: true, isError: false };
   }
 
   const lastVisitedProjectId = getLastVisitedProjectFromClient(slug);
   const restored =
     projects.find((project) => project.id === lastVisitedProjectId) ??
     projects.at(0);
-  return { projectId: restored?.id ?? null, isResolved: true };
+  return {
+    projectId: restored?.id ?? null,
+    isResolved: true,
+    isError: false,
+  };
 }

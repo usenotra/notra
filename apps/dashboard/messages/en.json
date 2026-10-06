@@ -6280,6 +6280,7 @@
     "chatHistory": {
       "options": "Chat options",
       "pinned": "Pinned",
+      "loadFailed": "Chat history could not be loaded.",
       "groups": {
         "lastMonth": "Last month"
       }
