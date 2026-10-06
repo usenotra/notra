@@ -381,6 +381,38 @@ export async function loadChatHistory<TMessage extends UIMessage = UIMessage>(
   return row.messages as TMessage[];
 }
 
+export async function getChatHistorySnapshot<
+  TMessage extends UIMessage = UIMessage,
+>(organizationId: string, chatId: string) {
+  const [row] = await db
+    .select({
+      messages: chatSessions.messages,
+      deletedAt: chatSessions.deletedAt,
+      externalChannelSource: chatSessions.externalChannelSource,
+      externalChannelId: chatSessions.externalChannelId,
+    })
+    .from(chatSessions)
+    .where(
+      and(
+        eq(chatSessions.id, chatId),
+        eq(chatSessions.organizationId, organizationId),
+        isNull(chatSessions.contentId)
+      )
+    )
+    .limit(1);
+
+  if (row?.deletedAt) {
+    return null;
+  }
+
+  return {
+    messages: (row?.messages ?? []) as TMessage[],
+    externalChannelId: row
+      ? toExternalChannelId(row.externalChannelSource, row.externalChannelId)
+      : null,
+  };
+}
+
 export async function getChatSessionState(
   organizationId: string,
   chatId: string

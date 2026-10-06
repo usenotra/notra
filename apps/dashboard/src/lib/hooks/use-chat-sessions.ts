@@ -199,7 +199,7 @@ export function useChatSessions() {
   return {
     sessions,
     generatingTitleChatIds: new Set(generatingQuery.data ?? []),
-    isLoading: query.isPending && query.fetchStatus !== "idle",
+    isLoading: !isResolved || query.isPending,
     organizationId,
     queryKey,
   };

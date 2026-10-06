@@ -11,7 +11,6 @@ import type {
   ChatMessagePart,
   ChatUIMessage,
   ContextItem,
-  ExternalChannelId,
   MirrorChatStatus,
 } from "@notra/ai/types/chat";
 import { linkSavedChatPosts } from "@notra/ai/utils/chat-post";
@@ -145,6 +144,7 @@ import {
   shouldContinueAfterApprovalResponse,
 } from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { chatHistoryQueryOptions } from "@/utils/chat-history-query";
 import {
   resolveChatMessageAuthor,
   shouldShowChatAuthorAvatars,
@@ -532,6 +532,12 @@ function StandaloneChatPageClient({
     crypto.randomUUID()
   );
   const stableChatId = initialChatId ?? generatedChatId;
+  const [initialMessages] = useState(
+    () =>
+      queryClient.getQueryData(
+        chatHistoryQueryOptions(organizationId, initialChatId).queryKey
+      )?.messages ?? []
+  );
 
   const [context, setContext] = useState<ContextItem[]>([]);
   const [hasCustomizedContext, setHasCustomizedContext] = useState(false);
@@ -665,6 +671,20 @@ function StandaloneChatPageClient({
       isDisconnect,
     }) => {
       messagesRef.current = finishedMessages;
+      if (!isError && !isDisconnect) {
+        queryClient.setQueryData(
+          chatHistoryQueryOptions(organizationId, stableChatId).queryKey,
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  messages: finishedMessages,
+                  lastResponseStopped: isAbort || wasStoppedByUserRef.current,
+                  activeStreamId: null,
+                }
+              : current
+        );
+      }
       const pinnedModel = getPinnedModelFromAutoMetadata(message.metadata);
       if (pinnedModel) {
         selectedModelRef.current = pinnedModel;
@@ -721,7 +741,7 @@ function StandaloneChatPageClient({
       }
       finishQueue();
     },
-    [organizationId, queryClient]
+    [organizationId, queryClient, stableChatId]
   );
 
   const {
@@ -733,6 +753,7 @@ function StandaloneChatPageClient({
     stop,
   } = useChat<ChatUIMessage>({
     id: stableChatId,
+    messages: initialMessages,
     resume: Boolean(
       initialChatId && historyStreamId && pendingMessageId === historyStreamId
     ),
@@ -891,33 +912,7 @@ function StandaloneChatPageClient({
     data: chatHistoryData,
     isLoading: isChatHistoryLoading,
     isPending: isChatHistoryPending,
-  } = useQuery<{
-    messages: ChatUIMessage[] | null;
-    lastResponseStopped: boolean;
-    activeStreamId: string | null;
-    externalChannelId: ExternalChannelId | null;
-    slackThreadUrl: string | null;
-  } | null>({
-    queryKey: ["chat-history", organizationId, initialChatId],
-    queryFn: async () => {
-      if (!initialChatId) {
-        return null;
-      }
-      const data = await dashboardOrpcClient.chat.sessions.get({
-        organizationId,
-        chatId: initialChatId,
-      });
-      return {
-        messages: data.messages,
-        lastResponseStopped: data.lastResponseStopped,
-        activeStreamId: data.activeStreamId,
-        externalChannelId: data.externalChannelId,
-        slackThreadUrl: data.slackThreadUrl,
-      };
-    },
-    enabled: Boolean(initialChatId) && Boolean(organizationId),
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useQuery(chatHistoryQueryOptions(organizationId, initialChatId));
 
   const isSlackMirrored =
     chatHistoryData?.externalChannelId?.source === "slack";
