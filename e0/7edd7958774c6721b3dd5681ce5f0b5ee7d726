@@ -1,0 +1,206 @@
+packages/sites-core/src/schemas/site-config.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 62-65,123-126
+  s_2e1b04b64a383c::t_8a7bd1ce6189d9 2-6,22,34,42,113,115,119,128,130,132,145,148-149
+packages/sites-server/src/utils/dns.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-2,4-31
+  s_2e1b04b64a383c::t_3a321427a63e56 3
+packages/sites-server/src/jobs.ts
+  s_2e1b04b64a383c::t_90afebc4b74171 4-15,20,24-25,67,73,106,108,115,148-149,151-154,158,183
+packages/sites-server/src/box-build.ts
+  s_2e1b04b64a383c::t_0f1329ac3a5cb5 110-119,196
+packages/sites-server/src/types/http.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-5
+packages/sites-server/src/r2.ts
+  s_2e1b04b64a383c::t_b5bba4ecca67a5 5,12,43-61,74,108-116,119,121,124,127,132,137,143
+packages/sites-server/src/integrations.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 36-38
+  s_2e1b04b64a383c::t_c65f255ecc0dae 10,16,35,42-43,50-55,69-77
+packages/sites-core/src/schemas/site-layout.ts
+  s_2e1b04b64a383c::t_8a7bd1ce6189d9 2-5,13-14,19,23,25,27-28,32,39,156,182,223
+packages/sites-core/src/types/preview-token.ts
+  ai_agent 1-2,29-30
+packages/sites-server/src/types/jobs.ts
+  s_2e1b04b64a383c::t_8ef5b58335e855 3-4,13-16
+packages/sites-server/src/constants/domains.ts
+  s_2e1b04b64a383c::t_3a321427a63e56 4-11
+packages/sites-server/src/constants/webhooks.ts
+  ai_agent 15-18
+packages/sites-core/src/schemas/build.ts
+  s_2e1b04b64a383c::t_8a7bd1ce6189d9 35
+packages/sites-server/src/starter.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 32,34
+  s_2e1b04b64a383c::t_317564fe98e769 23,31,33,41,43-47,53-55,59,63-64,102,110,112-113,120,154,157-169,278-288,291,298,302
+packages/sites-server/src/cloudflare-saas.ts
+  ai_agent 7,33-34,92
+packages/sites-core/src/utils/hash.ts
+  s_2e1b04b64a383c::t_02cac7b8a5ffa9 4-8
+  s_2e1b04b64a383c::t_aede072617e2c5 1-3
+packages/sites-server/src/tar.ts
+  s_2e1b04b64a383c::t_ab56382c9f9afa 4
+packages/sites-server/src/deploy.ts
+  s_2e1b04b64a383c::t_e0499229bb46dc 1-91
+packages/sites-server/src/constants/domain-connect.ts
+  s_2e1b04b64a383c::t_1c90d2b8762c28 10-12
+packages/sites-server/src/preview-revocation.ts
+  s_2e1b04b64a383c::t_c4e1a92f878789 43-46,48-49
+packages/sites-server/src/types/starter.ts
+  s_2e1b04b64a383c::t_243aaef80716c5 90-126
+  s_2e1b04b64a383c::t_9a4f29ab2b1cd4 3
+  s_2e1b04b64a383c::t_317564fe98e769 71-74
+packages/sites-core/src/utils/custom-scripts.ts
+  s_2e1b04b64a383c::t_02cac7b8a5ffa9 4,21
+packages/sites-server/src/utils/branch-name.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-4
+packages/sites-server/src/types/editor.ts
+  s_2e1b04b64a383c::t_0280ffea7a2235 24-36
+packages/sites-core/src/constants/sites.ts
+  s_2e1b04b64a383c::t_c8abed972a14cc 100-102
+packages/sites-server/tests/tar.test.ts
+  s_2e1b04b64a383c::t_ab56382c9f9afa 13-14
+packages/sites-server/src/reporting.ts
+  s_2e1b04b64a383c::t_4432229631467b 9,15,25,55-57,141-143
+packages/sites-server/src/publish.ts
+  s_2e1b04b64a383c::t_a4e3f41e680bb3 9,12,74
+packages/sites-server/src/urls.ts
+  s_2e1b04b64a383c::t_c11114e569213f 19-22,24,28-30,39-43,46,50,52
+  s_2e1b04b64a383c::t_85bc5904d14453 44-45,47,49,51
+packages/sites-server/src/domain-connect.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 21
+  s_2e1b04b64a383c::t_1c90d2b8762c28 14,33-38,47,65,90,122,150,153,281-286,292-296,326,329
+packages/sites-server/src/preview-access.ts
+  s_2e1b04b64a383c::t_c4e1a92f878789 16
+packages/sites-server/src/types/html.ts
+  s_2e1b04b64a383c::t_d758c7d799cd32 1-4
+packages/sites-core/src/utils/source-files.ts
+  s_2e1b04b64a383c::t_02cac7b8a5ffa9 1-2,6,11
+packages/sites-server/src/moderation.ts
+  s_2e1b04b64a383c::t_d52741069e01f6 12,42-69,85-93
+  s_2e1b04b64a383c::t_aede072617e2c5 13
+packages/sites-server/src/constants/content-types.ts
+  s_2e1b04b64a383c::t_a4e3f41e680bb3 1-2,8,25
+packages/sites-server/src/utils/links.ts
+  s_2e1b04b64a383c::t_d758c7d799cd32 1-66
+packages/sites-server/src/runner.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 22
+  s_2e1b04b64a383c::t_8ef5b58335e855 25
+  s_2e1b04b64a383c::t_cdf2a100ac3ed7 23,30-35,39,62-64,94,100,116-123
+packages/sites-core/src/types/deployment.ts
+  s_2e1b04b64a383c::t_8f8abcd09b6b52 22
+packages/sites-server/src/utils/ids.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-4
+packages/sites-server/src/cleanup.ts
+  s_2e1b04b64a383c::t_9bd2c91e36064d 1-91
+packages/sites-server/src/utils/landing-page.ts
+  s_2e1b04b64a383c::t_243aaef80716c5 9-10,12-13,17-18,22-23,38,145,183,194,196,198-199,281,302
+packages/sites-server/src/repositories.ts
+  s_2e1b04b64a383c::t_99c62e79d4e293 1-59
+packages/sites-server/src/editor.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 41,180-193,195-196
+  s_2e1b04b64a383c::t_0280ffea7a2235 24,239,302,311-312,331-340,346,350,359-377,394,404,420-422,424-427,435-437,442,447,452,455,464-472,475-484,486-487
+  s_2e1b04b64a383c::t_45b3b5b3846902 6,10-19,21-22,29-30,39-40,42,44-58,63-64,71-73,78,101,111,113,122,144,155,175-179
+packages/sites-server/src/constants/editor.ts
+  s_2e1b04b64a383c::t_0280ffea7a2235 2-16
+packages/sites-server/src/constants/starter.ts
+  s_2e1b04b64a383c::t_d73c85fa823dfc 11-13,17-19,26-29
+packages/sites-core/src/constants/site-config.ts
+  s_2e1b04b64a383c::t_8a7bd1ce6189d9 1-8
+packages/sites-server/src/types/deployments.ts
+  s_2e1b04b64a383c::t_bf5ae1fb4131ed 14-16
+  s_2e1b04b64a383c::t_c837369c06704d 45-47
+packages/sites-core/src/utils/build-target.ts
+  s_2e1b04b64a383c::t_02cac7b8a5ffa9 2,18,20,34,37
+packages/sites-server/src/deployments.ts
+  s_2e1b04b64a383c::t_bf5ae1fb4131ed 11,14,53,124,145,162,172-190,199
+  s_2e1b04b64a383c::t_aede072617e2c5 22
+packages/sites-server/src/pipeline.ts
+  s_2e1b04b64a383c::t_9c1e3c15a58982 14,20,23,38-39,41-44,48,60-61,66,96-97,114-115,178-187,202
+packages/sites-server/src/errors.ts
+  s_2e1b04b64a383c::t_77c0c5a28d1e29 1-44,53-55
+packages/sites-server/src/domains.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 150-153,188
+  s_2e1b04b64a383c::t_9f1d0591f6777f 19-29,31-34,37,42-43,45-58,103-104,109-140,149,154,173-175,179,186,201,208,210,213,220,222,224,227,230,233-289,298,300-303,324,350-356
+packages/sites-server/src/constants/jobs.ts
+  s_2e1b04b64a383c::t_90afebc4b74171 6-7
+packages/sites-server/src/utils/html.ts
+  s_2e1b04b64a383c::t_d758c7d799cd32 2-6,8-18,20-24,26-29,31-32,34-48,50-53,55-88
+packages/sites-server/src/constants/sites.ts
+  s_2e1b04b64a383c::t_99c62e79d4e293 1-9
+packages/sites-server/src/utils/root-directory.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-2,4,14-29
+packages/sites-server/src/activation.ts
+  s_2e1b04b64a383c::t_c837369c06704d 3-6,36-38
+  s_2e1b04b64a383c::t_2079442df94f59 16-20,23-30,34-35,39-41,50-51,55-60,65-72,82-83,87-92,95
+  s_2e1b04b64a383c::t_aede072617e2c5 31-33
+packages/sites-server/src/previews.ts
+  s_2e1b04b64a383c::t_e0499229bb46dc 4,8,10-39,69-71
+packages/sites-server/src/types/domains.ts
+  s_2e1b04b64a383c::t_a782498f76b199 2,11-16
+packages/sites-server/src/types/sites.ts
+  s_2e1b04b64a383c::t_d52741069e01f6 20-32,47-51
+packages/sites-server/src/sites.ts
+  s_2e1b04b64a383c::t_08169a1e5545c0 2,13-14,16-17,19-20,33,36-39,41-43,45-49,57,87,91,97-98,108-110,130,132-134,136,160,185-199,202-203,205,249,261-265,270-272,275,277-282
+  s_2e1b04b64a383c::t_7fd341c30c01c5 10,258,267-269
+packages/sites-server/src/state.ts
+  s_2e1b04b64a383c::t_05fba1dbab20c9 249-252,273,282,296-297
+  s_2e1b04b64a383c::t_a4e3f41e680bb3 29-30
+  s_2e1b04b64a383c::t_0459eb50bc1853 31-32,34,63-65,102,146-148,156-164,169-171,183-185,193-194,248,253-257,283
+packages/sites-server/src/constants/html.ts
+  s_2e1b04b64a383c::t_d758c7d799cd32 1-36
+packages/sites-server/src/utils/read-body.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-10,25-34
+  s_2e1b04b64a383c::t_6ae0f7a60a87c5 11-24
+packages/sites-server/src/github.ts
+  s_2e1b04b64a383c::t_6f82bab1522425 99,101,103,106
+  s_2e1b04b64a383c::t_a8b310f6a9428b 298-307,309,312
+  s_2e1b04b64a383c::t_aede072617e2c5 314-317
+  s_2e1b04b64a383c::t_8956bf0b6d6c55 3,22,26,28-32,40,51-62,100,102,186-206,255-257,259,263-264,267,273-274,278-282,313,318-319
+packages/sites-core/src/utils/hosts.ts
+  s_2e1b04b64a383c::t_a4c93521de5d4d 13-24,54,88,130
+packages/sites-core/src/types/site-integrations.ts
+  s_2e1b04b64a383c::t_845b17dd3ea61e 8
+packages/sites-server/src/types/state.ts
+  s_2e1b04b64a383c::t_0459eb50bc1853 1-5,21-26
+packages/sites-server/src/utils/json.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 8-12
+packages/sites-server/src/webhooks.ts
+  ai_agent 17,21,27,29,103,109-116,122-130,133-140,207
+packages/sites-server/src/constants/github.ts
+  s_2e1b04b64a383c::t_628c864c93ac75 20
+packages/sites-server/src/env.ts
+  s_2e1b04b64a383c::t_3a321427a63e56 1,38-42
+packages/sites-server/tests/starter.test.ts
+  s_2e1b04b64a383c::t_aede072617e2c5 7-11
+packages/sites-core/src/utils/preview-revocation.ts
+  ai_agent 7,17,21,23,34-35,37,41,65
+packages/sites-server/src/utils/errors.ts
+  s_2e1b04b64a383c::t_3d4bbb31f4e221 1-2,5-7
+packages/sites-server/src/types/github.ts
+  s_2e1b04b64a383c::t_8956bf0b6d6c55 15-19
+  s_2e1b04b64a383c::t_99c62e79d4e293 1-2,9-12
+packages/sites-core/src/utils/mounts.ts
+  s_2e1b04b64a383c::t_845b17dd3ea61e 13
+packages/sites-server/src/utils/starter-files.ts
+  s_2e1b04b64a383c::t_d73c85fa823dfc 8,10,20,27,57,123,181,194,219,259,272,293,298-300
+  s_2e1b04b64a383c::t_aede072617e2c5 7,129-131
+  s_2e1b04b64a383c::t_45ae1a79928507 1,6,11,70
+packages/sites-server/src/types/domain-connect.ts
+  s_2e1b04b64a383c::t_1c90d2b8762c28 3,57,60-64
+packages/sites-server/src/constants/state.ts
+  s_2e1b04b64a383c::t_0459eb50bc1853 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e07edd7958774c6721b3dd5681ce5f0b5ee7d726",
+  "prompts": {},
+  "sessions": {
+    "s_2e1b04b64a383c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "750564f7-b73a-46e1-a489-f52796ce281e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
