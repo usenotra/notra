@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import type { GeoRouterError } from "@notra/geo-core/geo/errors";
 
 import { getTranslations } from "@/lib/i18n/server";
@@ -33,7 +34,7 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
     case "GeoSequenceRunUnavailableError":
       return badRequest(t("errors.geo.noGroundedEngines"));
     case "GeoSequenceRunError":
-      console.error("[GEO] conversation run failed:", failure);
+      logError("[GEO] conversation run failed", failure);
       return badRequest(t("errors.geo.conversationRunFailed"));
     case "GeoSequenceCreateFailedError":
       return badRequest(t("errors.geo.createConversationFailed"));
@@ -46,12 +47,12 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
     case "GeoPersonaLimitError":
       return badRequest(t("errors.geo.personaLimit", { limit: failure.limit }));
     case "GeoPersonaGenerateError":
-      console.error("[GEO] persona generation failed:", failure);
+      logError("[GEO] persona generation failed", failure);
       return badRequest(t("geo.toasts.personaGenerationFailed"));
     case "GeoPersonaRunUnavailableError":
       return badRequest(t("errors.geo.noGroundedEngines"));
     case "GeoPersonaRunError":
-      console.error("[GEO] persona run failed:", failure);
+      logError("[GEO] persona run failed", failure);
       return badRequest(t("errors.geo.personaRunFailed"));
     case "GeoCompetitorLimitError":
       return badRequest(
@@ -79,7 +80,7 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
     case "GeoSampleDataDisabledError":
       return notFound();
     case "GeoDiscoveryError":
-      console.error("[GEO] website discovery failed:", failure);
+      logError("[GEO] website discovery failed", failure);
       return badRequest(t("errors.geo.websiteDiscoveryFailed"));
     case "GeoScanStartError":
       return toUnexpectedError(failure.cause, "Failed to start the scan");
@@ -100,7 +101,7 @@ export async function toGeoOrpcError(failure: GeoRouterError): Promise<Error> {
         updatedAt: failure.updatedAt,
       });
     case "GeoWriterPlanError":
-      console.error("[GEO] writer planning failed:", failure);
+      logError("[GEO] writer planning failed", failure);
       return badRequest(t("errors.geo.writerPlanFailed"));
     case "GeoWriterStartError":
       return toUnexpectedError(failure.cause, "Failed to start the writer");

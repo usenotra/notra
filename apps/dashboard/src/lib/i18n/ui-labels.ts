@@ -5,6 +5,7 @@ export function useUiLabelsTranslations(): UiLabels {
   const t = useTranslations("ui");
   const tCommon = useTranslations("common");
   const tTable = useTranslations("shared.table");
+  const tComposer = useTranslations("composer");
   const locale = useLocale();
 
   return {
@@ -66,5 +67,9 @@ export function useUiLabelsTranslations(): UiLabels {
     removeAttachment: t("removeAttachment"),
     expandImage: t("expandImage"),
     minimizeImage: t("minimizeImage"),
+    composerEdit: (label) => tCommon("labels.editLabel", { label }),
+    composerRemove: (label) => tCommon("labels.removeLabel", { label }),
+    composerSteer: (label) => tComposer("steerWith", { label }),
+    composerPreview: (label) => tComposer("preview", { label }),
   };
 }

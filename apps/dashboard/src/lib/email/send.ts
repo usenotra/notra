@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { AiCreditsDepletedEmail } from "@notra/email/emails/ai-credits-depleted";
 import { DailySummaryEmail } from "@notra/email/emails/daily-summary";
 import { FeedbackEmail } from "@notra/email/emails/feedback";
@@ -8,9 +6,9 @@ import { ScheduledContentFailedEmail } from "@notra/email/emails/schedule-conten
 import { ScheduledContentSkippedEmail } from "@notra/email/emails/schedule-content-skipped";
 import { WelcomeEmail } from "@notra/email/emails/welcome";
 import { WorkflowPausedEmail } from "@notra/email/emails/workflow-paused";
+import { sendBrewEmail } from "@notra/email/utils/brew";
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { FEEDBACK_SENTIMENT_META } from "@notra/email/utils/feedback";
-import type { Resend } from "resend";
 
 import type {
   SendAiCreditsDepletedEmailProps,
@@ -21,111 +19,80 @@ import type {
   SendScheduledContentSkippedEmailProps,
   SendWorkflowPausedEmailProps,
 } from "@/types/email/send";
-import { sendEmailWithRetry } from "@/utils/email/send-with-retry";
 
 // --- Send Functions ---
 
-export async function sendWelcomeEmail(
-  resend: Resend,
-  {
-    userEmail,
-  }: {
-    userEmail: string;
-  }
-) {
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: "Dominik from Notra <dominik@hello.usenotra.com>",
-      replyTo: "dominik@usenotra.com",
-      to: userEmail,
-      subject: "Welcome to Notra",
-      react: WelcomeEmail(),
-      tags: [{ name: "category", value: "welcome" }],
-    },
-    `notra:welcome:${userEmail}`
-  );
+export async function sendWelcomeEmail({ userEmail }: { userEmail: string }) {
+  return sendBrewEmail({
+    category: "welcome",
+    to: userEmail,
+    subject: "Welcome to Notra",
+    react: WelcomeEmail(),
+    idempotencyKey: userEmail,
+  });
 }
 
-export async function sendScheduledContentFailedEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    scheduleName,
-    reason,
-    organizationSlug,
-    subject,
-  }: SendScheduledContentFailedEmailProps
-) {
-  const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
+export async function sendScheduledContentFailedEmail({
+  digestBatchKey,
+  recipientEmail,
+  organizationName,
+  scheduleName,
+  reason,
+  organizationSlug,
+  subject,
+}: SendScheduledContentFailedEmailProps) {
+  const settingsLink = `${process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/automation/schedules`;
 
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject:
-        subject ?? `Your ${scheduleName} schedule failed to generate content`,
-      react: ScheduledContentFailedEmail({
-        organizationName,
-        organizationSlug,
-        scheduleName,
-        reason,
-        settingsLink,
-      }),
-      tags: [{ name: "category", value: "schedule-content-failed" }],
-    },
-    `notra:schedule-content-failed:${recipientEmail}:${scheduleName}:${Date.now()}`
-  );
+  return sendBrewEmail({
+    category: "schedule-content-failed",
+    to: recipientEmail,
+    subject: subject ?? `${scheduleName} couldn't generate content`,
+    react: ScheduledContentFailedEmail({
+      organizationName,
+      organizationSlug,
+      scheduleName,
+      reason,
+      settingsLink,
+    }),
+    idempotencyKey: digestBatchKey,
+  });
 }
 
-export async function sendScheduledContentSkippedEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    scheduleName,
-    reason,
-    organizationSlug,
-    subject,
-  }: SendScheduledContentSkippedEmailProps
-) {
-  const settingsLink = `${process.env.APP_URL ?? "https://app.usenotra.com"}/${organizationSlug}/schedules`;
+export async function sendScheduledContentSkippedEmail({
+  digestBatchKey,
+  recipientEmail,
+  organizationName,
+  scheduleName,
+  reason,
+  organizationSlug,
+  subject,
+}: SendScheduledContentSkippedEmailProps) {
+  const settingsLink = `${process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/automation/schedules`;
 
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject:
-        subject ?? `Your ${scheduleName} schedule skipped content generation`,
-      react: ScheduledContentSkippedEmail({
-        organizationName,
-        organizationSlug,
-        scheduleName,
-        reason,
-        settingsLink,
-      }),
-      tags: [{ name: "category", value: "schedule-content-skipped" }],
-    },
-    `notra:schedule-content-skipped:${recipientEmail}:${scheduleName}:${Date.now()}`
-  );
+  return sendBrewEmail({
+    category: "schedule-content-skipped",
+    to: recipientEmail,
+    subject: subject ?? `${scheduleName} skipped a run`,
+    react: ScheduledContentSkippedEmail({
+      organizationName,
+      organizationSlug,
+      scheduleName,
+      reason,
+      settingsLink,
+    }),
+    idempotencyKey: digestBatchKey,
+  });
 }
 
-export async function sendAiCreditsDepletedEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    automationName,
-    organizationSlug,
-    limitLabel,
-    subject,
-  }: SendAiCreditsDepletedEmailProps
-) {
+export async function sendAiCreditsDepletedEmail({
+  digestBatchKey,
+  recipientEmail,
+  organizationName,
+  automationName,
+  organizationSlug,
+  limitLabel,
+  subject,
+}: SendAiCreditsDepletedEmailProps) {
   const appUrl = process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl();
   const creditsLink = limitLabel
     ? `${appUrl}/${organizationSlug}/settings/billing`
@@ -133,209 +100,154 @@ export async function sendAiCreditsDepletedEmail(
   const defaultSubject = limitLabel
     ? "Your Notra plan limit was reached"
     : "Your Notra AI credits are depleted";
-  const idempotencyKey = createHash("sha256")
-    .update(
-      `${recipientEmail}:${organizationSlug}:${automationName}:${Date.now()}`
-    )
-    .digest("hex")
-    .slice(0, 32);
-
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject: subject ?? defaultSubject,
-      react: AiCreditsDepletedEmail({
-        organizationName,
-        organizationSlug,
-        automationName,
-        creditsLink,
-        limitLabel,
-      }),
-      tags: [{ name: "category", value: "ai-credits-depleted" }],
-    },
-    idempotencyKey
-  );
+  return sendBrewEmail({
+    category: "ai-credits-depleted",
+    to: recipientEmail,
+    subject: subject ?? defaultSubject,
+    react: AiCreditsDepletedEmail({
+      organizationName,
+      organizationSlug,
+      automationName,
+      creditsLink,
+      limitLabel,
+    }),
+    idempotencyKey: digestBatchKey,
+  });
 }
 
-export async function sendWorkflowPausedEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    automationName,
-    organizationSlug,
-    reason,
-    pauseEventId,
-    subject,
-  }: SendWorkflowPausedEmailProps
-) {
+export async function sendWorkflowPausedEmail({
+  recipientEmail,
+  organizationName,
+  automationName,
+  organizationSlug,
+  reason,
+  pauseEventId,
+  subject,
+}: SendWorkflowPausedEmailProps) {
   const appUrl = process.env.APP_URL ?? EMAIL_CONFIG.getAppUrl();
   const settingsLink = `${appUrl}/${organizationSlug}/automation/schedules`;
-  const idempotencyKey = createHash("sha256")
-    .update(
-      `${recipientEmail}:${organizationSlug}:${automationName}:${reason}:${pauseEventId ?? Date.now()}`
-    )
-    .digest("hex")
-    .slice(0, 32);
-
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject: subject ?? "Your Notra workflow was paused",
-      react: WorkflowPausedEmail({
-        organizationName,
-        organizationSlug,
-        automationName,
-        reason,
-        settingsLink,
-      }),
-      tags: [{ name: "category", value: "workflow-paused" }],
-    },
-    idempotencyKey
-  );
+  return sendBrewEmail({
+    category: "workflow-paused",
+    to: recipientEmail,
+    subject: subject ?? `${automationName} was paused`,
+    react: WorkflowPausedEmail({
+      organizationName,
+      organizationSlug,
+      automationName,
+      reason,
+      settingsLink,
+    }),
+    idempotencyKey: `${recipientEmail}:${pauseEventId}`,
+  });
 }
 
-export async function sendFeedbackEmail(
-  resend: Resend,
-  {
-    to,
-    message,
-    sentiment,
-    userName,
-    userEmail,
-    organizationName,
-    organizationSlug,
-    pageUrl,
-    userAgent,
-  }: SendFeedbackEmailProps
-) {
-  const idempotencyKey = createHash("sha256")
-    .update(`${userEmail}:${message}:${sentiment ?? ""}:${Date.now()}`)
-    .digest("hex")
-    .slice(0, 32);
-
+export async function sendFeedbackEmail({
+  to,
+  message,
+  sentiment,
+  userName,
+  userEmail,
+  organizationName,
+  organizationSlug,
+  pageUrl,
+  userAgent,
+}: SendFeedbackEmailProps) {
   const subjectPrefix = sentiment
     ? `${FEEDBACK_SENTIMENT_META[sentiment].emoji} `
     : "";
 
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: userEmail,
+  return sendBrewEmail({
+    category: "feedback",
+    to,
+    subject: `${subjectPrefix}New feedback from ${userName}`,
+    react: FeedbackEmail({
+      message,
+      sentiment,
+      userName,
+      userEmail,
+      organizationName,
+      organizationSlug,
+      pageUrl,
+      userAgent,
+    }),
+    // Everything the email shows: the same feedback from the same page within
+    // Brew's 24 h window is a double submit, anything else a new message.
+    idempotencyKey: JSON.stringify([
       to,
-      subject: `${subjectPrefix}New feedback from ${userName}`,
-      react: FeedbackEmail({
-        message,
-        sentiment,
-        userName,
-        userEmail,
-        organizationName,
-        organizationSlug,
-        pageUrl,
-        userAgent,
-      }),
-      tags: [{ name: "category", value: "feedback" }],
-    },
-    `notra:feedback:${idempotencyKey}`
-  );
+      userName,
+      userEmail,
+      organizationName,
+      organizationSlug,
+      pageUrl,
+      userAgent,
+      sentiment,
+      message,
+    ]),
+  });
 }
 
-export async function sendScheduledContentCreatedEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    scheduleName,
-    createdContent,
-    contentType,
-    contentOverviewLink,
-    organizationSlug,
-    subject,
-  }: SendScheduledContentCreatedEmailProps
-) {
-  const rawIdempotencySuffix = createdContent
-    .map((item) => item.contentLink)
-    .join(",");
-  const idempotencySuffix = createHash("sha256")
-    .update(rawIdempotencySuffix)
-    .digest("hex")
-    .slice(0, 32);
-
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject: subject ?? `Your ${scheduleName} schedule created new content`,
-      react: ScheduledContentCreatedEmail({
-        organizationName,
-        organizationSlug,
-        scheduleName,
-        createdContent,
-        contentType,
-        contentOverviewLink,
-      }),
-      tags: [{ name: "category", value: "schedule-content-created" }],
-    },
-    `notra:schedule-content-created:${recipientEmail}:${idempotencySuffix}`
-  );
+export async function sendScheduledContentCreatedEmail({
+  digestBatchKey,
+  recipientEmail,
+  organizationName,
+  scheduleName,
+  createdContent,
+  contentType,
+  contentOverviewLink,
+  organizationSlug,
+  subject,
+}: SendScheduledContentCreatedEmailProps) {
+  return sendBrewEmail({
+    category: "schedule-content-created",
+    to: recipientEmail,
+    subject: subject ?? `New content from ${scheduleName}`,
+    react: ScheduledContentCreatedEmail({
+      organizationName,
+      organizationSlug,
+      scheduleName,
+      createdContent,
+      contentType,
+      contentOverviewLink,
+    }),
+    idempotencyKey: digestBatchKey,
+  });
 }
 
-export async function sendDailySummaryEmail(
-  resend: Resend,
-  {
-    recipientEmail,
-    organizationName,
-    organizationSlug,
-    dateLabel,
-    headline,
-    mentionRateLabel,
-    mentionRateDeltaLabel,
-    scansCompleted,
-    gained,
-    lost,
-    items,
-    remainingCount,
-    dashboardLink,
-    dateKey,
-  }: SendDailySummaryEmailProps
-) {
-  const idempotencyKey = createHash("sha256")
-    .update(`${recipientEmail}:${organizationSlug}:${dateKey}`)
-    .digest("hex")
-    .slice(0, 32);
-
-  return sendEmailWithRetry(
-    resend,
-    {
-      from: EMAIL_CONFIG.from,
-      replyTo: EMAIL_CONFIG.replyTo,
-      to: recipientEmail,
-      subject: headline,
-      react: DailySummaryEmail({
-        organizationName,
-        organizationSlug,
-        dateLabel,
-        headline,
-        mentionRateLabel,
-        mentionRateDeltaLabel,
-        scansCompleted,
-        gained,
-        lost,
-        items,
-        remainingCount,
-        dashboardLink,
-      }),
-      tags: [{ name: "category", value: "daily-summary" }],
-    },
-    `notra:daily-summary:${idempotencyKey}`
-  );
+export async function sendDailySummaryEmail({
+  recipientEmail,
+  organizationName,
+  organizationSlug,
+  dateLabel,
+  headline,
+  mentionRateLabel,
+  mentionRateDeltaLabel,
+  scansCompleted,
+  gained,
+  lost,
+  items,
+  remainingCount,
+  dashboardLink,
+  dateKey,
+}: SendDailySummaryEmailProps) {
+  return sendBrewEmail({
+    category: "daily-summary",
+    to: recipientEmail,
+    // The headline goes in the preview text; long subjects get truncated.
+    subject: `GEO recap for ${organizationName}, ${dateLabel}`,
+    react: DailySummaryEmail({
+      organizationName,
+      organizationSlug,
+      dateLabel,
+      headline,
+      mentionRateLabel,
+      mentionRateDeltaLabel,
+      scansCompleted,
+      gained,
+      lost,
+      items,
+      remainingCount,
+      dashboardLink,
+    }),
+    idempotencyKey: `${recipientEmail}:${organizationSlug}:${dateKey}`,
+  });
 }

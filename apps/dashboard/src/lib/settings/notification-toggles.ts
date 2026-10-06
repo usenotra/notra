@@ -2,7 +2,6 @@ import {
   Alert02Icon,
   Calendar03Icon,
   Forward02Icon,
-  Megaphone01Icon,
   News01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -36,16 +35,6 @@ export const NOTIFICATION_TOGGLE_GROUPS: NotificationToggleGroup[] = [
         key: "dailySummary",
         defaultValue: true,
         icon: News01Icon,
-      },
-    ],
-  },
-  {
-    id: "marketing",
-    toggles: [
-      {
-        key: "marketingEmails",
-        defaultValue: true,
-        icon: Megaphone01Icon,
       },
     ],
   },

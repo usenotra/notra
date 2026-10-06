@@ -7,6 +7,7 @@ import {
   createSlackConnectChannelWithInvite,
   hasSlackConnectConfigured,
 } from "@notra/ai/integrations/slack";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildExternalChannelName } from "@notra/ai/utils/slack";
 import { db } from "@notra/db/drizzle";
 import { brandSettings, organizations } from "@notra/db/schema";
@@ -203,10 +204,9 @@ export async function sendOnboardingSlackInvite({
     });
     return { channelId: result.channelId, invited: true };
   } catch (error) {
-    console.error(
-      `[Onboarding Agent] Slack Connect invite failed for ${organizationName}`,
-      error
-    );
+    logError("[Onboarding Agent] Slack Connect invite failed", error, {
+      organizationName,
+    });
     return { invited: false };
   }
 }

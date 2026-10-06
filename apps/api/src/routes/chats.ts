@@ -189,10 +189,8 @@ async function handleSend(
     });
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("[Standalone Chat] Error:", {
-      requestId,
-      error: errorMessage,
-      stack: e instanceof Error ? e.stack : undefined,
+    log.error(e instanceof Error ? e : errorMessage, {
+      errorCode: "standalone_chat_failed",
     });
     return c.json(
       {

@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { Effect } from "effect";
 
 import {
@@ -49,7 +50,7 @@ export async function runSocialConnect<A>(
     throw serviceUnavailable(tCommonErrors("generic"));
   }
 
-  console.error(`${options.logLabel}:`, error);
+  logError(options.logLabel, error);
   const statusCode = getSocialConnectStatusCode(error.cause);
 
   if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {

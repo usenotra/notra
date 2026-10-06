@@ -41,6 +41,7 @@ import {
   collectContentChatToolOutputEffects,
 } from "@/lib/content/apply-content-chat-tool-output";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
+import type { ContentChatInputHandle } from "@/types/components/chat-input";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
 import {
   hasPendingApproval,
@@ -103,6 +104,8 @@ export function useContentDetailChat({
   const [chatIdToHydrate, setChatIdToHydrate] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
+  const floatingInputRef = useRef<ContentChatInputHandle | null>(null);
+  const panelInputRef = useRef<ContentChatInputHandle | null>(null);
   const drainQueueRef = useRef<() => void>(() => {});
   const flushSteerAfterStopRef = useRef<() => void>(() => {});
   const isDrainingRef = useRef(false);
@@ -552,9 +555,6 @@ export function useContentDetailChat({
       openPanel("content");
       const attachments = snapshotContentChatAttachments(selection, context);
       if (isAgentBusyRef.current) {
-        if (files.length > 0) {
-          return;
-        }
         const next = [
           ...queuedMessagesRef.current,
           {
@@ -562,6 +562,7 @@ export function useContentDetailChat({
             text: instruction,
             selection: attachments.selection,
             context: attachments.context,
+            ...(files.length > 0 ? { attachments: files } : {}),
           },
         ];
         queuedMessagesRef.current = next;
@@ -601,6 +602,16 @@ export function useContentDetailChat({
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
+    // Restore files into whichever composer is on screen; if they don't fit,
+    // the message stays queued.
+    if (message.attachments?.length) {
+      const visibleInput = [floatingInputRef, panelInputRef]
+        .map((ref) => ref.current)
+        .find((input) => input?.isVisible());
+      if (!visibleInput?.setAttachments(message.attachments)) {
+        return;
+      }
+    }
     if (steerAfterStopRef.current?.id === message.id) {
       steerAfterStopRef.current = null;
       wasStoppedByUserRef.current = true;
@@ -643,10 +654,11 @@ export function useContentDetailChat({
       skipQueueDrainRef.current = true;
       wasStoppedByUserRef.current = false;
       isAgentBusyRef.current = true;
-      dispatchContentEdit(message.text, {
-        selection: message.selection,
-        context: message.context,
-      }).catch((error) => {
+      dispatchContentEdit(
+        message.text,
+        { selection: message.selection, context: message.context },
+        message.attachments
+      ).catch((error) => {
         console.error("[Content] Failed to steer queued message:", error);
         restoreSteeredMessage();
       });
@@ -712,10 +724,11 @@ export function useContentDetailChat({
     isAgentBusyRef.current = true;
     queuedMessagesRef.current = queue.slice(1);
     setQueuedMessages(queue.slice(1));
-    dispatchContentEdit(next.text, {
-      selection: next.selection,
-      context: next.context,
-    }).catch((error) => {
+    dispatchContentEdit(
+      next.text,
+      { selection: next.selection, context: next.context },
+      next.attachments
+    ).catch((error) => {
       console.error("[Content] Failed to drain queued message:", error);
       isDrainingRef.current = false;
       isAgentBusyRef.current = false;
@@ -799,7 +812,7 @@ export function useContentDetailChat({
     contentChatHistoryQuery.isFetching ||
     contentChatHistoryQuery.isError;
 
-  const composerProps: ContentDetailChatComposerProps = {
+  const composerProps: Omit<ContentDetailChatComposerProps, "ref"> = {
     context,
     disabled: isChatDisabled,
     error: chatError,
@@ -826,6 +839,7 @@ export function useContentDetailChat({
 
   const floatingChatProps = {
     ...composerProps,
+    ref: floatingInputRef,
     sidebarOffsetClass:
       sidebarState === "collapsed" ? "md:left-14" : "md:left-64",
     hideOnLargeScreens: isRightPanelOpen,
@@ -841,7 +855,7 @@ export function useContentDetailChat({
     onSelectChat: handleSelectChat,
     sessions: contentChatSessions,
     status,
-    composer: composerProps,
+    composer: { ...composerProps, ref: panelInputRef },
   };
 
   return {

@@ -57,6 +57,10 @@ export interface UiLabels {
   removeAttachment: string;
   expandImage: string;
   minimizeImage: string;
+  composerEdit: (label: string) => string;
+  composerRemove: (label: string) => string;
+  composerSteer: (label: string) => string;
+  composerPreview: (label: string) => string;
 }
 
 export type UiLabelKey = {

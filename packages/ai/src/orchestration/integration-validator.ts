@@ -3,6 +3,7 @@ import type {
   IntegrationFetchers,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 
 export async function validateIntegrations(
   organizationId: string,
@@ -29,23 +30,26 @@ export async function validateIntegrations(
           await fetchers.getGitHubIntegrationById(integrationId);
 
         if (!integration) {
-          console.warn(
-            `[Integration Validator] GitHub integration not found: ${integrationId}`
-          );
+          logWarn("[Integration Validator] GitHub integration not found", {
+            organizationId,
+            integrationId,
+          });
           continue;
         }
 
         if (integration.organizationId !== organizationId) {
-          console.warn(
-            `[Integration Validator] GitHub integration ${integrationId} does not belong to org ${organizationId}`
+          logWarn(
+            "[Integration Validator] GitHub integration does not belong to organization",
+            { organizationId, integrationId }
           );
           continue;
         }
 
         if (!integration.enabled) {
-          console.warn(
-            `[Integration Validator] GitHub integration ${integrationId} is disabled`
-          );
+          logWarn("[Integration Validator] GitHub integration is disabled", {
+            organizationId,
+            integrationId,
+          });
           continue;
         }
 
@@ -71,8 +75,9 @@ export async function validateIntegrations(
           }));
 
         if (enabledRepos.length === 0) {
-          console.warn(
-            `[Integration Validator] No enabled repositories for integration ${integrationId}`
+          logWarn(
+            "[Integration Validator] No enabled repositories for integration",
+            { organizationId, integrationId }
           );
           continue;
         }
@@ -86,9 +91,10 @@ export async function validateIntegrations(
           repositories: enabledRepos,
         });
       } catch (error) {
-        console.error(
-          `[Integration Validator] Error validating GitHub integration ${integrationId}:`,
-          error
+        logError(
+          "[Integration Validator] Error validating GitHub integration",
+          error,
+          { organizationId, integrationId }
         );
       }
     }
@@ -105,23 +111,26 @@ export async function validateIntegrations(
           await fetchers.getLinearIntegrationById(integrationId);
 
         if (!integration) {
-          console.warn(
-            `[Integration Validator] Linear integration not found: ${integrationId}`
-          );
+          logWarn("[Integration Validator] Linear integration not found", {
+            organizationId,
+            integrationId,
+          });
           continue;
         }
 
         if (integration.organizationId !== organizationId) {
-          console.warn(
-            `[Integration Validator] Linear integration ${integrationId} does not belong to org ${organizationId}`
+          logWarn(
+            "[Integration Validator] Linear integration does not belong to organization",
+            { organizationId, integrationId }
           );
           continue;
         }
 
         if (!integration.enabled) {
-          console.warn(
-            `[Integration Validator] Linear integration ${integrationId} is disabled`
-          );
+          logWarn("[Integration Validator] Linear integration is disabled", {
+            organizationId,
+            integrationId,
+          });
           continue;
         }
 
@@ -135,9 +144,10 @@ export async function validateIntegrations(
           linearTeamName: integration.linearTeamName,
         });
       } catch (error) {
-        console.error(
-          `[Integration Validator] Error validating Linear integration ${integrationId}:`,
-          error
+        logError(
+          "[Integration Validator] Error validating Linear integration",
+          error,
+          { organizationId, integrationId }
         );
       }
     }

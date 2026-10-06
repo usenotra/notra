@@ -3,6 +3,7 @@ import {
   getSlackIntegrationByTeamId,
 } from "@notra/ai/integrations/slack-workspace";
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { slackOAuthAccessResponseSchema } from "@notra/schemas/dashboard/slack-integration";
 import { buildCallbackUrl } from "@notra/utils/callback-url";
 import { ORPCError } from "@orpc/server";
@@ -87,10 +88,7 @@ export async function GET(request: Request) {
           { ex: restoreTtlSeconds }
         );
       } catch (restoreError) {
-        console.error(
-          "Failed to restore Slack OAuth state for retry:",
-          restoreError
-        );
+        logError("Failed to restore Slack OAuth state for retry", restoreError);
       }
     };
 
@@ -146,10 +144,9 @@ export async function GET(request: Request) {
     });
 
     if (!tokenRes.ok) {
-      console.error(
-        "Slack token exchange failed with status:",
-        tokenRes.status
-      );
+      logError("Slack token exchange failed", undefined, {
+        status: tokenRes.status,
+      });
       await restoreOAuthState();
       return redirectResponse(`${baseUrl}/?error=token_exchange_failed`);
     }
@@ -164,10 +161,11 @@ export async function GET(request: Request) {
         tokenParse.data.team?.id
       )
     ) {
-      console.error(
-        "Slack token exchange failed:",
-        tokenParse.success ? tokenParse.data.error : "invalid_response"
-      );
+      logError("Slack token exchange failed", undefined, {
+        slackError: tokenParse.success
+          ? tokenParse.data.error
+          : "invalid_response",
+      });
       await restoreOAuthState();
       trackIntegrationConnectFailed({
         headers: request.headers,
@@ -227,7 +225,7 @@ export async function GET(request: Request) {
       })
     );
   } catch (error) {
-    console.error("Error in Slack OAuth callback:", error);
+    logError("Error in Slack OAuth callback", error);
     await restoreOAuthState?.();
     trackIntegrationConnectFailed({
       headers: request.headers,

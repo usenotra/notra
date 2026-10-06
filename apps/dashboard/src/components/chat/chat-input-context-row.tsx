@@ -1,6 +1,7 @@
 import { CpuIcon, TextSelectionIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ContextItem, TextSelection } from "@notra/ai/types/chat";
+import { Composer } from "@notra/ui/components/ui/composer";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import {
@@ -10,7 +11,6 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useTranslations } from "use-intl";
 
-import { Composer } from "@/components/composer/composer-shell";
 import { McpIcon } from "@/components/integrations/mcp-icon";
 import type { ChatInputContextRowProps } from "@/types/components/chat-input";
 import { contextItemKey, getSelectionPreview } from "@/utils/chat-input";

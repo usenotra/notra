@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { socialConnectCallbackQuerySchema } from "@notra/schemas/dashboard/social-accounts";
 import { Effect } from "effect";
@@ -129,7 +130,7 @@ export async function GET(request: Request) {
       `${baseUrl}${callbackPath}${separator}${connectedParam}=true`
     );
   } catch (error) {
-    console.error("Error in social connect callback:", error);
+    logError("Error in social connect callback", error);
     if (requestedPlatform) {
       trackIntegrationConnectFailed({
         headers: request.headers,

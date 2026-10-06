@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { socialExperiments } from "@notra/db/schema";
 import { defineTool } from "eve/tools";
@@ -39,7 +40,7 @@ export function createCreateAbTestTool() {
           note: "Metrics update on every analytics sync. Check results with get_ab_tests.",
         };
       } catch (error) {
-        console.error("[Tools] create A/B test failed:", error);
+        logError("Create A/B test tool failed", error, { organizationId });
         return ANALYTICS_QUERY_FAILED_MESSAGE;
       }
     },

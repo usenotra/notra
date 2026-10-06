@@ -1,16 +1,17 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 export interface ComposerFrameProps {
   children: ReactNode;
   nudge?: ReactNode;
+  /** Drops the top radius so the frame can sit flush under another surface. */
   connectedTop?: boolean;
-  /** Tighter radius and no shadow, for inline composers like comments. */
+  /** Tighter radius, no shadow and no tray until there is a nudge. For inline composers like comments. */
   flat?: boolean;
   className?: string;
 }
 
 export interface ComposerNudgeProps {
-  title?: string;
+  title?: ReactNode;
   action?: ReactNode;
   children?: ReactNode;
 }
@@ -35,20 +36,13 @@ export interface ComposerToolbarProps {
   className?: string;
 }
 
-export interface ComposerToolbarButtonProps {
-  children: ReactNode;
-  disabled?: boolean;
-  className?: string;
-  onClick?: () => void;
-  type?: "button" | "submit";
-  "aria-label"?: string;
-}
+export type ComposerToolbarButtonProps = ComponentProps<"button">;
 
 export interface ComposerSendProps {
   children: ReactNode;
+  label: string;
+  tooltip?: ReactNode;
   busy?: boolean;
   disabled?: boolean;
-  tooltip: string;
-  label: string;
   onClick?: () => void;
 }

@@ -39,6 +39,7 @@ import type {
   ToolSet,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { type Tool, tool } from "ai";
 
 export function buildToolSet(
@@ -105,7 +106,7 @@ export function buildToolSet(
       onUpdate:
         onMarkdownUpdate ??
         (() => {
-          console.log("onMarkdownUpdate is not set");
+          logWarn("[Tool Registry] onMarkdownUpdate is not set");
         }),
     });
 

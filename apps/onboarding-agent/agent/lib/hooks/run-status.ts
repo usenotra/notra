@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { captureServerEvent, flushPostHogServer } from "@notra/posthog/server";
 import { getOrganizationId } from "@notra/tools/utils/organization";
@@ -37,18 +38,22 @@ export function createRunStatusHook(): HookDefinition {
         await trackRunOutcome(ctx, "completed", { stage: "session" });
       },
       async "turn.failed"(event, ctx) {
-        console.error(
-          `[run-status] Onboarding agent turn failed for session ${ctx.session.id}: ${event.data.message}`
-        );
+        logError("[run-status] Onboarding agent turn failed", undefined, {
+          sessionId: ctx.session.id,
+          errorMessage: event.data.message,
+          errorCode: event.data.code,
+        });
         await trackRunOutcome(ctx, "failed", {
           stage: "turn",
           error_code: event.data.code,
         });
       },
       async "session.failed"(event, ctx) {
-        console.error(
-          `[run-status] Onboarding agent session failed for session ${ctx.session.id}: ${event.data.message}`
-        );
+        logError("[run-status] Onboarding agent session failed", undefined, {
+          sessionId: ctx.session.id,
+          errorMessage: event.data.message,
+          errorCode: event.data.code,
+        });
         await trackRunOutcome(ctx, "failed", {
           stage: "session",
           error_code: event.data.code,

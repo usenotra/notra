@@ -1,8 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { organizations } from "@notra/db/schema";
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
-import { sendDevEmail } from "@notra/email/utils/dev";
-import { getResend } from "@notra/email/utils/resend";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { submitFeedbackInputSchema } from "@notra/schemas/dashboard/feedback";
 import { eq } from "drizzle-orm";
@@ -12,8 +10,6 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { sendFeedbackEmail } from "@/lib/email/send";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { internalServerError } from "@/lib/orpc/utils/errors";
-
-const isDevelopment = process.env.NODE_ENV === "development";
 
 export const feedbackRouter = {
   submit: authorizedProcedure
@@ -57,8 +53,6 @@ export const feedbackRouter = {
         userAgent: context.headers.get("user-agent") ?? undefined,
       };
 
-      const resend = getResend();
-
       trackServerEvent({
         event: POSTHOG_EVENTS.PRODUCT_FEEDBACK_SENT,
         headers: context.headers,
@@ -71,23 +65,7 @@ export const feedbackRouter = {
         },
       });
 
-      if (!resend) {
-        if (!isDevelopment) {
-          throw internalServerError("Email service is not configured");
-        }
-
-        await sendDevEmail({
-          from: EMAIL_CONFIG.from,
-          to: payload.to,
-          subject: `New feedback from ${payload.userName}`,
-          text: payload.message,
-          _mockContext: { type: "feedback", data: payload },
-        });
-
-        return { success: true };
-      }
-
-      const { error } = await sendFeedbackEmail(resend, payload);
+      const { error } = await sendFeedbackEmail(payload);
 
       if (error) {
         throw internalServerError("Failed to send feedback", error);

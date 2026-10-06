@@ -1,4 +1,0 @@
-export const EMAIL_MAX_RETRIES = 3;
-export const EMAIL_RETRY_BASE_DELAY_MS = 1000;
-export const EMAIL_RETRY_JITTER_MS = 1000;
-export const EMAIL_RETRY_MAX_DELAY_MS = 30_000;

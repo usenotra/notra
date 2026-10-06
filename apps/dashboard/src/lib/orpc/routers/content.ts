@@ -12,6 +12,7 @@ import {
 } from "@notra/ai/utils/linear";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { githubIntegrations, postCollections, posts } from "@notra/db/schema";
 import type { BlogPostSubtype } from "@notra/db/types/content";
@@ -1547,10 +1548,9 @@ export const contentRouter = {
                 issues,
               };
             } catch (error) {
-              console.error(
-                `[Preview] Failed to fetch Linear issues for ${integration.id}:`,
-                error
-              );
+              logError("[Preview] Failed to fetch Linear issues", error, {
+                integrationId: integration.id,
+              });
               return {
                 integrationId: integration.id,
                 displayName: integration.displayName,

@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { socialConnections, users } from "@notra/db/schema";
+import { deleteBrewContact } from "@notra/email/utils/brew";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   signOutOptionsSchema,
@@ -21,12 +22,14 @@ import {
 import { ActionFailure } from "@/lib/actions/errors";
 import { runAction } from "@/lib/actions/run-action";
 import { validateActionInput } from "@/lib/actions/validate-input";
+import { runAfterResponse } from "@/lib/after-response";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { clearSignedCookie } from "@/lib/auth/signed-cookie";
 import { signOutAuthSession } from "@/lib/auth/workos";
 import { isWorkOSNotFound } from "@/lib/auth/workos-error";
+import { syncBrewContacts } from "@/lib/email/brew-contacts";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
@@ -113,6 +116,14 @@ export async function updateUser(
         yield* Effect.promise(() => writeLocaleCookie(locale));
       }
 
+      if (input.name !== undefined) {
+        yield* Effect.sync(() =>
+          runAfterResponse("[BrewContacts] Sync failed", () =>
+            syncBrewContacts([updated.id])
+          )
+        );
+      }
+
       if (input.name !== undefined && updated.workosUserId) {
         const [firstName, ...rest] = input.name.split(" ");
         yield* tryAction(
@@ -148,6 +159,13 @@ export async function deleteUser(): Promise<
         );
       }
       const session = yield* requireSession();
+
+      // Before anything else: once the user row is gone, prune can no longer
+      // tell this contact apart from one Brew got elsewhere.
+      yield* tryAction(
+        () => deleteBrewContact(session.user.email),
+        "Failed to delete email contact"
+      );
 
       const auth = yield* tryAction(
         async () => getAuthKitContext().auth(),
@@ -204,6 +222,13 @@ export async function deleteUser(): Promise<
       yield* tryAction(
         () => db.delete(users).where(eq(users.id, session.user.id)),
         "Failed to delete user"
+      );
+      // Again once the row is gone: a contact sync that read the user just
+      // before could have recreated the contact in between.
+      yield* Effect.sync(() =>
+        runAfterResponse("[BrewContacts] Delete failed", () =>
+          deleteBrewContact(session.user.email)
+        )
       );
 
       yield* tryAction(clearAuthSessionCookie, "Failed to clear session");

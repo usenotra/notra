@@ -1,14 +1,18 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
+import type { ApiEnv } from "../types/env";
 import { getOrganizationId } from "../utils/auth";
 import {
   ORGANIZATION_POST_PATH_REGEX,
   ORGANIZATION_POSTS_PATH_REGEX,
 } from "../utils/regex";
 
-export const legacyRedirectRoutes = new OpenAPIHono();
+export const legacyRedirectRoutes = new OpenAPIHono<ApiEnv>();
 
 legacyRedirectRoutes.get("/:organizationId/posts", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(
@@ -31,6 +35,9 @@ legacyRedirectRoutes.get("/:organizationId/posts", async (c) => {
 });
 
 legacyRedirectRoutes.get("/:organizationId/posts/:postId", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(
@@ -54,6 +61,9 @@ legacyRedirectRoutes.get("/:organizationId/posts/:postId", async (c) => {
 });
 
 legacyRedirectRoutes.patch("/:organizationId/posts/:postId", async (c) => {
+  const log = c.get("log");
+
+  log.set({ legacyRedirect: true });
   const orgId = getOrganizationId(c);
   if (!orgId) {
     return c.json(

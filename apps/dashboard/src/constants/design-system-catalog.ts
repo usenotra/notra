@@ -38,6 +38,7 @@ export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
     description: "Composed dashboard pieces built on the components above.",
     items: [
       { id: "rich-interactions", label: "Rich Interactions" },
+      { id: "composer", label: "Composer" },
       { id: "chat-queue", label: "Chat Queue" },
       { id: "identity", label: "Identity & Layout" },
       { id: "social", label: "Social Previews" },
