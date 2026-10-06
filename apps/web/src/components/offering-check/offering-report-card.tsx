@@ -15,9 +15,9 @@ import type {
 } from "@/types/offering-check";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
 import {
-  countSourcePages,
-  describeOwnSiteUse,
   getOfferingActivityLabel,
+  offeringQuestionTitle,
+  summarizeOfferingSources,
 } from "@/utils/offering-check";
 
 import { OfferingFavicon } from "./offering-favicon";
@@ -90,9 +90,13 @@ function CopyLinkButton() {
 }
 
 export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
-  const { result } = state;
-  const answered = state.seconds !== null;
+  const { result, threads } = state;
+  const hasFeature = input.feature.length > 0;
+  const answered = threads.every((thread) => thread.seconds !== null);
   const liveSeconds = useElapsedSeconds(!answered);
+  const slowest = Math.max(...threads.map((thread) => thread.seconds ?? 0));
+  const liveSites = new Set(threads.flatMap((thread) => thread.domains)).size;
+  const sources = result ? summarizeOfferingSources(result.answers) : null;
 
   return (
     <div className="w-full rounded-3xl border border-[#1E1E1E14] bg-[linear-gradient(in_oklab_180deg,oklab(95.1%_0.011_-0.018_/_15%)_0%,oklab(93.7%_0.019_-0.031_/_75%)_100%)] p-2 sm:rounded-[2rem] sm:p-3 dark:border-white/10 dark:bg-white/[0.02] dark:bg-none">
@@ -132,40 +136,45 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
           )}
         </div>
 
-        <div className="border-t border-[#1E1E1E0F] pt-6 dark:border-white/[0.06]">
-          <OfferingVerdictRow
-            activity={getOfferingActivityLabel(state)}
-            summary={result?.summary ?? null}
-            verdict={result?.verdict ?? null}
-          />
+        <div className="flex flex-col gap-6 border-t border-[#1E1E1E0F] pt-6 dark:border-white/[0.06]">
+          {threads.map((thread) => (
+            <OfferingVerdictRow
+              activity={getOfferingActivityLabel(thread)}
+              key={thread.question.kind}
+              kind={thread.question.kind}
+              label={offeringQuestionTitle(thread.question.kind, hasFeature)}
+              summary={thread.result?.summary ?? null}
+              verdict={thread.result?.verdict ?? null}
+            />
+          ))}
         </div>
 
         <dl className="grid grid-cols-2 gap-y-5 rounded-2xl bg-[#F7F6F9] p-5 sm:grid-cols-4 sm:divide-x sm:divide-[#1E1E1E0F] dark:bg-white/[0.03] sm:dark:divide-white/[0.06]">
           <ReportStat
             label="Answered in"
-            value={`${state.seconds ?? liveSeconds}s`}
+            value={`${answered ? slowest : liveSeconds}s`}
           />
           <ReportStat
             label="Sites searched"
-            value={result?.sources.length ?? state.domains.length}
+            value={sources?.sites ?? liveSites}
           />
           <ReportStat
             label="Pages read"
             pending={!result}
-            value={result ? countSourcePages(result.sources) : null}
+            value={sources?.pages ?? null}
           />
           <ReportStat
             label="Your site"
             pending={!result}
-            value={result ? describeOwnSiteUse(result) : null}
+            value={sources?.ownSite ?? null}
           />
         </dl>
 
         {result && result.otherOfferings.length > 0 ? (
           <div className="flex flex-col gap-3">
             <h3 className="text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
-              {input.feature.length > 0 ? "What else" : "What"}{" "}
-              {OFFERING_CHECK_MODEL_LABEL} says {result.companyName} offers
+              {hasFeature ? "What else" : "What"} {OFFERING_CHECK_MODEL_LABEL}{" "}
+              says {result.companyName} offers
             </h3>
             <ul className="grid border-t border-[#1E1E1E0F] sm:grid-cols-2 sm:gap-x-8 dark:border-white/[0.06]">
               {result.otherOfferings.map((offering) => (

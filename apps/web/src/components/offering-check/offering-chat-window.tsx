@@ -9,7 +9,6 @@ import { cn } from "@notra/ui/lib/utils";
 
 import {
   OFFERING_CHECK_MODEL_LABEL,
-  OFFERING_MODE_TITLE,
   OFFERING_SEARCH_SKIPPED_HINT,
 } from "@/constants/offering-check";
 import { useElapsedSeconds } from "@/lib/offering-check/use-elapsed-seconds";
@@ -19,6 +18,7 @@ import type {
 } from "@/types/offering-check";
 import {
   createFeatureHighlightPlugin,
+  offeringQuestionTitle,
   stripAnswerCitations,
 } from "@/utils/offering-check";
 
@@ -31,14 +31,14 @@ const ANSWER_MARKDOWN_CLASS =
 const ENTER_CLASS =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500 motion-reduce:animate-none";
 
-function OfferingChatReasoning({ state }: OfferingChatReasoningProps) {
-  const reasoning = state.reasoning.trim();
-  const answered = state.seconds !== null;
+function OfferingChatReasoning({ thread }: OfferingChatReasoningProps) {
+  const reasoning = thread.reasoning.trim();
+  const answered = thread.seconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
-  const { domains, queries } = state;
+  const { domains, queries } = thread;
   const searched = queries.length > 0 || domains.length > 0;
   const started =
-    answered || searched || reasoning.length > 0 || state.answer.length > 0;
+    answered || searched || reasoning.length > 0 || thread.answer.length > 0;
 
   if (!started) {
     return (
@@ -52,7 +52,7 @@ function OfferingChatReasoning({ state }: OfferingChatReasoningProps) {
     <div className="flex flex-col items-start gap-2.5">
       <ChatgptReasoning
         complete={answered}
-        seconds={state.seconds ?? liveSeconds}
+        seconds={thread.seconds ?? liveSeconds}
       >
         {reasoning.length > 0 || searched ? (
           <div className="border-border mb-2 flex flex-col gap-3 border-l pl-3.5">
@@ -69,13 +69,23 @@ function OfferingChatReasoning({ state }: OfferingChatReasoningProps) {
                 label="Searched the web"
                 meta={`${domains.length} ${domains.length === 1 ? "site" : "sites"}`}
               >
-                <OfferingSearchActivity domains={domains} queries={queries} />
+                <OfferingSearchActivity
+                  domains={domains}
+                  links={Object.fromEntries(
+                    (thread.result?.sources ?? []).map((source) => [
+                      source.domain,
+                      source.topUrl,
+                    ])
+                  )}
+                  live={!answered}
+                  queries={queries}
+                />
               </OfferingTraceStep>
             ) : null}
           </div>
         ) : null}
       </ChatgptReasoning>
-      {state.result?.searchUsed === false ? (
+      {thread.result?.searchUsed === false ? (
         <p className="text-muted-foreground text-[14px] leading-6">
           {OFFERING_SEARCH_SKIPPED_HINT}
         </p>
@@ -86,18 +96,18 @@ function OfferingChatReasoning({ state }: OfferingChatReasoningProps) {
 
 export function OfferingChatWindow({
   feature,
-  question,
-  state,
+  hasFeature,
+  thread,
 }: OfferingChatWindowProps) {
-  const answer = stripAnswerCitations(state.answer);
-  const answered = state.seconds !== null;
+  const answer = stripAnswerCitations(thread.answer);
+  const answered = thread.seconds !== null;
 
   return (
     <div className="border-border bg-muted flex min-w-0 flex-col rounded-[1.125rem] border p-0.5 shadow-[0_0.0625rem_0.125rem_#1E1E1E0A,0_0.5rem_1.5rem_-0.5rem_#1E1E1E14] dark:shadow-none">
       <div className="flex h-10 items-center gap-2.5 px-4">
         <EngineIcon className="block size-4 shrink-0" engine="openai" />
         <h3 className="text-foreground min-w-0 grow truncate text-sm leading-5 font-medium">
-          {OFFERING_MODE_TITLE}
+          {offeringQuestionTitle(thread.question.kind, hasFeature)}
           <span className="text-muted-foreground pl-2 font-normal">
             {OFFERING_CHECK_MODEL_LABEL}
           </span>
@@ -112,7 +122,7 @@ export function OfferingChatWindow({
             className={cn("[&>div]:max-w-[88%]", ENTER_CLASS)}
             from="user"
           >
-            {question}
+            {thread.question.text}
           </ChatgptMessage>
 
           <ChatgptMessage
@@ -121,7 +131,7 @@ export function OfferingChatWindow({
               "[animation-delay:300ms] motion-reduce:[animation-delay:0ms]"
             )}
             from="assistant"
-            reasoning={<OfferingChatReasoning state={state} />}
+            reasoning={<OfferingChatReasoning thread={thread} />}
           >
             {answer.length > 0 ? (
               <MessageResponse
@@ -134,8 +144,8 @@ export function OfferingChatWindow({
                 {answer}
               </MessageResponse>
             ) : null}
-            {state.result ? (
-              <OfferingSources sources={state.result.sources} />
+            {thread.result ? (
+              <OfferingSources sources={thread.result.sources} />
             ) : null}
           </ChatgptMessage>
         </div>

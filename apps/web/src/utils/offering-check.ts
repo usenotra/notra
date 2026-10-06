@@ -1,11 +1,18 @@
 import {
+  OFFERING_CHECK_FAVICON_SIZE,
   OFFERING_CHECK_MAX_SOURCE_DOMAINS,
   OFFERING_CHECK_MAX_SOURCE_PAGES,
+  OFFERING_CHECK_MODEL_LABEL,
+  OFFERING_QUESTION_TITLES,
+  OFFERING_VERDICTS,
 } from "@/constants/offering-check";
 import type {
+  OfferingAnswer,
   OfferingCheckResult,
+  OfferingQuestion,
+  OfferingQuestionKind,
   OfferingCheckInput,
-  OfferingLiveState,
+  OfferingThread,
   OfferingMarkdownNode,
   OfferingSourceDomain,
 } from "@/types/offering-check";
@@ -51,8 +58,12 @@ export function getOfferingCheckCacheIdentity(
   return JSON.stringify([
     input.domain.toLowerCase(),
     normalizeOfferingCheckText(input.feature),
-    normalizeOfferingCheckText(input.description),
+    normalizeOfferingCheckText(input.problem),
   ]);
+}
+
+export function offeringFaviconUrl(domain: string): string {
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${OFFERING_CHECK_FAVICON_SIZE}`;
 }
 
 export function domainOfUrl(url: string): string | null {
@@ -126,12 +137,40 @@ export function groupSourcesByDomain(
     .slice(0, OFFERING_CHECK_MAX_SOURCE_DOMAINS);
 }
 
-export function buildOfferingQuestion(input: OfferingCheckInput): string {
+const SENTENCE_END_PATTERN = /[.!?]$/;
+
+/**
+ * The name question always runs. With a problem, a second question describes
+ * the need the way a buyer would, without the feature name.
+ */
+export function buildOfferingQuestions(
+  input: OfferingCheckInput
+): OfferingQuestion[] {
   if (input.feature.length === 0) {
-    return `What does ${input.domain} offer? List its main products and features and say briefly what each one does.`;
+    return [
+      {
+        kind: "name",
+        text: `What does ${input.domain} offer? List its main products and features and say briefly what each one does.`,
+      },
+    ];
   }
   const feature = input.feature.replaceAll('"', "");
-  return `Does ${input.domain} offer a feature called "${feature}"? What does it do? If you do not know it, tell me what they offer instead.`;
+  const questions: OfferingQuestion[] = [
+    {
+      kind: "name",
+      text: `Does ${input.domain} offer a feature called "${feature}"? What does it do? If you do not know it, tell me what they offer instead.`,
+    },
+  ];
+  if (input.problem.length > 0) {
+    const problem = SENTENCE_END_PATTERN.test(input.problem)
+      ? input.problem
+      : `${input.problem}.`;
+    questions.push({
+      kind: "problem",
+      text: `I use ${input.domain}. ${problem} What in ${input.domain} can I use for this?`,
+    });
+  }
+  return questions;
 }
 
 const REGEX_SPECIAL_PATTERN = /[.*+?^${}()|[\]\\]/g;
@@ -188,23 +227,55 @@ export function createFeatureHighlightPlugin(feature: string) {
   };
 }
 
-export function getOfferingActivityLabel(
-  state: OfferingLiveState
-): string | null {
-  if (state.result) {
-    return null;
+/**
+ * The hero leads with the problem question when one was asked, since buyers
+ * who do not know the feature name are the harder audience to reach.
+ */
+export function getOfferingHeroCopy(
+  result: OfferingCheckResult | null,
+  hasFeature: boolean
+): { lead: string; body: string } {
+  const headline =
+    result?.answers.find((answer) => answer.kind === "problem") ??
+    result?.answers[0];
+  if (!headline) {
+    return {
+      lead: `Asking ${OFFERING_CHECK_MODEL_LABEL} about `,
+      body: "Searching the web now. You are watching the answer come in.",
+    };
   }
-  if (state.seconds !== null) {
+  const copy = OFFERING_VERDICTS[headline.verdict];
+  if (headline.kind === "problem") {
+    return { lead: copy.problemLead, body: copy.problemBody };
+  }
+  return {
+    lead: copy.heroLead,
+    body: hasFeature ? copy.featureBody : copy.companyBody,
+  };
+}
+
+export function offeringQuestionTitle(
+  kind: OfferingQuestionKind,
+  hasFeature: boolean
+): string {
+  if (!hasFeature) {
+    return OFFERING_QUESTION_TITLES.company;
+  }
+  return OFFERING_QUESTION_TITLES[kind];
+}
+
+export function getOfferingActivityLabel(thread: OfferingThread): string {
+  if (thread.seconds !== null) {
     return "Grading the answer";
   }
-  if (state.answer.length > 0) {
+  if (thread.answer.length > 0) {
     return "Writing the answer";
   }
-  if (state.domains.length > 0) {
-    const sites = state.domains.length === 1 ? "site" : "sites";
-    return `Searching the web · ${state.domains.length} ${sites}`;
+  if (thread.domains.length > 0) {
+    const sites = thread.domains.length === 1 ? "site" : "sites";
+    return `Searching the web · ${thread.domains.length} ${sites}`;
   }
-  return state.queries.length > 0 ? "Searching the web" : "Thinking";
+  return thread.queries.length > 0 ? "Searching the web" : "Thinking";
 }
 
 export function countSourcePages(
@@ -213,10 +284,25 @@ export function countSourcePages(
   return sources.reduce((total, source) => total + source.pages, 0);
 }
 
-export function describeOwnSiteUse(result: OfferingCheckResult): string {
-  const own = result.sources.find((source) => source.own);
-  if (!own) {
-    return "Not opened";
+/** Sites, pages and use of the own site across every answer of a check. */
+export function summarizeOfferingSources(answers: readonly OfferingAnswer[]) {
+  const sites = new Set<string>();
+  const pages = new Set<string>();
+  let ownRead = false;
+  let ownCited = false;
+  for (const source of answers.flatMap((answer) => answer.sources)) {
+    sites.add(source.domain);
+    for (const page of source.urls) {
+      pages.add(page.url);
+    }
+    ownRead = ownRead || source.own;
+    ownCited = ownCited || (source.own && source.cited);
   }
-  return own.cited ? "Cited" : "Read, not cited";
+  let ownSite = "Not opened";
+  if (ownCited) {
+    ownSite = "Cited";
+  } else if (ownRead) {
+    ownSite = "Read, not cited";
+  }
+  return { sites: sites.size, pages: pages.size, ownSite };
 }

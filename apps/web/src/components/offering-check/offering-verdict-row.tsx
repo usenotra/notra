@@ -25,6 +25,8 @@ const VERDICT_ICON: Record<OfferingVerdict, IconSvgElement> = {
 };
 
 export function OfferingVerdictRow({
+  kind,
+  label,
   verdict,
   summary,
   activity,
@@ -49,15 +51,18 @@ export function OfferingVerdictRow({
           strokeWidth={1.75}
         />
       </span>
-      <div aria-live="polite" className="flex min-w-0 flex-col gap-1 pt-0.5">
+      <div aria-live="polite" className="flex min-w-0 flex-col gap-1">
+        <p className="text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
+          {label}
+        </p>
         {copy ? (
           <p
             className={cn(
-              "font-display text-[1.375rem]/7 font-medium tracking-[-0.02em]",
+              "font-display animate-in fade-in text-[1.375rem]/7 font-medium tracking-[-0.02em] duration-300 motion-reduce:animate-none",
               copy.textClassName
             )}
           >
-            {copy.label}
+            {kind === "problem" ? copy.problemLabel : copy.label}
           </p>
         ) : (
           <Shimmer className="font-display text-[1.375rem]/7 font-medium tracking-[-0.02em]">
@@ -65,7 +70,7 @@ export function OfferingVerdictRow({
           </Shimmer>
         )}
         {summary ? (
-          <p className="max-w-[46rem] text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70">
+          <p className="animate-in fade-in max-w-[46rem] text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] duration-300 motion-reduce:animate-none dark:text-white/70">
             {summary}
           </p>
         ) : (

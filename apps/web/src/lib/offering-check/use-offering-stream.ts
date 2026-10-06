@@ -5,38 +5,61 @@ import { offeringStreamEventSchema } from "@/schemas/offering-check";
 import type {
   OfferingCheckInput,
   OfferingCheckResult,
-  OfferingLiveState,
   OfferingFailureStatus,
+  OfferingLiveState,
+  OfferingQuestionKind,
   OfferingStreamEvent,
+  OfferingThread,
 } from "@/types/offering-check";
-import {
-  failureStatusFor,
-  readOfferingDescription,
-} from "@/utils/offering-report";
+import { buildOfferingQuestions } from "@/utils/offering-check";
+import { failureStatusFor } from "@/utils/offering-report";
 
 type Action =
   | { type: "event"; event: OfferingStreamEvent }
   | { type: "failed"; status: OfferingFailureStatus };
 
-const INITIAL_STATE: OfferingLiveState = {
-  status: "checking",
-  answer: "",
-  reasoning: "",
-  seconds: null,
-  queries: [],
-  domains: [],
-  result: null,
-};
+function initialState(input: OfferingCheckInput): OfferingLiveState {
+  return {
+    status: "checking",
+    threads: buildOfferingQuestions(input).map((question) => ({
+      question,
+      answer: "",
+      reasoning: "",
+      seconds: null,
+      queries: [],
+      domains: [],
+      result: null,
+    })),
+    result: null,
+  };
+}
 
 function settledState(result: OfferingCheckResult): OfferingLiveState {
   return {
     status: "done",
-    answer: result.answer,
-    reasoning: result.reasoning,
-    seconds: result.seconds,
-    queries: result.queries,
-    domains: result.sources.map((source) => source.domain),
+    threads: result.answers.map((answer) => ({
+      question: { kind: answer.kind, text: answer.question },
+      answer: answer.answer,
+      reasoning: answer.reasoning,
+      seconds: answer.seconds,
+      queries: answer.queries,
+      domains: answer.sources.map((source) => source.domain),
+      result: answer,
+    })),
     result,
+  };
+}
+
+function updateThread(
+  state: OfferingLiveState,
+  kind: OfferingQuestionKind,
+  update: (thread: OfferingThread) => OfferingThread
+): OfferingLiveState {
+  return {
+    ...state,
+    threads: state.threads.map((thread) =>
+      thread.question.kind === kind ? update(thread) : thread
+    ),
   };
 }
 
@@ -47,26 +70,26 @@ function reduce(state: OfferingLiveState, action: Action): OfferingLiveState {
   const { event } = action;
   switch (event.type) {
     case "delta":
-      return {
-        ...state,
-        answer: state.answer + event.text,
-      };
+      return updateThread(state, event.kind, (thread) => ({
+        ...thread,
+        answer: thread.answer + event.text,
+      }));
     case "reasoning":
-      return {
-        ...state,
-        reasoning: state.reasoning + event.text,
-      };
+      return updateThread(state, event.kind, (thread) => ({
+        ...thread,
+        reasoning: thread.reasoning + event.text,
+      }));
     case "search":
-      return {
-        ...state,
-        queries: [...new Set([...state.queries, ...event.queries])],
-        domains: [...new Set([...state.domains, ...event.domains])],
-      };
+      return updateThread(state, event.kind, (thread) => ({
+        ...thread,
+        queries: [...new Set([...thread.queries, ...event.queries])],
+        domains: [...new Set([...thread.domains, ...event.domains])],
+      }));
     case "answered":
-      return {
-        ...state,
+      return updateThread(state, event.kind, (thread) => ({
+        ...thread,
         seconds: event.seconds,
-      };
+      }));
     case "result":
       return settledState(event.result);
     default:
@@ -109,15 +132,10 @@ async function streamOfferingCheck(
   onEvent: (event: OfferingStreamEvent) => void,
   onFailure: (status: OfferingFailureStatus) => void
 ) {
-  // The optional description never goes into the shareable URL, so it is
-  // picked up from this tab's session when the check starts.
   const response = await fetch(OFFERING_CHECK_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...input,
-      description: readOfferingDescription(input),
-    }),
+    body: JSON.stringify(input),
     signal,
   }).catch(() => null);
   if (signal.aborted) {
@@ -139,7 +157,7 @@ async function streamOfferingCheck(
 }
 
 function createOfferingStreamStore(input: OfferingCheckInput) {
-  let state = INITIAL_STATE;
+  let state = initialState(input);
   let start: ReturnType<typeof setTimeout> | null = null;
   let controller: AbortController | null = null;
   const listeners = new Set<() => void>();
@@ -189,10 +207,10 @@ function createOfferingStreamStore(input: OfferingCheckInput) {
 export function useOfferingStream(
   input: OfferingCheckInput
 ): OfferingLiveState {
-  const { domain, feature, description } = input;
+  const { domain, feature, problem } = input;
   const store = useMemo(
-    () => createOfferingStreamStore({ domain, feature, description }),
-    [domain, feature, description]
+    () => createOfferingStreamStore({ domain, feature, problem }),
+    [domain, feature, problem]
   );
   return useSyncExternalStore(
     store.subscribe,

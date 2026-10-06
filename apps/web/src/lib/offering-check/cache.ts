@@ -5,6 +5,7 @@ import { Effect } from "effect";
 import {
   OFFERING_CHECK_CACHE_PREFIX,
   OFFERING_CHECK_CACHE_SECONDS,
+  OFFERING_CHECK_REDIS_TIMEOUT,
 } from "@/constants/offering-check";
 import { offeringCheckResultSchema } from "@/schemas/offering-check";
 import type {
@@ -22,21 +23,25 @@ function cacheKey(input: OfferingCheckInput): string {
   return `${OFFERING_CHECK_CACHE_PREFIX}:${digest}`;
 }
 
-export const readCachedOfferingCheck = Effect.fn("offeringCheck.readCache")(
+export const readCachedOfferingCheck = Effect.fn("readCachedOfferingCheck")(
   function* (input: OfferingCheckInput) {
     const redis = getOfferingCheckRedis();
     if (!redis) {
       return null;
     }
+    // A slow or failing cache is a miss, never a reason to hold the request.
     const cached = yield* Effect.tryPromise(() =>
       redis.get(cacheKey(input))
-    ).pipe(Effect.orElseSucceed(() => null));
+    ).pipe(
+      Effect.timeout(OFFERING_CHECK_REDIS_TIMEOUT),
+      Effect.orElseSucceed(() => null)
+    );
     const parsed = offeringCheckResultSchema.safeParse(cached);
     return parsed.success ? parsed.data : null;
   }
 );
 
-export const writeCachedOfferingCheck = Effect.fn("offeringCheck.writeCache")(
+export const writeCachedOfferingCheck = Effect.fn("writeCachedOfferingCheck")(
   function* (input: OfferingCheckInput, result: OfferingCheckResult) {
     const redis = getOfferingCheckRedis();
     if (!redis) {
@@ -44,6 +49,6 @@ export const writeCachedOfferingCheck = Effect.fn("offeringCheck.writeCache")(
     }
     yield* Effect.tryPromise(() =>
       redis.set(cacheKey(input), result, { ex: OFFERING_CHECK_CACHE_SECONDS })
-    ).pipe(Effect.timeout("1 second"), Effect.ignore);
+    ).pipe(Effect.timeout(OFFERING_CHECK_REDIS_TIMEOUT), Effect.ignore);
   }
 );

@@ -4,15 +4,13 @@ import { Link } from "@tanstack/react-router";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
-  OFFERING_CHECK_MODEL_LABEL,
   OFFERING_CHECK_PATH,
   OFFERING_CHECK_SIGNUP_SOURCE,
   OFFERING_REPORT_FAILURE_MESSAGES,
-  OFFERING_VERDICTS,
 } from "@/constants/offering-check";
 import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
 import type { OfferingReportProps } from "@/types/offering-check";
-import { buildOfferingQuestion } from "@/utils/offering-check";
+import { getOfferingHeroCopy } from "@/utils/offering-check";
 
 import { OfferingChatWindow } from "./offering-chat-window";
 import { OfferingReportCard } from "./offering-report-card";
@@ -42,7 +40,15 @@ export function OfferingReport({ input }: OfferingReportProps) {
           }
         />
         <div className="flex w-full max-w-[64rem] px-4 sm:px-6">
-          <Link className={backLinkClass} to={OFFERING_CHECK_PATH}>
+          <Link
+            className={backLinkClass}
+            search={{
+              domain: input.domain,
+              feature: input.feature || undefined,
+              problem: input.problem || undefined,
+            }}
+            to={OFFERING_CHECK_PATH}
+          >
             Back to the checker
           </Link>
         </div>
@@ -50,20 +56,15 @@ export function OfferingReport({ input }: OfferingReportProps) {
     );
   }
 
-  const verdict = result ? OFFERING_VERDICTS[result.verdict] : null;
-  let heroBody = "Searching the web now. You are watching the answer come in.";
-  if (verdict) {
-    heroBody = hasFeature ? verdict.featureBody : verdict.companyBody;
-  }
-  const question = buildOfferingQuestion(input);
+  const hero = getOfferingHeroCopy(result, hasFeature);
 
   return (
     <>
       <MarketingHeroWash
-        subtitle={heroBody}
+        subtitle={hero.body}
         title={
           <>
-            {verdict?.heroLead ?? `Asking ${OFFERING_CHECK_MODEL_LABEL} about `}
+            {hero.lead}
             <span className="text-primary">{subject}</span>
           </>
         }
@@ -71,16 +72,21 @@ export function OfferingReport({ input }: OfferingReportProps) {
       <div className="flex w-full max-w-[64rem] flex-col gap-8 px-4 sm:px-6 md:gap-12">
         <OfferingReportCard input={input} state={state} />
 
-        <OfferingChatWindow
-          feature={input.feature}
-          question={question}
-          state={state}
-        />
+        {state.threads.map((thread) => (
+          <OfferingChatWindow
+            feature={input.feature}
+            hasFeature={hasFeature}
+            key={thread.question.kind}
+            thread={thread}
+          />
+        ))}
 
         <div className="flex flex-col items-start gap-4 rounded-3xl bg-[#C8B2EE40] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8 dark:bg-[#231d3a]">
           <div className="flex flex-col gap-1">
             <h2 className="font-display text-foreground text-[1.25rem]/7 font-medium tracking-[-0.02em]">
-              This was one question to one model
+              This was{" "}
+              {state.threads.length === 1 ? "one question" : "two questions"} to
+              one model
             </h2>
             <p className={`${metaClass} max-w-[36rem]`}>
               Notra asks ChatGPT, Claude, Gemini and Perplexity about your

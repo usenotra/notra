@@ -53,8 +53,10 @@ function streamEvents(
             AbortSignal.timeout(OFFERING_CHECK_TIMEOUT_MS),
           ])
         );
-        await Effect.runPromise(writeCachedOfferingCheck(input, result));
+        // Send the result first; the cache write must not delay what the
+        // visitor is waiting for. It still finishes before the stream closes.
         emit({ type: "result", result });
+        await Effect.runPromise(writeCachedOfferingCheck(input, result));
       } catch {
         if (!request.signal.aborted) {
           emit({ type: "error" });

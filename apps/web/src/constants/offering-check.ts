@@ -19,14 +19,14 @@ export const OFFERING_CHECK_PREFLIGHT_PATH = `${OFFERING_CHECK_API_PATH}/preflig
 export const OFFERING_CHECK_TITLE = "Does AI Know Your Features?";
 
 export const OFFERING_CHECK_DESCRIPTION =
-  "Enter your website, and a feature name if you want to check one. We ask GPT-5.6 about it with web search and show what it says, which pages it read and what it thinks you offer instead. Free, no sign-up.";
+  "Check if AI knows a feature by name, and whether it recommends it when a buyer only describes the problem. We ask GPT-6 with web search and show what it says and which pages it read. Free, no sign-up.";
 
 export const OFFERING_CHECK_HERO_SUBTITLE =
-  "Enter your website, or name a feature you shipped. We ask GPT-5.6 about it with web search, then show what it finds, which pages it read and what it thinks you offer instead. Free, no sign-up.";
+  "Name a feature you shipped and the problem it solves. We ask GPT-6 about it by name and by problem, the way buyers do, and show what it finds and which pages it read. Free, no sign-up.";
 
-export const OFFERING_CHECK_MODEL = "openai/gpt-5.6-luna";
+export const OFFERING_CHECK_MODEL = "openai/gpt-6-luna";
 
-export const OFFERING_CHECK_MODEL_LABEL = "GPT-5.6";
+export const OFFERING_CHECK_MODEL_LABEL = "GPT-6";
 
 export const OFFERING_CHECK_KILL_SWITCH_ENV = "NOTRA_OFFERING_CHECK";
 
@@ -34,7 +34,7 @@ export const OFFERING_CHECK_FEATURE_MIN_LENGTH = 2;
 
 export const OFFERING_CHECK_FEATURE_MAX_LENGTH = 80;
 
-export const OFFERING_CHECK_DESCRIPTION_MAX_LENGTH = 280;
+export const OFFERING_CHECK_PROBLEM_MAX_LENGTH = 280;
 
 export const OFFERING_CHECK_MAX_OTHER_OFFERINGS = 8;
 
@@ -48,9 +48,12 @@ export const OFFERING_CHECK_MAX_OUTPUT_TOKENS = 1800;
 
 export const OFFERING_CHECK_TIMEOUT_MS = 50_000;
 
+/** Upper bound for one Upstash call; cache misses and rate-limit outages fall back after it. */
+export const OFFERING_CHECK_REDIS_TIMEOUT = "1500 millis";
+
 export const OFFERING_CHECK_CACHE_SECONDS = 60 * 60 * 24;
 
-export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v6";
+export const OFFERING_CHECK_CACHE_PREFIX = "web:offering-check:v8";
 
 export const OFFERING_CHECK_RATE_LIMITS = {
   preflightPerIpMinute: { requests: 30, windowMs: 60 * 1000 },
@@ -93,7 +96,7 @@ return {1, 0}
 `;
 
 export const OFFERING_CHECK_INVALID_MESSAGE =
-  "Enter a website like acme.com. Feature name and description are optional.";
+  "Enter a website like acme.com. Feature name and problem are optional.";
 
 export const OFFERING_REPORT_FAILURE_MESSAGES: Record<
   OfferingFailureStatus,
@@ -105,12 +108,30 @@ export const OFFERING_REPORT_FAILURE_MESSAGES: Record<
 };
 
 export const OFFERING_CHECK_SAMPLES: readonly OfferingCheckSample[] = [
-  { domain: "linear.app", feature: "Triage Intelligence", description: "" },
-  { domain: "vercel.com", feature: "Fluid compute", description: "" },
-  { domain: "resend.com", feature: "Broadcasts", description: "" },
+  {
+    domain: "linear.app",
+    feature: "Triage Intelligence",
+    problem:
+      "New bug reports pile up and nobody knows which team should pick them up.",
+  },
+  {
+    domain: "vercel.com",
+    feature: "Fluid compute",
+    problem:
+      "Our functions sit idle waiting on slow AI model responses and we still pay for that time.",
+  },
+  {
+    domain: "resend.com",
+    feature: "Broadcasts",
+    problem: "We want to email a product update to all our users at once.",
+  },
 ];
 
-export const OFFERING_MODE_TITLE = "With web search";
+export const OFFERING_QUESTION_TITLES = {
+  company: "Asked what you offer",
+  name: "Asked by name",
+  problem: "Asked by problem",
+} as const;
 
 const AMBER = {
   badgeClassName:
@@ -124,6 +145,7 @@ const CONFIDENTLY_WRONG_BODY =
 export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
   knows: {
     label: "Knows it",
+    problemLabel: "Recommends it",
     badgeClassName:
       "bg-[#DFF5E8] text-[#1C6B3F] dark:bg-[#22C55E2E] dark:text-[#86EFAC]",
     textClassName: "text-[#1C6B3F] dark:text-[#86EFAC]",
@@ -132,25 +154,37 @@ export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
       "It finds the feature and can describe what it does from the pages available on the web.",
     companyBody:
       "It finds your product and can describe concrete products or features from the pages available on the web.",
+    problemLead: "AI recommends ",
+    problemBody:
+      "Asked about the problem without the name, it points buyers straight to the feature.",
   },
   vague: {
     ...AMBER,
     label: "Vague",
+    problemLabel: "Hints at it",
     heroLead: "AI is vague about ",
     featureBody:
       "It mentions the feature but cannot say what it does. Buyers asking about it get a hedged answer.",
     companyBody:
       "It knows you exist but stays generic about what you offer. Buyers asking about you get a hedged answer.",
+    problemLead: "AI hints at ",
+    problemBody:
+      "Asked about the problem, it points in the right direction but never names the feature.",
   },
   confused: {
     ...AMBER,
     label: "Mixes it up",
+    problemLabel: "Suggests something else",
     heroLead: "AI mixes up ",
     featureBody: CONFIDENTLY_WRONG_BODY,
     companyBody: CONFIDENTLY_WRONG_BODY,
+    problemLead: "AI points away from ",
+    problemBody:
+      "Asked about the problem, it recommends something else. Buyers who describe the need end up elsewhere.",
   },
   unknown: {
     label: "Does not know it",
+    problemLabel: "Never suggests it",
     badgeClassName:
       "bg-[#FCE4E4] text-[#9B1C1C] dark:bg-[#EF444433] dark:text-[#FCA5A5]",
     textClassName: "text-[#9B1C1C] dark:text-[#FCA5A5]",
@@ -159,6 +193,9 @@ export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
       "Even with web search it could not find it. Anyone asking an assistant about it hears that it does not exist.",
     companyBody:
       "Even with web search it could not say what you offer. Anyone asking an assistant about you gets nothing.",
+    problemLead: "AI never suggests ",
+    problemBody:
+      "Asked about the problem, it does not bring the feature up. Buyers who do not know the name will not find it.",
   },
 };
 
@@ -174,6 +211,20 @@ export const OFFERING_CHECK_FAVICON_SIZE = 64;
 
 export const OFFERING_LINK_COPIED_MS = 1800;
 
-export const OFFERING_SAMPLE_TYPE_MS = 28;
+export const OFFERING_SAMPLE_TYPING = {
+  keyMs: 34,
+  problemKeyMs: 9,
+  jitterStepMs: 5,
+  wordPauseMs: 35,
+  fieldPauseMs: 160,
+  eraseMs: 14,
+  /** Old text is erased in this many steps per field, however long it is. */
+  eraseSteps: 8,
+} as const;
 
 export const OFFERING_FAVICON_SETTLE_MS = 350;
+
+export const OFFERING_FORM_URL_DEBOUNCE_MS = 400;
+
+/** Size of the default globe Google returns for domains it has no icon for. */
+export const OFFERING_FAVICON_FALLBACK_SIZE = 16;

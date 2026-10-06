@@ -5,6 +5,7 @@ import { Data, Effect } from "effect";
 import {
   OFFERING_CHECK_RATE_LIMITS,
   OFFERING_CHECK_RATE_LIMIT_SCRIPT,
+  OFFERING_CHECK_REDIS_TIMEOUT,
 } from "@/constants/offering-check";
 import type { OfferingCheckInput } from "@/types/offering-check";
 import { getClientIp } from "@/utils/client-ip";
@@ -96,7 +97,12 @@ const checkOfferingCheckRateLimit = Effect.fn("checkOfferingCheckRateLimit")(
           args
         ),
       catch: (cause) => new OfferingCheckRateLimitUnavailable({ cause }),
-    });
+    }).pipe(
+      Effect.timeout(OFFERING_CHECK_REDIS_TIMEOUT),
+      Effect.catchTag("TimeoutError", (cause) =>
+        Effect.fail(new OfferingCheckRateLimitUnavailable({ cause }))
+      )
+    );
     if (allowed === 0) {
       const rejected = checks[rejectedIndex - 1];
       if (!rejected) {

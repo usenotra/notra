@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { OFFERING_CHECK_FAVICON_SIZE } from "@/constants/offering-check";
 import type { OfferingFaviconProps } from "@/types/offering-check";
+import { offeringFaviconUrl } from "@/utils/offering-check";
 
 export function OfferingFavicon({ domain, className }: OfferingFaviconProps) {
   const [failed, setFailed] = useState(false);
@@ -30,7 +31,7 @@ export function OfferingFavicon({ domain, className }: OfferingFaviconProps) {
       height={OFFERING_CHECK_FAVICON_SIZE}
       loading="lazy"
       onError={() => setFailed(true)}
-      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${OFFERING_CHECK_FAVICON_SIZE}`}
+      src={offeringFaviconUrl(domain)}
       width={OFFERING_CHECK_FAVICON_SIZE}
     />
   );

@@ -1,18 +1,16 @@
 import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@notra/ui/components/ui/collapsible";
-import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
+import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
+import { debounce, parseAsString, useQueryStates } from "nuqs";
 import { type FormEvent, useState } from "react";
 
 import {
-  OFFERING_CHECK_DESCRIPTION_MAX_LENGTH,
+  OFFERING_CHECK_PROBLEM_MAX_LENGTH,
+  OFFERING_FORM_URL_DEBOUNCE_MS,
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
   OFFERING_CHECK_INVALID_MESSAGE,
   OFFERING_REPORT_FAILURE_MESSAGES,
@@ -26,7 +24,6 @@ import type {
   OfferingCheckInput,
   OfferingFormProblem,
 } from "@/types/offering-check";
-import { storeOfferingDescription } from "@/utils/offering-report";
 
 import { OfferingDomainFavicon } from "./offering-domain-favicon";
 import { OfferingFavicon } from "./offering-favicon";
@@ -35,40 +32,58 @@ import { OfferingSentenceField } from "./offering-sentence-field";
 const SWAP_CLASS =
   "transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] [grid-area:1/1] motion-reduce:transition-none";
 const SWAP_HIDDEN = "scale-25 opacity-0 blur-[4px]";
-const REVEAL_CLASS =
-  "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[ending-style]:h-0 data-[ending-style]:opacity-0 data-[starting-style]:h-0 data-[starting-style]:opacity-0 motion-reduce:transition-none";
+
+// The form lives in the URL, so going back from a report keeps the input and
+// links like /offering?domain=acme.com prefill it.
+const OFFERING_FORM_PARSERS = {
+  domain: parseAsString.withDefault(""),
+  feature: parseAsString.withDefault(""),
+  problem: parseAsString.withDefault(""),
+};
 
 export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const navigate = useNavigate();
-  const [domain, setDomain] = useState("");
-  const [feature, setFeature] = useState("");
-  const [description, setDescription] = useState("");
-  const [problem, setProblem] = useState<OfferingFormProblem | null>(null);
+  const [{ domain, feature, problem }, setValues] = useQueryStates(
+    OFFERING_FORM_PARSERS,
+    {
+      clearOnDefault: true,
+      history: "replace",
+      scroll: false,
+      // State updates at once; the URL follows after typing pauses, so the
+      // router does not re-render on every keystroke.
+      limitUrlUpdates: debounce(OFFERING_FORM_URL_DEBOUNCE_MS),
+    }
+  );
+  const [notice, setNotice] = useState<OfferingFormProblem | null>(null);
   const [pending, setPending] = useState(false);
-  const typeSample = useSampleTyping((nextDomain, nextFeature) => {
-    setDomain(nextDomain);
-    setFeature(nextFeature);
-  });
+  const { typeSample, typingField } = useSampleTyping(
+    { domain, feature, problem },
+    (values) => {
+      void setValues(values);
+    }
+  );
 
   const openReport = async (input: OfferingCheckInput) => {
-    setProblem(null);
+    setNotice(null);
     setPending(true);
     const failure = await preflightOfferingCheck(input);
     if (failure) {
-      setProblem(failure);
+      setNotice(failure);
       setPending(false);
       return;
     }
-    storeOfferingDescription(input);
     await navigate({
       to: OFFERING_REPORT_PATH,
-      search: { domain: input.domain, feature: input.feature || undefined },
+      search: {
+        domain: input.domain,
+        feature: input.feature || undefined,
+        problem: input.problem || undefined,
+      },
     });
   };
 
   const fillSample = (sample: OfferingCheckInput) => {
-    setProblem(null);
-    setDescription(sample.description);
+    setNotice(null);
     typeSample(sample);
   };
 
@@ -77,22 +92,24 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
     const parsed = offeringCheckRequestSchema.safeParse({
       domain,
       feature,
-      description,
+      problem,
     });
     if (parsed.success) {
       openReport(parsed.data);
     } else {
-      setProblem("invalid");
+      setNotice("invalid");
     }
   };
 
-  const invalid = problem === "invalid";
+  const invalid = notice === "invalid";
+  const problemEnabled = feature.trim().length > 0 || typingField !== null;
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
       <p className="font-display text-foreground text-[1.75rem]/[1.55] font-medium tracking-[-0.02em] text-pretty sm:text-[2.25rem]/[1.5]">
         Does AI know{" "}
         <OfferingSentenceField
+          active={typingField === "domain"}
           autoCapitalize="none"
           autoComplete="url"
           id="offering-check-domain"
@@ -102,8 +119,8 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           leading={<OfferingDomainFavicon value={domain} />}
           name="domain"
           onChange={(event) => {
-            setDomain(event.target.value);
-            setProblem(null);
+            void setValues({ domain: event.target.value });
+            setNotice(null);
           }}
           placeholder="acme.com"
           spellCheck={false}
@@ -111,6 +128,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
         />{" "}
         and{" "}
         <OfferingSentenceField
+          active={typingField === "feature"}
           autoComplete="off"
           id="offering-check-feature"
           invalid={false}
@@ -118,8 +136,8 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           maxLength={OFFERING_CHECK_FEATURE_MAX_LENGTH}
           name="feature"
           onChange={(event) => {
-            setFeature(event.target.value);
-            setProblem(null);
+            void setValues({ feature: event.target.value });
+            setNotice(null);
           }}
           placeholder="your feature"
           value={feature}
@@ -127,37 +145,44 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
         ?
       </p>
 
-      <Collapsible open={feature.trim().length > 0}>
-        <CollapsibleContent className={REVEAL_CLASS}>
-          <div className="flex flex-col gap-2 px-px pt-6 pb-px">
-            <Label
-              className="text-foreground text-sm/4.5 font-medium"
-              htmlFor="offering-check-description"
-            >
-              What it does
-              <span className="pl-1.5 font-normal text-[#1E1E1E80] dark:text-white/45">
-                optional
-              </span>
-            </Label>
-            <Input
-              autoComplete="off"
-              className="h-11 rounded-xl border-[#E4E4E4] bg-transparent px-3.5 py-3 text-[0.9375rem]/5 shadow-none placeholder:text-[#1E1E1E66] dark:border-white/12 dark:placeholder:text-white/40"
-              id="offering-check-description"
-              maxLength={OFFERING_CHECK_DESCRIPTION_MAX_LENGTH}
-              name="description"
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Emails a PDF of any dashboard on a schedule"
-              value={description}
-            />
-            <p className="text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
-              Only used to grade the answer. The model never sees it while
-              answering.
-            </p>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      {/* Always rendered so nothing below shifts when the feature gets a name. */}
+      <div
+        className={cn(
+          "flex flex-col gap-2 pt-6 transition-opacity duration-200",
+          problemEnabled ? null : "opacity-50"
+        )}
+      >
+        <Label
+          className="text-foreground text-sm/4.5 font-medium"
+          htmlFor="offering-check-problem"
+        >
+          What problem does it solve?
+          <span className="pl-1.5 font-normal text-[#1E1E1E80] dark:text-white/45">
+            optional
+          </span>
+        </Label>
+        <Textarea
+          autoComplete="off"
+          data-active={typingField === "problem" || undefined}
+          className="min-h-20 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 py-3 text-[0.9375rem]/6 shadow-none transition-[border-color,box-shadow] placeholder:text-[#1E1E1E66] data-active:border-[#8B5CF6] data-active:ring-3 data-active:ring-[#8B5CF6]/20 dark:border-white/12 dark:placeholder:text-white/40"
+          id="offering-check-problem"
+          maxLength={OFFERING_CHECK_PROBLEM_MAX_LENGTH}
+          name="problem"
+          onChange={(event) => {
+            void setValues({ problem: event.target.value });
+          }}
+          disabled={!problemEnabled}
+          placeholder={
+            problemEnabled
+              ? "New bug reports pile up and nobody knows which team should pick them up."
+              : "Name a feature first"
+          }
+          rows={2}
+          value={problem}
+        />
+      </div>
 
-      {problem ? (
+      {notice ? (
         <p
           className={cn(
             "mt-4 text-[0.875rem]/5.5",
@@ -170,7 +195,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
         >
           {invalid
             ? OFFERING_CHECK_INVALID_MESSAGE
-            : OFFERING_REPORT_FAILURE_MESSAGES[problem]}
+            : OFFERING_REPORT_FAILURE_MESSAGES[notice]}
         </p>
       ) : null}
 
