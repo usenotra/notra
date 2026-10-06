@@ -107,6 +107,24 @@ export const PAGE_SOCIAL_IMAGES = {
     height: SOCIAL_IMAGE_HEIGHT,
     alt: "Notra Slack integration social preview image",
   },
+  github: {
+    url: "/og/github-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra GitHub integration social preview image",
+  },
+  linear: {
+    url: "/og/linear-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra Linear integration social preview image",
+  },
+  granola: {
+    url: "/og/granola-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra Granola integration social preview image",
+  },
 } as const;
 
 export const TWITTER_HANDLE = "@usenotra";

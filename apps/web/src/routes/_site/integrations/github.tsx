@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SlackCtaBanner } from "@/components/integrations/slack/slack-cta-banner";
-import { SlackDemoSection } from "@/components/integrations/slack/slack-demo-section";
-import { SlackFeatureList } from "@/components/integrations/slack/slack-feature-list";
-import { SlackHero } from "@/components/integrations/slack/slack-hero";
-import { SlackToolsSection } from "@/components/integrations/slack/slack-tools-section";
+import { GithubCtaBanner } from "@/components/integrations/github/github-cta-banner";
+import { GithubDemoSection } from "@/components/integrations/github/github-demo-section";
+import { GithubFeatureList } from "@/components/integrations/github/github-feature-list";
+import { GithubHero } from "@/components/integrations/github/github-hero";
+import { GithubToolsSection } from "@/components/integrations/github/github-tools-section";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -15,10 +15,10 @@ import {
 } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
-const title = "Slack integration for Notra";
+const title = "GitHub integration for Notra";
 const description =
-  "Mention @Notra in Slack to draft changelog entries, blog posts and social posts from your threads. Approve each draft in the thread.";
-const url = `${SITE_URL}/integrations/slack`;
+  "Connect GitHub and turn merged pull requests, releases and commits into changelog entries and launch posts in your brand voice.";
+const url = `${SITE_URL}/integrations/github`;
 
 const metadata: Metadata = {
   title,
@@ -30,13 +30,13 @@ const metadata: Metadata = {
     url,
     type: "website",
     siteName: "Notra",
-    images: [PAGE_SOCIAL_IMAGES.slack],
+    images: [PAGE_SOCIAL_IMAGES.github],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [PAGE_SOCIAL_IMAGES.slack.url],
+    images: [PAGE_SOCIAL_IMAGES.github.url],
     site: TWITTER_HANDLE,
     creator: TWITTER_HANDLE,
   },
@@ -45,15 +45,15 @@ const metadata: Metadata = {
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: "Home", url: SITE_URL },
   { name: "Integrations", url: `${SITE_URL}/integrations` },
-  { name: "Slack", url },
+  { name: "GitHub", url },
 ]);
 
-export const Route = createFileRoute("/_site/integrations/slack")({
+export const Route = createFileRoute("/_site/integrations/github")({
   head: () => buildHead(metadata),
-  component: SlackIntegrationPage,
+  component: GithubIntegrationPage,
 });
 
-function SlackIntegrationPage() {
+function GithubIntegrationPage() {
   return (
     <div className="flex w-full flex-col items-center gap-8 antialiased [font-synthesis:none]">
       <script
@@ -61,14 +61,14 @@ function SlackIntegrationPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
         type="application/ld+json"
       />
-      <SlackHero />
+      <GithubHero />
       <div className="flex w-[min(100%-3rem,62.5rem)] flex-col gap-16 pt-6 pb-10">
-        <SlackDemoSection />
-        <SlackFeatureList />
-        <SlackToolsSection />
+        <GithubDemoSection />
+        <GithubFeatureList />
+        <GithubToolsSection />
       </div>
       <section className="w-full px-6">
-        <SlackCtaBanner />
+        <GithubCtaBanner />
       </section>
     </div>
   );

@@ -96,22 +96,10 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
       {
         title: "Sources",
         links: [
-          {
-            label: "GitHub",
-            href: SOCIAL_LINKS.github,
-            external: true,
-          },
-          {
-            label: "Linear",
-            href: "https://linear.app",
-            external: true,
-          },
+          { label: "GitHub", href: "/integrations/github" },
+          { label: "Linear", href: "/integrations/linear" },
           { label: "Slack", href: "/integrations/slack" },
-          {
-            label: "Granola",
-            href: "https://www.usenotra.com/docs/integrations/granola",
-            external: true,
-          },
+          { label: "Granola", href: "/integrations/granola" },
         ],
       },
     ],

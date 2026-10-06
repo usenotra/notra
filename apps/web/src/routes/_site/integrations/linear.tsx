@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SlackCtaBanner } from "@/components/integrations/slack/slack-cta-banner";
-import { SlackDemoSection } from "@/components/integrations/slack/slack-demo-section";
-import { SlackFeatureList } from "@/components/integrations/slack/slack-feature-list";
-import { SlackHero } from "@/components/integrations/slack/slack-hero";
-import { SlackToolsSection } from "@/components/integrations/slack/slack-tools-section";
+import { LinearCtaBanner } from "@/components/integrations/linear/linear-cta-banner";
+import { LinearDemoSection } from "@/components/integrations/linear/linear-demo-section";
+import { LinearFeatureList } from "@/components/integrations/linear/linear-feature-list";
+import { LinearHero } from "@/components/integrations/linear/linear-hero";
+import { LinearToolsSection } from "@/components/integrations/linear/linear-tools-section";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -15,10 +15,10 @@ import {
 } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
-const title = "Slack integration for Notra";
+const title = "Linear integration for Notra";
 const description =
-  "Mention @Notra in Slack to draft changelog entries, blog posts and social posts from your threads. Approve each draft in the thread.";
-const url = `${SITE_URL}/integrations/slack`;
+  "Connect Linear and turn finished issues, projects and cycles into release notes and changelog entries in your brand voice.";
+const url = `${SITE_URL}/integrations/linear`;
 
 const metadata: Metadata = {
   title,
@@ -30,13 +30,13 @@ const metadata: Metadata = {
     url,
     type: "website",
     siteName: "Notra",
-    images: [PAGE_SOCIAL_IMAGES.slack],
+    images: [PAGE_SOCIAL_IMAGES.linear],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [PAGE_SOCIAL_IMAGES.slack.url],
+    images: [PAGE_SOCIAL_IMAGES.linear.url],
     site: TWITTER_HANDLE,
     creator: TWITTER_HANDLE,
   },
@@ -45,15 +45,15 @@ const metadata: Metadata = {
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: "Home", url: SITE_URL },
   { name: "Integrations", url: `${SITE_URL}/integrations` },
-  { name: "Slack", url },
+  { name: "Linear", url },
 ]);
 
-export const Route = createFileRoute("/_site/integrations/slack")({
+export const Route = createFileRoute("/_site/integrations/linear")({
   head: () => buildHead(metadata),
-  component: SlackIntegrationPage,
+  component: LinearIntegrationPage,
 });
 
-function SlackIntegrationPage() {
+function LinearIntegrationPage() {
   return (
     <div className="flex w-full flex-col items-center gap-8 antialiased [font-synthesis:none]">
       <script
@@ -61,14 +61,14 @@ function SlackIntegrationPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
         type="application/ld+json"
       />
-      <SlackHero />
+      <LinearHero />
       <div className="flex w-[min(100%-3rem,62.5rem)] flex-col gap-16 pt-6 pb-10">
-        <SlackDemoSection />
-        <SlackFeatureList />
-        <SlackToolsSection />
+        <LinearDemoSection />
+        <LinearFeatureList />
+        <LinearToolsSection />
       </div>
       <section className="w-full px-6">
-        <SlackCtaBanner />
+        <LinearCtaBanner />
       </section>
     </div>
   );

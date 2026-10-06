@@ -22,6 +22,9 @@ import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
 import {
   buildIntegrationMarkdown,
   buildIntegrationsMarkdown,
+  buildGithubIntegrationMarkdown,
+  buildGranolaIntegrationMarkdown,
+  buildLinearIntegrationMarkdown,
   buildSlackIntegrationMarkdown,
   listIntegrationMarkdownEntries,
 } from "@/lib/integrations/markdown";
@@ -325,6 +328,18 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     {
       pattern: "/integrations/slack",
       render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/github",
+      render: () => buildGithubIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/linear",
+      render: () => buildLinearIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/granola",
+      render: () => buildGranolaIntegrationMarkdown(),
     },
     {
       pattern: "/features/marketing/assets",

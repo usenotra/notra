@@ -151,6 +151,18 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
       lastModified: STATIC_PAGE_LAST_MODIFIED,
     },
     {
+      url: `${SITE_URL}/integrations/github`,
+      lastModified: STATIC_PAGE_LAST_MODIFIED,
+    },
+    {
+      url: `${SITE_URL}/integrations/linear`,
+      lastModified: STATIC_PAGE_LAST_MODIFIED,
+    },
+    {
+      url: `${SITE_URL}/integrations/granola`,
+      lastModified: STATIC_PAGE_LAST_MODIFIED,
+    },
+    {
       url: `${SITE_URL}/brand`,
       lastModified: STATIC_PAGE_LAST_MODIFIED,
     },

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SlackCtaBanner } from "@/components/integrations/slack/slack-cta-banner";
-import { SlackDemoSection } from "@/components/integrations/slack/slack-demo-section";
-import { SlackFeatureList } from "@/components/integrations/slack/slack-feature-list";
-import { SlackHero } from "@/components/integrations/slack/slack-hero";
-import { SlackToolsSection } from "@/components/integrations/slack/slack-tools-section";
+import { GranolaCtaBanner } from "@/components/integrations/granola/granola-cta-banner";
+import { GranolaDemoSection } from "@/components/integrations/granola/granola-demo-section";
+import { GranolaFeatureList } from "@/components/integrations/granola/granola-feature-list";
+import { GranolaHero } from "@/components/integrations/granola/granola-hero";
+import { GranolaToolsSection } from "@/components/integrations/granola/granola-tools-section";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -15,10 +15,10 @@ import {
 } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
-const title = "Slack integration for Notra";
+const title = "Granola integration for Notra";
 const description =
-  "Mention @Notra in Slack to draft changelog entries, blog posts and social posts from your threads. Approve each draft in the thread.";
-const url = `${SITE_URL}/integrations/slack`;
+  "Connect Granola and turn notes from customer calls into customer stories, changelog entries and posts in your brand voice.";
+const url = `${SITE_URL}/integrations/granola`;
 
 const metadata: Metadata = {
   title,
@@ -30,13 +30,13 @@ const metadata: Metadata = {
     url,
     type: "website",
     siteName: "Notra",
-    images: [PAGE_SOCIAL_IMAGES.slack],
+    images: [PAGE_SOCIAL_IMAGES.granola],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [PAGE_SOCIAL_IMAGES.slack.url],
+    images: [PAGE_SOCIAL_IMAGES.granola.url],
     site: TWITTER_HANDLE,
     creator: TWITTER_HANDLE,
   },
@@ -45,15 +45,15 @@ const metadata: Metadata = {
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: "Home", url: SITE_URL },
   { name: "Integrations", url: `${SITE_URL}/integrations` },
-  { name: "Slack", url },
+  { name: "Granola", url },
 ]);
 
-export const Route = createFileRoute("/_site/integrations/slack")({
+export const Route = createFileRoute("/_site/integrations/granola")({
   head: () => buildHead(metadata),
-  component: SlackIntegrationPage,
+  component: GranolaIntegrationPage,
 });
 
-function SlackIntegrationPage() {
+function GranolaIntegrationPage() {
   return (
     <div className="flex w-full flex-col items-center gap-8 antialiased [font-synthesis:none]">
       <script
@@ -61,14 +61,14 @@ function SlackIntegrationPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
         type="application/ld+json"
       />
-      <SlackHero />
+      <GranolaHero />
       <div className="flex w-[min(100%-3rem,62.5rem)] flex-col gap-16 pt-6 pb-10">
-        <SlackDemoSection />
-        <SlackFeatureList />
-        <SlackToolsSection />
+        <GranolaDemoSection />
+        <GranolaFeatureList />
+        <GranolaToolsSection />
       </div>
       <section className="w-full px-6">
-        <SlackCtaBanner />
+        <GranolaCtaBanner />
       </section>
     </div>
   );
