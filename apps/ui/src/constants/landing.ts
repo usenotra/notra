@@ -56,6 +56,27 @@ export const LANDING_SECTIONS: LandingSection[] = [
       },
       {
         description:
+          "Toasts with the Depth surface of the buttons and tinted status icons.",
+        href: "/components/sonner",
+        preview: "sonner",
+        title: "Sonner",
+      },
+      {
+        description:
+          "A slider that snaps to a fixed set of values, from the Notra pricing page.",
+        href: "/components/step-slider",
+        preview: "step-slider",
+        title: "Step Slider",
+      },
+      {
+        description:
+          "A segmented tab selector where only the active tab shows its icon.",
+        href: "/components/icon-tabs",
+        preview: "icon-tabs",
+        title: "Icon Tabs",
+      },
+      {
+        description:
           "A rail of lines that maps a conversation, with a preview card per turn.",
         href: "/components/chat-minimap",
         preview: "chat-minimap",

@@ -1,0 +1,39 @@
+---
+title: Icon Tabs
+description: A segmented tab selector where only the active tab shows its icon.
+---
+
+<Component path="icon-tabs/examples/icon-tabs" />
+
+<RegistryInstall name="icon-tabs" />
+
+Inactive tabs stay text-only. On the active tab the icon widens and fades in beside the label, and the indicator follows the resize frame by frame, so it lands with the tab in one motion. It is built on Base UI's `Tabs`, so keyboard navigation and screen reader support come with it. Reduced motion turns the slide off.
+
+```tsx
+const [tab, setTab] = useState("deliveries");
+
+<IconTabs onValueChange={setTab} value={tab}>
+  <IconTabsList aria-label="Webhook views" value={tab}>
+    <IconTabsTrigger icon={<SendIcon size={15} />} value="deliveries">
+      Deliveries
+    </IconTabsTrigger>
+    <IconTabsTrigger icon={<LinkIcon size={15} />} value="endpoints">
+      Endpoints
+    </IconTabsTrigger>
+  </IconTabsList>
+  <IconTabsContent value="deliveries">...</IconTabsContent>
+  <IconTabsContent value="endpoints">...</IconTabsContent>
+</IconTabs>
+```
+
+The list is as wide as its tabs, so it grows by one icon whenever the active tab changes. To center it without it shifting sideways, give the list a fixed width, like `className="w-64"`. The tabs then share the width equally.
+
+`IconTabsList` needs the active `value` as well, so the indicator knows when to start sliding.
+
+| Prop | On | Description |
+| --- | --- | --- |
+| `value` | `IconTabsList` | The active tab. Must match the `value` of `IconTabs`. |
+| `icon` | `IconTabsTrigger` | Shown only on the active tab, sliding in beside the label. |
+| `iconPinned` | `IconTabsTrigger` | Keeps the icon visible on inactive tabs, e.g. for a live spinner. |
+
+Every other Base UI `Tabs` prop is passed through, except `orientation`: the tabs are horizontal only.
