@@ -1,0 +1,95 @@
+apps/dashboard/src/components/chat/chat-content-panel.tsx
+  s_f139c6879e9952::t_e11420165a6c96 62,92,113,137,143,149-161,331,543-545
+  s_f139c6879e9952::t_c185068c721273 55,114-117,120
+  s_f139c6879e9952::t_0c0dd18f108aec 118-119
+apps/dashboard/src/lib/hooks/use-annotation-highlights.ts
+  s_f139c6879e9952::t_96c7526dbd8653 6,29
+apps/dashboard/src/types/components/chat-quote.ts
+  s_f139c6879e9952::t_0c0dd18f108aec 33
+  s_f139c6879e9952::t_83db365209c5ad 3-6,30-32
+apps/dashboard/src/utils/chat-annotations.ts
+  s_f139c6879e9952::t_c4f0b3bdb56d91 28,106-124
+  s_f139c6879e9952::t_6bfefb1b05d99b 126-149
+apps/dashboard/src/lib/hooks/use-stable-value.ts
+  s_f139c6879e9952::t_5d5a70086f194e 1-15
+apps/dashboard/src/lib/hooks/use-annotation-flash.ts
+  s_f139c6879e9952::t_83db365209c5ad 1-2,4-5,14-15,18-25,29,31-33,37-41,43-51,58-60,66-79,81-87,94-101
+  s_f139c6879e9952::t_e11420165a6c96 6-9,30
+  s_f139c6879e9952::t_c185068c721273 3,26,34,36,61
+  s_f139c6879e9952::t_d24771c96c1849 10-13,80
+  s_f139c6879e9952::t_0c0dd18f108aec 16-17,27-28,35,42,52-57,62-65
+  s_f139c6879e9952::t_34c1eeb1bc16e6 88-93
+apps/dashboard/src/components/chat/chat-message-annotations.tsx
+  s_f139c6879e9952::t_e11420165a6c96 5,9,14,22-27
+apps/dashboard/src/utils/find-passage-range.ts
+  s_f139c6879e9952::t_d24771c96c1849 63-98
+  s_f139c6879e9952::t_96c7526dbd8653 1-2,5-11,13-14,24-62
+  s_f139c6879e9952::t_be01fc192059c8 3-4,12,15-23
+apps/dashboard/src/components/chat/chat-annotations-preview.tsx
+  s_f139c6879e9952::t_e11420165a6c96 59-69,71
+apps/dashboard/messages/de.json
+  s_f139c6879e9952::t_c6cebfeb7f5d94 5745-5746
+  s_f139c6879e9952::t_e11420165a6c96 5743
+  s_f139c6879e9952::t_6bfefb1b05d99b 5744
+  s_f139c6879e9952::t_c185068c721273 5727-5728
+packages/ai/e2e-break.ts
+  ai_agent 4-48
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  s_f139c6879e9952::t_a1d9638530976b 132-134
+apps/dashboard/src/constants/chat-annotations.ts
+  s_f139c6879e9952::t_83db365209c5ad 16-17
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_f139c6879e9952::t_ed8a24538a96fe 2288-2291,2296-2297,2299
+  s_f139c6879e9952::t_c4f0b3bdb56d91 156-158,1573-1582,1584-1589
+  ai_agent 781-783
+  s_f139c6879e9952::t_e11420165a6c96 89,851-863,2345,3257
+  s_f139c6879e9952::t_5d5a70086f194e 137,765-780,784,793-805
+packages/ai/src/orchestration/orchestrate-standalone.ts
+  s_f139c6879e9952::t_a1d9638530976b 150,668-680
+  ai_agent 9
+apps/dashboard/src/types/components/chat-content-panel.ts
+  s_f139c6879e9952::t_e11420165a6c96 3,7-8,38
+apps/dashboard/src/types/chat-annotations.ts
+  s_f139c6879e9952::t_e11420165a6c96 19-27
+  s_f139c6879e9952::t_83db365209c5ad 11-18
+apps/dashboard/messages/en.json
+  s_f139c6879e9952::t_c185068c721273 5727-5728
+  s_f139c6879e9952::t_c6cebfeb7f5d94 5745-5746
+  s_f139c6879e9952::t_e11420165a6c96 5743
+  s_f139c6879e9952::t_6bfefb1b05d99b 5744
+apps/dashboard/src/components/chat/chat-annotation-note-form.tsx
+  s_f139c6879e9952::t_0c884e05b5a3ec 6,22-33,45
+apps/dashboard/src/styles/globals.css
+  s_f139c6879e9952::t_83db365209c5ad 343-353
+packages/ai/src/tools/todos.ts
+  s_f139c6879e9952::t_a1d9638530976b 13-14,16-18
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_f139c6879e9952::t_ecf06ae2617a81 1122-1123,1207,1228,1305,2492-2496,2530,2572-2574,2632-2636
+  ai_agent 2455-2459,2461-2489
+  s_f139c6879e9952::t_6bfefb1b05d99b 116,118,622,643,699,1344,1348-1366,1978-1996,2865
+apps/dashboard/src/components/chat/chat-quote.tsx
+  s_f139c6879e9952::t_c6cebfeb7f5d94 32,58-67,73,213-222
+  s_f139c6879e9952::t_83db365209c5ad 41-43,77-78,97-105,107-108
+  ai_agent 290
+  s_f139c6879e9952::t_0c0dd18f108aec 106
+apps/dashboard/src/components/chat/chat-queue.tsx
+  s_f139c6879e9952::t_6bfefb1b05d99b 30-31,41,73
+packages/ai/src/types/orchestration.ts
+  s_f139c6879e9952::t_a1d9638530976b 206-207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "076a173221bafe3bdf2a907ffee2e0676cf5d8bd",
+  "prompts": {},
+  "sessions": {
+    "s_f139c6879e9952": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f1ecc6e4-b772-423a-95ad-3c5d44ed694d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
