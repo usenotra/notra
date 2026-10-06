@@ -15,6 +15,10 @@
   "favicon": "/favicon.svg",
   "redirects": [
     {
+      "source": "/integrations/kontentspace",
+      "destination": "/integrations/overview"
+    },
+    {
       "source": "/",
       "destination": "/overview"
     },
@@ -136,8 +140,7 @@
               "integrations/slack",
               "integrations/granola",
               "integrations/google-search-console",
-              "integrations/framer",
-              "integrations/kontentspace"
+              "integrations/framer"
             ]
           },
           {
