@@ -1,12 +1,12 @@
 "use client";
 
 import { formatDayLabel } from "@notra/geo-core/utils/day-label";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { SentimentEngineList } from "@/components/geo/sentiment-engine-list";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import {
   SENTIMENT_MIX_COLORS,
   SENTIMENT_POLARITIES,

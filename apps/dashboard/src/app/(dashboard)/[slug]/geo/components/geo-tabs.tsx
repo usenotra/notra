@@ -2,6 +2,8 @@
 
 import { GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES } from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentGrid } from "@notra/ui/components/instrument/instrument-grid";
+import { InstrumentReveal } from "@notra/ui/components/instrument/instrument-reveal";
 import {
   PermissionOption,
   PermissionRow,
@@ -17,8 +19,6 @@ import { MentionRateCard } from "@/components/geo/mention-rate-card";
 import { MentionTrendCard } from "@/components/geo/mention-trend-card";
 import { ShareOfVoiceCard } from "@/components/geo/share-of-voice-card";
 import { WhatChangedCard } from "@/components/geo/what-changed-card";
-import { InstrumentGrid } from "@/components/instrument/instrument-grid";
-import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";

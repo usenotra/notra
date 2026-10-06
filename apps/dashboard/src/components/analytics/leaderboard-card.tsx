@@ -3,6 +3,10 @@
 import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -26,10 +30,6 @@ import { PlatformTabs } from "@/components/analytics/platform-tabs";
 import { ProviderIcon } from "@/components/analytics/provider-icon";
 import { AnalyticsRangePicker } from "@/components/analytics/range-picker";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
 import {
   ANALYTICS_PROVIDER_FILTER_VALUES,
   ANALYTICS_PROVIDER_FILTERS,

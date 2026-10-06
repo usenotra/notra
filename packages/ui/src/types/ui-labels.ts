@@ -61,6 +61,7 @@ export interface UiLabels {
   composerRemove: (label: string) => string;
   composerSteer: (label: string) => string;
   composerPreview: (label: string) => string;
+  moreInfo: string;
 }
 
 export type UiLabelKey = {

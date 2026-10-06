@@ -18,6 +18,10 @@ import {
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
 import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
@@ -39,10 +43,6 @@ import { Button } from "@/components/button";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoModelCatalog,

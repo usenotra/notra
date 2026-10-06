@@ -11,6 +11,7 @@ import {
   GEO_MENTION_ROW_HEIGHT_REM,
   GEO_MENTION_SUMMARY_VISIBLE,
 } from "@notra/geo-core/constants/geo";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   Empty,
@@ -34,7 +35,6 @@ import { CompetitorEditDialog } from "@/components/geo/competitor-edit-dialog";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useScrollOverflow } from "@/lib/hooks/use-scroll-overflow";
 import { cn } from "@/lib/utils";

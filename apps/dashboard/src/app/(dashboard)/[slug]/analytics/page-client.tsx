@@ -1,5 +1,7 @@
 "use client";
 
+import { InstrumentGrid } from "@notra/ui/components/instrument/instrument-grid";
+import { InstrumentReveal } from "@notra/ui/components/instrument/instrument-reveal";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
@@ -11,8 +13,6 @@ import { ImpressionsShareCard } from "@/components/analytics/impressions-share-c
 import { PostingPerformanceCard } from "@/components/analytics/posting-performance-card";
 import { AnalyticsRangePicker } from "@/components/analytics/range-picker";
 import { TopPostsCard } from "@/components/analytics/top-posts-card";
-import { InstrumentGrid } from "@/components/instrument/instrument-grid";
-import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { CHART_MUTED_COLOR } from "@/constants/charts";
 import { buildTimelineRange } from "@/lib/analytics/date-range";
 import { useAnalyticsRange } from "@/lib/hooks/use-analytics-range";

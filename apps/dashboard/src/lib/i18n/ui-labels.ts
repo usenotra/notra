@@ -71,5 +71,6 @@ export function useUiLabelsTranslations(): UiLabels {
     composerRemove: (label) => tCommon("labels.removeLabel", { label }),
     composerSteer: (label) => tComposer("steerWith", { label }),
     composerPreview: (label) => tComposer("preview", { label }),
+    moreInfo: t("moreInfo"),
   };
 }

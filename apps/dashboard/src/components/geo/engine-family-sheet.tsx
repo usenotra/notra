@@ -15,6 +15,7 @@ import type {
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import {
   DataTable,
@@ -38,7 +39,6 @@ import { ProjectLogo } from "@/components/geo/project-logo";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
 import { PromptOutcomeIcon } from "@/components/geo/prompt-outcome-icon";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { CHART_PERCENT_SCALE, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import {
   GEO_PROMPT_DETAIL_SURFACES,

@@ -6,6 +6,7 @@ import {
 } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
+import { InstrumentEmpty } from "@notra/ui/components/instrument/instrument-module";
 import {
   DataTable,
   type TableColumn,
@@ -18,7 +19,6 @@ import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { InstrumentEmpty } from "@/components/instrument/instrument-module";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { ShareOfVoiceTableProps } from "@/types/geo";
