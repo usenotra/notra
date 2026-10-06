@@ -31,6 +31,7 @@ export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
       { id: "copy-button", label: "Copy Button" },
       { id: "icon-tabs", label: "Icon Tabs" },
       { id: "instrument-module", label: "Instrument Module" },
+      { id: "split-modal", label: "Split Modal" },
       { id: "data-display", label: "Data Display" },
       { id: "utility", label: "Utility Elements" },
     ],
