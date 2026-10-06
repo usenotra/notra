@@ -14,13 +14,19 @@ export const CONTENT_EMAIL_DIGEST_BATCH_SENT = "sent";
 /**
  * Pins a flush to the events listed on its first attempt and renews the
  * window. Returns the batch (an event count or the sent marker), or nil when
- * another run took the window over after it expired.
+ * another run took the window over after it expired. Runs started before
+ * lock tokens hold the window as "1", so they yield to a token run.
  * KEYS: list, lock, batch. ARGV: lock token ("" for old runs), lock ttl,
  * batch ttl.
  */
 export const PIN_CONTENT_EMAIL_DIGEST_SCRIPT = `
-if ARGV[1] ~= "" then
-  if redis.call("GET", KEYS[2]) ~= ARGV[1] then
+local lock = redis.call("GET", KEYS[2])
+if ARGV[1] == "" then
+  if lock and lock ~= "1" then
+    return nil
+  end
+else
+  if lock ~= ARGV[1] then
     return nil
   end
   redis.call("SET", KEYS[2], ARGV[1], "EX", ARGV[2])
@@ -38,7 +44,13 @@ return redis.call("GET", KEYS[3])
  * batch ttl, sent marker.
  */
 export const ACK_CONTENT_EMAIL_DIGEST_SCRIPT = `
-local owner = ARGV[1] == "" or redis.call("GET", KEYS[2]) == ARGV[1]
+local lock = redis.call("GET", KEYS[2])
+local owner
+if ARGV[1] == "" then
+  owner = not lock or lock == "1"
+else
+  owner = lock == ARGV[1]
+end
 local size = redis.call("GET", KEYS[3])
 if size and size ~= ARGV[4] then
   if owner then
