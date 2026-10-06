@@ -1,0 +1,42 @@
+packages/ai/src/utils/scheduled-publications.ts
+  s_400beee9e2f793::t_7018a4c8636f7a 601-617,619-649
+  s_400beee9e2f793::t_9f12acd15ed009 618
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_400beee9e2f793::t_dbfe2a40816a0f 375,399
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_400beee9e2f793::t_dbfe2a40816a0f 14-18
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_400beee9e2f793::t_3403f60f9f72bd 490-517
+packages/ai/src/qstash/triggers.ts
+  s_400beee9e2f793::t_c9c67422d160e4 217-222,230-233,235
+apps/dashboard/src/components/content/calendar/content-calendar-view.tsx
+  s_400beee9e2f793::t_0ee0a4613684cc 6,83-84,86-88,169
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_400beee9e2f793::t_6a1cdcb12c2ebc 34
+  s_400beee9e2f793::t_24409d3b9e620b 293,295-304,347-349
+apps/dashboard/src/lib/content/scheduled-publication-sweep.ts
+  s_400beee9e2f793::t_7018a4c8636f7a 4,11-21,35-38,69
+apps/dashboard/src/components/content/schedule/schedule-slot-field.tsx
+  s_400beee9e2f793::t_cf72bb0f8909e0 91-93
+  s_400beee9e2f793::t_6a1cdcb12c2ebc 33,47,54-55
+apps/dashboard/src/lib/hooks/use-content-calendar.ts
+  s_400beee9e2f793::t_35435b7a325364 167-185,189,203-204,213,223-224,233,244-245,254,268-269
+apps/dashboard/src/app/api/workflows/scheduled-publication-wake/route.ts
+  s_400beee9e2f793::t_c9c67422d160e4 2,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "139f6665b6d48d5ded3c51c53256a457a8b6e100",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
