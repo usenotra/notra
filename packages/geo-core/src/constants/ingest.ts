@@ -11,6 +11,9 @@ export const GEO_INGEST_ERROR_MESSAGE_MAX_LENGTH = 200;
 // keeps a Redis or Tinybird stall from piling up open requests.
 export const GEO_INGEST_RATELIMIT_TIMEOUT_MS = 1000;
 export const GEO_INGEST_REDIS_RETRIES = 1;
+export const GEO_INGEST_ADMISSION_RATELIMIT_PREFIX =
+  "ratelimit:geo-ingest-admission";
+export const GEO_INGEST_ADMISSION_RATELIMIT_MAX_REQUESTS = 1000;
 export const GEO_INGEST_TINYBIRD_TIMEOUT_MS = 5000;
 // Client timestamps outside this window are replaced with the receive time so
 // a skewed or forged clock cannot backdate stats or land outside ClickHouse's

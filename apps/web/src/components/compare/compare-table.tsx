@@ -122,11 +122,7 @@ export function CompareTable({ competitor }: CompareCompetitorProps) {
               >
                 <span className="text-primary flex items-center justify-center gap-2 font-sans text-sm font-semibold break-words sm:text-[0.9375rem]">
                   <span className="hidden sm:inline-flex">
-                    <CompareLogoTile
-                      logo={NOTRA_COMPARE_LOGO}
-                      name="Notra"
-                      size="xs"
-                    />
+                    <CompareLogoTile logo={NOTRA_COMPARE_LOGO} size="xs" />
                   </span>
                   Notra
                 </span>
@@ -137,11 +133,7 @@ export function CompareTable({ competitor }: CompareCompetitorProps) {
               >
                 <span className="flex items-center justify-center gap-2 font-sans text-sm font-semibold break-words text-[#1E1E1E] sm:text-[0.9375rem] dark:text-white">
                   <span className="hidden sm:inline-flex">
-                    <CompareLogoTile
-                      logo={competitor.logo}
-                      name={competitor.name}
-                      size="xs"
-                    />
+                    <CompareLogoTile logo={competitor.logo} size="xs" />
                   </span>
                   {competitor.name}
                 </span>

@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tabs,
   TabsContent,
@@ -46,7 +47,6 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useFormatter, useNow, useTranslations } from "use-intl";
@@ -672,7 +672,7 @@ function ScheduleDeleteDialog({
           >
             {isPending ? (
               <>
-                <Loader2Icon className="size-4 animate-spin" />
+                <Spinner />
                 {tCommon("deleting")}
               </>
             ) : (
@@ -841,7 +841,7 @@ function ScheduleTable({
                   variant="ghost"
                 >
                   {isThisUpdating || isThisRunning ? (
-                    <Loader2Icon className="size-4 animate-spin" />
+                    <Spinner />
                   ) : (
                     <HugeiconsIcon
                       className="text-muted-foreground size-4"

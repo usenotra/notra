@@ -96,7 +96,6 @@ export interface CompareCompetitor {
 
 export interface CompareLogoTileProps {
   logo: CompareLogo;
-  name: string;
   size?: "xs" | "sm" | "lg";
 }
 

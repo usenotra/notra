@@ -3,7 +3,7 @@
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTranslations } from "use-intl";
 
 import type { GeoShelfTitleFieldProps } from "@/types/geo-shelf";
@@ -34,7 +34,7 @@ export function ShelfTitleField({
         </Label>
         {isPreviewLoading ? (
           <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-            <Loader2Icon className="size-3 animate-spin" />
+            <Spinner className="size-3" />
             {t("readingTitle")}
           </span>
         ) : null}

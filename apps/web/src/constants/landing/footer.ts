@@ -41,12 +41,12 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
       {
         title: "Product",
         links: [
-          { label: "Features", href: "/features" },
-          { label: "Marketing Assets", href: "/features/marketing/assets" },
+          { label: "AI Traffic", href: "/features/ai-crawler-logs" },
+          { label: "Personas", href: "/features/personas" },
+          { label: "Conversations", href: "/features/conversations" },
           { label: "Pricing", href: "/pricing" },
           { label: "Compare", href: "/compare" },
           { label: "Changelog", href: "/changelog/notra" },
-          { label: "Examples", href: "/changelog" },
         ],
       },
       {
@@ -73,6 +73,11 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
         title: "Developers",
         links: [
           {
+            label: "GEO SDK",
+            href: "https://www.npmjs.com/package/@usenotra/geo",
+            external: true,
+          },
+          {
             label: "Docs",
             href: "https://www.usenotra.com/docs",
             external: true,
@@ -91,17 +96,10 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
       {
         title: "Sources",
         links: [
-          {
-            label: "GitHub",
-            href: SOCIAL_LINKS.github,
-            external: true,
-          },
-          {
-            label: "Linear",
-            href: "https://linear.app",
-            external: true,
-          },
-          { label: "Slack (soon)" },
+          { label: "GitHub", href: "/integrations/github" },
+          { label: "Linear", href: "/integrations/linear" },
+          { label: "Slack", href: "/integrations/slack" },
+          { label: "Granola", href: "/integrations/granola" },
         ],
       },
     ],
@@ -122,10 +120,7 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
       },
       {
         title: "Community",
-        links: [
-          { label: "OSS Program", href: "/oss-program" },
-          { label: "Contributors", href: "/contributors" },
-        ],
+        links: [{ label: "Contributors", href: "/contributors" }],
       },
       {
         title: "Free Tools",

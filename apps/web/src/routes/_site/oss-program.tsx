@@ -14,7 +14,7 @@ import { SITE_URL } from "@/utils/urls";
 
 const title = "Notra for Open Source";
 const description =
-  "Notra is free for open source builders. Get the Growth plan at no cost in exchange for feedback, and turn your shipped work into changelogs, launch posts, and marketing assets.";
+  "Notra is free for open source builders. Get the Growth plan at no cost in exchange for feedback, and turn your shipped work into changelogs, launch posts and marketing assets.";
 const url = `${SITE_URL}/oss-program`;
 
 const metadata: Metadata = {
@@ -48,16 +48,15 @@ const BENEFITS = [
   {
     label: "Content from your shipped work",
     detail:
-      "Turn commits, PRs, and releases into changelogs, launch posts, and social updates.",
+      "Turn commits, PRs and releases into changelogs, launch posts and social updates.",
   },
   {
     label: "Marketing assets in your voice",
-    detail:
-      "Generate launch visuals and copy that sound like your project, not a template.",
+    detail: "Generate launch visuals and copy in your project's voice.",
   },
   {
     label: "A direct line to the team",
-    detail: "Shape the roadmap with your feedback. That's the whole trade.",
+    detail: "Shape the roadmap with your feedback.",
   },
 ] as const;
 
@@ -88,7 +87,7 @@ const ELIGIBILITY = [
   {
     id: "useful",
     content:
-      "You're building something genuinely useful that benefits from content and marketing.",
+      "You're building something useful that benefits from content and marketing.",
   },
   {
     id: "maintainer",
@@ -110,7 +109,7 @@ function OssProgramPage() {
     <div className="border-border/70 flex w-full flex-col items-center justify-start overflow-hidden border-b">
       <MarketingHeroWash
         className="mb-4"
-        subtitle="Notra is free for open source builders. Get the Growth plan at no cost in exchange for honest feedback, and let your shipped work do the marketing."
+        subtitle="Notra is free for open source builders. Get the Growth plan at no cost in exchange for honest feedback."
         title={
           <>
             Notra for <span className="text-primary">Open Source</span>
@@ -183,9 +182,8 @@ function OssProgramPage() {
               Applications are closed
             </h2>
             <p className="text-muted-foreground font-sans text-sm leading-6 font-normal">
-              We're not accepting new applications at this time. Check back
-              soon, we'll reopen the program once we have room for more
-              projects.
+              We're not accepting new applications right now. We'll reopen the
+              program once we have room for more projects.
             </p>
           </div>
         </div>

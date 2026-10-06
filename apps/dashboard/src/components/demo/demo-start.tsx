@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@notra/ui/components/ui/button";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -64,7 +65,7 @@ export function DemoStart({ returnTo }: DemoStartProps) {
         </>
       ) : (
         <>
-          <span className="text-muted-foreground size-5 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+          <Spinner className="text-muted-foreground size-5" />
           <h1 className="text-lg font-semibold">{t("title")}</h1>
           <p className="text-muted-foreground text-sm">{t("description")}</p>
         </>

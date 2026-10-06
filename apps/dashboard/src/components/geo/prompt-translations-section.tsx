@@ -1,9 +1,9 @@
 "use client";
 
 import { trackedPromptScanId } from "@notra/geo-core/geo/prompts";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -99,9 +99,7 @@ function PromptTranslationText({
     <div className="flex items-start gap-2">
       {waiting ? (
         <p className="text-muted-foreground flex min-w-0 flex-1 items-center gap-1.5 text-sm">
-          {translating ? (
-            <Loader2Icon className="size-3.5 animate-spin" />
-          ) : null}
+          {translating ? <Spinner className="size-3.5" /> : null}
           {translating ? t("translating") : t("translatedOnScan")}
         </p>
       ) : (

@@ -1,5 +1,6 @@
 import { createDualmarkRouteHandler } from "@dualmark/nextjs";
 
+import { STATIC_INTEGRATION_PAGE_SLUGS } from "@/constants/integrations";
 import { MARKDOWN_CACHE_CONTROL } from "@/constants/not-found";
 import { DYNAMIC_PAGE_CACHE_CONTROL } from "@/constants/proxy";
 import {
@@ -41,7 +42,10 @@ export async function serveMarkdownTwin(request: Request, path: string[]) {
     return markdownNotFoundResponse();
   }
 
-  if (path[0] === "integrations" && path[1] !== "slack") {
+  if (
+    path[0] === "integrations" &&
+    !STATIC_INTEGRATION_PAGE_SLUGS.has(path[1] ?? "")
+  ) {
     response.headers.set("Cache-Control", DYNAMIC_PAGE_CACHE_CONTROL);
   }
 

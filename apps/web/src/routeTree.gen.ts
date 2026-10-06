@@ -74,6 +74,9 @@ import { Route as SiteFeaturesConversationsRouteImport } from './routes/_site/fe
 import { Route as SiteFeaturesPersonasRouteImport } from './routes/_site/features/personas'
 import { Route as SiteIntegrationsIndexRouteImport } from './routes/_site/integrations/index'
 import { Route as SiteIntegrationsIdRouteImport } from './routes/_site/integrations/$id'
+import { Route as SiteIntegrationsGithubRouteImport } from './routes/_site/integrations/github'
+import { Route as SiteIntegrationsGranolaRouteImport } from './routes/_site/integrations/granola'
+import { Route as SiteIntegrationsLinearRouteImport } from './routes/_site/integrations/linear'
 import { Route as SiteIntegrationsSlackRouteImport } from './routes/_site/integrations/slack'
 import { Route as SiteMcpIndexRouteImport } from './routes/_site/mcp/index'
 import { Route as SiteNotraVsChar123slugChar125IndexRouteImport } from './routes/_site/notra-vs-{$slug}/index'
@@ -432,6 +435,21 @@ const SiteIntegrationsIdRoute = SiteIntegrationsIdRouteImport.update({
   path: '/integrations/$id',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteIntegrationsGithubRoute = SiteIntegrationsGithubRouteImport.update({
+  id: '/integrations/github',
+  path: '/integrations/github',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteIntegrationsGranolaRoute = SiteIntegrationsGranolaRouteImport.update({
+  id: '/integrations/granola',
+  path: '/integrations/granola',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteIntegrationsLinearRoute = SiteIntegrationsLinearRouteImport.update({
+  id: '/integrations/linear',
+  path: '/integrations/linear',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteIntegrationsSlackRoute = SiteIntegrationsSlackRouteImport.update({
   id: '/integrations/slack',
   path: '/integrations/slack',
@@ -637,6 +655,9 @@ export interface FileRoutesByFullPath {
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
   '/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
@@ -726,6 +747,9 @@ export interface FileRoutesByTo {
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/integrations/slack': typeof SiteIntegrationsSlackRoute
   '/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
@@ -821,6 +845,9 @@ export interface FileRoutesById {
   '/_site/features/conversations': typeof SiteFeaturesConversationsRoute
   '/_site/features/personas': typeof SiteFeaturesPersonasRoute
   '/_site/integrations/$id': typeof SiteIntegrationsIdRoute
+  '/_site/integrations/github': typeof SiteIntegrationsGithubRoute
+  '/_site/integrations/granola': typeof SiteIntegrationsGranolaRoute
+  '/_site/integrations/linear': typeof SiteIntegrationsLinearRoute
   '/_site/integrations/slack': typeof SiteIntegrationsSlackRoute
   '/_site/notra-vs-{$slug}/opengraph-image': typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   '/agent/auth/authorize': typeof AgentAuthAuthorizeRoute
@@ -912,6 +939,9 @@ export interface FileRouteTypes {
     | '/features/conversations'
     | '/features/personas'
     | '/integrations/$id'
+    | '/integrations/github'
+    | '/integrations/granola'
+    | '/integrations/linear'
     | '/integrations/slack'
     | '/notra-vs-{$slug}/opengraph-image'
     | '/agent/auth/authorize'
@@ -1001,6 +1031,9 @@ export interface FileRouteTypes {
     | '/features/conversations'
     | '/features/personas'
     | '/integrations/$id'
+    | '/integrations/github'
+    | '/integrations/granola'
+    | '/integrations/linear'
     | '/integrations/slack'
     | '/notra-vs-{$slug}/opengraph-image'
     | '/agent/auth/authorize'
@@ -1095,6 +1128,9 @@ export interface FileRouteTypes {
     | '/_site/features/conversations'
     | '/_site/features/personas'
     | '/_site/integrations/$id'
+    | '/_site/integrations/github'
+    | '/_site/integrations/granola'
+    | '/_site/integrations/linear'
     | '/_site/integrations/slack'
     | '/_site/notra-vs-{$slug}/opengraph-image'
     | '/agent/auth/authorize'
@@ -1633,6 +1669,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteIntegrationsIdRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/integrations/github': {
+      id: '/_site/integrations/github'
+      path: '/integrations/github'
+      fullPath: '/integrations/github'
+      preLoaderRoute: typeof SiteIntegrationsGithubRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/integrations/granola': {
+      id: '/_site/integrations/granola'
+      path: '/integrations/granola'
+      fullPath: '/integrations/granola'
+      preLoaderRoute: typeof SiteIntegrationsGranolaRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/integrations/linear': {
+      id: '/_site/integrations/linear'
+      path: '/integrations/linear'
+      fullPath: '/integrations/linear'
+      preLoaderRoute: typeof SiteIntegrationsLinearRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/integrations/slack': {
       id: '/_site/integrations/slack'
       path: '/integrations/slack'
@@ -1919,6 +1976,9 @@ interface SiteRouteChildren {
   SiteFeaturesConversationsRoute: typeof SiteFeaturesConversationsRoute
   SiteFeaturesPersonasRoute: typeof SiteFeaturesPersonasRoute
   SiteIntegrationsIdRoute: typeof SiteIntegrationsIdRoute
+  SiteIntegrationsGithubRoute: typeof SiteIntegrationsGithubRoute
+  SiteIntegrationsGranolaRoute: typeof SiteIntegrationsGranolaRoute
+  SiteIntegrationsLinearRoute: typeof SiteIntegrationsLinearRoute
   SiteIntegrationsSlackRoute: typeof SiteIntegrationsSlackRoute
   SiteNotraVsChar123slugChar125OpengraphImageRoute: typeof SiteNotraVsChar123slugChar125OpengraphImageRoute
   SiteCompareIndexRoute: typeof SiteCompareIndexRoute
@@ -1954,6 +2014,9 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteFeaturesConversationsRoute: SiteFeaturesConversationsRoute,
   SiteFeaturesPersonasRoute: SiteFeaturesPersonasRoute,
   SiteIntegrationsIdRoute: SiteIntegrationsIdRoute,
+  SiteIntegrationsGithubRoute: SiteIntegrationsGithubRoute,
+  SiteIntegrationsGranolaRoute: SiteIntegrationsGranolaRoute,
+  SiteIntegrationsLinearRoute: SiteIntegrationsLinearRoute,
   SiteIntegrationsSlackRoute: SiteIntegrationsSlackRoute,
   SiteNotraVsChar123slugChar125OpengraphImageRoute:
     SiteNotraVsChar123slugChar125OpengraphImageRoute,

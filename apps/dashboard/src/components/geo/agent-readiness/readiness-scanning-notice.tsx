@@ -2,9 +2,9 @@ import { AiScanIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { stripWebsiteProtocol } from "@notra/geo-core/utils/geo-website";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useTranslations } from "use-intl";
 
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import type { AgentReadinessScanningNoticeProps } from "@/types/agent-readiness";
 
 export function AgentReadinessScanningNotice({
@@ -31,7 +31,7 @@ export function AgentReadinessScanningNotice({
         </div>
         <h2 className="flex items-center justify-center gap-2 text-xl font-semibold tracking-tight text-balance sm:text-2xl">
           <span className="flex size-5 shrink-0 items-center justify-center [&>span]:size-4">
-            <StatusSpinner />
+            <Spinner className="size-3.5" />
           </span>
           <span>
             <Shimmer as="span">{tGeoShared("scanning")}</Shimmer>{" "}

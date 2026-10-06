@@ -49,6 +49,7 @@ mock.module("../src/ingest/journey", () => ({
 }));
 mock.module("../src/ingest/ratelimit", () => ({
   geoIngestRatelimit: { limit: ratelimitLimit },
+  geoIngestAdmissionRatelimit: { limit: async () => ({ success: true }) },
 }));
 
 const { runGeoIngest } = await import("../src/ingest/pipeline");

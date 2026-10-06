@@ -10,8 +10,8 @@ import {
   DialogContent,
   DialogTitle,
 } from "@notra/ui/components/ui/dialog";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "use-intl";
@@ -54,7 +54,7 @@ function TextPreview({ url }: { url: string }) {
   if (content === undefined) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center">
-        <Loader2Icon className="size-4 animate-spin" />
+        <Spinner />
       </div>
     );
   }

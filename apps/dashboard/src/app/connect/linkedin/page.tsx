@@ -8,8 +8,8 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import { Loader2Icon } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
@@ -229,7 +229,7 @@ export default function LinkedInConnectPage() {
     <Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">
-          <Loader2Icon className="text-muted-foreground size-6 animate-spin" />
+          <Spinner className="text-muted-foreground size-6" />
         </div>
       }
     >

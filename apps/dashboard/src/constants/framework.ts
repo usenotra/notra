@@ -20,6 +20,8 @@ export const DASHBOARD_FUNCTION_RULES = {
 /** Quiet period after a dev workflow build before its esbuild service is stopped. */
 export const WORKFLOW_ESBUILD_IDLE_STOP_MS = 5000;
 
+export const SOURCE_MAPPING_URL_COMMENT = /\/\/# sourceMappingURL=\S+\s*$/;
+
 export const ORGANIZATION_COOKIE_SLUG_PATTERN = /^[a-z0-9-]+$/;
 
 /**

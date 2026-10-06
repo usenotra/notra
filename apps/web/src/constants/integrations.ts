@@ -38,3 +38,10 @@ export const FALLBACK_INTEGRATIONS: Integration[] = [
     tools: [],
   },
 ];
+
+export const STATIC_INTEGRATION_PAGE_SLUGS: ReadonlySet<string> = new Set([
+  "slack",
+  "github",
+  "linear",
+  "granola",
+]);

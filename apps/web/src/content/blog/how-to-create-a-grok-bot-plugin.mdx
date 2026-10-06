@@ -1,18 +1,18 @@
 ---
 title: "How to create a Grok Bot plugin"
-description: "Grok Bot plugins are a great way to extend the capabilities of Grok Bot and reach a wider audience."
+description: "Build a Grok Bot plugin through Cursor's marketplace so agents can find and use your product."
 date: "2026-09-09T04:00:00.000Z"
 updatedAt: "2026-09-09T04:00:00.000Z"
 author: "dominik"
 ---
 
-Grok Bot is a powerful tool that allows you to run specialized agents that can work across apps. We believe that building plugins for Grok Bot is a great way to extend its capabilities and reach a wider audience, which also helps with GEO (Generative Engine Optimization), btw ;)
+Grok Bot runs specialized agents that work across apps. A Grok Bot plugin puts your product in front of those agents and the people using them, which also helps your GEO (Generative Engine Optimization), btw ;)
 
-We assume Grok Bot was initially designed for Cursor, hence why it has such a strong integration with the platform. This means that if you already have a Cursor plugin listed on the Cursor Marketplace, congratulations, you can skip this guide! 🎉
+Grok Bot installs plugins from the Cursor Marketplace, so if you already have a Cursor plugin listed there, you can skip this guide.
 
 ## What even is Grok Bot? [#what-even-is-grok-bot]
 
-[Grok Bot](https://x.ai/news/introducing-grok-bot) gives you agents that have their own computer and can work across apps. Give a bot a task, like researching a marketing campaign, and it works through it with you. Build another bot and have them work together, kind of like teammates in a real office.
+[Grok Bot](https://x.ai/news/introducing-grok-bot) gives you agents that have their own computer and can work across apps. Give a bot a task, like researching a marketing campaign, and it works through it with you. You can build several bots and have them work together like teammates.
 
 Plugins connect those agents to services. A user adds a plugin, authorizes their account and can ask the bot to work with that service in chat. Cursor documents that flow in its [Grok Bot plugin guide](https://cursor.com/help/grok-bot/connect-plugins).
 
@@ -22,13 +22,11 @@ Grok Bot does not have its own dedicated plugin marketplace *yet*, but you can s
 
 ## Why you should build one [#why-you-should-build-one]
 
-We believe that good GEO strategies are all about making your product discoverable and easy to use, especially for agents. Tools like Grok Bot and Cursor are great examples of this. People can discover your product in the plugin marketplace and use it from their existing Grok Bot conversations and even build specialized bots with YOUR tool. Like [building tools for engineers](/blog/engineers-are-great-for-marketing), a plugin gives you another way to reach potential users and their agents.
+Good GEO makes your product easy for agents to find and use. People can find your plugin in the marketplace, use it in their Grok Bot conversations and build specialized bots around your tool. Like [building tools for engineers](/blog/engineers-are-great-for-marketing), a plugin gives you another way to reach potential users and their agents.
 
 ## Context.dev is a good example [#context-dev-is-a-good-example]
 
-Starting with a good example, let's look at [Context.dev](https://www.context.dev/).
-
-Context.dev allows agents to search the web and scrape websites, which is super useful for research and analysis. It is [listed on Cursor's marketplace](https://cursor.com/marketplace/context.dev) and its [plugin source is public](https://github.com/context-dot-dev/cursor-plugin). It's a great example of a tool that is easy to use and discover for agents.
+[Context.dev](https://www.context.dev/) lets agents search the web and scrape websites for research and analysis. It is [listed on Cursor's marketplace](https://cursor.com/marketplace/context.dev) and its [plugin source is public](https://github.com/context-dot-dev/cursor-plugin). Agents can find it in the marketplace and start using it without extra setup.
 
 <figure data-width="100" data-align="center"><img className="block dark:hidden" src="/blog/grok-bot-gtm-result-light.png" alt="The Notra GTM Bot using Context.dev to research Notra's homepage and return positioning takeaways." /><img className="hidden dark:block" src="/blog/grok-bot-gtm-result-dark.png" alt="The Notra GTM Bot using Context.dev to research Notra's homepage and return positioning takeaways." /><figcaption>The Notra GTM Bot uses Context.dev to read Notra's homepage and summarize its positioning.</figcaption></figure>
 
@@ -42,7 +40,7 @@ For example, the skill tells the agent to scrape a URL supplied by the user inst
 
 ## What you need [#what-you-need]
 
-A Cursor plugin needs a manifest located at `.cursor-plugin/plugin.json` and ideally some skills that describe how to do a task, when to run specific tools and what to do for certain use cases. An optional MCP configuration connects the agent to your service.
+A Cursor plugin needs a manifest at `.cursor-plugin/plugin.json` and usually some skills that describe how to do a task, when to run specific tools and what to do for certain use cases. An optional MCP configuration connects the agent to your service.
 
 Reuse your MCP server if you have one. If you only have an API, you'll need to build and host an MCP server for a remote connector like the example below. You should create an MCP server regardless, btw 😉
 
@@ -71,7 +69,7 @@ Prepare the repository for review. Submission goes through
 https://cursor.com/marketplace/publish.
 ```
 
-[Cursor's template](https://github.com/cursor/plugin-template) is a starting point. It includes multiple plugins, so simplify it if you only need one. A small repository could look something like this:
+[Cursor's template](https://github.com/cursor/plugin-template) is a starting point. It includes multiple plugins, so simplify it if you only need one. A small repository could look like this:
 
 ```text
 grok-bot-plugin/
@@ -140,7 +138,7 @@ For a Cursor plugin using a remote MCP server, `mcp.json` can look like this:
 }
 ```
 
-That's a placeholder URL, so replace it with your MCP endpoint. If you're making a skill-only plugin, you can remove this file and the `mcpServers` field from the manifest.
+Replace the placeholder URL with your MCP endpoint. If you're making a skill-only plugin, you can remove this file and the `mcpServers` field from the manifest.
 
 If your service has private accounts, you'll also need an authentication flow the client supports. [Cursor's MCP documentation](https://cursor.com/docs/mcp) covers the setup. Keep credentials out of the repository and enforce account permissions on the server.
 
@@ -148,7 +146,7 @@ Your README should explain how to connect the plugin and give people a task to t
 
 ## Test the plugin [#test-the-plugin]
 
-You can [test a plugin locally in Cursor](https://cursor.com/docs/plugins#test-plugins-locally) by putting the plugin folder under `~/.cursor/plugins/local/`, then reloading Cursor. Open Customize and check that the expected components appear. Team policy can block local imports and an installed marketplace plugin with the same name takes precedence over the local copy.
+You can [test a plugin locally in Cursor](https://cursor.com/docs/plugins#test-plugins-locally) by putting the plugin folder under `~/.cursor/plugins/local/`, then reloading Cursor. Open Customize and check that the expected components appear. Team policy can block local imports, and an installed marketplace plugin with the same name overrides the local copy.
 
 Now try it in a fresh conversation. Give the bot a short list of changes and ask for a release note. Check whether the bot sticks to those changes. Connect a test account, save the draft and open the returned link to verify the result.
 
