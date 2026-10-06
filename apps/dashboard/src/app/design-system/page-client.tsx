@@ -243,6 +243,7 @@ import { DesignSystemSectionHeader } from "@/components/design-system/design-sys
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
 import { ConfirmDialogSection } from "@/components/design-system/sections/confirm-dialog-section";
 import { CopyButtonSection } from "@/components/design-system/sections/copy-button-section";
+import { IconTabsSection } from "@/components/design-system/sections/icon-tabs-section";
 import { PageHeadingSection } from "@/components/design-system/sections/page-heading-section";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { LinkedInPost } from "@/components/linkedin-post";
@@ -1248,6 +1249,8 @@ export default function DesignSystemClientPage() {
         <ConfirmDialogSection />
 
         <CopyButtonSection />
+
+        <IconTabsSection />
 
         <section className="scroll-mt-10 space-y-6" id="data-display">
           <DesignSystemSectionHeader id="data-display" title="Data Display" />

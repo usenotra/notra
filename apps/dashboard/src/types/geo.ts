@@ -301,23 +301,6 @@ export interface PromptTagsDialogTarget {
   rows: GeoPromptTableRow[];
 }
 
-export interface SlidingTabIndicatorProps {
-  /** Active tab value; a change starts the slide. */
-  value: string;
-}
-
-export interface TabIndicatorBox {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-export interface SlideInTabIconProps {
-  children: ReactNode;
-  pinned?: boolean;
-}
-
 export interface PromptsPageTabCountProps {
   count: number | undefined;
 }
