@@ -1,0 +1,21 @@
+apps/dashboard/src/styles/globals.css
+  s_4d7eb594aad1c2::t_cc369ce5cf1194 359-364
+apps/dashboard/src/components/geo/geo-prompt-answer-thread.tsx
+  s_4d7eb594aad1c2::t_cc369ce5cf1194 238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0e0151405b87efc97677543c8082084f52015f53",
+  "prompts": {},
+  "sessions": {
+    "s_4d7eb594aad1c2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "121130d2-d6c1-4bea-ba5a-bc994a302ecd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
