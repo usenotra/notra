@@ -1,0 +1,241 @@
+packages/ui/src/components/ai-elements/message.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 69,744-745,747,757-763
+apps/web/src/lib/turnstile/load-script.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-24
+apps/dashboard/src/components/agent-feedback/feedback-inbox.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 30-32,38,44-47,69-71,139-142,270,292,308,328,331,335,342,344
+apps/docs/docs.json
+  s_400beee9e2f793::t_35ca4bb25db653 139
+apps/web/src/routes/_site/offering/report.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-36
+apps/web/src/utils/offering-identity.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-27
+turbo.json
+  s_400beee9e2f793::t_35ca4bb25db653 95
+apps/web/src/components/offering-check/offering-report.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-141
+apps/dashboard/src/components/geo/geo-answer-mention-components.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 40-47,56-58,108-109,117,132,215-216,219-224,237-238,240-241
+apps/web/src/lib/offering-check/preflight.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-18
+packages/db/migrations/0109_webhook_lifecycle.sql
+  ai_agent 1-142
+apps/dashboard/src/lib/hooks/use-own-mention-lines.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-87
+packages/ai/src/utils/geo-tool-data.ts
+  s_400beee9e2f793::t_35ca4bb25db653 23,31,101,138,220,286-287
+apps/web/src/constants/landing/footer.ts
+  s_400beee9e2f793::t_35ca4bb25db653 130
+apps/web/src/lib/offering-check/request.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-89
+apps/web/src/components/offering-check/offering-chat-window.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-155
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_400beee9e2f793::t_5f1291ab85e80d 130-138,140-141
+apps/web/src/components/offering-check/offering-check-form.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-345
+apps/web/src/lib/offering-check/scan.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-212
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_400beee9e2f793::t_35ca4bb25db653 23-26,35
+packages/webhooks/tests/fixtures/constants/webhook-events.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-44
+apps/dashboard/src/components/geo/prompt-answer-content.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 33-35,38-47
+apps/docs/api/webhooks/overview.mdx
+  s_400beee9e2f793::t_35ca4bb25db653 3,29,70,189
+apps/web/src/components/contact/contact-form.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 10,15,17,39,256-261
+apps/web/src/components/offering-check/offering-verdict-row.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-82
+apps/web/src/routes/_site/offering/index.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-136
+apps/web/src/styles/ui-sources.css
+  s_400beee9e2f793::t_35ca4bb25db653 8
+packages/geo-core/src/geo/programs.ts
+  s_400beee9e2f793::t_35ca4bb25db653 25,114,1054-1056,1061
+apps/web/src/components/offering-check/offering-domain-favicon.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-71
+apps/web/src/components/offering-check/offering-search-activity.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-69
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 67,254,364-365
+apps/dashboard/src/utils/agent-feedback.ts
+  s_400beee9e2f793::t_35ca4bb25db653 27-36
+apps/web/src/lib/offering-check/domain-exists.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-42
+apps/web/src/lib/turnstile/verify.ts
+  s_400beee9e2f793::t_35ca4bb25db653 6-10,57,64-71
+apps/web/src/components/offering-check/offering-report-card.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-192
+apps/web/src/utils/offering-domain.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-40
+packages/schemas/src/schemas/api/webhooks.ts
+  s_400beee9e2f793::t_35ca4bb25db653 10-15,29
+apps/web/.env.example
+  s_400beee9e2f793::t_35ca4bb25db653 17-20
+apps/docs/api/webhooks/events.mdx
+  s_400beee9e2f793::t_35ca4bb25db653 32
+apps/web/src/routes/api/offering-check/index.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-102
+apps/web/src/constants/offering-check.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-349
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 63-67,92,173,232,509-535,586
+apps/dashboard/src/constants/agent-feedback.ts
+  s_400beee9e2f793::t_35ca4bb25db653 31-34,37,39-41
+apps/web/src/utils/client-ip.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-16
+packages/geo-core/src/geo/scan-task-status.ts
+  s_400beee9e2f793::t_35ca4bb25db653 55,64,80-81,102-103
+packages/webhooks/tests/fixtures/constants/post-fields.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-15
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 4-9,20,38-42,44-52,54,56-57,59-64,66-85
+packages/webhooks/src/constants/delivery.ts
+  s_400beee9e2f793::t_35ca4bb25db653 9
+apps/web/src/components/offering-check/offering-favicon.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-38
+apps/web/src/components/turnstile.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 3-5,7-13,59-60,79,84,86
+apps/web/src/lib/ip-checker/ratelimit.ts
+  s_400beee9e2f793::t_35ca4bb25db653 8
+apps/docs/api/webhooks/outbound.mdx
+  s_400beee9e2f793::t_35ca4bb25db653 21-26,29-67,82-84
+apps/web/package.json
+  s_400beee9e2f793::t_35ca4bb25db653 22-23,59
+apps/dashboard/src/components/geo/lazy-geo-prompt-answer-thread.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 4,6-9,13,15,21-28
+apps/dashboard/src/components/geo/geo-prompt-answer-thread.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 12,35,199-200,237-240
+apps/web/src/constants/offering-check-prompts.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-19
+apps/web/src/lib/star-video/ratelimit.ts
+  s_400beee9e2f793::t_35ca4bb25db653 7-8
+apps/web/src/components/offering-check/offering-trace-step.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-39
+packages/webhooks/tests/fixtures/lifecycle.sql
+  s_400beee9e2f793::t_35ca4bb25db653 1-55
+apps/web/src/routes/api/offering-check/preflight.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-40
+apps/web/src/styles/globals.css
+  s_400beee9e2f793::t_35ca4bb25db653 11
+packages/webhooks/tests/fixtures/types/lifecycle.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-18
+apps/web/src/lib/offering-check/use-offering-stream.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-279
+apps/dashboard/src/lib/hooks/use-agent-feedback-labels.ts
+  s_400beee9e2f793::t_35ca4bb25db653 7-8,23-33
+apps/web/src/routeTree.gen.ts
+  s_400beee9e2f793::t_35ca4bb25db653 84-85,92-93,479-488,519-529,688,695,705-706,784,791,801-802,886,893,903-904,984,991,1001-1002,1080,1087,1097-1098,1181,1188,1198-1199,1257,1261,1772-1785,1828-1841,2063,2070,2104,2112,2162,2166
+apps/dashboard/src/constants/outbound-webhooks.ts
+  s_400beee9e2f793::t_35ca4bb25db653 35-40
+apps/dashboard/src/lib/agent-feedback/programs.ts
+  s_400beee9e2f793::t_35ca4bb25db653 5,55-56
+apps/web/src/schemas/offering-check.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-198
+apps/dashboard/src/styles/globals.css
+  s_400beee9e2f793::t_35ca4bb25db653 359-364
+apps/web/src/utils/offering-copy.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-69
+packages/db/src/types/geo-checks.ts
+  s_400beee9e2f793::t_35ca4bb25db653 9-12,174,176
+apps/web/src/content/blog/how-to-build-a-muse-connector.mdx
+  s_400beee9e2f793::t_35ca4bb25db653 1-84
+packages/ui/src/components/ai-elements/shimmer.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 37,42
+packages/schemas/src/schemas/dashboard/agent-feedback.ts
+  s_400beee9e2f793::t_35ca4bb25db653 42-46
+packages/db/migrations/meta/_journal.json
+  ai_agent 771-777,779,783
+apps/web/src/utils/offering-report.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-33
+apps/web/src/utils/offering-markdown.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-56
+apps/dashboard/messages/en.json
+  s_400beee9e2f793::t_35ca4bb25db653 712,714,741,2420,3159
+apps/web/src/lib/offering-check/use-sample-typing.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-155
+apps/web/src/utils/offering-questions.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-53
+apps/dashboard/src/types/geo.ts
+  s_400beee9e2f793::t_35ca4bb25db653 230-231
+apps/web/src/constants/turnstile.ts
+  s_400beee9e2f793::t_35ca4bb25db653 4
+apps/web/src/lib/sitemap/entries.ts
+  s_400beee9e2f793::t_35ca4bb25db653 194-196
+apps/web/src/utils/offering-sources.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-99
+apps/web/src/utils/security-headers.ts
+  s_400beee9e2f793::t_35ca4bb25db653 22
+apps/web/src/lib/offering-check/use-elapsed-seconds.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-25
+apps/dashboard/src/utils/prompt-answer-thread-chunk.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-28
+packages/webhooks/tests/lifecycle.test.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-851
+packages/webhooks/src/schemas/webhooks.ts
+  s_400beee9e2f793::t_35ca4bb25db653 22-27,58-96,108
+.env.example
+  s_400beee9e2f793::t_35ca4bb25db653 213-214
+apps/dashboard/messages/de.json
+  s_400beee9e2f793::t_35ca4bb25db653 712,714,741,3159
+bun.lock
+  ai_agent 337-338,374
+apps/dashboard/src/types/agent-feedback.ts
+  s_400beee9e2f793::t_35ca4bb25db653 41-46,96
+apps/web/src/lib/offering-check/ratelimit.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-143
+apps/dashboard/src/components/webhooks/create-dialog.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 83
+apps/web/src/lib/offering-check/cache.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-54
+apps/web/src/components/offering-check/offering-sources.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-138
+apps/web/src/lib/contact/ratelimit.ts
+  s_400beee9e2f793::t_35ca4bb25db653 8
+apps/web/src/types/offering-check.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-289
+packages/geo-core/src/utils/geo-competitor-share.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-63
+apps/web/src/components/offering-check/offering-sentence-field.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-106
+apps/docs/geo/overview.mdx
+  s_400beee9e2f793::t_35ca4bb25db653 143-144,181
+apps/web/src/components/offering-check/offering-error-tooltip.tsx
+  s_400beee9e2f793::t_35ca4bb25db653 1-54
+apps/web/src/lib/offering-check/redis.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-16
+apps/dashboard/src/types/geo-prompt-detail.ts
+  s_400beee9e2f793::t_35ca4bb25db653 95
+apps/web/src/routes/api/contact.ts
+  s_400beee9e2f793::t_35ca4bb25db653 4,12,40
+packages/webhooks/README.md
+  s_400beee9e2f793::t_35ca4bb25db653 10-15,39-46,59-65,97-146
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_400beee9e2f793::t_35ca4bb25db653 76,88-91,105,339-352,358-360,366-408
+apps/web/src/lib/offering-check/human-check.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-38
+packages/db/src/utils/geo-checks.ts
+  s_400beee9e2f793::t_35ca4bb25db653 21,78,119,159,191,284-286,292-327,330-331,333-334,432-437,444,447,475-478,484,552,619,677-678,700,706,729-730,764,802,821,824-825,832,837-839,845,860-863,866,981-987,994-995,997,1018,1027-1028,1031,1199-1200
+apps/web/src/types/turnstile.ts
+  s_400beee9e2f793::t_35ca4bb25db653 9,27-30,34-38,40
+apps/web/src/lib/offering-check/prompts.ts
+  s_400beee9e2f793::t_35ca4bb25db653 1-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9069a2ec7673aed6fc179e4114d25225654acd79",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
