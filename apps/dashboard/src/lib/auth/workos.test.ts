@@ -92,20 +92,8 @@ test("a new session authenticates the next request after replacing both cookie s
       return Response.json({ keys: [jwk] });
     };
     let context;
-    let cleanupEnabled = false;
     const jar = new Map();
-    const hostDeletes = [];
     mock.module("@tanstack/react-start", () => ({ ...start, getGlobalStartContext: () => context }));
-    mock.module("@tanstack/react-start/server", () => ({
-      ...server,
-      getRequest: () => context.request,
-      deleteCookie: (name, options) => {
-        assert.equal(name, "wos-session");
-        assert.equal(options.path, "/");
-        hostDeletes.push(options);
-        if (cleanupEnabled) jar.delete(options.domain ?? "host");
-      },
-    }));
     const { dashboardAuthMiddleware } = await import("./src/middleware/auth.ts");
     const { saveAuthSession, signOutAuthSession } = await import("./src/lib/auth/workos.ts");
     const { clearAuthSessionCookie, clearHostAuthSessionCookie } = await import("./src/lib/auth/session-cookie.ts");
@@ -114,57 +102,80 @@ test("a new session authenticates the next request after replacing both cookie s
       refreshToken: "fixture-refresh",
       user: { id: "user_fixture" },
     };
-    const invoke = async (path, downstream) => {
+    const invoke = async (path, downstream, status = 200) => {
       const request = new Request("https://app.fixture.invalid" + path, {
         headers: { cookie: Array.from(jar.values()).join("; ") },
       });
-      return dashboardAuthMiddleware.options.server({
-        request, pathname: path, handlerType: "serverFn",
-        next: async (options) => {
-          context = options.context;
-          await downstream();
-          return { response: new Response("ok") };
-        },
-      });
+      return server.requestHandler(async () => {
+        const result = await dashboardAuthMiddleware.options.server({
+          request, pathname: path, handlerType: "serverFn",
+          next: async (options) => {
+            context = options.context;
+            await downstream();
+            return { response: new Response(null, { status, headers: status === 307 ? { Location: "/callback" } : undefined }) };
+          },
+        });
+        return result.response;
+      })(request);
     };
-    const signIn = async () => {
-      const result = await invoke("/_serverFn/mfa", () => saveAuthSession(session));
-      const cookie = result.response.headers.getSetCookie().find(value => value.startsWith("wos-session=") && !value.includes("Max-Age=0"));
+    const applyCookies = (response, skipHostDeletion = false) => {
+      for (const cookie of response.headers.getSetCookie()) {
+        assert.ok(cookie.startsWith("wos-session=") && cookie.includes("Path=/"));
+        const domain = cookie.match(/(?:^|; )Domain=([^;]+)/)?.[1] ?? "host";
+        if (cookie.includes("Max-Age=0")) {
+          if (!skipHostDeletion || domain !== "host") jar.delete(domain);
+        } else {
+          jar.set(domain, cookie.split(";")[0]);
+        }
+      }
+    };
+    const signIn = async (skipHostDeletion = false, status = 200) => {
+      const response = await invoke("/_serverFn/mfa", () => saveAuthSession(session), status);
+      const cookies = response.headers.getSetCookie();
+      assert.equal(cookies.length, 2);
+      const cookie = cookies.find(value => value.startsWith("wos-session=") && !value.includes("Max-Age=0"));
       assert.ok(cookie?.includes("Domain=.fixture.invalid"));
       assert.ok(cookie.includes("HttpOnly") && cookie.includes("Secure") && cookie.includes("SameSite=Lax"));
-      jar.set(".fixture.invalid", cookie.split(";")[0]);
+      assert.ok(cookies.some(value => value.startsWith("wos-session=;") && value.includes("Max-Age=0") && !value.includes("Domain=")));
+      applyCookies(response, skipHostDeletion);
     };
     jar.set(".fixture.invalid", "wos-session=stale-domain");
     jar.set("host", "wos-session=stale-host");
-    await signIn();
+    // Retain the legacy host cookie to reproduce a client that never received its deletion.
+    await signIn(true);
     await invoke("/callback", () => assert.equal(context.auth().user, null));
-    cleanupEnabled = true;
-    for (const scopes of [["host", ".fixture.invalid"], [".fixture.invalid", "host"]]) {
-      jar.clear();
-      for (const scope of scopes) jar.set(scope, "wos-session=stale");
-      await signIn();
-      assert.ok(!jar.has("host"));
-      await invoke("/callback", () => {
-        assert.equal(context.auth().user.id, "user_fixture");
-        assert.equal(context.auth().sessionId, "session_fixture");
-      });
+    for (const status of [200, 307]) {
+      for (const scopes of [["host", ".fixture.invalid"], [".fixture.invalid", "host"]]) {
+        jar.clear();
+        for (const scope of scopes) jar.set(scope, "wos-session=stale");
+        await signIn(false, status);
+        assert.ok(!jar.has("host"));
+        await invoke("/callback", () => {
+          assert.equal(context.auth().user.id, "user_fixture");
+          assert.equal(context.auth().sessionId, "session_fixture");
+        });
+      }
     }
     await invoke("/_serverFn/logout", async () => {
       jar.set("host", "wos-session=legacy");
       let logout;
       try { await signOutAuthSession(); } catch (error) { logout = error; }
       assert.ok(logout.options.href.includes("session_id=session_fixture"));
-    }).then(result => {
-      assert.ok(result.response.headers.getSetCookie().some(cookie => cookie.includes("Domain=.fixture.invalid") && cookie.includes("Max-Age=0")));
+    }, 307).then(response => {
+      assert.equal(response.headers.getSetCookie().length, 2);
+      assert.ok(response.headers.getSetCookie().some(cookie => cookie.includes("Domain=.fixture.invalid") && cookie.includes("Max-Age=0")));
+      applyCookies(response);
     });
-    assert.ok(!jar.has("host"));
-    jar.set("host", "wos-session=legacy");
-    await clearAuthSessionCookie();
     assert.equal(jar.size, 0);
-    process.env.WORKOS_COOKIE_DOMAIN = "app.fixture.invalid";
-    const deleted = hostDeletes.length;
-    clearHostAuthSessionCookie();
-    assert.equal(hostDeletes.length, deleted);
+    jar.set("host", "wos-session=legacy");
+    jar.set(".fixture.invalid", "wos-session=legacy");
+    applyCookies(await invoke("/_serverFn/clear", () => clearAuthSessionCookie()));
+    assert.equal(jar.size, 0);
+    for (const domain of ["app.fixture.invalid", ".app.fixture.invalid", ""]) {
+      process.env.WORKOS_COOKIE_DOMAIN = domain;
+      const response = await invoke("/_serverFn/clear", () => clearHostAuthSessionCookie());
+      assert.equal(response.headers.getSetCookie().length, 0);
+    }
   `;
   const child = spawnSync(process.execPath, ["--eval", script], {
     cwd: fileURLToPath(new URL("../../..", import.meta.url)),
