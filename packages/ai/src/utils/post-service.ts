@@ -71,6 +71,7 @@ export async function createPostRecord(
           contentType: params.contentType,
           contentSubtype: params.contentSubtype ?? null,
           status: params.autoPublish ? "published" : "draft",
+          publishedAt: params.autoPublish ? new Date() : null,
           sourceMetadata: params.sourceMetadata ?? null,
         })
         .onConflictDoNothing({ target: posts.id })

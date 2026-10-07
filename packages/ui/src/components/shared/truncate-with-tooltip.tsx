@@ -35,35 +35,42 @@ export function TruncateWithTooltip({
   const [truncated, setTruncated] = useState(false);
   const content = tooltip ?? children;
 
+  const update = () => {
+    const element = ref.current;
+    if (element) {
+      setTruncated(isOverflowing(element));
+    }
+  };
+
   useEffect(() => {
     const element = ref.current;
     if (!element) {
       return;
     }
-
-    const update = () => {
+    // Observing reports the current size right away, so this also measures
+    // on mount.
+    const observer = new ResizeObserver(() => {
       setTruncated(isOverflowing(element));
-    };
-
-    update();
-    const observer = new ResizeObserver(update);
+    });
     observer.observe(element);
     return () => observer.disconnect();
   }, [content]);
 
-  const label = (
-    <span className={cn("block w-full min-w-0 truncate", className)} ref={ref}>
-      {children}
-    </span>
-  );
-
-  if (!truncated) {
-    return label;
-  }
-
+  // Measured again on hover too: a late web font widens the text without
+  // resizing the box, which the observer above never sees.
   return (
-    <Tooltip>
-      <TooltipTrigger render={label} />
+    <Tooltip disabled={!truncated}>
+      <TooltipTrigger
+        render={
+          <span
+            className={cn("block w-full min-w-0 truncate", className)}
+            onPointerEnter={update}
+            ref={ref}
+          />
+        }
+      >
+        {children}
+      </TooltipTrigger>
       <TooltipContent
         align={align}
         className={cn("max-w-sm text-pretty", contentClassName)}

@@ -90,6 +90,15 @@ passed. Existing UI lint warnings remain. These follow-up tests use simulated
 providers and Autumn; they do not prove a real customer charge or complete
 capture of failed-retry costs.
 
+## Migration conflict follow-up
+
+After merging scheduled publishing from `main` at `f26d61a7e`, the GEO migration
+became `0111_geo_adhoc_scans`. Existing main migrations and snapshots remain
+unchanged. The append-only guard validates 112 migrations; the new snapshot
+preserves scheduled-publication tables and extends main with the adhoc table.
+Eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
+typecheck and build passed locally. No live database migration ran.
+
 ## Remaining production checks
 
 The Railway service was deleted at the user's request. There is no active

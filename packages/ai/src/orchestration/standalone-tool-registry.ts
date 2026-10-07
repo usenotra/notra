@@ -44,6 +44,11 @@ import {
   getCreatePostToolName,
 } from "@notra/ai/tools/post";
 import {
+  createCancelPostScheduleTool,
+  createGetPostScheduleTool,
+  createSchedulePostTool,
+} from "@notra/ai/tools/post-schedules";
+import {
   createCreateScheduleTool,
   createListSchedulesTool,
 } from "@notra/ai/tools/schedules";
@@ -66,7 +71,12 @@ import type { Tool } from "ai";
 
 /** Tools that write user-visible records and must pause for user approval. */
 export function getStandaloneApprovalToolNames(): Set<string> {
-  const toolNames = new Set<string>(["createSchedule", "createSkill"]);
+  const toolNames = new Set<string>([
+    "createSchedule",
+    "createSkill",
+    "schedulePost",
+    "cancelPostSchedule",
+  ]);
   for (const contentType of contentTypeSchema.options) {
     if (contentType !== "image") {
       toolNames.add(getCreatePostToolName(contentType));
@@ -163,11 +173,17 @@ export function buildStandaloneToolSet(
 
   tools.listSchedules = createListSchedulesTool({ organizationId });
   tools.createSchedule = createCreateScheduleTool({ organizationId });
+  tools.getPostSchedule = createGetPostScheduleTool({ organizationId });
+  tools.schedulePost = createSchedulePostTool({
+    organizationId,
+    userId: userId ?? undefined,
+  });
+  tools.cancelPostSchedule = createCancelPostScheduleTool({ organizationId });
   tools.listAvailableSkills = listAvailableSkills({ organizationId });
   tools.getSkillByName = getSkillByName({ organizationId });
   tools.createSkill = createCreateSkillTool({ organizationId });
   descriptions.push(
-    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence."
+    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence. To publish an existing post at a set time, check getPostSchedule and call schedulePost; cancelPostSchedule unschedules it."
   );
   descriptions.push(
     "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. Create a new reusable writing skill with createSkill when the user explicitly asks for one or a clearly new, recurring writing need appears."
