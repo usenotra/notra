@@ -1,0 +1,25 @@
+packages/geo-core/tests/model-live-judge-cost.test.ts
+  s_7b0d907503ea7a::t_cd31fae8f122ba 4,15
+  s_7b0d907503ea7a::t_44a877306216c0 1-3,5-14,16-126
+apps/geo-runner/TESTING.md
+  s_7b0d907503ea7a::t_12dd8680d30b11 64-69,71-92
+  s_7b0d907503ea7a::t_ce5c1758e1558e 70
+packages/geo-core/src/geo/model-live.ts
+  s_7b0d907503ea7a::t_44a877306216c0 236,258-275
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "aa42c313c81e24eea7d1d1179c88e3e8c2cae42e",
+  "prompts": {},
+  "sessions": {
+    "s_7b0d907503ea7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1155e-2258-7f91-b515-5aed6fd1abc0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
