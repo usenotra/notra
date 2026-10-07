@@ -1,0 +1,28 @@
+apps/dashboard/src/components/geo/geo-answer-mention-components.tsx
+  s_4d7eb594aad1c2::t_bc3280055d688d 42-45,47,108,219-221,223-224,241
+  s_4d7eb594aad1c2::t_d7ea1231452743 40-41,46,56-58,109,117,132,215-216,222,237-238,240
+apps/dashboard/src/components/geo/geo-prompt-answer-thread.tsx
+  s_4d7eb594aad1c2::t_be28b719442c9c 238-240,242,244
+  s_4d7eb594aad1c2::t_22583254a63052 12,34,36,200-201,241,243
+apps/dashboard/src/constants/geo-answer-mentions.ts
+  s_4d7eb594aad1c2::t_56c566fab42688 11
+  s_4d7eb594aad1c2::t_22583254a63052 12-15
+apps/dashboard/src/lib/hooks/use-own-mention-lines.ts
+  s_4d7eb594aad1c2::t_22583254a63052 1-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c26cf11816724271d7c8f5d894ab4692027fdf76",
+  "prompts": {},
+  "sessions": {
+    "s_4d7eb594aad1c2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "121130d2-d6c1-4bea-ba5a-bc994a302ecd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
