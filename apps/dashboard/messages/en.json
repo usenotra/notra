@@ -859,6 +859,56 @@
       "register": "Register",
       "loginErrorFallback": "Failed to sign in. Please try again.",
       "backupCodeRecovered": "Backup code accepted. Two-factor authentication was turned off for {email}. Sign in again to continue."
+    },
+    "invitation": {
+      "title": "{inviter} invited you to {organization}",
+      "titleAnonymous": "You've been invited to {organization}",
+      "description": "You'd join as {role}.",
+      "roles": {
+        "member": "a member",
+        "admin": "an admin",
+        "owner": "an owner"
+      },
+      "join": "Join {organization}",
+      "decline": "Decline",
+      "signedInAs": "Signed in as {email}.",
+      "useAnotherAccount": "Use another account",
+      "signedOutHint": "You'll sign in or create an account for {email} first.",
+      "failed": "Something went wrong. Please try again.",
+      "unavailableNow": "This invitation is no longer available.",
+      "declined": {
+        "title": "Invitation declined",
+        "description": "The invitation was withdrawn. Ask the team for a new one if you change your mind."
+      },
+      "joined": {
+        "title": "You joined {organization}",
+        "description": "It's now your active workspace.",
+        "open": "Open {organization}"
+      },
+      "mismatch": {
+        "title": "This invitation is for another account",
+        "description": "{invited} was invited, but you're signed in as {current}. Sign out, then open the link from your email again to join {organization}.",
+        "signOut": "Sign out"
+      },
+      "unavailable": {
+        "home": "Go to Notra",
+        "not-found": {
+          "title": "Invitation not found",
+          "description": "This link is invalid. Check the email you received or ask for a new invitation."
+        },
+        "expired": {
+          "title": "Invitation expired",
+          "description": "Ask a team admin to send you a new invitation."
+        },
+        "revoked": {
+          "title": "Invitation withdrawn",
+          "description": "The team withdrew this invitation. Ask them to send a new one."
+        },
+        "accepted": {
+          "title": "Invitation already used",
+          "description": "This invitation was already accepted. Sign in to open your workspace."
+        }
+      }
     }
   },
   "errors": {
