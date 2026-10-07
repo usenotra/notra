@@ -1,0 +1,19 @@
+packages/ai/src/agents/repo-image-marketing.ts
+  s_c919a343b1b3a7::t_51b66d0a8ab7d6 121,128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "df2e60d8e22948321aca830bdcc6dd5f63d3c128",
+  "prompts": {},
+  "sessions": {
+    "s_c919a343b1b3a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d702b52-a27a-4406-bcdc-2ff9e43a1186",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
