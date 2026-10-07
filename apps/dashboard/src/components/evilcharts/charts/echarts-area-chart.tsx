@@ -215,6 +215,12 @@ export type CurveType =
 // now live in the shared @/registry/ui/echarts/* modules and are imported +
 // re-exported at the top of this file.
 
+/** A day range picked by dragging over the plot. Indices are rows of `data`, start <= end. */
+export interface ChartRangeSelection {
+  startIndex: number;
+  endIndex: number;
+}
+
 export interface EChartsAreaChartProps<TData extends Record<string, unknown>> {
   data: TData[]; // rows rendered by the chart
   config: ChartConfig; // series colors + labels
@@ -233,6 +239,7 @@ export interface EChartsAreaChartProps<TData extends Record<string, unknown>> {
   loadingPoints?: number; // number of points in the loading skeleton
   chartOptions?: Record<string, unknown>; // escape hatch merged over the built ECharts option
   markers?: readonly ChartMarker[]; // vertical annotation lines pinned to x-axis categories
+  onRangeSelect?: (selection: ChartRangeSelection) => void; // enables drag-to-select; fires on release with the picked days
   children?: ReactNode; // declarative config — <Area>, <XAxis>, <Grid>, <Tooltip>, <Legend>, <Brush>, …
 }
 
@@ -913,6 +920,9 @@ const BUFFER_PREFIX = "__buffer-";
 const BUFFERFILL_PREFIX = "__bufferfill-";
 // The `__reveal-` prefix marks the muted base layer of a hover-reveal area — see
 // buildAreaSeries. Internal, so the tooltip drops it like the mini/loading rows.
+const SELECTION_Z = 105; // above the series, below the scrub overlay
+const SELECTION_FILL_ALPHA = 0.08;
+const SELECTION_STROKE_ALPHA = 0.22;
 const REVEAL_PREFIX = "__reveal-";
 const REVEAL_MUTE_OPACITY = 0.3; // faded trail past the cursor
 const SCRUB_SKIP_PREFIXES = [REVEAL_PREFIX, "__mini-", "__loading"] as const;
@@ -1958,10 +1968,15 @@ type LiveState = {
   scrubRaf: number;
   scrubDotKeys: string[];
   paintScrub: () => void;
+  drag: { startIndex: number; endIndex: number; x: number; y: number } | null; // range being dragged
+  selectionRect: InstanceType<typeof echarts.graphic.Rect> | null; // zrender highlight of the dragged range
+  paintSelection: () => void;
   // Latest callbacks/flags for the imperative ECharts event handlers.
   handlers: {
     onBrushChange?: (range: { startIndex: number; endIndex: number }) => void;
     onSelectionChange?: (key: string | null) => void;
+    onRangeSelect?: (selection: ChartRangeSelection) => void;
+    tooltipOn: boolean;
     clickableKeys: Set<string>;
     selectedDataKey: string | null;
     brushFormatLabel?: (value: string, index: number) => string;
@@ -2001,9 +2016,14 @@ function createLiveState(): LiveState {
     scrubRaf: 0,
     scrubDotKeys: [],
     paintScrub: () => {},
+    drag: null,
+    selectionRect: null,
+    paintSelection: () => {},
     handlers: {
       onBrushChange: undefined,
       onSelectionChange: undefined,
+      onRangeSelect: undefined,
+      tooltipOn: false,
       clickableKeys: new Set<string>(),
       selectedDataKey: null,
       brushFormatLabel: undefined,
@@ -2048,6 +2068,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   loadingPoints = LOADING_DEFAULT_POINTS,
   chartOptions,
   markers,
+  onRangeSelect,
   children,
 }: EChartsAreaChartProps<TData>) {
   const rawId = useId();
@@ -2153,6 +2174,8 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     live.handlers = {
       onBrushChange: brushSlot.onChange,
       onSelectionChange,
+      onRangeSelect,
+      tooltipOn: tooltipSlot.present,
       clickableKeys,
       selectedDataKey,
       brushFormatLabel: brushSlot.formatLabel,
@@ -2694,6 +2717,10 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     const zrHover = chart.getZr();
     const onZrHoverMove = (event: { offsetX?: number; offsetY?: number }) => {
+      if (live.drag) {
+        dragTo(event);
+        return;
+      }
       // Scrub snaps to the nearest day; it replaces pixel-follow reveal.
       if (live.handlers.enableScrub) {
         applyScrub(event);
@@ -2723,6 +2750,125 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       else if (live.handlers.enableHoverReveal) clearReveal();
       else if (live.handlers.enableHoverHighlight) applyHoverKey(null);
     };
+    // ── Drag-to-select a day range ───────────────────────────────────────────────
+    const paintSelection = () => {
+      const range = live.drag;
+      const zr = chart.getZr();
+      const grid = range ? readScrubGrid(chart) : null;
+      if (!range || !grid || !zr || live.dataLength <= 0) {
+        if (live.selectionRect && zr) zr.remove(live.selectionRect);
+        live.selectionRect = null;
+        return;
+      }
+      const low = Math.min(range.startIndex, range.endIndex);
+      const high = Math.max(range.startIndex, range.endIndex);
+      const x0 = chart.convertToPixel({ xAxisIndex: 0 }, low);
+      const x1 = chart.convertToPixel({ xAxisIndex: 0 }, high);
+      if (typeof x0 !== "number" || typeof x1 !== "number") return;
+      if (!Number.isFinite(x0) || !Number.isFinite(x1)) return;
+      if (!live.selectionRect) {
+        live.selectionRect = new echarts.graphic.Rect({
+          silent: true,
+          z: SELECTION_Z,
+          shape: { x: 0, y: 0, width: 0, height: 0 },
+        });
+        zr.add(live.selectionRect);
+      }
+      const foreground =
+        live.resolved?.tokens.foreground ?? "rgba(120, 120, 120, 1)";
+      live.selectionRect.setShape({
+        x: x0,
+        y: grid.y,
+        width: Math.max(x1 - x0, 1),
+        height: grid.height,
+      });
+      live.selectionRect.setStyle({
+        fill: withAlpha(foreground, SELECTION_FILL_ALPHA),
+        stroke: withAlpha(foreground, SELECTION_STROKE_ALPHA),
+        lineWidth: 1,
+      });
+    };
+    live.paintSelection = paintSelection;
+    const repaintSelection = () => {
+      if (live.drag || live.selectionRect) paintSelection();
+    };
+    chart.on("finished", repaintSelection);
+
+    // Index under a pointer x, clamped to the plot so a drag can run past the edge.
+    const indexAtX = (x: number): number | null => {
+      const grid = readScrubGrid(chart);
+      if (!grid || live.dataLength <= 0) return null;
+      const clampedX = Math.max(grid.x, Math.min(grid.x + grid.width, x));
+      const raw =
+        chart.convertFromPixel({ gridIndex: 0 }, [
+          clampedX,
+          grid.y + grid.height / 2,
+        ])[0] ?? 0;
+      return nearestCategoryIndex(raw, live.dataLength);
+    };
+
+    const endDrag = () => {
+      live.drag = null;
+      window.removeEventListener("mouseup", finishDrag);
+      window.removeEventListener("keydown", onDragKey, true);
+      chart.setOption(
+        { tooltip: { show: live.handlers.tooltipOn } },
+        { silent: true }
+      );
+      paintSelection();
+    };
+    // Escape drops the drag without picking a range.
+    const onDragKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") endDrag();
+    };
+    const finishDrag = () => {
+      const drag = live.drag;
+      if (!drag) return;
+      endDrag();
+      const low = Math.min(drag.startIndex, drag.endIndex);
+      const high = Math.max(drag.startIndex, drag.endIndex);
+      // A click without movement is not a range.
+      if (high - low < 1) return;
+      live.handlers.onRangeSelect?.({ startIndex: low, endIndex: high });
+    };
+
+    const onZrDown = (event: {
+      offsetX?: number;
+      offsetY?: number;
+      event?: MouseEvent;
+    }) => {
+      if (!live.handlers.onRangeSelect || live.dataLength < 3) return;
+      if (event.event && event.event.button !== 0) return;
+      const x = event.offsetX ?? -1;
+      const y = event.offsetY ?? -1;
+      if (!chart.containPixel({ gridIndex: 0 }, [x, y])) return;
+      const index = indexAtX(x);
+      if (index === null) return;
+      // Keeps the browser from starting a text selection under the drag.
+      event.event?.preventDefault();
+      live.drag = { startIndex: index, endIndex: index, x, y };
+      leaveScrub();
+      // The native axis tooltip re-opens on every move; the drag owns the pointer.
+      chart.setOption({ tooltip: { show: false } }, { silent: true });
+      chart.dispatchAction({ type: "hideTip" });
+      paintSelection();
+      window.addEventListener("mouseup", finishDrag);
+      window.addEventListener("keydown", onDragKey, true);
+    };
+    const dragTo = (event: { offsetX?: number; offsetY?: number }) => {
+      const drag = live.drag;
+      if (!drag) return;
+      const x = event.offsetX ?? drag.x;
+      const index = indexAtX(x);
+      if (index === null) return;
+      drag.endIndex = index;
+      drag.x = x;
+      drag.y = event.offsetY ?? drag.y;
+      paintSelection();
+    };
+    zrHover.on("mousedown", onZrDown);
+    zrHover.on("mouseup", finishDrag);
+
     zrHover.on("mousemove", onZrHoverMove);
     zrHover.on("globalout", onZrHoverOut);
 
@@ -2815,6 +2961,13 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     return () => {
       zrHover.off("mousemove", onZrHoverMove);
       zrHover.off("globalout", onZrHoverOut);
+      zrHover.off("mousedown", onZrDown);
+      zrHover.off("mouseup", finishDrag);
+      window.removeEventListener("mouseup", finishDrag);
+      window.removeEventListener("keydown", onDragKey, true);
+      chart.off("finished", repaintSelection);
+      live.drag = null;
+      live.selectionRect = null;
       zr.off("mousemove", onZrMove);
       zr.off("globalout", onZrOut);
       if (live.scrubRaf) cancelAnimationFrame(live.scrubRaf);

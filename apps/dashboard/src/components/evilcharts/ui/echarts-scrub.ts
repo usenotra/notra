@@ -147,7 +147,7 @@ export function pointOnSeriesAtX(
   x: number
 ): [number, number] | null {
   const views = internals(chart);
-  const model = (views.getModel?.().getSeries?.() ?? []).find(
+  const model = (views.getModel?.()?.getSeries?.() ?? []).find(
     (series) => String(series.id ?? "") === seriesId
   );
   if (!model) return null;
@@ -169,7 +169,7 @@ export function emptyScrubStore(): ScrubOverlayStore {
 }
 
 export function readScrubGrid(chart: EChartsInstance): ScrubGrid | null {
-  const series = internals(chart).getModel?.().getSeries?.() ?? [];
+  const series = internals(chart).getModel?.()?.getSeries?.() ?? [];
   for (const model of series) {
     const area = model.coordinateSystem?.getArea?.();
     if (area && area.width > 0 && area.height > 0) return area;
@@ -261,7 +261,7 @@ export function clipSeriesToX(
   seriesKeys: readonly string[] = []
 ) {
   const views = internals(chart);
-  const series = views.getModel?.().getSeries?.() ?? [];
+  const series = views.getModel?.()?.getSeries?.() ?? [];
   const grid = readScrubGrid(chart);
   if (!grid || !views.getViewOfSeriesModel) return;
 
