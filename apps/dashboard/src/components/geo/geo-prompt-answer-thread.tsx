@@ -31,7 +31,6 @@ import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
 import { GEO_ANSWER_CODE_BLOCK_CLASS } from "@/constants/geo-answer-code-block";
-import { GEO_ANSWER_OWN_MENTION_ROW_CLASS } from "@/constants/geo-answer-mentions";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
 import { useOwnMentionLines } from "@/lib/hooks/use-own-mention-lines";
 import { cn } from "@/lib/utils";
@@ -236,10 +235,7 @@ export function GeoPromptAnswerThread({
           }
         >
           <div
-            className={cn(
-              "mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8",
-              GEO_ANSWER_OWN_MENTION_ROW_CLASS
-            )}
+            className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8"
             ref={threadRef}
           >
             <AnswerSentiment result={result} />
