@@ -1,0 +1,25 @@
+apps/dashboard/messages/en.json
+  s_e2d78200a82b52::t_7c35b20df0135f 2396
+apps/dashboard/src/types/agent-readiness.ts
+  s_e2d78200a82b52::t_7c35b20df0135f 109-110
+apps/dashboard/messages/de.json
+  s_e2d78200a82b52::t_7c35b20df0135f 2396
+apps/dashboard/src/components/geo/agent-readiness/readiness-score-card.tsx
+  s_e2d78200a82b52::t_7c35b20df0135f 43,47-49,130-150,165,288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "77ce2b46603616ddd0a79790885a3ddfb4b4be61",
+  "prompts": {},
+  "sessions": {
+    "s_e2d78200a82b52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "115c0dbe-4e97-4d0e-b663-e568a77c5064",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
