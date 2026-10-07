@@ -1,0 +1,1188 @@
+{
+  "slug": "auth",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Auth",
+  "noun": "auth provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 4.2,
+      "sourcesPerAnswer": 4.6
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 7.1,
+      "sourcesPerAnswer": 9.1
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 4.1,
+      "sourcesPerAnswer": 7.3
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 74,
+    "brands": 15,
+    "citedDomains": 141,
+    "consensus": 27,
+    "aiOverviewShown": 93
+  },
+  "ranking": [
+    {
+      "name": "Clerk",
+      "domain": "clerk.com",
+      "rank": 1,
+      "visibility": 72,
+      "topPick": 22,
+      "ownSiteCited": 34,
+      "byEngine": {
+        "chatgpt": 73,
+        "claude": 87,
+        "ai-overview": 57
+      },
+      "delta": null
+    },
+    {
+      "name": "Auth0",
+      "domain": "auth0.com",
+      "rank": 2,
+      "visibility": 70,
+      "topPick": 12,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 57,
+        "claude": 83,
+        "ai-overview": 71
+      },
+      "delta": null
+    },
+    {
+      "name": "WorkOS",
+      "domain": "workos.com",
+      "rank": 3,
+      "visibility": 60,
+      "topPick": 19,
+      "ownSiteCited": 34,
+      "byEngine": {
+        "chatgpt": 63,
+        "claude": 73,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Supabase Auth",
+      "domain": "supabase.com",
+      "rank": 4,
+      "visibility": 53,
+      "topPick": 9,
+      "ownSiteCited": 16,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 70,
+        "ai-overview": 36
+      },
+      "delta": null
+    },
+    {
+      "name": "Firebase Authentication",
+      "domain": "firebase.google.com",
+      "rank": 5,
+      "visibility": 47,
+      "topPick": 7,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 60,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Keycloak",
+      "domain": "keycloak.org",
+      "rank": 6,
+      "visibility": 40,
+      "topPick": 7,
+      "ownSiteCited": 5,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 60,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Better Auth",
+      "domain": "better-auth.com",
+      "rank": 7,
+      "visibility": 33,
+      "topPick": 12,
+      "ownSiteCited": 7,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 50,
+        "ai-overview": 21
+      },
+      "delta": null
+    },
+    {
+      "name": "Okta",
+      "domain": "okta.com",
+      "rank": 8,
+      "visibility": 28,
+      "topPick": 1,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 30,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon Cognito",
+      "domain": "aws.amazon.com",
+      "rank": 9,
+      "visibility": 26,
+      "topPick": 1,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 23,
+        "claude": 40,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Stytch",
+      "domain": "stytch.com",
+      "rank": 10,
+      "visibility": 22,
+      "topPick": 1,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 30,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "FusionAuth",
+      "domain": "fusionauth.io",
+      "rank": 11,
+      "visibility": 20,
+      "topPick": 0,
+      "ownSiteCited": 1,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 40,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Auth.js",
+      "domain": "authjs.dev",
+      "rank": 12,
+      "visibility": 17,
+      "topPick": 0,
+      "ownSiteCited": 7,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 27,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "SuperTokens",
+      "domain": "supertokens.com",
+      "rank": 13,
+      "visibility": 10,
+      "topPick": 0,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 23,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Descope",
+      "domain": "descope.com",
+      "rank": 14,
+      "visibility": 9,
+      "topPick": 0,
+      "ownSiteCited": 8,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 13,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Kinde",
+      "domain": "kinde.com",
+      "rank": 15,
+      "visibility": 8,
+      "topPick": 3,
+      "ownSiteCited": 5,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 23,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "best authentication provider for saas",
+      "topPick": {
+        "name": "Clerk",
+        "domain": "clerk.com"
+      },
+      "brands": [
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Kinde",
+          "domain": "kinde.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "Descope",
+          "domain": "descope.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "auth0 alternatives that are cheaper",
+      "topPick": {
+        "name": "Auth0",
+        "domain": "auth0.com"
+      },
+      "brands": [
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Kinde",
+          "domain": "kinde.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "SuperTokens",
+          "domain": "supertokens.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Descope",
+          "domain": "descope.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best enterprise sso and scim provider for startups",
+      "topPick": {
+        "name": "WorkOS",
+        "domain": "workos.com"
+      },
+      "brands": [
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Descope",
+          "domain": "descope.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Kinde",
+          "domain": "kinde.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "should i build my own auth or use a service",
+      "topPick": {
+        "name": "Clerk",
+        "domain": "clerk.com"
+      },
+      "brands": [
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "SuperTokens",
+          "domain": "supertokens.com"
+        },
+        {
+          "name": "Auth.js",
+          "domain": "authjs.dev"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best auth provider with passkeys and mfa",
+      "topPick": {
+        "name": "WorkOS",
+        "domain": "workos.com"
+      },
+      "brands": [
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Descope",
+          "domain": "descope.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Kinde",
+          "domain": "kinde.com"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which auth provider is best for b2b saas with sso",
+      "topPick": {
+        "name": "WorkOS",
+        "domain": "workos.com"
+      },
+      "brands": [
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Kinde",
+          "domain": "kinde.com"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "cheapest auth provider for a startup with lots of users",
+      "topPick": {
+        "name": "WorkOS",
+        "domain": "workos.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Auth.js",
+          "domain": "authjs.dev"
+        },
+        {
+          "name": "SuperTokens",
+          "domain": "supertokens.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best open source authentication library",
+      "topPick": {
+        "name": "Better Auth",
+        "domain": "better-auth.com"
+      },
+      "brands": [
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Auth.js",
+          "domain": "authjs.dev"
+        },
+        {
+          "name": "SuperTokens",
+          "domain": "supertokens.com"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "easiest way to add authentication to a mobile app",
+      "topPick": {
+        "name": "Firebase Authentication",
+        "domain": "firebase.google.com"
+      },
+      "brands": [
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "Stytch",
+          "domain": "stytch.com"
+        },
+        {
+          "name": "Descope",
+          "domain": "descope.com"
+        }
+      ],
+      "answers": 4,
+      "consensus": false,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "what's the best auth for a next.js app",
+      "topPick": {
+        "name": "Better Auth",
+        "domain": "better-auth.com"
+      },
+      "brands": [
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Auth.js",
+          "domain": "authjs.dev"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what auth should i use with supabase or firebase",
+      "topPick": {
+        "name": "Supabase Auth",
+        "domain": "supabase.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Amazon Cognito",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which auth service has the best developer experience",
+      "topPick": {
+        "name": "Clerk",
+        "domain": "clerk.com"
+      },
+      "brands": [
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "clerk vs auth0 vs workos",
+      "topPick": {
+        "name": "Clerk",
+        "domain": "clerk.com"
+      },
+      "brands": [
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "WorkOS",
+          "domain": "workos.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Okta",
+          "domain": "okta.com"
+        },
+        {
+          "name": "FusionAuth",
+          "domain": "fusionauth.io"
+        },
+        {
+          "name": "Better Auth",
+          "domain": "better-auth.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i add login with google to my react app",
+      "topPick": {
+        "name": "Firebase Authentication",
+        "domain": "firebase.google.com"
+      },
+      "brands": [
+        {
+          "name": "Firebase Authentication",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Supabase Auth",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Auth0",
+          "domain": "auth0.com"
+        },
+        {
+          "name": "Clerk",
+          "domain": "clerk.com"
+        },
+        {
+          "name": "Auth.js",
+          "domain": "authjs.dev"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best self-hosted identity provider",
+      "topPick": {
+        "name": "Keycloak",
+        "domain": "keycloak.org"
+      },
+      "brands": [
+        {
+          "name": "Keycloak",
+          "domain": "keycloak.org"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    }
+  ],
+  "sources": [
+    {
+      "domain": "workos.com",
+      "share": 34,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 23,
+        "ai-overview": 21
+      }
+    },
+    {
+      "domain": "clerk.com",
+      "share": 34,
+      "byEngine": {
+        "chatgpt": 57,
+        "claude": 27,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "auth0.com",
+      "share": 22,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 0,
+        "ai-overview": 14
+      }
+    },
+    {
+      "domain": "guptadeepak.com",
+      "share": 18,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 40,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "supabase.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "securityboulevard.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 14
+      }
+    },
+    {
+      "domain": "buildmvpfast.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 37,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "reddit.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 71
+      }
+    },
+    {
+      "domain": "github.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 7,
+        "ai-overview": 21
+      }
+    },
+    {
+      "domain": "startwithidentity.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 17,
+        "ai-overview": 29
+      }
+    }
+  ],
+  "overview": {
+    "query": "best authentication provider for saas",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "The best authentication provider for a SaaS application depends on your specific stage, B2B versus B2C focus, and engineering resources, with and leading for developer speed and enterprise readiness respectively.",
+        "refs": [0, 1]
+      },
+      {
+        "type": "heading",
+        "text": "Top Authentication Providers for SaaS"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Clerk: Best overall for modern B2C and early-to-mid stage B2B SaaS. It provides prebuilt, drop-in UI components for sign-in, user profiles, and organization management, letting you ship authentication on day one.",
+            "refs": [1]
+          },
+          {
+            "text": "Auth0 (by Okta): Best for enterprise-grade B2B SaaS. It features robust support for multi-tenant management, complex role-based access control (RBAC), and deep enterprise federation (SAML/OIDC) for selling to large corporations.",
+            "refs": [0, 2]
+          },
+          {
+            "text": "Supabase Auth : Best if you are building on PostgreSQL. It tightly integrates user data directly into your database with native row-level security (RLS) and foreign keys.",
+            "refs": [1]
+          },
+          {
+            "text": "or : Excellent developer-first alternatives designed specifically for B2B SaaS, handling enterprise features like SAML, directory sync (SCIM), and custom domains smoothly.",
+            "refs": []
+          },
+          {
+            "text": ": Best open-source, self-hosted choice if you require complete data sovereignty and zero per-user SaaS pricing scaling fees.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "How to Choose the Right Provider"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Early stage / Speed-to-market: Choose or Supabase Auth to avoid building UI components.",
+            "refs": []
+          },
+          {
+            "text": "Selling to Enterprise (1,000+ employees): Choose or WorkOS for native SAML, SCIM provisioning, and audit logs.",
+            "refs": []
+          },
+          {
+            "text": "Cost-sensitive / Self-hosted: Choose .",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "To help narrow down the best fit, tell me:",
+        "refs": []
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Are you building a B2B or B2C SaaS?",
+            "refs": []
+          },
+          {
+            "text": "What is your tech stack (e.g., Next.js, Python/Django, Node, Go)?",
+            "refs": []
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Auth0 Launches Organizations, Transforming the Way ...",
+        "url": "https://auth0.com/blog/auth0-launches-organizations-transforming-the-way-enterprises-manage-business-customer-identity/",
+        "source": "Auth0"
+      },
+      {
+        "index": 1,
+        "title": "Best Authentication for Next.js SaaS in 2026 | BoilerplateHub",
+        "url": "https://boilerplatehub.com/best/auth-for-nextjs",
+        "source": "BoilerplateHub"
+      },
+      {
+        "index": 2,
+        "title": "Dynamic Identity Providers for SaaS (Azure B2C vs. Duende ...",
+        "url": "https://www.reddit.com/r/AZURE/comments/16zlxau/dynamic_identity_providers_for_saas_azure_b2c_vs/",
+        "source": "Reddit"
+      },
+      {
+        "index": 3,
+        "title": "Saml or Oauth2 - Best bet for SSO and Plone 6 in 2022",
+        "url": "https://community.plone.org/t/saml-or-oauth2-best-bet-for-sso-and-plone-6-in-2022/15659",
+        "source": "Plone Community"
+      },
+      {
+        "index": 4,
+        "title": "Top SCIM Providers for B2B SaaS Apps: Automated User ...",
+        "url": "https://securityboulevard.com/2026/03/top-scim-providers-for-b2b-saas-apps-automated-user-provisioning-platforms/",
+        "source": "Security Boulevard"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "chatgpt",
+      "prompt": "what's the best auth for a next.js app",
+      "text": "Clerk — best if you want the fastest setup, polished hosted UI, organizations, and minimal maintenance.",
+      "collectedAt": "2026-10-07T15:26:01.564Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "which auth service has the best developer experience",
+      "text": "Clerk has the best overall developer experience, especially for a greenfield React, Next.js, Expo, or modern TypeScript application.",
+      "collectedAt": "2026-10-07T15:28:02.248Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "clerk vs auth0 vs workos",
+      "text": "Clerk: best developer experience for React and Next.js",
+      "collectedAt": "2026-10-07T15:26:17.136Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "which auth provider is best for b2b saas with sso",
+      "text": "Clerk: best if you want to ship fast on React/Next.js",
+      "collectedAt": "2026-10-07T15:26:17.660Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best authentication provider for saas",
+      "text": "Clerk: Best overall for modern B2C and early-to-mid stage B2B SaaS.",
+      "collectedAt": "2026-10-07T15:40:50.610Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "cheapest auth provider for a startup with lots of users",
+      "text": "Clerk: Best-in-class developer experience and UI components, but gets expensive quickly at high user volumes (~$1,825/month for 100K users).",
+      "collectedAt": "2026-10-07T15:26:44.571Z"
+    }
+  ]
+}

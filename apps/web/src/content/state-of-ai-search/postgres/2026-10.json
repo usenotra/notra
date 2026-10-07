@@ -1,0 +1,1112 @@
+{
+  "slug": "postgres",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Postgres",
+  "noun": "Postgres provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 3.8,
+      "sourcesPerAnswer": 4.1
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 6.6,
+      "sourcesPerAnswer": 8.8
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 7.8
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 74,
+    "brands": 15,
+    "citedDomains": 131,
+    "consensus": 27,
+    "aiOverviewShown": 100
+  },
+  "ranking": [
+    {
+      "name": "Neon",
+      "domain": "neon.com",
+      "rank": 1,
+      "visibility": 90,
+      "topPick": 53,
+      "ownSiteCited": 28,
+      "byEngine": {
+        "chatgpt": 77,
+        "claude": 100,
+        "ai-overview": 93
+      },
+      "delta": null
+    },
+    {
+      "name": "Supabase",
+      "domain": "supabase.com",
+      "rank": 2,
+      "visibility": 90,
+      "topPick": 14,
+      "ownSiteCited": 31,
+      "byEngine": {
+        "chatgpt": 83,
+        "claude": 100,
+        "ai-overview": 86
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon RDS",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 76,
+      "topPick": 18,
+      "ownSiteCited": 24,
+      "byEngine": {
+        "chatgpt": 67,
+        "claude": 83,
+        "ai-overview": 79
+      },
+      "delta": null
+    },
+    {
+      "name": "Google Cloud SQL",
+      "domain": "cloud.google.com",
+      "rank": 4,
+      "visibility": 44,
+      "topPick": 4,
+      "ownSiteCited": 12,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 53,
+        "ai-overview": 50
+      },
+      "delta": null
+    },
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 5,
+      "visibility": 39,
+      "topPick": 0,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 57,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "DigitalOcean",
+      "domain": "digitalocean.com",
+      "rank": 6,
+      "visibility": 33,
+      "topPick": 0,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 60,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "Railway",
+      "domain": "railway.com",
+      "rank": 7,
+      "visibility": 26,
+      "topPick": 3,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 53,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Crunchy Data",
+      "domain": "crunchydata.com",
+      "rank": 8,
+      "visibility": 24,
+      "topPick": 5,
+      "ownSiteCited": 12,
+      "byEngine": {
+        "chatgpt": 33,
+        "claude": 33,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Aiven",
+      "domain": "aiven.io",
+      "rank": 9,
+      "visibility": 19,
+      "topPick": 1,
+      "ownSiteCited": 5,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 33,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "PlanetScale",
+      "domain": "planetscale.com",
+      "rank": 10,
+      "visibility": 19,
+      "topPick": 0,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 50,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Azure Database for PostgreSQL",
+      "domain": "azure.microsoft.com",
+      "rank": 11,
+      "visibility": 13,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 7,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Heroku",
+      "domain": "heroku.com",
+      "rank": 12,
+      "visibility": 10,
+      "topPick": 0,
+      "ownSiteCited": 1,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 17,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Prisma Postgres",
+      "domain": "prisma.io",
+      "rank": 13,
+      "visibility": 7,
+      "topPick": 0,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 3,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Xata",
+      "domain": "xata.io",
+      "rank": 14,
+      "visibility": 3,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 10,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Tiger Data",
+      "domain": "tigerdata.com",
+      "rank": 15,
+      "visibility": 2,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 7
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "best postgres hosting",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        },
+        {
+          "name": "Azure Database for PostgreSQL",
+          "domain": "azure.microsoft.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the best postgres provider",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "i'm building an ai app and need postgres with pgvector, what should i use",
+      "topPick": {
+        "name": "Supabase",
+        "domain": "supabase.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Azure Database for PostgreSQL",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "Tiger Data",
+          "domain": "tigerdata.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the best postgres host for a small team with no devops person",
+      "topPick": {
+        "name": "Crunchy Data",
+        "domain": "crunchydata.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which managed postgres has the most reliable backups and uptime",
+      "topPick": {
+        "name": "Amazon RDS",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Azure Database for PostgreSQL",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best managed postgres for an early stage startup",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Prisma Postgres",
+          "domain": "prisma.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which postgres provider scales best when my app grows",
+      "topPick": {
+        "name": "Amazon RDS",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Azure Database for PostgreSQL",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i get a postgres database for my django app",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "is it worth paying for managed postgres or should i just self-host it",
+      "topPick": {
+        "name": "Amazon RDS",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "i need postgres for my saas, what should i use",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Google Cloud SQL",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Crunchy Data",
+          "domain": "crunchydata.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which postgres host has the best free tier",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Xata",
+          "domain": "xata.io"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "cheapest managed postgres in europe",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Aiven",
+          "domain": "aiven.io"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the best serverless postgres right now",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "Prisma Postgres",
+          "domain": "prisma.io"
+        },
+        {
+          "name": "Xata",
+          "domain": "xata.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best postgres for a next.js app",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Prisma Postgres",
+          "domain": "prisma.io"
+        },
+        {
+          "name": "Amazon RDS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "PlanetScale",
+          "domain": "planetscale.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        }
+      ],
+      "answers": 4,
+      "consensus": true,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "what's the easiest way to spin up postgres for a prototype",
+      "topPick": {
+        "name": "Neon",
+        "domain": "neon.com"
+      },
+      "brands": [
+        {
+          "name": "Supabase",
+          "domain": "supabase.com"
+        },
+        {
+          "name": "Neon",
+          "domain": "neon.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    }
+  ],
+  "sources": [
+    {
+      "domain": "supabase.com",
+      "share": 31,
+      "byEngine": {
+        "chatgpt": 77,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "neon.com",
+      "share": 28,
+      "byEngine": {
+        "chatgpt": 67,
+        "claude": 0,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "northflank.com",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 40,
+        "ai-overview": 14
+      }
+    },
+    {
+      "domain": "instaclustr.com",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 37,
+        "ai-overview": 21
+      }
+    },
+    {
+      "domain": "dreamlit.ai",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 37,
+        "ai-overview": 21
+      }
+    },
+    {
+      "domain": "selfhost.dev",
+      "share": 18,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 40,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "1vps.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 40,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "aws.amazon.com",
+      "share": 15,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "crunchydata.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "blog.railway.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 17,
+        "ai-overview": 29
+      }
+    }
+  ],
+  "overview": {
+    "query": "best postgres hosting",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "The best PostgreSQL hosting depends on your project size, budget, and operational needs, with Railway and Neon leading for modern developer workflows.",
+        "refs": [0]
+      },
+      {
+        "type": "heading",
+        "text": "Top PostgreSQL Hosting Platforms"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Railway: Best for unified app and database hosting on a single private network with usage-based pricing and one-click high availability.",
+            "refs": [0]
+          },
+          {
+            "text": "Neon: Best for serverless projects and AI workloads needing instant database branching and scale-to-zero capabilities.",
+            "refs": [0]
+          },
+          {
+            "text": "Supabase: Best for full-stack web and mobile apps looking for an integrated backend with built-in auth, realtime APIs, and managed Postgres.",
+            "refs": [1]
+          },
+          {
+            "text": "DigitalOcean Managed Databases: Best for cost-effective, predictable pricing on traditional dedicated instances for side projects and growing apps.",
+            "refs": [2]
+          },
+          {
+            "text": "Amazon RDS: Best for enterprise workloads tightly integrated into the AWS ecosystem requiring deep configuration and compliance controls.",
+            "refs": [1]
+          },
+          {
+            "text": "Crunchy Bridge: Best for teams wanting direct superuser database access and core-level PostgreSQL expertise across multiple clouds.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "If you share your project requirements (such as expected traffic, budget, or need for a free tier), I can help you pick the exact right host.",
+        "refs": []
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "The Best PostgreSQL Hosting for Developers in 2026 - Railway Blog",
+        "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+        "source": "Railway Blog"
+      },
+      {
+        "index": 1,
+        "title": "What good PostgreSQL hosting services exist? - Quora",
+        "url": "https://www.quora.com/What-good-PostgreSQL-hosting-services-exist",
+        "source": "Quora"
+      },
+      {
+        "index": 2,
+        "title": "Comparing Managed Postgres Pricing for Side Projects",
+        "url": "https://www.youtube.com/watch?v=dPlTL_TJBOo",
+        "source": "YouTube"
+      },
+      {
+        "index": 3,
+        "title": "Best managed PostgreSQL options: Top 6 solutions in 2026",
+        "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+        "source": "Instaclustr"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "claude",
+      "prompt": "what's the best serverless postgres right now",
+      "text": "Neon is the default pick for serverless Postgres right now, assuming you mean \"serverless\" literally: it scales to zero, autoscales, and you pay per use.",
+      "collectedAt": "2026-10-07T15:23:57.808Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "i'm building an ai app and need postgres with pgvector, what should i use",
+      "text": "Neon: the best choice for serverless or bursty AI workloads.",
+      "collectedAt": "2026-10-07T15:24:06.753Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best postgres hosting",
+      "text": "Neon: Best for serverless projects and AI workloads needing instant database branching and scale-to-zero capabilities.",
+      "collectedAt": "2026-10-07T15:14:26.282Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "which postgres provider scales best when my app grows",
+      "text": "Neon: Best for serverless applications with spiky or unpredictable traffic.",
+      "collectedAt": "2026-10-07T15:24:51.290Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "i need postgres for my saas, what should i use",
+      "text": "Bottom line: start with Neon if you need only a database, or Supabase if you want the whole backend platform.",
+      "collectedAt": "2026-10-07T15:25:12.037Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "cheapest managed postgres in europe",
+      "text": "Best developer experience: Neon for database-only, or Supabase if you also need authentication, storage and generated APIs.",
+      "collectedAt": "2026-10-07T15:25:46.995Z"
+    }
+  ]
+}

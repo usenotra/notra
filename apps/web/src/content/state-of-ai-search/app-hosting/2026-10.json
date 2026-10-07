@@ -1,0 +1,1208 @@
+{
+  "slug": "app-hosting",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "App hosting",
+  "noun": "app hosting platform",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 4.9
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 7.8,
+      "sourcesPerAnswer": 10.3
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 15,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 7.1
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 75,
+    "brands": 15,
+    "citedDomains": 204,
+    "consensus": 47,
+    "aiOverviewShown": 100
+  },
+  "ranking": [
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 1,
+      "visibility": 68,
+      "topPick": 23,
+      "ownSiteCited": 32,
+      "byEngine": {
+        "chatgpt": 77,
+        "claude": 80,
+        "ai-overview": 47
+      },
+      "delta": null
+    },
+    {
+      "name": "Railway",
+      "domain": "railway.com",
+      "rank": 2,
+      "visibility": 55,
+      "topPick": 11,
+      "ownSiteCited": 25,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 80,
+        "ai-overview": 33
+      },
+      "delta": null
+    },
+    {
+      "name": "AWS",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 52,
+      "topPick": 4,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 53,
+        "ai-overview": 53
+      },
+      "delta": null
+    },
+    {
+      "name": "Fly.io",
+      "domain": "fly.io",
+      "rank": 4,
+      "visibility": 52,
+      "topPick": 3,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 77,
+        "ai-overview": 40
+      },
+      "delta": null
+    },
+    {
+      "name": "Vercel",
+      "domain": "vercel.com",
+      "rank": 5,
+      "visibility": 50,
+      "topPick": 24,
+      "ownSiteCited": 17,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 60,
+        "ai-overview": 40
+      },
+      "delta": null
+    },
+    {
+      "name": "Google Cloud",
+      "domain": "cloud.google.com",
+      "rank": 6,
+      "visibility": 48,
+      "topPick": 9,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 47,
+        "ai-overview": 47
+      },
+      "delta": null
+    },
+    {
+      "name": "Cloudflare",
+      "domain": "cloudflare.com",
+      "rank": 7,
+      "visibility": 39,
+      "topPick": 9,
+      "ownSiteCited": 19,
+      "byEngine": {
+        "chatgpt": 43,
+        "claude": 47,
+        "ai-overview": 27
+      },
+      "delta": null
+    },
+    {
+      "name": "Heroku",
+      "domain": "heroku.com",
+      "rank": 8,
+      "visibility": 35,
+      "topPick": 3,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 20,
+        "claude": 53,
+        "ai-overview": 33
+      },
+      "delta": null
+    },
+    {
+      "name": "DigitalOcean",
+      "domain": "digitalocean.com",
+      "rank": 9,
+      "visibility": 33,
+      "topPick": 0,
+      "ownSiteCited": 13,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 53,
+        "ai-overview": 40
+      },
+      "delta": null
+    },
+    {
+      "name": "Hetzner",
+      "domain": "hetzner.com",
+      "rank": 10,
+      "visibility": 29,
+      "topPick": 7,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 60,
+        "ai-overview": 20
+      },
+      "delta": null
+    },
+    {
+      "name": "Netlify",
+      "domain": "netlify.com",
+      "rank": 11,
+      "visibility": 28,
+      "topPick": 0,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 50,
+        "ai-overview": 20
+      },
+      "delta": null
+    },
+    {
+      "name": "Coolify",
+      "domain": "coolify.io",
+      "rank": 12,
+      "visibility": 26,
+      "topPick": 7,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 57,
+        "ai-overview": 13
+      },
+      "delta": null
+    },
+    {
+      "name": "Azure",
+      "domain": "azure.microsoft.com",
+      "rank": 13,
+      "visibility": 26,
+      "topPick": 1,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 30,
+        "ai-overview": 20
+      },
+      "delta": null
+    },
+    {
+      "name": "Northflank",
+      "domain": "northflank.com",
+      "rank": 14,
+      "visibility": 10,
+      "topPick": 0,
+      "ownSiteCited": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 23,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Firebase",
+      "domain": "firebase.google.com",
+      "rank": 15,
+      "visibility": 3,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 10,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "best app hosting platform for developers",
+      "topPick": {
+        "name": "Vercel",
+        "domain": "vercel.com"
+      },
+      "brands": [
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Firebase",
+          "domain": "firebase.google.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "where do i host a full stack app with a database",
+      "topPick": {
+        "name": "Railway",
+        "domain": "railway.com"
+      },
+      "brands": [
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Firebase",
+          "domain": "firebase.google.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best platform to host background workers and cron jobs",
+      "topPick": {
+        "name": "Render",
+        "domain": "render.com"
+      },
+      "brands": [
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Northflank",
+          "domain": "northflank.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "where should i deploy my next.js app",
+      "topPick": {
+        "name": "Vercel",
+        "domain": "vercel.com"
+      },
+      "brands": [
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "cheapest way to host a node.js backend",
+      "topPick": {
+        "name": "Cloudflare",
+        "domain": "cloudflare.com"
+      },
+      "brands": [
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Northflank",
+          "domain": "northflank.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the easiest way to deploy a web app in 2026",
+      "topPick": {
+        "name": "Vercel",
+        "domain": "vercel.com"
+      },
+      "brands": [
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best heroku alternative",
+      "topPick": {
+        "name": "Render",
+        "domain": "render.com"
+      },
+      "brands": [
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Northflank",
+          "domain": "northflank.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which hosting platform scales best for a growing saas",
+      "topPick": {
+        "name": "AWS",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best platform to deploy a python api",
+      "topPick": {
+        "name": "Render",
+        "domain": "render.com"
+      },
+      "brands": [
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best hosting for a side project with a free tier",
+      "topPick": {
+        "name": "Cloudflare",
+        "domain": "cloudflare.com"
+      },
+      "brands": [
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best self-hosted paas",
+      "topPick": {
+        "name": "Coolify",
+        "domain": "coolify.io"
+      },
+      "brands": [
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i deploy a docker container without managing servers",
+      "topPick": {
+        "name": "Google Cloud",
+        "domain": "cloud.google.com"
+      },
+      "brands": [
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Azure",
+          "domain": "azure.microsoft.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "DigitalOcean",
+          "domain": "digitalocean.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "render vs railway vs fly.io",
+      "topPick": {
+        "name": "Railway",
+        "domain": "railway.com"
+      },
+      "brands": [
+        {
+          "name": "Railway",
+          "domain": "railway.com"
+        },
+        {
+          "name": "Render",
+          "domain": "render.com"
+        },
+        {
+          "name": "Fly.io",
+          "domain": "fly.io"
+        },
+        {
+          "name": "Heroku",
+          "domain": "heroku.com"
+        },
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "Coolify",
+          "domain": "coolify.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best european cloud hosting for a startup",
+      "topPick": {
+        "name": "Hetzner",
+        "domain": "hetzner.com"
+      },
+      "brands": [
+        {
+          "name": "Hetzner",
+          "domain": "hetzner.com"
+        },
+        {
+          "name": "AWS",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Google Cloud",
+          "domain": "cloud.google.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        },
+        {
+          "name": "Northflank",
+          "domain": "northflank.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "vercel vs netlify vs cloudflare pages",
+      "topPick": {
+        "name": "Vercel",
+        "domain": "vercel.com"
+      },
+      "brands": [
+        {
+          "name": "Vercel",
+          "domain": "vercel.com"
+        },
+        {
+          "name": "Netlify",
+          "domain": "netlify.com"
+        },
+        {
+          "name": "Cloudflare",
+          "domain": "cloudflare.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    }
+  ],
+  "sources": [
+    {
+      "domain": "render.com",
+      "share": 32,
+      "byEngine": {
+        "chatgpt": 67,
+        "claude": 3,
+        "ai-overview": 20
+      }
+    },
+    {
+      "domain": "developers.cloudflare.com",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 7,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "dev.to",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 27
+      }
+    },
+    {
+      "domain": "docs.railway.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 0,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "vercel.com",
+      "share": 15,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "fly.io",
+      "share": 15,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 7,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "docs.cloud.google.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "northflank.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 23,
+        "ai-overview": 13
+      }
+    },
+    {
+      "domain": "reddit.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 60
+      }
+    },
+    {
+      "domain": "docs.aws.amazon.com",
+      "share": 11,
+      "byEngine": {
+        "chatgpt": 20,
+        "claude": 7,
+        "ai-overview": 0
+      }
+    }
+  ],
+  "overview": {
+    "query": "best app hosting platform for developers",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "The best app hosting platform depends on your stack, budget, and how much control you need over the server.",
+        "refs": []
+      },
+      {
+        "type": "heading",
+        "text": "Top App Hosting Platforms for Developers"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Vercel",
+            "refs": [0, 1]
+          },
+          {
+            "text": "Coolify",
+            "refs": [2]
+          },
+          {
+            "text": "Render",
+            "refs": [3]
+          },
+          {
+            "text": "DigitalOcean (App Platform)",
+            "refs": []
+          },
+          {
+            "text": "AWS / Google Cloud Platform (GCP)",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "If you share your tech stack (e.g., Next.js, Python/Django, Node, Docker) and whether you prefer managed PaaS or , I can recommend the exact right fit.",
+        "refs": []
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Vercel is a cloud platform for hosting web applications! Here's ...",
+        "url": "https://www.instagram.com/reel/DZK39ALtG_c/",
+        "source": "Instagram"
+      },
+      {
+        "index": 1,
+        "title": "Recommend a hosting/stack/service solution for building a ...",
+        "url": "https://www.reddit.com/r/webdev/comments/1jsshau/recommend_a_hostingstackservice_solution_for/",
+        "source": "Reddit"
+      },
+      {
+        "index": 2,
+        "title": "9 best Heroku alternatives for easy app deployment - Hostinger",
+        "url": "https://www.hostinger.com/au/tutorials/heroku-alternatives/",
+        "source": "Hostinger"
+      },
+      {
+        "index": 3,
+        "title": "Where to host a web app? : r/webdev - Reddit",
+        "url": "https://www.reddit.com/r/webdev/comments/1955lfe/where_to_host_a_web_app/",
+        "source": "Reddit"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "chatgpt",
+      "prompt": "render vs railway vs fly.io",
+      "text": "Render — best for predictable, low-operations production hosting",
+      "collectedAt": "2026-10-07T15:30:07.010Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best platform to deploy a python api",
+      "text": "Render: Highly regarded as one of the best spiritual successors to Heroku.",
+      "collectedAt": "2026-10-07T15:42:41.652Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best platform to host background workers and cron jobs",
+      "text": "Render is the best overall platform for hosting continuous background workers and native scheduled cron jobs alongside your primary application.",
+      "collectedAt": "2026-10-07T15:30:08.550Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "best heroku alternative",
+      "text": "My pick for most people is Render, with Railway a close second.",
+      "collectedAt": "2026-10-07T15:28:22.038Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "cheapest way to host a node.js backend",
+      "text": "My pick: Use Render's free tier while you're learning.",
+      "collectedAt": "2026-10-07T15:28:27.160Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "where should i deploy my next.js app",
+      "text": "Render/Railway/Fly: good when you want predictable Node.js behavior, WebSockets, background processes, or fewer serverless constraints.",
+      "collectedAt": "2026-10-07T15:28:09.110Z"
+    }
+  ]
+}

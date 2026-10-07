@@ -1,0 +1,1211 @@
+{
+  "slug": "ai-visibility",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "AI visibility",
+  "noun": "AI search visibility tool",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 3.7,
+      "sourcesPerAnswer": 5.4
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 7.6,
+      "sourcesPerAnswer": 11.6
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 3.2,
+      "sourcesPerAnswer": 7.8
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 74,
+    "brands": 15,
+    "citedDomains": 211,
+    "consensus": 7,
+    "aiOverviewShown": 93
+  },
+  "ranking": [
+    {
+      "name": "Profound",
+      "domain": "tryprofound.com",
+      "rank": 1,
+      "visibility": 73,
+      "topPick": 20,
+      "ownSiteCited": 27,
+      "byEngine": {
+        "chatgpt": 57,
+        "claude": 97,
+        "ai-overview": 64
+      },
+      "delta": null
+    },
+    {
+      "name": "Otterly.AI",
+      "domain": "otterly.ai",
+      "rank": 2,
+      "visibility": 72,
+      "topPick": 20,
+      "ownSiteCited": 41,
+      "byEngine": {
+        "chatgpt": 60,
+        "claude": 93,
+        "ai-overview": 64
+      },
+      "delta": null
+    },
+    {
+      "name": "Peec AI",
+      "domain": "peec.ai",
+      "rank": 3,
+      "visibility": 65,
+      "topPick": 12,
+      "ownSiteCited": 19,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 87,
+        "ai-overview": 57
+      },
+      "delta": null
+    },
+    {
+      "name": "Semrush",
+      "domain": "semrush.com",
+      "rank": 4,
+      "visibility": 60,
+      "topPick": 9,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 83,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Ahrefs",
+      "domain": "ahrefs.com",
+      "rank": 5,
+      "visibility": 59,
+      "topPick": 8,
+      "ownSiteCited": 20,
+      "byEngine": {
+        "chatgpt": 43,
+        "claude": 90,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "SE Ranking",
+      "domain": "seranking.com",
+      "rank": 6,
+      "visibility": 28,
+      "topPick": 5,
+      "ownSiteCited": 28,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 53,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "Scrunch",
+      "domain": "scrunch.com",
+      "rank": 7,
+      "visibility": 27,
+      "topPick": 1,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 53,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "HubSpot AI Search Grader",
+      "domain": "hubspot.com",
+      "rank": 8,
+      "visibility": 26,
+      "topPick": 5,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 43,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Writesonic",
+      "domain": "writesonic.com",
+      "rank": 9,
+      "visibility": 20,
+      "topPick": 3,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 20,
+        "claude": 27,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "AthenaHQ",
+      "domain": "athenahq.ai",
+      "rank": 10,
+      "visibility": 19,
+      "topPick": 0,
+      "ownSiteCited": 1,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 50,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Rankscale",
+      "domain": "rankscale.ai",
+      "rank": 11,
+      "visibility": 16,
+      "topPick": 3,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 33,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "ZipTie",
+      "domain": "ziptie.dev",
+      "rank": 12,
+      "visibility": 11,
+      "topPick": 1,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 27,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Evertune",
+      "domain": "evertune.ai",
+      "rank": 13,
+      "visibility": 9,
+      "topPick": 0,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 27,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "ByDefault",
+      "domain": "bydefault.so",
+      "rank": 14,
+      "visibility": 0,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Notra",
+      "domain": "usenotra.com",
+      "rank": 15,
+      "visibility": 0,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "best generative engine optimization (GEO) software for a startup",
+      "topPick": {
+        "name": "Otterly.AI",
+        "domain": "otterly.ai"
+      },
+      "brands": [
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Evertune",
+          "domain": "evertune.ai"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best ai visibility tracker with content recommendations",
+      "topPick": {
+        "name": "HubSpot AI Search Grader",
+        "domain": "hubspot.com"
+      },
+      "brands": [
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "ZipTie",
+          "domain": "ziptie.dev"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the best tool to monitor brand mentions in ai answers",
+      "topPick": {
+        "name": "SE Ranking",
+        "domain": "seranking.com"
+      },
+      "brands": [
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "ZipTie",
+          "domain": "ziptie.dev"
+        },
+        {
+          "name": "Evertune",
+          "domain": "evertune.ai"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which tools track visibility in google ai overviews",
+      "topPick": {
+        "name": "Semrush",
+        "domain": "semrush.com"
+      },
+      "brands": [
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "ZipTie",
+          "domain": "ziptie.dev"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "tools that show which sources ai assistants cite for my category",
+      "topPick": {
+        "name": "Profound",
+        "domain": "tryprofound.com"
+      },
+      "brands": [
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what software do marketers use for answer engine optimization",
+      "topPick": {
+        "name": "Profound",
+        "domain": "tryprofound.com"
+      },
+      "brands": [
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Evertune",
+          "domain": "evertune.ai"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best ai search visibility tool",
+      "topPick": {
+        "name": "Semrush",
+        "domain": "semrush.com"
+      },
+      "brands": [
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "ZipTie",
+          "domain": "ziptie.dev"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i track if chatgpt recommends my product",
+      "topPick": {
+        "name": "Otterly.AI",
+        "domain": "otterly.ai"
+      },
+      "brands": [
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Evertune",
+          "domain": "evertune.ai"
+        },
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "ZipTie",
+          "domain": "ziptie.dev"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the cheapest way to track ai search rankings",
+      "topPick": {
+        "name": "Rankscale",
+        "domain": "rankscale.ai"
+      },
+      "brands": [
+        {
+          "name": "Rankscale",
+          "domain": "rankscale.ai"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best alternative to semrush for ai search tracking",
+      "topPick": {
+        "name": "Semrush",
+        "domain": "semrush.com"
+      },
+      "brands": [
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "i run a b2b saas, how do i measure our share of voice in llm answers",
+      "topPick": {
+        "name": "HubSpot AI Search Grader",
+        "domain": "hubspot.com"
+      },
+      "brands": [
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "AthenaHQ",
+          "domain": "athenahq.ai"
+        },
+        {
+          "name": "Evertune",
+          "domain": "evertune.ai"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best llm brand monitoring tool for agencies",
+      "topPick": {
+        "name": "Peec AI",
+        "domain": "peec.ai"
+      },
+      "brands": [
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Scrunch",
+          "domain": "scrunch.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "SE Ranking",
+          "domain": "seranking.com"
+        },
+        {
+          "name": "Writesonic",
+          "domain": "writesonic.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i get my saas recommended by chatgpt",
+      "topPick": {
+        "name": "Peec AI",
+        "domain": "peec.ai"
+      },
+      "brands": [
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        },
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "HubSpot AI Search Grader",
+          "domain": "hubspot.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how can i see what claude and chatgpt say about my company",
+      "topPick": {
+        "name": "Otterly.AI",
+        "domain": "otterly.ai"
+      },
+      "brands": [
+        {
+          "name": "Otterly.AI",
+          "domain": "otterly.ai"
+        },
+        {
+          "name": "Semrush",
+          "domain": "semrush.com"
+        },
+        {
+          "name": "Ahrefs",
+          "domain": "ahrefs.com"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        }
+      ],
+      "answers": 4,
+      "consensus": false,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "profound vs peec ai, which is better",
+      "topPick": {
+        "name": "Peec AI",
+        "domain": "peec.ai"
+      },
+      "brands": [
+        {
+          "name": "Peec AI",
+          "domain": "peec.ai"
+        },
+        {
+          "name": "Profound",
+          "domain": "tryprofound.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    }
+  ],
+  "sources": [
+    {
+      "domain": "otterly.ai",
+      "share": 31,
+      "byEngine": {
+        "chatgpt": 33,
+        "claude": 40,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "tryprofound.com",
+      "share": 23,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 13,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "semrush.com",
+      "share": 22,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 7,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "dageno.ai",
+      "share": 20,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 37,
+        "ai-overview": 29
+      }
+    },
+    {
+      "domain": "peec.ai",
+      "share": 19,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "visible.seranking.com",
+      "share": 18,
+      "byEngine": {
+        "chatgpt": 3,
+        "claude": 40,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "rankability.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "useomnia.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "ahrefs.com",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 23,
+        "claude": 7,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "frase.io",
+      "share": 12,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 30,
+        "ai-overview": 0
+      }
+    }
+  ],
+  "overview": {
+    "query": "best ai search visibility tool",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "The best AI search visibility tools for Generative Engine Optimization (GEO) are Semrush for all-in-one tracking, Profound for enterprise depth, and OtterlyAI for affordable monitoring.",
+        "refs": [0, 1, 2]
+      },
+      {
+        "type": "heading",
+        "text": "Top All-in-One SEO & AI Suites"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Semrush AI Toolkit: Combines massive traditional SEO databases with tracking for ChatGPT, Perplexity, Gemini, and Google AI Overviews, monitoring brand mentions, sentiment, and share of voice.",
+            "refs": [2]
+          },
+          {
+            "text": "Ahrefs Brand Radar: Bridges classic search data with intelligent web citations, giving large teams access to extensive prompt tracking datasets.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Dedicated GEO and AI Visibility Platforms"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Profound: An enterprise-grade platform tracking brand presence and answer engine insights across major LLMs with massive market backing.",
+            "refs": [1, 5]
+          },
+          {
+            "text": "OtterlyAI: A budget-friendly, user-friendly choice starting around $29/month designed specifically for early-stage AI search monitoring.",
+            "refs": [0, 6]
+          },
+          {
+            "text": "AthenaHQ: Covers multiple AI engines and features an \"Action Center\" that changes visibility gaps into structured optimization tasks.",
+            "refs": [1]
+          },
+          {
+            "text": "Peec AI: Offers smart suggestions and multi-model daily checks ideal for competitive benchmarking.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "If you tell me your budget and company size, I can recommend the best tool for your specific workflow.",
+        "refs": []
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "The 9 best AI visibility tools in 2026 | Zapier",
+        "url": "https://zapier.com/blog/best-ai-visibility-tool/",
+        "source": "Zapier"
+      },
+      {
+        "index": 1,
+        "title": "We Tested 8 AI Visibility Optimization Tools. Here's What Actually Works.",
+        "url": "https://www.tryanalyze.ai/blog/leading-ai-visibility-optimization-tools",
+        "source": "www.tryanalyze.ai"
+      },
+      {
+        "index": 2,
+        "title": "The Best AI Visibility Tracking Tools (My Honest Reviews)",
+        "url": "https://www.position.digital/blog/best-ai-visibility-tracking-tools/",
+        "source": "Position Digital"
+      },
+      {
+        "index": 3,
+        "title": "Top Tools for Tracking AI Visibility - WP Engine",
+        "url": "https://wpengine.com/blog/ai-visibility-tracking-tools/",
+        "source": "WP Engine"
+      },
+      {
+        "index": 4,
+        "title": "Best SEO / AI Visibility Tools (2026) - Style Factory",
+        "url": "https://www.stylefactoryproductions.com/blog/best-seo-ai-visibility-tools",
+        "source": "www.stylefactoryproductions.com"
+      },
+      {
+        "index": 5,
+        "title": "7 Best AI Search Tracking and Visibility Tools (Rank in ChatGPT & Perplexity!)",
+        "url": "https://www.youtube.com/watch?v=DMPSZw75vko",
+        "source": "YouTube"
+      },
+      {
+        "index": 6,
+        "title": "11 Best AI Search Visibility Tools For SaaS In 2026",
+        "url": "https://nathanojaokomo.com/blog/best-ai-visibility-tools",
+        "source": "Nathan Ojaokomo"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "chatgpt",
+      "prompt": "best llm brand monitoring tool for agencies",
+      "text": "Profound is strongest for enterprise-grade service delivery, with centralized client management, broad answer-engine coverage, automation and agency go-to-market support.",
+      "collectedAt": "2026-10-07T15:18:31.548Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "best ai search visibility tool",
+      "text": "Profound (best for large companies): Often called one of the strongest tools built just for this, because it focuses specifically on prompt monitoring, citations, sentiment, competitive share of voice, and answer-engine analysis.",
+      "collectedAt": "2026-10-07T15:14:52.769Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "best alternative to semrush for ai search tracking",
+      "text": "Profound is the most common \"best overall\" pick for teams with money to spend.",
+      "collectedAt": "2026-10-07T15:17:11.297Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "what's the best tool to monitor brand mentions in ai answers",
+      "text": "Profound – Best for enterprise teams that need deep analytics, high-cadence tracking across ten major answer engines (including ChatGPT, Claude, Gemini, Grok, and DeepSeek), and integrations with search console data.",
+      "collectedAt": "2026-10-07T15:17:04.767Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best ai visibility tracker with content recommendations",
+      "text": "Profound (Best for Enterprise & Deep Technical Audits)",
+      "collectedAt": "2026-10-07T15:19:15.633Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "best generative engine optimization (GEO) software for a startup",
+      "text": "Profound provides deeper monitoring, content agents, analytics integrations and enterprise capabilities.",
+      "collectedAt": "2026-10-07T15:15:58.909Z"
+    }
+  ]
+}

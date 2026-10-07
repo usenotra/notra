@@ -7,6 +7,7 @@ import type {
 
 import { changelog } from "@/../.source/server";
 import { FEATURE_DETAIL_SLUGS } from "@/constants/feature-pages/paths";
+import { STATE_OF_AI_SEARCH_PATH } from "@/constants/state-of-ai-search";
 import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
 import {
   buildBlogAuthorMarkdown,
@@ -35,6 +36,11 @@ import {
   buildMcpUseCasesMarkdown,
   listMcpUseCaseMarkdownEntries,
 } from "@/lib/mcp/markdown";
+import {
+  buildStateOfAiSearchIndexMarkdown,
+  buildStateOfAiSearchReportMarkdown,
+} from "@/lib/state-of-ai-search/markdown";
+import { listReports } from "@/lib/state-of-ai-search/reports";
 import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
@@ -56,6 +62,7 @@ import {
   buildLandingMarkdown,
   buildPricingMarkdown,
 } from "@/utils/site-markdown";
+import { reportPath } from "@/utils/state-of-ai-search";
 import { SITE_URL } from "@/utils/urls";
 
 interface MarkdownTwinData {
@@ -319,6 +326,14 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/mcp", render: () => buildMcpMarkdown() },
     { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
     { pattern: "/compare", render: () => buildCompareIndexMarkdown() },
+    {
+      pattern: STATE_OF_AI_SEARCH_PATH,
+      render: () => buildStateOfAiSearchIndexMarkdown(),
+    },
+    ...listReports().map((report) => ({
+      pattern: reportPath(report.slug, report.edition),
+      render: () => buildStateOfAiSearchReportMarkdown(report),
+    })),
     ...listCompareMarkdownPages().map((page) => ({
       pattern: page.pattern,
       render: () => buildCompareMarkdown(page.slug) ?? "",

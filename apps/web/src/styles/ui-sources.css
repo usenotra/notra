@@ -39,6 +39,7 @@
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-search.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-sources-sheet.tsx";
 @source "../../../../packages/ui/src/components/framework-provider.tsx";
+@source "../../../../packages/ui/src/components/geo/competitor-logo.tsx";
 @source "../../../../packages/ui/src/components/geo/engine-icon.tsx";
 @source "../../../../packages/ui/src/components/geo/gap-meter.tsx";
 @source "../../../../packages/ui/src/components/geo/geo-bar.tsx";
@@ -187,6 +188,7 @@
 @source "../../../../packages/ui/src/lib/geo-chat-skin.ts";
 @source "../../../../packages/ui/src/lib/geo-engine-icon.ts";
 @source "../../../../packages/ui/src/lib/geo-gaps.ts";
+@source "../../../../packages/ui/src/lib/geo-logo.ts";
 @source "../../../../packages/ui/src/lib/geo-model-display.ts";
 @source "../../../../packages/ui/src/lib/geo-perplexity-sources.ts";
 @source "../../../../packages/ui/src/lib/geo-prompt-engines.ts";

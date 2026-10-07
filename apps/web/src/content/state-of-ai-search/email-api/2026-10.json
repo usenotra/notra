@@ -1,0 +1,1063 @@
+{
+  "slug": "email-api",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Email API",
+  "noun": "transactional email API",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 3.9,
+      "sourcesPerAnswer": 4
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 5.9,
+      "sourcesPerAnswer": 9.7
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 12,
+      "brandsPerAnswer": 3.8,
+      "sourcesPerAnswer": 7.3
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 72,
+    "brands": 15,
+    "citedDomains": 155,
+    "consensus": 60,
+    "aiOverviewShown": 80
+  },
+  "ranking": [
+    {
+      "name": "Postmark",
+      "domain": "postmarkapp.com",
+      "rank": 1,
+      "visibility": 89,
+      "topPick": 25,
+      "ownSiteCited": 33,
+      "byEngine": {
+        "chatgpt": 83,
+        "claude": 100,
+        "ai-overview": 83
+      },
+      "delta": null
+    },
+    {
+      "name": "Resend",
+      "domain": "resend.com",
+      "rank": 2,
+      "visibility": 87,
+      "topPick": 38,
+      "ownSiteCited": 35,
+      "byEngine": {
+        "chatgpt": 93,
+        "claude": 93,
+        "ai-overview": 75
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon SES",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 77,
+      "topPick": 14,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 70,
+        "claude": 93,
+        "ai-overview": 67
+      },
+      "delta": null
+    },
+    {
+      "name": "SendGrid",
+      "domain": "sendgrid.com",
+      "rank": 4,
+      "visibility": 72,
+      "topPick": 11,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 60,
+        "claude": 80,
+        "ai-overview": 75
+      },
+      "delta": null
+    },
+    {
+      "name": "Mailgun",
+      "domain": "mailgun.com",
+      "rank": 5,
+      "visibility": 47,
+      "topPick": 0,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 67,
+        "ai-overview": 33
+      },
+      "delta": null
+    },
+    {
+      "name": "Brevo",
+      "domain": "brevo.com",
+      "rank": 6,
+      "visibility": 28,
+      "topPick": 1,
+      "ownSiteCited": 17,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 53,
+        "ai-overview": 25
+      },
+      "delta": null
+    },
+    {
+      "name": "Loops",
+      "domain": "loops.so",
+      "rank": 7,
+      "visibility": 15,
+      "topPick": 7,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 23,
+        "ai-overview": 8
+      },
+      "delta": null
+    },
+    {
+      "name": "Mailtrap",
+      "domain": "mailtrap.io",
+      "rank": 8,
+      "visibility": 14,
+      "topPick": 0,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 43,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Customer.io",
+      "domain": "customer.io",
+      "rank": 9,
+      "visibility": 13,
+      "topPick": 1,
+      "ownSiteCited": 6,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 13,
+        "ai-overview": 8
+      },
+      "delta": null
+    },
+    {
+      "name": "MailerSend",
+      "domain": "mailersend.com",
+      "rank": 10,
+      "visibility": 5,
+      "topPick": 0,
+      "ownSiteCited": 1,
+      "byEngine": {
+        "chatgpt": 3,
+        "claude": 13,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "SparkPost",
+      "domain": "sparkpost.com",
+      "rank": 11,
+      "visibility": 3,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 10,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "ZeptoMail",
+      "domain": "zeptomail.com",
+      "rank": 12,
+      "visibility": 2,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 0,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Bird",
+      "domain": "bird.com",
+      "rank": 13,
+      "visibility": 1,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 3,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Plunk",
+      "domain": "useplunk.com",
+      "rank": 14,
+      "visibility": 0,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Mailchimp Transactional",
+      "domain": "mailchimp.com",
+      "rank": 15,
+      "visibility": 0,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 0,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "sendgrid alternatives with better deliverability",
+      "topPick": {
+        "name": "Postmark",
+        "domain": "postmarkapp.com"
+      },
+      "brands": [
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "MailerSend",
+          "domain": "mailersend.com"
+        },
+        {
+          "name": "SparkPost",
+          "domain": "sparkpost.com"
+        },
+        {
+          "name": "Bird",
+          "domain": "bird.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best smtp service for a django app",
+      "topPick": {
+        "name": "Postmark",
+        "domain": "postmarkapp.com"
+      },
+      "brands": [
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "MailerSend",
+          "domain": "mailersend.com"
+        },
+        {
+          "name": "SparkPost",
+          "domain": "sparkpost.com"
+        }
+      ],
+      "answers": 4,
+      "consensus": true,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "cheapest reliable email api for a startup",
+      "topPick": {
+        "name": "Amazon SES",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "ZeptoMail",
+          "domain": "zeptomail.com"
+        },
+        {
+          "name": "MailerSend",
+          "domain": "mailersend.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best email api with react email templates",
+      "topPick": {
+        "name": "Resend",
+        "domain": "resend.com"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Loops",
+          "domain": "loops.so"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "MailerSend",
+          "domain": "mailersend.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "which email api is best for deliverability to gmail",
+      "topPick": {
+        "name": "Postmark",
+        "domain": "postmarkapp.com"
+      },
+      "brands": [
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "SparkPost",
+          "domain": "sparkpost.com"
+        },
+        {
+          "name": "Loops",
+          "domain": "loops.so"
+        }
+      ],
+      "answers": 4,
+      "consensus": true,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "best email api for product and marketing emails in one place",
+      "topPick": {
+        "name": "Loops",
+        "domain": "loops.so"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Customer.io",
+          "domain": "customer.io"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Loops",
+          "domain": "loops.so"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best transactional email api",
+      "topPick": {
+        "name": "Postmark",
+        "domain": "postmarkapp.com"
+      },
+      "brands": [
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "i need to send receipts and notifications from my app, what service",
+      "topPick": {
+        "name": "Postmark",
+        "domain": "postmarkapp.com"
+      },
+      "brands": [
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the easiest way to send emails from a serverless function",
+      "topPick": {
+        "name": "Resend",
+        "domain": "resend.com"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what should i use to send emails from my next.js app",
+      "topPick": {
+        "name": "Resend",
+        "domain": "resend.com"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Loops",
+          "domain": "loops.so"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Customer.io",
+          "domain": "customer.io"
+        }
+      ],
+      "answers": 4,
+      "consensus": true,
+      "aiOverviewShown": false
+    },
+    {
+      "prompt": "which email api has the best developer experience",
+      "topPick": {
+        "name": "Resend",
+        "domain": "resend.com"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Mailtrap",
+          "domain": "mailtrap.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best email service for saas onboarding emails",
+      "topPick": {
+        "name": "Loops",
+        "domain": "loops.so"
+      },
+      "brands": [
+        {
+          "name": "Loops",
+          "domain": "loops.so"
+        },
+        {
+          "name": "Customer.io",
+          "domain": "customer.io"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Brevo",
+          "domain": "brevo.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i send password reset emails from node",
+      "topPick": {
+        "name": "SendGrid",
+        "domain": "sendgrid.com"
+      },
+      "brands": [
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what email provider should i use for high volume transactional email",
+      "topPick": {
+        "name": "Amazon SES",
+        "domain": "aws.amazon.com"
+      },
+      "brands": [
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "Mailgun",
+          "domain": "mailgun.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "resend vs postmark vs sendgrid",
+      "topPick": {
+        "name": "Resend",
+        "domain": "resend.com"
+      },
+      "brands": [
+        {
+          "name": "Resend",
+          "domain": "resend.com"
+        },
+        {
+          "name": "Postmark",
+          "domain": "postmarkapp.com"
+        },
+        {
+          "name": "SendGrid",
+          "domain": "sendgrid.com"
+        },
+        {
+          "name": "Amazon SES",
+          "domain": "aws.amazon.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    }
+  ],
+  "sources": [
+    {
+      "domain": "resend.com",
+      "share": 35,
+      "byEngine": {
+        "chatgpt": 80,
+        "claude": 0,
+        "ai-overview": 8
+      }
+    },
+    {
+      "domain": "postmarkapp.com",
+      "share": 33,
+      "byEngine": {
+        "chatgpt": 73,
+        "claude": 0,
+        "ai-overview": 17
+      }
+    },
+    {
+      "domain": "sequenzy.com",
+      "share": 24,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 53,
+        "ai-overview": 8
+      }
+    },
+    {
+      "domain": "aws.amazon.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 33,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "agentmail.to",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "brevo.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 33,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "courier.com",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 30,
+        "ai-overview": 8
+      }
+    },
+    {
+      "domain": "docs.aws.amazon.com",
+      "share": 11,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 0,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "nitrosend.com",
+      "share": 11,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 23,
+        "ai-overview": 8
+      }
+    },
+    {
+      "domain": "mailtoolscout.com",
+      "share": 11,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 27,
+        "ai-overview": 0
+      }
+    }
+  ],
+  "overview": {
+    "query": "best transactional email api",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Postmark is widely considered the best transactional email API for reliable delivery and fast setup.",
+        "refs": [0, 1]
+      },
+      {
+        "type": "paragraph",
+        "text": "The right choice depends on your specific goals, developer stack, and volume needs.",
+        "refs": [1, 2]
+      },
+      {
+        "type": "heading",
+        "text": "Top Transactional Email APIs"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Postmark: Best for critical alerts and SaaS apps because of strict spam stream separation and industry-leading deliverability.",
+            "refs": []
+          },
+          {
+            "text": "Resend: Best for modern developer experiences and React/Next.js stacks, offering clean APIs and a generous free starting tier.",
+            "refs": []
+          },
+          {
+            "text": "Brevo: Best for budget-conscious startups that want to bundle marketing and transactional triggers under a single roof with a high daily free limit.",
+            "refs": []
+          },
+          {
+            "text": "SendGrid: Best for large companies that need proven scale and a single vendor across multiple communication channels.",
+            "refs": []
+          },
+          {
+            "text": "Amazon SES: Best for high-volume enterprise sending where cost control and raw infrastructure management are top priorities.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "If you share your expected monthly volume and tech stack (e.g., Python, Node.js, PHP), I can recommend the most cost-effective provider for your project.",
+        "refs": []
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Best Transactional Email APIs for SaaS in 2026",
+        "url": "https://alternative.tools/guides/email-apis",
+        "source": "alternative.tools"
+      },
+      {
+        "index": 1,
+        "title": "Best Transactional Email APIs in 2026 for GTM Teams by ColdIQ",
+        "url": "https://coldiq.com/category/transactional-email-apis",
+        "source": "ColdIQ"
+      },
+      {
+        "index": 2,
+        "title": "Best Transactional Email APIs for Developers (2026)",
+        "url": "https://coldletter.com/blog/transactional-email-api/",
+        "source": "coldletter.com"
+      },
+      {
+        "index": 3,
+        "title": "Best Transactional Email Service for Startups 2025",
+        "url": "https://resources.mailertogo.com/comparisons/best-transactional-email-service-startups-2025",
+        "source": "Mailer To Go"
+      },
+      {
+        "index": 4,
+        "title": "Best transactional email service for high-volume login ... - Reddit",
+        "url": "https://www.reddit.com/r/SaaS/comments/1rjwnit/best_transactional_email_service_for_highvolume/",
+        "source": "Reddit"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "chatgpt",
+      "prompt": "sendgrid alternatives with better deliverability",
+      "text": "Postmark is usually the strongest SendGrid alternative when transactional-email deliverability is the priority.",
+      "collectedAt": "2026-10-07T15:22:06.467Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "i need to send receipts and notifications from my app, what service",
+      "text": "Postmark — best “just works” choice for important transactional email.",
+      "collectedAt": "2026-10-07T15:23:03.841Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "cheapest reliable email api for a startup",
+      "text": "Postmark: Known for the best deliverability, which matters for password resets and receipts.",
+      "collectedAt": "2026-10-07T15:21:48.834Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "which email api has the best developer experience",
+      "text": "Postmark: the best mix of good tooling and reliability",
+      "collectedAt": "2026-10-07T15:22:12.185Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best transactional email api",
+      "text": "Postmark is widely considered the best transactional email API for reliable delivery and fast setup.",
+      "collectedAt": "2026-10-07T15:21:41.427Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best email service for saas onboarding emails",
+      "text": "Postmark — Best for reliable transactional and onboarding delivery.",
+      "collectedAt": "2026-10-07T15:22:33.337Z"
+    }
+  ]
+}

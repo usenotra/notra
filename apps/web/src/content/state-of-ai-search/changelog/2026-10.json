@@ -1,0 +1,1078 @@
+{
+  "slug": "changelog",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Changelog",
+  "noun": "changelog tool",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 2.9,
+      "sourcesPerAnswer": 4.2
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 5.8,
+      "sourcesPerAnswer": 8.7
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 1.9,
+      "sourcesPerAnswer": 6.9
+    }
+  ],
+  "totals": {
+    "prompts": 15,
+    "answers": 74,
+    "brands": 15,
+    "citedDomains": 128,
+    "consensus": 13,
+    "aiOverviewShown": 93
+  },
+  "ranking": [
+    {
+      "name": "Headway",
+      "domain": "headwayapp.co",
+      "rank": 1,
+      "visibility": 54,
+      "topPick": 18,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 80,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Beamer",
+      "domain": "getbeamer.com",
+      "rank": 2,
+      "visibility": 52,
+      "topPick": 18,
+      "ownSiteCited": 16,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 80,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "Canny",
+      "domain": "canny.io",
+      "rank": 3,
+      "visibility": 50,
+      "topPick": 3,
+      "ownSiteCited": 19,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 73,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "LaunchNotes",
+      "domain": "launchnotes.com",
+      "rank": 4,
+      "visibility": 34,
+      "topPick": 0,
+      "ownSiteCited": 14,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 50,
+        "ai-overview": 21
+      },
+      "delta": null
+    },
+    {
+      "name": "Featurebase",
+      "domain": "featurebase.app",
+      "rank": 5,
+      "visibility": 31,
+      "topPick": 8,
+      "ownSiteCited": 24,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 67,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Frill",
+      "domain": "frill.co",
+      "rank": 6,
+      "visibility": 29,
+      "topPick": 4,
+      "ownSiteCited": 23,
+      "byEngine": {
+        "chatgpt": 20,
+        "claude": 53,
+        "ai-overview": 14
+      },
+      "delta": null
+    },
+    {
+      "name": "GitHub Releases",
+      "domain": "github.com",
+      "rank": 7,
+      "visibility": 28,
+      "topPick": 14,
+      "ownSiteCited": 23,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 37,
+        "ai-overview": 21
+      },
+      "delta": null
+    },
+    {
+      "name": "AnnounceKit",
+      "domain": "announcekit.app",
+      "rank": 8,
+      "visibility": 23,
+      "topPick": 9,
+      "ownSiteCited": 14,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 50,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Release Drafter",
+      "domain": "github.com",
+      "rank": 9,
+      "visibility": 17,
+      "topPick": 8,
+      "ownSiteCited": 23,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 30,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Sleekplan",
+      "domain": "sleekplan.com",
+      "rank": 10,
+      "visibility": 11,
+      "topPick": 1,
+      "ownSiteCited": 7,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 17,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Noticeable",
+      "domain": "noticeable.io",
+      "rank": 11,
+      "visibility": 9,
+      "topPick": 1,
+      "ownSiteCited": 3,
+      "byEngine": {
+        "chatgpt": 10,
+        "claude": 17,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Changelogfy",
+      "domain": "changelogfy.com",
+      "rank": 12,
+      "visibility": 3,
+      "topPick": 1,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 3,
+        "ai-overview": 7
+      },
+      "delta": null
+    },
+    {
+      "name": "Mintlify",
+      "domain": "mintlify.com",
+      "rank": 13,
+      "visibility": 3,
+      "topPick": 0,
+      "ownSiteCited": 0,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 10,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Productlane",
+      "domain": "productlane.com",
+      "rank": 14,
+      "visibility": 2,
+      "topPick": 0,
+      "ownSiteCited": 1,
+      "byEngine": {
+        "chatgpt": 3,
+        "claude": 3,
+        "ai-overview": 0
+      },
+      "delta": null
+    },
+    {
+      "name": "Notra",
+      "domain": "usenotra.com",
+      "rank": 15,
+      "visibility": 2,
+      "topPick": 0,
+      "ownSiteCited": 8,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 7,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ],
+  "prompts": [
+    {
+      "prompt": "how do startups keep a changelog page up to date",
+      "topPick": {
+        "name": "GitHub Releases",
+        "domain": "github.com"
+      },
+      "brands": [
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Mintlify",
+          "domain": "mintlify.com"
+        },
+        {
+          "name": "Productlane",
+          "domain": "productlane.com"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "Changelogfy",
+          "domain": "changelogfy.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "beamer alternatives that are cheaper",
+      "topPick": {
+        "name": "Beamer",
+        "domain": "getbeamer.com"
+      },
+      "brands": [
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Sleekplan",
+          "domain": "sleekplan.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Noticeable",
+          "domain": "noticeable.io"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what should i use to publish product release notes",
+      "topPick": {
+        "name": "Headway",
+        "domain": "headwayapp.co"
+      },
+      "brands": [
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Release Drafter",
+          "domain": "github.com"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best changelog software with email notifications",
+      "topPick": {
+        "name": "AnnounceKit",
+        "domain": "announcekit.app"
+      },
+      "brands": [
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Noticeable",
+          "domain": "noticeable.io"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Sleekplan",
+          "domain": "sleekplan.com"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "i need a changelog for my developer tool, what do people use",
+      "topPick": {
+        "name": "GitHub Releases",
+        "domain": "github.com"
+      },
+      "brands": [
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        },
+        {
+          "name": "Release Drafter",
+          "domain": "github.com"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Notra",
+          "domain": "usenotra.com"
+        },
+        {
+          "name": "Mintlify",
+          "domain": "mintlify.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best product update announcement tool for b2b saas",
+      "topPick": {
+        "name": "Beamer",
+        "domain": "getbeamer.com"
+      },
+      "brands": [
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Productlane",
+          "domain": "productlane.com"
+        },
+        {
+          "name": "Noticeable",
+          "domain": "noticeable.io"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "free changelog page for a small startup",
+      "topPick": {
+        "name": "Headway",
+        "domain": "headwayapp.co"
+      },
+      "brands": [
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Sleekplan",
+          "domain": "sleekplan.com"
+        },
+        {
+          "name": "Noticeable",
+          "domain": "noticeable.io"
+        },
+        {
+          "name": "Changelogfy",
+          "domain": "changelogfy.com"
+        },
+        {
+          "name": "Release Drafter",
+          "domain": "github.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best changelog tool for saas",
+      "topPick": {
+        "name": "Beamer",
+        "domain": "getbeamer.com"
+      },
+      "brands": [
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how do i add an in-app changelog widget to my web app",
+      "topPick": {
+        "name": "Headway",
+        "domain": "headwayapp.co"
+      },
+      "brands": [
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Noticeable",
+          "domain": "noticeable.io"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "what's the best public roadmap and changelog tool",
+      "topPick": {
+        "name": "Frill",
+        "domain": "frill.co"
+      },
+      "brands": [
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "Frill",
+          "domain": "frill.co"
+        },
+        {
+          "name": "Featurebase",
+          "domain": "featurebase.app"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        },
+        {
+          "name": "Sleekplan",
+          "domain": "sleekplan.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "best way to announce new features to users",
+      "topPick": {
+        "name": "Beamer",
+        "domain": "getbeamer.com"
+      },
+      "brands": [
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        },
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Canny",
+          "domain": "canny.io"
+        },
+        {
+          "name": "AnnounceKit",
+          "domain": "announcekit.app"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "tools that write release notes from github commits automatically",
+      "topPick": {
+        "name": "Release Drafter",
+        "domain": "github.com"
+      },
+      "brands": [
+        {
+          "name": "Release Drafter",
+          "domain": "github.com"
+        },
+        {
+          "name": "Notra",
+          "domain": "usenotra.com"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "headway vs beamer vs launchnotes",
+      "topPick": {
+        "name": "Headway",
+        "domain": "headwayapp.co"
+      },
+      "brands": [
+        {
+          "name": "Headway",
+          "domain": "headwayapp.co"
+        },
+        {
+          "name": "Beamer",
+          "domain": "getbeamer.com"
+        },
+        {
+          "name": "LaunchNotes",
+          "domain": "launchnotes.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": true,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "ai tool that turns pull requests into changelog posts",
+      "topPick": {
+        "name": "Release Drafter",
+        "domain": "github.com"
+      },
+      "brands": [
+        {
+          "name": "Release Drafter",
+          "domain": "github.com"
+        },
+        {
+          "name": "GitHub Releases",
+          "domain": "github.com"
+        }
+      ],
+      "answers": 5,
+      "consensus": false,
+      "aiOverviewShown": true
+    },
+    {
+      "prompt": "how to automate release notes for a mobile app",
+      "topPick": null,
+      "brands": [],
+      "answers": 4,
+      "consensus": false,
+      "aiOverviewShown": false
+    }
+  ],
+  "sources": [
+    {
+      "domain": "productlift.dev",
+      "share": 28,
+      "byEngine": {
+        "chatgpt": 7,
+        "claude": 63,
+        "ai-overview": 0
+      }
+    },
+    {
+      "domain": "frill.co",
+      "share": 23,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 27,
+        "ai-overview": 36
+      }
+    },
+    {
+      "domain": "guideflow.com",
+      "share": 23,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 53,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "featurebase.app",
+      "share": 22,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 33,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "github.com",
+      "share": 18,
+      "byEngine": {
+        "chatgpt": 20,
+        "claude": 13,
+        "ai-overview": 21
+      }
+    },
+    {
+      "domain": "quackback.io",
+      "share": 18,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 40,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "getbeamer.com",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 0,
+        "ai-overview": 7
+      }
+    },
+    {
+      "domain": "releasepad.io",
+      "share": 16,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 27,
+        "ai-overview": 29
+      }
+    },
+    {
+      "domain": "featureos.com",
+      "share": 15,
+      "byEngine": {
+        "chatgpt": 0,
+        "claude": 20,
+        "ai-overview": 36
+      }
+    },
+    {
+      "domain": "announcekit.app",
+      "share": 14,
+      "byEngine": {
+        "chatgpt": 13,
+        "claude": 13,
+        "ai-overview": 14
+      }
+    }
+  ],
+  "overview": {
+    "query": "best changelog tool for saas",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "The best changelog and release notes tools for SaaS depend on your team size, whether you need an all-in-one product loop (feedback and roadmaps), or just automated developer updates .",
+        "refs": [0]
+      },
+      {
+        "type": "heading",
+        "text": "Top Changelog Tools for SaaS"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Frill: Best for startups wanting an all-in-one suite. It combines a changelog/announcements widget with a feedback board, public roadmap, and surveys starting at $25/month .",
+            "refs": [1]
+          },
+          {
+            "text": "FeatureOS: Best for teams looking for deep custom domains, scheduling, multi-language support, and tight integration with feedback boards and roadmaps.",
+            "refs": [2]
+          },
+          {
+            "text": "Canny: Best for product-led teams already using it for feature voting and user feedback, though the free/lower tiers have strict user caps.",
+            "refs": [2]
+          },
+          {
+            "text": "Beamer: Best for in-app notifications and newsfeeds that pop up right inside your web application to drive high visibility.",
+            "refs": [0]
+          },
+          {
+            "text": "LaunchNotes: Best for enterprise SaaS companies needing advanced audience segmentation, stakeholder updates, and strict access controls.",
+            "refs": [0]
+          },
+          {
+            "text": "ReleaseNotes.io / Updatify: Best for developer-heavy workflows that want to auto-generate or convert git commits and pull requests directly into human-readable release notes.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Key Features to Look For"
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "In-App Widgets: Standalone pages are often ignored; look for a tool that lets you embed a notification bell or widget right inside your dashboard.",
+            "refs": [0, 1]
+          },
+          {
+            "text": "Feedback & Roadmap Loop: The top modern tools don't just broadcast updates—they connect the release back to the original customer feature request.",
+            "refs": [0, 1]
+          },
+          {
+            "text": "Automation: Git, GitHub, or Jira integrations help convert raw technical logs into customer-friendly copy via AI-assisted summaries.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "To help narrow down the best choice, tell me:",
+        "refs": []
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "How big is your team ?",
+            "refs": []
+          },
+          {
+            "text": "Do you need just a public changelog or an in-app widget and feedback board too?",
+            "refs": []
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "index": 0,
+        "title": "Top 10 Changelog & Release Notes Tools: Features, Pros ...",
+        "url": "https://www.myhospitalnow.com/blog/top-10-changelog-release-notes-tools-features-pros-cons-comparison-2/",
+        "source": "MyHospitalNow"
+      },
+      {
+        "index": 1,
+        "title": "5 Best Release Notes Software to Streamline Product Updates",
+        "url": "https://frill.co/blog/release-notes-software",
+        "source": "frill.co"
+      },
+      {
+        "index": 2,
+        "title": "Best Free Changelog Tools for Startups and Small Teams",
+        "url": "https://featureos.com/blog/best-free-changelog-tools-for-startups-or-small-teams",
+        "source": "FeatureOS"
+      },
+      {
+        "index": 3,
+        "title": "Built a changelog/release notes tool",
+        "url": "https://www.reddit.com/r/SaaS/comments/1rckbln/built_a_changelogrelease_notes_tool_looking_for/",
+        "source": "Reddit"
+      }
+    ]
+  },
+  "quotes": [
+    {
+      "engine": "chatgpt",
+      "prompt": "headway vs beamer vs launchnotes",
+      "text": "Headway — best for a simple, inexpensive changelog",
+      "collectedAt": "2026-10-07T15:21:20.726Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "best product update announcement tool for b2b saas",
+      "text": "Headway: Best lightweight, budget-friendly changelog widget for early-stage startups (Free tier available, or paid from $29/month).",
+      "collectedAt": "2026-10-07T15:36:37.593Z"
+    },
+    {
+      "engine": "chatgpt",
+      "prompt": "what should i use to publish product release notes",
+      "text": "My default recommendation: use Headway if you’re a small-to-mid-sized SaaS company.",
+      "collectedAt": "2026-10-07T15:19:36.573Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "best changelog tool for saas",
+      "text": "Start with Headway's or Featurebase's free plan and switch once you outgrow it.",
+      "collectedAt": "2026-10-07T15:19:28.222Z"
+    },
+    {
+      "engine": "claude",
+      "prompt": "what's the best public roadmap and changelog tool",
+      "text": "Headway: a simple public changelog page, free or $29/month for Pro.",
+      "collectedAt": "2026-10-07T15:20:18.137Z"
+    },
+    {
+      "engine": "ai-overview",
+      "prompt": "free changelog page for a small startup",
+      "text": "Headway: Offers a simple, clean free public changelog and a notification badge widget.",
+      "collectedAt": "2026-10-07T15:36:21.787Z"
+    }
+  ]
+}
