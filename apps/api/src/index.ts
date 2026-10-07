@@ -1,6 +1,7 @@
 import "./tcc";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { flushLogs } from "@notra/ai/evlog";
+import { shutdownAgentTraces } from "@notra/ai/utils/agent-tracing";
 import { registerDemoSocialAnalytics } from "@notra/ai/utils/demo-social";
 import { createDb } from "@notra/db/drizzle";
 import { registerGeoDemoTraffic } from "@notra/geo-core/geo/demo-traffic";
@@ -403,7 +404,11 @@ app.onError((error, c) => {
 });
 
 const apiShutdown = createApiShutdown(() =>
-  Promise.allSettled([shutdownPostHogServer(), flushLogs()])
+  Promise.allSettled([
+    shutdownPostHogServer(),
+    flushLogs(),
+    shutdownAgentTraces(),
+  ])
 );
 
 for (const signal of ["SIGTERM", "SIGINT"] as const) {

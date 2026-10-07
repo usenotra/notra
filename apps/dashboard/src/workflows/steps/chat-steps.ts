@@ -1,6 +1,4 @@
 import { calculateAiCreditCostCents } from "@notra/ai/billing/ai-credit-cost";
-
-import "@/workflows/runtime";
 import {
   allowUnmeteredAiInDevelopment,
   autumn,
@@ -56,6 +54,7 @@ import type {
   StandaloneChatWorkflowResult,
   StreamChatResponseInput,
 } from "@/types/workflows/chat";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 const LOG_PREFIX = "[Chat Workflow]";
 
@@ -63,6 +62,7 @@ export async function claimChatWorkflowRequestStep(
   requestId: string
 ): Promise<boolean> {
   "use step";
+  await registerWorkflowRuntime();
   return await claimChatWorkflowRequest(requestId);
 }
 
@@ -70,6 +70,7 @@ export async function resolveChatStreamStep(
   input: ResolveChatStreamInput
 ): Promise<ResolveChatStreamResult> {
   "use step";
+  await registerWorkflowRuntime();
   if (input.streamId) {
     const activeStreamId = await getActiveChatStream(
       input.organizationId,
@@ -94,6 +95,7 @@ export async function recheckChatBillingStep(
   input: ChatBillingRecheckInput
 ): Promise<ChatBillingRecheckResult> {
   "use step";
+  await registerWorkflowRuntime();
   if (!autumn || allowUnmeteredAiInDevelopment) {
     return { allowed: true, unavailable: false, chargeAiCredits: false };
   }
@@ -119,6 +121,7 @@ export async function rejectChatGenerationStep(
   input: RejectChatGenerationInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const { requestId, organizationId, chatId, streamId, unavailable } = input;
   logWarn(`${LOG_PREFIX} AI credit check rejected generation`, {
     requestId,
@@ -160,6 +163,7 @@ export async function streamChatResponseStep(
   input: StreamChatResponseInput
 ): Promise<StandaloneChatWorkflowResult> {
   "use step";
+  await registerWorkflowRuntime();
   const {
     requestId,
     organizationId,

@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { db } from "@notra/db/drizzle";
 import { githubIntegrations } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -17,12 +16,14 @@ import type {
   ScheduleBrandSettingsData,
   ScheduleRepositoryData,
 } from "@/types/workflows/workflows";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function markOnDemandJobRunning(input: {
   jobId?: string;
   contentType: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await setTrackedJobStatus(input.jobId, "running");
   await appendTrackedJobEvent(
     input.jobId,
@@ -38,6 +39,7 @@ export async function markOnDemandJobRunning(input: {
 
 export async function logOnDemandGenerating(jobId?: string): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await appendTrackedJobEvent(
     jobId,
     "generating_content",
@@ -51,6 +53,7 @@ export async function fetchOnDemandRepositories(input: {
   linearIntegrationIds?: string[];
 }): Promise<ScheduleRepositoryData[]> {
   "use step";
+  await registerWorkflowRuntime();
   const repos = await db
     .select({
       id: githubIntegrations.id,
@@ -98,6 +101,7 @@ export async function resolveManualBrandSettings(input: {
   brandVoiceId?: string;
 }): Promise<ScheduleBrandSettingsData> {
   "use step";
+  await registerWorkflowRuntime();
   const result = await resolveBrandVoiceForManualGeneration(
     input.organizationId,
     input.brandVoiceId
@@ -122,6 +126,7 @@ export async function finishOnDemand(
   input: FinishOnDemandInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await completeActiveGeneration(input.organizationId, {
     runId: input.runId,
     triggerId: "manual_on_demand",
@@ -192,5 +197,6 @@ export async function reconcileCollectionAttempt(input: {
   runId: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await reconcileUnsuccessfulPostCollectionAttempt(input);
 }

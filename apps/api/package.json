@@ -10,7 +10,6 @@
     "knip": "knip"
   },
   "dependencies": {
-    "@ai-sdk/otel": "1.0.105",
     "@contextcompany/otel": "^1.1.1",
     "@hono/zod-openapi": "^1.2.2",
     "@notra/ai": "workspace:*",

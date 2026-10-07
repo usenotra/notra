@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import {
   ingestSocialAccountStats,
   ingestSocialAccounts,
@@ -18,6 +17,7 @@ import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { buildAccountRow } from "@/lib/analytics/rows";
 import { collectTwitterRows } from "@/lib/analytics/twitter-sync";
 import type { SyncableSocialAccount } from "@/types/analytics";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 async function filterFlaggedOrganizations(
   accounts: SyncableSocialAccount[]
@@ -46,6 +46,7 @@ export async function listSyncableAccounts(
   organizationId?: string
 ): Promise<SyncableSocialAccount[]> {
   "use step";
+  await registerWorkflowRuntime();
   // Demo accounts are fictional and their stats are generated at read time.
   if (!isTinybirdConfigured() || isDemoMode()) {
     return [];
@@ -130,6 +131,7 @@ export async function snapshotAccountDimensions(
   accounts: SyncableSocialAccount[]
 ): Promise<number> {
   "use step";
+  await registerWorkflowRuntime();
   const capturedAt = new Date();
   const rows = accounts.map((account) => buildAccountRow(account, capturedAt));
   await ingestSocialAccounts(rows);
@@ -140,6 +142,7 @@ export async function syncTwitterAnalytics(
   accounts: SyncableSocialAccount[]
 ): Promise<{ accountStats: number; posts: number }> {
   "use step";
+  await registerWorkflowRuntime();
   const capturedAt = new Date();
   const twitterAccounts = accounts.filter(
     (account) => account.provider === "twitter"

@@ -28,7 +28,9 @@ if (process.env.NOTRA_AUTOMATION_LOG_TEST !== "1") {
     referenceId: "run-test",
     retentionDays: 30,
   };
-  mock.module("@/workflows/runtime", () => ({}));
+  mock.module("@/workflows/runtime", () => ({
+    registerWorkflowRuntime: async () => undefined,
+  }));
   mock.module("@/lib/webhooks/logging", () => ({
     appendWebhookLog: appendLog,
   }));

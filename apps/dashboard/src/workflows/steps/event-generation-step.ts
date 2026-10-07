@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { PostSourceMetadata } from "@notra/db/schema";
@@ -7,11 +6,13 @@ import { flushPostHogServer } from "@notra/posthog/server";
 import { generateEventBasedContent } from "@/lib/workflows/event/handlers";
 import type { EventGenerationStepInput } from "@/types/workflows/event-generation";
 import type { EventGenerationResult } from "@/types/workflows/workflows";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function runEventGeneration(
   input: EventGenerationStepInput
 ): Promise<EventGenerationResult> {
   "use step";
+  await registerWorkflowRuntime();
   const {
     trigger,
     repository,

@@ -1,18 +1,30 @@
-import { setLogFlushScheduler } from "@notra/ai/evlog";
-import { waitUntil } from "@vercel/functions";
+let registration: Promise<void> | undefined;
 
-import { register } from "@/instrumentation";
+async function initialize() {
+  const [
+    { setLogFlushScheduler },
+    { setAgentTraceFlushScheduler },
+    { waitUntil },
+    { register },
+  ] = await Promise.all([
+    import("@notra/ai/evlog"),
+    import("@notra/ai/utils/agent-tracing"),
+    import("@vercel/functions"),
+    import("@/instrumentation"),
+  ]);
+  setLogFlushScheduler((flush) => {
+    waitUntil(Promise.resolve().then(flush));
+  });
+  setAgentTraceFlushScheduler((flush) => {
+    waitUntil(Promise.resolve().then(flush));
+  });
+  await register();
+}
 
-/**
- * On Vercel the workflow builder emits the step routes as their own functions,
- * outside the Nitro server, so the request middleware that registers logging
- * and tracing (src/lib/framework/runtime.ts) never runs for them. Every steps
- * module imports this file for its side effects. Inside the Nitro server both
- * paths share the same singletons, so this repeats nothing.
- */
-setLogFlushScheduler((flush) => {
-  waitUntil(Promise.resolve().then(flush));
-});
-register().catch((error: unknown) => {
-  console.error("[telemetry] workflow runtime registration failed", error);
-});
+export function registerWorkflowRuntime(): Promise<void> {
+  registration ??= initialize().catch(() => {
+    registration = undefined;
+    console.error("[telemetry] workflow runtime registration failed");
+  });
+  return registration;
+}

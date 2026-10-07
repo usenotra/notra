@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { flushLogs } from "@notra/ai/evlog";
 import type {
   GitHubMentionContext,
@@ -16,12 +15,14 @@ import { processGitHubMention } from "@notra/ai/utils/github-mention-process";
 
 import { writeMentionWebhookLog } from "@/lib/webhooks/github-mention-log";
 import { startContentPublicationSyncRepair } from "@/lib/workflows/start";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function claimGitHubMentionStep(
   context: GitHubMentionContext,
   runId: string
 ) {
   "use step";
+  await registerWorkflowRuntime();
   if (!context.deliveryId) {
     throw new Error("GitHub mention delivery ID is required");
   }
@@ -30,6 +31,7 @@ export async function claimGitHubMentionStep(
 
 export async function processGitHubMentionStep(context: GitHubMentionContext) {
   "use step";
+  await registerWorkflowRuntime();
   await writeMentionWebhookLog(
     buildAcceptedMentionWebhookLog(context),
     context.deliveryId
@@ -46,6 +48,7 @@ export async function completeGitHubMentionStep(
   runId: string
 ) {
   "use step";
+  await registerWorkflowRuntime();
   if (!context.deliveryId) {
     throw new Error("GitHub mention delivery ID is required");
   }
@@ -58,6 +61,7 @@ export async function logGitHubMentionResultStep(
   durationMs: number
 ) {
   "use step";
+  await registerWorkflowRuntime();
   await writeMentionWebhookLog(
     buildMentionResultWebhookLog({ context, result, durationMs }),
     context.deliveryId

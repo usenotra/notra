@@ -1,14 +1,14 @@
 import { logWarn } from "@notra/ai/utils/server-log";
-
-import "@/workflows/runtime";
 import { runAutomaticSentiment } from "@notra/geo-core/geo/sentiment-automation";
 import type { GeoScopeInput } from "@notra/geo-core/types/geo";
 import { Effect } from "effect";
 
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function analyzeGeoSentimentStep(input: GeoScopeInput) {
   "use step";
+  await registerWorkflowRuntime();
   const result = await Effect.runPromise(
     runAutomaticSentiment(input).pipe(Effect.provide(geoCoreDashboardLayer))
   ).catch((error: unknown) => {

@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { executeAgentReadinessScan } from "@notra/geo-core/geo/agent-readiness";
 import type {
   AgentReadinessWorkflowPayload,
@@ -8,11 +7,13 @@ import { Effect } from "effect";
 
 import { trackAgentReadinessScanResult } from "@/lib/analytics/geo-workflow-events";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function runAgentReadinessScanStep(
   payload: AgentReadinessWorkflowPayload
 ): Promise<AgentReadinessWorkflowResult> {
   "use step";
+  await registerWorkflowRuntime();
   const startedAt = Date.now();
   const result = await Effect.runPromise(
     executeAgentReadinessScan(payload).pipe(

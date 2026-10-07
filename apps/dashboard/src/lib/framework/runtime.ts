@@ -1,4 +1,8 @@
 import { flushLogs, setLogFlushScheduler } from "@notra/ai/evlog";
+import {
+  flushAgentTraces,
+  setAgentTraceFlushScheduler,
+} from "@notra/ai/utils/agent-tracing";
 import { flushPostHogServer } from "@notra/posthog/server";
 import { defineMiddleware } from "nitro";
 import { onDispose } from "nitro/h3";
@@ -12,10 +16,11 @@ import {
 import { afterResponse, dashboardRequestContext } from "./after-response";
 
 setLogFlushScheduler(afterResponse);
+setAgentTraceFlushScheduler(afterResponse);
 
 export default defineMiddleware(async (event, next) => {
   onDispose(event, () =>
-    Promise.allSettled([flushLogs(), flushPostHogServer()])
+    Promise.allSettled([flushLogs(), flushPostHogServer(), flushAgentTraces()])
   );
   return await dashboardRequestContext.run(event, async () => {
     for (const [key, value] of Object.entries(getDashboardSecurityHeaders())) {

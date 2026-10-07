@@ -16,20 +16,31 @@ async function initialize() {
     registerDemoSocialAnalytics();
   }
 
-  if (process.env.NODE_ENV === "production" && process.env.TCC_API_KEY) {
-    const [
-      { TCCSpanProcessor },
-      { registerOTel },
-      { OpenTelemetry },
-      { registerTelemetry },
-    ] = await Promise.all([
-      import("@contextcompany/otel"),
-      import("@vercel/otel"),
-      import("@ai-sdk/otel"),
-      import("ai"),
-    ]);
-    registerOTel({ spanProcessors: [new TCCSpanProcessor()] });
-    registerTelemetry(new OpenTelemetry({ runtimeContext: true }));
+  try {
+    const { createAgentTraceProcessor, registerAgentTelemetry } =
+      await import("@notra/ai/utils/agent-tracing");
+    const spanProcessors = [];
+    try {
+      const processor = createAgentTraceProcessor();
+      if (processor) {
+        spanProcessors.push(processor);
+      }
+    } catch {
+      console.error(
+        "[telemetry] optional agent trace exporter initialization failed"
+      );
+    }
+    if (process.env.NODE_ENV === "production" && process.env.TCC_API_KEY) {
+      const { TCCSpanProcessor } = await import("@contextcompany/otel");
+      spanProcessors.push(new TCCSpanProcessor());
+    }
+    if (spanProcessors.length > 0) {
+      const { registerOTel } = await import("@vercel/otel");
+      registerOTel({ spanProcessors });
+      registerAgentTelemetry();
+    }
+  } catch {
+    console.error("[telemetry] agent tracing initialization failed");
   }
 }
 

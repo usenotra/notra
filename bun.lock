@@ -78,7 +78,6 @@
     "apps/api": {
       "name": "api",
       "dependencies": {
-        "@ai-sdk/otel": "1.0.105",
         "@contextcompany/otel": "^1.1.1",
         "@hono/zod-openapi": "^1.2.2",
         "@notra/ai": "workspace:*",
@@ -123,7 +122,6 @@
       "version": "0.1.0",
       "dependencies": {
         "@ai-sdk/code-mode": "1.0.62",
-        "@ai-sdk/otel": "1.0.105",
         "@ai-sdk/react": "4.0.108",
         "@aws-sdk/client-s3": "^3.1136.0",
         "@aws-sdk/s3-request-presigner": "^3.1136.0",
@@ -420,6 +418,7 @@
         "@ai-sdk/code-mode": "1.0.62",
         "@ai-sdk/gateway": "4.0.85",
         "@ai-sdk/mcp": "2.0.52",
+        "@ai-sdk/otel": "1.0.105",
         "@ai-sdk/provider": "4.0.17",
         "@aws-sdk/client-s3": "^3.1136.0",
         "@linear/sdk": "^80.0.0",
@@ -433,6 +432,10 @@
         "@notra/webhooks": "workspace:*",
         "@octokit/core": "^7.0.6",
         "@openrouter/ai-sdk-provider": "3.0.0",
+        "@opentelemetry/api": "^1.9.1",
+        "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
+        "@opentelemetry/resources": "^2.9.0",
+        "@opentelemetry/sdk-trace-base": "^2.7.0",
         "@resvg/resvg-js": "^2.6.2",
         "@supermemory/tools": "^2.3.0",
         "@upstash/box": "^0.5.0",

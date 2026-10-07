@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getLinearToolContextByIntegrationId } from "@notra/ai/integrations/linear";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
@@ -13,11 +12,13 @@ import type { ContentGenerationResult } from "@/lib/workflows/schedule/types";
 import { parseTriggerOutputConfig } from "@/lib/workflows/shared/parsing";
 import type { ScheduleGenerationStepInput } from "@/types/workflows/schedule-generation";
 import { formatTodayContext, resolveLookbackRange } from "@/utils/lookback";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 export async function runScheduledGeneration(
   input: ScheduleGenerationStepInput
 ): Promise<ContentGenerationResult> {
   "use step";
+  await registerWorkflowRuntime();
   const {
     trigger,
     lookbackWindow,

@@ -1,6 +1,4 @@
 import { runGeoWriter } from "@notra/ai/agents/geo-writer";
-
-import "@/workflows/runtime";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterResult } from "@notra/ai/types/geo-writer";
 import { logError } from "@notra/ai/utils/server-log";
@@ -30,6 +28,7 @@ import type {
   GeoWriterSkippedStepInput,
 } from "@/types/analytics/geo-events";
 import type { GeoWriterContext } from "@/types/geo";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 const BLOG_POST_CONTENT_TYPE = "blog_post";
 
@@ -40,6 +39,7 @@ export async function loadGeoWriterContext(input: {
   runId: string;
 }): Promise<GeoWriterContext | null> {
   "use step";
+  await registerWorkflowRuntime();
   const brief = await db.query.geoContentBriefs.findFirst({
     where: and(
       eq(geoContentBriefs.id, input.briefId),
@@ -112,6 +112,7 @@ export async function runGeoWriterStep(
   runId: string
 ): Promise<GeoWriterResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await runGeoWriter({
     organizationId: context.organizationId,
     projectId: context.projectId,
@@ -156,6 +157,7 @@ export async function finishGeoWriter(input: {
   humanized: boolean;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const updated = await db
     .update(geoContentBriefs)
     .set({
@@ -213,6 +215,7 @@ export async function failGeoWriter(input: {
   failureReason: GeoWriterFailureReason;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const updated = await db
     .update(geoContentBriefs)
     .set({ status: "failed", error: input.reason, completedAt: new Date() })
@@ -258,6 +261,7 @@ export async function trackGeoWriterSkipped(
   input: GeoWriterSkippedStepInput
 ): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await trackGeoWriterFailed({
     organizationId: input.organizationId,
     projectId: input.projectId,

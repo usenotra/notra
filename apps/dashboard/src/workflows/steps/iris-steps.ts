@@ -1,4 +1,3 @@
-import "@/workflows/runtime";
 import {
   ensureIrisCollection,
   executeIrisTask,
@@ -93,6 +92,7 @@ import {
   buildIrisGateInputHash,
 } from "@/utils/iris-hash";
 import { buildSignalSummaryLine } from "@/utils/iris-signal-summary";
+import { registerWorkflowRuntime } from "@/workflows/runtime";
 
 const FIRST_ATTEMPT = 1;
 
@@ -102,6 +102,7 @@ export async function claimIrisExecution(input: {
   claimToken: string;
 }): Promise<{ claimed: boolean }> {
   "use step";
+  await registerWorkflowRuntime();
   return await acquireClaim({
     scope: IRIS_CONTROLLER_CLAIM_SCOPE,
     claimKey: input.executionId,
@@ -116,6 +117,7 @@ export async function acquireIrisLease(input: {
   ownerToken: string;
 }): Promise<{ acquired: boolean; fencingToken: number | null }> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     acquireControllerLease({
       leaseName: buildControllerLeaseName(input.organizationId),
@@ -131,6 +133,7 @@ export async function renewIrisLease(input: {
   ownerToken: string;
 }): Promise<boolean> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     renewControllerLease({
       leaseName: buildControllerLeaseName(input.organizationId),
@@ -144,6 +147,7 @@ export async function isIrisMandateActive(
   organizationId: string
 ): Promise<boolean> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     loadActiveMandateRow(organizationId).pipe(Effect.map((row) => row !== null))
   );
@@ -155,6 +159,7 @@ export async function persistIrisRunCost(input: {
   costCents: number;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     updateRunCost(input).pipe(
       Effect.catch((error) =>
@@ -172,6 +177,7 @@ export async function releaseIrisLease(input: {
   ownerToken: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     releaseControllerLease({
       leaseName: buildControllerLeaseName(input.organizationId),
@@ -191,6 +197,7 @@ export async function loadIrisMandate(
   organizationId: string
 ): Promise<IrisMandateContext> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(loadIrisMandateContext(organizationId));
 }
 
@@ -198,6 +205,7 @@ export async function resolveIrisFlagForRun(
   organizationId: string
 ): Promise<IrisFlagState> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     resolveIrisFlagState(organizationId).pipe(
       Effect.tap((state) =>
@@ -215,6 +223,7 @@ export async function gatherIrisContext(
   organizationId: string
 ): Promise<IrisGatherResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     Effect.gen(function* () {
       const [
@@ -244,6 +253,7 @@ export async function pollIrisSourcesStep(input: {
   organizationId: string;
 }): Promise<IrisPollSummary> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     pollIrisSources({ organizationId: input.organizationId }).pipe(
       Effect.map((result): IrisPollSummary => ({
@@ -270,6 +280,7 @@ export async function evaluateIrisGate(input: {
   costCentsInLast24h: number;
 }): Promise<{ proceed: boolean; reason: string }> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     evaluateGate({
       mandate: input.mandate,
@@ -286,6 +297,7 @@ export async function isRepeatedIrisGateBlock(input: {
   reason: string;
 }): Promise<boolean> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     isRepeatedGateBlock(input).pipe(
       Effect.catch((error) =>
@@ -305,6 +317,7 @@ export async function createIrisRun(input: {
   trigger: AutonomyRunTrigger;
 }): Promise<{ runId: string }> {
   "use step";
+  await registerWorkflowRuntime();
   const run = await Effect.runPromise(createRun(input));
   return { runId: run.id };
 }
@@ -316,6 +329,7 @@ export async function recordIrisNoOpRun(input: {
   consumedSignalIds: string[];
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const plannerOutput: PlannerOutput = {
     contractVersion: PLANNER_CONTRACT_VERSION,
     mandate: {
@@ -364,6 +378,7 @@ export async function coalesceIrisSignals(input: {
   signalIds: string[];
 }): Promise<IrisCoalesceResult> {
   "use step";
+  await registerWorkflowRuntime();
   if (input.signalIds.length === 0) {
     return {
       primarySignalId: null,
@@ -395,6 +410,7 @@ export async function planIrisRun(input: {
   recentActionSummaries: string[];
 }): Promise<IrisPlanResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     Effect.gen(function* () {
       const invoked = yield* Effect.result(
@@ -473,6 +489,7 @@ export async function persistIrisPlan(input: {
   originSignalIds: string[];
 }): Promise<CreateGoalWithTasksResult> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(createGoalWithTasks(input));
 }
 
@@ -481,6 +498,7 @@ export async function ensureIrisRunCollection(input: {
   runId: string;
 }): Promise<{ collectionId: string }> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     ensureIrisCollection(input.organizationId, input.runId)
   );
@@ -495,6 +513,7 @@ export async function runIrisTask(input: {
   signalContext: { primarySignal: unknown; summaries: string[] };
 }): Promise<IrisTaskOutcome> {
   "use step";
+  await registerWorkflowRuntime();
   return await Effect.runPromise(
     Effect.gen(function* () {
       yield* markTask({
@@ -663,6 +682,7 @@ export async function cancelIrisTasks(input: {
   reason: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   if (input.taskIds.length === 0) {
     return;
   }
@@ -690,6 +710,7 @@ export async function finalizeIrisRun(input: {
   goalStatus: AutonomyGoalStatus | null;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     Effect.gen(function* () {
       yield* completeRun({
@@ -736,6 +757,7 @@ export async function publishIrisOutbox(input: {
   payload: IrisOutboxPayload;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     Effect.gen(function* () {
       if (!input.allowedDestinations.includes(OUTBOX_DESTINATION_SLACK)) {
@@ -781,6 +803,7 @@ export async function sweepIrisOutbox(input: {
   organizationId: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     deliverPendingOutbox(input.organizationId).pipe(
       Effect.asVoid,
@@ -799,6 +822,7 @@ export async function markIrisSignalsProcessed(input: {
   signalIds: string[];
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     markSignalsProcessed(input.organizationId, input.signalIds)
   );
@@ -809,6 +833,7 @@ export async function restoreIrisSignals(input: {
   signalIds: string[];
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     restoreSignalsToPending(input.organizationId, input.signalIds).pipe(
       Effect.catch((error) =>
@@ -823,6 +848,7 @@ export async function restoreIrisSignals(input: {
 
 export async function reapIrisExpiredClaims(): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   const reaped = await reapExpiredClaims();
   await Effect.runPromise(
     Effect.annotateLogs(Effect.logDebug("iris.claims.reapStep"), {
@@ -837,6 +863,7 @@ export async function closeOpenIrisRun(input: {
   runId: string;
 }): Promise<void> {
   "use step";
+  await registerWorkflowRuntime();
   await Effect.runPromise(
     failOpenRun(input).pipe(
       Effect.catch((error) =>
