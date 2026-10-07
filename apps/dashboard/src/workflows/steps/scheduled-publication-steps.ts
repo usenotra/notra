@@ -1,73 +1,52 @@
-import { SCHEDULED_PUBLICATION_ERROR_CODES } from "@notra/ai/constants/scheduled-publications";
+import { getBaseUrl } from "@notra/ai/qstash/triggers";
 import type {
   ScheduledPublicationFinish,
   ScheduledPublicationOutcome,
 } from "@notra/ai/types/scheduled-publications";
-import {
-  beginScheduledPublicationAttempt,
-  finishScheduledPublicationAttempt,
-} from "@notra/ai/utils/scheduled-publications";
+import { finishScheduledPublicationAttempt } from "@notra/ai/utils/scheduled-publications";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 
+import { SCHEDULED_PUBLICATION_ATTEMPT_ROUTE_PATH } from "@/constants/content-calendar";
 import { trackServerEventAndFlush } from "@/lib/analytics/posthog-server";
-import { publishScheduledDestination } from "@/lib/content/scheduled-publication-destinations";
 import { notifyScheduledPublicationFailed } from "@/lib/email/scheduled-publication";
-import type { ScheduledPublicationWorkflowInput } from "@/types/content/scheduled-publications";
+import type {
+  ScheduledPublicationAttemptResult,
+  ScheduledPublicationWorkflowInput,
+} from "@/types/content/scheduled-publications";
 
 /**
- * Publishes one claimed destination and returns the outcome without writing
- * it. Keeping the write in its own step means a database hiccup after a post
- * went out retries only the write, never the post.
+ * Publishes one claimed destination through the app and returns the outcome
+ * without writing it. Keeping the write in its own step means a database
+ * hiccup after a post went out retries only the write, never the post.
  *
- * Returns `null` when the claim is gone (canceled, or a newer sweep took the
- * row over after this run's lease expired).
+ * The publish runs behind an internal route because the destinations need
+ * app-only modules the step bundle cannot load. A failed call throws, so the
+ * step retries it; a re-run is safe, see below.
  */
 export async function runScheduledPublicationStep(
   input: ScheduledPublicationWorkflowInput
-): Promise<{
-  attempts: number;
-  destination: string;
-  organizationId: string;
-  postId: string;
-  outcome: ScheduledPublicationOutcome;
-} | null> {
+): Promise<ScheduledPublicationAttemptResult | null> {
   "use step";
-  const claim = {
-    id: input.scheduledPublicationId,
-    claimToken: input.claimToken,
-  };
-  const begun = await beginScheduledPublicationAttempt(claim);
-  if (!begun) {
-    return null;
-  }
-  const { attempt } = begun;
-  let outcome = begun.preempted;
-  if (!outcome) {
-    try {
-      outcome = await publishScheduledDestination(attempt, input.claimToken);
-    } catch (error) {
-      // Only infrastructure errors get here; destination errors are returned.
-      // The raw message stays in the log: it can carry SQL and parameters,
-      // and `lastError` is shown in the app, the API and the failure email.
-      console.error("[ScheduledPublication] Unexpected publish error", {
-        scheduledPublicationId: attempt.id,
-        error,
-      });
-      outcome = {
-        kind: "error",
-        code: SCHEDULED_PUBLICATION_ERROR_CODES.UNEXPECTED,
-        message: "Publishing failed unexpectedly.",
-        retryable: true,
-      };
+  const response = await fetch(
+    `${getBaseUrl()}${SCHEDULED_PUBLICATION_ATTEMPT_ROUTE_PATH}`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${process.env.INTERNAL_WORKFLOW_SECRET ?? ""}`,
+      },
+      body: JSON.stringify(input),
     }
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Scheduled publication attempt failed with HTTP ${response.status}`
+    );
   }
-  return {
-    attempts: attempt.attempts,
-    destination: attempt.destination,
-    organizationId: attempt.organizationId,
-    postId: attempt.postId,
-    outcome,
+  const body = (await response.json()) as {
+    result: ScheduledPublicationAttemptResult | null;
   };
+  return body.result;
 }
 
 // Destination errors are returned, so only a failed claim read throws here.

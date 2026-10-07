@@ -56,6 +56,7 @@ import { Route as ApiIntegrationsLinearAuthorizeRouteImport } from './routes/api
 import { Route as ApiIntegrationsLinearCallbackRouteImport } from './routes/api.integrations.linear.callback'
 import { Route as ApiIntegrationsSlackAuthorizeRouteImport } from './routes/api.integrations.slack.authorize'
 import { Route as ApiIntegrationsSlackCallbackRouteImport } from './routes/api.integrations.slack.callback'
+import { Route as ApiInternalContentScheduledPublicationAttemptRouteImport } from './routes/api.internal.content.scheduled-publication-attempt'
 import { Route as ApiInternalContentSyncGithubRouteImport } from './routes/api.internal.content.sync-github'
 import { Route as ApiInternalGeoSequenceRunRouteImport } from './routes/api.internal.geo.sequence-run'
 import { Route as ApiInternalGeoWriterPlanRouteImport } from './routes/api.internal.geo.writer-plan'
@@ -331,6 +332,12 @@ const ApiIntegrationsSlackCallbackRoute =
     path: '/api/integrations/slack/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiInternalContentScheduledPublicationAttemptRoute =
+  ApiInternalContentScheduledPublicationAttemptRouteImport.update({
+    id: '/api/internal/content/scheduled-publication-attempt',
+    path: '/api/internal/content/scheduled-publication-attempt',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInternalContentSyncGithubRoute =
   ApiInternalContentSyncGithubRouteImport.update({
     id: '/api/internal/content/sync-github',
@@ -524,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/api/integrations/linear/callback': typeof ApiIntegrationsLinearCallbackRoute
   '/api/integrations/slack/authorize': typeof ApiIntegrationsSlackAuthorizeRoute
   '/api/integrations/slack/callback': typeof ApiIntegrationsSlackCallbackRoute
+  '/api/internal/content/scheduled-publication-attempt': typeof ApiInternalContentScheduledPublicationAttemptRoute
   '/api/internal/content/sync-github': typeof ApiInternalContentSyncGithubRoute
   '/api/internal/geo/sequence-run': typeof ApiInternalGeoSequenceRunRoute
   '/api/internal/geo/writer-plan': typeof ApiInternalGeoWriterPlanRoute
@@ -597,6 +605,7 @@ export interface FileRoutesByTo {
   '/api/integrations/linear/callback': typeof ApiIntegrationsLinearCallbackRoute
   '/api/integrations/slack/authorize': typeof ApiIntegrationsSlackAuthorizeRoute
   '/api/integrations/slack/callback': typeof ApiIntegrationsSlackCallbackRoute
+  '/api/internal/content/scheduled-publication-attempt': typeof ApiInternalContentScheduledPublicationAttemptRoute
   '/api/internal/content/sync-github': typeof ApiInternalContentSyncGithubRoute
   '/api/internal/geo/sequence-run': typeof ApiInternalGeoSequenceRunRoute
   '/api/internal/geo/writer-plan': typeof ApiInternalGeoWriterPlanRoute
@@ -671,6 +680,7 @@ export interface FileRoutesById {
   '/api/integrations/linear/callback': typeof ApiIntegrationsLinearCallbackRoute
   '/api/integrations/slack/authorize': typeof ApiIntegrationsSlackAuthorizeRoute
   '/api/integrations/slack/callback': typeof ApiIntegrationsSlackCallbackRoute
+  '/api/internal/content/scheduled-publication-attempt': typeof ApiInternalContentScheduledPublicationAttemptRoute
   '/api/internal/content/sync-github': typeof ApiInternalContentSyncGithubRoute
   '/api/internal/geo/sequence-run': typeof ApiInternalGeoSequenceRunRoute
   '/api/internal/geo/writer-plan': typeof ApiInternalGeoWriterPlanRoute
@@ -746,6 +756,7 @@ export interface FileRouteTypes {
     | '/api/integrations/linear/callback'
     | '/api/integrations/slack/authorize'
     | '/api/integrations/slack/callback'
+    | '/api/internal/content/scheduled-publication-attempt'
     | '/api/internal/content/sync-github'
     | '/api/internal/geo/sequence-run'
     | '/api/internal/geo/writer-plan'
@@ -819,6 +830,7 @@ export interface FileRouteTypes {
     | '/api/integrations/linear/callback'
     | '/api/integrations/slack/authorize'
     | '/api/integrations/slack/callback'
+    | '/api/internal/content/scheduled-publication-attempt'
     | '/api/internal/content/sync-github'
     | '/api/internal/geo/sequence-run'
     | '/api/internal/geo/writer-plan'
@@ -892,6 +904,7 @@ export interface FileRouteTypes {
     | '/api/integrations/linear/callback'
     | '/api/integrations/slack/authorize'
     | '/api/integrations/slack/callback'
+    | '/api/internal/content/scheduled-publication-attempt'
     | '/api/internal/content/sync-github'
     | '/api/internal/geo/sequence-run'
     | '/api/internal/geo/writer-plan'
@@ -960,6 +973,7 @@ export interface RootRouteChildren {
   ApiIntegrationsLinearCallbackRoute: typeof ApiIntegrationsLinearCallbackRoute
   ApiIntegrationsSlackAuthorizeRoute: typeof ApiIntegrationsSlackAuthorizeRoute
   ApiIntegrationsSlackCallbackRoute: typeof ApiIntegrationsSlackCallbackRoute
+  ApiInternalContentScheduledPublicationAttemptRoute: typeof ApiInternalContentScheduledPublicationAttemptRoute
   ApiInternalContentSyncGithubRoute: typeof ApiInternalContentSyncGithubRoute
   ApiInternalGeoSequenceRunRoute: typeof ApiInternalGeoSequenceRunRoute
   ApiInternalGeoWriterPlanRoute: typeof ApiInternalGeoWriterPlanRoute
@@ -1310,6 +1324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiIntegrationsSlackCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/internal/content/scheduled-publication-attempt': {
+      id: '/api/internal/content/scheduled-publication-attempt'
+      path: '/api/internal/content/scheduled-publication-attempt'
+      fullPath: '/api/internal/content/scheduled-publication-attempt'
+      preLoaderRoute: typeof ApiInternalContentScheduledPublicationAttemptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/internal/content/sync-github': {
       id: '/api/internal/content/sync-github'
       path: '/api/internal/content/sync-github'
@@ -1629,6 +1650,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiIntegrationsLinearCallbackRoute: ApiIntegrationsLinearCallbackRoute,
   ApiIntegrationsSlackAuthorizeRoute: ApiIntegrationsSlackAuthorizeRoute,
   ApiIntegrationsSlackCallbackRoute: ApiIntegrationsSlackCallbackRoute,
+  ApiInternalContentScheduledPublicationAttemptRoute:
+    ApiInternalContentScheduledPublicationAttemptRoute,
   ApiInternalContentSyncGithubRoute: ApiInternalContentSyncGithubRoute,
   ApiInternalGeoSequenceRunRoute: ApiInternalGeoSequenceRunRoute,
   ApiInternalGeoWriterPlanRoute: ApiInternalGeoWriterPlanRoute,

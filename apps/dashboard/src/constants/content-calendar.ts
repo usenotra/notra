@@ -97,3 +97,7 @@ export const SCHEDULE_DIALOG_MODES = {
  * never go out noticeably before its slot.
  */
 export const SCHEDULED_PUBLICATION_WAKE_EARLY_TOLERANCE_MS = 5 * 1000;
+
+/** Internal route the workflow step publishes a claimed row through. */
+export const SCHEDULED_PUBLICATION_ATTEMPT_ROUTE_PATH =
+  "/api/internal/content/scheduled-publication-attempt";
