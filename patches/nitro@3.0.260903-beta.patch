@@ -1,0 +1,16 @@
+diff --git a/dist/_presets.mjs b/dist/_presets.mjs
+index a46af14535d5731594378acd32bf57b44a8c9631..a64babebd620f1e4d1645d41bd684e28c17134b6 100644
+--- a/dist/_presets.mjs
++++ b/dist/_presets.mjs
+@@ -1481,7 +1481,10 @@ function generateBuildConfig(nitro, o11Routes) {
+ 					status: routeRules.redirect.status,
+ 					headers: { Location: routeRules.redirect.to.replace("**", "$1") }
+ 				});
+-				if (routeRules.headers) route = defu(route, { headers: routeRules.headers });
++				if (routeRules.headers) {
++					route = defu(route, { headers: routeRules.headers });
++					if (!routeRules.redirect) route.continue = true;
++				}
+ 				return route;
+ 			}),
+ 			...rules.filter((entry) => cdnProxyPaths.has(entry[0])).map(([path, routeRules]) => {

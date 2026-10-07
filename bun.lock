@@ -741,6 +741,7 @@
   ],
   "patchedDependencies": {
     "evlog@2.28.1": "patches/evlog@2.28.1.patch",
+    "nitro@3.0.260903-beta": "patches/nitro@3.0.260903-beta.patch",
     "eve@0.58.1": "patches/eve@0.58.1.patch",
     "@tanstack/start-plugin-core@1.171.49": "patches/@tanstack%2Fstart-plugin-core@1.171.49.patch",
     "@workflow/nitro@4.1.14": "patches/@workflow%2Fnitro@4.1.14.patch",
