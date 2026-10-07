@@ -1,0 +1,37 @@
+apps/dashboard/src/components/evilcharts/ui/echarts-tooltip.tsx
+  s_9afdfa27a4636c::t_6dc95a504b5076 570,582
+apps/dashboard/src/components/evilcharts/ui/echarts-scrub.ts
+  s_9afdfa27a4636c::t_90667202bf5608 150,172,264
+apps/dashboard/messages/de.json
+  s_9afdfa27a4636c::t_d1ae7629cd99c1 3454
+apps/dashboard/messages/en.json
+  s_9afdfa27a4636c::t_d1ae7629cd99c1 3454
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_9afdfa27a4636c::t_1df3c3ae71df43 218-223,923-925,1971,1973,2019-2021,2025,2071,2177,2720-2723,2753-2754,2756,2758-2792,2794-2809,2811-2812,2828-2829,2834-2850,2853-2855,2857-2871,2964-2966,2968-2970
+  s_9afdfa27a4636c::t_6b0852edf302bf 242,1972,1978,2755,2793,2818,2830-2832
+  s_9afdfa27a4636c::t_90667202bf5608 2757
+  s_9afdfa27a4636c::t_4f1621b8c5f981 2810,2813,2819-2827,2856,2967
+  s_9afdfa27a4636c::t_45cd9adb6679b5 1979,2026,2178,2814-2817,2851-2852
+apps/dashboard/src/components/geo/traffic-hero.tsx
+  s_9afdfa27a4636c::t_baa84a5e8a9d04 14,17-20,145-151,193-199,201-202,204-212,215-217,219-222,224,229-230,305-307,309-323
+  s_9afdfa27a4636c::t_afa20619b3bb54 331-332
+  s_9afdfa27a4636c::t_4f1621b8c5f981 231-233
+  s_9afdfa27a4636c::t_7f164e1b652525 203,214,218,223,226-228,234,308
+  s_9afdfa27a4636c::t_a9f8b13e9af6d8 225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4003dc4d9374cd578cc9495cb6564dbfada384aa",
+  "prompts": {},
+  "sessions": {
+    "s_9afdfa27a4636c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6630c7d9-0dc9-44c2-8103-cd4c7cce6b26",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
