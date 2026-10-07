@@ -72,3 +72,113 @@ test("native WorkOS operations preserve PKCE, session persistence, and logout wi
   expect(child.stderr).toBe("");
   expect(child.status).toBe(0);
 });
+
+test("a new session authenticates the next request after replacing both cookie scopes", () => {
+  const script = `
+    import { mock } from "bun:test";
+    import assert from "node:assert/strict";
+    import { createRequire } from "node:module";
+    import { dirname } from "node:path";
+    import * as start from "@tanstack/react-start";
+    import * as server from "@tanstack/react-start/server";
+    const require = createRequire(import.meta.url);
+    const { SignJWT, exportJWK, generateKeyPair } = await import(require.resolve("jose", {
+      paths: [dirname(require.resolve("@workos/authkit-session"))],
+    }));
+    const { privateKey, publicKey } = await generateKeyPair("RS256");
+    const jwk = { ...await exportJWK(publicKey), kid: "fixture-key", alg: "RS256" };
+    globalThis.fetch = async (url) => {
+      assert.equal(new URL(String(url)).pathname, "/sso/jwks/client_local_fixture");
+      return Response.json({ keys: [jwk] });
+    };
+    let context;
+    let cleanupEnabled = false;
+    const jar = new Map();
+    const hostDeletes = [];
+    mock.module("@tanstack/react-start", () => ({ ...start, getGlobalStartContext: () => context }));
+    mock.module("@tanstack/react-start/server", () => ({
+      ...server,
+      getRequest: () => context.request,
+      deleteCookie: (name, options) => {
+        assert.equal(name, "wos-session");
+        assert.equal(options.path, "/");
+        hostDeletes.push(options);
+        if (cleanupEnabled) jar.delete(options.domain ?? "host");
+      },
+    }));
+    const { dashboardAuthMiddleware } = await import("./src/middleware/auth.ts");
+    const { saveAuthSession, signOutAuthSession } = await import("./src/lib/auth/workos.ts");
+    const { clearAuthSessionCookie, clearHostAuthSessionCookie } = await import("./src/lib/auth/session-cookie.ts");
+    const session = {
+      accessToken: await new SignJWT({ sid: "session_fixture" }).setProtectedHeader({ alg: "RS256", kid: "fixture-key" }).setSubject("user_fixture").setIssuedAt().setExpirationTime("1h").sign(privateKey),
+      refreshToken: "fixture-refresh",
+      user: { id: "user_fixture" },
+    };
+    const invoke = async (path, downstream) => {
+      const request = new Request("https://app.fixture.invalid" + path, {
+        headers: { cookie: Array.from(jar.values()).join("; ") },
+      });
+      return dashboardAuthMiddleware.options.server({
+        request, pathname: path, handlerType: "serverFn",
+        next: async (options) => {
+          context = options.context;
+          await downstream();
+          return { response: new Response("ok") };
+        },
+      });
+    };
+    const signIn = async () => {
+      const result = await invoke("/_serverFn/mfa", () => saveAuthSession(session));
+      const cookie = result.response.headers.getSetCookie().find(value => value.startsWith("wos-session=") && !value.includes("Max-Age=0"));
+      assert.ok(cookie?.includes("Domain=.fixture.invalid"));
+      assert.ok(cookie.includes("HttpOnly") && cookie.includes("Secure") && cookie.includes("SameSite=Lax"));
+      jar.set(".fixture.invalid", cookie.split(";")[0]);
+    };
+    jar.set(".fixture.invalid", "wos-session=stale-domain");
+    jar.set("host", "wos-session=stale-host");
+    await signIn();
+    await invoke("/callback", () => assert.equal(context.auth().user, null));
+    cleanupEnabled = true;
+    for (const scopes of [["host", ".fixture.invalid"], [".fixture.invalid", "host"]]) {
+      jar.clear();
+      for (const scope of scopes) jar.set(scope, "wos-session=stale");
+      await signIn();
+      assert.ok(!jar.has("host"));
+      await invoke("/callback", () => {
+        assert.equal(context.auth().user.id, "user_fixture");
+        assert.equal(context.auth().sessionId, "session_fixture");
+      });
+    }
+    await invoke("/_serverFn/logout", async () => {
+      jar.set("host", "wos-session=legacy");
+      let logout;
+      try { await signOutAuthSession(); } catch (error) { logout = error; }
+      assert.ok(logout.options.href.includes("session_id=session_fixture"));
+    }).then(result => {
+      assert.ok(result.response.headers.getSetCookie().some(cookie => cookie.includes("Domain=.fixture.invalid") && cookie.includes("Max-Age=0")));
+    });
+    assert.ok(!jar.has("host"));
+    jar.set("host", "wos-session=legacy");
+    await clearAuthSessionCookie();
+    assert.equal(jar.size, 0);
+    process.env.WORKOS_COOKIE_DOMAIN = "app.fixture.invalid";
+    const deleted = hostDeletes.length;
+    clearHostAuthSessionCookie();
+    assert.equal(hostDeletes.length, deleted);
+  `;
+  const child = spawnSync(process.execPath, ["--eval", script], {
+    cwd: fileURLToPath(new URL("../../..", import.meta.url)),
+    env: {
+      PATH: process.env.PATH,
+      NODE_ENV: "test",
+      WORKOS_API_KEY: "sk_test_local_fixture_only",
+      WORKOS_CLIENT_ID: "client_local_fixture",
+      WORKOS_COOKIE_PASSWORD: "local-test-cookie-password-with-32-characters",
+      WORKOS_REDIRECT_URI: "https://app.fixture.invalid/auth/callback",
+      WORKOS_COOKIE_DOMAIN: ".fixture.invalid",
+    },
+    encoding: "utf8",
+  });
+  expect(child.stderr).toBe("");
+  expect(child.status).toBe(0);
+});

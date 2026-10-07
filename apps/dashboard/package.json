@@ -82,7 +82,7 @@
     "@vercel/oidc": "^3.8.0",
     "@vercel/otel": "^2.1.2",
     "@workos-inc/node": "^10.13.0",
-    "@workos/authkit-session": "0.7.0",
+    "@workos/authkit-session": "0.7.1",
     "@workos/authkit-tanstack-react-start": "0.11.1",
     "ai": "7.0.105",
     "autumn-js": "^1.2.7",
