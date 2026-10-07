@@ -1,0 +1,78 @@
+apps/dashboard/src/utils/chart-tooltip-size.ts
+  s_9afdfa27a4636c::t_1c08c4e241f258 6-10,14-15,21,25-33,41
+apps/dashboard/src/components/evilcharts/ui/echarts-scrub.ts
+  s_9afdfa27a4636c::t_8f0d36248194f9 10,19-20,248-249
+apps/dashboard/messages/en.json
+  s_9afdfa27a4636c::t_c05b4145c970d1 3453
+apps/dashboard/src/components/evilcharts/ui/echarts-tooltip.tsx
+  s_9afdfa27a4636c::t_f8bb5c00eeb6c9 539-544,567,581
+  s_9afdfa27a4636c::t_f97a5001657a73 224-236,251,257,344,387,599
+  s_9afdfa27a4636c::t_880f5fbf3b43c9 268,545-557,574-580,582-587
+  s_9afdfa27a4636c::t_39819ad51b500c 269-324
+  s_9afdfa27a4636c::t_b9055c2f98d773 429
+  s_9afdfa27a4636c::t_56f4e64473ae1a 237-250,252-256,258-267
+  s_9afdfa27a4636c::t_8ca43808a568bd 558-566,568-573
+apps/dashboard/src/components/geo/daily-trend-chart.tsx
+  s_9afdfa27a4636c::t_78c2942e9a142d 40,52
+apps/dashboard/src/components/geo/directions/direction-donut.tsx
+  s_9afdfa27a4636c::t_7b76506b11da4c 42-43
+  s_9afdfa27a4636c::t_78c2942e9a142d 6-10
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_9afdfa27a4636c::t_56f4e64473ae1a 72,416,554,1193-1202,1204
+  s_9afdfa27a4636c::t_880f5fbf3b43c9 74,338,1182-1184,1188
+  s_9afdfa27a4636c::t_aa278489b6eb73 417,555,1203
+  s_9afdfa27a4636c::t_feced186f1fee0 145,836
+  s_9afdfa27a4636c::t_a076338389e2f0 917,1490-1492,1577-1579,1581-1582,1587,1718,1723,1741-1742,1745,2496,2500-2512,2514
+  s_9afdfa27a4636c::t_39819ad51b500c 71,1172-1177
+  s_9afdfa27a4636c::t_8f0d36248194f9 920,2594-2595,2599-2600
+  s_9afdfa27a4636c::t_557c771af4cf4a 1626-1631
+  s_9afdfa27a4636c::t_c38e9a7809bb6c 1947-1948
+  s_9afdfa27a4636c::t_19a0271b3c2982 251,368,497,756-757,785-786,799,803,1668-1674,1831-1837
+  s_9afdfa27a4636c::t_9f8669076277c4 671-672,690-691,779-780
+  s_9afdfa27a4636c::t_8a77d9d96c7224 144,339
+apps/dashboard/messages/de.json
+  s_9afdfa27a4636c::t_c05b4145c970d1 3453
+apps/dashboard/src/components/ai/chat-tool-block/tool-output-chart.tsx
+  s_9afdfa27a4636c::t_7b76506b11da4c 20,200-201
+  s_9afdfa27a4636c::t_78c2942e9a142d 23
+apps/dashboard/src/components/geo/traffic-hero.tsx
+  s_9afdfa27a4636c::t_880f5fbf3b43c9 311
+  s_9afdfa27a4636c::t_5455bc545a025d 312,321
+  s_9afdfa27a4636c::t_0f297fef1e5427 48,168-170,177-185,293,299-303
+  s_9afdfa27a4636c::t_0ea9bb030a4fd7 313
+  s_9afdfa27a4636c::t_39819ad51b500c 57
+  s_9afdfa27a4636c::t_21889674a4a26d 58
+  s_9afdfa27a4636c::t_ef58599319c20f 21,56,194,266
+apps/dashboard/src/components/evilcharts/charts/echarts-line-chart.tsx
+  s_9afdfa27a4636c::t_c4215787c2a243 512
+  s_9afdfa27a4636c::t_feced186f1fee0 557,611,617-620,1030,1078,1247,1317,1351
+apps/dashboard/src/components/analytics/impressions-share-card.tsx
+  s_9afdfa27a4636c::t_78c2942e9a142d 12-17
+  s_9afdfa27a4636c::t_7b76506b11da4c 101-102
+apps/dashboard/src/utils/chart-series.ts
+  s_9afdfa27a4636c::t_557c771af4cf4a 1-17
+apps/dashboard/src/constants/charts.ts
+  s_9afdfa27a4636c::t_ef58599319c20f 15-20
+  s_9afdfa27a4636c::t_7b76506b11da4c 66-67
+apps/dashboard/src/constants/design-system-traffic.ts
+  s_9afdfa27a4636c::t_f91e0a3d6a76a6 46-50,53-60,92
+  s_9afdfa27a4636c::t_c05b4145c970d1 38-41,43-45,61,86-91,93-97,102-106,122-130
+  s_9afdfa27a4636c::t_99c2e58e2bd803 3,28-37,42,51-52,62-85,109,111-121,131-132,137
+  s_9afdfa27a4636c::t_559b6ae28365d5 98-101,107-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e4397f9af18858403cc8e902c823d4a0da2c4790",
+  "prompts": {},
+  "sessions": {
+    "s_9afdfa27a4636c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6630c7d9-0dc9-44c2-8103-cd4c7cce6b26",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
