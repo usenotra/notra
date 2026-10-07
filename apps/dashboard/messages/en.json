@@ -140,8 +140,8 @@
             "description": "Get notified when generation is skipped"
           },
           "dailySummary": {
-            "label": "Daily recap",
-            "description": "Get one email each morning with yesterday's mention rate and what changed. Quiet days are skipped."
+            "label": "Weekly recap",
+            "description": "Get one email each Monday with last week's visibility, what changed and how competitors moved. Plus an alert if visibility drops sharply."
           },
           "marketingEmails": {
             "description": "Receive emails about new features, tips and announcements"
@@ -1140,8 +1140,8 @@
         "description": "New features, tips and announcements."
       },
       "dailySummary": {
-        "label": "Daily GEO recap",
-        "description": "One morning email with yesterday's mention rate and what changed."
+        "label": "Weekly GEO recap",
+        "description": "One email each Monday with last week's visibility and what changed."
       }
     },
     "logoField": {

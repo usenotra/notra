@@ -24,7 +24,7 @@ import { Route as ApiBrandFontCssRouteImport } from './routes/api.brand-font.css
 import { Route as ApiBrandFontFileRouteImport } from './routes/api.brand-font.file'
 import { Route as ApiCommandPaletteNavigateRouteImport } from './routes/api.command-palette.navigate'
 import { Route as ApiCronBrewContactsRouteImport } from './routes/api.cron.brew-contacts'
-import { Route as ApiCronDailySummaryRouteImport } from './routes/api.cron.daily-summary'
+import { Route as ApiCronGeoRecapRouteImport } from './routes/api.cron.geo-recap'
 import { Route as ApiCronGeoContentGapsRouteImport } from './routes/api.cron.geo-content-gaps'
 import { Route as ApiCronGeoScanRouteImport } from './routes/api.cron.geo-scan'
 import { Route as ApiCronMonitoringRouteImport } from './routes/api.cron.monitoring'
@@ -159,9 +159,9 @@ const ApiCronBrewContactsRoute = ApiCronBrewContactsRouteImport.update({
   path: '/api/cron/brew-contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCronDailySummaryRoute = ApiCronDailySummaryRouteImport.update({
-  id: '/api/cron/daily-summary',
-  path: '/api/cron/daily-summary',
+const ApiCronGeoRecapRoute = ApiCronGeoRecapRouteImport.update({
+  id: '/api/cron/geo-recap',
+  path: '/api/cron/geo-recap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronGeoContentGapsRoute = ApiCronGeoContentGapsRouteImport.update({
@@ -499,7 +499,7 @@ export interface FileRoutesByFullPath {
   '/api/brand-font/file': typeof ApiBrandFontFileRoute
   '/api/command-palette/navigate': typeof ApiCommandPaletteNavigateRoute
   '/api/cron/brew-contacts': typeof ApiCronBrewContactsRoute
-  '/api/cron/daily-summary': typeof ApiCronDailySummaryRoute
+  '/api/cron/geo-recap': typeof ApiCronGeoRecapRoute
   '/api/cron/geo-content-gaps': typeof ApiCronGeoContentGapsRoute
   '/api/cron/geo-scan': typeof ApiCronGeoScanRoute
   '/api/cron/monitoring': typeof ApiCronMonitoringRoute
@@ -573,7 +573,7 @@ export interface FileRoutesByTo {
   '/api/brand-font/file': typeof ApiBrandFontFileRoute
   '/api/command-palette/navigate': typeof ApiCommandPaletteNavigateRoute
   '/api/cron/brew-contacts': typeof ApiCronBrewContactsRoute
-  '/api/cron/daily-summary': typeof ApiCronDailySummaryRoute
+  '/api/cron/geo-recap': typeof ApiCronGeoRecapRoute
   '/api/cron/geo-content-gaps': typeof ApiCronGeoContentGapsRoute
   '/api/cron/geo-scan': typeof ApiCronGeoScanRoute
   '/api/cron/monitoring': typeof ApiCronMonitoringRoute
@@ -648,7 +648,7 @@ export interface FileRoutesById {
   '/api/brand-font/file': typeof ApiBrandFontFileRoute
   '/api/command-palette/navigate': typeof ApiCommandPaletteNavigateRoute
   '/api/cron/brew-contacts': typeof ApiCronBrewContactsRoute
-  '/api/cron/daily-summary': typeof ApiCronDailySummaryRoute
+  '/api/cron/geo-recap': typeof ApiCronGeoRecapRoute
   '/api/cron/geo-content-gaps': typeof ApiCronGeoContentGapsRoute
   '/api/cron/geo-scan': typeof ApiCronGeoScanRoute
   '/api/cron/monitoring': typeof ApiCronMonitoringRoute
@@ -724,7 +724,7 @@ export interface FileRouteTypes {
     | '/api/brand-font/file'
     | '/api/command-palette/navigate'
     | '/api/cron/brew-contacts'
-    | '/api/cron/daily-summary'
+    | '/api/cron/geo-recap'
     | '/api/cron/geo-content-gaps'
     | '/api/cron/geo-scan'
     | '/api/cron/monitoring'
@@ -798,7 +798,7 @@ export interface FileRouteTypes {
     | '/api/brand-font/file'
     | '/api/command-palette/navigate'
     | '/api/cron/brew-contacts'
-    | '/api/cron/daily-summary'
+    | '/api/cron/geo-recap'
     | '/api/cron/geo-content-gaps'
     | '/api/cron/geo-scan'
     | '/api/cron/monitoring'
@@ -872,7 +872,7 @@ export interface FileRouteTypes {
     | '/api/brand-font/file'
     | '/api/command-palette/navigate'
     | '/api/cron/brew-contacts'
-    | '/api/cron/daily-summary'
+    | '/api/cron/geo-recap'
     | '/api/cron/geo-content-gaps'
     | '/api/cron/geo-scan'
     | '/api/cron/monitoring'
@@ -947,7 +947,7 @@ export interface RootRouteChildren {
   ApiBrandFontFileRoute: typeof ApiBrandFontFileRoute
   ApiCommandPaletteNavigateRoute: typeof ApiCommandPaletteNavigateRoute
   ApiCronBrewContactsRoute: typeof ApiCronBrewContactsRoute
-  ApiCronDailySummaryRoute: typeof ApiCronDailySummaryRoute
+  ApiCronGeoRecapRoute: typeof ApiCronGeoRecapRoute
   ApiCronGeoContentGapsRoute: typeof ApiCronGeoContentGapsRoute
   ApiCronGeoScanRoute: typeof ApiCronGeoScanRoute
   ApiCronMonitoringRoute: typeof ApiCronMonitoringRoute
@@ -1100,11 +1100,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronBrewContactsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/cron/daily-summary': {
-      id: '/api/cron/daily-summary'
-      path: '/api/cron/daily-summary'
-      fullPath: '/api/cron/daily-summary'
-      preLoaderRoute: typeof ApiCronDailySummaryRouteImport
+    '/api/cron/geo-recap': {
+      id: '/api/cron/geo-recap'
+      path: '/api/cron/geo-recap'
+      fullPath: '/api/cron/geo-recap'
+      preLoaderRoute: typeof ApiCronGeoRecapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/geo-content-gaps': {
@@ -1621,7 +1621,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBrandFontFileRoute: ApiBrandFontFileRoute,
   ApiCommandPaletteNavigateRoute: ApiCommandPaletteNavigateRoute,
   ApiCronBrewContactsRoute: ApiCronBrewContactsRoute,
-  ApiCronDailySummaryRoute: ApiCronDailySummaryRoute,
+  ApiCronGeoRecapRoute: ApiCronGeoRecapRoute,
   ApiCronGeoContentGapsRoute: ApiCronGeoContentGapsRoute,
   ApiCronGeoScanRoute: ApiCronGeoScanRoute,
   ApiCronMonitoringRoute: ApiCronMonitoringRoute,

@@ -25,7 +25,7 @@
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/daily-summary",
+      "path": "/api/cron/geo-recap",
       "schedule": "0 8 * * *"
     },
     {

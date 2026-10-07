@@ -1,10 +1,10 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
 
-import { runDailySummaryCron } from "@/lib/email/daily-summary";
+import { runGeoRecapCron } from "@/lib/email/geo-recap";
 
 /**
- * Vercel Cron entry point for opt-in GEO daily summary emails. Quiet or
- * unchanged days are skipped so owners only hear from us when GEO moved.
+ * Vercel Cron entry point for opt-in GEO recap emails: the weekly recap on
+ * Mondays, and on other days an alert only when visibility drops sharply.
  */
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -21,6 +21,6 @@ export async function GET(request: Request) {
     return new Response(null, { status: 204 });
   }
 
-  const result = await runDailySummaryCron();
+  const result = await runGeoRecapCron();
   return Response.json(result, { status: result.failed > 0 ? 500 : 200 });
 }

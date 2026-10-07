@@ -140,8 +140,8 @@
             "description": "Benachrichtigung erhalten, wenn die Generierung übersprungen wird"
           },
           "dailySummary": {
-            "label": "Tägliche Zusammenfassung",
-            "description": "Erhalte jeden Morgen eine E-Mail mit der gestrigen Erwähnungsrate und den Änderungen. Ruhige Tage werden übersprungen."
+            "label": "Wöchentliche Zusammenfassung",
+            "description": "Erhalte jeden Montag eine E-Mail mit der Sichtbarkeit der letzten Woche, den Änderungen und der Entwicklung der Konkurrenz. Dazu eine Warnung, wenn die Sichtbarkeit stark sinkt."
           },
           "marketingEmails": {
             "description": "E-Mails zu neuen Funktionen, Tipps und Ankündigungen erhalten"
@@ -1140,8 +1140,8 @@
         "description": "Neue Funktionen, Tipps und Ankündigungen."
       },
       "dailySummary": {
-        "label": "Täglicher GEO-Überblick",
-        "description": "Eine E-Mail am Morgen mit der Erwähnungsrate von gestern und den Änderungen."
+        "label": "Wöchentlicher GEO-Überblick",
+        "description": "Eine E-Mail jeden Montag mit der Sichtbarkeit der letzten Woche und den Änderungen."
       }
     },
     "logoField": {

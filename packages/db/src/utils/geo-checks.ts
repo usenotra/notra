@@ -28,6 +28,10 @@ import type {
   GeoCheckLanguageShareRow,
   GeoCheckLanguageShareTrendRow,
   GeoCheckOverviewRow,
+  GeoCheckPeriod,
+  GeoCheckPeriodCompetitorRow,
+  GeoCheckPeriodInput,
+  GeoCheckPeriodPromptRow,
   GeoCheckPromptHistoryQuery,
   GeoCheckPromptHistoryRow,
   GeoCheckPromptResultRow,
@@ -1225,4 +1229,99 @@ export async function queryGeoScanComparison(
   }
 
   return { previousScan, currentScan, previous, current };
+}
+
+function periodFilters(input: GeoCheckPeriodInput): SQL {
+  return and(
+    eq(geoMentionChecks.organizationId, input.organizationId),
+    gte(geoMentionChecks.capturedAt, input.from),
+    lt(geoMentionChecks.capturedAt, input.toExclusive),
+    ...mentionOptionFilters(PROMPT_LEVEL_FILTERS)
+  ) as SQL;
+}
+
+function checkPeriod(splitAt: Date) {
+  return sql<GeoCheckPeriod>`case when ${geoMentionChecks.capturedAt} >= ${splitAt} then 'current' else 'previous' end`;
+}
+
+/**
+ * Per tracked prompt and engine, how often the brand was mentioned in each of
+ * two back-to-back periods. Recaps compare these rates instead of single scans
+ * because one answer per scan flips on LLM sampling alone.
+ */
+export async function queryGeoCheckPeriodPrompts(
+  input: GeoCheckPeriodInput
+): Promise<GeoCheckPeriodPromptRow[]> {
+  const period = checkPeriod(input.splitAt);
+  const rows = await db
+    .select({
+      period,
+      projectId: geoMentionChecks.projectId,
+      promptId: geoMentionChecks.promptId,
+      engine: geoMentionChecks.engine,
+      prompt: sql<string>`max(${geoMentionChecks.prompt})`,
+      checks: countChecks,
+      mentions: countChecksWhere(isMentioned),
+      avgPosition: sql<
+        number | null
+      >`round(avg(${geoMentionChecks.position}) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.position} is not null), 1)::float8`,
+    })
+    .from(geoMentionChecks)
+    .where(periodFilters(input))
+    // Ordinal: a repeated `period` binds `splitAt` again, and Postgres treats
+    // the two parameters as different expressions.
+    .groupBy(
+      sql`1`,
+      geoMentionChecks.projectId,
+      geoMentionChecks.promptId,
+      geoMentionChecks.engine
+    );
+
+  return rows.map((row) => ({
+    period: row.period,
+    projectId: row.projectId,
+    promptId: row.promptId,
+    engine: row.engine,
+    prompt: row.prompt,
+    checks: toNumber(row.checks),
+    mentions: toNumber(row.mentions),
+    avgPosition: toNullableNumber(row.avgPosition),
+  }));
+}
+
+/** Competitor mentions per tracked prompt and engine, split like above. */
+export async function queryGeoCheckPeriodCompetitors(
+  input: GeoCheckPeriodInput
+): Promise<GeoCheckPeriodCompetitorRow[]> {
+  const period = checkPeriod(input.splitAt);
+  const rows = await db
+    .select({
+      period,
+      projectId: geoMentionChecks.projectId,
+      promptId: geoMentionChecks.promptId,
+      engine: geoMentionChecks.engine,
+      brand: competitorBrand,
+      checks: countChecks,
+    })
+    .from(geoMentionChecks)
+    .crossJoinLateral(unnestedCompetitorBrand)
+    .where(periodFilters(input))
+    // Ordinal: a repeated `period` binds `splitAt` again, and Postgres treats
+    // the two parameters as different expressions.
+    .groupBy(
+      sql`1`,
+      geoMentionChecks.projectId,
+      geoMentionChecks.promptId,
+      geoMentionChecks.engine,
+      competitorBrand
+    );
+
+  return rows.map((row) => ({
+    period: row.period,
+    projectId: row.projectId,
+    promptId: row.promptId,
+    engine: row.engine,
+    brand: row.brand,
+    checks: toNumber(row.checks),
+  }));
 }

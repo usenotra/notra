@@ -280,3 +280,33 @@ export interface GeoCheckScanComparisonInput {
   projectId: string;
   window?: { from: Date; toExclusive: Date };
 }
+
+export type GeoCheckPeriod = "previous" | "current";
+
+export interface GeoCheckPeriodInput {
+  organizationId: string;
+  from: Date;
+  /** Checks captured at or after this belong to the current period. */
+  splitAt: Date;
+  toExclusive: Date;
+}
+
+export interface GeoCheckPeriodPromptRow {
+  period: GeoCheckPeriod;
+  projectId: string;
+  promptId: string;
+  engine: string;
+  prompt: string;
+  checks: number;
+  mentions: number;
+  avgPosition: number | null;
+}
+
+export interface GeoCheckPeriodCompetitorRow {
+  period: GeoCheckPeriod;
+  projectId: string;
+  promptId: string;
+  engine: string;
+  brand: string;
+  checks: number;
+}
