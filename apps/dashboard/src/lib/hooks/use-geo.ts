@@ -74,6 +74,7 @@ import type { GeoScanTrigger } from "@/types/analytics/geo-events";
 import type {
   GeoGenerateFromWebsiteInput,
   GeoPromptSuggestionsResponse,
+  GeoPromptTableRow,
   GeoRangeQuery,
   GeoSettingsUpsertOptions,
   GeoSuggestionIdInput,
@@ -85,6 +86,10 @@ import { toErrorMessage } from "@/utils/error-message";
 import { geoCompetitorDetailPath } from "@/utils/geo-competitors";
 import { describeGeoImportResult } from "@/utils/geo-import";
 import { withGeoProject } from "@/utils/geo-paths";
+import {
+  latestPromptResults,
+  withoutSupersededNoSearchResults,
+} from "@/utils/geo-prompt-history";
 import {
   geoOverviewQueryInput,
   geoSettingsQueryInput,
@@ -98,6 +103,7 @@ import {
   refreshSettingsAfterScanStart,
 } from "@/utils/geo-scan-results";
 import { formatGscSiteUrl } from "@/utils/gsc-site-url";
+import { loadGeoPromptAnswerThread } from "@/utils/prompt-answer-thread-chunk";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useScopedPreviousData } from "./use-scoped-previous-data";
@@ -347,6 +353,53 @@ export function useGeoPromptResultDetail(
     // requests and throw away work that is useful when they switch back.
     queryFn: () => dashboardOrpc.geo.promptResultDetail.call(input),
   });
+}
+
+/**
+ * Warms a stored answer before it is shown. Shares the query key with
+ * `useGeoPromptResultDetail`, so the switch reads from cache.
+ */
+export function usePrefetchGeoPromptResultDetail(organizationId: string) {
+  const queryClient = useQueryClient();
+  return (checkId: string | null | undefined) => {
+    if (!organizationId || !checkId) {
+      return;
+    }
+    const input = { organizationId, checkId };
+    void queryClient.prefetchQuery({
+      ...dashboardOrpc.geo.promptResultDetail.queryOptions({ input }),
+      staleTime: Number.POSITIVE_INFINITY,
+    });
+  };
+}
+
+/**
+ * Warms what the prompt sheet needs first: its history and the answer it
+ * opens on. Meant for pointer/focus intent on a prompt row.
+ */
+export function usePrefetchGeoPromptAnswer(organizationId: string) {
+  const queryClient = useQueryClient();
+  const { projectId } = useGeoProjectScope();
+  const prefetchDetail = usePrefetchGeoPromptResultDetail(organizationId);
+  return (row: GeoPromptTableRow) => {
+    if (!organizationId) {
+      return;
+    }
+    const promptId = row.results[0]?.promptId ?? row.id;
+    void queryClient.prefetchQuery(
+      dashboardOrpc.geo.promptHistory.queryOptions({
+        input: { organizationId, projectId, promptId },
+      })
+    );
+    prefetchDetail(
+      withoutSupersededNoSearchResults(
+        latestPromptResults(row.results, [], promptId, row.prompt)
+      )[0]?.checkId
+    );
+    // The raw answer's markdown renderer, so "Raw answer" opens without a
+    // skeleton.
+    loadGeoPromptAnswerThread().catch(() => undefined);
+  };
 }
 
 export function useGeoPromptHistory(

@@ -30,13 +30,11 @@ export function PromptAnswerContent({
   const { result } = state;
   const promptText = prompt ?? result.prompt;
 
-  return (
-    <>
-      <div
-        className={
-          view === "raw" ? "flex min-h-full flex-1 flex-col" : "hidden"
-        }
-      >
+  // Only the visible view renders: the raw answer is a full markdown parse,
+  // and keeping it mounted behind Analysis re-parsed it on every engine switch.
+  if (view === "raw") {
+    return (
+      <div className="flex min-h-full flex-1 flex-col">
         <LazyGeoPromptAnswerThread
           organizationId={organizationId}
           prompt={promptText}
@@ -44,18 +42,19 @@ export function PromptAnswerContent({
           scrollable={scrollable}
         />
       </div>
-      <div className={view === "analysis" ? undefined : "hidden"}>
-        <PromptReceiptAnalysis
-          scrollable={scrollable}
-          showHistory={showHistory}
-          competitors={competitors}
-          history={history}
-          isHistoryLoading={isHistoryLoading}
-          onSelectCheck={onSelectCheck}
-          prompt={promptText}
-          result={result}
-        />
-      </div>
-    </>
+    );
+  }
+
+  return (
+    <PromptReceiptAnalysis
+      scrollable={scrollable}
+      showHistory={showHistory}
+      competitors={competitors}
+      history={history}
+      isHistoryLoading={isHistoryLoading}
+      onSelectCheck={onSelectCheck}
+      prompt={promptText}
+      result={result}
+    />
   );
 }

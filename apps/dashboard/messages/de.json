@@ -3143,9 +3143,7 @@
       "unavailable": "Diese Antwort ist nicht mehr verfügbar. Aktualisiere die Ergebnisse, um eine andere Antwort auszuwählen."
     },
     "promptEngineSwitcher": {
-      "engine": "KI-Engine: {engine}",
-      "previous": "Vorherige KI-Engine",
-      "next": "Nächste KI-Engine"
+      "engine": "KI-Engine: {engine}"
     },
     "promptKeywordTextarea": {
       "metricsAria": "Search-Console-Werte für {query}: {impressions} Impressionen, {clicks} Klicks, Position {position}",

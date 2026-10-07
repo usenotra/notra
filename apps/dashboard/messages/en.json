@@ -3143,9 +3143,7 @@
       "unavailable": "This answer is no longer available. Refresh the results to select another answer."
     },
     "promptEngineSwitcher": {
-      "engine": "Engine: {engine}",
-      "previous": "Previous engine",
-      "next": "Next engine"
+      "engine": "Engine: {engine}"
     },
     "promptKeywordTextarea": {
       "metricsAria": "Search Console metrics for {query}: {impressions} impressions, {clicks} clicks, position {position}",
