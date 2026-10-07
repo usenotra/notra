@@ -52,10 +52,7 @@ import {
   SITE_DEPLOYMENT_ENVIRONMENT_FILTERS,
   SITE_DEPLOYMENT_STATUS_FILTERS,
 } from "@/constants/sites";
-import {
-  useDeployLatest,
-  useSiteDeploymentsList,
-} from "@/lib/hooks/use-site-deployments";
+import { useDeployLatest } from "@/lib/hooks/use-site-deployments";
 import { useRouter, useSearchParams } from "@/lib/navigation";
 import type {
   SiteDeployment,
@@ -77,7 +74,6 @@ export function SiteDeploymentsPage() {
   const tDetail = useTranslations("sites.detail");
   const tKinds = useTranslations("sites.kinds");
   const scope = { organizationId, siteId };
-  const listQuery = useSiteDeploymentsList(scope);
   const deployLatest = useDeployLatest(scope);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -105,7 +101,7 @@ export function SiteDeploymentsPage() {
       { scroll: false }
     );
   };
-  const deployments: SiteDeployment[] = listQuery.data ?? detail.deployments;
+  const deployments: SiteDeployment[] = detail.deployments;
   const visible = deployments.filter(
     (deployment) =>
       deploymentMatchesFilters(deployment, filters) &&
@@ -321,7 +317,7 @@ export function SiteDeploymentsPage() {
         organizationId={organizationId}
         organizationSlug={organizationSlug}
         pageSize={SITE_DEPLOYMENTS_PAGE_SIZE}
-        previewRows={sitePreviewRows({ ...detail, deployments })}
+        previewRows={sitePreviewRows(detail)}
         siteId={siteId}
         withActions
       />

@@ -2,41 +2,16 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
-import {
-  SITE_ACTIVE_POLL_INTERVAL_MS,
-  SITE_DEPLOYMENTS_PAGE_LIMIT,
-  SITE_IDLE_POLL_INTERVAL_MS,
-} from "@/constants/sites";
+import { SITE_ACTIVE_POLL_INTERVAL_MS } from "@/constants/sites";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   SitePollingQuery,
   UseSiteDeploymentParams,
 } from "@/types/hooks/sites";
-import type {
-  SiteDeployment,
-  SiteDeploymentDetail,
-  SiteScope,
-} from "@/types/sites";
+import type { SiteDeploymentDetail, SiteScope } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
-import {
-  hasDeploymentInProgress,
-  isDeploymentInProgress,
-} from "@/utils/site-deployments";
-
-export function useSiteDeploymentsList({ organizationId, siteId }: SiteScope) {
-  return useQuery(
-    dashboardOrpc.sites.deployments.list.queryOptions({
-      input: { organizationId, siteId, limit: SITE_DEPLOYMENTS_PAGE_LIMIT },
-      enabled: organizationId.length > 0,
-      refetchInterval: (query: SitePollingQuery<SiteDeployment[]>) =>
-        hasDeploymentInProgress(query.state.data ?? [])
-          ? SITE_ACTIVE_POLL_INTERVAL_MS
-          : SITE_IDLE_POLL_INTERVAL_MS,
-      refetchIntervalInBackground: false,
-    })
-  );
-}
+import { isDeploymentInProgress } from "@/utils/site-deployments";
 
 export function useSiteDeployment({
   organizationId,

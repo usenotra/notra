@@ -23,10 +23,7 @@ import {
   SITE_RECENT_DEPLOYMENTS_LIMIT,
   SITE_TABLE_COMPACT_EMPTY_HEIGHT,
 } from "@/constants/sites";
-import {
-  useDeployLatest,
-  useSiteDeploymentsList,
-} from "@/lib/hooks/use-site-deployments";
+import { useDeployLatest } from "@/lib/hooks/use-site-deployments";
 import type {
   SiteUpdatedLineProps,
   SiteViewAllLinkProps,
@@ -77,8 +74,7 @@ export function SiteOverviewPage() {
   const { site } = detail;
   const suspended = site.status === "suspended";
   const deployLatest = useDeployLatest({ organizationId, siteId });
-  const deploymentsList = useSiteDeploymentsList({ organizationId, siteId });
-  const deployments = deploymentsList.data ?? detail.deployments;
+  const deployments = detail.deployments;
   const previews = sitePreviewRows(detail);
   const latestProduction =
     detail.deployments.find((deployment) => deployment.kind === "production") ??

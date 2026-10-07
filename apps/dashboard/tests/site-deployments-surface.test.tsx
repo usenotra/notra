@@ -24,7 +24,7 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   });
 } else {
   let environment: string | null = null;
-  let deployments = [
+  const deployments = [
     { id: "production", kind: "production", status: "ready" },
     {
       id: "preview",
@@ -37,7 +37,7 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   ] as SiteDeployment[];
   const detail = {
     site: { status: "active", productionBranch: "main" },
-    deployments: [],
+    deployments,
     previews: [
       {
         previewKey: "branch-old",
@@ -62,7 +62,6 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
     }),
   }));
   mock.module("../src/lib/hooks/use-site-deployments", () => ({
-    useSiteDeploymentsList: () => ({ data: deployments }),
     useDeployLatest: () => ({ isPending: false, mutate: () => undefined }),
   }));
   mock.module("../src/lib/navigation", () => ({
@@ -130,7 +129,7 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   });
 
   test("empty history retains environment filters and preview management", () => {
-    deployments = [];
+    detail.deployments = [];
     environment = "preview";
     const html = render();
     expect(html).toContain(

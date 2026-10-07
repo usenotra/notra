@@ -91,7 +91,7 @@ export function useRebaseSiteDrafts({
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (paths: string[]) => {
-      await Promise.all(
+      const results = await Promise.allSettled(
         paths.map((path) =>
           dashboardOrpc.sites.editor.rebaseDraft.call({
             organizationId,
@@ -100,19 +100,39 @@ export function useRebaseSiteDrafts({
           })
         )
       );
-    },
-    onSuccess: async () => {
-      onRebased();
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: dashboardOrpc.sites.editor.files.queryKey({
-            input: { organizationId, siteId },
-          }),
-        }),
+      const readOptions = paths.map((path) =>
+        dashboardOrpc.sites.editor.read.queryOptions({
+          input: { organizationId, siteId, path },
+        })
+      );
+      const filesOptions = dashboardOrpc.sites.editor.files.queryOptions({
+        input: { organizationId, siteId },
+      });
+      await Promise.all(
+        [filesOptions, ...readOptions].map(async (options) => {
+          const filter = { queryKey: options.queryKey, exact: true };
+          await queryClient.cancelQueries(filter);
+          await queryClient.resetQueries(filter);
+        })
+      );
+      const refreshed = await Promise.allSettled([
+        ...readOptions.map((options) =>
+          queryClient.fetchQuery({ ...options, staleTime: Infinity })
+        ),
+        queryClient.fetchQuery({ ...filesOptions, staleTime: Infinity }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.sites.get.key(),
         }),
       ]);
+      const failure = [...results, ...refreshed].find(
+        (result) => result.status === "rejected"
+      );
+      if (failure?.status === "rejected") {
+        throw failure.reason;
+      }
+    },
+    onSuccess: () => {
+      onRebased();
       toast.success(t("conflict.rebased"));
     },
     onError: (error) => {
