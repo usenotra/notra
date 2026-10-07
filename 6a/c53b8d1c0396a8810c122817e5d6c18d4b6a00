@@ -1,0 +1,34 @@
+apps/dashboard/src/routeTree.gen.ts
+  s_400beee9e2f793::t_1dacb93c980b6b 59,335-340,534,608,683,759,833,907,976,1327-1333,1653-1654
+apps/dashboard/src/workflows/steps/scheduled-publication-steps.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 1,6,9,12-15,18-20,22-24,28,30-38,40-44,46-47,49
+apps/dashboard/src/lib/content/scheduled-publication-attempt.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 1-57
+apps/dashboard/src/constants/content-calendar.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 100-103
+apps/dashboard/src/app/api/internal/content/scheduled-publication-attempt/route.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 1-24
+packages/schemas/src/schemas/dashboard/workflows/scheduled-publication-wake.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 13-18
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 33-40
+  s_400beee9e2f793::t_f0daa4979f124a 1-2
+apps/dashboard/src/routes/api.internal.content.scheduled-publication-attempt.ts
+  s_400beee9e2f793::t_47080ef1dfc3b3 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6ac53b8d1c0396a8810c122817e5d6c18d4b6a00",
+  "prompts": {},
+  "sessions": {
+    "s_400beee9e2f793": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "842aa7a2-98a5-41fe-a43c-39fd5d5e24aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
