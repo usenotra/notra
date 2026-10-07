@@ -1,55 +1,10 @@
-import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
-import { getGitHubWebhookIntegrations } from "@notra/ai/utils/github-webhook-integration";
 import { logError } from "@notra/ai/utils/server-log";
-import type { InputIntegrationType } from "@notra/schemas/dashboard/integrations";
 import { webhookParamsWithRepoSchema } from "@notra/schemas/dashboard/webhooks";
 
-import { handleGitHubWebhook } from "@/lib/webhooks/github";
-import { handleLinearWebhook } from "@/lib/webhooks/linear";
-import type { WebhookContext, WebhookHandler } from "@/types/webhooks/webhooks";
+import { WEBHOOK_HANDLERS } from "@/constants/webhook-handlers";
+import type { WebhookRouteContext } from "@/types/webhooks/webhooks";
 
-interface RouteContext {
-  params: Promise<{
-    provider: string;
-    organizationId: string;
-    integrationId: string;
-    repositoryId: string;
-  }>;
-}
-
-const WEBHOOK_HANDLERS: Record<InputIntegrationType, WebhookHandler | null> = {
-  github: handleGitHubWebhook,
-  linear: handleLinearWebhook,
-  slack: null,
-  granola: null,
-  "google-search-console": null,
-};
-
-type IntegrationFetcher = (
-  integrationId: string
-) => Promise<{ organizationId: string; enabled: boolean } | null | undefined>;
-
-const INTEGRATION_FETCHERS: Record<
-  InputIntegrationType,
-  IntegrationFetcher | null
-> = {
-  github: null,
-  linear: async (integrationId) => {
-    const integration = await getLinearIntegrationById(integrationId);
-    if (!integration) {
-      return null;
-    }
-    return {
-      organizationId: integration.organizationId,
-      enabled: integration.enabled,
-    };
-  },
-  slack: null,
-  granola: null,
-  "google-search-console": null,
-};
-
-export async function POST(request: Request, { params }: RouteContext) {
+export async function POST(request: Request, { params }: WebhookRouteContext) {
   const rawParams = await params;
 
   const validation = webhookParamsWithRepoSchema.safeParse(rawParams);
@@ -63,11 +18,9 @@ export async function POST(request: Request, { params }: RouteContext) {
     );
   }
 
-  const { provider, organizationId, integrationId, repositoryId } =
-    validation.data;
-
-  const fetcher = INTEGRATION_FETCHERS[provider];
-  if (provider !== "github" && !fetcher) {
+  const { provider } = validation.data;
+  const handler = WEBHOOK_HANDLERS[provider];
+  if (!handler) {
     return Response.json(
       { error: `Provider ${provider} is not yet supported` },
       { status: 501 }
@@ -75,75 +28,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   try {
-    const githubRecords =
-      provider === "github"
-        ? await getGitHubWebhookIntegrations(integrationId, repositoryId)
-        : undefined;
-    const integration =
-      provider === "github"
-        ? githubRecords?.find((record) => record.id === integrationId)
-        : await fetcher?.(integrationId);
-
-    if (!integration) {
-      return Response.json({ error: "Integration not found" }, { status: 404 });
-    }
-
-    if (integration.organizationId !== organizationId) {
-      return Response.json(
-        { error: "Integration does not belong to this organization" },
-        { status: 403 }
-      );
-    }
-
-    if (!integration.enabled) {
-      return Response.json(
-        { error: "Integration is disabled" },
-        { status: 403 }
-      );
-    }
-
-    if (provider === "github") {
-      const repository = githubRecords?.find(
-        (record) => record.id === repositoryId
-      );
-      if (!repository) {
-        return Response.json(
-          { error: "Repository not found" },
-          { status: 404 }
-        );
-      }
-
-      if (repository.id !== integrationId) {
-        return Response.json(
-          { error: "Repository does not belong to this integration" },
-          { status: 403 }
-        );
-      }
-    }
-
-    const handler = WEBHOOK_HANDLERS[provider];
-    if (!handler) {
-      return Response.json(
-        { error: `Webhook handler for ${provider} is not yet implemented` },
-        { status: 501 }
-      );
-    }
-
-    const rawBody = await request.text();
-
-    const context: WebhookContext = {
-      provider,
-      organizationId,
-      integrationId,
-      repositoryId,
-      request,
-      rawBody,
-      encryptedGitHubWebhookSecret: githubRecords?.find(
-        (record) => record.id === repositoryId
-      )?.encryptedWebhookSecret,
-    };
-
-    return await handler(context);
+    return await handler({ ...validation.data, request });
   } catch (error) {
     logError("Webhook processing error", error);
     return Response.json(

@@ -7,8 +7,20 @@ export interface WebhookContext {
   integrationId: string;
   repositoryId: string;
   request: Request;
-  rawBody: string;
-  encryptedGitHubWebhookSecret?: string | null;
+}
+
+export interface WebhookRouteContext {
+  params: Promise<{
+    provider: string;
+    organizationId: string;
+    integrationId: string;
+    repositoryId: string;
+  }>;
+}
+
+export interface WebhookIntegrationAccess {
+  organizationId: string;
+  enabled: boolean;
 }
 
 export type WebhookHandler = (

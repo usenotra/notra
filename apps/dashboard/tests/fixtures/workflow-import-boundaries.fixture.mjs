@@ -1,6 +1,24 @@
 import assert from "node:assert/strict";
+import { readFile, readdir } from "node:fs/promises";
 
-import { build } from "bun";
+import { build, Transpiler } from "bun";
+
+const transpiler = new Transpiler({ loader: "ts" });
+for (const file of await readdir("src/workflows")) {
+  if (!file.endsWith(".ts")) {
+    continue;
+  }
+  const imports = transpiler.scanImports(
+    await readFile(`src/workflows/${file}`, "utf8")
+  );
+  for (const { path } of imports) {
+    assert.ok(
+      path !== "@notra/ai/billing/content-billing" &&
+        path !== "@notra/geo-core/schemas/geo",
+      `${file} imports ${path} into replay instead of a narrow pure module`
+    );
+  }
+}
 
 const result = await build({
   entrypoints: [
