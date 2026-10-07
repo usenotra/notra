@@ -90,8 +90,44 @@
   &[data-side="bottom"] {
     --sheet-exit-y: calc(100% + 1rem);
   }
+  /*
+   * A sheet covered by a sheet opened from inside it slides left, at its own
+   * width, until 10rem of it clears the one on top, and dims. Only transform
+   * moves, so its content never reflows. Widths come from SheetContent
+   * (--sheet-rest-width, --sheet-child-width); a plain dialog sets no child
+   * width, so the sheet only nudges 0.5rem. The left edge stays 1rem in.
+   */
   &[data-side="right"][data-nested-dialog-open]:not([data-ending-style]) {
-    transform: translateX(-0.5rem) scale(0.98);
+    transform: translateX(
+      calc(
+        -1 *
+          max(
+            0.5rem,
+            min(
+              var(--sheet-child-width, 0px) + 10rem -
+                var(--sheet-rest-width, 0px),
+              100vw - 1.5rem - var(--sheet-rest-width, 0px)
+            )
+          )
+      )
+    );
+  }
+  &[data-side="right"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    border-radius: inherit;
+    background: rgb(0 0 0 / 0.07);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-duration-slow) var(--ease-emphasized);
+  }
+  &[data-side="right"]:is(.dark *)::after {
+    background: rgb(0 0 0 / 0.35);
+  }
+  &[data-side="right"][data-nested-dialog-open]:not([data-ending-style])::after {
+    opacity: 1;
   }
   &[data-starting-style],
   &[data-ending-style] {
