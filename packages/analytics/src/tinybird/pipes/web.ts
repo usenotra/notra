@@ -334,12 +334,14 @@ export const webAudience = defineEndpoint("web_audience", {
             {{String(dimension, 'country')}} = 'os', os,
             country
           ) AS value,
-          uniqMerge(visitors_state) AS visitors,
-          countMerge(views_state) AS views
+          uniqMergeIf(visitors_state, (${GEO_DAY_CURRENT_CONDITION})) AS visitors,
+          uniqMergeIf(visitors_state, (${GEO_DAY_PREVIOUS_CONDITION})) AS previous_visitors,
+          countMergeIf(views_state, (${GEO_DAY_CURRENT_CONDITION})) AS views
         FROM web_audience_daily
         ${WEB_PAGES_WHERE}
-          ${GEO_DAY_WINDOW_SQL}
+          ${GEO_DAY_COMPARISON_WINDOW_SQL}
         GROUP BY value
+        HAVING visitors > 0
         ORDER BY visitors DESC, value ASC
         LIMIT {{Int32(limit, 10)}}
       `,
@@ -348,6 +350,7 @@ export const webAudience = defineEndpoint("web_audience", {
   output: {
     value: t.string(),
     visitors: t.uint64(),
+    previous_visitors: t.uint64(),
     views: t.uint64(),
   },
 });

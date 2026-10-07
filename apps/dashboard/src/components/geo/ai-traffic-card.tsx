@@ -40,6 +40,7 @@ import {
   buildTrafficGroupSeries,
   groupTrafficSources,
   trafficGroupKey,
+  trafficGroupPathsAreLowerBound,
 } from "@/utils/ai-traffic-groups";
 
 export function AiTrafficCard({
@@ -144,6 +145,7 @@ export function AiTrafficCard({
         header: tShared("visits"),
         width: visitsSize,
         minWidth: visitsSize,
+        align: "right",
         sortable: true,
         cell: (row) => {
           const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
@@ -151,7 +153,7 @@ export function AiTrafficCard({
             series !== undefined && series.length >= GEO_SPARKLINE_MIN_POINTS;
 
           return (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-end gap-2">
               {showSpark ? (
                 <GeoRateSparkline
                   className={GEO_SPARKLINE_TREND_CLASS[sparklineTrend(series)]}
@@ -159,7 +161,7 @@ export function AiTrafficCard({
                   points={series}
                 />
               ) : null}
-              <span className="text-sm tabular-nums">
+              <span className="min-w-8 text-right text-sm tabular-nums">
                 <AnimatedNumber locale={locale} value={row.visits} />
               </span>
             </span>
@@ -172,7 +174,7 @@ export function AiTrafficCard({
       next.push(
         {
           key: "paths",
-          header: tShared("pages"),
+          header: tShared("paths"),
           collapsePriority: 1,
           width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
           minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
@@ -180,6 +182,7 @@ export function AiTrafficCard({
           align: "right",
           cell: (row) => (
             <span className="text-sm tabular-nums">
+              {trafficGroupPathsAreLowerBound(row) ? "≥ " : null}
               <AnimatedNumber locale={locale} value={row.paths} />
             </span>
           ),
@@ -203,7 +206,7 @@ export function AiTrafficCard({
     return next;
   }, [isMobile, locale, seriesByGroup, t, tCommon, tShared]);
 
-  if (sources.length === 0) {
+  if (groups.length === 0) {
     return (
       <InstrumentSection eyebrow={tCommon("labels.sources")}>
         <InstrumentEmpty

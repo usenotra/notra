@@ -1,6 +1,5 @@
 "use client";
 
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
 import {
   DataTable,
@@ -8,6 +7,8 @@ import {
 } from "@notra/ui/components/ui/data-table";
 import { useLocale, useTranslations } from "use-intl";
 
+import { GeoCountCell } from "@/components/geo/geo-count-cell";
+import { GEO_COUNT_COLUMN_WIDTH } from "@/constants/geo-table";
 import { WEB_TABLE_ROW_HEIGHT } from "@/constants/web-analytics";
 import type { WebBreakdownRow, WebBreakdownTableProps } from "@/types/geo";
 import { formatChartInteger } from "@/utils/geo-charts";
@@ -22,7 +23,6 @@ export function WebBreakdownTable({
 }: WebBreakdownTableProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
-  const max = Math.max(...rows.map((row) => row.value), 1);
   const columns: TableColumn<WebBreakdownRow>[] = [
     {
       key: "name",
@@ -56,15 +56,16 @@ export function WebBreakdownTable({
   columns.push({
     key: "value",
     header: valueHeader,
-    width: "9rem",
+    width: GEO_COUNT_COLUMN_WIDTH,
+    align: "right",
     sortable: true,
     cell: (row) => (
-      <span className="flex items-center gap-2">
-        <GeoBar className="w-14 shrink-0" max={max} value={row.value} />
-        <span className="text-sm tabular-nums">
-          {formatChartInteger(row.value, locale)}
-        </span>
-      </span>
+      <GeoCountCell
+        label={row.sortLabel}
+        previousValue={row.previous}
+        unavailableHint={t("comparisonUnavailable")}
+        value={row.value}
+      />
     ),
     sortValue: (row) => row.value,
   });

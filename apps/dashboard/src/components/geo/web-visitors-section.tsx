@@ -1,5 +1,7 @@
 "use client";
 
+import { DeviceAccessIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_EMPTY_TRAFFIC_RESPONSE } from "@notra/geo-core/constants/geo";
 import {
   toGeoTrafficPreviousTotals,
@@ -10,11 +12,11 @@ import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { useLocale, useTranslations } from "use-intl";
 
-import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { CountryFlag } from "@/components/geo/twemoji";
 import { WebBreakdownTable } from "@/components/geo/web-breakdown-table";
 import { WebOutcomesTable } from "@/components/geo/web-outcomes-table";
+import { WebReferrerIcon } from "@/components/geo/web-referrer-icon";
 import { WebTrendChart } from "@/components/geo/web-trend-chart";
 import {
   TRAFFIC_HERO_FRAME_CLASS,
@@ -23,7 +25,7 @@ import {
   TRAFFIC_HERO_METRICS_GRID_CLASS,
   TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
-import { WEB_LIST_LIMIT } from "@/constants/web-analytics";
+import { WEB_DEVICE_ICONS, WEB_LIST_LIMIT } from "@/constants/web-analytics";
 import type {
   WebBreakdownRow,
   WebMetricProps,
@@ -87,6 +89,7 @@ export function WebVisitorsSection({
         ),
         sortLabel: url,
         value: page.views,
+        previous: page.previousViews,
         fromAi: page.aiVisitors,
       };
     });
@@ -98,14 +101,13 @@ export function WebVisitorsSection({
         key: `${source.group}:${source.source}`,
         label: (
           <>
-            {source.group === "ai" ? (
-              <EngineIcon className="size-3.5" engine={source.source} />
-            ) : null}
+            <WebReferrerIcon source={source} />
             <span className="truncate">{name}</span>
           </>
         ),
         sortLabel: name,
         value: source.sessions,
+        previous: source.previousSessions,
       };
     });
   const countryRows: WebBreakdownRow[] = web.countries.map((row) => {
@@ -124,6 +126,7 @@ export function WebVisitorsSection({
       ),
       sortLabel: name,
       value: row.visitors,
+      previous: row.previousVisitors,
     };
   });
   const deviceLabels: Record<string, string> = {
@@ -133,11 +136,24 @@ export function WebVisitorsSection({
   };
   const deviceRows: WebBreakdownRow[] = web.devices.map((row) => {
     const name = deviceLabels[row.value] ?? row.value;
+    const icon = Object.hasOwn(WEB_DEVICE_ICONS, row.value)
+      ? (WEB_DEVICE_ICONS[row.value] ?? DeviceAccessIcon)
+      : DeviceAccessIcon;
     return {
       key: row.value,
-      label: <span className="truncate">{name}</span>,
+      label: (
+        <>
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="text-muted-foreground size-3.5 shrink-0"
+            icon={icon}
+          />
+          <span className="truncate">{name}</span>
+        </>
+      ),
       sortLabel: name,
       value: row.visitors,
+      previous: row.previousVisitors,
     };
   });
 

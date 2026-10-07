@@ -5,6 +5,7 @@ import type {
   AiTrafficResponse,
   WebAnalyticsOutcome,
   WebAnalyticsResponse,
+  WebAnalyticsSource,
   GeoAnswerSource,
   GeoChangeEvent,
   GeoChangesSummary,
@@ -162,7 +163,6 @@ export interface TrafficPageViewProps {
   geoRange: GeoRangeControl;
   traffic: AiTrafficResponse | undefined;
   isTrafficPending: boolean;
-  inventoryPages: readonly GeoTrafficPage[];
   knownHosts: readonly string[];
   isPagesPending: boolean;
   trafficPages: readonly GeoTrafficPage[];
@@ -594,10 +594,11 @@ export interface DailyTrendChartProps {
   label: string;
 }
 
-export interface JourneyCountCellProps {
+export interface GeoCountCellProps {
   label: string;
-  journeys: number;
-  previousJourneys: number;
+  value: number;
+  previousValue?: number | null;
+  unavailableHint?: string;
 }
 
 export interface JourneyPathPillProps {
@@ -1855,11 +1856,16 @@ export interface WebOutcomesTableProps {
   outcomes: readonly WebAnalyticsOutcome[];
 }
 
+export interface WebReferrerIconProps {
+  source: WebAnalyticsSource;
+}
+
 export interface WebBreakdownRow {
   key: string;
   label: ReactNode;
   sortLabel: string;
   value: number;
+  previous?: number | null;
   fromAi?: number;
 }
 
@@ -1873,10 +1879,4 @@ export interface WebBreakdownTableProps {
 
 export interface TrafficDomainSelectProps {
   hosts: readonly string[];
-}
-
-export interface VisitorTrackingToggleProps {
-  organizationId: string;
-  enabled: boolean;
-  siteCounts: boolean;
 }

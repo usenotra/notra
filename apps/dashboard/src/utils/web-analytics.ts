@@ -103,20 +103,9 @@ export function webHostsForSelect(
 }
 
 export function hasWebAnalytics(
-  web: WebAnalyticsResponse | undefined,
-  host = ""
+  web: WebAnalyticsResponse | undefined
 ): boolean {
-  if (!web) {
-    return false;
-  }
-  if (web.totals.views > 0) {
-    return true;
-  }
-  const selected = trafficLogHostFilter(host);
-  if (selected.length > 0) {
-    return webHostsForSelect(web).includes(selected);
-  }
-  return web.tracking;
+  return (web?.totals.views ?? 0) > 0;
 }
 
 export function webSourceName(
@@ -129,7 +118,9 @@ export function webSourceName(
   if (source.group === "ai") {
     return formatGeoSource(source.source);
   }
-  return WEB_SOURCE_LABELS[source.source] ?? source.source;
+  return Object.hasOwn(WEB_SOURCE_LABELS, source.source)
+    ? (WEB_SOURCE_LABELS[source.source] ?? source.source)
+    : source.source;
 }
 
 export function webTableHeight(rowCount: number): number {

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
+import type { WebPageViewRow } from "@notra/analytics/tinybird/datasources";
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import type { Ratelimit } from "@upstash/ratelimit";
 import { Effect } from "effect";
@@ -44,13 +45,11 @@ const loadOrganizationSitePrefixes = mock(
   async (): Promise<{ host: string; mounts: string[] }[] | null> => []
 );
 const resolveJourneyId = mock(() => ({ journeyId: "journey_1", path: "/" }));
-const ingestWebPageViews = mock(async () => ({
+const ingestWebPageViews = mock(async (_rows: WebPageViewRow[]) => ({
   successful_rows: 1,
   quarantined_rows: 0,
 }));
-const isVisitorTrackingEnabled = mock(async (identity: GeoIngestIdentity) =>
-  Boolean(identity.site)
-);
+const webRatelimitLimit = mock(async () => ({ success: true }));
 
 mock.module("@notra/analytics/tinybird/client", () => ({
   ingestGeoTrafficEvents,
@@ -82,11 +81,8 @@ mock.module("../src/ingest/journey", () => ({
 }));
 mock.module("../src/ingest/ratelimit", () => ({
   geoIngestRatelimit: { limit: ratelimitLimit },
-  webIngestRatelimit: { limit: async () => ({ success: true }) },
+  webIngestRatelimit: { limit: webRatelimitLimit },
   geoIngestAdmissionRatelimit: { limit: async () => ({ success: true }) },
-}));
-mock.module("../src/ingest/web-tracking", () => ({
-  isVisitorTrackingEnabled,
 }));
 
 const { runGeoIngest } = await import("../src/ingest/pipeline");
@@ -131,6 +127,8 @@ describe("runGeoIngest ordering", () => {
       m.mockClear();
     }
     ingestWebPageViews.mockClear();
+    webRatelimitLimit.mockClear();
+    webRatelimitLimit.mockImplementation(async () => ({ success: true }));
     verifyGeoIngestToken.mockClear();
     verifyGeoIngestToken.mockImplementation(() => ({
       organizationId: "org_1",
@@ -346,6 +344,133 @@ describe("runGeoIngest ordering", () => {
       referrer_source: "google",
       browser: "Chrome",
     });
+  });
+
+  test("the SDK automatically counts valid human page views without an opt-in lookup", async () => {
+    const outcome = await run(
+      ingestRequest({
+        method: "GET",
+        url: "https://example.com/pricing",
+        userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+      })
+    );
+    expect(outcome).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "ingested", visitorType: "human" },
+    });
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
+    expect(ingestWebPageViews).toHaveBeenCalledTimes(1);
+    expect(ingestWebPageViews.mock.calls[0]?.[0]).toMatchObject([
+      {
+        organization_id: "org_1",
+        project_id: "proj_1",
+        site_id: "",
+        host: "example.com",
+        path: "/pricing",
+      },
+    ]);
+  });
+
+  test("automatic human counting still rejects revoked tokens and ignores wrong hosts", async () => {
+    const page = {
+      method: "GET",
+      url: "https://example.com/",
+      userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+    };
+    isGeoIngestIdentityActive.mockImplementation(async () => false);
+    const revoked = await run(ingestRequest(page));
+    expect(revoked._tag === "Failure" && revoked.failure).toBeInstanceOf(
+      GeoIngestInvalidTokenError
+    );
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
+    isGeoIngestIdentityActive.mockImplementation(async () => true);
+    loadIngestAllowedHosts.mockImplementation(async () => ["other.example"]);
+    expect(await run(ingestRequest(page))).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "host" },
+    });
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { userAgent: "Mozilla/5.0 (compatible; Googlebot/2.1)" },
+    {
+      signals: {
+        clientHints: true,
+        fetchMode: "navigate",
+        tracing: false,
+        prefetch: true,
+      },
+    },
+    { url: "https://example.com/llms.txt" },
+    { method: "POST" },
+    { status: 302 },
+  ])(
+    "automatic human counting filters non-page traffic %j",
+    async (override) => {
+      expect(
+        await run(
+          ingestRequest({
+            method: "GET",
+            url: "https://example.com/",
+            userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+            ...override,
+          })
+        )
+      ).toMatchObject({
+        _tag: "Success",
+        success: { outcome: "dropped", reason: "visitor_type" },
+      });
+      expect(ingestWebPageViews).not.toHaveBeenCalled();
+      expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
+      expect(loadIngestAllowedHosts).not.toHaveBeenCalled();
+    }
+  );
+
+  test("automatic human counting retains the independent web admission limit", async () => {
+    webRatelimitLimit.mockImplementation(async () => ({ success: false }));
+    expect(
+      await run(
+        ingestRequest({
+          method: "GET",
+          url: "https://example.com/",
+          userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+        })
+      )
+    ).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "web_rate_limited" },
+    });
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
+    expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
+    expect(ratelimitLimit).not.toHaveBeenCalled();
+  });
+
+  test("legacy SDK tokens count humans only after validating their scoped host", async () => {
+    verifyGeoIngestToken.mockImplementation(() => ({
+      organizationId: "org_1",
+      projectId: null,
+      generation: 1,
+    }));
+    const page = {
+      method: "GET",
+      url: "https://example.com/",
+      userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+    };
+    expect(await run(ingestRequest(page))).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "ingested", projectId: null },
+    });
+    expect(ingestWebPageViews.mock.calls[0]?.[0]).toMatchObject([
+      { organization_id: "org_1", project_id: "", host: "example.com" },
+    ]);
+    ingestWebPageViews.mockClear();
+    loadIngestAllowedHosts.mockImplementation(async () => null);
+    const unavailable = await run(ingestRequest(page));
+    expect(
+      unavailable._tag === "Failure" && unavailable.failure
+    ).toBeInstanceOf(GeoIngestFailedError);
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
   });
 
   test("a forged or orphaned site token is a 401", async () => {

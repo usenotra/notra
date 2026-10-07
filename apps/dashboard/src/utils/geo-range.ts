@@ -6,6 +6,7 @@ import {
   GEO_RANGE_PRESETS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoRangePreset } from "@notra/geo-core/types/geo";
+import type { DateRange } from "react-day-picker";
 
 import type { GeoDateRange, GeoRangeQuery, GeoRangeState } from "@/types/geo";
 
@@ -14,6 +15,17 @@ const DAY_STRING_LENGTH = 10;
 const YEAR_STRING_LENGTH = 4;
 const DAY_MS = 86_400_000;
 const CUSTOM_PARAM_REGEX = /^custom_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})$/;
+
+export function selectGeoCalendarDraft(
+  draft: DateRange | undefined,
+  next: DateRange | undefined,
+  clicked: Date
+): DateRange | undefined {
+  if (!draft?.from || draft.to) {
+    return { from: clicked };
+  }
+  return next;
+}
 
 export function localDayString(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(DAY_PAD_LENGTH, "0");

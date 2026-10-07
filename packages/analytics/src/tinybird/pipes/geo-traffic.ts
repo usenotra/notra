@@ -186,7 +186,7 @@ export const geoTrafficOverview = defineEndpoint("geo_traffic_overview", {
           UNION ALL
           SELECT * FROM per_source_hosts
         )
-        WHERE visits > 0
+        WHERE visits > 0 OR previous_visits > 0
         ORDER BY visits DESC, source ASC
       `,
     }),

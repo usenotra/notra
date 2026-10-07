@@ -53,7 +53,6 @@ import {
 } from "./ratelimit";
 import { loadIngestSite, loadOrganizationSitePrefixes } from "./sites";
 import { buildWebPageView, isHumanPageView } from "./web";
-import { isVisitorTrackingEnabled } from "./web-tracking";
 
 const readSiteIdentity = Effect.fn("geoIngest.readSiteIdentity")(function* (
   token: string
@@ -282,11 +281,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     signals: payload.signals,
   });
   const isAi = isTrackedGeoVisitorType(classification.visitorType);
-  const countsVisitors =
-    isHumanPageView({ classification, payload, url }) &&
-    (yield* Effect.promise(() =>
-      isVisitorTrackingEnabled(identity).catch(() => false)
-    ));
+  const countsVisitors = isHumanPageView({ classification, payload, url });
   if (!(isAi || countsVisitors)) {
     return droppedResult(identity, classification.visitorType, "visitor_type");
   }

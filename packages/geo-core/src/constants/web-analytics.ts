@@ -7,10 +7,6 @@ export const WEB_PAGES_LIMIT = 50;
 export const WEB_SOURCES_LIMIT = 25;
 export const WEB_BREAKDOWN_LIMIT = 8;
 
-export const WEB_TRACKING_CACHE_TTL_SECONDS = 60;
-export const WEB_TRACKING_MEMORY_TTL_MS = 10_000;
-export const WEB_TRACKING_CACHE_PREFIX = "web:tracking";
-
 export const WEB_MACHINE_PATH_PATTERN =
   /(?:\.md|\.txt|\.xml|\.json)$|^\/(?:robots\.txt|sitemap[^/]*|llms(?:-full)?\.txt|feed\.xml)$/i;
 

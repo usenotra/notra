@@ -16,6 +16,7 @@ import {
   WEB_SOCIAL_HOSTS,
   WEB_VISITOR_ID_LENGTH,
 } from "@notra/geo-core/constants/web-analytics";
+import { WEB_SESSION_RESOLVE_SCRIPT } from "@notra/geo-core/constants/web-session";
 import { getGeoIngestSecret } from "@notra/geo-core/geo/ingest";
 import { urlHost } from "@notra/geo-core/utils/url-host";
 
@@ -71,27 +72,22 @@ async function resolveSession(
   origin: string | null
 ): Promise<WebSession> {
   const client = redis;
+  const id = crypto
+    .randomUUID()
+    .replaceAll("-", "")
+    .slice(0, WEB_VISITOR_ID_LENGTH);
   if (!client) {
-    return { id: visitorId, index: 0 };
+    return { id, index: 0 };
   }
   const key = `${WEB_SESSION_KEY_PREFIX}:${visitorId}`;
-  const current = await client.get<WebSession>(key).catch(() => null);
-  const continues =
-    current !== null && (origin === null || current.origin === origin);
-  const next: WebSession = continues
-    ? { id: current.id, index: current.index + 1, origin: current.origin }
-    : {
-        id: crypto
-          .randomUUID()
-          .replaceAll("-", "")
-          .slice(0, WEB_VISITOR_ID_LENGTH),
-        index: 1,
-        origin: origin ?? "",
-      };
-  await client
-    .set(key, next, { ex: WEB_SESSION_TTL_SECONDS })
+  const session = await client
+    .eval<[string, string, number], [string, number]>(
+      WEB_SESSION_RESOLVE_SCRIPT,
+      [key],
+      [id, origin ?? "", WEB_SESSION_TTL_SECONDS]
+    )
     .catch(() => null);
-  return next;
+  return session ? { id: session[0], index: session[1] } : { id, index: 0 };
 }
 
 function matchHost(host: string, table: Record<string, string>): string | null {

@@ -867,28 +867,6 @@ export function useWebAnalytics(
   });
 }
 
-export function useSetTrackVisitors(organizationId: string) {
-  const tToast = useTranslations("geo.toasts");
-  const queryClient = useQueryClient();
-  const { projectId } = useGeoProjectScope();
-  return useMutation({
-    mutationFn: (enabled: boolean) =>
-      dashboardOrpc.geo.setTrackVisitors.call({
-        organizationId,
-        projectId,
-        enabled,
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.geo.webAnalytics.key(),
-      });
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, tToast("trackVisitorsFailed")));
-    },
-  });
-}
-
 export function useGeoTrafficLog(
   organizationId: string,
   filters: GeoTrafficLogFilters,

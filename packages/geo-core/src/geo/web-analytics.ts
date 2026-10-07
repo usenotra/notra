@@ -8,9 +8,7 @@ import {
   queryWebSources,
   queryWebTimeseries,
 } from "@notra/analytics/tinybird/client";
-import { db } from "@notra/db/drizzle";
-import { projects, sites } from "@notra/db/schema";
-import { and, eq } from "drizzle-orm";
+import type { WebAudienceRow } from "@notra/analytics/types/tinybird-endpoints";
 import { Effect } from "effect";
 
 import {
@@ -19,7 +17,6 @@ import {
   WEB_PAGES_LIMIT,
   WEB_SOURCES_LIMIT,
 } from "../constants/web-analytics";
-import { rememberVisitorTracking } from "../ingest/web-tracking";
 import type {
   GeoWindowInput,
   SiteAnalyticsResponse,
@@ -29,8 +26,7 @@ import type {
 } from "../types/geo";
 import { trafficLogHostFilter } from "../utils/geo-project-domains";
 import { urlHost } from "../utils/url-host";
-import { geoDb, geoQuery } from "./effect";
-import { GeoProjectNotFoundError } from "./errors";
+import { geoQuery } from "./effect";
 import { loadAiTraffic } from "./programs";
 import { resolveGeoScope } from "./projects";
 import { geoTrafficWindowParams } from "./window";
@@ -41,18 +37,19 @@ export function webHostFilter(host: string | undefined): string[] {
 }
 
 function toBreakdown(
-  rows: readonly { value: string; visitors: number | bigint }[] | undefined
+  rows: readonly WebAudienceRow[] | undefined
 ): WebAnalyticsBreakdown[] {
   return (rows ?? []).map((row) => ({
     value: row.value,
     visitors: Number(row.visitors),
+    previousVisitors:
+      row.previous_visitors == null ? null : Number(row.previous_visitors),
   }));
 }
 
 const loadWebAnalyticsForScope = Effect.fn("web.analytics")(function* (
   scope: WebAnalyticsScope,
-  window: GeoWindowInput,
-  tracking: { tracking: boolean; trackVisitors: boolean }
+  window: GeoWindowInput
 ) {
   const base = {
     organization_id: scope.organizationId,
@@ -107,7 +104,6 @@ const loadWebAnalyticsForScope = Effect.fn("web.analytics")(function* (
   const totalsRow = overview?.data[0];
   const response: WebAnalyticsResponse = {
     configured: isTinybirdConfigured(),
-    ...tracking,
     hosts: (hosts?.data ?? []).map((row) => ({
       host: row.host,
       siteId: row.site_id,
@@ -164,59 +160,10 @@ export const loadWebAnalytics = Effect.fn("web.projectAnalytics")(function* (
   host: string | undefined
 ) {
   const scope = yield* resolveGeoScope(input);
-  const tracking = yield* geoDb("visitor tracking lookup failed", async () => {
-    if (!scope.projectId) {
-      return { tracking: false, trackVisitors: false };
-    }
-    const [project, site] = await Promise.all([
-      db.query.projects.findFirst({
-        columns: { trackVisitors: true },
-        where: eq(projects.id, scope.projectId),
-      }),
-      db.query.sites.findFirst({
-        columns: { id: true },
-        where: and(
-          eq(sites.organizationId, scope.organizationId),
-          eq(sites.projectId, scope.projectId)
-        ),
-      }),
-    ]);
-    const trackVisitors = project?.trackVisitors ?? false;
-    return { tracking: trackVisitors || site !== undefined, trackVisitors };
-  });
   return yield* loadWebAnalyticsForScope(
     { ...scope, siteId: "", hosts: webHostFilter(host) },
-    window,
-    tracking
+    window
   );
-});
-
-export const setVisitorTracking = Effect.fn("web.setTracking")(function* (
-  input: { organizationId: string; projectId?: string },
-  enabled: boolean
-) {
-  const scope = yield* resolveGeoScope(input);
-  const { projectId } = scope;
-  if (!projectId) {
-    return yield* Effect.fail(
-      new GeoProjectNotFoundError({ projectId: input.projectId ?? "" })
-    );
-  }
-  yield* geoDb("visitor tracking update failed", () =>
-    db
-      .update(projects)
-      .set({ trackVisitors: enabled })
-      .where(
-        and(
-          eq(projects.id, projectId),
-          eq(projects.organizationId, scope.organizationId)
-        )
-      )
-  );
-  yield* geoDb("visitor tracking cache reset failed", () =>
-    rememberVisitorTracking(projectId, enabled)
-  );
-  return { enabled };
 });
 
 export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
@@ -239,8 +186,7 @@ export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
           siteId: site.id,
           hosts: [],
         },
-        window,
-        { tracking: true, trackVisitors: false }
+        window
       ),
       loadAiTraffic(
         {

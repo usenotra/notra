@@ -503,10 +503,6 @@ export const webAnalyticsInputSchema = geoOrganizationInputSchema.extend({
   host: string().trim().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
 });
 
-export const geoTrackVisitorsInputSchema = geoOrganizationInputSchema.extend({
-  enabled: boolean(),
-});
-
 export const geoTrafficLogInputSchema = geoOrganizationInputSchema.extend({
   limit: number().int().min(1).max(MAX_AI_TRAFFIC_LOG_LIMIT).optional(),
   visitorTypes: array(enumType(["crawler", "ai_referral"]))

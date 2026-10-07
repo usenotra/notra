@@ -43,6 +43,7 @@ import type {
 } from "@/types/geo";
 import {
   trafficGroupPreviousVisits,
+  trafficGroupCurrentMembers,
   trafficGroupTopPages,
   trafficVisitShare,
 } from "@/utils/ai-traffic-groups";
@@ -105,10 +106,12 @@ function memberColumns(
       width: "7.5rem",
       align: "right",
       cell: (row) => (
-        <span className="flex items-baseline justify-end gap-2 tabular-nums">
-          <span className="text-sm">{row.visits.toLocaleString(locale)}</span>
+        <span className="flex items-center justify-end gap-2 tabular-nums">
           <span className="text-muted-foreground text-xs">
             {trafficVisitShare(row.visits, total)}
+          </span>
+          <span className="min-w-8 text-right text-sm">
+            {row.visits.toLocaleString(locale)}
           </span>
         </span>
       ),
@@ -180,6 +183,7 @@ function TrafficSourceSheetContent({
   };
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
+  const members = trafficGroupCurrentMembers(group);
   const showMarkdown = group.band !== "ai_referral" && trafficHost === "";
   const stats: SheetStat[] = [
     {
@@ -188,7 +192,10 @@ function TrafficSourceSheetContent({
       delta:
         previous === null ? null : trafficVisitDelta(group.visits, previous),
     },
-    { label: tGeoShared("pages"), value: group.paths.toLocaleString(locale) },
+    {
+      label: tGeoShared("paths"),
+      value: `${members.length > 1 ? "≥ " : ""}${group.paths.toLocaleString(locale)}`,
+    },
     showMarkdown
       ? {
           label: tCommon("labels.markdown"),
@@ -199,12 +206,9 @@ function TrafficSourceSheetContent({
             group.visitorType === "crawler"
               ? t("bots")
               : tCommon("labels.sources"),
-          value: group.members.length.toLocaleString(locale),
+          value: members.length.toLocaleString(locale),
         },
   ];
-  const members = [...group.members].sort(
-    (left, right) => right.visits - left.visits
-  );
 
   return (
     <>
@@ -309,7 +313,7 @@ export function TrafficSourceSheet({
       onOpenChangeComplete={release}
       open={groupProp !== null}
     >
-      <SheetContent className="gap-0 overflow-hidden rounded-2xl data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-auto data-[side=right]:w-[calc(100%-1rem)] data-[side=right]:border data-[side=right]:sm:max-w-2xl">
+      <SheetContent className="rounded-2xl" variant="inset">
         {retained ? (
           <TrafficSourceSheetContent
             group={retained.group}

@@ -19,7 +19,6 @@ import { GeoSetupButton } from "@/components/geo/geo-setup-button";
 import { TrafficDomainSelect } from "@/components/geo/traffic-domain-select";
 import { TrafficEmpty } from "@/components/geo/traffic-empty";
 import { TrafficPagesCard } from "@/components/geo/traffic-pages-card";
-import { VisitorTrackingToggle } from "@/components/geo/visitor-tracking-toggle";
 import { WebVisitorsSection } from "@/components/geo/web-visitors-section";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
@@ -56,7 +55,6 @@ function TrafficPageView({
   geoRange,
   traffic,
   isTrafficPending,
-  inventoryPages,
   knownHosts,
   isPagesPending,
   trafficPages,
@@ -65,7 +63,6 @@ function TrafficPageView({
 }: TrafficPageViewProps) {
   const t = useTranslations("geo.pages.traffic");
   const tShared = useTranslations("geo.pages.shared");
-  const [trafficHost] = useGeoTrafficHostQuery();
   if (!settings) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -87,7 +84,7 @@ function TrafficPageView({
     );
   }
 
-  const showVisitors = hasWebAnalytics(web, trafficHost);
+  const showVisitors = hasWebAnalytics(web);
 
   const header = (
     <PageHeading
@@ -96,7 +93,7 @@ function TrafficPageView({
       }
       title={showVisitors ? t("titleWithVisitors") : t("title")}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex max-w-full flex-wrap items-center gap-3">
         <TrafficDomainSelect hosts={knownHosts} />
         <GeoRangePicker control={geoRange} />
       </div>
@@ -104,11 +101,21 @@ function TrafficPageView({
   );
 
   if (isEmptyTraffic) {
+    const hasPreviousTraffic =
+      traffic?.sources.some((source) => (source.previousVisits ?? 0) > 0) ||
+      (web?.totals.previousViews ?? 0) > 0;
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="flex w-full min-w-0 flex-col gap-6 px-4 lg:px-6">
           {header}
-          <TrafficEmpty setup={ingestSetup} />
+          {hasPreviousTraffic ? (
+            <EmptyState
+              description={t("emptyRangeDescription")}
+              title={t("emptyRangeTitle")}
+            />
+          ) : (
+            <TrafficEmpty setup={ingestSetup} />
+          )}
         </div>
       </PageContainer>
     );
@@ -128,7 +135,7 @@ function TrafficPageView({
           ) : null}
           <AiTrafficCard
             isPending={isTrafficPending}
-            pages={inventoryPages}
+            pages={trafficPages}
             range={geoRange.query}
             settingsHref={withGeoProject(
               geoSettingsPath(organizationSlug),
@@ -139,13 +146,6 @@ function TrafficPageView({
           />
           <TrafficPagesCard isPending={isPagesPending} pages={trafficPages} />
           <AiTrafficLogCard organizationId={organizationId} />
-          {web ? (
-            <VisitorTrackingToggle
-              enabled={web.trackVisitors}
-              organizationId={organizationId}
-              siteCounts={web.tracking && !web.trackVisitors}
-            />
-          ) : null}
         </div>
       </div>
     </PageContainer>
@@ -198,7 +198,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   const isEmptyTraffic =
     !isTrafficPending &&
     !isWebPending &&
-    sources.length === 0 &&
+    !sources.some((source) => source.visits > 0) &&
     (web?.totals.views ?? 0) === 0;
   const showSkeleton = isTrafficPagePending({
     isSettingsPending,
@@ -234,7 +234,6 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     <TrafficPageView
       geoRange={geoRange}
       ingestSetup={ingestSetup}
-      inventoryPages={inventoryPages.data?.pages ?? []}
       isEmptyTraffic={isEmptyTraffic}
       isPagesPending={isPagesPending || isPagesPlaceholder}
       isTrafficPending={isTrafficPending || isTrafficPlaceholder}

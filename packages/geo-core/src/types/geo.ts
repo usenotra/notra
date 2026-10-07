@@ -2081,6 +2081,7 @@ export interface WebAnalyticsSource {
 export interface WebAnalyticsBreakdown {
   value: string;
   visitors: number;
+  previousVisitors?: number | null;
 }
 
 export interface WebAnalyticsOutcome {
@@ -2098,8 +2099,6 @@ export interface WebAnalyticsHost {
 
 export interface WebAnalyticsResponse {
   configured: boolean;
-  tracking: boolean;
-  trackVisitors: boolean;
   hosts: WebAnalyticsHost[];
   totals: WebAnalyticsTotals;
   points: WebAnalyticsPoint[];

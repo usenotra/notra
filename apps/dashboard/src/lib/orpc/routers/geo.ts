@@ -149,7 +149,6 @@ import {
 } from "@notra/geo-core/geo/suggestions";
 import {
   loadWebAnalytics,
-  setVisitorTracking,
   webHostFilter,
 } from "@notra/geo-core/geo/web-analytics";
 import { geoWindow } from "@notra/geo-core/geo/window";
@@ -210,7 +209,6 @@ import {
   geoTrafficJourneysInputSchema,
   geoTrafficLogInputSchema,
   geoTrafficPagesInputSchema,
-  geoTrackVisitorsInputSchema,
   webAnalyticsInputSchema,
   geoWriterBriefIdInputSchema,
   geoWriterPlanInputSchema,
@@ -1184,9 +1182,6 @@ export const geoRouter = {
         loadWebAnalytics(input, geoWindow(input), input.host)
       )
     ),
-  setTrackVisitors: authorizedProcedure
-    .input(geoTrackVisitorsInputSchema)
-    .handler(geoHandler((input) => setVisitorTracking(input, input.enabled))),
   trafficLog: authorizedProcedure
     .input(geoTrafficLogInputSchema)
     .handler(

@@ -109,7 +109,7 @@ export function WebTrendChart({
           <li className="flex items-center gap-1.5" key={entry.key}>
             <span
               aria-hidden="true"
-              className="size-2 rounded-full bg-(--dot-light) dark:bg-(--dot-dark)"
+              className="corner-squircle size-2 rounded-xs bg-(--dot-light) dark:bg-(--dot-dark)"
               style={
                 {
                   "--dot-light": entry.color.light,

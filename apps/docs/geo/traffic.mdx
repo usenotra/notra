@@ -1,6 +1,6 @@
 ---
-title: "AI Traffic"
-description: "Capture visits from AI crawlers and AI referrals with the @usenotra/geo tracker and read them in the Traffic page or the API"
+title: "Traffic"
+description: "Capture human visits, AI crawlers, and AI referrals automatically with the @usenotra/geo tracker"
 authors:
   - handle: dominik
 
@@ -25,16 +25,17 @@ docolin:
   next: ./agent-readiness.mdx
 ---
 
-AI traffic tracking shows which AI systems fetch your pages and which people arrive from an AI answer. A small request-capture SDK on your site sends a neutral request envelope to Notra; all classification happens at ingest. The results appear on the **Traffic** page (titled **AI Traffic**) and under `/geo/traffic` in the API.
+Traffic tracking shows human visits alongside the AI systems fetching your pages and people arriving from AI answers. A small request-capture SDK on your site sends a neutral request envelope to Notra; all classification happens at ingest. Human page views are collected automatically once the SDK is installed. The dashboard shows visitor statistics when there are views in the selected period and domain; no tracking switch is required.
 
 ## What is captured
 
-Every captured request is classified into one of two tracked visitor types:
+Captured requests are classified into these visitor types:
 
 - **AI crawler**: bots fetching your pages to train models or build a search index. Each crawler carries a **Purpose**: **Model training** (collects pages for training corpora), **Search index** (builds the index an AI answer engine searches), or **Cited in answer** (fetched while an assistant was answering someone).
 - **AI referral**: a person who clicked through to your site from an AI answer. Detection is based on the referrer host, for example chatgpt.com, perplexity.ai, gemini.google.com, claude.ai, copilot.microsoft.com, you.com, chat.deepseek.com, chat.mistral.ai, grok.com, and chat.qwen.ai.
+- **Human visitor**: an ordinary person opening a page. Valid human page views are stored separately from AI crawler events. Prefetches, non-page requests, and ordinary bots are excluded.
 
-Requests classified as human are discarded at ingest and never stored. Each stored event carries the source, the agent, the purpose, a **Confidence** of **Verified**, **Reported**, or **Heuristic** (how the agent's signature was sourced), the path and host, the country, whether the client asked for Markdown, and a journey id.
+AI events carry the source, the agent, the purpose, a **Confidence** of **Verified**, **Reported**, or **Heuristic** (how the agent's signature was sourced), the path and host, the country, whether the client asked for Markdown, and a journey id. Human visitor analytics use a daily rotating, keyed visitor identifier; raw IP addresses are not stored in page-view rows. Collection needs no browser script or cookies.
 
 ### Journeys
 

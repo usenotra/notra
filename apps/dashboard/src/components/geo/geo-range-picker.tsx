@@ -28,6 +28,7 @@ import {
   geoCustomRangeLabel,
   localDayString,
   parseLocalDay,
+  selectGeoCalendarDraft,
 } from "@/utils/geo-range";
 
 const loadMotionFeatures = () =>
@@ -115,13 +116,19 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
                 max={GEO_MAX_RANGE_DAYS - 1}
                 mode="range"
                 numberOfMonths={2}
-                onSelect={(next) => {
-                  setDraft(next);
-                  if (next?.from && next.to) {
+                onSelect={(next, clicked) => {
+                  const selection = selectGeoCalendarDraft(
+                    draft,
+                    next,
+                    clicked
+                  );
+                  setDraft(selection);
+                  if (selection?.from && selection.to) {
                     control.setCustom({
-                      dateFrom: localDayString(next.from),
-                      dateTo: localDayString(next.to),
+                      dateFrom: localDayString(selection.from),
+                      dateTo: localDayString(selection.to),
                     });
+                    handleOpenChange(false);
                   }
                 }}
                 selected={selected}
