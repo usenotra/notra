@@ -1,0 +1,20 @@
+apps/dashboard/src/lib/auth/workos.test.ts
+  s_b0f4b90356c179::t_7e5e5087a3c537 105,109-130,132-136,140,144-145,147-157,164-167,169,171-172,174-178
+  s_b0f4b90356c179::t_58c2284958048a 139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3e838856d4c756c6d288dfd8efea7498526ce871",
+  "prompts": {},
+  "sessions": {
+    "s_b0f4b90356c179": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11536-c447-77d3-a3f7-1eb69bb0a08e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
