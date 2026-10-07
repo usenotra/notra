@@ -116,7 +116,6 @@ function CompetitorMentionsChart({
   if (points.length >= GEO_COMPETITOR_DETAIL_MIN_POINTS) {
     return (
       <EChartsBarChart
-        animation={false}
         className={cn("w-full", GEO_COMPETITOR_DETAIL_CHART_HEIGHT_CLASS)}
         config={chartConfig}
         data={points}

@@ -1,6 +1,8 @@
 import type { SessionContext } from "eve/context";
 
-export function getOrganizationId(ctx: SessionContext): string | null {
+import type { OrganizationContext } from "../types/organization";
+
+export function getOrganizationId(ctx: OrganizationContext): string | null {
   const organizationId =
     ctx.session.auth.current?.attributes.organizationId ??
     ctx.session.auth.initiator?.attributes.organizationId;

@@ -1,5 +1,6 @@
 import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
 import type { FeedbackSentiment } from "@notra/email/types/feedback";
+import type { ScheduledPublicationFailedEmailProps } from "@notra/email/types/scheduled-publication-failed";
 import type { WorkflowPausedReason } from "@notra/email/types/workflow-paused";
 
 /**
@@ -29,6 +30,12 @@ export interface SendScheduledContentFailedEmailProps extends DigestEmailProps {
   scheduleName: string;
   reason: string;
   subject?: string;
+}
+
+export interface SendScheduledPublicationFailedEmailProps extends ScheduledPublicationFailedEmailProps {
+  recipientEmail: string;
+  /** One email per failure: row id plus failure time. */
+  failureKey: string;
 }
 
 export interface SendScheduledContentSkippedEmailProps extends DigestEmailProps {

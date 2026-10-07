@@ -227,6 +227,8 @@ export interface PromptEngineSwitcherProps {
   results: readonly { engine: string }[];
   active: { engine: string };
   onChange: (engine: string, direction: number) => void;
+  /** Pointer intent on a menu item; warm that engine's answer. */
+  onPrefetch?: (engine: string) => void;
 }
 
 export interface GeoSettingsUpsertOptions {
@@ -496,6 +498,13 @@ export interface SheetStat {
 
 export interface SheetStatGridProps {
   stats: readonly SheetStat[];
+}
+
+export interface TrafficSheetHeroProps {
+  stats: readonly SheetStat[];
+  series: { day: string; value: number }[];
+  chartTitle: string;
+  chartLabel: string;
 }
 
 export type JourneyGroupSheetStat =
@@ -943,6 +952,21 @@ export interface TrafficSourceSheetContentProps {
   group: GeoTrafficSourceGroup;
   series: { day: string; value: number }[];
   pages: readonly GeoTrafficPage[];
+}
+
+export interface UseTrafficSourceColumnsOptions {
+  /**
+   * Daily series per row, keyed by `trafficGroupKey(band, key)`. Rows without
+   * a series show the visit count alone.
+   */
+  seriesByKey?: ReadonlyMap<string, { day: string; value: number }[]>;
+  /**
+   * Rows are single bots of one source rather than source groups: the name
+   * drops the bot count and the purpose is one plain badge.
+   */
+  rowsAreBots?: boolean;
+  /** Replaces the first column's header, e.g. with a titled count. */
+  sourceHeader?: ReactNode;
 }
 
 export interface TrafficSourceGroupCellProps {
@@ -1700,6 +1724,12 @@ export interface TrafficHeroProps {
   groups: readonly GeoTrafficSourceGroup[];
   points: readonly GeoTrafficPoint[];
   settingsHref: string;
+}
+
+export interface TrafficZoomChipProps {
+  rows: readonly { day: string }[];
+  zoomed: boolean;
+  onReset: () => void;
 }
 
 export interface TrafficHeroMetricProps {

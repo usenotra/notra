@@ -1,59 +1,31 @@
 "use client";
 
-import { Alert02Icon, AlertCircleIcon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { AgentReadinessIssueGroups } from "@notra/geo-core/types/agent-readiness";
 import {
   buildAgentReadinessAllFixesPrompt,
   buildAgentReadinessFixPrompt,
+  getAgentReadinessIssueChanges,
   groupAgentReadinessIssues,
 } from "@notra/geo-core/utils/agent-readiness";
-import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
 import { Badge } from "@notra/ui/components/ui/badge";
-import { CopyButton } from "@notra/ui/components/ui/copy-button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@notra/ui/components/ui/collapsible";
 import { useTranslations } from "use-intl";
 
+import { AgentReadinessChangeBadge } from "@/components/geo/agent-readiness/readiness-change-badge";
+import { AgentReadinessCopyPromptButton } from "@/components/geo/agent-readiness/readiness-copy-prompt-button";
 import { AGENT_READINESS_FIX_COPY_KINDS } from "@/constants/geo-analytics";
-import { trackEvent } from "@/lib/analytics/posthog-client";
 import type {
   AgentReadinessChecklistProps,
-  AgentReadinessChecklistPromptActionsProps,
-  AgentReadinessCopyPromptButtonProps,
-  AgentReadinessIssueEntryProps,
+  AgentReadinessIssueRowProps,
   AgentReadinessResultBadgeProps,
   AgentReadinessSectionHeaderProps,
 } from "@/types/agent-readiness";
-import { toastCopyError } from "@/utils/copy-to-clipboard";
-
-function CopyPromptButton({
-  prompt,
-  label,
-  copyKind,
-  checkId,
-  variant = "outline",
-  size = "sm",
-}: AgentReadinessCopyPromptButtonProps) {
-  const tCommon = useTranslations("common");
-
-  return (
-    <CopyButton
-      copiedLabel={tCommon("actions.copied")}
-      onClick={() => {
-        trackEvent(POSTHOG_EVENTS.AGENT_READINESS_FIX_COPIED, {
-          check_id: checkId ?? null,
-          kind: copyKind,
-        });
-      }}
-      onCopyError={toastCopyError}
-      size={size}
-      value={prompt}
-      variant={variant}
-    >
-      {label}
-    </CopyButton>
-  );
-}
 
 function ResultBadge({ result }: AgentReadinessResultBadgeProps) {
   const t = useTranslations("geo.agentReadiness.checklist");
@@ -62,134 +34,93 @@ function ResultBadge({ result }: AgentReadinessResultBadgeProps) {
   if (result === "failed") {
     return <Badge variant="destructive">{tCommon("labels.failed")}</Badge>;
   }
-
   return <Badge variant="warning">{t("partial")}</Badge>;
 }
 
-function formatIssueIndex(index: number): string {
-  return String(index + 1).padStart(2, "0");
-}
-
-function buildFullBacklogPrompt(
-  targetUrl: string,
-  groups: AgentReadinessIssueGroups
-): string {
-  return buildAgentReadinessAllFixesPrompt(targetUrl, [
-    ...groups.mustDo,
-    ...groups.shouldDo,
-  ]);
-}
-
-function ChecklistPromptActions({
-  targetUrl,
-  groups,
-}: AgentReadinessChecklistPromptActionsProps) {
+function IssueRow({ issue, change, targetUrl }: AgentReadinessIssueRowProps) {
   const t = useTranslations("geo.agentReadiness.checklist");
-  const hasMustDo = groups.mustDo.length > 0;
-  const hasShouldDo = groups.shouldDo.length > 0;
-  const masterPrompt = buildAgentReadinessAllFixesPrompt(
-    targetUrl,
-    hasMustDo ? groups.mustDo : groups.shouldDo
-  );
 
   return (
-    <>
-      <CopyPromptButton
-        copyKind={AGENT_READINESS_FIX_COPY_KINDS.MASTER}
-        label={t("copyMasterPrompt")}
-        prompt={masterPrompt}
-        variant="default"
-      />
-      {hasMustDo && hasShouldDo ? (
-        <CopyPromptButton
-          copyKind={AGENT_READINESS_FIX_COPY_KINDS.BACKLOG}
-          label={t("copyFullBacklog")}
-          prompt={buildFullBacklogPrompt(targetUrl, groups)}
-        />
-      ) : null}
-    </>
-  );
-}
-
-function IssueEntry({
-  issue,
-  index,
-  targetUrl,
-}: AgentReadinessIssueEntryProps) {
-  const t = useTranslations("geo.agentReadiness.checklist");
-  const fixPrompt = buildAgentReadinessFixPrompt(targetUrl, issue);
-
-  return (
-    <article className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 border-b py-5 last:border-b-0">
-      <span className="text-muted-foreground pt-0.5 text-sm tabular-nums">
-        {formatIssueIndex(index)}
-      </span>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <h3 className="text-sm font-semibold tracking-tight">{issue.name}</h3>
-          <ResultBadge result={issue.result} />
-        </div>
-        {issue.details ? (
-          <p className="text-muted-foreground mt-1.5 text-sm">
-            {issue.details}
-          </p>
-        ) : null}
-        {issue.recommendation ? (
-          <div className="mt-3 overflow-hidden rounded-lg border">
-            <div className="bg-muted/40 flex items-center justify-between gap-2 border-b py-1 pr-1 pl-3">
-              <span className="text-muted-foreground text-xs font-medium">
-                {t("suggestedFix")}
-              </span>
-              <CopyPromptButton
-                checkId={issue.id}
-                copyKind={AGENT_READINESS_FIX_COPY_KINDS.FIX}
-                label={t("copyFix")}
-                prompt={fixPrompt}
-                size="xs"
-                variant="ghost"
+    <div className="group/row border-b last:border-b-0">
+      <Collapsible>
+        <div className="hover:bg-muted/30 has-[[data-slot=collapsible-trigger]:focus-visible]:ring-ring/50 flex items-center gap-3 pr-4 has-[[data-slot=collapsible-trigger]:focus-visible]:ring-2 has-[[data-slot=collapsible-trigger]:focus-visible]:ring-inset">
+          <CollapsibleTrigger className="flex min-w-0 flex-1 text-left">
+            <span className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-5">
+              <HugeiconsIcon
+                className="text-muted-foreground duration-fast shrink-0 -rotate-90 transition-transform ease-out group-has-data-[panel-open]/row:rotate-0"
+                icon={ArrowDown01Icon}
+                size={14}
               />
-            </div>
-            <p className="text-muted-foreground px-3 py-2.5 text-sm">
-              {issue.recommendation}
-            </p>
-          </div>
-        ) : (
-          <div className="mt-3">
-            <CopyPromptButton
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium">
+                    {issue.name}
+                  </span>
+                  <AgentReadinessChangeBadge change={change} />
+                </span>
+                {issue.details ? (
+                  <span className="text-muted-foreground truncate text-xs group-has-data-[panel-open]/row:hidden">
+                    {issue.details}
+                  </span>
+                ) : null}
+              </span>
+              <ResultBadge result={issue.result} />
+            </span>
+          </CollapsibleTrigger>
+          <div className="hidden sm:block">
+            <AgentReadinessCopyPromptButton
               checkId={issue.id}
               copyKind={AGENT_READINESS_FIX_COPY_KINDS.FIX}
               label={t("copyFix")}
-              prompt={fixPrompt}
+              prompt={buildAgentReadinessFixPrompt(targetUrl, issue)}
+              size="xs"
+              variant="ghost"
             />
           </div>
-        )}
-      </div>
-    </article>
+        </div>
+        <CollapsibleContent>
+          <div className="grid gap-4 pr-5 pb-4 pl-5 sm:pl-12 md:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-xs font-medium">
+                {t("whatWeFound")}
+              </span>
+              <p className="text-sm">{issue.details ?? t("noDetails")}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-xs font-medium">
+                {t("suggestedFix")}
+              </span>
+              <p className="text-sm">
+                {issue.recommendation ?? t("noRecommendation")}
+              </p>
+            </div>
+            <div className="sm:hidden">
+              <AgentReadinessCopyPromptButton
+                checkId={issue.id}
+                copyKind={AGENT_READINESS_FIX_COPY_KINDS.FIX}
+                label={t("copyFix")}
+                prompt={buildAgentReadinessFixPrompt(targetUrl, issue)}
+                size="xs"
+              />
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 }
 
 function SectionHeader({
-  icon,
-  iconClassName,
   label,
   hint,
   count,
 }: AgentReadinessSectionHeaderProps) {
   return (
-    <div className="pb-2">
-      <span className="inline-flex items-center gap-1.5 font-medium">
-        <HugeiconsIcon
-          className={iconClassName}
-          icon={icon}
-          size={16}
-          strokeWidth={2}
-        />
-        {label}
-        <span className="text-muted-foreground bg-muted rounded-full px-1.5 py-px text-xs font-medium tabular-nums">
-          {count}
-        </span>
+    <div className="bg-muted/40 flex flex-wrap items-baseline gap-x-2 border-b px-5 py-2 text-xs">
+      <span className="text-foreground font-medium">
+        {label} <span className="tabular-nums">{count}</span>
       </span>
-      <p className="text-muted-foreground mt-0.5 text-xs">{hint}</p>
+      <span className="text-muted-foreground">{hint}</span>
     </div>
   );
 }
@@ -197,70 +128,64 @@ function SectionHeader({
 export function AgentReadinessChecklist({
   targetUrl,
   issues,
+  comparison,
 }: AgentReadinessChecklistProps) {
   const t = useTranslations("geo.agentReadiness");
   const groups = groupAgentReadinessIssues(issues);
-  const hasFixableIssues =
-    groups.mustDo.length > 0 || groups.shouldDo.length > 0;
+  const changes = getAgentReadinessIssueChanges(comparison);
+  const sections = [
+    {
+      key: "mustDo",
+      label: t("groups.mustDoLabel"),
+      hint: t("groups.mustDoHint"),
+      issues: groups.mustDo,
+    },
+    {
+      key: "shouldDo",
+      label: t("groups.shouldDoLabel"),
+      hint: t("groups.shouldDoHint"),
+      issues: groups.shouldDo,
+    },
+  ].filter((section) => section.issues.length > 0);
 
   return (
     <InstrumentModule
       action={
-        hasFixableIssues ? (
-          <ChecklistPromptActions groups={groups} targetUrl={targetUrl} />
+        sections.length > 0 ? (
+          <AgentReadinessCopyPromptButton
+            copyKind={AGENT_READINESS_FIX_COPY_KINDS.BACKLOG}
+            label={t("checklist.copyFullBacklog")}
+            prompt={buildAgentReadinessAllFixesPrompt(targetUrl, issues)}
+            size="xs"
+          />
         ) : undefined
       }
-      bodyClassName="gap-0 px-5 pb-2"
+      bodyClassName="p-0"
       eyebrow={t("checklist.eyebrow")}
       variant="table"
     >
-      {groups.mustDo.length > 0 ? (
-        <section className="pt-6 first:pt-1">
+      {sections.map((section) => (
+        <section className="border-b last:border-b-0" key={section.key}>
           <SectionHeader
-            count={groups.mustDo.length}
-            hint={t("groups.mustDoHint")}
-            icon={AlertCircleIcon}
-            iconClassName="text-destructive"
-            label={t("groups.mustDoLabel")}
+            count={section.issues.length}
+            hint={section.hint}
+            label={section.label}
           />
-          <div>
-            {groups.mustDo.map((issue, index) => (
-              <IssueEntry
-                index={index}
-                issue={issue}
-                key={issue.id}
-                targetUrl={targetUrl}
-              />
-            ))}
-          </div>
+          {section.issues.map((issue) => (
+            <IssueRow
+              change={changes.get(issue.id)}
+              issue={issue}
+              key={issue.id}
+              targetUrl={targetUrl}
+            />
+          ))}
         </section>
-      ) : null}
-      {groups.shouldDo.length > 0 ? (
-        <section className="pt-6 first:pt-1">
-          <SectionHeader
-            count={groups.shouldDo.length}
-            hint={t("groups.shouldDoHint")}
-            icon={Alert02Icon}
-            iconClassName="text-warning"
-            label={t("groups.shouldDoLabel")}
-          />
-          <div>
-            {groups.shouldDo.map((issue, index) => (
-              <IssueEntry
-                index={groups.mustDo.length + index}
-                issue={issue}
-                key={issue.id}
-                targetUrl={targetUrl}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-      {hasFixableIssues ? null : (
-        <p className="text-muted-foreground py-8 text-sm">
+      ))}
+      {sections.length === 0 ? (
+        <p className="text-muted-foreground p-5 text-sm">
           {t("checklist.allPassed")}
         </p>
-      )}
+      ) : null}
     </InstrumentModule>
   );
 }

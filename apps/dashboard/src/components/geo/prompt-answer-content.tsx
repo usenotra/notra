@@ -30,20 +30,21 @@ export function PromptAnswerContent({
   const { result } = state;
   const promptText = prompt ?? result.prompt;
 
+  // The raw answer only mounts while visible: it is a full markdown parse and
+  // re-ran on every engine switch behind Analysis. Analysis stays mounted so
+  // its local state (expanded sources) survives a trip to the raw view.
   return (
     <>
-      <div
-        className={
-          view === "raw" ? "flex min-h-full flex-1 flex-col" : "hidden"
-        }
-      >
-        <LazyGeoPromptAnswerThread
-          organizationId={organizationId}
-          prompt={promptText}
-          result={result}
-          scrollable={scrollable}
-        />
-      </div>
+      {view === "raw" ? (
+        <div className="flex min-h-full flex-1 flex-col">
+          <LazyGeoPromptAnswerThread
+            organizationId={organizationId}
+            prompt={promptText}
+            result={result}
+            scrollable={scrollable}
+          />
+        </div>
+      ) : null}
       <div className={view === "analysis" ? undefined : "hidden"}>
         <PromptReceiptAnalysis
           scrollable={scrollable}

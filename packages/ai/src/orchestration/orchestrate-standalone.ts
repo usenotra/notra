@@ -6,6 +6,7 @@ import { withRouterDefaults } from "@notra/ai/provider-options";
 import { STANDALONE_SKILL_CATALOG_LIMIT } from "@notra/ai/skills/constants";
 import { listSkillSummaries } from "@notra/ai/skills/functions/service";
 import { createLazyMcpRuntime } from "@notra/ai/tools/mcp-lazy";
+import { UPDATE_TODOS_TOOL_NAME } from "@notra/ai/tools/todos";
 import type {
   IntegrationFetchers,
   ValidatedIntegration,
@@ -147,6 +148,7 @@ export async function orchestrateStandaloneChat(
       codeResearch: input.codeResearch,
       validatedIntegrations,
       postResult,
+      previousTodoCalls: countReplyTodoCalls(messages),
     },
     {
       resolveContext: deps?.resolveContext,
@@ -659,4 +661,18 @@ async function getEnabledLinearIntegrations(
     });
     return [];
   }
+}
+
+/**
+ * updateTodos calls in the reply being continued: an approval resumes the
+ * last assistant message instead of starting a new one.
+ */
+function countReplyTodoCalls(messages: StandaloneChatInput["messages"]) {
+  const last = messages.at(-1);
+  if (last?.role !== "assistant") {
+    return 0;
+  }
+  return last.parts.filter(
+    (part) => part.type === `tool-${UPDATE_TODOS_TOOL_NAME}`
+  ).length;
 }

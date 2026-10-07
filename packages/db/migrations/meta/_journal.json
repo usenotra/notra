@@ -764,6 +764,27 @@
       "when": 1791129447857,
       "tag": "0108_marketing_opt_in",
       "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1791244800000,
+      "tag": "0109_webhook_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1791301957805,
+      "tag": "0110_scheduled_publications",
+      "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1791372497523,
+      "tag": "0111_scheduled_publication_attempt_outcome",
+      "breakpoints": true
     }
   ]
 }

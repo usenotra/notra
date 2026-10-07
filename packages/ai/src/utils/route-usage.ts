@@ -65,10 +65,14 @@ export async function summarizeRouteUsage(
         tokenCostUsd += stepRoute.costUsd;
       } else if (usage) {
         pricedSteps += 1;
+        const serviceTier =
+          step.providerMetadata?.gateway?.serviceTier ??
+          step.providerMetadata?.openai?.serviceTier;
         tokenCostUsd += calculateTokenCostUsd(
           usage,
           stepRoute?.model ?? modelId,
-          stepRoute?.gateway
+          stepRoute?.gateway ?? "direct",
+          typeof serviceTier === "string" ? serviceTier : undefined
         );
       }
     }

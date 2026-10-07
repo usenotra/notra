@@ -80,7 +80,7 @@ export function WebhookCreateDialogView({
         }
       }}
     >
-      <ResponsiveDialogContent className="sm:max-w-lg">
+      <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-lg">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
             {secret ? t("readyTitle") : t("title")}

@@ -20,6 +20,7 @@ export const STANDALONE_CODE_MODE_TOOL_NAMES = [
   "getAvailableIntegrations",
   "getAvailableBrandReferences",
   "listSchedules",
+  "getPostSchedule",
   "listAvailableSkills",
   "getSkillByName",
   "webSearch",

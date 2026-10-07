@@ -36,9 +36,8 @@ export interface WebhookCryptoService {
 }
 
 export interface WebhookQueuesService {
-  readonly event: (eventId: string) => Effect.Effect<void, WebhookQueueError>;
-  readonly delivery: (
-    deliveryId: string
+  readonly events: (
+    eventIds: readonly string[]
   ) => Effect.Effect<void, WebhookQueueError>;
   readonly deliveries: (
     deliveryIds: readonly string[]

@@ -37,12 +37,18 @@ import {
 } from "@notra/ai/tools/organization";
 import {
   createCreatePostTool,
+  createEditPostTool,
   createGetAvailablePostsTool,
   createGetPostTool,
   createUpdatePostTool,
   createViewPostTool,
   getCreatePostToolName,
 } from "@notra/ai/tools/post";
+import {
+  createCancelPostScheduleTool,
+  createGetPostScheduleTool,
+  createSchedulePostTool,
+} from "@notra/ai/tools/post-schedules";
 import {
   createCreateScheduleTool,
   createListSchedulesTool,
@@ -52,6 +58,10 @@ import {
   getSkillByName,
   listAvailableSkills,
 } from "@notra/ai/tools/skills";
+import {
+  createUpdateTodosTool,
+  UPDATE_TODOS_TOOL_NAME,
+} from "@notra/ai/tools/todos";
 import { registerWebSearchTools } from "@notra/ai/tools/web-search";
 import type {
   BuildStandaloneToolSetDeps,
@@ -66,7 +76,12 @@ import type { Tool } from "ai";
 
 /** Tools that write user-visible records and must pause for user approval. */
 export function getStandaloneApprovalToolNames(): Set<string> {
-  const toolNames = new Set<string>(["createSchedule", "createSkill"]);
+  const toolNames = new Set<string>([
+    "createSchedule",
+    "createSkill",
+    "schedulePost",
+    "cancelPostSchedule",
+  ]);
   for (const contentType of contentTypeSchema.options) {
     if (contentType !== "image") {
       toolNames.add(getCreatePostToolName(contentType));
@@ -120,6 +135,14 @@ export function buildStandaloneToolSet(
     postResult
   );
 
+  tools.editPost = createEditPostTool({
+    organizationId,
+    contentType: "blog_post",
+  });
+  tools[UPDATE_TODOS_TOOL_NAME] = createUpdateTodosTool(
+    params.previousTodoCalls ?? 0
+  );
+
   tools.viewPost = createViewPostTool({
     organizationId,
     contentType: "blog_post",
@@ -148,8 +171,11 @@ export function buildStandaloneToolSet(
 
   descriptions.push(
     userId
-      ? "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, createImage, plus updatePost and viewPost. createImage runs in a sandbox, saves the generated image as a draft, and stores a sandbox snapshot for future revisions."
-      : "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, plus updatePost and viewPost"
+      ? "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, createImage, plus updatePost, editPost, and viewPost. createImage runs in a sandbox, saves the generated image as a draft, and stores a sandbox snapshot for future revisions."
+      : "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, plus updatePost, editPost, and viewPost"
+  );
+  descriptions.push(
+    "**Planning**: Keep a short checklist with updateTodos, only when one request asks for four or more separate pieces of content"
   );
   descriptions.push(
     "**Organization Data**: Inspect brand identities, brand references, available integrations, and existing posts using listBrandIdentities, getBrandIdentity, getAvailableBrandReferences, getAvailableIntegrations, getAvailablePosts, and getPost"
@@ -163,11 +189,17 @@ export function buildStandaloneToolSet(
 
   tools.listSchedules = createListSchedulesTool({ organizationId });
   tools.createSchedule = createCreateScheduleTool({ organizationId });
+  tools.getPostSchedule = createGetPostScheduleTool({ organizationId });
+  tools.schedulePost = createSchedulePostTool({
+    organizationId,
+    userId: userId ?? undefined,
+  });
+  tools.cancelPostSchedule = createCancelPostScheduleTool({ organizationId });
   tools.listAvailableSkills = listAvailableSkills({ organizationId });
   tools.getSkillByName = getSkillByName({ organizationId });
   tools.createSkill = createCreateSkillTool({ organizationId });
   descriptions.push(
-    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence."
+    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence. To publish an existing post at a set time, check getPostSchedule and call schedulePost; cancelPostSchedule unschedules it."
   );
   descriptions.push(
     "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. Create a new reusable writing skill with createSkill when the user explicitly asks for one or a clearly new, recurring writing need appears."

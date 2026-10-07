@@ -64,6 +64,7 @@ import {
   GEO_PROMPT_DETAIL_QUERY_KEY,
   GEO_PROMPT_FILTER_SELECT_CLASS,
 } from "@/constants/geo-prompts";
+import { usePrefetchGeoPromptAnswer } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { useGeoPromptSourceLabels } from "@/lib/hooks/use-geo-prompt-source-labels";
@@ -250,6 +251,7 @@ export function PromptsTable({
     [rows]
   );
   const { competitors } = useGeoCompetitorsDb(organizationId);
+  const prefetchPromptAnswer = usePrefetchGeoPromptAnswer(organizationId);
 
   // Looked up without filters so an active filter can't hide the linked prompt.
   const linkedRow = useMemo(
@@ -359,6 +361,8 @@ export function PromptsTable({
           aria-label={tGeoShared("openDetailsPrompt", { prompt: row.prompt })}
           className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center rounded-sm text-left hover:underline focus-visible:ring-2"
           onClick={() => setDetail(row)}
+          onFocus={() => prefetchPromptAnswer(row)}
+          onPointerEnter={() => prefetchPromptAnswer(row)}
           type="button"
         >
           <TruncateWithTooltip className="font-medium">

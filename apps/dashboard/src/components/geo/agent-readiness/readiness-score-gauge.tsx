@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  AGENT_READINESS_BAND_TEXT_CLASS,
   AGENT_READINESS_GAUGE_CIRCUMFERENCE,
   AGENT_READINESS_GAUGE_RADIUS,
   AGENT_READINESS_GAUGE_SIZE,
@@ -11,6 +10,7 @@ import {
 import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
 import { useTranslations } from "use-intl";
 
+import { AGENT_READINESS_BAND_TEXT_CLASS } from "@/constants/agent-readiness";
 import { cn } from "@/lib/utils";
 import type { AgentReadinessScoreGaugeProps } from "@/types/agent-readiness";
 

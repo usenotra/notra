@@ -308,7 +308,6 @@ export function ShareOfVoiceChart(props: ShareOfVoiceChartProps) {
             {/* Fills the card, which the ranking card next to it stretches. */}
             <div className="relative min-h-72 w-full flex-1">
               <EChartsPieChart
-                animation={false}
                 className="absolute inset-0"
                 config={donutConfig}
                 data={slices.filter((row) => row.mentions > 0)}

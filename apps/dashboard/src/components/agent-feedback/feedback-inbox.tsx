@@ -26,19 +26,25 @@ import { AgentFeedbackTable } from "@/components/agent-feedback/feedback-table";
 import { Button } from "@/components/button";
 import { Confetti } from "@/components/confetti";
 import { PageContainer } from "@/components/layout/container";
-import { AGENT_FEEDBACK_STATUS_FILTERS } from "@/constants/agent-feedback";
+import {
+  AGENT_FEEDBACK_DEFAULT_STATUS_FILTER,
+  AGENT_FEEDBACK_STATUS_FILTERS,
+} from "@/constants/agent-feedback";
 import {
   useAgentFeedbackDelete,
   useAgentFeedbackList,
   useAgentFeedbackUpdateStatus,
 } from "@/lib/hooks/use-agent-feedback";
-import { useAgentFeedbackStatusLabels } from "@/lib/hooks/use-agent-feedback-labels";
+import { useAgentFeedbackFilterLabels } from "@/lib/hooks/use-agent-feedback-labels";
 import type {
   AgentFeedbackItem,
   AgentFeedbackInboxProps,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
-import { isAgentFeedbackStatusFilter } from "@/utils/agent-feedback";
+import {
+  agentFeedbackFilterStatuses,
+  isAgentFeedbackStatusFilter,
+} from "@/utils/agent-feedback";
 
 const FEEDBACK_CONFETTI_COLORS = [
   "var(--primary)",
@@ -60,8 +66,9 @@ export function AgentFeedbackInbox({
   organizationId,
 }: AgentFeedbackInboxProps) {
   const reduceMotion = useReducedMotion();
-  const [statusFilter, setStatusFilter] =
-    useState<AgentFeedbackStatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<AgentFeedbackStatusFilter>(
+    AGENT_FEEDBACK_DEFAULT_STATUS_FILTER
+  );
   // Held as a snapshot so the sheet stays open when a status change moves the
   // item out of the active filter.
   const [selected, setSelected] = useState<AgentFeedbackItem | null>(null);
@@ -129,7 +136,10 @@ export function AgentFeedbackInbox({
     if (!counts) {
       return null;
     }
-    return filter === "all" ? totalCount : counts[filter];
+    const statuses = agentFeedbackFilterStatuses(filter);
+    return statuses
+      ? statuses.reduce((sum, status) => sum + counts[status], 0)
+      : totalCount;
   };
 
   return (
@@ -257,7 +267,7 @@ function FeedbackList({
   tableGrows: boolean;
 }) {
   const tCommon = useTranslations("common");
-  const statusLabels = useAgentFeedbackStatusLabels();
+  const filterLabels = useAgentFeedbackFilterLabels();
   if (showEmptyState) {
     return emptyState ?? <AgentFeedbackEmpty organizationId={organizationId} />;
   }
@@ -279,9 +289,7 @@ function FeedbackList({
           const count = countFor(filter.value);
           return (
             <PermissionOption key={filter.value} value={filter.value}>
-              {filter.value === "all"
-                ? tCommon("labels.all")
-                : statusLabels[filter.value]}
+              {filterLabels[filter.value]}
               {count !== null ? (
                 <span className="text-xs tabular-nums opacity-70">{count}</span>
               ) : null}
@@ -297,7 +305,7 @@ function FeedbackList({
             statusFilter === "all" ? undefined : (
               <FeedbackFilterEmpty
                 onShowAll={() => onStatusFilterChange("all")}
-                status={statusFilter}
+                filter={statusFilter}
               />
             )
           }
@@ -317,22 +325,23 @@ function FeedbackList({
 }
 
 function FeedbackFilterEmpty({
+  filter,
   onShowAll,
-  status,
 }: {
+  filter: Exclude<AgentFeedbackStatusFilter, "all">;
   onShowAll: () => void;
-  status: AgentFeedbackStatus;
 }) {
   const t = useTranslations("feedback.table");
+  const status = filter === "open" ? "resolved" : filter;
   return (
     <Empty className="py-8 md:py-8">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <AgentFeedbackStatusIcon className="size-5" status={status} />
         </EmptyMedia>
-        <EmptyTitle>{t(`filterEmpty.${status}.title`)}</EmptyTitle>
+        <EmptyTitle>{t(`filterEmpty.${filter}.title`)}</EmptyTitle>
         <EmptyDescription>
-          {t(`filterEmpty.${status}.description`)}
+          {t(`filterEmpty.${filter}.description`)}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

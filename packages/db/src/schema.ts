@@ -32,6 +32,10 @@ import {
   GEO_CONTENT_BRIEF_STATUSES,
   GEO_WRITER_SOURCE_KINDS,
 } from "./constants/geo-writer";
+import {
+  SCHEDULED_PUBLICATION_DESTINATIONS,
+  SCHEDULED_PUBLICATION_STATUSES,
+} from "./constants/scheduled-publications";
 import type { AgentFeedbackMetadata } from "./types/agent-feedback";
 import type {
   AgentReadinessIssue,
@@ -54,6 +58,10 @@ import {
 import type { GeoContentBriefJson } from "./types/geo-writer";
 import type { GoogleSearchConsoleQuery } from "./types/google-search-console";
 import type { PostGitHubPublish } from "./types/post-github-publish";
+import type {
+  ScheduledPublicationDestinationConfig,
+  ScheduledPublicationResult,
+} from "./types/scheduled-publications";
 
 export const lookbackWindowEnum = pgEnum("lookback_window", [
   "current_day",
@@ -2296,6 +2304,7 @@ export const posts = pgTable(
     sourceMetadata: jsonb("source_metadata"),
     githubPublish: jsonb("github_publish").$type<PostGitHubPublish | null>(),
     status: postStatusEnum("status").default("draft").notNull(),
+    publishedAt: timestamp("published_at"),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -2324,6 +2333,88 @@ export const posts = pgTable(
       table.contentType,
       table.updatedAt.desc()
     ),
+    index("posts_org_published_at_idx")
+      .on(table.organizationId, table.publishedAt)
+      .where(sql`${table.publishedAt} IS NOT NULL`),
+  ]
+);
+
+export const scheduledPublicationStatusEnum = pgEnum(
+  "scheduled_publication_status",
+  SCHEDULED_PUBLICATION_STATUSES
+);
+
+export const scheduledPublicationDestinationEnum = pgEnum(
+  "scheduled_publication_destination",
+  SCHEDULED_PUBLICATION_DESTINATIONS
+);
+
+/**
+ * One row per post and destination that should go out at `scheduled_at`.
+ *
+ * The row is the schedule: a cron sweep polls `next_attempt_at` and claims due
+ * rows with a compare-and-set on `status` + `lease_until`, so rescheduling or
+ * canceling is a plain update and there is no external job that can drift from
+ * the database or die with a deployment. `claim_token` fences a slow or
+ * duplicated workflow run out once a later sweep took the row over, and
+ * `external_attempt_at` marks a non-idempotent call (a social post) as started
+ * so a retry never posts twice.
+ */
+export const scheduledPublications = pgTable(
+  "scheduled_publications",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    postId: text("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    scheduledAt: timestamp("scheduled_at").notNull(),
+    timeZone: text("time_zone").notNull(),
+    destination: scheduledPublicationDestinationEnum("destination").notNull(),
+    destinationConfig: jsonb("destination_config")
+      .$type<ScheduledPublicationDestinationConfig>()
+      .notNull(),
+    status: scheduledPublicationStatusEnum("status")
+      .default("scheduled")
+      .notNull(),
+    nextAttemptAt: timestamp("next_attempt_at").notNull(),
+    claimToken: text("claim_token"),
+    leaseUntil: timestamp("lease_until"),
+    attempts: integer("attempts").default(0).notNull(),
+    externalAttemptAt: timestamp("external_attempt_at"),
+    cancelRequestedAt: timestamp("cancel_requested_at"),
+    errorCode: text("error_code"),
+    lastError: text("last_error"),
+    result: jsonb("result").$type<ScheduledPublicationResult>(),
+    /**
+     * The current claim's publish outcome, kept until it is written, so a
+     * retried call returns it instead of publishing again.
+     */
+    attemptOutcome: jsonb("attempt_outcome"),
+    publishedAt: timestamp("published_at"),
+    createdByUserId: text("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("scheduled_publications_due_idx")
+      .on(table.nextAttemptAt)
+      .where(sql`${table.status} IN ('scheduled', 'publishing')`),
+    index("scheduled_publications_org_scheduled_at_idx").on(
+      table.organizationId,
+      table.scheduledAt
+    ),
+    index("scheduled_publications_post_idx").on(table.postId),
+    uniqueIndex("scheduled_publications_active_post_destination_uidx")
+      .on(table.postId, table.destination)
+      .where(sql`${table.status} IN ('scheduled', 'publishing')`),
   ]
 );
 
@@ -3601,7 +3692,22 @@ export const postsRelations = relations(posts, ({ many, one }) => ({
   }),
   chatSessions: many(chatSessions),
   contentPublications: many(contentPublications),
+  scheduledPublications: many(scheduledPublications),
 }));
+
+export const scheduledPublicationsRelations = relations(
+  scheduledPublications,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [scheduledPublications.organizationId],
+      references: [organizations.id],
+    }),
+    post: one(posts, {
+      fields: [scheduledPublications.postId],
+      references: [posts.id],
+    }),
+  })
+);
 
 export const contentPublicationsRelations = relations(
   contentPublications,
