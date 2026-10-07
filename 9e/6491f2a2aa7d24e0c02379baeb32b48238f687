@@ -1,0 +1,21 @@
+apps/geo-runner/TESTING.md
+  s_7b0d907503ea7a::t_70a11d5f150e0e 26-28
+.github/workflows/code-quality.yml
+  s_7b0d907503ea7a::t_19eed68bc8cdf1 93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9e6491f2a2aa7d24e0c02379baeb32b48238f687",
+  "prompts": {},
+  "sessions": {
+    "s_7b0d907503ea7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1155e-2258-7f91-b515-5aed6fd1abc0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
