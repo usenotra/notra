@@ -1,5 +1,9 @@
 import { SCHEDULED_PUBLICATION_ERROR_CODES } from "@notra/ai/constants/scheduled-publications";
-import { beginScheduledPublicationAttempt } from "@notra/ai/utils/scheduled-publications";
+import {
+  beginScheduledPublicationAttempt,
+  getRecordedScheduledPublicationAttempt,
+  recordScheduledPublicationAttemptOutcome,
+} from "@notra/ai/utils/scheduled-publications";
 
 import { publishScheduledDestination } from "@/lib/content/scheduled-publication-destinations";
 import type {
@@ -19,10 +23,17 @@ import type {
 export async function runScheduledPublicationAttempt(
   input: ScheduledPublicationWorkflowInput
 ): Promise<ScheduledPublicationAttemptResult | null> {
-  const begun = await beginScheduledPublicationAttempt({
+  const claim = {
     id: input.scheduledPublicationId,
     claimToken: input.claimToken,
-  });
+  };
+  // A retried call whose first response got lost: hand back what that call
+  // achieved instead of publishing again.
+  const recorded = await getRecordedScheduledPublicationAttempt(claim);
+  if (recorded) {
+    return recorded;
+  }
+  const begun = await beginScheduledPublicationAttempt(claim);
   if (!begun) {
     return null;
   }
@@ -47,6 +58,7 @@ export async function runScheduledPublicationAttempt(
       };
     }
   }
+  await recordScheduledPublicationAttemptOutcome(claim, outcome);
   return {
     attempts: attempt.attempts,
     destination: attempt.destination,

@@ -488,6 +488,41 @@ if (process.env.NOTRA_SCHEDULED_PUBLICATIONS_SQL_WORKER !== "1") {
       expect(begun.preempted).toMatchObject({ code: "too_many_attempts" });
     });
 
+    test("a recorded outcome is handed back to the same claim only", async () => {
+      await seedPost("p1");
+      await schedule("p1");
+      const [claim] = await lifecycle.claimDueScheduledPublications({
+        now: SLOT,
+      });
+      if (!claim) {
+        throw new Error("expected a claim");
+      }
+      expect(
+        await lifecycle.getRecordedScheduledPublicationAttempt(claim)
+      ).toBeNull();
+      const outcome = { kind: "published", result: {} } as const;
+      await lifecycle.recordScheduledPublicationAttemptOutcome(claim, outcome);
+      expect(
+        await lifecycle.getRecordedScheduledPublicationAttempt(claim)
+      ).toMatchObject({ attempts: 1, destination: "notra", outcome });
+
+      const takeoverAt = new Date(
+        SLOT.getTime() + SCHEDULED_PUBLICATION_LEASE_MS + MINUTE
+      );
+      const [takeover] = await lifecycle.claimDueScheduledPublications({
+        now: takeoverAt,
+      });
+      if (!takeover) {
+        throw new Error("expected the takeover");
+      }
+      expect(
+        await lifecycle.getRecordedScheduledPublicationAttempt(claim)
+      ).toBeNull();
+      expect(
+        await lifecycle.getRecordedScheduledPublicationAttempt(takeover)
+      ).toBeNull();
+    });
+
     test("runs that never start are ended instead of taken over forever", async () => {
       await seedPost("p1");
       await seedPost("p2");

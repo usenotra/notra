@@ -692,6 +692,7 @@ export async function claimDueScheduledPublications(params?: {
       claimToken,
       leaseUntil: new Date(now.getTime() + SCHEDULED_PUBLICATION_LEASE_MS),
       attempts: sql`${scheduledPublications.attempts} + 1`,
+      attemptOutcome: null,
     })
     .from(due)
     .where(
@@ -873,6 +874,49 @@ export async function markScheduledPublicationExternalAttempt(
   return marked.length > 0;
 }
 
+/**
+ * Keeps the outcome of the claim's publish until it is written. The step
+ * reaches the publish over HTTP, and a call whose response got lost is
+ * retried; the retry must get this outcome back, not publish a second time.
+ */
+export async function recordScheduledPublicationAttemptOutcome(
+  claim: Pick<ClaimedScheduledPublication, "id" | "claimToken">,
+  outcome: ScheduledPublicationOutcome
+): Promise<void> {
+  await db
+    .update(scheduledPublications)
+    .set({ attemptOutcome: outcome })
+    .where(claimFence(claim));
+}
+
+/** The outcome an earlier call recorded for this claim, if any. */
+export async function getRecordedScheduledPublicationAttempt(
+  claim: Pick<ClaimedScheduledPublication, "id" | "claimToken">
+): Promise<{
+  attempts: number;
+  destination: string;
+  organizationId: string;
+  postId: string;
+  outcome: ScheduledPublicationOutcome;
+} | null> {
+  const [row] = await db
+    .select({
+      attempts: scheduledPublications.attempts,
+      destination: scheduledPublications.destination,
+      organizationId: scheduledPublications.organizationId,
+      postId: scheduledPublications.postId,
+      attemptOutcome: scheduledPublications.attemptOutcome,
+    })
+    .from(scheduledPublications)
+    .where(claimFence(claim))
+    .limit(1);
+  if (!row?.attemptOutcome) {
+    return null;
+  }
+  const { attemptOutcome, ...attempt } = row;
+  return { ...attempt, outcome: attemptOutcome as ScheduledPublicationOutcome };
+}
+
 export function scheduledPublicationRetryDelayMs(attempts: number) {
   const delays = SCHEDULED_PUBLICATION_RETRY_DELAYS_MS;
   return delays[Math.min(Math.max(attempts - 1, 0), delays.length - 1)] ?? 0;
@@ -891,7 +935,7 @@ export async function finishScheduledPublicationAttempt(
   now = new Date()
 ): Promise<ScheduledPublicationFinish> {
   const fence = claimFence(claim);
-  const released = { claimToken: null, leaseUntil: null };
+  const released = { claimToken: null, leaseUntil: null, attemptOutcome: null };
 
   if (outcome.kind === "published") {
     const updated = await db

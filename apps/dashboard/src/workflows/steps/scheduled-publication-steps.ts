@@ -49,10 +49,11 @@ export async function runScheduledPublicationStep(
   return body.result;
 }
 
-// Destination errors are returned, so only a failed claim read throws here.
-// A step re-run after a crash is safe: every destination is idempotent or,
-// for social posts, fenced by `external_attempt_at`.
-runScheduledPublicationStep.maxRetries = 2;
+// Destination errors are returned, so only a failed call throws here. A
+// re-run is safe: the route hands back an outcome it already recorded for
+// the claim, and the publish itself is idempotent or, for social posts,
+// fenced by `external_attempt_at`.
+runScheduledPublicationStep.maxRetries = 4;
 
 export async function finishScheduledPublicationStep(
   input: ScheduledPublicationWorkflowInput,
