@@ -55,7 +55,6 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   keepPreviousData,
-  skipToken,
   useIsMutating,
   useMutation,
   useQuery,
@@ -337,21 +336,30 @@ export function useGeoPromptResults(
   });
 }
 
-export function useGeoPromptResultDetail(
-  organizationId: string,
-  checkId: string | null
-) {
-  const input = { organizationId, checkId: checkId ?? "" };
-  return useQuery({
-    ...dashboardOrpc.geo.promptResultDetail.queryOptions({
-      input: organizationId && checkId ? input : skipToken,
-    }),
-    enabled: Boolean(organizationId && checkId),
+function geoPromptResultDetailQueryOptions(input: {
+  organizationId: string;
+  checkId: string;
+}) {
+  return {
+    ...dashboardOrpc.geo.promptResultDetail.queryOptions({ input }),
     staleTime: Number.POSITIVE_INFINITY,
     // Keep a selected answer loading when users switch models. Consuming the
     // generated AbortSignal would otherwise surface normal switches as failed
     // requests and throw away work that is useful when they switch back.
     queryFn: () => dashboardOrpc.geo.promptResultDetail.call(input),
+  };
+}
+
+export function useGeoPromptResultDetail(
+  organizationId: string,
+  checkId: string | null
+) {
+  return useQuery({
+    ...geoPromptResultDetailQueryOptions({
+      organizationId,
+      checkId: checkId ?? "",
+    }),
+    enabled: Boolean(organizationId && checkId),
   });
 }
 
@@ -365,11 +373,9 @@ export function usePrefetchGeoPromptResultDetail(organizationId: string) {
     if (!organizationId || !checkId) {
       return;
     }
-    const input = { organizationId, checkId };
-    void queryClient.prefetchQuery({
-      ...dashboardOrpc.geo.promptResultDetail.queryOptions({ input }),
-      staleTime: Number.POSITIVE_INFINITY,
-    });
+    void queryClient.prefetchQuery(
+      geoPromptResultDetailQueryOptions({ organizationId, checkId })
+    );
   };
 }
 
