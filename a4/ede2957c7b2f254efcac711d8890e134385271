@@ -1,0 +1,21 @@
+apps/dashboard/src/components/geo/traffic-sheet-hero.tsx
+  s_518df115aab3d5::t_29544f57be65ba 35,43-45
+apps/dashboard/src/components/geo/ai-traffic-card.tsx
+  s_518df115aab3d5::t_29544f57be65ba 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a4ede2957c7b2f254efcac711d8890e134385271",
+  "prompts": {},
+  "sessions": {
+    "s_518df115aab3d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2145226b-a736-4cb8-8eb8-c0f083f6ca8e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
