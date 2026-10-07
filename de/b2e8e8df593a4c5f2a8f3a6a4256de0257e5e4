@@ -1,0 +1,29 @@
+packages/ui/src/components/ui/sheet.tsx
+  s_55b09f68b48aa3::t_65ebf5cde0d639 8,12-19,21-34,39-41,43,56-57,61,97,107-117,130
+  s_55b09f68b48aa3::t_a81e2d50480427 42,44-55
+  s_55b09f68b48aa3::t_57628ac0bffcb1 35
+  s_55b09f68b48aa3::t_c57ce4a110191c 36-38
+  s_55b09f68b48aa3::t_879f6b4c01ec8c 58-60
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_55b09f68b48aa3::t_96f33624f86b07 667-669,676
+  ai_agent 684
+packages/ui/src/styles/motion.css
+  s_55b09f68b48aa3::t_c57ce4a110191c 94-98,101-113
+  s_55b09f68b48aa3::t_3fb9737b8834d8 93,99,114-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "deb2e8e8df593a4c5f2a8f3a6a4256de0257e5e4",
+  "prompts": {},
+  "sessions": {
+    "s_55b09f68b48aa3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "68561050-f119-4e47-9a32-99cca8e65fac",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
