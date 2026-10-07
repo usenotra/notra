@@ -106,7 +106,8 @@ export interface AgentReadinessTierRowProps {
 export interface AgentReadinessNextStepProps {
   issues: AgentReadinessIssue[];
   targetUrl: string;
-  mustDoOpenPoints: number;
+  /** Null when the report has no score breakdown. */
+  mustDoOpenPoints: number | null;
 }
 
 export interface AgentReadinessScoreGaugeProps {

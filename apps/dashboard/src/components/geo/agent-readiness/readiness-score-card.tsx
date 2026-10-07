@@ -40,10 +40,13 @@ const strong = (chunks: ReactNode) => (
 function ScoreDelta({ score, previousScore }: AgentReadinessScoreDeltaProps) {
   const t = useTranslations("geo.agentReadiness.scoreCard");
 
-  if (previousScore === null || previousScore === score) {
+  if (previousScore === null) {
     return null;
   }
   const delta = Math.round(score - previousScore);
+  if (delta === 0) {
+    return null;
+  }
   const improved = delta > 0;
 
   return (
@@ -124,6 +127,27 @@ function NextStep({
   if (!topIssue) {
     return null;
   }
+  const nextStepMessage = () => {
+    if (groups.mustDo.length === 0) {
+      return t.rich("scoreCard.nextStepShouldDo", {
+        name: topIssue.name,
+        strong,
+      });
+    }
+    if (mustDoOpenPoints === null) {
+      return t.rich("scoreCard.nextStepMustDoNoPoints", {
+        count: groups.mustDo.length,
+        name: topIssue.name,
+        strong,
+      });
+    }
+    return t.rich("scoreCard.nextStepMustDo", {
+      count: groups.mustDo.length,
+      points: format.number(mustDoOpenPoints, { maximumFractionDigits: 1 }),
+      name: topIssue.name,
+      strong,
+    });
+  };
   const masterPrompt = buildAgentReadinessAllFixesPrompt(
     targetUrl,
     groups.mustDo.length > 0 ? groups.mustDo : groups.shouldDo
@@ -138,19 +162,7 @@ function NextStep({
           size={16}
         />
         <p className="text-muted-foreground min-w-0 flex-1">
-          {groups.mustDo.length > 0
-            ? t.rich("scoreCard.nextStepMustDo", {
-                count: groups.mustDo.length,
-                points: format.number(mustDoOpenPoints, {
-                  maximumFractionDigits: 1,
-                }),
-                name: topIssue.name,
-                strong,
-              })
-            : t.rich("scoreCard.nextStepShouldDo", {
-                name: topIssue.name,
-                strong,
-              })}
+          {nextStepMessage()}
         </p>
       </div>
       <AgentReadinessCopyPromptButton
@@ -273,7 +285,7 @@ export function AgentReadinessScoreCard({
                 0,
                 breakdown.essential.available - breakdown.essential.earned
               )
-            : 0
+            : null
         }
         targetUrl={targetUrl}
       />
