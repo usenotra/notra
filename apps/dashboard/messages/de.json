@@ -3490,7 +3490,9 @@
         "cited": "In Antworten zitiert"
       },
       "visitsPerDay": "Besuche pro Tag",
-      "topPages": "Top-Seiten",
+      "botsTitle": "Bots ({count})",
+      "sourcesTitle": "Quellen ({count})",
+      "pagesTitle": "Top-Seiten ({count})",
       "pagesOutsideBusiest": "Die Seiten dieser Quelle liegen außerhalb der meistbesuchten Seiten der Website",
       "noPages": "Keine Seiten für diese Quelle erfasst"
     },

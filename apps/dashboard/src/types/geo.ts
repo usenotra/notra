@@ -498,6 +498,13 @@ export interface SheetStatGridProps {
   stats: readonly SheetStat[];
 }
 
+export interface TrafficSheetHeroProps {
+  stats: readonly SheetStat[];
+  series: { day: string; value: number }[];
+  chartTitle: string;
+  chartLabel: string;
+}
+
 export type JourneyGroupSheetStat =
   | {
       key: "journeys" | "deepCrawls" | "entryPage" | "ofAllJourneys";
@@ -943,6 +950,21 @@ export interface TrafficSourceSheetContentProps {
   group: GeoTrafficSourceGroup;
   series: { day: string; value: number }[];
   pages: readonly GeoTrafficPage[];
+}
+
+export interface UseTrafficSourceColumnsOptions {
+  /**
+   * Daily series per row, keyed by `trafficGroupKey(band, key)`. Rows without
+   * a series show the visit count alone.
+   */
+  seriesByKey?: ReadonlyMap<string, { day: string; value: number }[]>;
+  /**
+   * Rows are single bots of one source rather than source groups: the name
+   * drops the bot count and the purpose is one plain badge.
+   */
+  rowsAreBots?: boolean;
+  /** Replaces the first column's header, e.g. with a titled count. */
+  sourceHeader?: ReactNode;
 }
 
 export interface TrafficSourceGroupCellProps {
