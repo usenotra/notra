@@ -11,16 +11,14 @@ import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { Button } from "@notra/ui/components/ui/button";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
-import {
-  type ChartRangeSelection,
-  EChartsAreaChart,
-} from "@/components/evilcharts/charts/echarts-area-chart";
+import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import Link from "@/components/framework/link";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend";
+import { TrafficZoomChip } from "@/components/geo/traffic-zoom-chip";
 import { CHART_PRIMARY_COLOR, CHART_REFERRAL_COLOR } from "@/constants/charts";
 import {
   TRAFFIC_HERO_CHART_SURFACE_CLASS,
@@ -31,6 +29,7 @@ import {
   TRAFFIC_HERO_METRICS_STANDALONE_CLASS,
   TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
+import { useTrafficZoom } from "@/hooks/use-traffic-zoom";
 import { cn } from "@/lib/utils";
 import type { ChartConfig, TooltipRowGroup } from "@/types/charts";
 import type {
@@ -142,13 +141,6 @@ export function TrafficHero({
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
-  // Zoom keeps absolute row indices plus the range it was made on, so a new
-  // date range drops it without an effect.
-  const [zoom, setZoom] = useState<{
-    from: number;
-    to: number;
-    key: string;
-  } | null>(null);
   const showTrend = rows.length > 0;
   const singleDay = rows.length === 1;
   const days = rows.map((row) => row.rawDay);
@@ -191,47 +183,15 @@ export function TrafficHero({
         : null,
   }));
   const rangeKey = `${days[0] ?? ""}:${days.at(-1) ?? ""}`;
-  const activeZoom = zoom?.key === rangeKey ? zoom : null;
-  const zoomOffset = activeZoom?.from ?? 0;
-  const visibleRows = activeZoom
-    ? chartRows.slice(activeZoom.from, activeZoom.to + 1)
-    : chartRows;
+  const { visibleRows, zoomed, resetZoom, onRangeSelect } = useTrafficZoom(
+    chartRows,
+    rangeKey,
+    !singleDay
+  );
   const markIncompleteTail = visibleRows.at(-1)?.rawDay === todayIsoDate();
   const isolatedReferralDays = isolatedPointIndices(
     visibleRows.map((row) => row[GEO_TRAFFIC_TREND_REFERRAL_KEY])
   );
-  const zoomLabel = `${visibleRows[0]?.day ?? ""} – ${visibleRows.at(-1)?.day ?? ""}`;
-  const applyZoom = useCallback(
-    (selection: ChartRangeSelection) => {
-      setZoom({
-        from: zoomOffset + selection.startIndex,
-        to: zoomOffset + selection.endIndex,
-        key: rangeKey,
-      });
-    },
-    [rangeKey, zoomOffset]
-  );
-  const resetZoom = useCallback(() => setZoom(null), []);
-  const zoomed = activeZoom !== null;
-
-  useEffect(() => {
-    if (!zoomed) {
-      return;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target;
-      const typing =
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          /^(input|textarea|select)$/i.test(target.tagName));
-      if (event.key === "Escape" && !typing) {
-        resetZoom();
-      }
-    };
-    // Capture phase: a focused button or the canvas must not swallow Escape.
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [zoomed, resetZoom]);
   const config: ChartConfig = {
     [GEO_TRAFFIC_TREND_CRAWLER_KEY]: {
       label: tShared("crawlers"),
@@ -303,14 +263,11 @@ export function TrafficHero({
           <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
             <h2 className="text-sm font-medium">{t("activity")}</h2>
             <div className="flex min-w-0 items-center gap-2">
-              {zoomed ? (
-                <Button onClick={resetZoom} size="sm" variant="outline">
-                  {zoomLabel}
-                  <span className="text-muted-foreground">
-                    {t("resetZoom")}
-                  </span>
-                </Button>
-              ) : null}
+              <TrafficZoomChip
+                onReset={resetZoom}
+                rows={visibleRows}
+                zoomed={zoomed}
+              />
               <TrafficProviderLegend
                 hiddenKeys={hiddenKeys}
                 onToggle={(key) =>
@@ -329,7 +286,7 @@ export function TrafficHero({
             config={config}
             curveType="monotone"
             data={visibleRows}
-            onRangeSelect={singleDay ? undefined : applyZoom}
+            onRangeSelect={onRangeSelect}
             xDataKey="day"
           >
             <EChartsAreaChart.Grid variant="solid" />

@@ -1702,6 +1702,12 @@ export interface TrafficHeroProps {
   settingsHref: string;
 }
 
+export interface TrafficZoomChipProps {
+  rows: readonly { day: string }[];
+  zoomed: boolean;
+  onReset: () => void;
+}
+
 export interface TrafficHeroMetricProps {
   metric: TrafficTrendMetric;
   settingsHref: string;

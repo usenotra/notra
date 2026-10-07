@@ -2183,13 +2183,19 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     [areas]
   );
 
+  // Drag-to-select owns two handler fields. They get their own effect so a new
+  // callback identity never re-runs the scrub reset in the effect below.
+  useLayoutEffect(() => {
+    live.handlers.onRangeSelect = onRangeSelect;
+    live.handlers.tooltipOn = tooltipSlot.present;
+  }, [live, onRangeSelect, tooltipSlot.present]);
+
   // Snapshot callbacks after commit so zr handlers never see a half-built option.
   useLayoutEffect(() => {
     live.handlers = {
+      ...live.handlers,
       onBrushChange: brushSlot.onChange,
       onSelectionChange,
-      onRangeSelect,
-      tooltipOn: tooltipSlot.present,
       clickableKeys,
       selectedDataKey,
       brushFormatLabel: brushSlot.formatLabel,
@@ -2824,8 +2830,6 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     const endDrag = () => {
       live.drag = null;
-      window.removeEventListener("mouseup", finishDrag);
-      window.removeEventListener("keydown", onDragKey, true);
       chart.setOption(
         { tooltip: { show: live.handlers.tooltipOn } },
         { silent: true }
@@ -2834,7 +2838,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     };
     // Escape drops the drag without picking a range.
     const onDragKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") endDrag();
+      if (event.key === "Escape" && live.drag) endDrag();
     };
     const finishDrag = () => {
       const drag = live.drag;
@@ -2867,8 +2871,6 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       chart.setOption({ tooltip: { show: false } }, { silent: true });
       chart.dispatchAction({ type: "hideTip" });
       paintSelection();
-      window.addEventListener("mouseup", finishDrag);
-      window.addEventListener("keydown", onDragKey, true);
     };
     const dragTo = (event: { offsetX?: number; offsetY?: number }) => {
       const drag = live.drag;
@@ -2883,6 +2885,9 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     };
     zrHover.on("mousedown", onZrDown);
     zrHover.on("mouseup", finishDrag);
+    // A drag can end outside the canvas, so release and Escape are window-level.
+    window.addEventListener("mouseup", finishDrag);
+    window.addEventListener("keydown", onDragKey, true);
 
     zrHover.on("mousemove", onZrHoverMove);
     zrHover.on("globalout", onZrHoverOut);
