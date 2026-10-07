@@ -23,6 +23,9 @@ unreachable placeholder database URL and no provider or billing credentials.
 returned `401`, malformed JSON returned `400`, and an oversized body returned
 `413`. A burst of 100 unauthenticated requests was entirely rejected. Idle
 SIGTERM shutdown exited with code 0 in 11 ms in that sandbox.
+The final Alpine image repeated those status and burst checks successfully;
+idle SIGTERM shutdown exited with code 0 in 10 ms. All test sandboxes were
+deleted after verification.
 
 Reproduce the isolated suites from the repository root:
 
