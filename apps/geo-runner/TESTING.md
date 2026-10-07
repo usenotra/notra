@@ -61,6 +61,35 @@ typechecks concurrently also exceeded its memory budget; the relevant host and
 package typechecks passed locally. These failures do not establish runner
 memory requirements under production load.
 
+## CLI and billing follow-up
+
+After merging `main` at `ac4094645`, the updated CLI and billing fixes were
+verified again in a fresh Daytona sandbox with the same Bun 1.4.0 image and
+resource limits. The full GEO Core suite passed 161 tests and 707 assertions.
+The runner suite passed 29 tests and 227 assertions, including 10 CLI tests.
+The runner typecheck and final bundle build also passed in this sandbox.
+
+The CLI tests start actual Bun subprocesses against local HTTP servers. They
+verify JSON output without database configuration, scoped read-only polling,
+503 and lost-response retries with the same idempotency key, rejected redirects,
+invalid model IDs and response shapes, failed scans, deadlines, and fixture
+refusal before HTTP or database access. Fixture guards also reject PostgreSQL
+query parameters that could override a loopback hostname.
+
+Five billing regressions exercise the real shared reservation and settlement
+functions against a mocked Autumn boundary. They verify reserving all eligible
+answers, releasing empty answer-quota runs, settling partial successes, charging
+retained paid usage in credit mode, and refusing model calls without balance.
+Three judge-cost regressions use the AI SDK and real pricing logic to verify
+Flex estimates, precedence of reported route costs, and unchanged OpenRouter
+pricing. All amounts in these tests are fixture values.
+
+The six relevant local typechecks passed for Runner, GEO Core, AI, DB, dashboard,
+and API. The shared router's 42 tests and repository formatting/lint also
+passed. Existing UI lint warnings remain. These follow-up tests use simulated
+providers and Autumn; they do not prove a real customer charge or complete
+capture of failed-retry costs.
+
 ## Remaining production checks
 
 The Railway service was deleted at the user's request. There is no active
