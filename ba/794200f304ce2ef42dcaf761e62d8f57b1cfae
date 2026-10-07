@@ -1,0 +1,44 @@
+apps/dashboard/src/constants/auth-routes.ts
+  s_b155a88c1223c7::t_375d3899af5b1f 4
+apps/dashboard/src/routes/-entry-ui.tsx
+  s_b155a88c1223c7::t_375d3899af5b1f 10,16,29,47-53,96-104,136-144
+apps/dashboard/src/components/invitation/invitation-confirm.tsx
+  s_b155a88c1223c7::t_bb9740802318bb 75,98-102
+  s_b155a88c1223c7::t_c056c829dfe359 46,230-242
+  s_b155a88c1223c7::t_da6f1108fe8c02 1-5,10-16,18-42,44-45,47,49-56,61-74,76-97,103,105-154,156,158-187,196-203,205-227,229,243-258,260,263-277,280-299
+  s_b155a88c1223c7::t_cb5702260bae26 57-60
+  s_b155a88c1223c7::t_659739229af01d 6-9,17,104,155,157,228
+  s_b155a88c1223c7::t_522b97c5ca5cbc 43,48,188-195,204,259,261-262,278-279
+apps/dashboard/src/routes/-invitation-loaders.ts
+  s_b155a88c1223c7::t_3c347c685018c1 1-12,15-33
+  s_b155a88c1223c7::t_bb9740802318bb 13-14
+apps/dashboard/src/types/invitation.ts
+  s_b155a88c1223c7::t_3c347c685018c1 1-36
+apps/dashboard/messages/de.json
+  s_b155a88c1223c7::t_659739229af01d 862-911
+apps/dashboard/src/lib/invitations/invitations.ts
+  s_b155a88c1223c7::t_bb9740802318bb 14
+  s_b155a88c1223c7::t_3c347c685018c1 1-13,15-204
+apps/dashboard/src/components/auth/auth-split-shell.tsx
+  s_b155a88c1223c7::t_da6f1108fe8c02 1-29
+apps/dashboard/messages/en.json
+  s_b155a88c1223c7::t_659739229af01d 862-911
+apps/dashboard/src/app/(auth)/signup/page.tsx
+  s_b155a88c1223c7::t_375d3899af5b1f 3,6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ba794200f304ce2ef42dcaf761e62d8f57b1cfae",
+  "prompts": {},
+  "sessions": {
+    "s_b155a88c1223c7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3407050a-0fae-4606-8da1-d9fa066d8bf5",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
