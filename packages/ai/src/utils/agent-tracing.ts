@@ -34,7 +34,7 @@ export function setAgentTraceFlushScheduler(schedule: LogFlushScheduler): void {
 
 export function createAgentTraceProcessor(): SpanProcessor | undefined {
   if (
-    process.env.RESPAN_TRACING_ENABLED !== "true" ||
+    process.env.RESPAN_TRACING_ENABLED === "false" ||
     !process.env.RESPAN_API_KEY
   ) {
     return undefined;

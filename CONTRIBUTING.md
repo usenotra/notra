@@ -80,9 +80,10 @@ cp .env.example .env
 - OAuth provider credentials
 - Any provider keys needed for the area you're working on
 
-Agent tracing to Respan is optional. Set `RESPAN_TRACING_ENABLED=true` and
-`RESPAN_API_KEY` to enable it in the dashboard and API, including local
-development. It exports AI SDK model, step, and tool spans through standard
+Agent tracing to Respan is enabled by default when `RESPAN_API_KEY` is set in
+the dashboard and API, including local development. No other variable is
+required. Without an API key it remains disabled. It exports AI SDK model, step,
+and tool spans through standard
 OTLP/HTTP; it does not change model routing or require the Respan SDK. Existing
 TCC tracing is retained; Respan does not replace operational logging.
 
