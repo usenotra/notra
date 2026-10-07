@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { watch } from "node:fs";
+import { renameSync, watch } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +21,7 @@ import {
 import { USAGE } from "./constants/cli";
 import { writeOgImages } from "./og-images";
 import { prepareSite, readSiteFiles } from "./prepare";
-import { siteHeadScripts } from "./utils/head-scripts";
+import { createDevRefresh } from "./utils/dev-refresh";
 
 const TOOLCHAIN_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -102,40 +102,6 @@ async function main() {
 
   if (command === "dev") {
     const workDir = join(TOOLCHAIN_ROOT, ".notra", "work");
-    const prepare = async () => {
-      const prepared = await prepareSite({
-        siteRoot,
-        workDir,
-        stableAssetNames: true,
-      });
-      const config = prepared.validation.config;
-      const ogImages =
-        prepared.validation.ok && config
-          ? await writeOgImages({
-              workDir,
-              config,
-              entries: prepared.validation.entries,
-              publicFiles: prepared.publicFiles,
-              includeDrafts: true,
-            })
-          : null;
-      printDiagnostics([
-        ...prepared.collectDiagnostics,
-        ...prepared.validation.diagnostics,
-        ...(ogImages?.diagnostics ?? []),
-      ]);
-      return {
-        ...prepared,
-        publicFiles: [
-          ...prepared.publicFiles,
-          ...Object.values(ogImages?.manifest ?? {}),
-        ],
-      };
-    };
-    const prepared = await prepare();
-    if (!(prepared.validation.ok && prepared.validation.config)) {
-      process.exit(1);
-    }
     const mounts = normalizeSiteMounts({
       blog: "/blog",
       changelog: "/changelog",
@@ -147,68 +113,79 @@ async function main() {
       process.exit(1);
     }
     const paramsPath = join(workDir, "params.dev.json");
-    await writeBuildParams(paramsPath, {
-      area: selected.area,
-      mount: selected.mount,
-      publicOrigin: `http://localhost:${values.port}`,
-      siteId: "local",
-      deploymentId: "local",
-      noindex: true,
-      includeDrafts: true,
-      branding: true,
-      workDir,
-      publicFiles: prepared.publicFiles,
-      mounts,
-      config: prepared.validation.config,
-      headScripts: siteHeadScripts(
-        prepared.validation.config,
-        selected.mount,
-        prepared.customScripts
-      ),
+    const refresh = createDevRefresh({
+      params: {
+        area: selected.area,
+        mount: selected.mount,
+        publicOrigin: `http://localhost:${values.port}`,
+        siteId: "local",
+        deploymentId: "local",
+        noindex: true,
+        includeDrafts: true,
+        branding: true,
+        workDir,
+        mounts,
+      },
+      prepare: () => prepareSite({ siteRoot, workDir, stableAssetNames: true }),
+      writeOgImages,
+      printDiagnostics,
+      reportError: (error) => process.stderr.write(`${String(error)}\n`),
+      publish: async (params, isCurrent) => {
+        const temporaryPath = `${paramsPath}.tmp`;
+        await writeBuildParams(temporaryPath, params);
+        if (!isCurrent()) {
+          return false;
+        }
+        renameSync(temporaryPath, paramsPath);
+        return true;
+      },
+      runAstro: (astroCommand) =>
+        runAstro(
+          TOOLCHAIN_ROOT,
+          astroCommand,
+          paramsPath,
+          astroCommand === "dev"
+            ? ["--background", "--port", values.port ?? "4321"]
+            : []
+        ),
     });
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    watch(siteRoot, { recursive: true }, () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        prepare().catch((error: unknown) =>
+    let watchedRefresh: Promise<boolean> | undefined;
+    const watcher = watch(siteRoot, { recursive: true }, () => {
+      const requested = refresh.refresh(150);
+      if (requested !== watchedRefresh) {
+        watchedRefresh = requested;
+        requested.catch((error: unknown) =>
           process.stderr.write(`${String(error)}\n`)
         );
-      }, 150);
-    });
-    process.stderr.write(
-      `Previewing ${selected.area} at http://localhost:${values.port}${selected.mount}\n`
-    );
-    let devOutput = "";
-    const exitCode = await runAstro(
-      TOOLCHAIN_ROOT,
-      "dev",
-      paramsPath,
-      ["--port", values.port ?? "4321"],
-      (chunk) => {
-        devOutput += chunk;
-        process.stderr.write(chunk);
       }
-    );
-    if (exitCode === 0 && devOutput.includes("astro dev stop")) {
-      const stop = async () => {
-        await runAstro(
-          TOOLCHAIN_ROOT,
-          "stop",
-          paramsPath,
-          [],
-          () => undefined
-        ).catch(() => undefined);
-        process.exit(0);
-      };
-      process.on("SIGINT", () => {
-        stop().catch(() => process.exit(1));
-      });
-      process.on("SIGTERM", () => {
-        stop().catch(() => process.exit(1));
-      });
+    });
+    const stop = async () => {
+      watcher.close();
+      await refresh.shutdown();
+    };
+    const onSignal = () => {
+      stop()
+        .then(() => process.exit(0))
+        .catch((error: unknown) => {
+          process.stderr.write(`${String(error)}\n`);
+          process.exit(1);
+        });
+    };
+    process.once("SIGINT", onSignal);
+    process.once("SIGTERM", onSignal);
+    try {
+      if (!(await refresh.refresh())) {
+        await stop();
+        process.exit(1);
+      }
+      process.stderr.write(
+        `Previewing ${selected.area} at http://localhost:${values.port}${selected.mount}\n`
+      );
       await new Promise(() => undefined);
+    } catch (error) {
+      await stop();
+      throw error;
     }
-    process.exit(exitCode);
   }
 
   process.stderr.write(`${USAGE}\n`);
