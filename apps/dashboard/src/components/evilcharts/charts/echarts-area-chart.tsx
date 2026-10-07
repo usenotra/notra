@@ -2838,7 +2838,11 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     };
     // Escape drops the drag without picking a range.
     const onDragKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && live.drag) endDrag();
+      if (event.key !== "Escape" || !live.drag) return;
+      // The drag consumes Escape, so a zoom that is already applied stays.
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      endDrag();
     };
     const finishDrag = () => {
       const drag = live.drag;
@@ -3053,6 +3057,8 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
             series: seriesKeys.map((key) => ({
               id: `${REVEAL_PREFIX}${key}`,
               lineStyle: { opacity: SCRUB_MUTE_OPACITY },
+              // The faded isolated dots are rebuilt hidden too.
+              itemStyle: { opacity: SCRUB_MUTE_OPACITY },
             })),
           },
           { silent: true }

@@ -53,6 +53,9 @@ export function useTrafficZoom<Row>(
       return;
     }
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) {
+        return;
+      }
       if (event.key === "Escape" && !isTyping(event.target)) {
         resetZoom();
       }
