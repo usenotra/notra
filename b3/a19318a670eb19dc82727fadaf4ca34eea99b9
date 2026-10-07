@@ -1,0 +1,9 @@
+packages/geo-core/src/utils/agent-readiness.ts
+  ai_agent 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b3a19318a670eb19dc82727fadaf4ca34eea99b9",
+  "prompts": {}
+}
