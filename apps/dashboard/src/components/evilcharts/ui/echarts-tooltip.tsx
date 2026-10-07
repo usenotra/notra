@@ -221,6 +221,107 @@ export function tooltipItemsFromRow(
   return items;
 }
 
+const MORE_ROW_KEY = "__more";
+
+/** Biggest first, with the folded "+N more" row always last. */
+function compareByValueDesc(left: TooltipBodyItem, right: TooltipBodyItem): number {
+  if (left.key === MORE_ROW_KEY) {
+    return 1;
+  }
+  if (right.key === MORE_ROW_KEY) {
+    return -1;
+  }
+  return (right.value ?? -1) - (left.value ?? -1);
+}
+
+/**
+ * Keeps the `maxRows` biggest rows and folds the rest into one muted
+ * "+N more" row carrying their sum, so a tooltip over many providers stays a
+ * fixed height.
+ */
+export function capTooltipItems(
+  items: TooltipBodyItem[],
+  maxRows: number | undefined,
+  moreLabel: (count: number) => string,
+  valueFormatter?: TooltipValueFormatter
+): TooltipBodyItem[] {
+  if (maxRows === undefined || items.length <= maxRows + 1) {
+    return items;
+  }
+  const ranked = items.toSorted(compareByValueDesc);
+  const rest = ranked.slice(maxRows);
+  const sum = rest.reduce((total, item) => total + (item.value ?? 0), 0);
+  return [
+    ...ranked.slice(0, maxRows),
+    {
+      key: MORE_ROW_KEY,
+      colorsCount: 1,
+      labelText: moreLabel(rest.length),
+      value: sum,
+      valueText: formatTooltipValue(sum, valueFormatter).text,
+      dimmed: "",
+      paint: "rgba(128, 128, 128, 0.45)",
+    },
+  ];
+}
+
+const MIN_ROWS_PER_SECTION = 3;
+
+/**
+ * Fits sections into one row budget so the tooltip height stays the same no
+ * matter how many providers exist. Every section keeps at least
+ * `MIN_ROWS_PER_SECTION` rows (a fold row counts as one); the rest go to the
+ * sections with the most traffic per row already shown.
+ */
+export function capTooltipGroups(
+  groups: TooltipBodyGroup[],
+  maxRows: number | undefined,
+  moreLabel: (count: number) => string,
+  valueFormatter?: TooltipValueFormatter
+): TooltipBodyGroup[] {
+  if (maxRows === undefined) {
+    return groups;
+  }
+  const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+  if (total <= maxRows) {
+    return groups;
+  }
+  const rows = groups.map((group) =>
+    Math.min(group.items.length, MIN_ROWS_PER_SECTION)
+  );
+  let spare = maxRows - rows.reduce((sum, count) => sum + count, 0);
+  while (spare > 0) {
+    let best = -1;
+    let bestScore = -1;
+    for (const [index, group] of groups.entries()) {
+      const shown = rows[index] ?? 0;
+      if (shown >= group.items.length) {
+        continue;
+      }
+      const score = (group.heading.value ?? 0) / Math.max(shown, 1);
+      if (score > bestScore) {
+        best = index;
+        bestScore = score;
+      }
+    }
+    if (best === -1) {
+      break;
+    }
+    rows[best] = (rows[best] ?? 0) + 1;
+    spare -= 1;
+  }
+  return groups.map((group, index) => ({
+    heading: group.heading,
+    // A folded section spends one of its rows on "+N more".
+    items: capTooltipItems(
+      group.items,
+      Math.max((rows[index] ?? 0) - 1, 0),
+      moreLabel,
+      valueFormatter
+    ),
+  }));
+}
+
 export function tooltipEmptyBody(label: string): string {
   return `<span class="text-muted-foreground">${escapeHtml(label)}</span>`;
 }
@@ -240,9 +341,7 @@ function tooltipActivityRow(item: TooltipBodyItem, max: number): string {
 }
 
 function tooltipActivityBody(items: readonly TooltipBodyItem[]): string {
-  const ranked = [...items].sort(
-    (left, right) => (right.value ?? -1) - (left.value ?? -1)
-  );
+  const ranked = [...items].sort(compareByValueDesc);
   const total = ranked.reduce((sum, item) => sum + (item.value ?? 0), 0);
   return ranked.map((item) => tooltipActivityRow(item, total)).join("");
 }
@@ -285,7 +384,7 @@ export function composeTooltipBody(
   }
 
   const ranked = [...items];
-  ranked.sort((left, right) => (right.value ?? -1) - (left.value ?? -1));
+  ranked.sort(compareByValueDesc);
   return ranked
     .map((item) =>
       tooltipBarRow({
@@ -327,7 +426,7 @@ export function tooltipShell({
     : "gap-2 px-3 py-2.5";
   const bodyGap =
     layout === "activity" ? "gap-1" : isRows ? "gap-1.5" : "gap-2";
-  return `<div class="ec-tooltip-surface ${isRows ? "min-w-32" : "min-w-52"} overflow-hidden border border-border ${tooltipVariantClass[variant]} text-xs shadow-md ${roundnessClass[roundness]}">
+  return `<div class="ec-tooltip-surface ${isRows ? "min-w-32" : "min-w-52"} overflow-hidden border border-border ${tooltipVariantClass[variant]} text-xs shadow-lift dark:shadow-md ${roundnessClass[roundness]}">
     <div class="ec-tooltip-content grid ${surface} content-start items-start">
       ${header}
       <div class="grid ${bodyGap}" style="transition:opacity 0.24s ease">${body}</div>
@@ -437,6 +536,57 @@ export function tooltipBaseOption(params: {
   };
 }
 
+// Fixed-size slot so swatches (10 px) and provider icons (14 px) put their
+// labels at the same x in every row of a sectioned list.
+function tooltipIndicatorSlot(indicatorHtml: string): string {
+  return `<span class="flex size-3.5 shrink-0 items-center justify-center">${indicatorHtml}</span>`;
+}
+
+// Compact sectioned list: a small caption (swatch, label, total) per group
+// followed by plain swatch rows, no bars. Reads as one flat list while still
+// telling crawlers from referrals.
+export function composeTooltipSectionedRows(
+  groups: readonly TooltipBodyGroup[]
+): string {
+  return groups
+    .map((group, index) => {
+      const fill =
+        group.heading.paint ??
+        indicatorBackground(group.heading.key, group.heading.colorsCount);
+      const rowsHtml = group.items
+        .toSorted(compareByValueDesc)
+        .map((item) => {
+          const indicatorHtml =
+            item.indicatorHtml ??
+            (item.paint
+              ? tooltipColorSwatchHtml(item.paint)
+              : tooltipIndicatorHtml(item.key, item.colorsCount));
+          // No wrapping: while the box resizes between days a wrapping row
+          // would flash with its icon on a line of its own.
+          return `<div class="flex w-full items-center gap-2 whitespace-nowrap${item.dimmed}">
+          ${tooltipIndicatorSlot(indicatorHtml)}
+          <div class="flex flex-1 items-center justify-between gap-4 leading-none">
+            <span class="text-muted-foreground">${escapeHtml(item.labelText)}</span>
+            <span class="text-foreground font-mono font-medium tabular-nums">${escapeHtml(item.valueText)}</span>
+          </div>
+        </div>`;
+        })
+        .join("");
+      const separator =
+        index > 0
+          ? `<div class="border-border my-0.5 border-t" role="separator"></div>`
+          : "";
+      return `${separator}<div class="grid gap-1.5">
+          <div class="flex items-center justify-between gap-4 leading-none">
+            <span class="flex items-center gap-2 font-medium text-foreground">${tooltipIndicatorSlot(tooltipColorSwatchHtml(fill))}${escapeHtml(group.heading.labelText)}</span>
+            <span class="font-mono font-semibold text-foreground tabular-nums">${escapeHtml(group.heading.valueText)}</span>
+          </div>
+          ${rowsHtml}
+        </div>`;
+    })
+    .join("");
+}
+
 // Sectioned activity list: each group renders a heading (swatch, label, total)
 // followed by activity rows scaled to the heading value, so children read as
 // shares of it — the same rows the single-group "activity" layout uses.
@@ -446,9 +596,7 @@ export function composeTooltipGroupedBody(
   return groups
     .map((group, index) => {
       const headingValue = group.heading.value ?? 0;
-      const rows = group.items.toSorted(
-        (left, right) => (right.value ?? -1) - (left.value ?? -1)
-      );
+      const rows = group.items.toSorted(compareByValueDesc);
       const headingHtml = tooltipGroupHeadingRow({
         key: group.heading.key,
         colorsCount: group.heading.colorsCount,

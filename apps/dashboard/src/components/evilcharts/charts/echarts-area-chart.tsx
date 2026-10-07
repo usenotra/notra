@@ -68,7 +68,10 @@ import {
   type TooltipRoundness,
   type TooltipVariant,
   composeTooltipBody,
+  capTooltipGroups,
+  capTooltipItems,
   composeTooltipGroupedBody,
+  composeTooltipSectionedRows,
   configIndicatorHtml,
   formatTooltipValue,
   tooltipBaseOption,
@@ -138,6 +141,8 @@ type YAxisOption = ArrayItem<NonNullable<EChartsOption["yAxis"]>>;
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
+const defaultMoreLabel = (count: number) => `+${count} more`;
+const DEFAULT_FILL_ALPHA = 0.24; // peak fill opacity — <Area fillAlpha> overrides it
 const STROKE_WIDTH = 0.8; // default series stroke — <Area strokeWidth> overrides it
 const LOADING_ANIMATION_DURATION = 2000; // shimmer loop, in milliseconds
 const REVEAL_DURATION = 1000; // intro draw-in length, in milliseconds
@@ -243,6 +248,7 @@ export interface AreaProps {
   variant?: AreaVariant; // fill style for this area only
   strokeVariant?: StrokeVariant; // stroke style for this area
   strokeWidth?: number; // stroke thickness in pixels for this area
+  fillAlpha?: number; // peak opacity of the gradient/solid fill, 0–1 (default 0.1)
   curveType?: CurveType; // curve interpolation — falls back to the root curveType
   animationType?: AreaAnimationType; // intro reveal — first area drives the wrapper wipe
   connectNulls?: boolean; // join segments across null/missing values
@@ -329,6 +335,8 @@ export interface TooltipProps {
   // followed by its row keys scaled to the heading value.
   rowGroups?: readonly TooltipRowGroup[];
   hideZeros?: boolean; // drop series whose hovered value is 0 / empty
+  maxRows?: number; // row budget: with rowGroups it is shared by all sections (layout "rows" = compact captions, else activity bars), otherwise it caps the list; the rest folds into "+N more"
+  moreLabel?: (count: number) => string; // label of the folded row, for translation (default "+N more")
   excludeKeys?: readonly string[]; // series drawn on the chart but omitted from the tooltip
   emptyLabel?: TooltipEmptyLabel; // shown when hideZeros / missing values leave no rows
 }
@@ -357,6 +365,7 @@ type AreaSeriesConfig = {
   variant: AreaVariant;
   strokeVariant: StrokeVariant;
   strokeWidth: number;
+  fillAlpha: number;
   curveType?: CurveType;
   animationType?: AreaAnimationType;
   connectNulls: boolean;
@@ -404,6 +413,8 @@ type TooltipSlot = {
   rowKeys?: readonly string[];
   rowGroups?: readonly TooltipRowGroup[];
   hideZeros: boolean;
+  maxRows?: number;
+  moreLabel?: (count: number) => string;
   excludeKeys: readonly string[];
   emptyLabel?: TooltipEmptyLabel;
 };
@@ -483,6 +494,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
         variant: props.variant ?? "gradient",
         strokeVariant: props.strokeVariant ?? "dashed",
         strokeWidth: props.strokeWidth ?? STROKE_WIDTH,
+        fillAlpha: props.fillAlpha ?? DEFAULT_FILL_ALPHA,
         curveType: props.curveType,
         animationType: props.animationType,
         connectNulls: props.connectNulls ?? false,
@@ -539,6 +551,8 @@ function collectConfig(children: ReactNode): CollectedConfig {
         rowGroups: props.rowGroups,
         hideZeros:
           props.hideZeros ?? Boolean(props.rowKeys || props.rowGroups),
+        maxRows: props.maxRows,
+        moreLabel: props.moreLabel,
         excludeKeys: props.excludeKeys ?? [],
         emptyLabel: props.emptyLabel,
       };
@@ -654,7 +668,8 @@ function gradientFillTexture(
   slots: string[],
   width: number,
   height: number,
-  reverse: boolean
+  reverse: boolean,
+  alpha: number
 ): HTMLCanvasElement | null {
   if (typeof document === "undefined" || width < 1 || height < 1) return null;
 
@@ -672,8 +687,8 @@ function gradientFillTexture(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const fade = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  fade.addColorStop(0, `rgba(0, 0, 0, ${reverse ? 0 : 0.1})`);
-  fade.addColorStop(1, `rgba(0, 0, 0, ${reverse ? 0.1 : 0})`);
+  fade.addColorStop(0, `rgba(0, 0, 0, ${reverse ? 0 : alpha})`);
+  fade.addColorStop(1, `rgba(0, 0, 0, ${reverse ? alpha : 0})`);
   ctx.globalCompositeOperation = "destination-in";
   ctx.fillStyle = fade;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -738,7 +753,8 @@ function fillPaint(
   variant: AreaVariant,
   showUnselected: boolean,
   slots: string[],
-  size: { width: number; height: number }
+  size: { width: number; height: number },
+  alpha: number
 ): string | echarts.graphic.LinearGradient | ImagePatternObject {
   const base = slots[0] ?? "rgba(120, 120, 120, 1)";
   const multi = slots.length > 1;
@@ -760,13 +776,14 @@ function fillPaint(
           slots,
           size.width,
           size.height,
-          reverse
+          reverse,
+          alpha
         );
         if (texture) return { image: texture, repeat: "no-repeat" };
       }
       return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: withAlpha(base, reverse ? 0 : 0.1) },
-        { offset: 1, color: withAlpha(base, reverse ? 0.1 : 0) },
+        { offset: 0, color: withAlpha(base, reverse ? 0 : alpha) },
+        { offset: 1, color: withAlpha(base, reverse ? alpha : 0) },
       ]);
     }
     case "solid": {
@@ -779,11 +796,11 @@ function fillPaint(
           0,
           slots.map((color, i) => ({
             offset: i / (slots.length - 1),
-            color: withAlpha(color, 0.1),
+            color: withAlpha(color, alpha),
           }))
         );
       }
-      return withAlpha(base, 0.1);
+      return withAlpha(base, alpha);
     }
     case "dotted":
     case "lines":
@@ -816,7 +833,7 @@ function curveConfig(curveType: CurveType): {
   // between points, so each dot sits centered on its plateau.
   if (curveType === "step") return { smooth: false, step: "middle" };
   if (curveType === "linear") return { smooth: false, step: false };
-  if (curveType === "monotoneX") return { smooth: true, step: false, smoothMonotone: "x" };
+  if (curveType === "monotone" || curveType === "monotoneX") return { smooth: true, step: false, smoothMonotone: "x" };
   if (curveType === "monotoneY") return { smooth: true, step: false, smoothMonotone: "y" };
   return { smooth: true, step: false };
 }
@@ -897,8 +914,10 @@ const BUFFERFILL_PREFIX = "__bufferfill-";
 // The `__reveal-` prefix marks the muted base layer of a hover-reveal area — see
 // buildAreaSeries. Internal, so the tooltip drops it like the mini/loading rows.
 const REVEAL_PREFIX = "__reveal-";
+const REVEAL_MUTE_OPACITY = 0.3; // faded trail past the cursor
 const SCRUB_SKIP_PREFIXES = [REVEAL_PREFIX, "__mini-", "__loading"] as const;
 const SCRUB_LERP = 0.18;
+const SCRUB_DOT_HALO_ALPHA = 0.25; // opacity of the ring around the scrub dot
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Option builders — pure functions from a snapshot context to ECharts option
@@ -929,7 +948,6 @@ type OptionBuildContext = {
   brushHeight: number;
   enableHoverHighlight: boolean;
   enableHoverReveal: boolean; // hover colors each area up to the pointer, mutes the rest
-  revealIndex: number | null; // pointer's x-index while revealing (null = idle → chart looks normal)
   revealSink: Record<string, unknown[]>; // buildAreaSeries writes each area's full per-datum points here for the hover handler
   resolved: ResolvedColors;
   rendererSize: { width: number; height: number }; // 2D gradient textures bake at renderer size
@@ -1151,26 +1169,39 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
           ),
         });
       }
+      const cappedGroups = capTooltipGroups(
+        groups,
+        tooltipSlot.maxRows,
+        tooltipSlot.moreLabel ?? defaultMoreLabel,
+        tooltipSlot.valueFormatter
+      );
       return tooltipShell({
         label,
         body:
           groups.length > 0
-            ? composeTooltipGroupedBody(groups)
+            ? tooltipSlot.layout === "rows"
+              ? composeTooltipSectionedRows(cappedGroups)
+              : composeTooltipGroupedBody(cappedGroups)
             : tooltipBodyHtml([], tooltipSlot, hoveredRow),
         roundness: tooltipSlot.roundness,
         variant: tooltipSlot.variant,
-        layout: "activity",
+        layout: tooltipSlot.layout === "rows" ? "rows" : "activity",
       });
     }
     const rowKeys = tooltipSlot.rowKeys;
     if (rowKeys && rowKeys.length > 0 && typeof first.dataIndex === "number") {
-      const items = tooltipItemsFromRow(
-        hoveredRow,
-        rowKeys,
-        config,
-        tooltipSlot.valueFormatter,
-        resolved.series,
-        tooltipSlot.hideZeros
+      const items = capTooltipItems(
+        tooltipItemsFromRow(
+          hoveredRow,
+          rowKeys,
+          config,
+          tooltipSlot.valueFormatter,
+          resolved.series,
+          tooltipSlot.hideZeros
+        ),
+        tooltipSlot.maxRows,
+        tooltipSlot.moreLabel ?? defaultMoreLabel,
+        tooltipSlot.valueFormatter
       );
       return tooltipShell({
         label,
@@ -1422,7 +1453,6 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     hasSelection,
     enableHoverHighlight,
     enableHoverReveal,
-    revealIndex,
     revealSink,
     resolved,
     rendererSize,
@@ -1457,9 +1487,9 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     // takes precedence over a per-area buffer tail when both are set.
     const scrub = tooltipSlot.scrub;
     const reveal = enableHoverReveal || scrub;
-    // Scrub clips in pixels instead of dropping points, so the series stays
-    // full and the cut rides the pointer. Classic hover-reveal still slices.
-    const revealActive = enableHoverReveal && !scrub && revealIndex !== null;
+    // Scrub and hover-reveal both clip in pixels instead of dropping points: the
+    // series keeps its full data, so the curve through the cut point is the same
+    // spline as when idle (slicing re-fit the last segment and bent steep peaks).
     // Reveal owns the tail. Dropping its last point for a buffer would hide
     // today's value because reveal returns before the dashed buffer is added.
     const buffer = area.enableBufferLine && lastPresent >= 1 && !reveal;
@@ -1544,21 +1574,17 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
 
     // Buffer area: the solid MAIN part drops the last point (its final segment —
     // both fill and stroke — becomes the dashed, fill-less overlay); the overlay
-    // carries only the last two points. Reveal instead TRUNCATES the real series
-    // at the cursor's x-index (points beyond it null'd), so its line + fill stop
-    // there and the muted base layer shows through past it. When idle
-    // (revealIndex null) the real series carries its full data — the chart looks
-    // completely normal.
+    // carries only the last two points. Reveal instead CLIPS the real series at
+    // the cursor's x in pixels, so its line + fill stop there and the muted base
+    // layer shows through past it.
     // Snapshot the FULL per-datum points (with the multi-color dot itemStyle) so
-    // the reveal hover handler can slice them without losing each dot's sampled
-    // gradient color — plain values would fall back to the default palette.
+    // the scrub handler keeps each dot's sampled gradient color — plain values
+    // would fall back to the default palette.
     if (reveal) revealSink[key] = toPoints(values);
 
     const mainValues: (number | null)[] = buffer
       ? values.map((v, i) => (i === lastPresent ? null : v))
-      : revealActive
-        ? sliceToNull(values, revealIndex as number)
-        : values;
+      : values;
 
     // A buffer area keeps its body solid and dashes only the tail overlay, so
     // the main stroke is always solid regardless of strokeVariant (matches the
@@ -1597,7 +1623,12 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       // Resting dots stay on the line; ActiveDot-only series keep symbols
       // invisible until the axis pointer highlights the scrubbed index.
       // Scrub draws its own solid dots on the overlay, so native symbols stay off.
-      showSymbol: !scrub && !isHidden && (restingVisible || hoverSymbol),
+      // Scrub paints its own dots, but explicit dotIndices (isolated points that
+      // have no line segment to carry them) still need their native symbol.
+      showSymbol:
+        (!scrub || area.dotIndices !== undefined) &&
+        !isHidden &&
+        (restingVisible || hoverSymbol),
       symbol: "circle",
       symbolSize: area.dotIndices
         ? (_value, params) => area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0
@@ -1634,7 +1665,13 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
                   : dotVisibleOpacity,
           },
       areaStyle: {
-        color: fillPaint(area.variant, showUnselected, slots, rendererSize),
+        color: fillPaint(
+          area.variant,
+          showUnselected,
+          slots,
+          rendererSize,
+          area.fillAlpha
+        ),
         opacity: fillOpacity,
       },
       emphasis: isHidden || scrub
@@ -1678,15 +1715,12 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     // Hover-reveal: a low-opacity BASE layer of the FULL series sits one z below
     // the real one. It is invisible while idle (opacity 0 → the chart looks
     // normal) and fades in only while hovering, so the region PAST the cursor —
-    // where the truncated real series has stopped — keeps the series color.
+    // where the clipped real series has stopped — keeps the series color.
     if (reveal) {
       const revealBase: LineSeriesOption = {
         id: `${REVEAL_PREFIX}${key}`,
         type: "line",
-        // Only the region FROM the cursor onward (null before it), so the tail
-        // never sits under the colored part — the two meet exactly at the
-        // pointer and their colors can't mix.
-        data: revealActive ? sliceFrom(values, revealIndex as number) : values,
+        data: values,
         // Its OWN stack, not "total" — a second series in the real stack would
         // double every key's contribution (broken geometry). This mirror stack
         // reproduces the same cumulative shape in a separate layer.
@@ -1704,12 +1738,11 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
           color: strokePaint,
           width: area.strokeWidth,
           type: mainDash,
-          // Scrub turns this on from the hover handler so a mousemove never
-          // rebuilds the option. Classic reveal still keys it off the slice.
-          opacity: scrub ? 0 : revealActive ? 0.3 : 0,
+          // The hover handler turns this on, so a mousemove never rebuilds the option.
+          opacity: 0,
         },
         emphasis: { disabled: true },
-        blur: { lineStyle: { opacity: revealActive ? 0.3 : 0 } },
+        blur: { lineStyle: { opacity: 0 } },
         tooltip: { show: false },
       };
       return [revealBase, mainSeries];
@@ -1795,7 +1828,13 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       z: z - 1,
       lineStyle: { opacity: 0 },
       areaStyle: {
-        color: fillPaint(area.variant, showUnselected, slots, rendererSize),
+        color: fillPaint(
+          area.variant,
+          showUnselected,
+          slots,
+          rendererSize,
+          area.fillAlpha
+        ),
         opacity: opacity.fill,
       },
       emphasis: { disabled: true },
@@ -1821,21 +1860,6 @@ function lastPresentIndex(values: readonly (number | null)[]): number {
     if (values[index] !== null) return index;
   }
   return -1;
-}
-
-// Copy a value list with everything AFTER `idx` nulled — the hover-reveal cut:
-// the colored real series keeps its data up to the cursor and drops the rest, so
-// (with connectNulls false) its line and fill stop dead at the pointer.
-function sliceToNull<T>(vals: readonly T[], idx: number): (T | null)[] {
-  return vals.map((v, i) => (i > idx ? null : v));
-}
-
-// Copy a value list with everything BEFORE `idx` nulled — the reveal's faded tail.
-// The base keeps only the region from the cursor onward, so it never sits
-// under the colored part; both include `idx` so they meet at the pointer.
-// Generic so it preserves per-datum point objects (multi-color dot itemStyle).
-function sliceFrom<T>(vals: readonly T[], idx: number): (T | null)[] {
-  return vals.map((v, i) => (i < idx ? null : v));
 }
 
 // Per-series PLOTTED top value per category index — expanded normalization and
@@ -1920,8 +1944,8 @@ type LiveState = {
   plottedTops: Record<string, number[]>; // per-series plotted line value per index, for pointer hit-testing
   seriesKeyByIndex: (string | undefined)[]; // built series order → key, so a polygon click's seriesIndex recovers its key past interleaved buffer/reveal/mini series
   companionIdsByKey: Map<string, string[]>; // per-key silent companion series ids (buffer tail, reveal base) — highlighted/downplayed with their parent
-  revealIndex: number | null; // hover-reveal pointer x-index (null = idle); read by builds and the reveal hover handler
-  revealValues: Record<string, unknown[]>; // per-area FULL per-datum points (with dot itemStyle), sliced to the cursor on hover without a rebuild
+  revealIndex: number | null; // hover-reveal pointer x-index (null = idle); read by the reveal hover handler
+  revealValues: Record<string, unknown[]>; // per-area FULL per-datum points (with dot itemStyle) for the scrub/reveal hover handlers
   brushRange: BrushRange; // live zoom window — carried through every rebuild
   brushGeom: BrushGeometry | null; // brush footer layout of the last build
   brushOverlay: BrushOverlayElements | null; // zrender elements, owned by syncBrushOverlay
@@ -2274,7 +2298,6 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       brushHeight,
       enableHoverHighlight,
       enableHoverReveal,
-      revealIndex: live.revealIndex,
       resolved,
       rendererSize: {
         width:
@@ -2470,36 +2493,25 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // Purely TARGETED series updates (real series data + muted base opacity) — we
     // NEVER rebuild the whole option on mousemove, which would replay transitions
     // and fight the tooltip's axis pointer.
+    let revealMuted = false;
     const pushReveal = (idx: number | null) => {
       const keys = live.handlers.seriesKeys;
       const on = idx !== null;
-      chart.setOption(
-        {
-          series: keys.flatMap((key) => [
-            {
-              id: key,
-              data: on
-                ? sliceToNull(live.revealValues[key] ?? [], idx)
-                : (live.revealValues[key] ?? []),
-            },
-            {
-              id: `${REVEAL_PREFIX}${key}`,
-              // Tail keeps only the region from the cursor onward.
-              data: on
-                ? sliceFrom(live.revealValues[key] ?? [], idx)
-                : (live.revealValues[key] ?? []),
-              lineStyle: { opacity: on ? 0.3 : 0 },
-            },
-          ]),
-        },
-        // NOT lazy: the highlight dispatched just below re-draws the active dot
-        // the setOption wipes, so the option must be committed first — a queued
-        // (lazy) update would land after the dispatch and erase the dot again.
-        { silent: true }
+      // Targeted updates only: the series keep their data, the cut is a pixel
+      // clip and the muted trail is a single opacity flip on enter/leave.
+      if (on !== revealMuted) {
+        revealMuted = on;
+        setMutedOpacity(on ? REVEAL_MUTE_OPACITY : 0);
+      }
+      const cutX = on ? chart.convertToPixel({ xAxisIndex: 0 }, idx) : null;
+      clipSeriesToX(
+        chart,
+        live.scrubStore,
+        typeof cutX === "number" && Number.isFinite(cutX) ? cutX : null,
+        SCRUB_SKIP_PREFIXES,
+        keys
       );
-      // The per-frame setOption above cancels the axis tooltip's transient hover
-      // symbol, so the <ActiveDot> never lands at the cursor. Re-assert it:
-      // highlighting a real series at the cursor index draws its emphasis symbol
+      // Highlighting a real series at the cursor index draws its emphasis symbol
       // (the active dot) even with showSymbol:false; downplay clears it on exit.
       for (const key of keys) {
         chart.dispatchAction(
@@ -2579,10 +2591,13 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
         for (const key of live.scrubDotKeys) {
           const point = pointOnSeriesAtX(chart, key, displayX);
           if (!point) continue;
+          const color =
+            (resolved.series[key] ?? [])[0] ?? "rgba(120, 120, 120, 1)";
           dots.push({
             x: point[0],
             y: point[1],
-            color: (resolved.series[key] ?? [])[0] ?? "rgba(120, 120, 120, 1)",
+            color,
+            halo: withAlpha(color, SCRUB_DOT_HALO_ALPHA),
           });
         }
       }

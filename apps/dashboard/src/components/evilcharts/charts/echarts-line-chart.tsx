@@ -509,7 +509,7 @@ function buildGlowSeries(params: {
   paint: string | echarts.graphic.LinearGradient;
   slots: string[];
   values: (number | null)[];
-  curve: { smooth: boolean; step: "middle" | false };
+  curve: { smooth: boolean; step: "middle" | false; smoothMonotone?: "x" };
   connectNulls: boolean;
   z: number;
   selectionDim: number;
@@ -554,6 +554,7 @@ function buildGlowSeries(params: {
       type: "line",
       data: glowData,
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls,
       silent: true,
@@ -607,11 +608,16 @@ function buildGlowSeries(params: {
 function curveConfig(curveType: CurveType): {
   smooth: boolean;
   step: "middle" | false;
+  smoothMonotone?: "x";
 } {
   // Recharts "step" is d3's curveStep: the transition happens at the MIDPOINT
   // between points, so each dot sits centered on its plateau.
   if (curveType === "step") return { smooth: false, step: "middle" };
   if (curveType === "linear") return { smooth: false, step: false };
+  // "monotone" never overshoots between points, so a flat stretch stays flat.
+  if (curveType === "monotone" || curveType === "monotoneX") {
+    return { smooth: true, step: false, smoothMonotone: "x" };
+  }
   return { smooth: true, step: false };
 }
 
@@ -1021,6 +1027,7 @@ function buildBrushOption(
       yAxisIndex: 1,
       data: data.map((row) => Number(row[key]) || 0),
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: line.connectNulls,
       silent: true,
@@ -1068,6 +1075,7 @@ function buildLoadingOption(
         type: "line",
         data: ctx.loadingData(),
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         showSymbol: false,
         silent: true,
@@ -1236,6 +1244,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       type: "line",
       data: toPoints(mainValues),
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: line.connectNulls,
       cursor: line.isClickable ? "pointer" : "default",
@@ -1305,6 +1314,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         // and their colors can't mix.
         data: revealActive ? sliceFrom(values, revealIndex as number) : values,
         smooth: curve.smooth,
+        smoothMonotone: curve.smoothMonotone,
         step: curve.step,
         connectNulls: false,
         silent: true,
@@ -1338,6 +1348,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
       type: "line",
       data: toPoints(bufferValues),
       smooth: curve.smooth,
+      smoothMonotone: curve.smoothMonotone,
       step: curve.step,
       connectNulls: true,
       silent: true,

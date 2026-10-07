@@ -7,6 +7,7 @@ type ZrCircle = InstanceType<typeof echarts.graphic.Circle>;
 const SCRUB_Z = 110;
 const DOT_RADIUS = 4;
 const LINE_WIDTH = 1;
+const HALO_WIDTH = 6;
 
 /** Opacity of the unclipped trail while scrubbing — original color, faded. */
 export const SCRUB_MUTE_OPACITY = 0.3;
@@ -15,6 +16,8 @@ export type ScrubDot = {
   x: number;
   y: number;
   color: string;
+  /** Translucent ring drawn around the dot (a wide stroke centred on its edge). */
+  halo: string;
 };
 
 export type ScrubOverlayStore = {
@@ -242,6 +245,8 @@ export function syncScrubOverlay(
     circle.setShape({ cx: dot.x, cy: dot.y, r: DOT_RADIUS });
     circle.setStyle({
       fill: dot.color,
+      stroke: dot.halo,
+      lineWidth: HALO_WIDTH,
       opacity: Math.min(opacity * 3, 1),
       shadowBlur: 0,
     });

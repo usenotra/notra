@@ -3450,6 +3450,7 @@
       "notConfigured": "Not configured",
       "setUpTitle": "Set conversion paths",
       "activity": "Traffic activity",
+      "tooltipMore": "+{count} more",
       "stages": {
         "crawler": {
           "label": "Crawler requests",

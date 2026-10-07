@@ -2,7 +2,12 @@
 
 import { ChartColorScope } from "@/components/charts/chart-color-scope";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
-import { DONUT_INNER_RADIUS, DONUT_OUTER_RADIUS } from "@/constants/charts";
+import {
+  DONUT_CORNER_RADIUS,
+  DONUT_INNER_RADIUS,
+  DONUT_OUTER_RADIUS,
+  DONUT_PADDING_ANGLE,
+} from "@/constants/charts";
 import {
   GEO_DIRECTIONS_SHARE,
   GEO_DIRECTIONS_SHARE_CONFIG,
@@ -25,7 +30,6 @@ export function DirectionDonut({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <EChartsPieChart
-        animation={false}
         className="h-48 w-1/2 min-w-0"
         config={GEO_DIRECTIONS_SHARE_CONFIG}
         data={GEO_DIRECTIONS_SHARE_SLICES}
@@ -35,6 +39,8 @@ export function DirectionDonut({
         <EChartsPieChart.Pie
           innerRadius={DONUT_INNER_RADIUS}
           outerRadius={DONUT_OUTER_RADIUS}
+          cornerRadius={DONUT_CORNER_RADIUS}
+          paddingAngle={DONUT_PADDING_ANGLE}
         />
         <EChartsPieChart.Tooltip
           barMax={SHARE_TOTAL}

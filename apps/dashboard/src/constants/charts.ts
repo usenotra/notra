@@ -12,6 +12,12 @@ export const CHART_SECONDARY_COLOR: ChartColorPair = {
   dark: "#20ABBA",
 };
 
+/** AI referrals: warm amber, the one hue not shared with the Search/Memory roles. */
+export const CHART_REFERRAL_COLOR: ChartColorPair = {
+  light: "#E89A1C",
+  dark: "#FFB547",
+};
+
 /** Series gold: 3:1 on white. Not a Search or Memory hue. */
 const SERIES_GOLD: ChartColorPair = {
   light: "#B68F3C",
@@ -57,6 +63,8 @@ export const CHAT_TOOL_RANK_TRACK_CLASS = "bg-muted";
 
 export const DONUT_INNER_RADIUS = "58%";
 export const DONUT_OUTER_RADIUS = "82%";
+export const DONUT_CORNER_RADIUS = 6;
+export const DONUT_PADDING_ANGLE = 2;
 
 export const COMPETITOR_SWATCHES: readonly string[] = [
   CHART_PRIMARY_COLOR.light,
