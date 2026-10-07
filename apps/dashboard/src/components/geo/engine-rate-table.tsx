@@ -70,7 +70,7 @@ function VisibilityCell({
     family.family
   );
   return (
-    <span className="flex min-w-0 items-center gap-2">
+    <span className="flex min-w-0 items-center justify-end gap-2">
       <FadeSwap
         className="text-sm font-medium tabular-nums"
         swapKey={formatMentionRate(totals.rate)}
@@ -164,7 +164,8 @@ export function EngineRateTable({
         key: "rate",
         header: tGeoShared("brandVisibility"),
         hint: t("hints.rate"),
-        width: "1.4fr",
+        width: "10rem",
+        align: "right",
         sortable: true,
         cell: (row) => (
           <VisibilityCell family={row} timeseriesPoints={timeseriesPoints} />
