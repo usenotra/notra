@@ -709,13 +709,9 @@
       "viewDetails": "View details",
       "setStatus": "Set status",
       "filterEmpty": {
-        "new": {
+        "open": {
           "title": "You're all caught up",
-          "description": "New feedback from agents lands here first."
-        },
-        "triaged": {
-          "title": "Nothing triaged",
-          "description": "Feedback you've looked at but haven't resolved yet shows up here."
+          "description": "New feedback from agents lands here, and stays until you resolve or archive it."
         },
         "resolved": {
           "title": "Nothing resolved yet",
@@ -742,6 +738,7 @@
       "deleteFailed": "Failed to delete feedback"
     },
     "shared": {
+      "open": "Open",
       "resolved": "Resolved",
       "triaged": "Triaged"
     }

@@ -20,7 +20,10 @@ import type {
   AgentFeedbackStatusChange,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
-import { withFeedbackStatus } from "@/utils/agent-feedback";
+import {
+  agentFeedbackFilterStatuses,
+  withFeedbackStatus,
+} from "@/utils/agent-feedback";
 
 function toListInput(
   organizationId: string,
@@ -29,7 +32,7 @@ function toListInput(
 ) {
   return {
     organizationId,
-    status: status === "all" ? undefined : status,
+    statuses: agentFeedbackFilterStatuses(status),
     cursor,
     limit: AGENT_FEEDBACK_PAGE_SIZE,
   };

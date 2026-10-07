@@ -2,7 +2,7 @@ import { AGENT_FEEDBACK_STATUSES } from "@notra/db/constants/agent-feedback";
 import { db } from "@notra/db/drizzle";
 import { agentFeedback } from "@notra/db/schema";
 import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
-import { and, count, desc, eq, lt, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { agentFeedbackDb } from "@/lib/agent-feedback/effect";
@@ -52,8 +52,8 @@ export const listAgentFeedback = Effect.fn("agentFeedback.list")(function* (
   const limit = input.limit ?? 50;
   const cursor = input.cursor ? decodeAgentFeedbackCursor(input.cursor) : null;
   const conditions = [eq(agentFeedback.organizationId, input.organizationId)];
-  if (input.status) {
-    conditions.push(eq(agentFeedback.status, input.status));
+  if (input.statuses?.length) {
+    conditions.push(inArray(agentFeedback.status, input.statuses));
   }
   if (input.kind) {
     conditions.push(eq(agentFeedback.kind, input.kind));
