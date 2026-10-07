@@ -1,3 +1,4 @@
+import type { GatewayModelOptions } from "@notra/ai/types/gateway";
 import { Effect } from "effect";
 
 import { GeoModelService } from "../deps";
@@ -13,7 +14,8 @@ import { GeoEmptyAnswerError } from "./errors";
 export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
   context: GeoCheckContext,
   promptText: string,
-  answer: string
+  answer: string,
+  logContext?: GatewayModelOptions["logContext"]
 ) {
   const models = yield* GeoModelService;
   const mentioned =
@@ -26,6 +28,12 @@ export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
         .judge({
           organizationId: context.organizationId,
           prompt: buildJudgePrompt(context, promptText, answer),
+          logContext: {
+            projectId: context.projectId,
+            scanId: context.scanId,
+            runId: context.runId,
+            ...logContext,
+          },
         })
         .pipe(
           Effect.retry({ times: 1, while: (error) => error.timedOut === true })

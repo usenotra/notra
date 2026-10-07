@@ -9,7 +9,8 @@ export default defineAgent({
     "Edits an organization's content skills in the Notra database based on researched brand evidence: tone, vocabulary, topics, and real writing samples.",
   model: createAgentModel(
     "anthropic/claude-sonnet-5",
-    "onboarding-skill-editor"
+    "onboarding-skill-editor",
+    SONNET_5_CONTEXT_WINDOW_TOKENS
   ),
   modelContextWindowTokens: SONNET_5_CONTEXT_WINDOW_TOKENS,
   outputSchema: skillEditsSchema,

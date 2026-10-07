@@ -40,7 +40,9 @@ export const dispatchEvent = Effect.fn("webhooks.dispatchEvent")(function* (
         const last = rows.at(-1);
         return [
           last === undefined ? [] : [rows],
-          last === undefined ? Option.none() : Option.some(last.id),
+          last === undefined || rows.length < RECOVERY_BATCH_SIZE
+            ? Option.none()
+            : Option.some(last.id),
         ] as const;
       })
     )
@@ -77,19 +79,15 @@ export const recover = Effect.fn("webhooks.recover")(function* () {
     `SELECT id FROM webhook_events WHERE dispatch_at <= now() ORDER BY dispatch_at, id LIMIT $1`,
     [RECOVERY_BATCH_SIZE]
   );
-  yield* Effect.forEach(
-    events,
-    (row) =>
-      Effect.gen(function* () {
-        yield* queues.event(row.id);
-        yield* queryRows(
-          IdentifierRow,
-          "UPDATE webhook_events SET dispatch_at = now() + interval '5 minutes' WHERE id = $1 AND dispatch_at IS NOT NULL RETURNING id",
-          [row.id]
-        );
-      }),
-    { concurrency: 5, discard: true }
-  );
+  if (events.length > 0) {
+    const eventIds = events.map((row) => row.id);
+    yield* queues.events(eventIds);
+    yield* queryRows(
+      IdentifierRow,
+      "UPDATE webhook_events SET dispatch_at = now() + interval '5 minutes' WHERE id = ANY($1::text[]) AND dispatch_at IS NOT NULL RETURNING id",
+      [eventIds]
+    );
+  }
   const deliveries = yield* queryRows(
     IdentifierRow,
     `SELECT id FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now() ORDER BY attempt_count, next_attempt_at, id LIMIT $1`,
