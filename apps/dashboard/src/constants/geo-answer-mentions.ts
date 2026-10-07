@@ -8,3 +8,8 @@ export const GEO_ANSWER_MENTION_TRIGGER_CLASS =
 
 export const GEO_ANSWER_MENTION_LIST_ITEM_CLASS =
   "py-1 [&>p:first-child]:inline";
+
+// Tints table rows that name the user's own brand; other blocks get a
+// per-line tint from useOwnMentionLines.
+export const GEO_ANSWER_OWN_MENTION_ROW_CLASS =
+  "[&_tr:has([data-own-mention])>*]:bg-geo-up/10";

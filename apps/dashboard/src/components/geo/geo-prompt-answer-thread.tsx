@@ -9,7 +9,7 @@ import {
   geoAnswerMarkdownFontClass,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { useTranslations } from "use-intl";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
@@ -31,7 +31,9 @@ import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
 import { GEO_ANSWER_CODE_BLOCK_CLASS } from "@/constants/geo-answer-code-block";
+import { GEO_ANSWER_OWN_MENTION_ROW_CLASS } from "@/constants/geo-answer-mentions";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
+import { useOwnMentionLines } from "@/lib/hooks/use-own-mention-lines";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
 import type { GeoAnswerMentionComponents } from "@/types/geo-answer-mentions";
@@ -195,6 +197,8 @@ export function GeoPromptAnswerThread({
 }: GeoPromptAnswerThreadProps) {
   const skin = geoChatSkin(result.engine);
   const answer = displayAnswer(result);
+  const threadRef = useRef<HTMLDivElement>(null);
+  useOwnMentionLines(threadRef);
   const { terms: mentionTerms, competitors } = useGeoAnswerMentionData(
     organizationId,
     result.competitors
@@ -231,7 +235,13 @@ export function GeoPromptAnswerThread({
               : undefined
           }
         >
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
+          <div
+            className={cn(
+              "mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8",
+              GEO_ANSWER_OWN_MENTION_ROW_CLASS
+            )}
+            ref={threadRef}
+          >
             <AnswerSentiment result={result} />
             <ThreadMessages
               answer={answer}
