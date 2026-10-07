@@ -4,6 +4,7 @@ import { db } from "@notra/db/drizzle";
 import { siteDrafts } from "@notra/db/schema";
 import { validateSite } from "@notra/sites-compiler/validate";
 import { SITE_CONFIG_FILENAME } from "@notra/sites-core/constants/sites";
+import { createDefaultSiteConfig } from "@notra/sites-core/utils/default-config";
 import { isSiteSourcePath } from "@notra/sites-core/utils/source-files";
 import { and, eq } from "drizzle-orm";
 
@@ -307,7 +308,10 @@ async function validateWithDrafts(site: Site, drafts: SiteDraft[]) {
       files.set(draft.path, draft.content);
     }
   }
-  return validateSite({ files });
+  return validateSite({
+    files,
+    defaultConfig: createDefaultSiteConfig(site.name),
+  });
 }
 
 export async function validateSiteDrafts(site: Site) {

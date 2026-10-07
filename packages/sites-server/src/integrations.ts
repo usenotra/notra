@@ -13,6 +13,7 @@ import type {
   SiteIntegrationsState,
 } from "./types/integrations";
 import type { Site } from "./types/sites";
+import { defaultSiteConfigContent } from "./utils/default-config";
 import { isRecord, safeJson } from "./utils/json";
 
 async function currentConfig(site: Site) {
@@ -21,7 +22,10 @@ async function currentConfig(site: Site) {
     listSiteDrafts(site.id),
   ]);
   const draft = drafts.find((entry) => entry.path === SITE_CONFIG_FILENAME);
-  const content = draft && !draft.deleted ? draft.content : file?.content;
+  const content =
+    draft && !draft.deleted
+      ? draft.content
+      : (file?.content ?? defaultSiteConfigContent(site));
   return { file, draft, content };
 }
 

@@ -7,5 +7,5 @@ export interface SiteDomainVerificationRecord {
 
 export type SiteJobPayload =
   | Record<string, never>
-  | { previewKey: string }
+  | { previewKey: string; generation: number }
   | { reason: string };

@@ -1,6 +1,7 @@
 export const CLOUDFLARE_ZONES_API =
   "https://api.cloudflare.com/client/v4/zones";
 export const PROBE_TIMEOUT_MS = 10_000;
+export const PROBE_MAX_BYTES = 8 * 1024;
 export const DNS_RESOLVER_TIMEOUT_MS = 3000;
 export const DOMAIN_INPUT_SCHEME = /^https?:\/\//;
 export const DOMAIN_INPUT_PATH = /\/.*$/;

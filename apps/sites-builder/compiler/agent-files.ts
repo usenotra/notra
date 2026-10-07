@@ -155,7 +155,19 @@ export async function writeAgentFiles(
       }
     }
     fullText.set(area.area, texts);
+    const notFound = [
+      `# ${params.notFound.title ?? "This page doesn't exist"}`,
+      params.notFound.description ?? "It may have moved, or the link is wrong.",
+      [
+        `- [${area.title} index](${pageFile(area.indexPath, "md")})`,
+        `- [llms.txt](${joinMountPath(area.indexPath, "llms.txt")}): a Markdown map of this site`,
+      ].join("\n"),
+    ].join("\n\n");
     writes.push(
+      writeFileEnsured(
+        join(outDir, joinMountPath(area.indexPath, "404.md")),
+        `${notFound}\n`
+      ),
       writeFileEnsured(
         join(outDir, pageFile(area.indexPath, "md")),
         indexMarkdown(area, origin)

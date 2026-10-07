@@ -55,9 +55,10 @@ function samePreviewPassword(
 }
 
 async function readPreviewAccessFromDb(
-  siteId: string
+  siteId: string,
+  executor: Pick<typeof db, "select">
 ): Promise<ServingPreviewAccess> {
-  const [row] = await db
+  const [row] = await executor
     .select({
       previewPassword: sites.previewPassword,
       previewVisibility: sites.previewVisibility,
@@ -89,7 +90,8 @@ export async function mutateServingState<T>(
   mutate: (
     state: SiteServingState,
     access: Pick<ServingPreviewAccess, "previewVisibility">
-  ) => ServingStateMutation<T>
+  ) => ServingStateMutation<T>,
+  executor: Pick<typeof db, "select"> = db
 ): Promise<T> {
   for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt += 1) {
     const current = await readServingState(site.id);
@@ -101,7 +103,7 @@ export async function mutateServingState<T>(
         now: new Date(),
       });
     const { previewPassword, previewVisibility } =
-      await readPreviewAccessFromDb(site.id);
+      await readPreviewAccessFromDb(site.id, executor);
     const outcome = mutate(state, { previewVisibility });
     const trafficToken = buildGeoIngestSiteToken(site.id);
     const derivedInSync =
@@ -148,30 +150,38 @@ function writeIfActivated<
 
 export async function activateProductionDeployment(
   site: ServingSiteRef,
-  pointer: ProductionPointerInput
+  pointer: ProductionPointerInput,
+  executor: Pick<typeof db, "select"> = db
 ) {
-  return await mutateServingState(site, (state) =>
-    writeIfActivated(activateProductionInState(state, pointer, new Date()))
+  return await mutateServingState(
+    site,
+    (state) =>
+      writeIfActivated(activateProductionInState(state, pointer, new Date())),
+    executor
   );
 }
 
 export async function activatePreviewDeployment(
   site: ServingSiteRef,
   previewKey: string,
-  pointer: Omit<SitePreviewPointer, "activatedAt">
+  pointer: Omit<SitePreviewPointer, "activatedAt">,
+  executor: Pick<typeof db, "select"> = db
 ) {
-  return await mutateServingState(site, (state, access) =>
-    writeIfActivated(
-      activatePreviewInState(
-        state,
-        previewKey,
-        {
-          ...pointer,
-          visibility: access.previewVisibility ?? pointer.visibility,
-        },
-        new Date()
-      )
-    )
+  return await mutateServingState(
+    site,
+    (state, access) =>
+      writeIfActivated(
+        activatePreviewInState(
+          state,
+          previewKey,
+          {
+            ...pointer,
+            visibility: access.previewVisibility ?? pointer.visibility,
+          },
+          new Date()
+        )
+      ),
+    executor
   );
 }
 

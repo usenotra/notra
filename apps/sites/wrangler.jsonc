@@ -5,6 +5,7 @@
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
+  "routes": [{ "pattern": "*/*", "zone_name": "notra.site" }],
   "observability": { "enabled": true },
   "r2_buckets": [{ "binding": "SITES_BUCKET", "bucket_name": "notra-sites" }],
   "ratelimits": [
@@ -23,6 +24,7 @@
     "dev": {
       "name": "notra-sites-dev",
       "workers_dev": true,
+      "routes": [],
       "r2_buckets": [
         {
           "binding": "SITES_BUCKET",

@@ -77,9 +77,6 @@ export function branchPreviewKey(branch: string, siteSlug: string): string {
     DNS_LABEL_MAX_LENGTH - SITE_PREVIEW_HOST_SEPARATOR.length - siteSlug.length
   );
   const full = `br-${dashCase(branch)}`;
-  if (full.length <= maxLength) {
-    return full;
-  }
   const suffix = `-${shortHash(branch)}`;
   return `${full.slice(0, maxLength - suffix.length).replace(/-+$/, "")}${suffix}`;
 }

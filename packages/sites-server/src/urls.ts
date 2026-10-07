@@ -2,6 +2,7 @@ import type {
   SiteBuildTarget,
   SiteMounts,
 } from "@notra/sites-core/types/deployment";
+import { createDefaultSiteConfig } from "@notra/sites-core/utils/default-config";
 import { siteAliasHost, sitePreviewHost } from "@notra/sites-core/utils/hosts";
 import { listMountedAreas } from "@notra/sites-core/utils/mounts";
 
@@ -49,6 +50,7 @@ export function buildTargetForDeployment({
     mounts: site.mounts,
     noindex: previewOrigin !== null,
     branding: site.showBranding,
+    defaultConfig: createDefaultSiteConfig(site.name),
   };
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
+import { analyzeMdxFile } from "../src/mdx";
 import { validateSite } from "../src/validate";
 
 const DOCS_BUTTON_SNIPPET = new URL(
@@ -26,6 +27,69 @@ const errors = (result: ReturnType<typeof run>) =>
     );
 
 describe("site contract", () => {
+  test("resolves nested imports in the actual compiler output", () => {
+    const result = run({
+      "snippets/leaf.mdx": "Leaf text.",
+      "snippets/branch.mdx": 'import Leaf from "./leaf.mdx";\n\n<Leaf />',
+      "blog/post.mdx": post(
+        'import Branch from "../snippets/branch.mdx";\n\n<Branch />'
+      ),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.outputs.get("snippets/branch.mdx")).toContain(
+      'from "@site/snippets/leaf.mdx"'
+    );
+    expect(result.outputs.get("blog/post.mdx")).toContain(
+      'from "@site/snippets/branch.mdx"'
+    );
+    const cycle = run({
+      "snippets/a.mdx": 'import B from "./b.mdx";\n\n<B />',
+      "snippets/b.mdx": 'import A from "./a.mdx";\n\n<A />',
+      "blog/post.mdx": post('import A from "../snippets/a.mdx";\n\n<A />'),
+    });
+    expect(
+      cycle.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "import_cycle"
+      )
+    ).toEqual([
+      {
+        severity: "error",
+        file: "snippets/a.mdx",
+        code: "import_cycle",
+        message:
+          "Import cycle: snippets/a.mdx → snippets/b.mdx → snippets/a.mdx",
+      },
+    ]);
+  });
+
+  test("snippet object shorthand stays valid after prop rewriting", () => {
+    for (const source of [
+      "{JSON.stringify({word})}",
+      "<div {...{word}} />",
+      "{items.map(item => ({item, word}))}",
+    ]) {
+      const result = run({
+        "snippets/value.mdx": source,
+        "blog/post.mdx": post(
+          'import Value from "/snippets/value.mdx";\n\n<Value word="hi" />'
+        ),
+      });
+      expect(result.ok).toBe(true);
+      const output = result.outputs.get("snippets/value.mdx");
+      expect(output).toContain("word: props.word");
+      const reparsed = analyzeMdxFile("snippets/value.mdx", output ?? "", {
+        files: new Set(),
+        componentExports: new Map(),
+        isEntry: true,
+      });
+      expect(reparsed.diagnostics).toEqual([]);
+      expect(reparsed.output).not.toBeNull();
+      if (source.includes("item")) {
+        expect(output).toContain("({item, word: props.word})");
+      }
+    }
+  });
+
   test("a docs button snippet works as written in the docs repo", () => {
     const button = readFileSync(DOCS_BUTTON_SNIPPET, "utf8");
     const result = run({
@@ -228,6 +292,35 @@ describe("header, footer and slots", () => {
 });
 
 describe("variables", () => {
+  test("validates substituted frontmatter in Markdown and MDX", () => {
+    for (const format of ["md", "mdx"]) {
+      const path = `blog/post.${format}`;
+      const result = run({
+        "blog.json": JSON.stringify({
+          name: "Acme",
+          variables: { title: "Resolved title", date: "2026-01-01" },
+        }),
+        [path]: post("Hi", "title: {{ title }}\ndate: {{ date }}"),
+      });
+      expect(errors(result)).toEqual([]);
+      expect(result.ok).toBe(true);
+      expect(result.outputs.get(path)).toContain("title: Resolved title");
+      expect(result.outputs.get(path)).toContain("date: 2026-01-01");
+    }
+  });
+
+  test("rejects invalid frontmatter introduced by substitution", () => {
+    const result = run({
+      "blog.json": JSON.stringify({
+        name: "Acme",
+        variables: { date: "not-a-date" },
+      }),
+      "blog/post.md": post("Hi", "title: T\ndate: {{ date }}"),
+    });
+    expect(result.ok).toBe(false);
+    expect(errors(result)).toContain("blog/post.md:1 frontmatter_invalid");
+  });
+
   const withVariables = (files: Record<string, string>) =>
     validateSite({
       files: new Map(
@@ -285,6 +378,27 @@ describe("content safety and config checks", () => {
   const config = JSON.stringify({ name: "Acme" });
   const post = (body: string) =>
     `---\ntitle: T\ndate: 2026-01-01\n---\n\n${body}\n`;
+
+  test("checks substituted Markdown against blocked content elements", () => {
+    const result = validateSite({
+      files: new Map([
+        [
+          "blog.json",
+          JSON.stringify({
+            name: "Acme",
+            variables: { content: "<script></script>" },
+          }),
+        ],
+        ["blog/a.md", post("{{ content }}")],
+      ]),
+    });
+    expect(result.ok).toBe(false);
+    expect(
+      result.diagnostics.some(
+        (diagnostic) => diagnostic.code === "blocked_element"
+      )
+    ).toBe(true);
+  });
 
   test("rejects <script> in MDX, Markdown and chrome files", () => {
     for (const [path, body] of [

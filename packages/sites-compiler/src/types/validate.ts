@@ -5,6 +5,7 @@ import type { SiteEntry } from "./entries";
 
 export interface SiteValidationInput {
   files: ReadonlyMap<string, string | null>;
+  defaultConfig?: SiteConfig;
 }
 
 export interface SiteValidationResult {
@@ -29,4 +30,10 @@ export interface ParsedSiteConfig {
 export interface SubstitutedSources {
   sources: Map<string, string | null>;
   diagnostics: SiteDiagnostic[];
+}
+
+export interface ImportCycleFrame {
+  path: string;
+  imports: readonly string[];
+  index: number;
 }

@@ -19,17 +19,27 @@ function readOctal(block: Uint8Array, offset: number, length: number): number {
 
 function parsePax(data: Uint8Array): Record<string, string> {
   const records: Record<string, string> = {};
-  let text = decoder.decode(data);
-  while (text.length > 0) {
-    const space = text.indexOf(" ");
-    const length = Number.parseInt(text.slice(0, space), 10);
-    if (!(length > 0)) {
-      break;
+  let offset = 0;
+  while (offset < data.length) {
+    const space = data.indexOf(32, offset);
+    const length = Number(decoder.decode(data.subarray(offset, space)));
+    const end = offset + length;
+    if (
+      space < offset ||
+      !Number.isSafeInteger(length) ||
+      length <= space - offset + 1 ||
+      end > data.length ||
+      data[end - 1] !== 10
+    ) {
+      throw new UnsafeArchiveError("Invalid PAX record");
     }
-    const record = text.slice(space + 1, length - 1);
+    const record = decoder.decode(data.subarray(space + 1, end - 1));
     const equals = record.indexOf("=");
+    if (equals <= 0) {
+      throw new UnsafeArchiveError("Invalid PAX record");
+    }
     records[record.slice(0, equals)] = record.slice(equals + 1);
-    text = text.slice(length);
+    offset = end;
   }
   return records;
 }
@@ -70,6 +80,13 @@ export function readTarGz(
       break;
     }
     const size = readOctal(header, 124, 12);
+    if (
+      !Number.isSafeInteger(size) ||
+      size < 0 ||
+      offset + TAR_BLOCK_SIZE + size > tar.length
+    ) {
+      throw new UnsafeArchiveError("Invalid archive entry size");
+    }
     const type = String.fromCharCode(header[156] ?? 48);
     const dataStart = offset + TAR_BLOCK_SIZE;
     const data = tar.subarray(dataStart, dataStart + size);

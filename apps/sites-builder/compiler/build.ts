@@ -112,13 +112,17 @@ export async function buildSite(
   const workDir =
     options.workDir ?? join(options.toolchainRoot, ".notra", "work");
   const mounts = normalizeSiteMounts(options.target.mounts);
-  const prepared = await prepareSite({ siteRoot: options.siteRoot, workDir });
+  const prepared = await prepareSite({
+    siteRoot: options.siteRoot,
+    workDir,
+    defaultConfig: options.target.defaultConfig,
+  });
   const diagnostics = [
     ...prepared.collectDiagnostics,
     ...prepared.validation.diagnostics,
   ];
   const config = prepared.validation.config;
-  if (!(prepared.validation.ok && config)) {
+  if (hasErrors(diagnostics) || !(prepared.validation.ok && config)) {
     return failedBuild(diagnostics);
   }
 
@@ -235,6 +239,7 @@ export async function buildSite(
     areas: areaPages,
     pageHtml,
     instructions: normalizeAgentInstructions(config.markdown.instructions),
+    notFound: config.errors[404],
   });
 
   const scriptHashes = new Set(

@@ -256,9 +256,16 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
     [...input.files.keys()].filter((path) => !isCustomScriptPath(path))
   );
 
+  const usesDefaultConfig =
+    !input.files.has(SITE_CONFIG_FILENAME) && input.defaultConfig !== undefined;
   const { config, diagnostics } = parseSiteConfig(
-    input.files.get(SITE_CONFIG_FILENAME)
+    usesDefaultConfig
+      ? JSON.stringify(input.defaultConfig)
+      : input.files.get(SITE_CONFIG_FILENAME)
   );
+  if (usesDefaultConfig && config) {
+    outputs.set(SITE_CONFIG_FILENAME, JSON.stringify(config));
+  }
 
   const { sources, diagnostics: variableDiagnostics } = config
     ? applyVariables(input.files, config.variables)
@@ -362,13 +369,13 @@ export function validateSite(input: SiteValidationInput): SiteValidationResult {
       continue;
     }
     seenSlugs.set(key, path);
+    const substituted = sources.get(path) ?? content;
     diagnostics.push(
-      ...parseEntryFrontmatter(path, candidate.area, content).diagnostics
+      ...parseEntryFrontmatter(path, candidate.area, substituted).diagnostics
     );
     if (candidate.format === "md") {
-      diagnostics.push(...blockedMarkdownHtml(path, content));
-      const substituted = sources.get(path);
-      if (typeof substituted === "string" && substituted !== content) {
+      diagnostics.push(...blockedMarkdownHtml(path, substituted));
+      if (substituted !== content) {
         outputs.set(path, substituted);
       }
     }

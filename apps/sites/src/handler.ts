@@ -232,7 +232,9 @@ async function serveFromManifest(
     status: 200,
   };
   const markdownFile = resolveMarkdownFile(files, path);
-  if (markdownFile) {
+  const area = resolveAreaForPath(mounts, path);
+  const markdownNotFoundPath = joinMountPath(area?.mount ?? "/", "404.md");
+  if (markdownFile && path !== markdownNotFoundPath) {
     return await serveFile({
       ...fileParams,
       file: markdownFile,
@@ -253,7 +255,7 @@ async function serveFromManifest(
       },
     });
   }
-  if (file) {
+  if (file && path !== markdownNotFoundPath) {
     return await serveFile({
       ...fileParams,
       file,
@@ -265,8 +267,23 @@ async function serveFromManifest(
         : undefined,
     });
   }
-  const area = resolveAreaForPath(mounts, path);
   if (wantsMarkdown || path.endsWith(".md")) {
+    const notFound = area ? files.get(markdownNotFoundPath) : undefined;
+    if (notFound) {
+      return await serveFile({
+        ...fileParams,
+        file: notFound,
+        status: 404,
+        extraHeaders: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Cache-Control": resolved.isPreview
+            ? "private, no-store"
+            : "no-store",
+          "X-Robots-Tag": "noindex",
+          Vary: "Accept",
+        },
+      });
+    }
     return markdownNotFound({
       path,
       indexPath: area ? joinMountPath(area.mount, "index.md") : null,
@@ -309,9 +326,11 @@ export async function handleSiteRequest(
   const context = { deps, request, url, host, origin };
   try {
     const resolved = await resolveDeployment(context, parsedHost);
-    return resolved instanceof Response
-      ? resolved
-      : await serveDeployment(context, resolved);
+    const response =
+      resolved instanceof Response
+        ? resolved
+        : await serveDeployment(context, resolved);
+    return request.method === "HEAD" ? new Response(null, response) : response;
   } catch (error) {
     if (
       error instanceof StateUnavailableError ||

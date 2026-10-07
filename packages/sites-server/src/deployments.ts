@@ -6,7 +6,17 @@ import {
   SITE_DEPLOYMENT_TRANSITIONS,
 } from "@notra/sites-core/constants/sites";
 import { hashBuildTarget } from "@notra/sites-core/utils/build-target";
-import { and, desc, eq, gt, inArray, notInArray, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  lte,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { SiteNotBuildableError } from "./errors";
 import type {
@@ -39,9 +49,10 @@ export async function allocateGeneration(
 export async function transitionDeployment(
   id: string,
   to: SiteDeploymentStatus,
-  values: DeploymentTransitionValues = {}
+  values: DeploymentTransitionValues = {},
+  executor: DeploymentExecutor = db
 ): Promise<boolean> {
-  const updated = await db
+  const updated = await executor
     .update(siteDeployments)
     .set({ ...values, status: to })
     .where(
@@ -56,7 +67,8 @@ export async function transitionDeployment(
 
 export async function cancelPreviewBuilds(
   siteId: string,
-  previewKey: string
+  previewKey: string,
+  generation: number
 ): Promise<void> {
   await db
     .update(siteDeployments)
@@ -65,6 +77,7 @@ export async function cancelPreviewBuilds(
       and(
         eq(siteDeployments.siteId, siteId),
         eq(siteDeployments.previewKey, previewKey),
+        lte(siteDeployments.generation, generation),
         inArray(siteDeployments.status, [
           ...SITE_DEPLOYMENT_TRANSITIONS.canceled,
         ])
@@ -80,6 +93,12 @@ export async function enqueueSiteDeployment(
     if (site.status !== "active") {
       throw new SiteNotBuildableError("This site is suspended");
     }
+    if (input.kind === "preview" && !site.previewsEnabled) {
+      throw new SiteNotBuildableError("Previews are turned off for this site");
+    }
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`sites-deployment-budget:${site.organizationId}`}, 0))`
+    );
     const [usage] = await tx
       .select({ count: sql<number>`count(*)::int` })
       .from(siteDeployments)
@@ -143,11 +162,14 @@ export async function enqueuePreviewRemoval(
   previewKey: string
 ): Promise<string> {
   const jobId = prefixedId("job");
-  await db.insert(siteJobs).values({
-    id: jobId,
-    siteId,
-    kind: "remove_preview",
-    payload: { previewKey },
+  await db.transaction(async (tx) => {
+    const { lastGeneration } = await allocateGeneration(tx, siteId);
+    await tx.insert(siteJobs).values({
+      id: jobId,
+      siteId,
+      kind: "remove_preview",
+      payload: { previewKey, generation: lastGeneration },
+    });
   });
   return jobId;
 }
@@ -216,19 +238,44 @@ export async function getDeployment(
   return deployment ?? null;
 }
 
-export async function getSite(id: string): Promise<Site | null> {
-  const [site] = await db.select().from(sites).where(eq(sites.id, id)).limit(1);
+export async function getSite(
+  id: string,
+  executor: Pick<typeof db, "select"> = db
+): Promise<Site | null> {
+  const [site] = await executor
+    .select()
+    .from(sites)
+    .where(eq(sites.id, id))
+    .limit(1);
   return site ?? null;
 }
 
 export async function listSiteDeployments(
   siteId: string,
-  limit = 50
+  limit = 50,
+  referencedIds: readonly string[] = []
 ): Promise<SiteDeployment[]> {
-  return await db
+  const recent = await db
     .select()
     .from(siteDeployments)
     .where(eq(siteDeployments.siteId, siteId))
     .orderBy(desc(siteDeployments.createdAt))
     .limit(limit);
+  const known = new Set(recent.map((deployment) => deployment.id));
+  const missing = [...new Set(referencedIds)].filter((id) => !known.has(id));
+  if (missing.length === 0) {
+    return recent;
+  }
+  const referenced = await db
+    .select()
+    .from(siteDeployments)
+    .where(
+      and(
+        eq(siteDeployments.siteId, siteId),
+        inArray(siteDeployments.id, missing)
+      )
+    );
+  return [...recent, ...referenced].sort(
+    (left, right) => right.createdAt.getTime() - left.createdAt.getTime()
+  );
 }

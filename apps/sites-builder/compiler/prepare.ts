@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
+import { hasErrors } from "@notra/sites-compiler/utils/diagnostics";
 import { isTextSourceFile, validateSite } from "@notra/sites-compiler/validate";
 import { SITE_AREAS, SITE_ASSETS_DIR } from "@notra/sites-core/constants/sites";
 import { sortCustomScriptPaths } from "@notra/sites-core/utils/custom-scripts";
@@ -17,6 +18,9 @@ import { writeFileEnsured } from "./utils/fs";
 
 export async function readSiteFiles(siteRoot: string): Promise<SiteFiles> {
   const collected = await collectSiteSource(siteRoot);
+  if (hasErrors(collected.diagnostics)) {
+    return { collected, files: new Map() };
+  }
   const texts = await Promise.all(
     collected.files.map((file) =>
       isTextSourceFile(file.path)
@@ -34,7 +38,24 @@ export async function prepareSite(
   params: PrepareSiteParams
 ): Promise<PreparedSite> {
   const { collected, files } = await readSiteFiles(params.siteRoot);
-  const validation = validateSite({ files });
+  if (hasErrors(collected.diagnostics)) {
+    return {
+      validation: {
+        ok: false,
+        config: null,
+        diagnostics: [],
+        entries: [],
+        outputs: new Map(),
+      },
+      collectDiagnostics: collected.diagnostics,
+      publicFiles: [],
+      customScripts: [],
+    };
+  }
+  const validation = validateSite({
+    files,
+    defaultConfig: params.defaultConfig,
+  });
   const publicFiles = collected.files
     .filter((file) => file.path.startsWith("public/"))
     .map((file) => file.path.slice("public".length));

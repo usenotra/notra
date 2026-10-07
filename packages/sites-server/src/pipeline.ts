@@ -1,3 +1,4 @@
+import { SITE_DEPLOYMENT_PHASES } from "@notra/sites-core/constants/deployment-timeline";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 
 import { activateDeployment } from "./activation";
@@ -87,19 +88,26 @@ async function buildAndPublish(
     });
     return { kind: "skipped", reason: skipReason };
   }
+  const startedAt = new Date();
   if (
     !(await transitionDeployment(deployment.id, "building", {
-      startedAt: deployment.startedAt ?? new Date(),
+      startedAt: deployment.startedAt ?? startedAt,
     }))
   ) {
     return CANCELED_OUTCOME;
   }
 
+  let phaseTimestamp = startedAt.getTime();
+  let phaseLog = `[deployment:${SITE_DEPLOYMENT_PHASES[0]}] ${startedAt.toISOString()}\n`;
+  await writeBuildLog(site.id, deployment.id, phaseLog).catch(() => undefined);
   const sourceArchive = await downloadRepositoryTarball(
     access.repository,
     access.token,
     deployment.commitSha
   );
+  phaseTimestamp = Math.max(phaseTimestamp, Date.now());
+  phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[1]}] ${new Date(phaseTimestamp).toISOString()}\n`;
+  await writeBuildLog(site.id, deployment.id, phaseLog).catch(() => undefined);
   const build = await runSandboxBuild({
     sourceArchive,
     rootDirectory: site.rootDirectory,
@@ -112,10 +120,16 @@ async function buildAndPublish(
       noindex: deployment.target.noindex,
       includeDrafts: deployment.kind === "preview",
       branding: deployment.target.branding !== false,
+      defaultConfig: deployment.target.defaultConfig,
     },
-    onLog: (log) => writeBuildLog(site.id, deployment.id, log),
+    onLog: (log) =>
+      writeBuildLog(site.id, deployment.id, phaseLog + log).catch(
+        () => undefined
+      ),
   });
-  await writeBuildLog(site.id, deployment.id, build.log).catch(() => undefined);
+  await writeBuildLog(site.id, deployment.id, phaseLog + build.log).catch(
+    () => undefined
+  );
 
   const result = build.result;
   if (!(result?.ok && build.outputArchive)) {
@@ -141,6 +155,11 @@ async function buildAndPublish(
   if (!(await transitionDeployment(deployment.id, "uploading"))) {
     return CANCELED_OUTCOME;
   }
+  phaseTimestamp = Math.max(phaseTimestamp, Date.now());
+  phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[2]}] ${new Date(phaseTimestamp).toISOString()}\n`;
+  await writeBuildLog(site.id, deployment.id, phaseLog + build.log).catch(
+    () => undefined
+  );
   const manifest = await publishDeploymentFiles({
     site,
     deployment,

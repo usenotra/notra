@@ -4,6 +4,7 @@ export const DOMAIN_CONNECT_CALLBACK_PATH = "/sites/domain-connect";
 
 export const OWNERSHIP_RECORD_PREFIX = "_cf-custom-hostname.";
 export const DOMAIN_CONNECT_HTTP_TIMEOUT_MS = 5000;
+export const DOMAIN_CONNECT_MAX_SETTINGS_BYTES = 64 * 1024;
 export const DOMAIN_CONNECT_DISCOVERY_HOST =
   /^[a-z0-9.-]+(?::\d+)?(?:\/[\w.~%/-]*)?$/i;
 export const CALLBACK_TOKEN_SECONDS = 2 * 60 * 60;

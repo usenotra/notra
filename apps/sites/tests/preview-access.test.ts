@@ -181,6 +181,7 @@ function setup(previewPassword: SitePreviewPassword | null = password) {
     );
   };
   return {
+    deps,
     state,
     writeState,
     get,
@@ -334,6 +335,7 @@ describe("preview password", () => {
     );
     expect(crossOrigin.status).toBe(403);
     expect(crossOrigin.headers.get("Set-Cookie")).toBeNull();
+    expect(limiterKeys).toHaveLength(0);
 
     const huge = await submit({ password: "x".repeat(5000), next: "/" });
     expect(huge.status).toBe(413);
@@ -343,7 +345,105 @@ describe("preview password", () => {
       { host: "https://acme.notra.site" }
     );
     expect(onAlias.status).toBe(405);
-    expect(limiterKeys).toHaveLength(0);
+    expect(limiterKeys).toEqual([`${SITE}:pr-7:203.0.113.9`]);
+  });
+
+  test("streamed oversized password forms stop at the byte limit", async () => {
+    const { deps } = setup();
+    let reads = 0;
+    let canceled = false;
+    const body = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          reads += 1;
+          controller.enqueue(new Uint8Array(2048).fill(97));
+        },
+        cancel() {
+          canceled = true;
+        },
+      },
+      { highWaterMark: 0 }
+    );
+    const request = new Request(`${PREVIEW}/_notra/auth`, {
+      method: "POST",
+      headers: { Origin: PREVIEW },
+      body,
+    });
+    expect(request.headers.get("Content-Length")).toBeNull();
+    const response = await handleSiteRequest(request, deps);
+    expect(response.status).toBe(413);
+    expect(reads).toBe(3);
+    expect(canceled).toBe(true);
+  });
+
+  test("password form limits count UTF-8 bytes rather than characters", async () => {
+    const { deps } = setup();
+    const response = await handleSiteRequest(
+      new Request(`${PREVIEW}/_notra/auth`, {
+        method: "POST",
+        headers: { Origin: PREVIEW },
+        body: `password=${"é".repeat(2500)}`,
+      }),
+      deps
+    );
+    expect(response.status).toBe(413);
+  });
+
+  test("a streamed form at the byte limit preserves split UTF-8 characters", async () => {
+    const { deps } = setup();
+    const form = `password=${PASSWORD}&next=/blog?x=é&padding=`;
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(
+      form + "x".repeat(4096 - encoder.encode(form).byteLength)
+    );
+    const split = bytes.indexOf(0xc3) + 1;
+    const response = await handleSiteRequest(
+      new Request(`${PREVIEW}/_notra/auth`, {
+        method: "POST",
+        headers: { Origin: PREVIEW },
+        body: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(bytes.slice(0, split));
+            controller.enqueue(bytes.slice(split));
+            controller.close();
+          },
+        }),
+      }),
+      deps
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe("/blog?x=%C3%A9");
+  });
+
+  test("forbidden and rate-limited forms are rejected before reading their bodies", async () => {
+    for (const reason of ["origin", "password", "rate-limit"]) {
+      const { deps, limitTo } = setup(reason === "password" ? null : password);
+      if (reason === "rate-limit") {
+        limitTo(0);
+      }
+      let reads = 0;
+      const body = new ReadableStream<Uint8Array>(
+        {
+          pull(controller) {
+            reads += 1;
+            controller.error(new Error("body must not be read"));
+          },
+        },
+        { highWaterMark: 0 }
+      );
+      const response = await handleSiteRequest(
+        new Request(`${PREVIEW}/_notra/auth`, {
+          method: "POST",
+          headers: {
+            Origin: reason === "origin" ? "https://evil.example.com" : PREVIEW,
+          },
+          body,
+        }),
+        deps
+      );
+      expect(response.status).toBe(reason === "rate-limit" ? 429 : 403);
+      expect(reads).toBe(0);
+    }
   });
 
   test("the rate limiter stops guessing per client and preview", async () => {

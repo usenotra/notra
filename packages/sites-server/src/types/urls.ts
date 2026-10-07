@@ -2,6 +2,7 @@ import type { SiteMounts } from "@notra/sites-core/types/deployment";
 
 export interface BuildTargetForDeploymentParams {
   site: {
+    name: string;
     slug: string;
     publicOrigin: string;
     mounts: SiteMounts;

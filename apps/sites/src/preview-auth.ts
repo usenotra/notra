@@ -132,9 +132,28 @@ async function readPasswordForm(
   if (length > PASSWORD_FORM_MAX_BYTES) {
     return null;
   }
-  const body = await request.text();
-  if (body.length > PASSWORD_FORM_MAX_BYTES) {
-    return null;
+  let body = "";
+  if (request.body) {
+    const reader = request.body.getReader();
+    const decoder = new TextDecoder();
+    let bytes = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          body += decoder.decode();
+          break;
+        }
+        bytes += value.byteLength;
+        if (bytes > PASSWORD_FORM_MAX_BYTES) {
+          await reader.cancel();
+          return null;
+        }
+        body += decoder.decode(value, { stream: true });
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
   const form = new URLSearchParams(body);
   return {
@@ -160,14 +179,9 @@ async function acceptPassword(
   context: PreviewRequestContext
 ): Promise<Response> {
   const { deps, request, url, origin, state, siteId, previewKey } = context;
-  const form = await readPasswordForm(request);
-  if (!form) {
-    return new Response("Request too large", { status: 413 });
-  }
-  const { password, next } = form;
   const stored = state.previewPassword;
   if (!stored || isCrossOrigin(request, origin)) {
-    return previewGate(context, next, 403);
+    return previewGate(context, "/", 403);
   }
   if (deps.passwordAttemptLimiter) {
     const client = request.headers.get("CF-Connecting-IP") ?? "unknown";
@@ -175,9 +189,14 @@ async function acceptPassword(
       key: `${siteId}:${previewKey}:${client}`,
     });
     if (!success) {
-      return previewGate(context, next, 429, "too_many_attempts");
+      return previewGate(context, "/", 429, "too_many_attempts");
     }
   }
+  const form = await readPasswordForm(request);
+  if (!form) {
+    return new Response("Request too large", { status: 413 });
+  }
+  const { password, next } = form;
   const valid =
     password.length <= SITE_PREVIEW_PASSWORD_MAX_LENGTH &&
     (await verifyPreviewPassword(password, stored));

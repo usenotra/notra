@@ -26,6 +26,7 @@ import type {
   MdxAnalysisContext,
   MdxPass,
   ModuleScan,
+  TextEdit,
 } from "./types/mdx";
 import { hasErrors } from "./utils/diagnostics";
 import { errorSummary, micromarkErrorPosition } from "./utils/errors";
@@ -239,10 +240,10 @@ function checkInlineComponents(pass: MdxPass, scan: ModuleScan) {
   }
 }
 
-function snippetPropOffsets(
+function snippetPropEdits(
   program: Program,
   localNames: ReadonlySet<string>
-): number[] {
+): TextEdit[] {
   const declared = declaredNames(program);
   return referencedIdentifiers(program)
     .filter(
@@ -256,19 +257,23 @@ function snippetPropOffsets(
         !COMPONENT_NAME.test(reference.name) &&
         !(reference.name in globalThis)
     )
-    .map((reference) => reference.start);
+    .map((reference) => ({
+      start: reference.start,
+      end: reference.start,
+      text: reference.shorthand ? `${reference.name}: props.` : "props.",
+    }));
 }
 
 function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
   const localNames = new Set([...scan.importedNames, ...scan.exportedNames]);
   const usedBuiltins = new Set<string>();
-  const propOffsets = new Set<number>();
+  const propEdits = new Map<number, TextEdit>();
   visit(tree, (node) => {
     for (const program of expressionPrograms(node)) {
       checkForbidden(pass, program);
       if (!pass.context.isEntry) {
-        for (const offset of snippetPropOffsets(program, localNames)) {
-          propOffsets.add(offset);
+        for (const edit of snippetPropEdits(program, localNames)) {
+          propEdits.set(edit.start, edit);
         }
       }
     }
@@ -306,9 +311,7 @@ function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
       );
     }
   });
-  for (const offset of propOffsets) {
-    pass.edits.push({ start: offset, end: offset, text: "props." });
-  }
+  pass.edits.push(...propEdits.values());
   return usedBuiltins;
 }
 

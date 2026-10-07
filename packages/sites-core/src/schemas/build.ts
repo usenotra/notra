@@ -3,6 +3,7 @@ import {
   siteContentSecurityPolicySchema,
   siteMountsSchema,
 } from "@notra/sites-core/schemas/deployment";
+import { siteConfigSchema } from "@notra/sites-core/schemas/site-config";
 import { z } from "zod";
 
 export const siteDiagnosticSchema = z.object({
@@ -23,6 +24,7 @@ export const siteBuildRequestSchema = z.object({
   noindex: z.boolean().default(false),
   includeDrafts: z.boolean().default(false),
   branding: z.boolean().default(true),
+  defaultConfig: siteConfigSchema.optional(),
 });
 
 const siteBuildRedirectSchema = z.object({

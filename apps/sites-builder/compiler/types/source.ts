@@ -1,5 +1,6 @@
 import type { SiteValidationResult } from "@notra/sites-compiler/types/validate";
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
+import type { SiteConfig } from "@notra/sites-core/types/site-config";
 
 export interface SiteSourceFile {
   path: string;
@@ -20,6 +21,7 @@ export interface SiteFiles {
 export interface PrepareSiteParams {
   siteRoot: string;
   workDir: string;
+  defaultConfig?: SiteConfig;
   stableAssetNames?: boolean;
 }
 

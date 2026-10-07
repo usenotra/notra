@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { gzipSync } from "node:zlib";
 
 import { UnsafeArchiveError } from "../src/errors";
 import { readTarGz } from "../src/tar";
@@ -33,6 +34,41 @@ function archive(
 }
 
 describe("sandbox output archive", () => {
+  test("reads PAX record lengths as bytes for Unicode paths", () => {
+    const path = "blog/café.png";
+    const records = Buffer.from(`23 path=${path}\n20 mtime=1760000000\n`);
+    const blocks = [
+      { name: "PaxHeader", type: "x", data: records },
+      { name: "fallback", type: "0", data: Buffer.from("png") },
+    ].flatMap((entry) => {
+      const header = Buffer.alloc(512);
+      header.write(entry.name);
+      header.write(`${entry.data.length.toString(8).padStart(11, "0")}\0`, 124);
+      header[156] = entry.type.charCodeAt(0);
+      return [
+        header,
+        entry.data,
+        Buffer.alloc((512 - (entry.data.length % 512)) % 512),
+      ];
+    });
+    const files = readTarGz(
+      gzipSync(Buffer.concat([...blocks, Buffer.alloc(1024)])),
+      limits
+    );
+    expect(files.map((file) => file.path)).toEqual([path]);
+    expect(Buffer.from(files[0]?.data ?? []).toString()).toBe("png");
+  });
+
+  test("rejects malformed negative entry sizes before processing extension records", () => {
+    const header = Buffer.alloc(512);
+    header.write("PaxHeader");
+    header.write("-0000001000\0", 124);
+    header[156] = "L".charCodeAt(0);
+    expect(() => readTarGz(gzipSync(header), limits)).toThrow(
+      UnsafeArchiveError
+    );
+  });
+
   test("reads regular files including long paths", () => {
     const longName = `${"nested/".repeat(20)}index.html`;
     const bytes = archive((dir) => {

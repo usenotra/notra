@@ -48,6 +48,7 @@ function parseAttributes(source: string): Map<string, string> {
 
 export function* tokenizeHtml(html: string): Generator<HtmlToken> {
   const tag = new RegExp(TAG.source, "g");
+  let lowerHtml: string | undefined;
   let last = 0;
   let match = tag.exec(html);
   while (match) {
@@ -68,7 +69,8 @@ export function* tokenizeHtml(html: string): Generator<HtmlToken> {
         void: isVoid,
       };
       if (HTML_RAW_TEXT_ELEMENTS.has(name) && !isVoid) {
-        const end = html.toLowerCase().indexOf(`</${name}`, last);
+        lowerHtml ??= html.toLowerCase();
+        const end = lowerHtml.indexOf(`</${name}`, last);
         const resume = end === -1 ? html.length : end;
         last = resume;
         tag.lastIndex = resume;

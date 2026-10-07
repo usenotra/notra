@@ -5,6 +5,7 @@ import {
   SITE_PREVIEW_VISIBILITIES,
   SITE_STATUSES,
 } from "@notra/sites-core/constants/sites";
+import { siteConfigSchema } from "@notra/sites-core/schemas/site-config";
 import { z } from "zod";
 
 export const siteAreaSchema = z.enum(SITE_AREAS);
@@ -23,6 +24,7 @@ export const siteBuildTargetSchema = z.object({
   mounts: siteMountsSchema,
   noindex: z.boolean(),
   branding: z.boolean().default(true),
+  defaultConfig: siteConfigSchema.optional(),
 });
 
 export const siteManifestFileSchema = z.object({

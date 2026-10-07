@@ -90,6 +90,15 @@ export function removePreviewFromState(
   generation: number,
   now: Date
 ): SiteServingState {
+  if (
+    generation <
+    Math.max(
+      state.previews[previewKey]?.sequence ?? -1,
+      state.removedPreviews[previewKey] ?? -1
+    )
+  ) {
+    return state;
+  }
   const previews = { ...state.previews };
   delete previews[previewKey];
   const tombstones = Object.entries({

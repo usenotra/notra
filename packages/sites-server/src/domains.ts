@@ -1,3 +1,4 @@
+import { fetchPublicUrl } from "@notra/ai/utils/public-fetch";
 import { db } from "@notra/db/drizzle";
 import { siteDomains } from "@notra/db/schema";
 import type { SiteDomainVerificationRecord } from "@notra/db/types/sites";
@@ -21,6 +22,7 @@ import {
   DOMAIN_INPUT_PATH,
   DOMAIN_INPUT_SCHEME,
   IP_LITERAL,
+  PROBE_MAX_BYTES,
   PROBE_TIMEOUT_MS,
   PROBE_USER_AGENT,
 } from "./constants/domains";
@@ -41,6 +43,7 @@ import type {
 import type { Site } from "./types/sites";
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
+import { readBodyUpTo } from "./utils/read-body";
 
 export async function requireSiteDomain(
   siteId: string,
@@ -185,8 +188,7 @@ export async function addSiteDomain(
 }
 
 async function fetchWithTimeout(url: string): Promise<Response> {
-  return await fetch(url, {
-    redirect: "manual",
+  return await fetchPublicUrl(url, {
     signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
     headers: { "User-Agent": PROBE_USER_AGENT },
   });
@@ -200,11 +202,21 @@ async function probeProxyOrigin(
     const probeUrl = `${origin}${joinMountPath(mount, "_notra/probe.txt")}`;
     try {
       const probe = await fetchWithTimeout(probeUrl);
-      const body = probe.ok ? await probe.text() : "";
+      let body = "";
+      if (probe.ok) {
+        const result = await readBodyUpTo(probe, PROBE_MAX_BYTES);
+        if (result.exceeded) {
+          return `${probeUrl} returned a probe larger than ${PROBE_MAX_BYTES} bytes. Check the ${area} rewrite.`;
+        }
+        body = new TextDecoder().decode(result.bytes);
+      } else {
+        await probe.body?.cancel();
+      }
       if (!body.includes(`notra-site=${site.id}`)) {
         return `${probeUrl} did not return this site (HTTP ${probe.status}). Check the ${area} rewrite.`;
       }
       const page = await fetchWithTimeout(`${origin}${mount}`);
+      await page.body?.cancel();
       if (page.status >= 300 && page.status < 400) {
         return `${origin}${mount} redirects to ${page.headers.get("location")}; proxy it instead of redirecting.`;
       }

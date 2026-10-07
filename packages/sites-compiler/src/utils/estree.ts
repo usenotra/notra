@@ -117,6 +117,8 @@ export function referencedIdentifiers(root: EstreeNode): IdentifierReference[] {
         name: current.name,
         start: current.start ?? -1,
         end: current.end ?? -1,
+        shorthand:
+          parent?.type === "Property" && parent.shorthand && key === "value",
       });
       return;
     }

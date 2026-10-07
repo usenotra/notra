@@ -6,6 +6,8 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 
+import { fetchPublicUrl } from "@notra/ai/utils/public-fetch";
+
 import {
   CALLBACK_TOKEN_LABEL,
   CALLBACK_TOKEN_SECONDS,
@@ -13,6 +15,7 @@ import {
   DOMAIN_CONNECT_CNAME_TARGET,
   DOMAIN_CONNECT_DISCOVERY_HOST,
   DOMAIN_CONNECT_HTTP_TIMEOUT_MS,
+  DOMAIN_CONNECT_MAX_SETTINGS_BYTES,
   DOMAIN_CONNECT_OWNERSHIP_VARIABLE,
   DOMAIN_CONNECT_RESERVED_PARAMS,
   OWNERSHIP_RECORD_PREFIX,
@@ -36,12 +39,17 @@ import {
   zoneCandidates,
 } from "./utils/dns";
 import { errorMessage } from "./utils/errors";
+import { safeJson } from "./utils/json";
+import { readBodyUpTo } from "./utils/read-body";
 
 function defaultDeps(): DomainConnectDeps {
   const resolver = createDnsResolver();
   return {
     resolveTxt: (name) => resolver.resolveTxt(name),
-    fetch: globalThis.fetch,
+    fetch: (input, init) =>
+      fetchPublicUrl(input, init, {
+        maxRedirects: 3,
+      }),
   };
 }
 
@@ -98,9 +106,17 @@ async function fetchJson(
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(DOMAIN_CONNECT_HTTP_TIMEOUT_MS),
   });
-  const body: unknown = response.ok
-    ? await response.json().catch(() => null)
-    : null;
+  if (!response.ok) {
+    await response.body?.cancel();
+    return { status: response.status, body: null };
+  }
+  const { bytes, exceeded } = await readBodyUpTo(
+    response,
+    DOMAIN_CONNECT_MAX_SETTINGS_BYTES
+  );
+  const body: unknown = exceeded
+    ? null
+    : safeJson(new TextDecoder().decode(bytes));
   return { status: response.status, body };
 }
 
@@ -144,6 +160,7 @@ async function isTemplateSupported(
     const response = await deps.fetch(url, {
       signal: AbortSignal.timeout(DOMAIN_CONNECT_HTTP_TIMEOUT_MS),
     });
+    await response.body?.cancel();
     return response.ok;
   } catch {
     return false;

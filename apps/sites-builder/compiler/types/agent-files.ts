@@ -1,3 +1,5 @@
+import type { SiteConfig } from "@notra/sites-core/types/site-config";
+
 export interface AreaPages {
   area: "blog" | "changelog";
   title: string;
@@ -36,4 +38,5 @@ export interface WriteAgentFilesParams {
   areas: AreaPages[];
   pageHtml: ReadonlyMap<string, string>;
   instructions: readonly string[];
+  notFound: SiteConfig["errors"][404];
 }

@@ -233,8 +233,10 @@ export function extractLandingPage(
             size: iconSize(attrs.get("sizes") ?? ""),
           });
         }
-      } else if (GOOGLE_FONTS_STYLESHEET_HREF.test(href)) {
-        for (const family of googleFontFamilies(href)) {
+      } else {
+        for (const family of googleFontFamilies(
+          resolveLinkUrl(href, baseUrl) ?? ""
+        )) {
           if (!facts.fontFamilies.includes(family)) {
             facts.fontFamilies.push(family);
           }

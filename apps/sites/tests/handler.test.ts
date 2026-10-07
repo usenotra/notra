@@ -7,8 +7,14 @@ import type {
 } from "@notra/sites-core/types/deployment";
 import { signSitePreviewToken } from "@notra/sites-core/utils/preview-token";
 
+import { LOOKUP_CACHE_LIMIT } from "../src/constants/cache";
 import { handleSiteRequest } from "../src/handler";
-import { resetCachesForTests } from "../src/loaders";
+import {
+  loadHost,
+  loadManifest,
+  loadState,
+  resetCachesForTests,
+} from "../src/loaders";
 import type { SitesDeps } from "../src/types/worker";
 
 const SECRET = "test-secret";
@@ -58,7 +64,7 @@ function manifest(
   };
 }
 
-function setup(state: Partial<SiteServingState> = {}) {
+function setup(state: Partial<SiteServingState> = {}, generated404 = false) {
   const objects = new Map<string, string>();
   const put = (key: string, value: unknown) =>
     objects.set(key, typeof value === "string" ? value : JSON.stringify(value));
@@ -93,6 +99,7 @@ function setup(state: Partial<SiteServingState> = {}) {
     "/blog/404.html",
     "/changelog/index.html",
     "/blog/_notra/assets/app.css",
+    ...(generated404 ? ["/blog/404.md", "/changelog/404.md"] : []),
   ];
   put(
     `deployments/${SITE}/dep_live/manifest.json`,
@@ -147,6 +154,98 @@ function setup(state: Partial<SiteServingState> = {}) {
 beforeEach(() => resetCachesForTests());
 
 describe("production serving", () => {
+  test("generated Markdown 404s stay errors for negotiation, direct paths and HEAD", async () => {
+    const { deps } = setup({}, true);
+    for (const path of [
+      "/blog/missing",
+      "/blog/missing.md",
+      "/blog/404.md",
+      "/changelog/404.md",
+    ]) {
+      for (const method of ["GET", "HEAD"]) {
+        const response = await handleSiteRequest(
+          new Request(`https://acme.notra.site${path}`, {
+            method,
+            headers: {
+              Accept: "text/markdown",
+              "If-None-Match": `"${"blog404md".padEnd(64, "0")}"`,
+            },
+          }),
+          deps
+        );
+        expect(response.status).toBe(404);
+        expect(response.headers.get("Content-Type")).toBe(
+          "text/markdown; charset=utf-8"
+        );
+        expect(response.headers.get("Cache-Control")).toBe("no-store");
+        expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
+        expect(response.headers.get("Vary")).toBe("Accept");
+        expect(await response.text()).toBe(
+          method === "HEAD"
+            ? ""
+            : `dep_live:/${path.startsWith("/blog/") ? "blog" : "changelog"}/404.md`
+        );
+      }
+    }
+    const direct = await handleSiteRequest(
+      new Request("https://acme.notra.site/blog/404.md", {
+        headers: { Accept: "text/html" },
+      }),
+      deps
+    );
+    expect(direct.status).toBe(404);
+    expect(await direct.text()).toBe("dep_live:/blog/404.md");
+    const browser = await handleSiteRequest(
+      new Request("https://acme.notra.site/blog/missing", {
+        headers: { Accept: "text/html, text/markdown;q=0.5" },
+      }),
+      deps
+    );
+    expect(await browser.text()).toBe("dep_live:/blog/404.html");
+  });
+
+  test("legacy Markdown 404s have empty HEAD bodies", async () => {
+    const { deps } = setup();
+    const response = await handleSiteRequest(
+      new Request("https://acme.notra.site/blog/404.md", { method: "HEAD" }),
+      deps
+    );
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Content-Type")).toBe(
+      "text/markdown; charset=utf-8"
+    );
+    expect(await response.text()).toBe("");
+  });
+
+  test("root and nested mounted Markdown 404s resolve to their own artifacts", async () => {
+    const { deps, put } = setup();
+    const deployed = manifest("dep_live", "https://acme.com", [
+      "/404.md",
+      "/product/changes/404.md",
+    ]);
+    deployed.target.mounts = { blog: "/", changelog: "/product/changes" };
+    put(`deployments/${SITE}/dep_live/manifest.json`, deployed);
+    put(`deployments/${SITE}/dep_live/files/404.md`, "root missing");
+    put(
+      `deployments/${SITE}/dep_live/files/product/changes/404.md`,
+      "changes missing"
+    );
+    for (const [path, body] of [
+      ["/404.md", "root missing"],
+      ["/missing.md", "root missing"],
+      ["/product/changes/404.md", "changes missing"],
+      ["/product/changes/missing", "changes missing"],
+    ] as const) {
+      const response = await handleSiteRequest(
+        new Request(`https://acme.notra.site${path}`, {
+          headers: { Accept: "text/markdown" },
+        }),
+        deps
+      );
+      expect(response.status).toBe(404);
+      expect(await response.text()).toBe(body);
+    }
+  });
   test("serves both mounts with directory indexes and per-area 404s", async () => {
     const { request } = setup();
     expect(await (await request("https://acme.notra.site/blog")).text()).toBe(
@@ -402,9 +501,226 @@ describe("production serving", () => {
     put(`sites/${SITE}/state.json`, "{not json");
     expect((await request("https://acme.notra.site/blog")).status).toBe(503);
   });
+
+  test("an invalid manifest schema fails closed and is retried after repair", async () => {
+    const { request, put, objects } = setup();
+    const key = `deployments/${SITE}/dep_live/manifest.json`;
+    const valid = objects.get(key);
+    put(key, { version: 1 });
+    const response = await request("https://acme.notra.site/blog");
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Retry-After")).toBe("5");
+    put(key, valid);
+    expect((await request("https://acme.notra.site/blog")).status).toBe(200);
+  });
+});
+
+describe("loader coalescing", () => {
+  test("lookup caches retain only the bounded newest positive and negative entries", async () => {
+    for (const kind of ["host", "state"]) {
+      resetCachesForTests();
+      const { deps } = setup();
+      const get = deps.bucket.get;
+      let reads = 0;
+      deps.bucket.get = (key) => {
+        reads += 1;
+        return get(key);
+      };
+      const load = (key: string) =>
+        kind === "host" ? loadHost(deps, key) : loadState(deps, key);
+      const positive = kind === "host" ? "acme.notra.site" : SITE;
+      expect(await load(positive)).not.toBeNull();
+      expect(await load("first-missing.notra.site")).toBeNull();
+      const keys = Array.from(
+        { length: LOOKUP_CACHE_LIMIT },
+        (_, index) => `missing-${index}.notra.site`
+      );
+      for (const key of keys) {
+        expect(await load(key)).toBeNull();
+      }
+      expect(reads).toBe(LOOKUP_CACHE_LIMIT + 2);
+      for (const key of keys) {
+        expect(await load(key)).toBeNull();
+      }
+      expect(reads).toBe(LOOKUP_CACHE_LIMIT + 2);
+      expect(await load(positive)).not.toBeNull();
+      expect(reads).toBe(LOOKUP_CACHE_LIMIT + 3);
+      expect(await load("first-missing.notra.site")).toBeNull();
+      expect(reads).toBe(LOOKUP_CACHE_LIMIT + 4);
+    }
+  });
+
+  test("cold bursts share one read per host, state and manifest", async () => {
+    const { deps } = setup();
+    const reads = new Map<string, number>();
+    const get = deps.bucket.get;
+    deps.bucket.get = (key) => {
+      reads.set(key, (reads.get(key) ?? 0) + 1);
+      return get(key);
+    };
+    const hosts = await Promise.all(
+      Array.from({ length: 100 }, () => loadHost(deps, "acme.notra.site"))
+    );
+    const states = await Promise.all(
+      Array.from({ length: 100 }, () => loadState(deps, SITE))
+    );
+    const manifests = await Promise.all(
+      Array.from({ length: 100 }, () => loadManifest(deps, SITE, "dep_live"))
+    );
+    expect(hosts.every((host) => host === hosts[0])).toBe(true);
+    expect(states.every((state) => state === states[0])).toBe(true);
+    expect(manifests.every((entry) => entry === manifests[0])).toBe(true);
+    expect([...reads.values()]).toEqual([1, 1, 1]);
+  });
+
+  test("failed bursts share the error but the next call retries", async () => {
+    for (const kind of ["host", "state", "manifest"]) {
+      resetCachesForTests();
+      const { deps } = setup();
+      const get = deps.bucket.get;
+      let reads = 0;
+      let fail = true;
+      deps.bucket.get = (key) => {
+        reads += 1;
+        return fail
+          ? Promise.reject(new Error("bucket unavailable"))
+          : get(key);
+      };
+      const load = () => {
+        if (kind === "host") {
+          return loadHost(deps, "acme.notra.site");
+        }
+        return kind === "state"
+          ? loadState(deps, SITE)
+          : loadManifest(deps, SITE, "dep_live");
+      };
+      const failed = await Promise.allSettled(
+        Array.from({ length: 100 }, load)
+      );
+      expect(failed.every((result) => result.status === "rejected")).toBe(true);
+      expect(reads).toBe(1);
+      fail = false;
+      expect(await load()).not.toBeNull();
+      expect(reads).toBe(2);
+      expect(await load()).not.toBeNull();
+      expect(reads).toBe(2);
+    }
+  });
+
+  test("reset detaches pending reads so they cannot repopulate or evict new loads", async () => {
+    for (const kind of ["host", "state", "manifest"]) {
+      resetCachesForTests();
+      const { deps } = setup();
+      const get = deps.bucket.get;
+      let release = () => {};
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      deps.bucket.get = async (key) => {
+        await gate;
+        return await get(key);
+      };
+      const load = (source: SitesDeps) => {
+        if (kind === "host") {
+          return loadHost(source, "acme.notra.site");
+        }
+        return kind === "state"
+          ? loadState(source, SITE)
+          : loadManifest(source, SITE, "dep_live");
+      };
+      const pending = load(deps);
+      resetCachesForTests();
+      const { deps: fresh } = setup();
+      let reads = 0;
+      const freshGet = fresh.bucket.get;
+      fresh.bucket.get = (key) => {
+        reads += 1;
+        return freshGet(key);
+      };
+      const current = await load(fresh);
+      release();
+      expect(await pending).not.toBe(current);
+      expect(await load(fresh)).toBe(current);
+      expect(reads).toBe(1);
+    }
+  });
+
+  test("state expiry coalesces without extending the five-second takedown window", async () => {
+    const { deps, request, put, objects } = setup();
+    const key = `sites/${SITE}/state.json`;
+    let reads = 0;
+    const get = deps.bucket.get;
+    deps.bucket.get = (path) => {
+      if (path === key) {
+        reads += 1;
+      }
+      return get(path);
+    };
+    expect((await request("https://acme.notra.site/blog")).status).toBe(200);
+    put(key, { ...JSON.parse(objects.get(key) ?? "{}"), status: "suspended" });
+    deps.now = () => new Date("2026-10-03T12:00:04.999Z");
+    expect((await request("https://acme.notra.site/blog")).status).toBe(200);
+    expect(reads).toBe(1);
+    deps.now = () => new Date("2026-10-03T12:00:05Z");
+    const responses = await Promise.all(
+      Array.from({ length: 100 }, () => request("https://acme.notra.site/blog"))
+    );
+    expect(responses.every((response) => response.status === 410)).toBe(true);
+    expect(reads).toBe(2);
+  });
 });
 
 describe("previews", () => {
+  test("private missing paths and Markdown 404s authorize before any deployment lookup", async () => {
+    const { deps } = setup({}, true);
+    const reads: string[] = [];
+    const get = deps.bucket.get;
+    deps.bucket.get = (key) => {
+      reads.push(key);
+      return get(key);
+    };
+    for (const path of ["/blog/missing", "/blog/missing.md", "/blog/404.md"]) {
+      for (const method of ["GET", "HEAD"]) {
+        const response = await handleSiteRequest(
+          new Request(`https://pr-7--acme.notra.site${path}`, {
+            method,
+            headers: { Accept: "text/markdown" },
+          }),
+          deps
+        );
+        expect(response.status).toBe(401);
+        const text = await response.text();
+        expect(text).not.toContain("dep_pr:");
+        if (method === "HEAD") {
+          expect(text).toBe("");
+        }
+      }
+    }
+    expect(reads.some((key) => key.startsWith("deployments/"))).toBe(false);
+    const token = await signSitePreviewToken(
+      {
+        siteId: SITE,
+        previewKey: "pr-7",
+        exp: Math.floor(Date.parse("2026-10-03T13:00:00Z") / 1000),
+        kind: "share",
+      },
+      SECRET
+    );
+    for (const method of ["GET", "HEAD"]) {
+      const response = await handleSiteRequest(
+        new Request("https://pr-7--acme.notra.site/blog/404.md", {
+          method,
+          headers: { Cookie: `${SITE_PREVIEW_COOKIE}=${token}` },
+        }),
+        deps
+      );
+      expect(response.status).toBe(404);
+      expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+      expect(await response.text()).toBe(
+        method === "HEAD" ? "" : "dep_pr:/blog/404.md"
+      );
+    }
+  });
   test("protected previews need a valid token for exactly that preview", async () => {
     const { request } = setup();
     const locked = await request("https://pr-7--acme.notra.site/blog");

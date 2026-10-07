@@ -19,6 +19,7 @@ import type {
   SandboxUploadFile,
 } from "./types/build";
 import { safeJson } from "./utils/json";
+import { readBodyUpTo } from "./utils/read-body";
 import { isSafeRootDirectory } from "./utils/root-directory";
 import { shellQuote } from "./utils/shell";
 
@@ -48,7 +49,7 @@ async function uploadBytes(boxId: string, files: SandboxUploadFile[]) {
   }
 }
 
-async function downloadBytes(
+export async function downloadBytes(
   boxId: string,
   path: string,
   maxBytes: number
@@ -64,10 +65,11 @@ async function downloadBytes(
   }
   const length = Number(response.headers.get("content-length") ?? 0);
   if (length > maxBytes) {
+    await response.body?.cancel().catch(() => undefined);
     throw new Error(`${path} is larger than allowed (${length} bytes)`);
   }
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength > maxBytes) {
+  const { bytes, exceeded } = await readBodyUpTo(response, maxBytes);
+  if (exceeded) {
     throw new Error(
       `${path} is larger than allowed (${bytes.byteLength} bytes)`
     );

@@ -18,6 +18,35 @@ const now = new Date("2026-10-03T00:00:00Z");
 const initial = createInitialServingState({ siteId: "s", slug: "acme", now });
 
 describe("generation ordering", () => {
+  test("stale removals preserve newer pointers and tombstones", () => {
+    const active = activatePreviewInState(
+      initial,
+      "pr-7",
+      {
+        deploymentId: "reopened-11",
+        sequence: 11,
+        visibility: "protected",
+        expiresAt: null,
+      },
+      now
+    );
+    expect(active.outcome).toBe("activated");
+    if (active.outcome !== "activated") {
+      throw new Error("Preview did not activate");
+    }
+    const removed = removePreviewFromState(
+      { ...active.state, removedPreviews: { "pr-7": 10 } },
+      "pr-7",
+      9,
+      now
+    );
+    expect(removed.previews["pr-7"]).toEqual(active.state.previews["pr-7"]);
+    expect(removed.removedPreviews["pr-7"]).toBe(10);
+    const current = removePreviewFromState(removed, "pr-7", 11, now);
+    expect(current.previews).toEqual({});
+    expect(current.removedPreviews["pr-7"]).toBe(11);
+    expect(removePreviewFromState(current, "pr-7", 9, now)).toBe(current);
+  });
   test("production only moves forward; retries are idempotent", () => {
     const first = activateProductionInState(
       initial,
@@ -134,6 +163,27 @@ describe("preview hosts", () => {
         previewKey: key,
       });
     }
-    expect(branchPreviewKey("docs", "acme")).toBe("br-docs");
+    expect(branchPreviewKey("docs", "acme")).toMatch(/^br-docs-[a-z0-9]+$/);
+  });
+
+  test("branch identities preserve punctuation and case differences", () => {
+    const branches = [
+      "feature/foo",
+      "feature-foo",
+      "Feature/foo",
+      "feature.foo",
+    ];
+    const keys = branches.map((branch) => branchPreviewKey(branch, "acme"));
+    expect(new Set(keys).size).toBe(branches.length);
+    for (const [index, key] of keys.entries()) {
+      expect(branchPreviewKey(branches[index] ?? "", "acme")).toBe(key);
+      expect(
+        parseSiteHost(sitePreviewHost(key, "acme", "notra.site"), "notra.site")
+      ).toEqual({
+        kind: "preview",
+        slug: "acme",
+        previewKey: key,
+      });
+    }
   });
 });

@@ -1,10 +1,12 @@
 import { db } from "@notra/db/drizzle";
+import { sites } from "@notra/db/schema";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import type {
   PreviewActivationResult,
   ProductionActivationResult,
 } from "@notra/sites-core/types/serving-state";
 import { referencedDeploymentIds } from "@notra/sites-core/utils/serving-state";
+import { eq } from "drizzle-orm";
 
 import { allocateGeneration } from "./deployments";
 import { r2GetText } from "./r2";
@@ -19,6 +21,7 @@ import type {
   SiteDeployment,
 } from "./types/deployments";
 import type { Site } from "./types/sites";
+import { withSiteStorageLock } from "./utils/site-storage-lock";
 
 async function hasStoredFiles(
   site: Site,
@@ -39,44 +42,80 @@ export async function activateDeployment(
   site: Site,
   deployment: SiteDeployment
 ): Promise<ActivationOutcome> {
-  if (!(await hasStoredFiles(site, deployment))) {
-    return "not_live";
-  }
-  if (deployment.kind === "production") {
+  return await withSiteStorageLock(site.id, async (tx) => {
+    const [currentSite] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, site.id))
+      .for("update");
+    if (
+      !currentSite ||
+      currentSite.status !== "active" ||
+      (deployment.kind === "preview" && !currentSite.previewsEnabled) ||
+      !(await hasStoredFiles(currentSite, deployment))
+    ) {
+      return "not_live";
+    }
+    if (deployment.kind === "production") {
+      return liveUnlessSuperseded(
+        await activateProductionDeployment(
+          currentSite,
+          {
+            deploymentId: deployment.id,
+            generation: deployment.generation,
+          },
+          tx
+        )
+      );
+    }
+    if (!deployment.previewKey) {
+      throw new Error("Preview deployment without a preview key");
+    }
     return liveUnlessSuperseded(
-      await activateProductionDeployment(site, {
-        deploymentId: deployment.id,
-        generation: deployment.generation,
-      })
+      await activatePreviewDeployment(
+        currentSite,
+        deployment.previewKey,
+        {
+          deploymentId: deployment.id,
+          sequence: deployment.generation,
+          visibility: currentSite.previewVisibility,
+          expiresAt: null,
+        },
+        tx
+      )
     );
-  }
-  if (!deployment.previewKey) {
-    throw new Error("Preview deployment without a preview key");
-  }
-  return liveUnlessSuperseded(
-    await activatePreviewDeployment(site, deployment.previewKey, {
-      deploymentId: deployment.id,
-      sequence: deployment.generation,
-      visibility: site.previewVisibility,
-      expiresAt: null,
-    })
-  );
+  });
 }
 
 export async function restoreProductionDeployment(
   site: Site,
   deployment: SiteDeployment
 ): Promise<ActivationOutcome> {
-  if (!(await hasStoredFiles(site, deployment))) {
-    return "not_live";
-  }
   const { lastGeneration } = await allocateGeneration(db, site.id);
-  return liveUnlessSuperseded(
-    await activateProductionDeployment(site, {
-      deploymentId: deployment.id,
-      generation: lastGeneration,
-    })
-  );
+  return await withSiteStorageLock(site.id, async (tx) => {
+    const [currentSite] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, site.id))
+      .for("update");
+    if (
+      !currentSite ||
+      currentSite.status !== "active" ||
+      !(await hasStoredFiles(currentSite, deployment))
+    ) {
+      return "not_live";
+    }
+    return liveUnlessSuperseded(
+      await activateProductionDeployment(
+        currentSite,
+        {
+          deploymentId: deployment.id,
+          generation: lastGeneration,
+        },
+        tx
+      )
+    );
+  });
 }
 
 export async function readLiveDeployments(

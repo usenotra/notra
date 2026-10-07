@@ -134,6 +134,30 @@ describe("extractLandingPage", () => {
     );
     expect(garbage.navLinks).toEqual([]);
   });
+
+  test("font stylesheets use the resolved hostname rather than a URL substring", () => {
+    const html = [
+      '<link href="https://fonts.googleapis.com.evil.example/css?family=Wrong">',
+      '<link href="https://evil.example/fonts.googleapis.com?family=Wrong">',
+      '<link href="/css?family=Wrong">',
+      '<link href="//fonts.googleapis.com/css2?family=Inter">',
+    ].join("");
+    expect(extractLandingPage(html, "https://acme.com/").fontFamilies).toEqual([
+      "Inter",
+    ]);
+  });
+
+  test("multiple mixed-case script and style blocks do not become page links", () => {
+    const html = `<header>
+      <SCRIPT>const markup = '<a href="/hidden-one">Hidden</a>';</SCRIPT>
+      <style>a::before { content: '<a href="/hidden-two">Hidden</a>'; }</style>
+      <script>const markup = '<a href="/hidden-three">Hidden</a>';</script>
+      <a href="/docs">Docs</a>
+    </header>`;
+    expect(extractLandingPage(html, "https://acme.com/").navLinks).toEqual([
+      { label: "Docs", href: "https://acme.com/docs" },
+    ]);
+  });
 });
 
 describe("url helpers", () => {

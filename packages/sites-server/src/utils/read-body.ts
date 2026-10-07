@@ -9,18 +9,24 @@ export async function readBodyUpTo(
   let exceeded = false;
   const reader = response.body?.getReader();
   if (reader) {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        if (value.byteLength > maxBytes - total) {
+          chunks.push(value.subarray(0, maxBytes - total));
+          total = maxBytes;
+          exceeded = true;
+          await reader.cancel().catch(() => undefined);
+          break;
+        }
+        chunks.push(value);
+        total += value.byteLength;
       }
-      chunks.push(value);
-      total += value.byteLength;
-      if (total > maxBytes) {
-        exceeded = true;
-        await reader.cancel().catch(() => undefined);
-        break;
-      }
+    } finally {
+      reader.releaseLock();
     }
   }
   const bytes = new Uint8Array(new ArrayBuffer(total));

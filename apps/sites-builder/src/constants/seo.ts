@@ -1,7 +1,6 @@
 export const EXCERPT_MAX_LENGTH = 160;
-
-export const NON_PROSE_BLOCK =
-  /^(?:import\s|export\s|#|```|~~~|<|\{|[-*+]\s|\d+\.\s|\||>|!\[)/;
+export const EXCERPT_CACHE_MAX_ENTRIES = 10_000;
+export const EXCERPT_CACHE_MAX_BYTES = 16 * 1024 * 1024;
 
 export const DEFAULT_THEME_COLORS = { light: "#ffffff", dark: "#131316" };
 

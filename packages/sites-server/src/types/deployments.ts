@@ -11,6 +11,9 @@ import type { Site } from "./sites";
 export type SiteDeployment = typeof siteDeployments.$inferSelect;
 export type SiteDeploymentStatus = SiteDeployment["status"];
 export type DeploymentExecutor = Pick<typeof db, "update">;
+export type SiteStorageTransaction = Parameters<
+  Parameters<typeof db.transaction>[0]
+>[0];
 export type DeploymentTransitionValues = Partial<
   Omit<typeof siteDeployments.$inferInsert, "status">
 >;
