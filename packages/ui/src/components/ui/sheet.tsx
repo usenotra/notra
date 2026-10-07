@@ -33,9 +33,8 @@ function Sheet({ ...props }: SheetPrimitive.Root.Props) {
 
 /**
  * A sheet opened from inside another sheet hands its width to the parent, so
- * the parent can slide clear of it (see `sheet-motion`). Every sheet records
- * its own resting width while nothing covers it; offsetWidth ignores the
- * slide transform.
+ * the parent can slide clear of it (see `sheet-motion`). Both widths follow
+ * resizes; offsetWidth ignores the slide transform.
  */
 function useSheetStack(popup: HTMLElement | null) {
   const parentPopup = React.useContext(SheetStackContext)?.parent?.popup;
@@ -43,20 +42,18 @@ function useSheetStack(popup: HTMLElement | null) {
   React.useLayoutEffect(() => {
     if (!popup) return;
     const record = () => {
-      if (popup.hasAttribute("data-nested-dialog-open")) return;
       popup.style.setProperty("--sheet-rest-width", `${popup.offsetWidth}px`);
+      parentPopup?.style.setProperty(
+        "--sheet-child-width",
+        `${popup.offsetWidth}px`
+      );
     };
     record();
     const observer = new ResizeObserver(record);
     observer.observe(popup);
-    return () => observer.disconnect();
-  }, [popup]);
-
-  React.useLayoutEffect(() => {
-    if (!popup || !parentPopup) return;
-    parentPopup.style.setProperty("--sheet-child-width", `${popup.offsetWidth}px`);
     return () => {
-      parentPopup.style.removeProperty("--sheet-child-width");
+      observer.disconnect();
+      parentPopup?.style.removeProperty("--sheet-child-width");
     };
   }, [popup, parentPopup]);
 }
