@@ -255,7 +255,7 @@ export interface AreaProps {
   variant?: AreaVariant; // fill style for this area only
   strokeVariant?: StrokeVariant; // stroke style for this area
   strokeWidth?: number; // stroke thickness in pixels for this area
-  fillAlpha?: number; // peak opacity of the gradient/solid fill, 0–1 (default 0.1)
+  fillAlpha?: number; // peak opacity of the gradient/solid fill, 0–1 (default 0.24)
   curveType?: CurveType; // curve interpolation — falls back to the root curveType
   animationType?: AreaAnimationType; // intro reveal — first area drives the wrapper wipe
   connectNulls?: boolean; // join segments across null/missing values
@@ -1290,7 +1290,16 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
 
     return tooltipShell({
       label,
-      body: tooltipBodyHtml(items, tooltipSlot, hoveredRow),
+      body: tooltipBodyHtml(
+        capTooltipItems(
+          items,
+          tooltipSlot.maxRows,
+          tooltipSlot.moreLabel ?? defaultMoreLabel,
+          tooltipSlot.valueFormatter
+        ),
+        tooltipSlot,
+        hoveredRow
+      ),
       roundness: tooltipSlot.roundness,
       variant: tooltipSlot.variant,
       layout: tooltipSlot.layout,
@@ -1740,8 +1749,13 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
         step: curve.step,
         connectNulls: false,
         silent: true,
-        showSymbol: false,
+        // Isolated dots have no line segment to carry them. The clip hides the
+        // real ones past the cursor, so the faded layer keeps its own copy.
+        showSymbol: area.dotIndices !== undefined && restingVisible,
         symbol: "circle",
+        symbolSize: (_value, params) =>
+          area.dotIndices?.includes(params.dataIndex) ? restingDot.size : 0,
+        itemStyle: { ...restingDot.itemStyle, opacity: 0 },
         z: z - 1,
         // Same color and dash as the colored line, NO fill, faded.
         lineStyle: {
@@ -2573,6 +2587,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
           series: keys.map((key) => ({
             id: `${REVEAL_PREFIX}${key}`,
             lineStyle: { opacity },
+            itemStyle: { opacity },
           })),
         },
         { silent: true }

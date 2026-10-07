@@ -290,6 +290,28 @@ export function capTooltipGroups(
     Math.min(group.items.length, MIN_ROWS_PER_SECTION)
   );
   let spare = maxRows - rows.reduce((sum, count) => sum + count, 0);
+  // A budget below the section minimums: take rows back from the sections with
+  // the least traffic per row. Every section keeps one row (its "+N more").
+  while (spare < 0) {
+    let worst = -1;
+    let worstScore = Number.POSITIVE_INFINITY;
+    for (const [index, group] of groups.entries()) {
+      const shown = rows[index] ?? 0;
+      if (shown <= 1) {
+        continue;
+      }
+      const score = (group.heading.value ?? 0) / shown;
+      if (score < worstScore) {
+        worst = index;
+        worstScore = score;
+      }
+    }
+    if (worst === -1) {
+      break;
+    }
+    rows[worst] = (rows[worst] ?? 0) - 1;
+    spare += 1;
+  }
   while (spare > 0) {
     let best = -1;
     let bestScore = -1;
