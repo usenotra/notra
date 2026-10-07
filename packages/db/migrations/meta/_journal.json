@@ -782,8 +782,15 @@
     {
       "idx": 111,
       "version": "7",
-      "when": 1791370117277,
-      "tag": "0111_geo_adhoc_scans",
+      "when": 1791372497523,
+      "tag": "0111_scheduled_publication_attempt_outcome",
+      "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1791373370065,
+      "tag": "0112_geo_adhoc_scans",
       "breakpoints": true
     }
   ]

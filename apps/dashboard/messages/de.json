@@ -5522,7 +5522,8 @@
       "mention": {
         "noneConnected": "Kein Kontext und keine MCP-Tools verbunden",
         "noMatches": "Keine Treffer gefunden",
-        "connectIntegrations": "Integrationen verbinden"
+        "connectIntegrations": "Integrationen verbinden",
+        "postsGroup": "In diesem Chat"
       },
       "options": {
         "githubRepository": "GitHub-Repository",
@@ -5714,7 +5715,40 @@
     },
     "quote": {
       "quoteSelection": "Markierten Text zitieren",
-      "removeQuote": "Zitat entfernen"
+      "removeQuote": "Zitat entfernen",
+      "annotate": "Annotieren"
+    },
+    "contentPanel": {
+      "title": "Inhalte",
+      "toggle": "Inhalte ({count})",
+      "close": "Panel einklappen",
+      "empty": "Beiträge, die der Agent in diesem Chat schreibt, erscheinen hier.",
+      "status": {
+        "writing": "Wird geschrieben…",
+        "unsaved": "Noch nicht gespeichert",
+        "draft": "Entwurf"
+      },
+      "openTab": "Weiteren Beitrag öffnen",
+      "closeTab": "{title} schließen",
+      "passageChanged": "Diese Stelle wurde seit der Annotation geändert."
+    },
+    "todos": {
+      "label": "Plan",
+      "stopped": "Gestoppt"
+    },
+    "annotations": {
+      "label": "Annotationen",
+      "remove": "Annotation {index} entfernen",
+      "noteLabel": "Notiz",
+      "notePlaceholder": "Was soll sich hier ändern?",
+      "add": "Hinzufügen",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "addNote": "Notiz hinzufügen",
+      "editNote": "Notiz zu Annotation {index} bearbeiten",
+      "show": "Annotation {index} im Beitrag zeigen",
+      "count": "{count, plural, one {# Annotation} other {# Annotationen}}",
+      "limit": "Höchstens {max} Annotationen pro Nachricht. Sende oder entferne zuerst welche."
     }
   },
   "content": {
@@ -6595,7 +6629,8 @@
       "saveDraftFailedRetry": "Entwurf konnte nicht gespeichert werden. Versuch es noch einmal.",
       "saveDraftFailedInline": "Der Entwurf konnte nicht gespeichert werden. Versuch es noch einmal.",
       "contentRegion": "Inhalt: {type}",
-      "askForChanges": "Änderungen anfragen"
+      "askForChanges": "Änderungen anfragen",
+      "openPreview": "Vorschau"
     }
   },
   "comments": {

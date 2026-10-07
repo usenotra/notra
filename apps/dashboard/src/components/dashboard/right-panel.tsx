@@ -13,22 +13,37 @@ import {
   RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME,
   RIGHT_PANEL_OPEN_WIDTH_CLASSNAME,
   RIGHT_PANEL_SLOT_MOTION_CLASSNAME,
+  RIGHT_PANEL_FRAME_WIDE_DOCKED_WIDTH_CLASSNAME,
+  RIGHT_PANEL_WIDE_OPEN_WIDTH_CLASSNAME,
 } from "@/constants/right-panel";
 import { useRightPanelSkipMotion } from "@/lib/hooks/use-right-panel-slide";
 import type { RightPanelProps } from "@/types/components/right-panel";
 import { loadMotionFeatures } from "@/utils/load-motion-features";
 
-function panelWidthClass(open: boolean, expanded: boolean) {
+function panelWidthClass(open: boolean, expanded: boolean, wide: boolean) {
   if (!open) {
     return "w-0";
   }
   if (expanded) {
     return RIGHT_PANEL_EXPANDED_WIDTH_CLASSNAME;
   }
-  return RIGHT_PANEL_OPEN_WIDTH_CLASSNAME;
+  return wide
+    ? RIGHT_PANEL_WIDE_OPEN_WIDTH_CLASSNAME
+    : RIGHT_PANEL_OPEN_WIDTH_CLASSNAME;
 }
 
-export function RightPanel({ id, children }: RightPanelProps) {
+function frameDockedWidthClass(wide: boolean) {
+  return wide
+    ? RIGHT_PANEL_FRAME_WIDE_DOCKED_WIDTH_CLASSNAME
+    : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME;
+}
+
+export function RightPanel({
+  id,
+  children,
+  size = "default",
+}: RightPanelProps) {
+  const wide = size === "wide";
   const { active, expanded, hasOpened } = useRightPanel();
   const reduceMotion = useReducedMotion();
   const open = active === id;
@@ -50,7 +65,7 @@ export function RightPanel({ id, children }: RightPanelProps) {
             skipMotion && "transition-none",
             open && "overflow-visible",
             open && !skipMotion && "starting:w-0",
-            panelWidthClass(open, expanded)
+            panelWidthClass(open, expanded, wide)
           )}
           inert={open ? undefined : true}
         >
@@ -69,7 +84,7 @@ export function RightPanel({ id, children }: RightPanelProps) {
                 RIGHT_PANEL_FRAME_CLASSNAME,
                 expanded
                   ? RIGHT_PANEL_FRAME_EXPANDED_WIDTH_CLASSNAME
-                  : RIGHT_PANEL_FRAME_DOCKED_WIDTH_CLASSNAME
+                  : frameDockedWidthClass(wide)
               )}
             >
               <m.div

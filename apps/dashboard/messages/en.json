@@ -5522,7 +5522,8 @@
       "mention": {
         "noneConnected": "No context or MCP tools connected",
         "noMatches": "No matches found",
-        "connectIntegrations": "Connect integrations"
+        "connectIntegrations": "Connect integrations",
+        "postsGroup": "In this chat"
       },
       "options": {
         "githubRepository": "GitHub repository",
@@ -5714,7 +5715,40 @@
     },
     "quote": {
       "quoteSelection": "Quote selected text",
-      "removeQuote": "Remove quote"
+      "removeQuote": "Remove quote",
+      "annotate": "Annotate"
+    },
+    "contentPanel": {
+      "title": "Content",
+      "toggle": "Content ({count})",
+      "close": "Collapse panel",
+      "empty": "Posts the agent writes in this chat show up here.",
+      "status": {
+        "writing": "Writing…",
+        "unsaved": "Not saved yet",
+        "draft": "Draft"
+      },
+      "openTab": "Open another post",
+      "closeTab": "Close {title}",
+      "passageChanged": "This passage has changed since it was annotated."
+    },
+    "todos": {
+      "label": "Plan",
+      "stopped": "Stopped"
+    },
+    "annotations": {
+      "label": "Annotations",
+      "remove": "Remove annotation {index}",
+      "noteLabel": "Note",
+      "notePlaceholder": "What should change here?",
+      "add": "Add",
+      "save": "Save",
+      "cancel": "Cancel",
+      "addNote": "Add a note",
+      "editNote": "Edit note for annotation {index}",
+      "show": "Show annotation {index} in the post",
+      "count": "{count, plural, one {# annotation} other {# annotations}}",
+      "limit": "Up to {max} annotations per message. Send or remove some first."
     }
   },
   "content": {
@@ -6595,7 +6629,8 @@
       "saveDraftFailedRetry": "Failed to save draft. Try again.",
       "saveDraftFailedInline": "Could not save the draft. Try again.",
       "contentRegion": "{type} content",
-      "askForChanges": "Ask for changes"
+      "askForChanges": "Ask for changes",
+      "openPreview": "Preview"
     }
   },
   "comments": {

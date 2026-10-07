@@ -62,7 +62,9 @@ export function ChatMinimapRail({ className, turns }: ChatMinimapRailProps) {
   return (
     <ChatMinimap
       className={cn(
-        "absolute top-1/2 left-3 z-10 hidden -translate-y-1/2 md:flex",
+        // Only where the gutter beside the max-w-2xl message column fits the
+        // rail; narrower columns (small screens, open side panel) hide it.
+        "absolute top-1/2 left-3 z-10 hidden -translate-y-1/2 @min-[50rem]/chat:flex",
         className
       )}
       side="right"

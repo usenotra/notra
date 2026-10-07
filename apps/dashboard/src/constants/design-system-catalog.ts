@@ -44,6 +44,7 @@ export const DESIGN_SYSTEM_CATEGORIES: DesignSystemCategory[] = [
       { id: "rich-interactions", label: "Rich Interactions" },
       { id: "composer", label: "Composer" },
       { id: "chat-queue", label: "Chat Queue" },
+      { id: "todo-list", label: "Todo List" },
       { id: "identity", label: "Identity & Layout" },
       { id: "social", label: "Social Previews" },
       { id: "onboarding", label: "Onboarding" },

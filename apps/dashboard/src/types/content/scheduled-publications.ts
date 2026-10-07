@@ -1,3 +1,5 @@
+import type { ScheduledPublicationOutcome } from "@notra/ai/types/scheduled-publications";
+
 export interface ScheduledPublicationPost {
   contentType: string;
   title: string;
@@ -27,4 +29,12 @@ export interface ScheduledPublicationSweepResult {
   claimed: number;
   started: number;
   released: number;
+}
+
+export interface ScheduledPublicationAttemptResult {
+  attempts: number;
+  destination: string;
+  organizationId: string;
+  postId: string;
+  outcome: ScheduledPublicationOutcome;
 }

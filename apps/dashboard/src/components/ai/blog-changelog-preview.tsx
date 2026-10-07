@@ -1,11 +1,14 @@
 "use client";
 
+import { SidebarRightIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
 import { BlogPreviewActions } from "@/components/ai/blog-preview-actions";
+import { Button } from "@/components/button";
 import { useContent } from "@/lib/hooks/use-content";
 import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import type {
@@ -22,6 +25,7 @@ export function BlogChangelogPreview({
   organizationId,
   organizationSlug,
   postId,
+  onOpenPreview,
   onRevise,
   state: incomingState,
   title: initialTitle,
@@ -74,6 +78,21 @@ export function BlogChangelogPreview({
           </span>
           <h3 className="text-sm font-medium text-pretty">{title}</h3>
         </div>
+        {onOpenPreview ? (
+          <Button
+            className="-mr-1.5 shrink-0"
+            onClick={onOpenPreview}
+            size="sm"
+            variant="ghost"
+          >
+            <HugeiconsIcon
+              className="size-3.5"
+              icon={SidebarRightIcon}
+              strokeWidth={1.8}
+            />
+            {t("openPreview")}
+          </Button>
+        ) : null}
       </div>
       <div
         aria-label={t("contentRegion", {

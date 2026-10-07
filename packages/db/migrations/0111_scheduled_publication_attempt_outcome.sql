@@ -1,0 +1,1 @@
+ALTER TABLE "scheduled_publications" ADD COLUMN "attempt_outcome" jsonb;

@@ -99,6 +99,12 @@ preserves scheduled-publication tables and extends main with the adhoc table.
 Eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
 typecheck and build passed locally. No live database migration ran.
 
+A later merge of `main` at `6e845aa85` preserved its new scheduled-publication
+`attempt_outcome` migration and moved GEO to `0112_geo_adhoc_scans`. All existing
+main migration files remain unchanged. The guard validates 113 migrations;
+eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
+typecheck and build passed locally without connecting to a live database.
+
 ## Remaining production checks
 
 The Railway service was deleted at the user's request. There is no active

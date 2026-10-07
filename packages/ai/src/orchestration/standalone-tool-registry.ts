@@ -37,6 +37,7 @@ import {
 } from "@notra/ai/tools/organization";
 import {
   createCreatePostTool,
+  createEditPostTool,
   createGetAvailablePostsTool,
   createGetPostTool,
   createUpdatePostTool,
@@ -57,6 +58,10 @@ import {
   getSkillByName,
   listAvailableSkills,
 } from "@notra/ai/tools/skills";
+import {
+  createUpdateTodosTool,
+  UPDATE_TODOS_TOOL_NAME,
+} from "@notra/ai/tools/todos";
 import { registerWebSearchTools } from "@notra/ai/tools/web-search";
 import type {
   BuildStandaloneToolSetDeps,
@@ -130,6 +135,14 @@ export function buildStandaloneToolSet(
     postResult
   );
 
+  tools.editPost = createEditPostTool({
+    organizationId,
+    contentType: "blog_post",
+  });
+  tools[UPDATE_TODOS_TOOL_NAME] = createUpdateTodosTool(
+    params.previousTodoCalls ?? 0
+  );
+
   tools.viewPost = createViewPostTool({
     organizationId,
     contentType: "blog_post",
@@ -158,8 +171,11 @@ export function buildStandaloneToolSet(
 
   descriptions.push(
     userId
-      ? "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, createImage, plus updatePost and viewPost. createImage runs in a sandbox, saves the generated image as a draft, and stores a sandbox snapshot for future revisions."
-      : "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, plus updatePost and viewPost"
+      ? "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, createImage, plus updatePost, editPost, and viewPost. createImage runs in a sandbox, saves the generated image as a draft, and stores a sandbox snapshot for future revisions."
+      : "**Content Creation**: Create posts using createChangelog, createBlogPost, createTwitterPost, createLinkedInPost, createInvestorUpdate, plus updatePost, editPost, and viewPost"
+  );
+  descriptions.push(
+    "**Planning**: Keep a short checklist with updateTodos, only when one request asks for four or more separate pieces of content"
   );
   descriptions.push(
     "**Organization Data**: Inspect brand identities, brand references, available integrations, and existing posts using listBrandIdentities, getBrandIdentity, getAvailableBrandReferences, getAvailableIntegrations, getAvailablePosts, and getPost"

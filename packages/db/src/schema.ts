@@ -2440,6 +2440,11 @@ export const scheduledPublications = pgTable(
     errorCode: text("error_code"),
     lastError: text("last_error"),
     result: jsonb("result").$type<ScheduledPublicationResult>(),
+    /**
+     * The current claim's publish outcome, kept until it is written, so a
+     * retried call returns it instead of publishing again.
+     */
+    attemptOutcome: jsonb("attempt_outcome"),
     publishedAt: timestamp("published_at"),
     createdByUserId: text("created_by_user_id").references(() => users.id, {
       onDelete: "set null",

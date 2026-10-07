@@ -357,6 +357,26 @@
   }
 }
 
+/* Passages annotated in the chat's content preview. */
+::highlight(chat-annotation) {
+  background-color: color-mix(in oklch, var(--warning) 22%, transparent);
+}
+
+::highlight(chat-annotation-draft) {
+  background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+}
+
+/* A focused annotation lights up briefly in the preview, then fades. */
+@keyframes annotation-flash {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Tint table rows in GEO answers that name the user's own brand. Global so
    it also reaches the expanded table, which renders in a portal. */
 tr:has(> [data-own-mention]) > * {

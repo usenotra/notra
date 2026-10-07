@@ -11,6 +11,7 @@ import type {
 const INITIAL_HAS_OPENED: Record<RightPanelId, boolean> = {
   agent: false,
   content: false,
+  preview: false,
 };
 
 export function useRightPanelState(): RightPanelContextValue {
