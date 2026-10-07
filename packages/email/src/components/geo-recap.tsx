@@ -7,6 +7,7 @@ import type {
   GeoRecapItem,
   GeoRecapTone,
 } from "../types/geo-recap";
+import { toneFromDelta } from "../utils/geo-recap";
 
 const PILL: Record<GeoRecapTone, { backgroundColor: string; color: string }> = {
   up: {
@@ -22,16 +23,6 @@ const PILL: Record<GeoRecapTone, { backgroundColor: string; color: string }> = {
     color: EMAIL_THEME.subtleForeground,
   },
 };
-
-export function toneFromDelta(label: string): GeoRecapTone {
-  if (label.startsWith("+")) {
-    return "up";
-  }
-  if (label.startsWith("-") || label.startsWith("−")) {
-    return "down";
-  }
-  return "neutral";
-}
 
 function toneMark(tone: GeoRecapTone): string {
   if (tone === "up") {

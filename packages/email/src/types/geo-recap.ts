@@ -39,9 +39,9 @@ export interface WeeklySummaryEmailProps {
   visibilityLabel: string;
   visibilityDeltaLabel: string;
   answersChecked: number;
-  items: GeoRecapItem[];
+  items: readonly GeoRecapItem[];
   remainingCount: number;
-  competitors: GeoRecapCompetitor[];
+  competitors: readonly GeoRecapCompetitor[];
   action?: GeoRecapAction;
   dashboardLink: string;
 }
@@ -53,7 +53,7 @@ export interface VisibilityDropEmailProps {
   previousLabel: string;
   currentLabel: string;
   deltaLabel: string;
-  items: GeoRecapItem[];
+  items: readonly GeoRecapItem[];
   remainingCount: number;
   dashboardLink: string;
 }

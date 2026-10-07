@@ -1289,18 +1289,23 @@ export async function queryGeoCheckPeriodPrompts(
   }));
 }
 
-/** Competitor mentions per tracked prompt and engine, split like above. */
+/**
+ * Competitor mentions per tracked prompt and engine, split like above. Brands
+ * are keyed trimmed and lowercased so "Acme" and "acme " count as one.
+ */
 export async function queryGeoCheckPeriodCompetitors(
   input: GeoCheckPeriodInput
 ): Promise<GeoCheckPeriodCompetitorRow[]> {
   const period = checkPeriod(input.splitAt);
+  const brandKey = sql<string>`lower(trim(brand))`;
   const rows = await db
     .select({
       period,
       projectId: geoMentionChecks.projectId,
       promptId: geoMentionChecks.promptId,
       engine: geoMentionChecks.engine,
-      brand: competitorBrand,
+      brandKey,
+      brand: sql<string>`min(trim(brand))`,
       checks: countChecks,
     })
     .from(geoMentionChecks)
@@ -1313,7 +1318,7 @@ export async function queryGeoCheckPeriodCompetitors(
       geoMentionChecks.projectId,
       geoMentionChecks.promptId,
       geoMentionChecks.engine,
-      competitorBrand
+      brandKey
     );
 
   return rows.map((row) => ({
@@ -1321,6 +1326,7 @@ export async function queryGeoCheckPeriodCompetitors(
     projectId: row.projectId,
     promptId: row.promptId,
     engine: row.engine,
+    brandKey: row.brandKey,
     brand: row.brand,
     checks: toNumber(row.checks),
   }));

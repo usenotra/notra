@@ -37,3 +37,5 @@ export const GEO_ALERT_BASELINE_DAYS = 7;
 export const GEO_ALERT_MIN_DROP_POINTS = 15;
 /** Recent answers needed before a drop is trusted. */
 export const GEO_ALERT_MIN_RECENT_CHECKS = 20;
+/** After an alert, the same owner hears about drops again a week later. */
+export const GEO_ALERT_COOLDOWN_SECONDS = 7 * 24 * 60 * 60;

@@ -1,3 +1,4 @@
+import { redis } from "@notra/ai/utils/redis";
 import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
@@ -27,6 +28,7 @@ import {
 import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
 
 import {
+  GEO_ALERT_COOLDOWN_SECONDS,
   GEO_RECAP_MAX_COMPETITORS,
   GEO_RECAP_MIN_COMPETITOR_POINTS,
   GEO_RECAP_MAX_ITEMS,
@@ -121,6 +123,7 @@ async function runRecapForOrganizations(
 
   for (const { organizationId } of optedIn) {
     try {
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- one organization at a time keeps DB and Brew load flat
       const sent = await send({ organizationId, window });
       if (sent === "quiet") {
         result.skippedQuiet += 1;
@@ -209,13 +212,14 @@ function toRecapItem(
 }
 
 async function sendToRecipients(
-  recipients: RecapRecipients,
-  sendOne: (email: string) => Promise<{ error: { message: string } | null }>
+  emails: readonly string[],
+  sendOne: (email: string) => Promise<{ error: { message: string } | null }>,
+  onSent?: (email: string) => Promise<void>
 ): Promise<GeoRecapOrganizationResult> {
   let emailsSent = 0;
   let failed = false;
-  // Send sequentially so recipient retries do not create concurrent Brew bursts.
-  for (const email of recipients.emails) {
+  for (const email of emails) {
+    // react-doctor-disable-next-line react-doctor/async-await-in-loop -- sequential so recipient retries do not create concurrent Brew bursts
     const result = await sendOne(email);
     if (result.error) {
       logWarn("[GeoRecap] Failed to send GEO recap", {
@@ -225,6 +229,7 @@ async function sendToRecipients(
       continue;
     }
     emailsSent += 1;
+    await onSent?.(email);
   }
   return { emailsSent, failed };
 }
@@ -290,7 +295,7 @@ async function sendWeeklyRecap({
   const weekKey = utcDateKey(window.toExclusive);
   const appUrl = EMAIL_CONFIG.getAppUrl();
 
-  return sendToRecipients(recipients, (recipientEmail) =>
+  return sendToRecipients(recipients.emails, (recipientEmail) =>
     sendWeeklySummaryEmail({
       recipientEmail,
       weekKey,
@@ -434,19 +439,16 @@ async function sendDropAlert({
     return "quiet";
   }
 
-  // Alert once when the drop starts, not every day it lasts.
-  const yesterdayPairs = buildComparablePairs(
-    await queryGeoCheckPeriodPrompts(
-      periodInput(organizationId, getDropAlertWindow(now, 1))
-    ),
-    1
-  );
-  if (detectVisibilityDrop(yesterdayPairs)) {
-    return "quiet";
-  }
-
   const recipients = await loadRecipients(organizationId);
   if (!recipients) {
+    return "quiet";
+  }
+  const pendingEmails = await recipientsOutsideAlertCooldown({
+    organizationId,
+    emails: recipients.emails,
+    now,
+  });
+  if (pendingEmails.length === 0) {
     return "quiet";
   }
 
@@ -460,19 +462,77 @@ async function sendDropAlert({
   const dateKey = utcDateKey(window.toExclusive);
   const appUrl = EMAIL_CONFIG.getAppUrl();
 
-  return sendToRecipients(recipients, (recipientEmail) =>
-    sendVisibilityDropEmail({
-      recipientEmail,
-      dateKey,
-      organizationName: recipients.name,
-      organizationSlug: recipients.slug,
-      headline: `Your AI visibility dropped from ${previousLabel} to ${currentLabel}.`,
-      previousLabel,
-      currentLabel,
-      deltaLabel: formatPoints(drop.points),
-      items: visibleItems,
-      remainingCount: items.length - visibleItems.length,
-      dashboardLink: `${appUrl}/${recipients.slug}/geo`,
-    })
+  return sendToRecipients(
+    pendingEmails,
+    (recipientEmail) =>
+      sendVisibilityDropEmail({
+        recipientEmail,
+        dateKey,
+        organizationName: recipients.name,
+        organizationSlug: recipients.slug,
+        headline: `Your AI visibility dropped from ${previousLabel} to ${currentLabel}.`,
+        previousLabel,
+        currentLabel,
+        deltaLabel: formatPoints(drop.points),
+        items: visibleItems,
+        remainingCount: items.length - visibleItems.length,
+        dashboardLink: `${appUrl}/${recipients.slug}/geo`,
+      }),
+    (recipientEmail) => startAlertCooldown(organizationId, recipientEmail)
   );
+}
+
+function alertCooldownKey(organizationId: string, email: string) {
+  return `geo-recap:drop-alert:v1:${organizationId}:${email.toLowerCase()}`;
+}
+
+/**
+ * Owners hear about a drop once per cooldown, not every day it lasts. The
+ * cooldown starts only after a successful send, so a failed send is retried
+ * by the next run. Without Redis it falls back to alerting on the first day
+ * of a drop only.
+ */
+async function recipientsOutsideAlertCooldown({
+  organizationId,
+  emails,
+  now,
+}: {
+  organizationId: string;
+  emails: readonly string[];
+  now: Date;
+}): Promise<string[]> {
+  if (redis) {
+    try {
+      const active = await redis.mget<(string | null)[]>(
+        ...emails.map((email) => alertCooldownKey(organizationId, email))
+      );
+      return emails.filter((_, index) => active[index] === null);
+    } catch (error) {
+      logWarn("[GeoRecap] Drop alert cooldown lookup failed", {
+        organizationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  const yesterdayPairs = buildComparablePairs(
+    await queryGeoCheckPeriodPrompts(
+      periodInput(organizationId, getDropAlertWindow(now, 1))
+    ),
+    1
+  );
+  return detectVisibilityDrop(yesterdayPairs) ? [] : [...emails];
+}
+
+async function startAlertCooldown(organizationId: string, email: string) {
+  try {
+    await redis?.set(alertCooldownKey(organizationId, email), "1", {
+      ex: GEO_ALERT_COOLDOWN_SECONDS,
+    });
+  } catch (error) {
+    logWarn("[GeoRecap] Drop alert cooldown write failed", {
+      organizationId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }

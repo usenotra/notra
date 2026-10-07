@@ -213,46 +213,60 @@ export function formatPairChangeDetail({ pair, kind }: GeoRecapPairChange) {
   return `Average rank from #${from} to #${to}`;
 }
 
+/**
+ * Mean of per-pair mention rates, so every prompt and engine weighs the same
+ * in both periods. Pooling answers would let a missed scan or a second daily
+ * scan on some prompts shift the total while no single rate moved.
+ */
 export function aggregateRates(pairs: readonly GeoRecapPair[]): {
   previous: GeoRecapRate;
   current: GeoRecapRate;
 } {
   const total = (period: "previous" | "current"): GeoRecapRate => {
     let checks = 0;
-    let mentions = 0;
+    let rateSum = 0;
     for (const pair of pairs) {
       checks += pair[period].checks;
-      mentions += pair[period].mentions;
+      rateSum += rate(pair[period]);
     }
-    return { checks, mentions, rate: checks === 0 ? null : mentions / checks };
+    return { checks, rate: pairs.length === 0 ? null : rateSum / pairs.length };
   };
   return { previous: total("previous"), current: total("current") };
 }
 
-/** Share of comparable answers each competitor showed up in, per period. */
+/**
+ * Share of comparable answers each competitor showed up in, per period,
+ * weighted per pair like `aggregateRates`.
+ */
 export function competitorShares(
   rows: readonly GeoCheckPeriodCompetitorRow[],
   pairs: readonly GeoRecapPair[]
 ): GeoRecapCompetitorShare[] {
-  const comparable = new Set(pairs.map((pair) => pair.key));
-  const { previous, current } = aggregateRates(pairs);
-  const counts = new Map<string, { previous: number; current: number }>();
+  const byKey = new Map(pairs.map((pair) => [pair.key, pair]));
+  const sums = new Map<
+    string,
+    { brand: string; previous: number; current: number }
+  >();
   for (const row of rows) {
-    if (!comparable.has(pairKey(row))) {
+    const pair = byKey.get(pairKey(row));
+    const checks = pair?.[row.period].checks ?? 0;
+    if (checks === 0) {
       continue;
     }
-    const entry = counts.get(row.brand) ?? { previous: 0, current: 0 };
-    entry[row.period] += row.checks;
-    counts.set(row.brand, entry);
+    const entry = sums.get(row.brandKey) ?? {
+      brand: row.brand,
+      previous: 0,
+      current: 0,
+    };
+    entry[row.period] += row.checks / checks;
+    sums.set(row.brandKey, entry);
   }
 
-  const share = (count: number, checks: number) =>
-    checks === 0 ? 0 : count / checks;
-  return [...counts.entries()]
-    .map(([brand, entry]) => ({
-      brand,
-      previous: share(entry.previous, previous.checks),
-      current: share(entry.current, current.checks),
+  return [...sums.values()]
+    .map((entry) => ({
+      brand: entry.brand,
+      previous: entry.previous / pairs.length,
+      current: entry.current / pairs.length,
     }))
     .toSorted((left, right) => right.current - left.current);
 }

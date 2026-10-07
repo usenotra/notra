@@ -5,6 +5,7 @@ import { GeoChangeList, GeoMetricCell } from "../components/geo-recap";
 import { EmailLayout } from "../components/layout";
 import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import { EmailTitleCard } from "../components/title-card";
+import { GEO_RECAP_NO_ITEMS } from "../constants/geo-recap";
 import type { VisibilityDropEmailProps } from "../types/geo-recap";
 import { EMAIL_CONFIG } from "../utils/config";
 import { engineEmailLogoSrc } from "../utils/engine-logo";
@@ -16,7 +17,7 @@ export const VisibilityDropEmail = ({
   previousLabel = "41%",
   currentLabel = "22%",
   deltaLabel = "−19 pts",
-  items = [],
+  items = GEO_RECAP_NO_ITEMS,
   remainingCount = 0,
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: VisibilityDropEmailProps) => (

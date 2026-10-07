@@ -307,6 +307,8 @@ export interface GeoCheckPeriodCompetitorRow {
   projectId: string;
   promptId: string;
   engine: string;
+  /** Trimmed, lowercased brand; the grouping key. */
+  brandKey: string;
   brand: string;
   checks: number;
 }

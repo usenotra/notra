@@ -6,15 +6,19 @@ import {
   GeoChangeList,
   GeoCompetitorTable,
   GeoMetricCell,
-  toneFromDelta,
 } from "../components/geo-recap";
 import { EmailLayout } from "../components/layout";
 import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import { EmailTitleCard } from "../components/title-card";
+import {
+  GEO_RECAP_NO_COMPETITORS,
+  GEO_RECAP_NO_ITEMS,
+} from "../constants/geo-recap";
 import { EMAIL_THEME } from "../constants/theme";
 import type { WeeklySummaryEmailProps } from "../types/geo-recap";
 import { EMAIL_CONFIG } from "../utils/config";
 import { engineEmailLogoSrc } from "../utils/engine-logo";
+import { toneFromDelta } from "../utils/geo-recap";
 
 function weeklySummarySubtext(organizationName: string, quiet: boolean) {
   return quiet
@@ -31,9 +35,9 @@ export const WeeklySummaryEmail = ({
   visibilityLabel = "42%",
   visibilityDeltaLabel = "+6 pts",
   answersChecked = 140,
-  items = [],
+  items = GEO_RECAP_NO_ITEMS,
   remainingCount = 0,
-  competitors = [],
+  competitors = GEO_RECAP_NO_COMPETITORS,
   action,
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: WeeklySummaryEmailProps) => {

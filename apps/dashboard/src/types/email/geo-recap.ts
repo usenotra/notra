@@ -28,7 +28,7 @@ export interface GeoRecapPairChange {
 
 export interface GeoRecapRate {
   checks: number;
-  mentions: number;
+  /** Mean of per-pair mention rates; null without comparable pairs. */
   rate: number | null;
 }
 
