@@ -10,7 +10,7 @@ Meta Muse launched on September 8, 2026 and hit number one on the Apple US App S
 
 ## What is a Muse connector? [#what-is-a-muse-connector]
 
-[Muse](https://muse.ai) is Meta's personal AI agent. It runs on Meta's cloud computer, not yours, and it can browse the web, manage your calendar, book things, write emails, and work across apps. A connector is how your product shows up in that environment. It gives Muse a new ability, like reading from your service or taking actions in it, so a user can just ask for it in chat.
+[Muse](https://muse.ai/platform) is Meta's personal AI agent. It runs on Meta's cloud computer, not yours, and it can browse the web, manage your calendar, book things, write emails, and work across apps. A connector is how your product shows up in that environment. It gives Muse a new ability, like reading from your service or taking actions in it, so a user can just ask for it in chat.
 
 Under the hood, a connector is an MCP server. Muse writes its own MCP client when a user connects a service, stores their credentials in a secure store, and calls your tools from there.
 
@@ -69,7 +69,7 @@ One more thing on tool design: Muse asks users to approve write actions by defau
 
 ## Test before you submit [#test-before-you-submit]
 
-Point [Claude Desktop](https://claude.ai/download) at your server. It supports local MCP over HTTP and it's the fastest way to check your tools before Muse ever sees them. Run through the tasks a user would actually ask Muse to do, and test what happens when things go wrong: bad API key, missing fields, a downstream failure. Muse should explain what failed, not just go quiet.
+Point [Claude Desktop](https://claude.com/download) at your server. It supports local MCP over HTTP and it's the fastest way to check your tools before Muse ever sees them. Run through the tasks a user would actually ask Muse to do, and test what happens when things go wrong: bad API key, missing fields, a downstream failure. Muse should explain what failed, not just go quiet.
 
 ## Submit and get listed [#submit-and-get-listed]
 
