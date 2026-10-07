@@ -1,3 +1,4 @@
+import type { IconSvgElement } from "@hugeicons/react";
 import type {
   PostScheduleView,
   ScheduleDestination,
@@ -188,8 +189,19 @@ export interface ScheduleDialogFooterProps {
   onPublishNow: () => void;
 }
 
-export interface ScheduleMenuItemLabelProps {
+export interface ScheduleGatedMenuItemProps {
+  icon: IconSvgElement;
   label: string;
-  /** Why the item is disabled, shown under the label. */
-  hint: string | null;
+  /** Why the item is disabled, shown under the label while blocked. */
+  hint: string;
+  blocked: boolean;
+  onClick: () => void;
+}
+
+export interface ScheduleStatusControlsProps {
+  organizationId: string;
+  contentId: string;
+  schedule: PostScheduleView | null;
+  hasUnsavedChanges: boolean;
+  onOpen: () => void;
 }

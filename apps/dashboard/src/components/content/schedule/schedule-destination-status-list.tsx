@@ -46,10 +46,10 @@ function DestinationRow({
           />
           {publication.resultUrl ? (
             <Button
-              aria-label={t("viewResult")}
               nativeButton={false}
               render={
                 <a
+                  aria-label={t("viewResult")}
                   href={publication.resultUrl}
                   rel="noopener noreferrer"
                   target="_blank"
