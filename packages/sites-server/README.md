@@ -2,6 +2,9 @@
 
 Hosted blogs and changelogs built from a customer GitHub repository.
 
+For the current gated, defaults-first rollout and Cloudflare prerequisites, see
+[the private-beta release checklist](PRIVATE_BETA.md).
+
 | Piece | Where | Runs on |
 | --- | --- | --- |
 | Shared contract (schemas, mounts, hosts, state transitions, preview tokens) | `packages/sites-core` | everywhere |
