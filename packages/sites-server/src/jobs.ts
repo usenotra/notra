@@ -73,7 +73,10 @@ export async function claimSiteJob(jobId: string): Promise<SiteJob | null> {
     );
     const claimable = and(
       eq(siteJobs.id, jobId),
-      lt(siteJobs.attempts, siteJobs.maxAttempts),
+      or(
+        eq(siteJobs.kind, "sync_state"),
+        lt(siteJobs.attempts, siteJobs.maxAttempts)
+      ),
       or(
         and(
           eq(siteJobs.status, "pending"),
@@ -127,7 +130,8 @@ export async function failSiteJob(
   error: unknown,
   permanent: boolean
 ): Promise<"retrying" | "failed" | "skipped"> {
-  const exhausted = permanent || job.attempts >= job.maxAttempts;
+  const exhausted =
+    permanent || (job.kind !== "sync_state" && job.attempts >= job.maxAttempts);
   const updated = await db
     .update(siteJobs)
     .set({
@@ -136,7 +140,8 @@ export async function failSiteJob(
       dispatchedAt: null,
       lastError: errorMessage(error).slice(0, 2000),
       availableAt: new Date(
-        Date.now() + RETRY_BASE_MS * 2 ** Math.max(0, job.attempts - 1)
+        Date.now() +
+          RETRY_BASE_MS * 2 ** Math.min(8, Math.max(0, job.attempts - 1))
       ),
     })
     .where(
@@ -164,6 +169,7 @@ export async function takeExhaustedSiteJobs(): Promise<SiteJob[]> {
     .where(
       and(
         eq(siteJobs.status, "running"),
+        sql`${siteJobs.kind} <> 'sync_state'`,
         lt(siteJobs.leaseUntil, sql`now()`),
         sql`${siteJobs.attempts} >= ${siteJobs.maxAttempts}`
       )
@@ -188,7 +194,10 @@ export async function listDispatchableSiteJobs(): Promise<SiteJob[]> {
     .from(siteJobs)
     .where(
       and(
-        lt(siteJobs.attempts, siteJobs.maxAttempts),
+        or(
+          eq(siteJobs.kind, "sync_state"),
+          lt(siteJobs.attempts, siteJobs.maxAttempts)
+        ),
         or(
           and(
             eq(siteJobs.status, "pending"),

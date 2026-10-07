@@ -1,5 +1,10 @@
 import { db } from "@notra/db/drizzle";
-import { siteDomains, sites } from "@notra/db/schema";
+import { siteDomains, siteJobs, sites } from "@notra/db/schema";
+import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
+import {
+  SITE_PREVIEW_PASSWORD_MAX_LENGTH,
+  SITE_PREVIEW_PASSWORD_MIN_LENGTH,
+} from "@notra/sites-core/constants/sites";
 import type { SiteMounts } from "@notra/sites-core/types/deployment";
 import {
   isValidSiteSlug,
@@ -7,6 +12,7 @@ import {
   slugifySiteName,
 } from "@notra/sites-core/utils/hosts";
 import { normalizeSiteMounts } from "@notra/sites-core/utils/mounts";
+import { hashPreviewPassword } from "@notra/sites-core/utils/preview-password";
 import { and, eq } from "drizzle-orm";
 
 import { deleteCustomHostnameQuietly } from "./cloudflare-saas";
@@ -15,14 +21,12 @@ import { deployBranchHead } from "./deploy";
 import { getSitesHostingDomain } from "./env";
 import { SiteInputError } from "./errors";
 import { assertSiteNameAllowed } from "./moderation";
-import { closeAllPreviews } from "./previews";
 import { r2DeletePrefix } from "./r2";
 import { requireOrganizationRepository } from "./repositories";
 import {
   claimHostRecord,
   mutateServingState,
   releaseHostRecord,
-  setServingPreviewVisibility,
   setServingStatus,
 } from "./state";
 import type {
@@ -144,6 +148,9 @@ export async function createSite(
   if (!site) {
     throw new Error("Could not create site");
   }
+  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+    () => undefined
+  );
   await mutateServingState(site, (state) => ({
     write: state,
     result: undefined,
@@ -169,13 +176,26 @@ export async function setSiteSuspended(
     .update(sites)
     .set({ status, suspendedReason: suspended ? (reason ?? null) : null })
     .where(eq(sites.id, site.id));
+  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+    () => undefined
+  );
 }
 
 export async function updateSiteSettings(
   site: Site,
   patch: SiteSettingsPatch,
-  userId: string
+  userId: string | null
 ): Promise<UpdateSiteSettingsResult> {
+  if (
+    patch.previewPassword !== undefined &&
+    patch.previewPassword !== null &&
+    (patch.previewPassword.length < SITE_PREVIEW_PASSWORD_MIN_LENGTH ||
+      patch.previewPassword.length > SITE_PREVIEW_PASSWORD_MAX_LENGTH)
+  ) {
+    throw new SiteInputError(
+      `The password needs ${SITE_PREVIEW_PASSWORD_MIN_LENGTH} to ${SITE_PREVIEW_PASSWORD_MAX_LENGTH} characters`
+    );
+  }
   const values: SiteUpdateValues = {
     productionBranch: patch.productionBranch?.trim(),
     rootDirectory:
@@ -187,9 +207,22 @@ export async function updateSiteSettings(
     previewVisibility: patch.previewVisibility,
     publishMode: patch.publishMode,
     showBranding: patch.showBranding,
+    publicOrigin:
+      patch.publicOrigin === undefined
+        ? undefined
+        : new URL(patch.publicOrigin).origin,
   };
+  if (patch.previewPassword !== undefined) {
+    values.previewPassword =
+      patch.previewPassword === null
+        ? null
+        : await hashPreviewPassword(patch.previewPassword);
+  }
   const name = patch.name?.trim();
   if (name !== undefined && name !== site.name) {
+    if (userId === null) {
+      throw new SiteInputError("A user is required to change the site name");
+    }
     await assertSiteNameAllowed({
       organizationId: site.organizationId,
       userId,
@@ -198,37 +231,61 @@ export async function updateSiteSettings(
     });
     values.name = name;
   }
-  const [updated] = await db
-    .update(sites)
-    .set(values)
-    .where(eq(sites.id, site.id))
-    .returning();
-  if (!updated) {
-    throw new SiteInputError("Site not found");
-  }
-  if (
-    patch.previewVisibility &&
-    patch.previewVisibility !== site.previewVisibility
-  ) {
-    await setServingPreviewVisibility(updated, patch.previewVisibility);
-  }
-  const needsRebuild =
-    (values.mounts &&
-      JSON.stringify(values.mounts) !== JSON.stringify(site.mounts)) ||
-    (values.productionBranch &&
-      values.productionBranch !== site.productionBranch) ||
-    (values.rootDirectory !== undefined &&
-      values.rootDirectory !== site.rootDirectory) ||
-    (values.showBranding !== undefined &&
-      values.showBranding !== site.showBranding);
-  const rebuildJobId = needsRebuild
-    ? await deployBranchHead(updated, { trigger: "config", userId })
-    : null;
-  const previewRemovalJobIds =
-    site.previewsEnabled && !updated.previewsEnabled
-      ? await closeAllPreviews(updated)
-      : [];
-  return { site: updated, rebuildJobId, previewRemovalJobIds };
+  const result = await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, site.id))
+      .for("update");
+    if (!current) {
+      throw new SiteInputError("Site not found");
+    }
+    const removePreviewsThrough =
+      current.previewsEnabled && values.previewsEnabled === false
+        ? current.lastGeneration + 1
+        : null;
+    const rebuilding = Boolean(
+      (values.mounts &&
+        JSON.stringify(values.mounts) !== JSON.stringify(current.mounts)) ||
+      (values.productionBranch &&
+        values.productionBranch !== current.productionBranch) ||
+      (values.rootDirectory !== undefined &&
+        values.rootDirectory !== current.rootDirectory) ||
+      (values.showBranding !== undefined &&
+        values.showBranding !== current.showBranding) ||
+      (values.publicOrigin !== undefined &&
+        values.publicOrigin !== current.publicOrigin)
+    );
+    const [updated] = await tx
+      .update(sites)
+      .set({
+        ...values,
+        ...(removePreviewsThrough === null
+          ? {}
+          : { lastGeneration: removePreviewsThrough }),
+      })
+      .where(eq(sites.id, site.id))
+      .returning();
+    if (!updated) {
+      throw new SiteInputError("Site not found");
+    }
+    const syncJobId = prefixedId("job");
+    await tx.insert(siteJobs).values({
+      id: syncJobId,
+      siteId: updated.id,
+      kind: "sync_state",
+      payload: {
+        rebuild: rebuilding,
+        removePreviewsThrough,
+        requestedByUserId: userId,
+      },
+    });
+    return { site: updated, syncJobId, rebuilding };
+  });
+  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+    () => undefined
+  );
+  return result;
 }
 
 export async function setSitePublicOrigin(
@@ -236,20 +293,20 @@ export async function setSitePublicOrigin(
   origin: string,
   userId: string | null
 ): Promise<string> {
-  const [updated] = await db
-    .update(sites)
-    .set({ publicOrigin: new URL(origin).origin })
-    .where(eq(sites.id, site.id))
-    .returning();
-  if (!updated) {
-    throw new SiteInputError("Site not found");
-  }
-  return await deployBranchHead(updated, { trigger: "config", userId });
+  const { syncJobId } = await updateSiteSettings(
+    site,
+    { publicOrigin: origin },
+    userId
+  );
+  return syncJobId;
 }
 
-export async function deleteSite(site: Site): Promise<void> {
+export async function deleteSite(
+  site: Site,
+  executor: Pick<typeof db, "select" | "delete"> = db
+): Promise<void> {
   await setServingStatus(site, "suspended");
-  const subdomains = await db
+  const subdomains = await executor
     .select({
       hostname: siteDomains.hostname,
       cloudflareHostnameId: siteDomains.cloudflareHostnameId,
@@ -265,7 +322,10 @@ export async function deleteSite(site: Site): Promise<void> {
       await deleteCustomHostnameQuietly(domain.cloudflareHostnameId);
     }),
   ]);
-  await db.delete(sites).where(eq(sites.id, site.id));
+  await executor.delete(sites).where(eq(sites.id, site.id));
+  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+    () => undefined
+  );
   await Promise.all(
     ["deployments", "logs", "sites"].map((root) =>
       r2DeletePrefix(`${root}/${site.id}/`)

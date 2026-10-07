@@ -17,21 +17,13 @@ export function useSavePreviewAccess({
   const invalidateSites = useInvalidateSites();
   return useMutation({
     mutationFn: async (plan: SitePreviewAccessPlan) => {
-      if (plan.settingsChanged) {
-        await dashboardOrpc.sites.update.call({
-          organizationId,
-          siteId,
-          previewsEnabled: plan.previewsEnabled,
-          previewVisibility: plan.previewVisibility,
-        });
-      }
-      if (plan.password !== undefined) {
-        await dashboardOrpc.sites.previews.setPassword.call({
-          organizationId,
-          siteId,
-          password: plan.password,
-        });
-      }
+      await dashboardOrpc.sites.update.call({
+        organizationId,
+        siteId,
+        previewsEnabled: plan.previewsEnabled,
+        previewVisibility: plan.previewVisibility,
+        previewPassword: plan.password,
+      });
     },
     onSuccess: async () => {
       toast.success(t("saved"));

@@ -1,4 +1,12 @@
-import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import { spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -29,7 +37,7 @@ if (!databaseUrl) {
   });
 } else {
   const { db } = await import("@notra/db/drizzle");
-  const { organizations, sites, siteJobs, siteDeployments } =
+  const { organizations, sites, siteJobs, siteDeployments, users } =
     await import("@notra/db/schema");
   const { eq, inArray, sql } = await import("drizzle-orm");
   const { claimSiteJob, completeSiteJob, failSiteJob } =
@@ -40,13 +48,31 @@ if (!databaseUrl) {
     cancelPreviewBuilds,
     getSite,
     listSiteDeployments,
+    enqueueSettingsDeployment,
   } = await import("../src/deployments");
   const { withSiteStorageLock } =
     await import("../src/utils/site-storage-lock");
   let organizationId = "";
   let siteId = "";
+  let userId = "";
   const objects = new Map<string, string>();
   let onStateWrite = async () => {};
+  let onBranchHead = async () => {};
+  let branchHeadCalls = 0;
+  const github = await import("../src/github");
+  mock.module("../src/github", () => ({
+    ...github,
+    siteRepositoryAccess: async () => ({ repository: {}, token: "synthetic" }),
+    getBranchHead: async () => {
+      branchHeadCalls += 1;
+      await onBranchHead();
+      return {
+        sha: "b".repeat(40),
+        message: "Synthetic commit",
+        author: "Synthetic author",
+      };
+    },
+  }));
   mock.module("../src/r2", () => ({
     r2GetText: async (key: string) =>
       objects.has(key)
@@ -60,6 +86,10 @@ if (!databaseUrl) {
     r2DeleteKey: async (key: string) => {
       objects.delete(key);
     },
+    r2DeleteKeyIfMatch: async (key: string, etag: string) => {
+      expect(etag).toBe("synthetic-etag");
+      objects.delete(key);
+    },
     r2DeletePrefix: () => {
       throw new Error("Unexpected storage cleanup");
     },
@@ -71,7 +101,8 @@ if (!databaseUrl) {
     buildGeoIngestSiteToken: () => null,
   }));
   const { activateDeployment } = await import("../src/activation");
-  const { updateSiteSettings } = await import("../src/sites");
+  const { updateSiteSettings, setSitePublicOrigin } =
+    await import("../src/sites");
   const { runSiteJob } = await import("../src/runner");
   const { SITE_R2_KEYS } = await import("@notra/sites-core/constants/sites");
   process.env.SITES_HOSTING_DOMAIN = "notra.site";
@@ -79,8 +110,16 @@ if (!databaseUrl) {
   beforeEach(async () => {
     objects.clear();
     onStateWrite = async () => {};
+    onBranchHead = async () => {};
+    branchHeadCalls = 0;
     organizationId = `sites-audit-${crypto.randomUUID()}`;
     siteId = `${organizationId}-site`;
+    userId = `${organizationId}-admin`;
+    await db.insert(users).values({
+      id: userId,
+      name: "Synthetic admin",
+      email: `${userId}@example.test`,
+    });
     await db.insert(organizations).values({
       id: organizationId,
       name: "Server audit",
@@ -98,6 +137,7 @@ if (!databaseUrl) {
   });
   afterEach(async () => {
     await db.delete(organizations).where(eq(organizations.id, organizationId));
+    await db.delete(users).where(eq(users.id, userId));
   });
   afterAll(async () => {
     await Reflect.get(db, "$client").end();
@@ -455,7 +495,7 @@ if (!databaseUrl) {
     const disable = updateSiteSettings(
       stale,
       { previewsEnabled: false },
-      "synthetic-admin"
+      userId
     ).then((result) => {
       updated = true;
       return result;
@@ -475,16 +515,484 @@ if (!databaseUrl) {
       ].visibility
     ).toBe("protected");
     expect((await getSite(siteId))?.previewsEnabled).toBe(false);
-    expect(disabled.previewRemovalJobIds).toHaveLength(1);
-    const removalId = disabled.previewRemovalJobIds[0];
-    if (!removalId) {
-      throw new Error("Expected synthetic preview removal");
-    }
-    expect(await runSiteJob(removalId)).toEqual({
+    const [intent] = await db
+      .select()
+      .from(siteJobs)
+      .where(eq(siteJobs.id, disabled.syncJobId));
+    expect(intent?.kind).toBe("sync_state");
+    expect(intent?.payload).toMatchObject({
+      removePreviewsThrough: deployment.generation + 1,
+    });
+    expect(await runSiteJob(disabled.syncJobId)).toEqual({
       status: "done",
     });
     expect(
       JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}").previews
     ).toEqual({});
+  });
+
+  test("settings persist password and visibility together with retryable intent before any R2 write", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const first = await updateSiteSettings(
+      original,
+      {
+        previewVisibility: "public",
+        previewPassword: "synthetic-password",
+      },
+      userId
+    );
+    const saved = await getSite(siteId);
+    expect(saved?.previewVisibility).toBe("public");
+    expect(saved?.previewPassword?.hash).toBeTruthy();
+    expect(objects.size).toBe(0);
+    const [intent] = await db
+      .select()
+      .from(siteJobs)
+      .where(eq(siteJobs.id, first.syncJobId));
+    expect(intent?.kind).toBe("sync_state");
+    expect(JSON.stringify(intent?.payload)).not.toContain("synthetic-password");
+    onStateWrite = async () => {
+      throw new Error("Synthetic R2 failure");
+    };
+    expect(await runSiteJob(first.syncJobId)).toEqual({ status: "retrying" });
+    const identical = await updateSiteSettings(
+      saved ?? original,
+      {
+        previewVisibility: "public",
+        previewPassword: "synthetic-password",
+      },
+      userId
+    );
+    onStateWrite = async () => {};
+    expect(await runSiteJob(identical.syncJobId)).toEqual({ status: "done" });
+    const state = JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}");
+    expect(state.previewPassword).toEqual(
+      (await getSite(siteId))?.previewPassword
+    );
+    await db
+      .update(siteJobs)
+      .set({ availableAt: new Date(0) })
+      .where(eq(siteJobs.id, first.syncJobId));
+    expect(await runSiteJob(first.syncJobId)).toEqual({ status: "done" });
+    expect(
+      JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}")
+        .previewPassword
+    ).toEqual(state.previewPassword);
+  });
+
+  test("invalid coupled preview update changes neither settings nor jobs", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    await expect(
+      updateSiteSettings(
+        original,
+        {
+          previewVisibility: "public",
+          previewsEnabled: false,
+          rootDirectory: "changed",
+          previewPassword: "short",
+        },
+        userId
+      )
+    ).rejects.toThrow("password needs");
+    expect(await getSite(siteId)).toEqual(original);
+    expect(
+      await db.select().from(siteJobs).where(eq(siteJobs.siteId, siteId))
+    ).toEqual([]);
+    expect(objects.size).toBe(0);
+  });
+
+  test("intent insertion failure rolls back the coupled DB fields and reserved cutoff", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const uuid = crypto.randomUUID();
+    const collision = `job_${uuid.replaceAll("-", "")}`;
+    await db
+      .insert(siteJobs)
+      .values({ id: collision, siteId, kind: "sync_state" });
+    const randomId = spyOn(crypto, "randomUUID").mockReturnValue(uuid);
+    try {
+      await expect(
+        updateSiteSettings(
+          original,
+          {
+            previewVisibility: "public",
+            previewsEnabled: false,
+            previewPassword: "synthetic-password",
+            rootDirectory: "changed",
+          },
+          userId
+        )
+      ).rejects.toThrow();
+    } finally {
+      randomId.mockRestore();
+    }
+    expect(await getSite(siteId)).toEqual(original);
+    expect(
+      await db.select().from(siteJobs).where(eq(siteJobs.siteId, siteId))
+    ).toHaveLength(1);
+    expect(objects.size).toBe(0);
+  });
+
+  test("saved rebuild intent survives deletion of its requesting user", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const saved = await updateSiteSettings(
+      original,
+      { rootDirectory: "changed" },
+      userId
+    );
+    await db.delete(users).where(eq(users.id, userId));
+    expect(await runSiteJob(saved.syncJobId)).toEqual({ status: "done" });
+    const [deployment] = await db
+      .select()
+      .from(siteDeployments)
+      .where(eq(siteDeployments.siteId, siteId));
+    expect(deployment?.requestedByUserId).toBeNull();
+    expect(deployment?.commitSha).toBe("b".repeat(40));
+  });
+
+  test("failed mixed rebuild and disable closes previews first and identical save cannot lose the rebuild intent", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const { deployment } = await enqueueSiteDeployment({
+      siteId,
+      kind: "preview",
+      previewKey: "pr-1",
+      trigger: "manual",
+      branch: "feature",
+      commitSha: "a".repeat(40),
+    });
+    objects.set(SITE_R2_KEYS.manifest(siteId, deployment.id), "{}");
+    expect(await activateDeployment(original, deployment)).toBe("live");
+    const first = await updateSiteSettings(
+      original,
+      { rootDirectory: "changed", previewsEnabled: false },
+      userId
+    );
+    expect(first.rebuilding).toBe(true);
+    onBranchHead = async () => {
+      throw new Error("Synthetic GitHub failure");
+    };
+    expect(await runSiteJob(first.syncJobId)).toEqual({ status: "retrying" });
+    expect(
+      JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}").previews
+    ).toEqual({});
+    expect(
+      (
+        await db
+          .select()
+          .from(siteDeployments)
+          .where(eq(siteDeployments.id, deployment.id))
+      )[0]?.status
+    ).toBe("canceled");
+    const current = await getSite(siteId);
+    if (!current) {
+      throw new Error("Expected saved site");
+    }
+    const identical = await updateSiteSettings(
+      current,
+      { rootDirectory: "changed", previewsEnabled: false },
+      userId
+    );
+    expect(identical.rebuilding).toBe(false);
+    expect(await runSiteJob(identical.syncJobId)).toEqual({ status: "done" });
+    onBranchHead = async () => {};
+    await db
+      .update(siteJobs)
+      .set({ availableAt: new Date(0) })
+      .where(eq(siteJobs.id, first.syncJobId));
+    expect(await runSiteJob(first.syncJobId)).toEqual({ status: "done" });
+    const builds = await db
+      .select()
+      .from(siteJobs)
+      .where(eq(siteJobs.dedupeKey, `settings-build:${first.syncJobId}`));
+    expect(builds).toHaveLength(1);
+    const [rebuilt] = await db
+      .select()
+      .from(siteDeployments)
+      .where(eq(siteDeployments.id, builds[0]?.deploymentId ?? ""));
+    expect(rebuilt?.target.mounts).toEqual(current.mounts);
+    expect(rebuilt?.commitSha).toBe("b".repeat(40));
+  });
+
+  test("delayed disable uses its saved cutoff without removing or canceling a newer reopen", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const first = await enqueueSiteDeployment({
+      siteId,
+      kind: "preview",
+      previewKey: "pr-1",
+      trigger: "manual",
+      branch: "feature",
+      commitSha: "a".repeat(40),
+    });
+    const off = await updateSiteSettings(
+      original,
+      { previewsEnabled: false },
+      userId
+    );
+    const on = await updateSiteSettings(
+      off.site,
+      { previewsEnabled: true, previewVisibility: "public" },
+      userId
+    );
+    const reopened = await enqueueSiteDeployment({
+      siteId,
+      kind: "preview",
+      previewKey: "pr-1",
+      trigger: "manual",
+      branch: "feature",
+      commitSha: "b".repeat(40),
+    });
+    objects.set(SITE_R2_KEYS.manifest(siteId, reopened.deployment.id), "{}");
+    expect(await activateDeployment(on.site, reopened.deployment)).toBe("live");
+    expect(await runSiteJob(off.syncJobId)).toEqual({ status: "done" });
+    const state = JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}");
+    expect(state.previews["pr-1"].deploymentId).toBe(reopened.deployment.id);
+    expect(state.previews["pr-1"].visibility).toBe("public");
+    const deployments = await db
+      .select()
+      .from(siteDeployments)
+      .where(eq(siteDeployments.siteId, siteId));
+    expect(
+      deployments.find((row) => row.id === first.deployment.id)?.status
+    ).toBe("canceled");
+    expect(
+      deployments.find((row) => row.id === reopened.deployment.id)?.status
+    ).toBe("queued");
+  });
+
+  test("settings rebuild enqueue dedupes its real job ID and rejects a reclaimed attempt", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const saved = await updateSiteSettings(
+      original,
+      { rootDirectory: "changed" },
+      userId
+    );
+    const first = await claimSiteJob(saved.syncJobId);
+    if (!first) {
+      throw new Error("Expected settings claim");
+    }
+    const input = {
+      siteId,
+      kind: "production" as const,
+      previewKey: null,
+      trigger: "config" as const,
+      branch: "main",
+      commitSha: "b".repeat(40),
+    };
+    const queued = await Promise.all([
+      enqueueSettingsDeployment(input, first),
+      enqueueSettingsDeployment(input, first),
+    ]);
+    expect(queued[0]).toBeTruthy();
+    expect(queued[1]).toBe(queued[0]);
+    expect(
+      await db
+        .select()
+        .from(siteDeployments)
+        .where(eq(siteDeployments.siteId, siteId))
+    ).toHaveLength(1);
+    await db
+      .update(siteJobs)
+      .set({ leaseUntil: new Date(0) })
+      .where(eq(siteJobs.id, first.id));
+    const reclaimed = await claimSiteJob(first.id);
+    expect(reclaimed?.attempts).toBe(first.attempts + 1);
+    expect(await enqueueSettingsDeployment(input, first)).toBeNull();
+    await completeSiteJob(first);
+    expect(
+      (await db.select().from(siteJobs).where(eq(siteJobs.id, first.id)))[0]
+        ?.status
+    ).toBe("running");
+    if (!reclaimed) {
+      throw new Error("Expected reclaimed settings job");
+    }
+    expect(
+      await failSiteJob(
+        reclaimed,
+        new Error("Synthetic post-enqueue failure"),
+        false
+      )
+    ).toBe("retrying");
+    onBranchHead = async () => {
+      throw new Error("Must not resolve an already queued rebuild");
+    };
+    await db
+      .update(siteJobs)
+      .set({ availableAt: new Date(0) })
+      .where(eq(siteJobs.id, first.id));
+    expect(await runSiteJob(first.id)).toEqual({ status: "done" });
+    expect(branchHeadCalls).toBe(0);
+    expect(
+      await db
+        .select()
+        .from(siteDeployments)
+        .where(eq(siteDeployments.siteId, siteId))
+    ).toHaveLength(1);
+  });
+
+  test("settings intent remains dispatchable after the normal build retry budget", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const saved = await updateSiteSettings(
+      original,
+      { previewVisibility: "public" },
+      userId
+    );
+    await db
+      .update(siteJobs)
+      .set({ attempts: 3, maxAttempts: 3 })
+      .where(eq(siteJobs.id, saved.syncJobId));
+    onStateWrite = async () => {
+      throw new Error("Synthetic prolonged R2 failure");
+    };
+    expect(await runSiteJob(saved.syncJobId)).toEqual({ status: "retrying" });
+    const { listDispatchableSiteJobs, takeExhaustedSiteJobs } =
+      await import("../src/jobs");
+    await db
+      .update(siteJobs)
+      .set({ availableAt: new Date(0) })
+      .where(eq(siteJobs.id, saved.syncJobId));
+    expect(
+      (await listDispatchableSiteJobs()).some(
+        (job) => job.id === saved.syncJobId
+      )
+    ).toBe(true);
+    const claimed = await claimSiteJob(saved.syncJobId);
+    expect(claimed).toBeTruthy();
+    await db
+      .update(siteJobs)
+      .set({ leaseUntil: new Date(0) })
+      .where(eq(siteJobs.id, saved.syncJobId));
+    expect(
+      (await takeExhaustedSiteJobs()).some((job) => job.id === saved.syncJobId)
+    ).toBe(false);
+    onStateWrite = async () => {};
+    expect(await runSiteJob(saved.syncJobId)).toEqual({ status: "done" });
+  });
+
+  test("a settings lease expiring during branch resolution cannot complete an unenqueued rebuild", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const saved = await updateSiteSettings(
+      original,
+      { rootDirectory: "changed" },
+      userId
+    );
+    onBranchHead = async () => {
+      await db
+        .update(siteJobs)
+        .set({ leaseUntil: new Date(0) })
+        .where(eq(siteJobs.id, saved.syncJobId));
+    };
+    expect(await runSiteJob(saved.syncJobId)).toEqual({ status: "skipped" });
+    expect(
+      (
+        await db.select().from(siteJobs).where(eq(siteJobs.id, saved.syncJobId))
+      )[0]?.status
+    ).toBe("running");
+    expect(
+      await db
+        .select()
+        .from(siteDeployments)
+        .where(eq(siteDeployments.siteId, siteId))
+    ).toEqual([]);
+    onBranchHead = async () => {};
+    expect(await runSiteJob(saved.syncJobId)).toEqual({ status: "done" });
+    expect(
+      await db
+        .select()
+        .from(siteDeployments)
+        .where(eq(siteDeployments.siteId, siteId))
+    ).toHaveLength(1);
+  });
+
+  test("verified origin changes retain their rebuild intent across failed GitHub resolution and identical refresh", async () => {
+    const original = await getSite(siteId);
+    if (!original) {
+      throw new Error("Expected synthetic site");
+    }
+    const { deployment: live } = await enqueueSiteDeployment({
+      siteId,
+      kind: "production",
+      previewKey: null,
+      trigger: "manual",
+      branch: "main",
+      commitSha: "a".repeat(40),
+    });
+    objects.set(SITE_R2_KEYS.manifest(siteId, live.id), "{}");
+    expect(await activateDeployment(original, live)).toBe("live");
+    const jobId = await setSitePublicOrigin(
+      original,
+      "https://verified.example.test/path",
+      null
+    );
+    expect(branchHeadCalls).toBe(0);
+    const current = await getSite(siteId);
+    expect(current?.publicOrigin).toBe("https://verified.example.test");
+    onBranchHead = async () => {
+      throw new Error("Synthetic verified-origin GitHub failure");
+    };
+    expect(await runSiteJob(jobId)).toEqual({ status: "retrying" });
+    if (!current) {
+      throw new Error("Expected saved site");
+    }
+    const identicalJob = await setSitePublicOrigin(
+      current,
+      current.publicOrigin,
+      null
+    );
+    expect(await runSiteJob(identicalJob)).toEqual({ status: "done" });
+    onBranchHead = async () => {};
+    await db
+      .update(siteJobs)
+      .set({ availableAt: new Date(0) })
+      .where(eq(siteJobs.id, jobId));
+    expect(await runSiteJob(jobId)).toEqual({ status: "done" });
+    const build = await db.query.siteJobs.findFirst({
+      where: eq(siteJobs.dedupeKey, `settings-build:${jobId}`),
+    });
+    expect(build?.kind).toBe("build");
+    const rebuilt = await db.query.siteDeployments.findFirst({
+      where: eq(siteDeployments.id, build?.deploymentId ?? ""),
+    });
+    expect(rebuilt?.target.publicOrigin).toBe(current.publicOrigin);
+    expect(rebuilt?.requestedByUserId).toBeNull();
+    await db
+      .update(siteJobs)
+      .set({ status: "pending", availableAt: new Date(0) })
+      .where(eq(siteJobs.id, jobId));
+    expect(await runSiteJob(jobId)).toEqual({ status: "done" });
+    expect(
+      await db.query.siteJobs.findMany({
+        where: eq(siteJobs.dedupeKey, `settings-build:${jobId}`),
+      })
+    ).toHaveLength(1);
+    expect(
+      JSON.parse(objects.get(SITE_R2_KEYS.state(siteId)) ?? "{}").production
+        .deploymentId
+    ).toBe(live.id);
   });
 }

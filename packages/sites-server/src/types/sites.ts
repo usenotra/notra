@@ -61,6 +61,8 @@ export interface SiteSettingsPatch {
   previewVisibility?: Site["previewVisibility"];
   publishMode?: Site["publishMode"];
   showBranding?: boolean;
+  previewPassword?: string | null;
+  publicOrigin?: string;
 }
 
 export interface CreateSiteResult {
@@ -75,8 +77,8 @@ export interface BranchPreviewResult {
 
 export interface UpdateSiteSettingsResult {
   site: Site;
-  rebuildJobId: string | null;
-  previewRemovalJobIds: string[];
+  syncJobId: string;
+  rebuilding: boolean;
 }
 
 export interface SiteCleanupResult {

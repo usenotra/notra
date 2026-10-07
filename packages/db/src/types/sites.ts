@@ -8,4 +8,9 @@ export interface SiteDomainVerificationRecord {
 export type SiteJobPayload =
   | Record<string, never>
   | { previewKey: string; generation: number }
+  | {
+      rebuild: boolean;
+      removePreviewsThrough: number | null;
+      requestedByUserId: string | null;
+    }
   | { reason: string };

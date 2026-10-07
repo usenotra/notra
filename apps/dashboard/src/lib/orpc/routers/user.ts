@@ -5,6 +5,7 @@ import {
   deleteWithTransfersSchema,
   organizationMembershipActionSchema,
 } from "@notra/schemas/dashboard/api-params";
+import { deleteOrganizationSites } from "@notra/sites-server/organization";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -173,6 +174,7 @@ export const userRouter = {
               where: eq(organizations.id, input.organizationId),
             });
 
+            await deleteOrganizationSites(input.organizationId, tx);
             await tx
               .delete(organizations)
               .where(eq(organizations.id, input.organizationId));
@@ -316,6 +318,7 @@ export const userRouter = {
             throw notFound(`Organization ${transfer.orgId} not found`);
           }
 
+          await deleteOrganizationSites(transfer.orgId, tx);
           await tx
             .delete(organizations)
             .where(eq(organizations.id, transfer.orgId));

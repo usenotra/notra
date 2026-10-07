@@ -1,5 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import { sites } from "@notra/db/schema";
+import { siteDeployments, sites } from "@notra/db/schema";
 import { buildGeoIngestSiteToken } from "@notra/geo-core/geo/ingest";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import {
@@ -24,18 +24,20 @@ import {
   removePreviewFromState,
   setPreviewVisibilityInState,
 } from "@notra/sites-core/utils/serving-state";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, lte } from "drizzle-orm";
 
 import { JSON_CONTENT_TYPE } from "./constants/content-types";
 import { CAS_ATTEMPTS, CAS_BACKOFF_MS } from "./constants/state";
 import { R2PreconditionFailedError, SiteHostConflictError } from "./errors";
 import { r2DeleteKey, r2GetText, r2Put } from "./r2";
+import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   ServingPreviewAccess,
   ServingSiteRef,
   ServingStateMutation,
   ServingStateObject,
 } from "./types/state";
+import { withSiteHostLock } from "./utils/site-host-lock";
 
 function samePreviewPassword(
   a: SitePreviewPassword | null,
@@ -216,18 +218,56 @@ export async function setServingStatus(
   });
 }
 
-export async function setServingPreviewVisibility(
+export async function syncServingPreviewAccess(
   site: ServingSiteRef,
-  visibility: SitePreviewPointer["visibility"]
-) {
-  await mutateServingState(site, (state) => ({
-    write: setPreviewVisibilityInState(state, visibility, new Date()),
-    result: undefined,
-  }));
-}
-
-export async function syncServingPreviewAccess(site: ServingSiteRef) {
-  await mutateServingState(site, () => ({ skip: true, result: undefined }));
+  executor: Pick<typeof db, "select"> = db,
+  removePreviewsThrough: number | null = null
+): Promise<string[]> {
+  const candidates =
+    removePreviewsThrough === null
+      ? []
+      : await executor
+          .select({ previewKey: siteDeployments.previewKey })
+          .from(siteDeployments)
+          .where(
+            and(
+              eq(siteDeployments.siteId, site.id),
+              eq(siteDeployments.kind, "preview"),
+              isNotNull(siteDeployments.previewKey),
+              lte(siteDeployments.generation, removePreviewsThrough)
+            )
+          );
+  return await mutateServingState(
+    site,
+    (state, access) => {
+      let write = setPreviewVisibilityInState(
+        state,
+        access.previewVisibility ?? "protected",
+        new Date()
+      );
+      const keys = new Set<string>();
+      if (removePreviewsThrough !== null) {
+        for (const key of Object.keys(state.previews)) {
+          keys.add(key);
+        }
+        for (const { previewKey } of candidates) {
+          if (previewKey) {
+            keys.add(previewKey);
+          }
+        }
+        for (const key of keys) {
+          write = removePreviewFromState(
+            write,
+            key,
+            removePreviewsThrough,
+            new Date()
+          );
+        }
+      }
+      return { write, result: [...keys] };
+    },
+    executor
+  );
 }
 
 async function readHostRecord(
@@ -271,8 +311,15 @@ export async function claimHostRecord(
 
 export async function releaseHostRecord(
   hostname: string,
-  siteId: string
+  siteId: string,
+  tx?: SiteStorageTransaction
 ): Promise<void> {
+  if (!tx) {
+    await withSiteHostLock(hostname, async (locked) => {
+      await releaseHostRecord(hostname, siteId, locked);
+    });
+    return;
+  }
   if ((await readHostRecord(hostname))?.siteId === siteId) {
     await r2DeleteKey(SITE_R2_KEYS.host(hostname));
   }

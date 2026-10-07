@@ -50,6 +50,7 @@ if (process.env.NOTRA_SITES_DOMAIN_REQUEST_TEST_WORKER !== "1") {
   process.env.SITES_CNAME_TARGET = "cname.notra.site";
   const domain = {
     id: "domain1",
+    siteId: "site1",
     hostname: "blog.acme.com",
     kind: "subdomain",
     status: "pending",
@@ -76,6 +77,22 @@ if (process.env.NOTRA_SITES_DOMAIN_REQUEST_TEST_WORKER !== "1") {
         }),
       }),
     },
+  }));
+  mock.module("../src/utils/site-host-lock", () => ({
+    withSiteHostLock: async (
+      _hostname: string,
+      run: (tx: unknown) => Promise<unknown>
+    ) =>
+      await run({
+        select: () => ({ from: () => ({ where: async () => [proxyDomain] }) }),
+        update: () => ({
+          set: (patch: Partial<SiteDomain>) => ({
+            where: () => ({
+              returning: async () => [{ ...proxyDomain, ...patch }],
+            }),
+          }),
+        }),
+      }),
   }));
   const { refreshSiteDomain } = await import("../src/domains");
 

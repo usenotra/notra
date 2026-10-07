@@ -218,6 +218,10 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
     r2DeleteKey: async (key: string) => {
       objects.delete(key);
     },
+    r2DeleteKeyIfMatch: async (key: string, etag: string) => {
+      expect(etag).toBe("etag");
+      objects.delete(key);
+    },
     r2ListPrefixes: async () => {
       await onList();
       return [`deployments/${site.id}/old/`];

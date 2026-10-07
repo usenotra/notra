@@ -7,7 +7,7 @@ import {
   joinMountPath,
   listMountedAreas,
 } from "@notra/sites-core/utils/mounts";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import {
   cloudflareSaasConfig,
@@ -29,11 +29,12 @@ import {
 import { getSitesHostingDomain, siteCnameTarget } from "./env";
 import { SiteInputError } from "./errors";
 import { setSitePublicOrigin } from "./sites";
-import { claimHostRecord, releaseHostRecord } from "./state";
+import { releaseHostRecord } from "./state";
 import type {
   CloudflareCustomHostname,
   CloudflareSaasConfig,
 } from "./types/cloudflare-saas";
+import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   AddSiteDomainInput,
   DomainCheck,
@@ -44,6 +45,8 @@ import type { Site } from "./types/sites";
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
 import { readBodyUpTo } from "./utils/read-body";
+import { withSiteHostLock } from "./utils/site-host-lock";
+import { claimVerifiedHost } from "./utils/verified-host-claim";
 
 export async function requireSiteDomain(
   siteId: string,
@@ -110,7 +113,8 @@ function assertPublicHostname(hostname: string) {
 
 async function claimCustomHostname(
   config: CloudflareSaasConfig,
-  hostname: string
+  hostname: string,
+  tx: SiteStorageTransaction
 ): Promise<CloudflareCustomHostname> {
   try {
     return await createCustomHostname(config, hostname);
@@ -120,7 +124,7 @@ async function claimCustomHostname(
       throw error;
     }
     await deleteCustomHostname(config, stale.id);
-    await db
+    await tx
       .update(siteDomains)
       .set({
         cloudflareHostnameId: null,
@@ -150,41 +154,45 @@ export async function addSiteDomain(
     throw new SiteInputError("Enter a domain like blog.acme.com");
   }
   assertPublicHostname(hostname);
-  const claims = await db
-    .select()
-    .from(siteDomains)
-    .where(eq(siteDomains.hostname, hostname));
-  if (claims.some((claim) => claim.siteId === site.id)) {
-    throw new SiteInputError("This domain is already added");
-  }
-  if (claims.some((claim) => claim.status === "active")) {
-    throw new SiteInputError(
-      "This domain is already connected to another site"
-    );
-  }
+  return await withSiteHostLock(hostname, async (tx) => {
+    const claims = await tx
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.hostname, hostname));
+    if (claims.some((claim) => claim.siteId === site.id)) {
+      throw new SiteInputError("This domain is already added");
+    }
+    if (claims.some((claim) => claim.status === "active")) {
+      throw new SiteInputError(
+        "This domain is already connected to another site"
+      );
+    }
 
-  const isSubdomain = input.kind === "subdomain";
-  const config = isSubdomain ? cloudflareSaasConfig() : null;
-  const custom = config ? await claimCustomHostname(config, hostname) : null;
-  const [domain] = await db
-    .insert(siteDomains)
-    .values({
-      id: prefixedId("dom"),
-      siteId: site.id,
-      organizationId: site.organizationId,
-      hostname,
-      kind: input.kind,
-      status: "pending",
-      cloudflareHostnameId: custom?.id ?? null,
-      verificationRecords: isSubdomain ? recordsFor(hostname, custom) : [],
-      lastError:
-        isSubdomain && !config ? CLOUDFLARE_SAAS_MISSING_MESSAGE : null,
-    })
-    .returning();
-  if (!domain) {
-    throw new Error("Could not add domain");
-  }
-  return domain;
+    const isSubdomain = input.kind === "subdomain";
+    const config = isSubdomain ? cloudflareSaasConfig() : null;
+    const custom = config
+      ? await claimCustomHostname(config, hostname, tx)
+      : null;
+    const [domain] = await tx
+      .insert(siteDomains)
+      .values({
+        id: prefixedId("dom"),
+        siteId: site.id,
+        organizationId: site.organizationId,
+        hostname,
+        kind: input.kind,
+        status: "pending",
+        cloudflareHostnameId: custom?.id ?? null,
+        verificationRecords: isSubdomain ? recordsFor(hostname, custom) : [],
+        lastError:
+          isSubdomain && !config ? CLOUDFLARE_SAAS_MISSING_MESSAGE : null,
+      })
+      .returning();
+    if (!domain) {
+      throw new Error("Could not add domain");
+    }
+    return domain;
+  });
 }
 
 async function fetchWithTimeout(url: string): Promise<Response> {
@@ -257,8 +265,12 @@ async function checkSubdomain(
   }
   const custom = await getCustomHostname(config, domain.cloudflareHostnameId);
   const records = recordsFor(domain.hostname, custom);
-  if (custom.status === "active" && custom.ssl?.status === "active") {
-    await claimHostRecord(domain.hostname, { siteId: site.id, kind: "custom" });
+  if (
+    custom.hostname === domain.hostname &&
+    custom.id === domain.cloudflareHostnameId &&
+    custom.status === "active" &&
+    custom.ssl?.status === "active"
+  ) {
     return { verified: true, lastError: null, records };
   }
   const errors = [
@@ -290,44 +302,60 @@ export async function refreshSiteDomain(
   userId: string | null
 ): Promise<RefreshSiteDomainResult> {
   const domain = await requireSiteDomain(site.id, domainId);
+  if (domain.kind === "subdomain") {
+    assertPublicHostname(domain.hostname);
+  }
   const origin = `https://${domain.hostname}`;
   const { verified, lastError, records } =
     domain.kind === "proxy"
       ? await checkProxyDomain(site, domain, origin)
       : await checkSubdomain(site, domain);
 
-  if (verified) {
-    const [owner] = await db
-      .select({ siteId: siteDomains.siteId })
+  const updated = await withSiteHostLock(domain.hostname, async (tx) => {
+    const claims = await tx
+      .select()
       .from(siteDomains)
-      .where(
-        and(
-          eq(siteDomains.hostname, domain.hostname),
-          eq(siteDomains.status, "active"),
-          ne(siteDomains.id, domain.id)
-        )
+      .where(eq(siteDomains.hostname, domain.hostname));
+    const current = claims.find(
+      (claim) => claim.id === domain.id && claim.siteId === site.id
+    );
+    if (
+      !current ||
+      current.cloudflareHostnameId !== domain.cloudflareHostnameId
+    ) {
+      throw new SiteInputError(
+        "Domain changed during verification. Retry verification."
+      );
+    }
+    if (
+      verified &&
+      claims.some(
+        (claim) => claim.id !== domain.id && claim.status === "active"
       )
-      .limit(1);
-    if (owner) {
+    ) {
       throw new SiteInputError("Another site verified this domain first");
     }
-  }
-  const [updated] = await db
-    .update(siteDomains)
-    .set({
-      status: nextDomainStatus(domain.status, verified),
-      lastError,
-      verificationRecords: records,
-      lastCheckedAt: new Date(),
-      verifiedAt: verified
-        ? (domain.verifiedAt ?? new Date())
-        : domain.verifiedAt,
-    })
-    .where(eq(siteDomains.id, domain.id))
-    .returning();
-  if (!updated) {
-    throw new SiteInputError("Domain not found");
-  }
+    const [updated] = await tx
+      .update(siteDomains)
+      .set({
+        status: nextDomainStatus(current.status, verified),
+        lastError,
+        verificationRecords: records,
+        lastCheckedAt: new Date(),
+        verifiedAt: verified
+          ? (current.verifiedAt ?? new Date())
+          : current.verifiedAt,
+      })
+      .where(eq(siteDomains.id, domain.id))
+      .returning();
+    if (!updated) {
+      throw new SiteInputError("Domain not found");
+    }
+    if (verified && domain.kind === "subdomain") {
+      await claimVerifiedHost(updated, tx);
+    }
+    return updated;
+  });
   const rebuildJobId =
     verified && site.publicOrigin !== origin
       ? await setSitePublicOrigin(site, origin, userId)
@@ -342,13 +370,23 @@ export async function removeSiteDomain(
   userId: string | null
 ): Promise<string | null> {
   const domain = await requireSiteDomain(site.id, domainId);
-  await Promise.all([
-    deleteCustomHostnameQuietly(domain.cloudflareHostnameId),
-    domain.kind === "subdomain"
-      ? releaseHostRecord(domain.hostname, site.id)
-      : undefined,
-  ]);
-  await db.delete(siteDomains).where(eq(siteDomains.id, domain.id));
+  await withSiteHostLock(domain.hostname, async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, domain.id))
+      .limit(1);
+    if (!current) {
+      return;
+    }
+    await Promise.all([
+      deleteCustomHostnameQuietly(current.cloudflareHostnameId),
+      domain.kind === "subdomain"
+        ? releaseHostRecord(domain.hostname, site.id, tx)
+        : undefined,
+    ]);
+    await tx.delete(siteDomains).where(eq(siteDomains.id, domain.id));
+  });
   return site.publicOrigin === `https://${domain.hostname}`
     ? await setSitePublicOrigin(site, aliasOrigin, userId)
     : null;

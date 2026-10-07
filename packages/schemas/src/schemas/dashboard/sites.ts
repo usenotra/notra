@@ -1,10 +1,19 @@
 import { SITE_INTEGRATION_NAMES } from "@notra/sites-core/constants/integrations";
+import {
+  SITE_PREVIEW_PASSWORD_MAX_LENGTH,
+  SITE_PREVIEW_PASSWORD_MIN_LENGTH,
+} from "@notra/sites-core/constants/sites";
 import z from "zod";
 
 const organizationId = z.string().min(1);
 const siteId = z.string().startsWith("site_");
 const deploymentId = z.string().startsWith("dep_");
 const mountPath = z.string().trim().max(80);
+const previewPassword = z
+  .string()
+  .min(SITE_PREVIEW_PASSWORD_MIN_LENGTH)
+  .max(SITE_PREVIEW_PASSWORD_MAX_LENGTH)
+  .nullable();
 
 export const siteMountsInputSchema = z
   .object({
@@ -59,6 +68,7 @@ export const updateSiteInputSchema = siteScopeInputSchema.extend({
   previewVisibility: z.enum(["public", "protected"]).optional(),
   publishMode: z.enum(["pull_request", "direct"]).optional(),
   showBranding: z.boolean().optional(),
+  previewPassword: previewPassword.optional(),
 });
 
 export const setSiteSuspendedInputSchema = siteScopeInputSchema.extend({
@@ -88,7 +98,7 @@ export const sitePreviewAccessInputSchema = sitePreviewInputSchema.extend({
 });
 
 export const siteSetPreviewPasswordInputSchema = siteScopeInputSchema.extend({
-  password: z.string().min(8).max(128).nullable(),
+  password: previewPassword,
 });
 
 export const addSiteDomainInputSchema = siteScopeInputSchema.extend({

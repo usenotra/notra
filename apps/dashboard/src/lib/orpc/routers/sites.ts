@@ -10,7 +10,6 @@ import {
   siteDomains,
   sites,
 } from "@notra/db/schema";
-import { isGeoIngestConfigured } from "@notra/geo-core/geo/ingest";
 import { loadSiteAnalytics } from "@notra/geo-core/geo/web-analytics";
 import { geoWindow } from "@notra/geo-core/geo/window";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
@@ -102,10 +101,7 @@ import {
   createSiteStarter,
   siteStarterStatus,
 } from "@notra/sites-server/starter";
-import {
-  readServingState,
-  syncServingPreviewAccess,
-} from "@notra/sites-server/state";
+import { readServingState } from "@notra/sites-server/state";
 import type { Site } from "@notra/sites-server/types/sites";
 import {
   buildTargetForDeployment,
@@ -117,7 +113,10 @@ import { defaultSiteConfigContent } from "@notra/sites-server/utils/default-conf
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { SITE_ADMIN_ROLES } from "@/constants/sites";
+import {
+  SITE_ADMIN_ROLES,
+  SITE_DEPLOYMENTS_PAGE_LIMIT,
+} from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { afterResponse } from "@/lib/framework/after-response";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
@@ -403,20 +402,17 @@ export const sitesRouter = {
     .input(siteScopeInputSchema)
     .handler(async ({ context, input }) => {
       const { site } = await requireSite(context, input);
-      const [domains, deployments, state, drafts] = await Promise.all([
+      const [domains, state, drafts] = await Promise.all([
         db.select().from(siteDomains).where(eq(siteDomains.siteId, site.id)),
-        listSiteDeployments(site.id, 30),
         servingState(site.id),
         listSiteDrafts(site.id),
       ]);
       const live = liveDeploymentsFromState(state);
-      if (
-        state &&
-        (state.previewPassword?.version !== site.previewPassword?.version ||
-          (state.trafficToken === null && isGeoIngestConfigured()))
-      ) {
-        afterResponse(() => syncServingPreviewAccess(site));
-      }
+      const deployments = await listSiteDeployments(
+        site.id,
+        SITE_DEPLOYMENTS_PAGE_LIMIT,
+        [...live.keys()]
+      );
       return {
         site: serializeSite(site, state),
         cnameTarget: siteCnameTarget(),
@@ -489,10 +485,10 @@ export const sitesRouter = {
         ...patch
       } = input;
       const result = await updateSiteSettings(site, patch, userId);
-      dispatchLater([result.rebuildJobId, ...result.previewRemovalJobIds]);
+      dispatchLater([result.syncJobId]);
       return {
         site: serializeSite(result.site, await servingState(site.id)),
-        rebuilding: Boolean(result.rebuildJobId),
+        rebuilding: result.rebuilding,
       };
     }),
 
@@ -623,8 +619,15 @@ export const sitesRouter = {
       .input(siteSetPreviewPasswordInputSchema)
       .handler(async ({ context, input }) => {
         assertNotDemo();
-        const { site } = await requireSite(context, input, { admin: true });
-        await setSitePreviewPassword(site, input.password);
+        const { site, userId } = await requireSite(context, input, {
+          admin: true,
+        });
+        const result = await setSitePreviewPassword(
+          site,
+          input.password,
+          userId
+        );
+        dispatchLater([result.syncJobId]);
         return { passwordSet: input.password !== null };
       }),
   },
