@@ -1,0 +1,391 @@
+packages/webhooks/tests/fixtures/constants/webhook-events.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-44
+apps/dashboard/src/components/content/calendar/content-calendar-grid.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-55
+packages/geo-core/src/constants/geo.ts
+  s_f139c6879e9952::t_1db3aa241e3362 370-371
+packages/tools/src/utils/organization.ts
+  s_f139c6879e9952::t_1db3aa241e3362 3-5
+apps/docs/geo/overview.mdx
+  s_f139c6879e9952::t_1db3aa241e3362 143-144,181
+apps/dashboard/src/lib/email/scheduled-publication.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-143
+packages/webhooks/tests/fixtures/constants/post-fields.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-15
+apps/dashboard/src/app/api/cron/scheduled-publications/route.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-23
+apps/dashboard/src/components/geo/prompt-answer-content.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 33-35,38-47
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  s_f139c6879e9952::t_1db3aa241e3362 48-51,79-84,192-197,202
+packages/webhooks/tests/lifecycle.test.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-850
+packages/geo-core/src/types/model.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1,29,37,43
+packages/geo-core/src/utils/geo-anthropic-web-search.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-22
+apps/dashboard/src/components/agent-feedback/feedback-inbox.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 30-32,38,44-47,69-71,139-142,270,292,308,328,331,335,342,344
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-30
+packages/webhooks/src/schemas/webhooks.ts
+  s_f139c6879e9952::t_1db3aa241e3362 22-27,58-96,108
+packages/webhooks/src/types/services.ts
+  s_f139c6879e9952::t_1db3aa241e3362 39-40
+apps/dashboard/src/lib/email/notification-data.ts
+  s_f139c6879e9952::t_1db3aa241e3362 2-6,9-13,15-16,18-36,38-58
+packages/geo-core/src/geo/scan.ts
+  s_f139c6879e9952::t_1db3aa241e3362 9,371-372,393,403-408,415,426-427,469-474,1817-1820
+apps/docs/api/webhooks/overview.mdx
+  s_f139c6879e9952::t_1db3aa241e3362 3,29,70,189
+apps/dashboard/src/workflows/steps/content-generation-steps.ts
+  s_f139c6879e9952::t_1db3aa241e3362 38,578
+packages/ai/src/types/model-call-telemetry.ts
+  s_f139c6879e9952::t_1db3aa241e3362 5,18
+patches/eve@0.58.1.patch
+  s_f139c6879e9952::t_1db3aa241e3362 1-28
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_f139c6879e9952::t_1db3aa241e3362 23-26,35
+packages/webhooks/tests/fixtures/types/lifecycle.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-18
+apps/onboarding-agent/agent/subagents/researcher/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 10-14
+apps/dashboard/messages/de.json
+  s_f139c6879e9952::t_1db3aa241e3362 712,714,741,1052,1104-1115,3159,6188-6189,6224-6318,6515-6517
+packages/geo-core/src/geo/model-live.ts
+  s_f139c6879e9952::t_1db3aa241e3362 72,145,147-148,160,164-166,223
+apps/dashboard/src/styles/globals.css
+  ai_agent 379-384
+apps/dashboard/src/lib/hooks/use-content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-273
+packages/ai/src/evaluation/client.ts
+  s_f139c6879e9952::t_1db3aa241e3362 98
+apps/dashboard/src/lib/hooks/use-schedule-destination-name.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-15
+packages/tools/src/types/organization.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-7
+apps/agent/agent/subagents/content-writer/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 8,13-17
+packages/db/src/types/geo-checks.ts
+  s_f139c6879e9952::t_1db3aa241e3362 9-12,174,176
+packages/ai/src/router/create-router.ts
+  s_f139c6879e9952::t_1db3aa241e3362 129
+apps/dashboard/src/lib/hooks/use-schedule-destinations.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-58
+apps/dashboard/src/lib/orpc/routers/content.ts
+  s_f139c6879e9952::t_1db3aa241e3362 21,24,258,276,286-292,796
+packages/webhooks/README.md
+  s_f139c6879e9952::t_1db3aa241e3362 10-15,39-46,59-65,97-146
+apps/dashboard/src/constants/content-collections.ts
+  s_f139c6879e9952::t_1db3aa241e3362 4-5,7-8
+packages/ai/src/constants/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-109
+packages/db/migrations/0109_webhook_lifecycle.sql
+  ai_agent 1-142
+apps/api/src/index.ts
+  s_f139c6879e9952::t_1db3aa241e3362 53,342
+apps/dashboard/src/lib/orpc/utils/social-connect.ts
+  s_f139c6879e9952::t_1db3aa241e3362 18,24,56-60
+packages/db/src/utils/projects.ts
+  s_f139c6879e9952::t_1db3aa241e3362 5,24-40
+apps/dashboard/src/components/content/schedule/schedule-destination-mark.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-43
+apps/dashboard/src/components/content/calendar/content-calendar-item-chip.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-249
+apps/dashboard/src/lib/orpc/routers/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-248
+packages/ai/src/utils/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-137
+apps/docs/api/webhooks/events.mdx
+  s_f139c6879e9952::t_1db3aa241e3362 32
+apps/dashboard/src/components/geo/geo-prompt-answer-thread.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 12,35,199-200,237-240
+apps/dashboard/src/lib/hooks/use-own-mention-lines.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-87
+apps/dashboard/src/lib/hooks/use-agent-feedback-labels.ts
+  s_f139c6879e9952::t_1db3aa241e3362 7-8,23-33
+packages/ai/src/constants/code-mode.ts
+  s_f139c6879e9952::t_1db3aa241e3362 23
+apps/dashboard/src/lib/orpc/routers/search.ts
+  s_f139c6879e9952::t_1db3aa241e3362 10
+packages/ai/src/types/router.ts
+  s_f139c6879e9952::t_1db3aa241e3362 7,60,156,187,268
+packages/ai/src/utils/schedule-destinations.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-32
+packages/db/src/utils/geo-checks.ts
+  s_f139c6879e9952::t_1db3aa241e3362 21,78,119,159,191,284-286,292-327,330-331,333-334,432-437,444,447,475-478,484,552,619,677-678,700,706,729-730,764,802,821,824-825,832,837-839,845,860-863,866,981-987,994-995,997,1018,1027-1028,1031,1199-1200
+apps/dashboard/src/lib/hooks/use-local-date-format.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-20
+apps/dashboard/src/components/geo/prompts-table.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 67,254,364-365
+packages/geo-core/src/geo/check-evaluation.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1,17-18,31-36
+apps/agent/agent/lib/utils/model.ts
+  s_f139c6879e9952::t_1db3aa241e3362 2,4,75-82,89-98,114,122,126-141,153
+packages/ai/src/types/qstash.ts
+  s_f139c6879e9952::t_1db3aa241e3362 7-14
+packages/webhooks/src/constants/delivery.ts
+  s_f139c6879e9952::t_1db3aa241e3362 9
+packages/ai/src/router/lazy-model.ts
+  s_f139c6879e9952::t_1db3aa241e3362 290,321,382
+apps/dashboard/src/components/content/schedule/schedule-destination-fields.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-226
+apps/dashboard/src/app/(dashboard)/[slug]/content/page-client.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 3,6-8,11-12,16-17,19-29,47-49,51-53,70-92,94,96-100,102-104,108
+apps/dashboard/src/components/content/calendar/content-calendar-skeleton.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-15
+packages/db/src/constants/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-19
+packages/email/src/types/scheduled-publication-failed.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-9
+apps/agent/agent/subagents/image-designer/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 8,13-17
+packages/webhooks/src/services/queue.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1,5,18-23,25-30
+packages/ai/src/schemas/post-schedules.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-125
+apps/dashboard/src/components/content/schedule/content-publish-button.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-238
+apps/dashboard/src/components/geo/lazy-geo-prompt-answer-thread.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 4,6-9,13,15,21-28
+apps/dashboard/src/constants/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-99
+apps/dashboard/vercel.json
+  s_f139c6879e9952::t_1db3aa241e3362 16-18
+apps/dashboard/src/app/api/workflows/scheduled-publication-wake/route.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-60
+apps/api/src/programs/posts.ts
+  s_f139c6879e9952::t_1db3aa241e3362 13,357,452-458
+apps/dashboard/src/lib/content/scheduled-publication-destinations.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-611
+apps/dashboard/src/components/geo/prompt-engine-switcher.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 4-9,20,38-42,44-52,54,56-57,59-64,66-85
+apps/dashboard/src/components/content/schedule/schedule-content-dialog.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-215
+apps/dashboard/src/components/ai/chat-tool-block.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 547-555
+packages/geo-core/src/geo/engines.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1,18,30,42-45,71-74
+packages/db/migrations/0110_scheduled_publications.sql
+  ai_agent 1-39
+apps/docs/api/webhooks/outbound.mdx
+  s_f139c6879e9952::t_1db3aa241e3362 21-26,29-67,82-84
+apps/dashboard/src/components/geo/geo-answer-mention-components.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 40-47,56-58,108-109,117,132,215-216,219-224,237-238,240-241
+apps/dashboard/src/utils/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-394
+apps/dashboard/src/components/content/schedule/schedule-destination-status-list.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-105
+packages/ai/src/billing/token-pricing.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-4,8,210-211,262-263,269-275,287-291,312,314
+apps/onboarding-agent/agent/subagents/skill-editor/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 12-13
+packages/webhooks/tests/fixtures/lifecycle.sql
+  s_f139c6879e9952::t_1db3aa241e3362 1-55
+apps/dashboard/src/lib/demo/seed/content.ts
+  s_f139c6879e9952::t_1db3aa241e3362 68
+apps/dashboard/src/routeTree.gen.ts
+  s_f139c6879e9952::t_1db3aa241e3362 31,43,181-186,243-248,499,511,572,584,646,658,721,733,794,806,867,879,941,953,1117-1123,1201-1207,1607,1619-1620
+apps/dashboard/src/types/email/send.ts
+  s_f139c6879e9952::t_1db3aa241e3362 3,35-38
+apps/dashboard/src/components/content/calendar/content-calendar-day.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-122
+apps/onboarding-agent/agent/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 8-12
+apps/api/src/routes/post-schedules.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-199
+package.json
+  s_f139c6879e9952::t_1db3aa241e3362 74-75
+apps/dashboard/src/components/content/schedule/schedule-dialog-footer.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-105
+apps/agent/agent/lib/utils/session-model.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-32
+packages/ai/src/qstash/triggers.ts
+  s_f139c6879e9952::t_1db3aa241e3362 10-13,217-240
+packages/ai/src/utils/route-usage.ts
+  s_f139c6879e9952::t_1db3aa241e3362 68-70,74-75
+packages/email/src/emails/scheduled-publication-failed.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-44
+apps/dashboard/src/types/content/detail.ts
+  s_f139c6879e9952::t_1db3aa241e3362 63-76
+packages/geo-core/src/utils/geo-competitor-share.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-63
+packages/webhooks/src/programs/recovery.ts
+  s_f139c6879e9952::t_1db3aa241e3362 43-45,82-90
+packages/ai/src/router/provider-options.ts
+  s_f139c6879e9952::t_1db3aa241e3362 117-119,205-207
+packages/ai/src/autonomy/ship.ts
+  s_f139c6879e9952::t_1db3aa241e3362 200-204
+packages/schemas/src/schemas/api/webhooks.ts
+  s_f139c6879e9952::t_1db3aa241e3362 10-15,29
+bun.lock
+  ai_agent 744
+apps/dashboard/src/components/content/collections-view.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 6,13-18,31,34,125,127,194,232-249,282,284,316
+packages/geo-core/src/geo/programs.ts
+  s_f139c6879e9952::t_1db3aa241e3362 25,114,1054-1056,1061
+apps/dashboard/src/types/content/collection.ts
+  s_f139c6879e9952::t_1db3aa241e3362 41-45
+packages/ui/src/components/shared/truncate-with-tooltip.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 38-44,50-52,54,59-60,62-73
+packages/db/src/types/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-31
+packages/webhooks/src/utils/queue.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-22
+apps/dashboard/src/constants/outbound-webhooks.ts
+  s_f139c6879e9952::t_1db3aa241e3362 35-40
+apps/dashboard/src/components/content/publish-content-to-github-dialog.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 23,31,109-117,119-121,271
+apps/dashboard/src/types/content/calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-73
+apps/dashboard/src/types/content/schedule.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-207
+packages/db/src/schema.ts
+  s_f139c6879e9952::t_1db3aa241e3362 35-38,61-64,2307,2336-2412,3690,3693-3705
+apps/agent/agent/subagents/code-researcher/agent.ts
+  s_f139c6879e9952::t_1db3aa241e3362 6,11-15
+apps/dashboard/src/components/content/schedule/schedule-slot-field.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-121
+apps/dashboard/src/lib/hooks/use-geo.ts
+  s_f139c6879e9952::t_1db3aa241e3362 76,88-91,105,339-352,358-360,366-408
+.env.example
+  s_f139c6879e9952::t_1db3aa241e3362 213-214
+apps/dashboard/src/lib/social-connect/errors.ts
+  s_f139c6879e9952::t_1db3aa241e3362 29-46
+packages/geo-core/src/types/geo.ts
+  s_f139c6879e9952::t_1db3aa241e3362 4,888
+apps/dashboard/src/workflows/scheduled-publication.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-38
+apps/dashboard/src/lib/workflows/schedule/handlers/image.ts
+  s_f139c6879e9952::t_1db3aa241e3362 70
+packages/ai/src/prompts/standalone-chat.ts
+  s_f139c6879e9952::t_1db3aa241e3362 91
+apps/dashboard/src/types/integrations/github.ts
+  s_f139c6879e9952::t_1db3aa241e3362 503-513
+apps/dashboard/src/types/services/social-connect.ts
+  s_f139c6879e9952::t_1db3aa241e3362 42-43
+packages/webhooks/tests/webhooks.test.ts
+  s_f139c6879e9952::t_1db3aa241e3362 102,106
+packages/db/migrations/meta/0110_snapshot.json
+  ai_agent 1-13891
+packages/ai/src/tools/post-schedules.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-109
+apps/dashboard/src/lib/content/save-content-detail.ts
+  s_f139c6879e9952::t_1db3aa241e3362 61-64,124-126
+packages/geo-core/src/geo/conversation.ts
+  s_f139c6879e9952::t_1db3aa241e3362 61-67,73,91
+packages/ai/src/utils/geo-tool-data.ts
+  s_f139c6879e9952::t_1db3aa241e3362 23,31,101,138,220,286-287
+packages/geo-core/src/geo/scan-task-status.ts
+  s_f139c6879e9952::t_1db3aa241e3362 55,64,80-81,102-103
+packages/schemas/src/constants/dashboard/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-4
+packages/ai/src/types/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-140
+packages/schemas/src/schemas/dashboard/agent-feedback.ts
+  s_f139c6879e9952::t_1db3aa241e3362 42-46
+apps/dashboard/src/lib/orpc/routers/chat.ts
+  s_f139c6879e9952::t_1db3aa241e3362 226
+apps/dashboard/src/routes/api.workflows.scheduled-publication-wake.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-17
+apps/dashboard/src/app/design-system/break-ui/page-client.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 236,314
+apps/onboarding-agent/agent/lib/utils/model.ts
+  s_f139c6879e9952::t_1db3aa241e3362 3-5,7-11,13-36
+apps/docs/docs.json
+  s_f139c6879e9952::t_1db3aa241e3362 139,224-231
+apps/dashboard/src/constants/agent-feedback.ts
+  s_f139c6879e9952::t_1db3aa241e3362 31-34,37,39-41
+apps/dashboard/src/lib/email/send.ts
+  s_f139c6879e9952::t_1db3aa241e3362 7,21,63-75
+apps/dashboard/src/lib/hooks/use-github-publish-repository-selection.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-74
+apps/dashboard/src/routes/api.cron.scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-15
+apps/dashboard/src/types/geo.ts
+  s_f139c6879e9952::t_1db3aa241e3362 230-231
+packages/ai/src/constants/token-pricing.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-17
+apps/dashboard/src/components/webhooks/create-dialog.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 83
+packages/ai/src/types/billing.ts
+  s_f139c6879e9952::t_1db3aa241e3362 4-6
+packages/ai/src/types/operational-log.ts
+  s_f139c6879e9952::t_1db3aa241e3362 29-31
+apps/dashboard/src/lib/workflows/start.ts
+  s_f139c6879e9952::t_1db3aa241e3362 41,60,128-132
+packages/ai/src/utils/model-call-telemetry.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1,7,16,19-20,34-38,41,109-110,136-138,140-145
+packages/email/package.json
+  s_f139c6879e9952::t_1db3aa241e3362 15,22
+packages/schemas/src/schemas/api/post-schedules.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-99
+packages/schemas/src/schemas/dashboard/content-calendar.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-63
+apps/web/src/content/blog/how-to-build-a-muse-connector.mdx
+  s_f139c6879e9952::t_1db3aa241e3362 1-84
+packages/schemas/src/schemas/dashboard/workflows/scheduled-publication-wake.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-12
+apps/dashboard/src/lib/content/scheduled-publication-sweep.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-87
+apps/dashboard/src/workflows/steps/scheduled-publication-steps.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-117
+apps/dashboard/src/types/geo-prompt-detail.ts
+  s_f139c6879e9952::t_1db3aa241e3362 95
+apps/dashboard/src/components/content/calendar/content-calendar-view.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-203
+apps/dashboard/src/components/content/schedule/scheduled-publication-status.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-27
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 23,34,175-228,246-264,267-277,280,283-284,287,293,295-304,347-349
+packages/db/src/utils/post-published-at.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-20
+packages/posthog/src/events.ts
+  s_f139c6879e9952::t_1db3aa241e3362 137-139
+apps/dashboard/messages/en.json
+  s_f139c6879e9952::t_1db3aa241e3362 712,714,741,1052,1104-1115,2420,3159,6188-6189,6224-6318,6515-6517
+apps/dashboard/src/lib/social-connect/publish.ts
+  s_f139c6879e9952::t_1db3aa241e3362 16,18,96,152-153,156-162,164-172,193,234-235
+apps/dashboard/src/app/(dashboard)/[slug]/content/skeleton.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 5,7
+packages/db/migrations/meta/_journal.json
+  ai_agent 767-780,783
+apps/dashboard/src/types/agent-feedback.ts
+  s_f139c6879e9952::t_1db3aa241e3362 41-46,96
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-1015
+apps/dashboard/src/utils/prompt-answer-thread-chunk.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-28
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 63-67,92,173,232,509-535,586
+apps/dashboard/src/lib/integrations/github/content-pull-request.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-94
+apps/dashboard/src/lib/orpc/router.ts
+  s_f139c6879e9952::t_1db3aa241e3362 10,39
+packages/ai/src/utils/scheduled-publications.ts
+  s_f139c6879e9952::t_1db3aa241e3362 1-958
+apps/dashboard/src/components/content/content-collections-section.tsx
+  s_f139c6879e9952::t_1db3aa241e3362 1-115
+apps/dashboard/src/lib/agent-feedback/programs.ts
+  s_f139c6879e9952::t_1db3aa241e3362 5,55-56
+apps/dashboard/src/utils/agent-feedback.ts
+  s_f139c6879e9952::t_1db3aa241e3362 27-36
+packages/ai/src/utils/post-service.ts
+  s_f139c6879e9952::t_1db3aa241e3362 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "24069e990a73d7327e6b056d6d1029de04118292",
+  "prompts": {},
+  "sessions": {
+    "s_f139c6879e9952": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f1ecc6e4-b772-423a-95ad-3c5d44ed694d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
