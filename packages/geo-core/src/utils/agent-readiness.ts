@@ -1,7 +1,4 @@
-import type {
-  AgentReadinessIssue,
-  AgentReadinessScoreBreakdown,
-} from "@notra/db/types/agent-readiness";
+import type { AgentReadinessIssue } from "@notra/db/types/agent-readiness";
 
 import {
   AGENT_READINESS_GREAT_THRESHOLD,
@@ -239,17 +236,6 @@ export function compareAgentReadinessIssues(
     improved,
     worsened,
   };
-}
-
-/** Score points still open across essential and recommended checks. */
-export function getAgentReadinessOpenPoints(
-  breakdown: AgentReadinessScoreBreakdown
-): number {
-  const open =
-    breakdown.essential.available -
-    breakdown.essential.earned +
-    (breakdown.recommended.available - breakdown.recommended.earned);
-  return Math.max(0, Math.round(open * 10) / 10);
 }
 
 /** Check id → how it moved since the previous scan, for row badges. */

@@ -2392,7 +2392,6 @@
         "fullReport": "Full report",
         "tierSummary": "<strong>{passing}</strong> of {total} passing · <strong>{earned}</strong>/{available} pts",
         "bonusSummary": "Bonus +{points} pts from {count, plural, one {# extra signal} other {# extra signals}}",
-        "openSummary": "{count, plural, one {# check open} other {# checks open}} · {points} pts to gain",
         "nextStepMustDo": "{count, plural, one {# must-do check is open} other {# must-do checks are open}}, worth up to {points} pts. Start with <strong>{name}</strong>",
         "nextStepShouldDo": "Every must-do check passes. Next up: <strong>{name}</strong>"
       },

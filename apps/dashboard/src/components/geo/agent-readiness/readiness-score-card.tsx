@@ -11,7 +11,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AGENT_READINESS_MAX_SCORE } from "@notra/geo-core/constants/agent-readiness";
 import {
   buildAgentReadinessAllFixesPrompt,
-  getAgentReadinessOpenPoints,
   getAgentReadinessScoreBand,
   groupAgentReadinessIssues,
 } from "@notra/geo-core/utils/agent-readiness";
@@ -178,7 +177,6 @@ export function AgentReadinessScoreCard({
   const breakdown = report.scoreBreakdown;
   const score = report.score;
   const band = score === null ? null : getAgentReadinessScoreBand(score);
-  const openPoints = breakdown ? getAgentReadinessOpenPoints(breakdown) : null;
 
   return (
     <InstrumentModule
@@ -244,21 +242,6 @@ export function AgentReadinessScoreCard({
                 <ScoreDelta previousScore={previousScore} score={score} />
               )}
             </div>
-            {report.scoreLabel ? (
-              <p className="text-muted-foreground text-sm">
-                {report.scoreLabel}
-              </p>
-            ) : null}
-            {openPoints === null ? null : (
-              <p className="text-muted-foreground text-sm tabular-nums">
-                {t("scoreCard.openSummary", {
-                  count: report.issues.length,
-                  points: format.number(openPoints, {
-                    maximumFractionDigits: 1,
-                  }),
-                })}
-              </p>
-            )}
           </div>
         </div>
         {breakdown ? (

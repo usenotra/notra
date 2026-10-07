@@ -2392,7 +2392,6 @@
         "fullReport": "Vollständiger Bericht",
         "tierSummary": "<strong>{passing}</strong> von {total} bestanden · <strong>{earned}</strong>/{available} Pkt.",
         "bonusSummary": "Bonus +{points} Pkt. durch {count, plural, one {# zusätzliches Signal} other {# zusätzliche Signale}}",
-        "openSummary": "{count, plural, one {# offener Check} other {# offene Checks}} · {points} Pkt. möglich",
         "nextStepMustDo": "{count, plural, one {# Pflicht-Check ist offen} other {# Pflicht-Checks sind offen}}, bis zu {points} Pkt. wert. Fang an mit <strong>{name}</strong>",
         "nextStepShouldDo": "Alle Pflicht-Checks bestanden. Als Nächstes: <strong>{name}</strong>"
       },
