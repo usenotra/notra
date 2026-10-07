@@ -17,7 +17,6 @@ import {
   EXCALIDRAW_ROUNDNESS_PROPORTIONAL,
   EXCALIDRAW_SCENE_SOURCE,
 } from "@notra/ai/constants/excalidraw-diagram";
-import { diagramSpecSchema } from "@notra/ai/schemas/excalidraw-diagram";
 import type {
   DiagramLinearSpec,
   DiagramShapeGeometry,
