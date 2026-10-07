@@ -26,6 +26,9 @@ export interface OperationalContext {
   organizationId?: string | null;
   projectId?: string | null;
   runId?: string;
+  scanId?: string;
+  promptId?: string;
+  turn?: number;
 }
 
 export type LogFlushScheduler = (flush: () => Promise<void>) => void;

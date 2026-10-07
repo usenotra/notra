@@ -114,6 +114,9 @@ export function buildVercelProviderOptions(
   const gatewayOptions: Record<string, unknown> = {
     ...existingWithoutZdr,
     tags: existing.tags ?? ["other"],
+    ...(existing.user === undefined && input.organizationId
+      ? { user: input.organizationId }
+      : {}),
     caching: router.caching ?? existing.caching ?? "auto",
     ...(fallbackModels ? { models: fallbackModels } : {}),
     ...(zeroDataRetention ? { zeroDataRetention: true } : {}),
@@ -199,6 +202,9 @@ export function buildOpenRouterProviderOptions(
 
   const openrouterOptions: Record<string, unknown> = {
     ...existing,
+    ...(existing.user === undefined && input.organizationId
+      ? { user: input.organizationId }
+      : {}),
     provider,
     ...(fallbackModels ? { models: fallbackModels } : {}),
     ...(reasoning ? { reasoning } : {}),

@@ -1,5 +1,7 @@
 import { devToolsMiddleware } from "@ai-sdk/devtools";
+import { EVALUATION_MODEL_ID } from "@notra/ai/constants/evaluation";
 import { withGatewayAgentOptions } from "@notra/ai/utils/gateway-agent-model";
+import { getOrganizationId } from "@notra/tools/utils/organization";
 import { gateway, type LanguageModel, wrapLanguageModel } from "ai";
 import { defineDynamic } from "eve";
 import { defineState } from "eve/context";
@@ -70,26 +72,30 @@ function isModelSelection(
 
 /** Pins automated tasks and routes chat turns with eve's `autoModel`. */
 export function createAssistantModel() {
-  const auto = autoModel({
-    options: Object.fromEntries(
-      Object.entries(ASSISTANT_AUTO_MODEL_OPTIONS).map(
-        ([modelId, { description, reasoning }]) => [
-          modelId,
-          { model: createAgentModel(modelId), description, reasoning },
-        ]
-      )
-    ),
-  });
-  const selectAutoModel = auto.events["step.started"];
-  if (!selectAutoModel) {
-    throw new Error("autoModel no longer resolves on step.started");
-  }
+  const autoOptions = Object.fromEntries(
+    Object.entries(ASSISTANT_AUTO_MODEL_OPTIONS).map(
+      ([modelId, { description, reasoning }]) => [
+        modelId,
+        { model: createAgentModel(modelId), description, reasoning },
+      ]
+    )
+  );
   const fallbackModel = createAgentModel(ASSISTANT_MODEL_ID);
   const taskModel = createAgentModel(ASSISTANT_TASK_MODEL_ID, "agent-task");
 
   return defineDynamic({
     events: {
       "step.started": async (event, ctx) => {
+        const organizationId = getOrganizationId(ctx);
+        const gatewayOptions: Record<string, string> = {};
+        if (organizationId) {
+          gatewayOptions.user = organizationId;
+        }
+        const modelOptions = {
+          providerOptions: {
+            gateway: gatewayOptions,
+          },
+        };
         const surface =
           ctx.session.auth.current?.attributes.surface ??
           ctx.session.auth.initiator?.attributes.surface;
@@ -105,6 +111,7 @@ export function createAssistantModel() {
             model: taskModel,
             reasoning: "low" as const,
             modelContextWindowTokens: GPT_6_SOL_CONTEXT_WINDOW_TOKENS,
+            modelOptions,
           };
         }
 
@@ -112,9 +119,26 @@ export function createAssistantModel() {
           return {
             model: fallbackModel,
             modelContextWindowTokens: SONNET_5_CONTEXT_WINDOW_TOKENS,
+            modelOptions,
           };
         }
 
+        const auto = autoModel({
+          model: EVALUATION_MODEL_ID,
+          providerOptions: {
+            gateway: {
+              ...gatewayOptions,
+              tags: ["evaluation-agent-model"],
+              zeroDataRetention: true,
+              disallowPromptTraining: true,
+            },
+          },
+          options: autoOptions,
+        });
+        const selectAutoModel = auto.events["step.started"];
+        if (!selectAutoModel) {
+          throw new Error("autoModel no longer resolves on step.started");
+        }
         const selection = await selectAutoModel(event, ctx);
         const normalized = isModelSelection(selection)
           ? selection
@@ -126,6 +150,7 @@ export function createAssistantModel() {
         return {
           ...normalized,
           modelContextWindowTokens: SONNET_5_CONTEXT_WINDOW_TOKENS,
+          modelOptions,
         };
       },
     },

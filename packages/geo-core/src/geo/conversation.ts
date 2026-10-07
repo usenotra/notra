@@ -58,11 +58,19 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
     for (const [index, prompt] of source.prompts.entries()) {
       const turnStartedMs = performance.now();
       messages.push({ role: "user", content: prompt });
+      const logContext = {
+        projectId: context.projectId,
+        scanId: context.scanId,
+        runId: context.runId,
+        promptId: source.promptId,
+        turn: index + 1,
+      };
       const answer = yield* models.groundedAnswer({
         organizationId: context.organizationId,
         engine,
         messages,
         zdr,
+        logContext,
       });
       engineUsage = addAgentTokenUsage(engineUsage, answer.usage);
       if (zdr !== "none" && answer.zdrEnforced === false) {
@@ -80,7 +88,7 @@ export const runGeoConversation = Effect.fn("geo.runConversation")(function* (
         answer
       );
       messages.push({ role: "assistant", content: text });
-      const judged = yield* judgeAnswer(context, prompt, text);
+      const judged = yield* judgeAnswer(context, prompt, text, logContext);
       judgeUsage = addAgentTokenUsage(
         judgeUsage,
         agentTokenUsageFrom(judged.usage)

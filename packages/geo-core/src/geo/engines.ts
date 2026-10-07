@@ -1,4 +1,4 @@
-import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createPerplexity } from "@ai-sdk/perplexity";
@@ -7,7 +7,6 @@ import { requireApiKey } from "@notra/utils/require-api-key";
 
 import {
   GEO_ANTHROPIC_API_KEY_ENV,
-  GEO_GROUNDED_MAX_SEARCHES,
   GEO_OPENAI_API_KEY_ENV,
   GEO_PERPLEXITY_API_KEY_ENV,
 } from "../constants/geo";
@@ -16,6 +15,7 @@ import type {
   GeoGroundedInvocation,
   GeoGroundedInvocationOptions,
 } from "../types/geo";
+import { geoAnthropicWebSearch } from "../utils/geo-anthropic-web-search";
 
 export function buildGroundedInvocation(
   engine: GeoGroundedEngine,
@@ -27,6 +27,7 @@ export function buildGroundedInvocation(
     organizationId: options.organizationId,
     gateway: "vercel",
     zdr: options.zdr,
+    logContext: options.logContext,
   } as const;
   switch (engine.provider) {
     case "gateway-openai":
@@ -38,9 +39,10 @@ export function buildGroundedInvocation(
       return {
         model: gateway(engine.model, groundedGateway),
         tools: {
-          web_search: anthropic.tools.webSearch_20250305({
-            maxUses: GEO_GROUNDED_MAX_SEARCHES,
-          }),
+          web_search: geoAnthropicWebSearch(
+            engine.model,
+            options.zdr === "none"
+          ),
         },
       };
     case "gateway-google":
@@ -66,9 +68,10 @@ export function buildGroundedInvocation(
       return {
         model: provider(engine.model),
         tools: {
-          web_search: provider.tools.webSearch_20250305({
-            maxUses: GEO_GROUNDED_MAX_SEARCHES,
-          }),
+          web_search: geoAnthropicWebSearch(
+            engine.model,
+            options.zdr === "none"
+          ),
         },
       };
     }

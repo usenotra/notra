@@ -367,6 +367,8 @@ export const GEO_GROUNDED_MAX_SEARCHES = 3;
 export const GEO_ANSWER_MAX_TOKENS = 4096;
 export const GEO_GROUNDED_ANSWER_MAX_TOKENS = 4096;
 export const GEO_FLEX_MODELS: ReadonlySet<string> = new Set([
+  "openai/gpt-6-sol",
+  "openai/gpt-6-astra",
   "openai/gpt-5.6-sol",
   "openai/gpt-5.6-luna",
   "openai/gpt-5.6-terra",
