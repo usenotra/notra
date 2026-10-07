@@ -1,0 +1,45 @@
+packages/email/src/emails/visibility-drop.tsx
+  s_9e71c300b8b8dd::t_172b26ae22346f 8,20
+packages/db/src/utils/geo-checks.ts
+  s_9e71c300b8b8dd::t_9c6217ace4dcf3 1292-1295,1300,1307-1308,1321,1329
+packages/email/src/types/geo-recap.ts
+  s_9e71c300b8b8dd::t_332722dd8a3520 42,44,56
+packages/email/src/emails/weekly-summary.tsx
+  s_9e71c300b8b8dd::t_332722dd8a3520 13-16
+  s_9e71c300b8b8dd::t_172b26ae22346f 21,38,40
+apps/dashboard/src/lib/email/geo-recap.ts
+  s_9e71c300b8b8dd::t_8b6585694d28b4 1,31,126,215-217,221-222,232,446-453,465-468,481-522,524-537
+  s_9e71c300b8b8dd::t_332722dd8a3520 469-480
+  s_9e71c300b8b8dd::t_438205244c5e56 298
+apps/dashboard/src/constants/geo-recap.ts
+  s_9e71c300b8b8dd::t_8b6585694d28b4 40-41
+packages/db/src/types/geo-checks.ts
+  s_9e71c300b8b8dd::t_9c6217ace4dcf3 310-311
+packages/email/src/utils/geo-recap.ts
+  s_9e71c300b8b8dd::t_172b26ae22346f 1-11
+packages/email/src/components/geo-recap.tsx
+  s_9e71c300b8b8dd::t_172b26ae22346f 10
+packages/email/src/constants/geo-recap.ts
+  s_9e71c300b8b8dd::t_172b26ae22346f 1-5
+apps/dashboard/src/types/email/geo-recap.ts
+  s_9e71c300b8b8dd::t_3b7a3c53e76126 31
+apps/dashboard/src/utils/geo-recap.ts
+  s_9e71c300b8b8dd::t_9c6217ace4dcf3 246-249,256-260,262,265-267
+  s_9e71c300b8b8dd::t_3b7a3c53e76126 216-220,227,230,232,237-240,245,251-253,261,268-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ca1d04c90fafbc2413ef2f6a65398ca4e2b7ceb0",
+  "prompts": {},
+  "sessions": {
+    "s_9e71c300b8b8dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a57abfcb-f2d5-4963-9dc3-42811a750837",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
