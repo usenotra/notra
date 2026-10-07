@@ -58,7 +58,7 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
           {
             path,
             deleted: false,
-            baseBlobSha: existing?.baseBlobSha ?? source?.sha ?? null,
+            baseBlobSha: existing?.baseBlobSha ?? (source?.sha || null),
             updatedAt,
           },
         ],

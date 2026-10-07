@@ -7,14 +7,19 @@ export function SiteSettingsRow({
   children,
 }: SiteSettingsRowProps) {
   return (
-    <div className="grid gap-x-12 gap-y-3 py-4 first:pt-0 last:pb-0 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-      <div className="min-w-0 space-y-1 lg:pt-1.5">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-2 py-4 first:pt-0 last:pb-0 lg:grid-cols-3">
+      <div className="min-w-0 space-y-1">
         {htmlFor ? (
-          <label className="text-sm font-medium" htmlFor={htmlFor}>
+          <label
+            className="flex items-center text-sm font-medium lg:min-h-8"
+            htmlFor={htmlFor}
+          >
             {label}
           </label>
         ) : (
-          <p className="text-sm font-medium">{label}</p>
+          <p className="flex items-center text-sm font-medium lg:min-h-8">
+            {label}
+          </p>
         )}
         {description ? (
           <p className="text-muted-foreground text-xs text-pretty">
@@ -22,7 +27,9 @@ export function SiteSettingsRow({
           </p>
         ) : null}
       </div>
-      <div className="min-w-0 lg:max-w-2xl">{children}</div>
+      <div className="grid w-full min-w-0 items-center lg:col-span-2 lg:min-h-8 lg:max-w-2xl lg:self-start">
+        {children}
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import { AiTrafficCard } from "@/components/geo/ai-traffic-card";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { WebVisitorsSection } from "@/components/geo/web-visitors-section";
 import { useSite } from "@/components/sites/site-context";
@@ -15,17 +16,20 @@ import {
 } from "@/constants/empty-state";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useSiteAnalytics } from "@/lib/hooks/use-sites";
+import { geoSettingsPath } from "@/utils/settings-path";
+import { hasWebAnalytics } from "@/utils/web-analytics";
 
 export function SiteAnalyticsPage() {
   const t = useTranslations("sites.analyticsPage");
-  const { organizationId, siteId } = useSite();
+  const { organizationId, organizationSlug, siteId } = useSite();
   const geoRange = useGeoRange();
   const query = useSiteAnalytics(organizationId, siteId, geoRange.query);
   const data = query.data;
+  const showVisitors = hasWebAnalytics(data?.web);
   const isEmpty =
     data !== undefined &&
     data.web.totals.views === 0 &&
-    data.traffic.sources.length === 0;
+    !data.traffic.sources.some((source) => source.visits > 0);
 
   return (
     <div className="space-y-6">
@@ -56,11 +60,19 @@ export function SiteAnalyticsPage() {
           title={t("emptyTitle")}
         />
       ) : null}
-      {data !== undefined && !isEmpty ? (
+      {data !== undefined && !isEmpty && showVisitors ? (
         <WebVisitorsSection
           range={geoRange.query}
           traffic={data.traffic}
           web={data.web}
+        />
+      ) : null}
+      {data !== undefined && !isEmpty && !showVisitors ? (
+        <AiTrafficCard
+          pages={[]}
+          range={geoRange.query}
+          settingsHref={geoSettingsPath(organizationSlug)}
+          traffic={data.traffic}
         />
       ) : null}
     </div>

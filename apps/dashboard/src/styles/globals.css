@@ -356,3 +356,9 @@
     animation: none;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-deployment-phase {
+    transition: flex-grow 700ms linear;
+  }
+}

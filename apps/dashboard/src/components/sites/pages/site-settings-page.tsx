@@ -10,13 +10,12 @@ import { useId, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { useSite } from "@/components/sites/site-context";
 import {
   SiteChoiceGroup,
   SiteSectionsFields,
 } from "@/components/sites/site-form-fields";
-import { SitePreviewAccessDialog } from "@/components/sites/site-preview-access-dialog";
+import { SitePreviewAccessControl } from "@/components/sites/site-preview-access-control";
 import { SiteSettingsDangerZone } from "@/components/sites/site-settings-danger-zone";
 import { SiteSettingsRow } from "@/components/sites/site-settings-row";
 import { SiteSettingsSaveBar } from "@/components/sites/site-settings-save-bar";
@@ -29,7 +28,6 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteSettingsFormProps } from "@/types/components/sites";
 import type { SiteSettingsForm as SiteSettingsFormValues } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
-import { sitePreviewAccessMode } from "@/utils/site-preview-access";
 import {
   siteSettingsFormFromSite,
   siteSettingsPatch,
@@ -61,7 +59,6 @@ function SiteSettingsForm({
   const id = useId();
   const invalidateSites = useInvalidateSites();
   const tAccess = useTranslations("sites.previewAccess");
-  const [accessOpen, setAccessOpen] = useState(false);
   const publishModeOptions = useSitePublishModeOptions();
   const { site } = detail;
   const [form, setForm] = useState<SiteSettingsFormValues>(() =>
@@ -145,7 +142,7 @@ function SiteSettingsForm({
               htmlFor={`${id}-subdirectory`}
               label={tNew("subdirectory")}
             >
-              <div className="flex lg:h-full lg:items-center lg:justify-end">
+              <div className="flex lg:h-full lg:items-center">
                 <Switch
                   checked={subdirectory.checked}
                   id={`${id}-subdirectory`}
@@ -203,20 +200,8 @@ function SiteSettingsForm({
             description={t("previewsEnabledHint")}
             label={tAccess("title")}
           >
-            <div className="flex items-center gap-3 lg:pt-1">
-              <span className="text-sm">
-                {site.previewsEnabled
-                  ? tAccess(`trigger.${sitePreviewAccessMode(site)}`)
-                  : tAccess("trigger.off")}
-              </span>
-              <Button
-                onClick={() => setAccessOpen(true)}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                {tPage("changeAccess")}
-              </Button>
+            <div className="flex">
+              <SitePreviewAccessControl />
             </div>
           </SiteSettingsRow>
         </TitleCard>
@@ -250,7 +235,6 @@ function SiteSettingsForm({
         site={site}
         siteId={siteId}
       />
-      <SitePreviewAccessDialog onOpenChange={setAccessOpen} open={accessOpen} />
     </div>
   );
 }

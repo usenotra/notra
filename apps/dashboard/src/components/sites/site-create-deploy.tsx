@@ -54,13 +54,12 @@ export function SiteCreateDeploy({
   });
   const record = deployment.data?.deployment ?? null;
   const status = record?.status ?? "queued";
-  const inProgress = isDeploymentInProgress(status);
+  const inProgress = deploymentQueued && isDeploymentInProgress(status);
   const failed =
     !deploymentQueued || status === "failed" || status === "canceled";
   const ready = record !== null && !(inProgress || failed);
-  const awaitsStarterMerge =
+  const configMissing =
     failed &&
-    starterPullRequestUrl !== null &&
     (record?.diagnostics ?? []).some(
       (diagnostic) => diagnostic.code === SITE_CONFIG_MISSING_DIAGNOSTIC
     );
@@ -76,12 +75,12 @@ export function SiteCreateDeploy({
     : 0;
 
   let headline = t("waiting");
-  if (record && inProgress) {
+  if (!deploymentQueued) {
+    headline = t("notStarted");
+  } else if (record && inProgress) {
     headline = t("started", { seconds: startedSeconds });
   } else if (ready) {
     headline = t("ready", { duration: elapsed ?? "" });
-  } else if (!deploymentQueued) {
-    headline = t("notStarted");
   } else if (failed) {
     headline = t("failed");
   }
@@ -93,62 +92,67 @@ export function SiteCreateDeploy({
     icon = MultiplicationSignCircleIcon;
   }
 
+  const heading = (
+    <span
+      aria-live="polite"
+      className={cn(
+        "inline-flex items-center gap-2",
+        ready && "text-success",
+        failed && "text-destructive",
+        !(ready || failed) && "text-muted-foreground"
+      )}
+    >
+      <HugeiconsIcon
+        aria-hidden="true"
+        className={cn(
+          "size-4",
+          !(ready || failed) && "motion-safe:animate-spin"
+        )}
+        icon={icon}
+        strokeWidth={1.75}
+      />
+      {headline}
+    </span>
+  );
+
   return (
     <div className="space-y-4">
-      <p
-        aria-live="polite"
-        className={cn(
-          "flex items-center gap-2 text-sm",
-          ready && "text-success",
-          failed && "text-destructive",
-          !(ready || failed) && "text-muted-foreground"
-        )}
-      >
-        <HugeiconsIcon
-          aria-hidden="true"
-          className={cn(
-            "size-4",
-            !(ready || failed) && "motion-safe:animate-spin"
-          )}
-          icon={icon}
-          strokeWidth={1.75}
-        />
-        {headline}
-      </p>
-
-      {awaitsStarterMerge ? (
-        <p className="animate-in fade-in text-sm duration-300">
-          {t("mergeStarter")}{" "}
-          <a
-            className="text-primary inline-flex items-center gap-0.5 underline-offset-4 hover:underline"
-            href={starterPullRequestUrl ?? undefined}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {t("viewPullRequest")}
-            <HugeiconsIcon
-              aria-hidden="true"
-              className="size-3.5"
-              icon={ArrowUpRight01Icon}
-            />
-          </a>
-        </p>
-      ) : null}
-
-      <div
-        className={cn(
-          "overflow-hidden rounded-xl border",
-          !deploymentQueued && "hidden"
-        )}
-      >
-        <div className="h-80">
+      {deploymentQueued ? (
+        <div className="overflow-hidden rounded-xl border">
           <SiteBuildLogs
+            heading={heading}
             inProgress={inProgress}
             log={deployment.data?.log ?? null}
             queued={!record || status === "queued"}
           />
         </div>
-      </div>
+      ) : (
+        <div className="text-sm">{heading}</div>
+      )}
+
+      {configMissing ? (
+        <p className="animate-in fade-in text-sm duration-300">
+          {t("configMissingRetry")}
+          {starterPullRequestUrl ? (
+            <>
+              {" "}
+              <a
+                className="text-primary inline-flex items-center gap-0.5 underline-offset-4 hover:underline"
+                href={starterPullRequestUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t("viewPullRequest")}
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  className="size-3.5"
+                  icon={ArrowUpRight01Icon}
+                />
+              </a>
+            </>
+          ) : null}
+        </p>
+      ) : null}
 
       {ready || failed ? (
         <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap justify-end gap-2 duration-300">

@@ -48,18 +48,20 @@ export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
     return <p className="text-muted-foreground text-sm">{t("noRecords")}</p>;
   }
   return (
-    <div className="bg-muted/30 overflow-hidden rounded-lg border">
-      <table className="w-full table-fixed text-sm">
+    <div className="bg-muted/30 overflow-x-auto rounded-lg border">
+      <table className="w-full min-w-[32rem] table-fixed text-sm">
         <colgroup>
           <col className="w-18" />
-          <col className="w-[43%]" />
+          <col className="w-[25%]" />
           <col />
+          <col className="w-36" />
         </colgroup>
         <thead>
           <tr className="text-muted-foreground text-left text-xs">
             <th className="py-2 pr-4 pl-3 font-normal">{t("type")}</th>
             <th className="py-2 pr-4 font-normal">{t("name")}</th>
             <th className="py-2 pr-3 font-normal">{t("value")}</th>
+            <th className="py-2 pr-3 font-normal">{t("proxy")}</th>
           </tr>
         </thead>
         <tbody>
@@ -76,6 +78,13 @@ export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
               </td>
               <td className="min-w-0 py-2 pr-3">
                 <RecordValue label={t("value")} value={record.value} />
+              </td>
+              <td className="text-muted-foreground py-2 pr-3 text-xs">
+                {record.type === "CNAME" ? (
+                  <span title={t("proxyRequirement")}>{t("dnsOnly")}</span>
+                ) : (
+                  t("proxyNotApplicable")
+                )}
               </td>
             </tr>
           ))}
@@ -100,7 +109,6 @@ function ProviderButton({
   }
   return (
     <Button
-      className="w-full shrink-0 sm:w-auto"
       loading={navigating}
       onClick={() => {
         if (oneClick) {
@@ -130,6 +138,7 @@ export function SiteDnsSetup({
   organizationId,
   siteId,
   domain,
+  checkAction,
 }: SiteDnsSetupProps) {
   const t = useTranslations("sites.domainsPage.dns");
   const connect = useSiteDomainConnect({ organizationId, siteId, domain });
@@ -141,9 +150,6 @@ export function SiteDnsSetup({
     result?.status === "unsupported"
       ? siteDnsProviderDashboardUrl(result.providerName, result.zone)
       : null;
-  const isCloudflare =
-    !provider || SITE_CLOUDFLARE_PROVIDER_PATTERN.test(provider);
-
   let action: ReactNode = null;
   if (ready) {
     action = (
@@ -159,19 +165,9 @@ export function SiteDnsSetup({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-0.5">
-          <p className="text-sm font-medium">
-            {provider ? t("titleAt", { provider }) : t("calloutTitle")}
-          </p>
-          <p className="text-muted-foreground text-sm text-pretty">
-            {ready
-              ? t("connectDescription", { provider: ready.providerName })
-              : t("calloutDescription")}
-            {!ready && isCloudflare ? ` ${t("cloudflareHint")}` : null}
-          </p>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
         {action}
+        {checkAction}
       </div>
       <SiteDnsRecordsTable records={domain.records} />
     </div>

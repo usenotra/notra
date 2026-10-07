@@ -7,6 +7,7 @@ type SessionData = Awaited<ReturnType<typeof getServerSession>>;
 export interface ORPCRequestMemo {
   readonly shelfMembersByOrganization: Map<string, Promise<GeoShelfMember[]>>;
   readonly analyticsEnabledByOrganization: Map<string, Promise<boolean>>;
+  readonly sitesEnabledByOrganization: Map<string, Promise<boolean>>;
   readonly geoEntitlementByOrganization: Map<
     string,
     Promise<"entitled" | "denied" | "skipped">
@@ -30,6 +31,7 @@ function createRequestMemo(): ORPCRequestMemo {
   return {
     shelfMembersByOrganization: new Map(),
     analyticsEnabledByOrganization: new Map(),
+    sitesEnabledByOrganization: new Map(),
     geoEntitlementByOrganization: new Map(),
     membershipByUserOrganization: new Map(),
   };

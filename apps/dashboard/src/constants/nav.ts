@@ -214,6 +214,7 @@ export const NAV_UTILITY_LINKS: readonly string[] = [
 export const DEFAULT_NAV_VISIBILITY: NavVisibility = {
   iris: true,
   analytics: true,
+  sites: false,
 };
 
 export const NAV_PRIMARY_ACTIONS: Record<SidebarMode, NavPrimaryActionConfig> =

@@ -65,7 +65,7 @@ export function SiteCreateStarter({
           </a>
         </p>
         <p className="text-muted-foreground pl-6 text-xs text-pretty">
-          {t("mergeFirst")}
+          {t("optional")}
         </p>
       </div>
     );

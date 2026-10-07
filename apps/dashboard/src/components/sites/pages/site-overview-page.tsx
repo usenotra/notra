@@ -31,7 +31,7 @@ import type {
   SiteUpdatedLineProps,
   SiteViewAllLinkProps,
 } from "@/types/components/sites";
-import { siteHref } from "@/utils/site-links";
+import { siteHref, sitePreviewDeploymentsHref } from "@/utils/site-links";
 import { sitePreviewRows } from "@/utils/site-previews";
 
 function ViewAllLink({ href, label }: SiteViewAllLinkProps) {
@@ -162,7 +162,7 @@ export function SiteOverviewPage() {
         <InstrumentSection
           action={
             <ViewAllLink
-              href={siteHref(organizationSlug, siteId, "previews")}
+              href={sitePreviewDeploymentsHref(organizationSlug, siteId)}
               label={t("viewAll")}
             />
           }

@@ -37,7 +37,10 @@ import {
   siteStarterInputSchema,
   updateSiteInputSchema,
 } from "@notra/schemas/dashboard/sites";
-import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
+import {
+  SITE_CONFIG_FILENAME,
+  SITE_R2_KEYS,
+} from "@notra/sites-core/constants/sites";
 import { hashBuildTarget } from "@notra/sites-core/utils/build-target";
 import {
   deployBranchHead,
@@ -110,6 +113,7 @@ import {
   siteAliasOrigin,
   sitePreviewOrigin,
 } from "@notra/sites-server/urls";
+import { defaultSiteConfigContent } from "@notra/sites-server/utils/default-config";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -126,6 +130,7 @@ import {
   serviceUnavailable,
 } from "@/lib/orpc/utils/errors";
 import { toGeoOrpcError } from "@/lib/orpc/utils/geo-errors";
+import { assertSitesAccess } from "@/lib/sites/access";
 import { dispatchSiteJobs } from "@/lib/sites/dispatch";
 import { toSitesOrpcError } from "@/lib/sites/orpc-errors";
 import {
@@ -143,7 +148,15 @@ import type {
 } from "@/types/sites-server";
 import { toGitHubOperationOrpcError } from "@/utils/github-operation-error";
 
-const sitesProcedure = authorizedProcedure.use(async ({ next }) => {
+const sitesAccessProcedure = authorizedProcedure.use(
+  async ({ context, next }, input) => {
+    const { organizationId } = organizationIdInputSchema.parse(input);
+    await assertSitesAccess({ headers: context.headers, organizationId });
+    return next();
+  }
+);
+
+const sitesProcedure = sitesAccessProcedure.use(async ({ next }) => {
   if (!isSitesConfigured()) {
     throw serviceUnavailable(
       "Notra Sites is not configured on this environment"
@@ -205,7 +218,7 @@ async function serializeDeploymentList(
 }
 
 export const sitesRouter = {
-  status: authorizedProcedure
+  status: sitesAccessProcedure
     .input(organizationIdInputSchema)
     .handler(async ({ context, input }) => {
       await assertOrganizationAccess({
@@ -219,7 +232,7 @@ export const sitesRouter = {
       return { configured, hostingDomain };
     }),
 
-  list: authorizedProcedure
+  list: sitesAccessProcedure
     .input(organizationIdInputSchema)
     .handler(async ({ context, input }) => {
       await assertOrganizationAccess({
@@ -254,7 +267,7 @@ export const sitesRouter = {
       };
     }),
 
-  importableRepositories: authorizedProcedure
+  importableRepositories: sitesAccessProcedure
     .input(organizationIdInputSchema)
     .handler(async ({ context, input }) => {
       await assertOrganizationAccess({
@@ -302,7 +315,7 @@ export const sitesRouter = {
       };
     }),
 
-  connectRepository: authorizedProcedure
+  connectRepository: sitesAccessProcedure
     .input(connectSiteRepositoryInputSchema)
     .handler(async ({ context, input }) => {
       const auth = await assertOrganizationAccess({
@@ -506,15 +519,12 @@ export const sitesRouter = {
       .input(listSiteDeploymentsInputSchema)
       .handler(async ({ context, input }) => {
         const { site } = await requireSite(context, input);
-        const [deployments, state] = await Promise.all([
-          listSiteDeployments(site.id, input.limit),
-          servingState(site.id),
+        const state = await servingState(site.id);
+        const live = liveDeploymentsFromState(state);
+        const deployments = await listSiteDeployments(site.id, input.limit, [
+          ...live.keys(),
         ]);
-        return await serializeDeploymentList(
-          site,
-          deployments,
-          liveDeploymentsFromState(state)
-        );
+        return await serializeDeploymentList(site, deployments, live);
       }),
 
     get: sitesProcedure
@@ -683,9 +693,19 @@ export const sitesRouter = {
           listSiteSourceFiles(site),
           listSiteDrafts(site.id),
         ]);
+        const files = [...source.files];
+        if (!files.some((file) => file.path === SITE_CONFIG_FILENAME)) {
+          const content = defaultSiteConfigContent(site);
+          files.push({
+            path: SITE_CONFIG_FILENAME,
+            sha: "",
+            size: Buffer.byteLength(content),
+          });
+          files.sort((left, right) => left.path.localeCompare(right.path));
+        }
         return {
           commitSha: source.commitSha,
-          files: source.files,
+          files,
           drafts: drafts.map((draft) => ({
             path: draft.path,
             deleted: draft.deleted,
@@ -708,7 +728,12 @@ export const sitesRouter = {
         return {
           path: input.path,
           content:
-            draft && !draft.deleted ? draft.content : (file?.content ?? ""),
+            draft && !draft.deleted
+              ? draft.content
+              : (file?.content ??
+                (input.path === SITE_CONFIG_FILENAME
+                  ? defaultSiteConfigContent(site)
+                  : "")),
           published: file?.content ?? null,
           blobSha: draft ? draft.baseBlobSha : (file?.sha ?? null),
           publishedBlobSha: file?.sha ?? null,

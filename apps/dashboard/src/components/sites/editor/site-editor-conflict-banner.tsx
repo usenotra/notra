@@ -10,6 +10,7 @@ import type { SiteEditorConflictBannerProps } from "@/types/components/site-edit
 export function SiteEditorConflictBanner({
   paths,
   isRebasing,
+  canRebase,
   onSelect,
   onRebase,
   onDismiss,
@@ -38,6 +39,7 @@ export function SiteEditorConflictBanner({
               <li key={path}>
                 <button
                   className="bg-background hover:bg-muted max-w-full truncate rounded-md border px-2 py-0.5 font-mono text-xs transition-colors duration-150"
+                  disabled={isRebasing}
                   onClick={() => onSelect(path)}
                   title={path}
                   type="button"
@@ -51,6 +53,7 @@ export function SiteEditorConflictBanner({
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <Button
+          disabled={!canRebase}
           loading={isRebasing}
           onClick={onRebase}
           size="sm"

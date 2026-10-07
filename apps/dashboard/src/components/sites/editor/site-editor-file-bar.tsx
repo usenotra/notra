@@ -72,7 +72,7 @@ export function SiteEditorFileBar({
       ? siteFileLiveUrl(path, site.publicOrigin, site.mounts)
       : null;
   const githubUrl = isNewFile ? null : siteFileGithubUrl(site, path);
-  const canDiscard = hasDraft || isNewFile;
+  const canDiscard = hasDraft;
 
   const breadcrumb = (
     <span className="flex min-w-0 items-center gap-1 truncate text-[13px]">

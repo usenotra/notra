@@ -1,12 +1,42 @@
 import type { Editor } from "@pierre/diffs/edit";
 
+import type { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteDiagnostic } from "@/types/sites";
 
 export interface SiteEditorSaveState {
-  status: "idle" | "dirty" | "saving" | "saved" | "error";
+  status: "idle" | "dirty" | "saving" | "saved" | "error" | "discarding";
   error?: string;
 }
 
+export type SiteEditorDraftInput = Parameters<
+  typeof dashboardOrpc.sites.editor.saveDraft.call
+>[0];
+export type SiteEditorDraftResult = Awaited<
+  ReturnType<typeof dashboardOrpc.sites.editor.saveDraft.call>
+>;
+
+export interface SiteEditorSaveSnapshot {
+  content: string | null;
+  state: SiteEditorSaveState;
+  revision: number;
+}
+
+export interface SiteEditorSaveQueueOptions {
+  save: (input: SiteEditorDraftInput) => Promise<SiteEditorDraftResult>;
+  discard: () => Promise<void>;
+  onSaved: (input: SiteEditorDraftInput, result: SiteEditorDraftResult) => void;
+  onDiscarded: () => Promise<void>;
+  onStateChange: (state: SiteEditorSaveState) => void;
+  errorMessage: (error: unknown) => string;
+}
+
+export interface SiteEditorSaveQueue {
+  getSnapshot: () => SiteEditorSaveSnapshot;
+  subscribe: (listener: () => void) => () => void;
+  edit: (input: SiteEditorDraftInput) => void;
+  flush: () => Promise<void>;
+  discard: () => Promise<void>;
+}
 export type SiteEditorLanguage =
   | "mdx"
   | "markdown"

@@ -9,6 +9,7 @@ import {
   RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Badge } from "@notra/ui/components/ui/badge";
 import {
   DataTable,
   type TableColumn,
@@ -44,7 +45,6 @@ import type { SiteDomainRow } from "@/types/sites";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
 import { siteDomainChipStatus, siteDomainUrl } from "@/utils/site-domains";
 import { displayUrl } from "@/utils/site-links";
-import { mountedPaths } from "@/utils/site-proxy-recipes";
 import { tableHeightFor } from "@/utils/table";
 
 function StatusDot({ status }: SiteDomainStatusDotProps) {
@@ -157,7 +157,7 @@ export function SiteDomainsTable({
 }: SiteDomainsTableProps) {
   const t = useTranslations("sites.domainsPage");
   const scope = { organizationId, siteId };
-  const [toggled, setToggled] = useState<ReadonlySet<string>>(new Set());
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const rows: SiteDomainRow[] = [
     {
       id: "alias",
@@ -176,27 +176,14 @@ export function SiteDomainsTable({
   const rowStatus = (row: SiteDomainRow) =>
     row.kind === "alias" ? "active" : siteDomainChipStatus(row.domain);
 
-  const isExpanded = (row: SiteDomainRow) => {
-    if (row.kind === "alias") {
-      return false;
-    }
-    const open = row.domain.status !== "active";
-    return toggled.has(row.id) ? !open : open;
-  };
+  const isExpanded = (row: SiteDomainRow) =>
+    row.kind === "domain" && row.id === expandedId;
 
   const toggle = (row: SiteDomainRow) => {
     if (row.kind === "alias") {
       return;
     }
-    setToggled((previous) => {
-      const next = new Set(previous);
-      if (next.has(row.id)) {
-        next.delete(row.id);
-      } else {
-        next.add(row.id);
-      }
-      return next;
-    });
+    setExpandedId((previous) => (previous === row.id ? null : row.id));
   };
 
   const columns: TableColumn<SiteDomainRow>[] = [
@@ -208,21 +195,18 @@ export function SiteDomainsTable({
       cell: (row) => {
         const isAlias = row.kind === "alias";
         const name = rowHostname(row);
-        let detail = t("notraAddress");
-        if (!isAlias) {
-          detail =
-            row.domain.kind === "proxy"
-              ? t("kindProxyPaths", { paths: mountedPaths(mounts).join(", ") })
-              : t("kinds.subdomain");
-        }
         const primary = isAlias ? row.isPrimary : row.domain.isPrimary;
         return (
           <span className="flex min-w-0 flex-col gap-1">
-            <span className="truncate font-medium" title={name}>
-              {name}
-            </span>
-            <span className="text-muted-foreground truncate text-xs">
-              {primary ? `${detail} · ${t("primary")}` : detail}
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium" title={name}>
+                {name}
+              </span>
+              {primary ? (
+                <Badge className="shrink-0" variant="secondary">
+                  {t("primary")}
+                </Badge>
+              ) : null}
             </span>
             <span className="@min-[30rem]/main:hidden">
               <StatusDot status={rowStatus(row)} />
@@ -316,7 +300,6 @@ export function SiteDomainsTable({
   return (
     <DataTable
       autoHeight
-      className="rounded-2xl"
       columns={columns}
       data={rows}
       getRowId={(row) => row.id}

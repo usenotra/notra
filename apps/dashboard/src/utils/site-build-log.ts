@@ -1,3 +1,4 @@
+import { SITE_DEPLOYMENT_PHASE_MARKER } from "@/constants/site-deployment-timeline";
 import {
   SITE_BUILD_LOG_FRAME_FOLD_MIN,
   SITE_BUILD_LOG_NOISE_FOLD_MIN,
@@ -35,7 +36,12 @@ export function parseBuildLog(log: string): SiteBuildLogLine[] {
   const rawLines = stripAnsi(log).replace(/\s+$/, "").split(LINE_BREAK);
   const lines: SiteBuildLogLine[] = [];
   let blockTone: SiteBuildLogTone = "default";
+  let phasePrefix = true;
   for (const [index, raw] of rawLines.entries()) {
+    if (phasePrefix && SITE_DEPLOYMENT_PHASE_MARKER.test(raw)) {
+      continue;
+    }
+    phasePrefix = false;
     const match = TIMESTAMP_PREFIX.exec(raw);
     const timestamp = match?.[1] ?? null;
     const text = match ? (match[2] ?? "") : raw;

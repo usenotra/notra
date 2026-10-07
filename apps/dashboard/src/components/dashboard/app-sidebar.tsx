@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 import dynamic from "@/utils/lazy-component";
@@ -75,13 +76,15 @@ export function DashboardSidebar({
   const searchParams = useSearchParams();
   const { isMobile, setOpenMobile } = useSidebar();
   const { activeOrganization } = useOrganizationsContext();
+  const visibility = useNavVisibility();
   const navigationKey = `${pathname}?${searchParams.toString()}`;
   const pathnameSegments = pathname.split("/").filter(Boolean);
   const slug = pathnameSegments[0] ?? activeOrganization?.slug ?? "";
 
   const section = pathnameSegments[1];
   const siteSegment = section === "sites" ? pathnameSegments[2] : undefined;
-  const isSitePage = Boolean(siteSegment) && siteSegment !== "new";
+  const isSitePage =
+    visibility.sites && Boolean(siteSegment) && siteSegment !== "new";
   let panelId = section === "chat" || section === "brand" ? section : "main";
   if (isSitePage) {
     panelId = "site";
@@ -187,7 +190,7 @@ export function DashboardSidebar({
               children: (
                 <>
                   <SidebarBackButton onBack={handleBack} />
-                  <NavSite slug={slug} />
+                  {visibility.sites ? <NavSite slug={slug} /> : null}
                 </>
               ),
             },

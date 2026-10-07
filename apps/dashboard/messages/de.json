@@ -2223,6 +2223,7 @@
       "setUpGeoTracking": "GEO-Tracking einrichten",
       "vsPreviousPeriodOfThe": "ggü. vorherigem Zeitraum gleicher Länge",
       "path": "Pfad",
+      "paths": "Pfade",
       "fetches": "Abrufe",
       "crawler": "Crawler",
       "lastSeenTime": "Zuletzt gesehen {time}",
@@ -3836,7 +3837,9 @@
         "description": "KI-Crawler und Verweise, die deine Website besuchen",
         "setupDescription": "Richte zuerst das GEO-Tracking ein und beobachte dann KI-Crawler und Verweise, sobald sie eintreffen.",
         "titleWithVisitors": "Traffic",
-        "descriptionWithVisitors": "Menschen und AI-Agents auf deiner Website"
+        "descriptionWithVisitors": "Menschen und AI-Agents auf deiner Website",
+        "emptyRangeTitle": "Kein Traffic in diesem Zeitraum",
+        "emptyRangeDescription": "Wähle einen anderen Zeitraum oder eine andere Domain."
       },
       "write": {
         "metaTitle": "GEO Writer",
@@ -3876,7 +3879,6 @@
       "startRescanFailed": "Erneuter Scan konnte nicht gestartet werden",
       "loadAgentReadinessFailed": "Agent Readiness konnte nicht geladen werden",
       "loadVisitorsFailed": "Besucher konnten nicht geladen werden",
-      "trackVisitorsFailed": "Besucher-Tracking konnte nicht geändert werden",
       "loadAITrafficFailed": "KI-Traffic konnte nicht geladen werden",
       "loadAITrackingLogFailed": "KI-Tracking-Log konnte nicht geladen werden",
       "loadTopAIPagesFailed": "Top-KI-Seiten konnten nicht geladen werden",
@@ -3977,6 +3979,7 @@
       "noMatches": "Keine Wettbewerber passen zu „{query}“."
     },
     "webVisitors": {
+      "comparisonUnavailable": "Keine Daten für den vorherigen Zeitraum",
       "visitors": "Besucher",
       "views": "Seitenaufrufe",
       "fromAi": "Aus AI-Antworten",
@@ -4000,12 +4003,6 @@
       "pagesPerSession": "Seiten pro Besuch",
       "engagedRate": "Weitergelesen",
       "noData": "Keine Besucher in diesem Zeitraum",
-      "trackTitle": "Auch Menschen zählen",
-      "trackDescription": "Besucher, Quellen und Länder neben dem AI-Traffic. Ohne Cookies, ohne Script.",
-      "trackOn": "Besucher-Tracking ist an",
-      "trackOnDescription": "Menschen tauchen hier eine Minute nach dem ersten Besuch auf.",
-      "trackSiteTitle": "Menschen auch auf deinen anderen Domains zählen",
-      "trackSiteDescription": "Deine Notra Site zählt ihre Besucher schon. Schalte das ein, um auch Menschen auf den Domains mit SDK zu zählen.",
       "columnViews": "Aufrufe",
       "columnFromAi": "Aus AI",
       "columnSource": "Quelle",
@@ -6838,7 +6835,7 @@
       "branch": "Produktions-Branch",
       "rootDirectoryPlaceholder": "apps/blog",
       "publishMode": "Veröffentlichen aus dem Editor",
-      "create": "Site erstellen",
+      "create": "Erstellen & deployen",
       "createFailed": "Site konnte nicht erstellt werden",
       "noBranchMatch": "Kein passender Branch",
       "noDirectoryMatch": "Kein Ordner mit blog.json passt",
@@ -6875,22 +6872,22 @@
         "visit": "Öffnen",
         "openSite": "Zur Site",
         "viewDeployment": "Deployment ansehen",
-        "mergeStarter": "Merge den Starter-Pull-Request und deploye dann erneut.",
+        "configMissingRetry": "Dieser Build hat eine fehlende blog.json gemeldet. Starte das Deployment auf der Site erneut, um das Standardlayout und die Standardkonfiguration zu verwenden. Der Starter-Pull-Request ist optional.",
         "viewPullRequest": "Pull Request ansehen",
         "notStarted": "Der erste Build konnte nicht starten. Starte ihn auf der Site."
       },
       "starter": {
-        "missing": "In diesem Repository gibt es noch keine blog.json.",
-        "create": "Starter aus deiner Marke erstellen",
+        "missing": "Keine blog.json? Notra verwendet sofort das Standardlayout und die Standardkonfiguration. Für eigene Marken-, Header- und Footer-Dateien kannst du optional einen Starter-Pull-Request öffnen.",
+        "create": "Starter-PR öffnen (optional)",
         "opened": "Pull Request geöffnet",
-        "view": "Ansehen",
-        "mergeFirst": "Merge ihn, bevor du die Site erstellst. Sonst schlägt der erste Build fehl, weil die blog.json fehlt.",
+        "view": "PR ansehen",
+        "optional": "Du kannst die Site jetzt mit dem Standardlayout und der Standardkonfiguration erstellen und deployen. Dieser Pull Request ergänzt eigene Marken-, Header- und Footer-Dateien; der Merge ist optional.",
         "failed": "Der Starter-Pull-Request konnte nicht geöffnet werden"
       },
-      "subdirectory": "blog.json liegt in einem Unterordner",
+      "subdirectory": "Site liegt in einem Unterordner",
       "subdirectoryHint": "Einschalten, wenn die Seite in einem Ordner des Repositorys liegt.",
-      "rootDirectoryPath": "Pfad zu blog.json",
-      "rootDirectoryPathHint": "Ordner mit der blog.json, relativ zum Repository-Root."
+      "rootDirectoryPath": "Ordner der Site",
+      "rootDirectoryPathHint": "Ordner für die Site, relativ zum Repository-Root. Eine blog.json ist optional."
     },
     "detail": {
       "visit": "Öffnen",
@@ -7088,7 +7085,7 @@
       "previewNothingLive": "Noch nichts live"
     },
     "deploymentsPage": {
-      "description": "Alle Builds dieser Site, die neuesten zuerst.",
+      "description": "Produktions- und Preview-Builds dieser Site, die neuesten zuerst.",
       "current": "Aktuell",
       "columns": {
         "deployment": "Deployment",
@@ -7102,6 +7099,9 @@
       },
       "filters": {
         "label": "Deployments filtern",
+        "searchLabel": "Deployments durchsuchen",
+        "searchPlaceholder": "Branch, Commit oder Preview suchen…",
+        "active": "Filter aktiv",
         "environment": "Umgebung",
         "status": "Status",
         "trigger": "Auslöser",
@@ -7138,6 +7138,26 @@
       }
     },
     "deploymentPage": {
+      "timeline": {
+        "title": "Deployment-Zeitstrahl",
+        "live": "Live aktualisiert",
+        "timingUnavailable": "Keine Zeitmessung verfügbar",
+        "phases": {
+          "queued": "Warteschlange",
+          "preparing": "Quellcode vorbereiten",
+          "building": "Build",
+          "deploying": "Deployen",
+          "execution": "Build & Deployment"
+        },
+        "states": {
+          "pending": "Noch nicht gestartet",
+          "unknown": "Keine Zeitmessung verfügbar",
+          "active": "Läuft",
+          "complete": "Abgeschlossen",
+          "failed": "Fehlgeschlagen",
+          "stopped": "Gestoppt"
+        }
+      },
       "title": "Deployment-Details",
       "visit": "Öffnen",
       "notLive": "Nicht live",
@@ -7267,7 +7287,8 @@
       "verifyNow": "Jetzt prüfen",
       "verifyDnsHint": "DNS-Änderungen können ein paar Minuten dauern.",
       "verifyProxyHint": "Wir rufen eine Testdatei über deine Site ab.",
-      "lastErrorTitle": "Letzte Prüfung fehlgeschlagen",
+      "lastErrorTitle": "Details zur Domainprüfung:",
+      "lastCheckDetails": "Details zur letzten Prüfung",
       "remove": "Entfernen",
       "removeConfirm": "Domain entfernen",
       "removeTitle": "Domain entfernen?",
@@ -7295,10 +7316,18 @@
         "connect": "Mit {provider} verbinden",
         "connectDescription": "Wir legen die DNS-Einträge für dich an. Du bestätigst das bei {provider}.",
         "titleAt": "Diese Einträge bei {provider} anlegen",
-        "openProvider": "{provider}-DNS öffnen"
+        "openProvider": "{provider}-DNS öffnen",
+        "proxy": "Proxy",
+        "dnsOnly": "Nur DNS (erforderlich)",
+        "proxyRequirement": "Deaktiviere den Proxy für diesen CNAME. Dies ist die erforderliche Einstellung, kein beobachteter DNS-Status.",
+        "proxyNotApplicable": "Nicht zutreffend"
       },
       "proxy": {
         "title": "Proxy-Einrichtung",
+        "agentPromptDescription": "Lass deinen Coding-Agent den Proxy einrichten.",
+        "agentPromptLabel": "Agent-Prompt für das Proxy-Setup",
+        "manualSetup": "Manuell einrichten",
+        "viewPrompt": "Prompt ansehen",
         "description": "Leite <code>{paths}</code> und alles darunter an <code>{origin}</code> weiter, der Pfad bleibt gleich.",
         "platform": "Plattform",
         "noCookies": "Leite keine Cookies oder Authorization-Header weiter. Die Site braucht sie nicht.",

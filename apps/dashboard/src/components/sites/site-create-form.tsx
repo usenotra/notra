@@ -161,9 +161,8 @@ export function SiteCreateForm({
       goTo("configure", `${id}-name`);
     } catch (error) {
       toast.error(toErrorMessage(error, t("importFailed")));
-    } finally {
-      setImportingId(null);
     }
+    setImportingId(null);
   };
 
   const create = () => {

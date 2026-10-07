@@ -2223,6 +2223,7 @@
       "setUpGeoTracking": "Set up GEO tracking",
       "vsPreviousPeriodOfThe": "vs previous period of the same length",
       "path": "Path",
+      "paths": "Paths",
       "fetches": "Fetches",
       "crawler": "Crawler",
       "lastSeenTime": "Last seen {time}",
@@ -3836,7 +3837,9 @@
         "description": "AI crawlers and referrals visiting your site",
         "setupDescription": "Set up GEO tracking first, then watch AI crawlers and referrals as they arrive.",
         "titleWithVisitors": "Traffic",
-        "descriptionWithVisitors": "People and AI agents on your site"
+        "descriptionWithVisitors": "People and AI agents on your site",
+        "emptyRangeTitle": "No traffic in this period",
+        "emptyRangeDescription": "Try a different date range or domain."
       },
       "write": {
         "metaTitle": "GEO Writer",
@@ -3876,7 +3879,6 @@
       "startRescanFailed": "Failed to start rescan",
       "loadAgentReadinessFailed": "Failed to load agent readiness",
       "loadVisitorsFailed": "Failed to load visitors",
-      "trackVisitorsFailed": "Couldn't change visitor tracking",
       "loadAITrafficFailed": "Failed to load AI traffic",
       "loadAITrackingLogFailed": "Failed to load AI tracking log",
       "loadTopAIPagesFailed": "Failed to load top AI pages",
@@ -3977,6 +3979,7 @@
       "noMatches": "No competitors match “{query}”."
     },
     "webVisitors": {
+      "comparisonUnavailable": "No data for the previous period",
       "visitors": "Visitors",
       "views": "Page views",
       "fromAi": "From AI answers",
@@ -4000,12 +4003,6 @@
       "pagesPerSession": "Pages per visit",
       "engagedRate": "Read further",
       "noData": "No visitors in this period",
-      "trackTitle": "Count people too",
-      "trackDescription": "See visitors, sources and countries next to AI traffic. No cookies, no script.",
-      "trackOn": "Visitor tracking is on",
-      "trackOnDescription": "People show up here within a minute of their first visit.",
-      "trackSiteTitle": "Count people on your other domains",
-      "trackSiteDescription": "Your Notra Site already counts its visitors. Switch this on to count people on the domains that use the SDK too.",
       "columnViews": "Views",
       "columnFromAi": "From AI",
       "columnSource": "Source",
@@ -6838,7 +6835,7 @@
       "branch": "Production branch",
       "rootDirectoryPlaceholder": "apps/blog",
       "publishMode": "Publishing from the editor",
-      "create": "Create site",
+      "create": "Create & deploy",
       "createFailed": "Couldn't create the site",
       "noBranchMatch": "No matching branch",
       "noDirectoryMatch": "No folder with blog.json matches",
@@ -6875,22 +6872,22 @@
         "visit": "Visit",
         "openSite": "Go to site",
         "viewDeployment": "View deployment",
-        "mergeStarter": "Merge the starter pull request, then redeploy.",
+        "configMissingRetry": "This build reported a missing blog.json. Retry the deployment from the site to use the standard layout and configuration. The starter pull request is optional.",
         "viewPullRequest": "View pull request",
         "notStarted": "The first build couldn't start. Deploy it from the site."
       },
       "starter": {
-        "missing": "No blog.json in this repository yet.",
-        "create": "Create starter from your brand",
+        "missing": "No blog.json? Notra uses the standard layout and configuration immediately. For custom brand, header and footer files, optionally open a starter pull request.",
+        "create": "Open starter PR (optional)",
         "opened": "Pull request opened",
-        "view": "View",
-        "mergeFirst": "Merge it before you create the site. Otherwise the first build fails because blog.json is missing.",
-        "failed": "Couldn't open the starter pull request"
+        "view": "View PR",
+        "optional": "You can create and deploy now with the standard layout and configuration. This pull request adds custom brand, header and footer files; merging it is optional.",
+        "failed": "Could not open the starter pull request"
       },
-      "subdirectory": "blog.json is in a subdirectory",
+      "subdirectory": "Site is in a subdirectory",
       "subdirectoryHint": "Turn on when the site lives in a folder of the repository.",
-      "rootDirectoryPath": "Path to blog.json",
-      "rootDirectoryPathHint": "Folder that contains blog.json, relative to the repository root."
+      "rootDirectoryPath": "Site folder",
+      "rootDirectoryPathHint": "Folder for the site, relative to the repository root. A blog.json is optional."
     },
     "detail": {
       "visit": "Visit",
@@ -7088,7 +7085,7 @@
       "previewNothingLive": "Nothing is live yet"
     },
     "deploymentsPage": {
-      "description": "Every build of this site, newest first.",
+      "description": "Production and preview builds of this site, newest first.",
       "current": "Current",
       "columns": {
         "deployment": "Deployment",
@@ -7102,6 +7099,9 @@
       },
       "filters": {
         "label": "Filter deployments",
+        "searchLabel": "Search deployments",
+        "searchPlaceholder": "Search branch, commit or preview…",
+        "active": "Filters active",
         "environment": "Environment",
         "status": "Status",
         "trigger": "Trigger",
@@ -7138,6 +7138,26 @@
       }
     },
     "deploymentPage": {
+      "timeline": {
+        "title": "Deployment timeline",
+        "live": "Updating live",
+        "timingUnavailable": "Timing unavailable",
+        "phases": {
+          "queued": "Queued",
+          "preparing": "Preparing source",
+          "building": "Building",
+          "deploying": "Deploying",
+          "execution": "Build & deploy"
+        },
+        "states": {
+          "pending": "Not started",
+          "unknown": "Timing unavailable",
+          "active": "Running",
+          "complete": "Completed",
+          "failed": "Failed",
+          "stopped": "Stopped"
+        }
+      },
       "title": "Deployment details",
       "visit": "Visit",
       "notLive": "Not live",
@@ -7267,7 +7287,8 @@
       "verifyNow": "Check now",
       "verifyDnsHint": "DNS changes can take a few minutes.",
       "verifyProxyHint": "We fetch a test file through your site.",
-      "lastErrorTitle": "Last check failed",
+      "lastErrorTitle": "Domain check details:",
+      "lastCheckDetails": "Last check details",
       "remove": "Remove",
       "removeConfirm": "Remove domain",
       "removeTitle": "Remove this domain?",
@@ -7295,10 +7316,18 @@
         "connect": "Connect with {provider}",
         "connectDescription": "We'll add the DNS records for you. You approve it at {provider}.",
         "titleAt": "Add these records at {provider}",
-        "openProvider": "Open {provider} DNS"
+        "openProvider": "Open {provider} DNS",
+        "proxy": "Proxy",
+        "dnsOnly": "DNS only (required)",
+        "proxyRequirement": "Disable the proxy for this CNAME. This is the required setting, not an observed DNS status.",
+        "proxyNotApplicable": "N/A"
       },
       "proxy": {
         "title": "Proxy setup",
+        "agentPromptDescription": "Let your coding agent set up the proxy.",
+        "agentPromptLabel": "Proxy setup agent prompt",
+        "manualSetup": "Manual setup",
+        "viewPrompt": "View prompt",
         "description": "Forward <code>{paths}</code> and everything below them to <code>{origin}</code>, keeping the path.",
         "platform": "Platform",
         "noCookies": "Don't forward cookies or authorization headers. The site doesn't need them.",

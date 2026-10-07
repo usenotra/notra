@@ -25,10 +25,12 @@ import {
   useSiteEditorFiles,
   useValidateSiteDrafts,
 } from "@/lib/hooks/use-site-editor-files";
+import { useSiteEditorSaves } from "@/lib/hooks/use-site-editor-saves";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
-import type { SiteEditorJump, SiteEditorSaveState } from "@/types/site-editor";
+import { useWarnBeforeUnload } from "@/lib/hooks/use-warn-before-unload";
+import type { SiteEditorJump } from "@/types/site-editor";
 import type { SiteDiagnostic } from "@/types/sites";
-import { isSiteEditorUnsaved, siteEditorLanguage } from "@/utils/site-editor";
+import { siteEditorLanguage } from "@/utils/site-editor";
 import { createSiteEditor } from "@/utils/site-editor-factory";
 
 export function SiteEditorPage() {
@@ -51,9 +53,11 @@ export function SiteEditorPage() {
     "file",
     parseAsString.withOptions({ history: "replace" })
   );
-  const [saveState, setSaveState] = useState<SiteEditorSaveState>({
-    status: "idle",
-  });
+  const saves = useSiteEditorSaves(
+    { organizationId, siteId },
+    applyDraftChange
+  );
+  useWarnBeforeUnload(saves.unsaved);
   const [jump, setJump] = useState<SiteEditorJump | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [newFileOpen, setNewFileOpen] = useState(false);
@@ -70,12 +74,11 @@ export function SiteEditorPage() {
     Boolean(site.mounts[folder])
   );
   const canCreateFile = data !== null && mountedFolders.length > 0;
-  const unsaved = isSiteEditorUnsaved(saveState);
+  const unsaved = saves.unsaved;
 
   const openFile = useCallback(
     (path: string) => {
       setJump(null);
-      setSaveState({ status: "idle" });
       setPickerOpen(false);
       void setSelectedParam(path);
     },
@@ -155,10 +158,9 @@ export function SiteEditorPage() {
         baseCommitSha={baseCommitSha}
         diagnostics={fileDiagnostics}
         jump={jump?.path === selectedPath ? jump : null}
-        key={`${selectedPath}:${editorEpoch}`}
-        onDraftChange={applyDraftChange}
+        key={`${organizationId}:${siteId}:${selectedPath}:${editorEpoch}`}
         onOpenFilePicker={() => setPickerOpen(true)}
-        onSaveStateChange={setSaveState}
+        saveQueue={saves.getQueue(selectedPath)}
         organizationId={organizationId}
         path={selectedPath}
         site={site}
@@ -179,20 +181,27 @@ export function SiteEditorPage() {
   return (
     <EditProvider createEditor={createSiteEditor}>
       <PageHeading description={t("description")} title={t("title")}>
-        <SiteEditorHeaderActions
-          canCreateFile={canCreateFile}
-          draftCount={draftCount}
-          onNewFile={() => setNewFileOpen(true)}
-          onPublish={() => setPublishOpen(true)}
-          unsaved={unsaved}
-        />
+        <div inert={rebaseMutation.isPending}>
+          <SiteEditorHeaderActions
+            canCreateFile={canCreateFile}
+            draftCount={draftCount}
+            onNewFile={() => setNewFileOpen(true)}
+            onPublish={() => setPublishOpen(true)}
+            unsaved={unsaved}
+          />
+        </div>
       </PageHeading>
 
       {conflicts.length > 0 ? (
         <SiteEditorConflictBanner
+          canRebase={!unsaved && !rebaseMutation.isPending}
           isRebasing={rebaseMutation.isPending}
           onDismiss={() => setConflicts([])}
-          onRebase={() => rebaseMutation.mutate(conflicts)}
+          onRebase={() => {
+            if (!unsaved && !rebaseMutation.isPending) {
+              rebaseMutation.mutate(conflicts);
+            }
+          }}
           onSelect={(path) => {
             if (editablePaths.has(path)) {
               openFile(path);
@@ -205,6 +214,7 @@ export function SiteEditorPage() {
       <div
         className="border-shell-border bg-shell flex min-h-[28rem] flex-1 basis-0 flex-col rounded-2xl border p-0.5"
         data-site-editor=""
+        inert={rebaseMutation.isPending}
       >
         <div className="flex min-h-0 flex-1 gap-0.5">
           <aside className="hidden w-60 shrink-0 flex-col md:flex lg:w-72">
@@ -237,7 +247,7 @@ export function SiteEditorPage() {
       </div>
 
       <SiteEditorFilePicker onOpenChange={setPickerOpen} open={pickerOpen}>
-        {fileTree}
+        <div inert={rebaseMutation.isPending}>{fileTree}</div>
       </SiteEditorFilePicker>
 
       <SitePublishDialog
@@ -246,6 +256,7 @@ export function SiteEditorPage() {
         onConflict={setConflicts}
         onOpenChange={setPublishOpen}
         onPublished={() => {
+          saves.reset();
           setConflicts([]);
           setDiagnostics(null);
           setProblemsOpen(false);
@@ -257,6 +268,7 @@ export function SiteEditorPage() {
         site={site}
         siteId={siteId}
         sourcePaths={sourcePaths}
+        unsaved={unsaved}
       />
       <SiteNewFileDialog
         existingPaths={editablePaths}

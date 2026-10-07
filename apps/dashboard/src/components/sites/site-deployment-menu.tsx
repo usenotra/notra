@@ -4,6 +4,8 @@ import {
   ArrowTurnBackwardIcon,
   ArrowUpRight01Icon,
   Copy01Icon,
+  Delete02Icon,
+  Link04Icon,
   MoreHorizontalIcon,
   RefreshIcon,
   ViewIcon,
@@ -35,9 +37,14 @@ export function SiteDeploymentMenu({
   triggerVariant = "ghost",
   showVisit = true,
   className,
+  preview,
+  onOpenPreview,
+  onCopyShareLink,
+  onDeletePreview,
 }: SiteDeploymentMenuProps) {
   const t = useTranslations("sites.deployments.actions");
   const tPage = useTranslations("sites.deploymentsPage.actions");
+  const tPreview = useTranslations("sites.previewsPage");
   const router = useRouter();
   const finished = !isDeploymentInProgress(deployment.status);
 
@@ -62,12 +69,18 @@ export function SiteDeploymentMenu({
             {t("view")}
           </DropdownMenuItem>
         ) : null}
-        {deployment.live ? (
+        {deployment.live && (deployment.kind === "production" || preview) ? (
           <>
             {showVisit ? (
               <DropdownMenuItem
                 onClick={() =>
-                  window.open(deployment.url, "_blank", "noopener,noreferrer")
+                  preview && onOpenPreview
+                    ? onOpenPreview()
+                    : window.open(
+                        deployment.url,
+                        "_blank",
+                        "noopener,noreferrer"
+                      )
                 }
               >
                 <HugeiconsIcon
@@ -80,11 +93,21 @@ export function SiteDeploymentMenu({
             ) : null}
             <DropdownMenuItem
               onClick={() =>
-                copyTextToClipboard(deployment.url, tPage("copied"))
+                preview?.visibility === "protected" && onCopyShareLink
+                  ? onCopyShareLink()
+                  : copyTextToClipboard(deployment.url, tPage("copied"))
               }
             >
-              <HugeiconsIcon icon={Copy01Icon} size={14} strokeWidth={1.75} />
-              {tPage("copyUrl")}
+              <HugeiconsIcon
+                icon={
+                  preview?.visibility === "protected" ? Link04Icon : Copy01Icon
+                }
+                size={14}
+                strokeWidth={1.75}
+              />
+              {preview?.visibility === "protected"
+                ? tPreview("copyShareLink")
+                : tPage("copyUrl")}
             </DropdownMenuItem>
           </>
         ) : null}
@@ -106,6 +129,15 @@ export function SiteDeploymentMenu({
             />
             {t("rollback")}
           </DropdownMenuItem>
+        ) : null}
+        {preview?.served && onDeletePreview ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDeletePreview} variant="destructive">
+              <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={1.75} />
+              {tPreview("delete")}
+            </DropdownMenuItem>
+          </>
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>

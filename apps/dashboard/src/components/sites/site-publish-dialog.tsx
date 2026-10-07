@@ -37,6 +37,7 @@ export function SitePublishDialog({
   sourcePaths,
   onPublished,
   onConflict,
+  unsaved = false,
 }: SitePublishDialogProps) {
   const t = useTranslations("sites.publish");
   const tModes = useTranslations("sites.publishModes");
@@ -101,7 +102,12 @@ export function SitePublishDialog({
           id={`${id}-form`}
           onSubmit={(event) => {
             event.preventDefault();
-            if (trimmed && !publishMutation.isPending) {
+            if (
+              trimmed &&
+              draftCount > 0 &&
+              !unsaved &&
+              !publishMutation.isPending
+            ) {
               publishMutation.mutate();
             }
           }}
@@ -166,7 +172,7 @@ export function SitePublishDialog({
             {tCommon("actions.cancel")}
           </Button>
           <Button
-            disabled={!trimmed}
+            disabled={!trimmed || draftCount === 0 || unsaved}
             form={`${id}-form`}
             loading={publishMutation.isPending}
             type="submit"

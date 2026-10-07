@@ -162,6 +162,25 @@ export function deploymentMatchesFilters(
   return environmentOk && deploymentMatchesStatus(deployment, filters.status);
 }
 
+export function deploymentMatchesSearch(
+  deployment: Pick<
+    SiteDeployment,
+    "branch" | "commitSha" | "commitMessage" | "previewKey"
+  >,
+  search: string
+): boolean {
+  const query = search.trim().toLocaleLowerCase();
+  return (
+    !query ||
+    [
+      deployment.branch,
+      deployment.commitSha,
+      deployment.commitMessage,
+      deployment.previewKey,
+    ].some((value) => value?.toLocaleLowerCase().includes(query))
+  );
+}
+
 export function isDeploymentEnvironmentFilter(
   value: string | null
 ): value is SiteDeploymentEnvironmentFilter {

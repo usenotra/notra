@@ -211,6 +211,7 @@ export const COMMAND_ROUTES: CommandRoute[] = [
   {
     id: "sites",
     label: "Sites",
+    flag: "sites",
     keywords: [
       "sites",
       "blog",

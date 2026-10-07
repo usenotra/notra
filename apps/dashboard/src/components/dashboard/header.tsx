@@ -42,6 +42,7 @@ import {
 import { SITE_SECTIONS } from "@/constants/sites";
 import { useBreadcrumbLabels } from "@/lib/hooks/use-breadcrumb-labels";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
+import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { usePathname } from "@/lib/navigation";
 import type { BreadcrumbLabels } from "@/types/dashboard/breadcrumbs";
@@ -184,6 +185,7 @@ function DashboardHeaderBreadcrumbs() {
   const [geoProjectParam] = useGeoProjectQueryState();
   const id = useId();
   const labels = useBreadcrumbLabels();
+  const visibility = useNavVisibility();
   const tUi = useTranslations("ui");
 
   return (
@@ -194,7 +196,8 @@ function DashboardHeaderBreadcrumbs() {
           geoTabParam,
           geoProjectParam,
           id,
-          labels
+          labels,
+          visibility.sites
         )}
       </BreadcrumbList>
     </Breadcrumb>
@@ -206,12 +209,16 @@ function headerBreadcrumbItems(
   geoTabParam: string | null,
   geoProjectParam: string | null,
   id: string,
-  labels: BreadcrumbLabels
+  labels: BreadcrumbLabels,
+  sitesEnabled: boolean
 ) {
   const segments = pathname.split("/").filter(Boolean);
   const slug = segments[0];
   const isNonOrgPath = NON_ORG_PATHS.some((path) => pathname.startsWith(path));
   const breadcrumbSegments = isNonOrgPath ? segments : segments.slice(1);
+  if (!sitesEnabled && breadcrumbSegments[0] === "sites") {
+    return [];
+  }
   const isChatDetail =
     !isNonOrgPath &&
     breadcrumbSegments[0] === "chat" &&

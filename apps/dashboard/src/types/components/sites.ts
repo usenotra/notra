@@ -37,6 +37,11 @@ export interface SitesPageShellProps {
   children: ReactNode;
 }
 
+export interface SiteDeploymentTimelineProps {
+  deployment: SiteDeploymentRecord;
+  log: string | null;
+}
+
 export interface SiteLayoutProps {
   organizationSlug: string;
   siteId: string;
@@ -260,6 +265,7 @@ export interface SiteBuildLogSummaryProps {
 export interface SiteBuildLogEmptyProps {
   inProgress: boolean;
   queued: boolean;
+  showSpinner?: boolean;
 }
 
 export interface SiteBuildLogCopyButtonProps {
@@ -268,6 +274,7 @@ export interface SiteBuildLogCopyButtonProps {
 
 export interface SiteBuildLogsProps {
   log: string | null;
+  heading?: ReactNode;
   inProgress: boolean;
   queued: boolean;
   startAtEnd?: boolean;
@@ -276,7 +283,7 @@ export interface SiteBuildLogsProps {
 export interface SiteDeploymentMenuProps {
   deployment: Pick<
     SiteDeploymentRecord,
-    "id" | "live" | "status" | "url" | "commitSha"
+    "id" | "kind" | "live" | "status" | "url" | "commitSha"
   >;
   canRollback: boolean;
   detailHref?: string;
@@ -286,6 +293,10 @@ export interface SiteDeploymentMenuProps {
   triggerVariant?: "ghost" | "outline";
   showVisit?: boolean;
   className?: string;
+  preview?: SitePreviewRow;
+  onOpenPreview?: () => void;
+  onCopyShareLink?: () => void;
+  onDeletePreview?: () => void;
 }
 
 export interface SiteDeploymentsTableProps {
@@ -298,6 +309,7 @@ export interface SiteDeploymentsTableProps {
   highlightNewRows?: boolean;
   emptyHeight?: number;
   pageSize: number;
+  previewRows?: SitePreviewRow[];
 }
 
 export interface SiteDeploymentDetailPageProps {
@@ -402,6 +414,7 @@ export interface SiteSettingsSaveBarProps {
 }
 
 export interface SitePublishDialogProps extends SiteScope {
+  unsaved?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   site: SiteRecord;
@@ -440,12 +453,15 @@ export interface SiteNewFileNameFieldProps {
 }
 
 export interface SiteProxySetupProps {
+  hostname: string;
   aliasOrigin: string;
   mounts: SiteMounts;
+  checkAction?: ReactNode;
 }
 
 export interface SiteDnsSetupProps extends SiteScope {
   domain: SiteDomain;
+  checkAction: ReactNode;
 }
 
 export interface SiteDnsRecordValueProps {
@@ -455,12 +471,6 @@ export interface SiteDnsRecordValueProps {
 
 export interface SiteDnsRecordsTableProps {
   records: SiteDomainRecord[];
-}
-
-export interface SiteDomainSetupStepProps {
-  number: number;
-  isLast?: boolean;
-  children: ReactNode;
 }
 
 export interface SiteDnsProviderButtonProps {

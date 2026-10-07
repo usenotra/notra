@@ -19,6 +19,9 @@ import { SiteBuildLogs } from "@/components/sites/site-build-logs";
 import { useSite } from "@/components/sites/site-context";
 import { SiteDeploymentFailure } from "@/components/sites/site-deployment-failure";
 import { SiteDeploymentSummary } from "@/components/sites/site-deployment-summary";
+import { SiteDeploymentTimeline } from "@/components/sites/site-deployment-timeline";
+import { SitePreviewDeleteDialog } from "@/components/sites/site-preview-delete-dialog";
+import { SitePreviewRowMenu } from "@/components/sites/site-preview-row-menu";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SiteRollbackDialog } from "@/components/sites/site-rollback-dialog";
 import {
@@ -29,22 +32,27 @@ import {
   useRedeployDeployment,
   useSiteDeployment,
 } from "@/lib/hooks/use-site-deployments";
+import { useSitePreviewLinks } from "@/lib/hooks/use-site-preview-links";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
+import { useRouter } from "@/lib/navigation";
 import type {
   SiteDeploymentActionsProps,
   SiteDeploymentDetailPageProps,
   SiteDeploymentDetailProps,
   SiteDeploymentRecordProps,
 } from "@/types/components/sites";
-import type { SiteDeployment } from "@/types/sites";
+import type { SiteDeployment, SitePreviewRow } from "@/types/sites";
 import {
   commitTitle,
   deploymentServedUrls,
   isDeploymentInProgress,
-  isDeploymentLive,
   shortSha,
 } from "@/utils/site-deployments";
-import { siteHref } from "@/utils/site-links";
+import { siteDeploymentHref, siteHref } from "@/utils/site-links";
+import {
+  servedPreviewForDeployment,
+  sitePreviewRows,
+} from "@/utils/site-previews";
 
 export function SiteDeploymentDetailPage({
   deploymentId,
@@ -99,7 +107,7 @@ function DeploymentDetail({
   const tLegacy = useTranslations("sites.deployment");
   const invalidateSites = useInvalidateSites();
   const inProgress = isDeploymentInProgress(deployment.status);
-  const live = isDeploymentLive(deployment, detail);
+  const live = deployment.live;
   const listEntry: SiteDeployment | null =
     detail.deployments.find((entry) => entry.id === deployment.id) ?? null;
   const [rollbackTarget, setRollbackTarget] = useState<SiteDeployment | null>(
@@ -161,16 +169,20 @@ function DeploymentDetail({
 
       <SiteDeploymentFailure deployment={deployment} />
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">{t("log.title")}</h2>
+      <section aria-label={t("log.title")}>
         <div className={SITE_DEPLOYMENT_SHELL_CLASS}>
           <div className={SITE_DEPLOYMENT_LOG_SURFACE_CLASS}>
-            <SiteBuildLogs
-              inProgress={inProgress}
-              log={log}
-              queued={deployment.status === "queued"}
-              startAtEnd={deployment.status === "failed"}
-            />
+            <div className="p-4">
+              <SiteDeploymentTimeline deployment={deployment} log={log} />
+            </div>
+            <div className="border-t p-4">
+              <SiteBuildLogs
+                inProgress={inProgress}
+                log={log}
+                queued={deployment.status === "queued"}
+                startAtEnd={deployment.status === "failed"}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -201,6 +213,17 @@ function DeploymentActions({
   const t = useTranslations("sites.deployments.actions");
   const tPage = useTranslations("sites.deploymentPage");
   const redeploy = useRedeployDeployment({ organizationId, siteId });
+  const { detail, organizationSlug } = useSite();
+  const router = useRouter();
+  const { openPreview, copyShareLink } = useSitePreviewLinks({
+    organizationId,
+    siteId,
+  });
+  const preview = servedPreviewForDeployment(
+    { ...deployment, live },
+    sitePreviewRows(detail)
+  );
+  const [deleteTarget, setDeleteTarget] = useState<SitePreviewRow | null>(null);
   const inProgress = isDeploymentInProgress(deployment.status);
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -230,7 +253,7 @@ function DeploymentActions({
           {t("redeploy")}
         </Button>
       )}
-      {live ? (
+      {live && deployment.kind === "production" ? (
         <a
           className={buttonVariants()}
           href={primaryUrl}
@@ -246,6 +269,39 @@ function DeploymentActions({
           />
         </a>
       ) : null}
+      {preview ? (
+        <>
+          <Button onClick={() => openPreview(preview)}>
+            {tPage("visit")}
+            <HugeiconsIcon
+              aria-hidden="true"
+              data-icon="inline-end"
+              icon={ArrowUpRight01Icon}
+              strokeWidth={1.5}
+            />
+          </Button>
+          <SitePreviewRowMenu
+            onCopyShareLink={() => copyShareLink(preview)}
+            onDelete={() => setDeleteTarget(preview)}
+            onViewDeployment={() =>
+              router.push(
+                siteDeploymentHref(organizationSlug, siteId, deployment.id)
+              )
+            }
+            row={preview}
+          />
+        </>
+      ) : null}
+      <SitePreviewDeleteDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+          }
+        }}
+        organizationId={organizationId}
+        preview={deleteTarget}
+        siteId={siteId}
+      />
     </div>
   );
 }

@@ -8,7 +8,6 @@ import {
   Rocket01Icon,
   RefreshIcon,
   Settings01Icon,
-  ViewIcon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 
@@ -22,6 +21,8 @@ import type {
 } from "@/types/sites";
 
 export const SITES_NAV_LINK = "/sites";
+export const SITES_FLAG_KEY = "sites";
+export const SITES_FLAG_TIMEOUT_MS = 3000;
 
 export const SITE_ACTIVE_POLL_INTERVAL_MS = 2000;
 export const SITE_IDLE_POLL_INTERVAL_MS = 15_000;
@@ -35,7 +36,6 @@ export const SITE_DETAIL_TABS = [
   "overview",
   "analytics",
   "deployments",
-  "previews",
   "domains",
   "editor",
   "integrations",
@@ -46,7 +46,6 @@ export const SITE_SECTIONS: readonly SiteSectionConfig[] = [
   { section: "overview", path: "", icon: DashboardSquare01Icon },
   { section: "analytics", path: "/analytics", icon: Analytics01Icon },
   { section: "deployments", path: "/deployments", icon: Rocket01Icon },
-  { section: "previews", path: "/previews", icon: ViewIcon },
   { section: "domains", path: "/domains", icon: Globe02Icon },
   { section: "editor", path: "/editor", icon: FileEditIcon },
   { section: "integrations", path: "/integrations", icon: PlugSocketIcon },

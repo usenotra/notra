@@ -1,9 +1,17 @@
-import { type AnyRoute, createRoute, Outlet } from "@tanstack/react-router";
+import {
+  type AnyRoute,
+  createRoute,
+  notFound,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/sites/site-layout";
 import type { SiteSectionUiPage } from "@/types/ui-route";
 import { lazyPage } from "@/utils/lazy-page";
+import { sitePreviewDeploymentsHref } from "@/utils/site-links";
 
+import { loadSitesEnabled } from "./-sites-loaders";
 import { createUiRoute } from "./-ui-route";
 
 const Sites = lazyPage(
@@ -47,11 +55,6 @@ const DeploymentDetail = lazyPage(() =>
     (module) => ({ default: module.SiteDeploymentDetailPage })
   )
 );
-const Previews = lazyPage(() =>
-  import("@/components/sites/pages/site-previews-page").then((module) => ({
-    default: module.SitePreviewsPage,
-  }))
-);
 const Domains = lazyPage(() =>
   import("@/components/sites/pages/site-domains-page").then((module) => ({
     default: module.SiteDomainsPage,
@@ -76,7 +79,6 @@ const Settings = lazyPage(() =>
 const SITE_SECTION_PAGES: readonly SiteSectionUiPage[] = [
   { section: "analytics", page: Analytics },
   { section: "deployments", page: Deployments },
-  { section: "previews", page: Previews },
   { section: "domains", page: Domains },
   { section: "editor", page: Editor },
   { section: "integrations", page: Integrations },
@@ -84,6 +86,19 @@ const SITE_SECTION_PAGES: readonly SiteSectionUiPage[] = [
 ];
 
 export function createSitesUiRoutes(organization: AnyRoute) {
+  const sites = createRoute({
+    getParentRoute: () => organization,
+    path: "sites",
+    beforeLoad: async ({ params, search }) => {
+      const enabled = await loadSitesEnabled({
+        data: { params, searchParams: search },
+      });
+      if (!enabled) {
+        throw notFound();
+      }
+    },
+    component: Outlet,
+  });
   function SiteRouteLayout() {
     const { slug, siteId } = site.useParams();
     return (
@@ -94,13 +109,23 @@ export function createSitesUiRoutes(organization: AnyRoute) {
   }
 
   const site = createRoute({
-    getParentRoute: () => organization,
-    path: "sites/$siteId",
+    getParentRoute: () => sites,
+    path: "$siteId",
     pendingComponent: SiteLoading,
     component: SiteRouteLayout,
   });
 
   const siteRoutes = [
+    createRoute({
+      getParentRoute: () => site,
+      path: "previews",
+      beforeLoad: ({ params }) => {
+        throw redirect({
+          href: sitePreviewDeploymentsHref(params.slug, params.siteId),
+          replace: true,
+        });
+      },
+    }),
     createUiRoute({
       parent: site,
       path: "/",
@@ -132,22 +157,24 @@ export function createSitesUiRoutes(organization: AnyRoute) {
   ];
 
   return [
-    createUiRoute({
-      parent: organization,
-      path: "sites",
-      title: { namespace: "sites", key: "title" },
-      pendingComponent: SitesLoading,
-      preload: Sites.preload,
-      component: ({ params }) => <Sites organizationSlug={params.slug} />,
-    }),
-    createUiRoute({
-      parent: organization,
-      path: "sites/new",
-      title: { namespace: "sites.new", key: "title" },
-      pendingComponent: NewSiteLoading,
-      preload: NewSite.preload,
-      component: ({ params }) => <NewSite organizationSlug={params.slug} />,
-    }),
-    site.addChildren(siteRoutes),
+    sites.addChildren([
+      createUiRoute({
+        parent: sites,
+        path: "/",
+        title: { namespace: "sites", key: "title" },
+        pendingComponent: SitesLoading,
+        preload: Sites.preload,
+        component: ({ params }) => <Sites organizationSlug={params.slug} />,
+      }),
+      createUiRoute({
+        parent: sites,
+        path: "new",
+        title: { namespace: "sites.new", key: "title" },
+        pendingComponent: NewSiteLoading,
+        preload: NewSite.preload,
+        component: ({ params }) => <NewSite organizationSlug={params.slug} />,
+      }),
+      site.addChildren(siteRoutes),
+    ]),
   ];
 }

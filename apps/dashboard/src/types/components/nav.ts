@@ -59,6 +59,7 @@ export interface NavPrimaryActionConfig {
 export interface NavVisibility {
   iris: boolean;
   analytics: boolean;
+  sites: boolean;
 }
 
 export interface NavListProps {

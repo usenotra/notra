@@ -18,6 +18,7 @@ import { Button } from "@/components/button";
 import { SiteBuildLogFilter } from "@/components/sites/site-build-log-filter";
 import { SiteBuildLogRows } from "@/components/sites/site-build-log-rows";
 import { SITE_BUILD_LOG_FOLLOW_THRESHOLD } from "@/constants/sites";
+import { cn } from "@/lib/utils";
 import type {
   SiteBuildLogCopyButtonProps,
   SiteBuildLogEmptyProps,
@@ -60,7 +61,11 @@ function BuildLogSummary({ lines, inProgress }: SiteBuildLogSummaryProps) {
   return parts.join(" · ");
 }
 
-function BuildLogEmpty({ inProgress, queued }: SiteBuildLogEmptyProps) {
+function BuildLogEmpty({
+  inProgress,
+  queued,
+  showSpinner = true,
+}: SiteBuildLogEmptyProps) {
   const t = useTranslations("sites.deploymentPage.log");
   let message = t("empty");
   if (queued) {
@@ -69,8 +74,8 @@ function BuildLogEmpty({ inProgress, queued }: SiteBuildLogEmptyProps) {
     message = t("starting");
   }
   return (
-    <div className="text-muted-foreground flex min-h-28 items-center justify-center gap-2 px-4 py-8 text-sm">
-      {inProgress ? (
+    <div className="text-muted-foreground flex h-full min-h-28 items-center justify-center gap-2 px-4 py-8 text-sm">
+      {inProgress && showSpinner ? (
         <HugeiconsIcon
           aria-hidden="true"
           className="size-4 motion-safe:animate-spin"
@@ -111,6 +116,7 @@ function BuildLogCopyButton({ log }: SiteBuildLogCopyButtonProps) {
 
 export function SiteBuildLogs({
   log,
+  heading,
   inProgress,
   queued,
   startAtEnd = false,
@@ -163,13 +169,20 @@ export function SiteBuildLogs({
 
   const body =
     lines.length === 0 ? (
-      <BuildLogEmpty inProgress={inProgress} queued={queued} />
+      <BuildLogEmpty
+        inProgress={inProgress}
+        queued={queued}
+        showSpinner={!heading}
+      />
     ) : (
       <div className="relative">
         <div
           aria-busy={inProgress}
           aria-label={t("label")}
-          className="scrollbar-floating max-h-[min(30rem,60vh)] overflow-auto py-2.5 font-mono text-xs leading-5"
+          className={cn(
+            "scrollbar-floating overflow-auto py-2.5 font-mono text-xs leading-5",
+            heading ? "h-72" : "max-h-[min(30rem,60vh)]"
+          )}
           onScroll={(event) => {
             const element = event.currentTarget;
             const atBottom =
@@ -208,11 +221,13 @@ export function SiteBuildLogs({
 
   return (
     <div className="min-w-0">
-      <div className="border-border/60 bg-muted/40 overflow-hidden rounded-t-lg border border-b-0 pb-3">
+      <div className="border-border/60 bg-muted/40 overflow-hidden border-b">
         <div className="flex h-9 min-w-0 items-center gap-2 ps-3 pe-1">
-          <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs tabular-nums">
-            <BuildLogSummary inProgress={inProgress} lines={lines} />
-          </span>
+          <div className="text-muted-foreground min-w-0 flex-1 truncate text-xs tabular-nums">
+            {heading ?? (
+              <BuildLogSummary inProgress={inProgress} lines={lines} />
+            )}
+          </div>
           {lines.length > 0 ? (
             <SiteBuildLogFilter onChange={setQuery} value={query} />
           ) : null}
@@ -227,7 +242,12 @@ export function SiteBuildLogs({
           <BuildLogCopyButton log={log} />
         </div>
       </div>
-      <div className="border-border/60 bg-background relative -mt-3 min-w-0 overflow-hidden rounded-lg border">
+      <div
+        className={cn(
+          "bg-background relative min-w-0 overflow-hidden",
+          heading && lines.length === 0 && "h-44"
+        )}
+      >
         {body}
       </div>
     </div>

@@ -37,10 +37,18 @@ export function sitePreviewAccessPlan(
   >,
   draft: SitePreviewAccessDraft
 ): SitePreviewAccessPlan {
-  const wantsNewPassword = draft.mode === "password" && draft.editingPassword;
+  const wantsNewPassword =
+    draft.enabled &&
+    draft.mode === "password" &&
+    draft.editingPassword &&
+    (!site.previewPasswordSetAt || draft.password.length > 0);
   const removesPassword =
-    Boolean(site.previewPasswordSetAt) && draft.mode !== "password";
-  const previewVisibility = sitePreviewAccessModeConfig(draft.mode).visibility;
+    draft.enabled &&
+    Boolean(site.previewPasswordSetAt) &&
+    draft.mode !== "password";
+  const previewVisibility = draft.enabled
+    ? sitePreviewAccessModeConfig(draft.mode).visibility
+    : site.previewVisibility;
   const settingsChanged =
     draft.enabled !== site.previewsEnabled ||
     previewVisibility !== site.previewVisibility;

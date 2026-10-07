@@ -20,6 +20,13 @@ export function siteDeploymentHref(
   return `${siteHref(organizationSlug, siteId, "deployments")}/${deploymentId}`;
 }
 
+export function sitePreviewDeploymentsHref(
+  organizationSlug: string,
+  siteId: string
+): string {
+  return `${siteHref(organizationSlug, siteId, "deployments")}?environment=preview`;
+}
+
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 }

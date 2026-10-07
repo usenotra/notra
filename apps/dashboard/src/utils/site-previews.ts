@@ -1,6 +1,16 @@
 import type { SiteDeployment, SiteDetail, SitePreviewRow } from "@/types/sites";
 import { isDeploymentInProgress } from "@/utils/site-deployments";
 
+export function servedPreviewForDeployment(
+  deployment: Pick<SiteDeployment, "id" | "kind" | "live">,
+  rows: readonly SitePreviewRow[]
+): SitePreviewRow | undefined {
+  if (!deployment.live || deployment.kind !== "preview") {
+    return undefined;
+  }
+  return rows.find((row) => row.served && row.deploymentId === deployment.id);
+}
+
 function latestPreviewDeployments(
   deployments: readonly SiteDeployment[]
 ): Map<string, SiteDeployment> {

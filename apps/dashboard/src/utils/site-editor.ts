@@ -161,7 +161,7 @@ export function publishConflictPaths(error: unknown): string[] | null {
 }
 
 export function isSiteEditorUnsaved(saveState: SiteEditorSaveState): boolean {
-  return saveState.status === "dirty" || saveState.status === "saving";
+  return saveState.status !== "idle" && saveState.status !== "saved";
 }
 
 export function siteEditorHasDraft(

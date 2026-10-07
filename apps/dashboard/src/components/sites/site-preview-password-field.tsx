@@ -55,7 +55,7 @@ export function SitePreviewPasswordField({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={`${id}-password`}>
+      <Label htmlFor={`${id}-password-input`}>
         {hasPassword ? t("newPasswordLabel") : t("passwordLabel")}
       </Label>
       <InputGroup>
@@ -64,8 +64,9 @@ export function SitePreviewPasswordField({
           aria-invalid={tooShort && password.length > 0}
           autoComplete="new-password"
           autoFocus
-          id={`${id}-password`}
+          id={`${id}-password-input`}
           maxLength={SITE_PREVIEW_PASSWORD_MAX_LENGTH}
+          minLength={SITE_PREVIEW_PASSWORD_MIN_LENGTH}
           onChange={(event) => onChange(event.target.value)}
           spellCheck={false}
           type={showPassword ? "text" : "password"}

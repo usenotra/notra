@@ -7,6 +7,7 @@ import type {
   SiteEditorLanguage,
   SiteEditorMode,
   SiteEditorSaveState,
+  SiteEditorSaveQueue,
   SiteFileTreeFile,
 } from "@/types/site-editor";
 import type {
@@ -52,8 +53,7 @@ export interface SiteEditorPaneProps {
   baseCommitSha: string | null;
   diagnostics: readonly SiteDiagnostic[];
   jump: SiteEditorJump | null;
-  onDraftChange: (path: string, updatedAt: Date | null) => void;
-  onSaveStateChange: (state: SiteEditorSaveState) => void;
+  saveQueue: SiteEditorSaveQueue;
   onOpenFilePicker?: () => void;
 }
 
@@ -128,6 +128,7 @@ export interface SiteEditorProblemsProps {
 export interface SiteEditorConflictBannerProps {
   paths: string[];
   isRebasing: boolean;
+  canRebase: boolean;
   onSelect: (path: string) => void;
   onRebase: () => void;
   onDismiss: () => void;

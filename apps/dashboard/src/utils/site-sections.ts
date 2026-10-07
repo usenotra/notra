@@ -7,9 +7,6 @@ export function siteSectionCount(
   if (!detail) {
     return 0;
   }
-  if (section === "previews") {
-    return detail.previews.length;
-  }
   if (section === "domains") {
     return detail.domains.length;
   }
