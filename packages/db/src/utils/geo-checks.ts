@@ -18,7 +18,7 @@ import type {
   GeoCheckCompetitorPromptRow,
   GeoCheckCompetitorPromptSummaryRow,
   GeoCheckCompetitorShareRow,
-  GeoCheckCompetitorShareTimeseriesRow,
+  GeoCheckCompetitorShareAggregateRow,
   GeoCheckCompetitorTimeseriesRow,
   GeoCheckBrandKey,
   GeoCheckEngineBrandRow,
@@ -818,11 +818,11 @@ export async function queryGeoCheckBrandKeyMentions(
   }));
 }
 
-export async function queryGeoCheckCompetitorShareTimeseries(
+export async function queryGeoCheckCompetitorShareAggregate(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined
-): Promise<GeoCheckCompetitorShareTimeseriesRow[]> {
-  const day = sql<string>`(${geoMentionChecks.capturedAt})::date`;
+): Promise<GeoCheckCompetitorShareAggregateRow[]> {
+  const day = sql<string | null>`(${geoMentionChecks.capturedAt})::date`;
   const rows = await withGeoCheckAggregateCache(
     scope,
     db
@@ -834,13 +834,15 @@ export async function queryGeoCheckCompetitorShareTimeseries(
       .from(geoMentionChecks)
       .crossJoinLateral(unnestedCompetitorBrand)
       .where(mentionFilters(scope, window))
-      .groupBy(competitorBrand, day)
+      .groupBy(
+        sql`grouping sets ((${competitorBrand}, ${day}), (${competitorBrand}))`
+      )
       .orderBy(day)
   );
 
   return rows.map((row) => ({
     brand: row.brand,
-    day: toDay(row.day),
+    day: row.day === null ? null : toDay(row.day),
     mentions: toNumber(row.mentions),
   }));
 }

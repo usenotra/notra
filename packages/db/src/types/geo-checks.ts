@@ -171,9 +171,9 @@ export interface GeoCheckEngineTotalRow {
   mentions: number;
 }
 
-export interface GeoCheckCompetitorShareTimeseriesRow {
+export interface GeoCheckCompetitorShareAggregateRow {
   brand: string;
-  day: string;
+  day: string | null;
   mentions: number;
 }
 

@@ -1,11 +1,16 @@
-import type { GeoCheckCompetitorShareTimeseriesRow } from "@notra/db/types/geo-checks";
+import type { GeoCheckCompetitorShareAggregateRow } from "@notra/db/types/geo-checks";
 
 import type { GeoCompetitorShareResponse } from "../types/geo";
 
 export function summarizeGeoCompetitorShare(
-  timeseries: readonly GeoCheckCompetitorShareTimeseriesRow[],
+  aggregates: readonly GeoCheckCompetitorShareAggregateRow[],
   limit: number
-): GeoCompetitorShareResponse["points"] {
+): Pick<GeoCompetitorShareResponse, "points" | "timeseries"> {
+  const timeseries = aggregates.flatMap((row) =>
+    row.day === null
+      ? []
+      : [{ brand: row.brand, day: row.day, mentions: row.mentions }]
+  );
   const totals = new Map<string, number>();
   for (const row of timeseries) {
     totals.set(row.brand, (totals.get(row.brand) ?? 0) + row.mentions);
@@ -29,20 +34,30 @@ export function summarizeGeoCompetitorShare(
     dailyTotals.set(row.day, (dailyTotals.get(row.day) ?? 0) + row.mentions);
   }
   const days = [...dailyMentions.keys()].sort();
-  return ranked.map(([brand, mentions]) => ({
-    brand,
-    mentions,
-    trend: days.map((day) => {
-      const total = dailyTotals.get(day) ?? 0;
-      return {
-        day,
-        value:
-          total === 0
-            ? 0
-            : Math.round(
-                ((dailyMentions.get(day)?.get(brand) ?? 0) * 1000) / total
-              ) / 1000,
-      };
-    }),
-  }));
+  const points = aggregates
+    .filter((row) => row.day === null)
+    .sort(
+      (left, right) =>
+        right.mentions - left.mentions || left.brand.localeCompare(right.brand)
+    )
+    .slice(0, limit)
+    .map(({ brand, mentions }) => ({
+      brand,
+      mentions,
+      trend: selectedBrands.has(brand)
+        ? days.map((day) => {
+            const total = dailyTotals.get(day) ?? 0;
+            return {
+              day,
+              value:
+                total === 0
+                  ? 0
+                  : Math.round(
+                      ((dailyMentions.get(day)?.get(brand) ?? 0) * 1000) / total
+                    ) / 1000,
+            };
+          })
+        : [],
+    }));
+  return { points, timeseries };
 }

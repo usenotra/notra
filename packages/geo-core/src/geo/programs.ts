@@ -22,7 +22,7 @@ import {
   queryGeoCheckCompetitorPrompts,
   queryGeoCheckCompetitorPromptSummary,
   queryGeoCheckCompetitorShare,
-  queryGeoCheckCompetitorShareTimeseries,
+  queryGeoCheckCompetitorShareAggregate,
   queryGeoCheckCompetitorTimeseries,
   queryGeoCheckEngineBrandMentions,
   queryGeoCheckEngineTotals,
@@ -1051,22 +1051,14 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
       return response;
     }
 
-    const timeseries = yield* geoDb(
-      "competitor share timeseries query failed",
-      () => queryGeoCheckCompetitorShareTimeseries(checkScope, checkWindow)
+    const aggregates = yield* geoDb(
+      "competitor share aggregate query failed",
+      () => queryGeoCheckCompetitorShareAggregate(checkScope, checkWindow)
     );
 
     const response: GeoCompetitorShareResponse = {
       configured: true,
-      points: summarizeGeoCompetitorShare(
-        timeseries,
-        GEO_COMPETITOR_SHARE_LIMIT
-      ),
-      timeseries: timeseries.map((row) => ({
-        brand: row.brand,
-        day: row.day,
-        mentions: row.mentions,
-      })),
+      ...summarizeGeoCompetitorShare(aggregates, GEO_COMPETITOR_SHARE_LIMIT),
     };
     return response;
   }
