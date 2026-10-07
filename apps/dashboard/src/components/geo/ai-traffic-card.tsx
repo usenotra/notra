@@ -21,11 +21,7 @@ import { TrafficHero } from "@/components/geo/traffic-hero";
 import { TrafficSourceSheet } from "@/components/geo/traffic-source-sheet";
 import { TrafficSourcesStack } from "@/components/geo/traffic-sources-group";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
-import type {
-  AiTrafficCardProps,
-  GeoTrafficSourceBand,
-  GeoTrafficSourceGroup,
-} from "@/types/geo";
+import type { AiTrafficCardProps, GeoTrafficSourceBand } from "@/types/geo";
 import {
   buildTrafficGroupSeries,
   groupTrafficSources,

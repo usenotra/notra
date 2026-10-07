@@ -32,7 +32,7 @@ export function TrafficSheetHero({
     <div className={TRAFFIC_HERO_FRAME_CLASS}>
       <dl
         className={cn(
-          "grid grid-cols-3",
+          "grid grid-cols-1 @sm/hero:grid-cols-3",
           showTrend
             ? TRAFFIC_HERO_METRICS_SURFACE_CLASS
             : TRAFFIC_HERO_METRICS_STANDALONE_CLASS
@@ -40,7 +40,9 @@ export function TrafficSheetHero({
       >
         {stats.map((stat) => (
           <div
-            className="border-border flex min-w-0 flex-col gap-2 overflow-hidden border-r px-3 py-4 last:border-r-0 @md/hero:px-5"
+            // Narrow drawers list the metrics as label/value rows so large numbers
+            // keep every digit; wider ones switch to three columns.
+            className="border-border flex min-w-0 items-center justify-between gap-3 overflow-hidden border-b px-4 py-3 last:border-b-0 @sm/hero:flex-col @sm/hero:items-start @sm/hero:justify-start @sm/hero:gap-2 @sm/hero:border-r @sm/hero:border-b-0 @sm/hero:py-4 @sm/hero:last:border-r-0 @md/hero:px-5"
             key={stat.label}
           >
             <dt className="text-foreground/75 truncate text-sm leading-5 font-semibold tracking-tight">
