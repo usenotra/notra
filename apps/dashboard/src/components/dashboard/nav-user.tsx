@@ -18,15 +18,16 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useHidePersonalData } from "@/lib/hooks/use-privacy-preferences";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { getUserAvatarUrl } from "@/utils/avatar";
 
@@ -35,6 +36,8 @@ const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
 export function NavUser() {
+  const t = useTranslations("nav.user");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const hasHydrated = useSyncExternalStore(
@@ -57,13 +60,13 @@ export function NavUser() {
       await signOut({
         fetchOptions: {
           onSuccess: () => {
-            toast.success("Signed out successfully");
+            toast.success(tCommon("labels.signedOutSuccessfully"));
             router.push("/login");
           },
         },
       });
     } catch (_error) {
-      toast.error("Failed to sign out");
+      toast.error(tCommon("labels.failedToSignOut"));
       setIsSigningOut(false);
     }
   }
@@ -83,7 +86,7 @@ export function NavUser() {
       <DropdownMenuTrigger
         render={
           <button
-            aria-label="Account"
+            aria-label={tCommon("labels.account")}
             className="ring-sidebar-ring data-popup-open:ring-sidebar-border/70 shrink-0 cursor-pointer rounded-lg outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 data-popup-open:ring-1"
             disabled={isSigningOut}
             type="button"
@@ -120,12 +123,13 @@ export function NavUser() {
                   <span className="-translate-y-px">{userInitial}</span>
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                 <span
                   className={cn(
                     "text-foreground duration-normal truncate font-medium transition-[filter]",
                     hidePersonalData && "hover:blur-0 blur-[5px] select-none"
                   )}
+                  title={hidePersonalData ? undefined : user.name}
                 >
                   {user.name}
                 </span>
@@ -134,6 +138,7 @@ export function NavUser() {
                     "text-muted-foreground duration-normal truncate text-xs transition-[filter]",
                     hidePersonalData && "hover:blur-0 blur-[5px] select-none"
                   )}
+                  title={hidePersonalData ? undefined : user.email}
                 >
                   {user.email}
                 </span>
@@ -148,7 +153,7 @@ export function NavUser() {
             onClick={() => openSettings("account")}
           >
             <HugeiconsIcon icon={User02Icon} />
-            Account
+            {tCommon("labels.account")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -159,7 +164,7 @@ export function NavUser() {
           variant="destructive"
         >
           <HugeiconsIcon icon={Logout01Icon} />
-          {isSigningOut ? "Signing out..." : "Log Out"}
+          {isSigningOut ? t("signingOut") : tCommon("labels.logOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

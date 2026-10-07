@@ -1,10 +1,11 @@
 import type { Redis } from "@upstash/redis";
-import type { LanguageModelUsage, UIMessage } from "ai";
+import type { LanguageModelUsage, UIMessage, UIMessageChunk } from "ai";
 import type * as z from "zod";
 
 import type {
   chatMessageMetadataSchema,
   chatModelSchema,
+  chatToolApprovalResponseSchema,
   chatSessionSummarySchema,
   chatSurfaceSchema,
   chatTransportRequestInputSchema,
@@ -25,6 +26,9 @@ export type TextSelection = OrchestrationTextSelection;
 export type ContextItem = OrchestrationContextItem;
 export type StandaloneChatContextItem = OrchestrationContextItem;
 export type ChatModel = z.infer<typeof chatModelSchema>;
+export type ChatToolApprovalResponse = z.infer<
+  typeof chatToolApprovalResponseSchema
+>;
 export type ThinkingLevel = z.infer<typeof thinkingLevelSchema>;
 export type ChatMessageMetadata = z.infer<typeof chatMessageMetadataSchema>;
 export type ChatUIMessage = UIMessage<ChatMessageMetadata>;
@@ -41,6 +45,13 @@ export type ChatWorkflowPayload = z.infer<typeof chatWorkflowPayloadSchema>;
 export type ChatTransportRequestInput = z.infer<
   typeof chatTransportRequestInputSchema
 >;
+
+export interface ChatSessionState {
+  projectId: string | null;
+  externalChannelSource: string | null;
+  deletedAt: Date | null;
+  messages: UIMessage[];
+}
 
 export interface ChatUsageSnapshot {
   inputTokens?: number;
@@ -59,6 +70,11 @@ export interface ChatImageAttachmentProps {
 
 export interface ChatInputHandle {
   setText: (text: string) => void;
+  /**
+   * Puts files back into the composer, e.g. when a queued message is edited.
+   * Returns false and changes nothing when they would not all fit.
+   */
+  setAttachments: (attachments: ChatAttachment[]) => boolean;
   submit: () => void;
   focus: () => void;
 }
@@ -83,6 +99,7 @@ export type ChatMessagePart =
     };
 
 export interface BuildChatFinishMetadataInput {
+  activityTimings?: ChatMessageMetadata["activityTimings"];
   streamStartedAt: number;
   firstChunkAt: number | null;
   finishedAt: number;
@@ -92,6 +109,12 @@ export interface BuildChatFinishMetadataInput {
   requestedModel?: ChatModel | string;
   thinkingLevel?: ThinkingLevel;
   requestedThinkingLevel?: ThinkingLevel;
+}
+
+export interface ChatActivityTimingEvent {
+  type: string;
+  id?: string;
+  toolCallId?: string;
 }
 
 export interface ChatConfig {
@@ -104,4 +127,16 @@ export interface StartChatAbortPollingArgs {
   streamId: string;
   onAbort: () => void;
   intervalMs?: number;
+}
+
+export type ChatStreamLifecycleInput = Omit<
+  StartChatAbortPollingArgs,
+  "onAbort"
+> & {
+  abortSignal?: AbortSignal;
+};
+
+export interface ForwardChatStreamInput {
+  stream: ReadableStream<UIMessageChunk>;
+  emit: (chunks: UIMessageChunk[]) => Promise<unknown>;
 }

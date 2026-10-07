@@ -1,10 +1,14 @@
+import { useTranslations } from "use-intl";
+
 import { IntegrationIcon } from "@/components/logs/integration-icon";
 import { LogStatusBadge } from "@/components/logs/log-status-badge";
-import { LOG_STATUS_DESCRIPTIONS } from "@/constants/logs";
+import { useLogSourceLabel } from "@/lib/hooks/use-log-source-label";
 import type { LogEntryProps } from "@/types/logs/details-sheet";
-import { getSourceLabel } from "@/utils/logs";
+import { isLogSourceFilter } from "@/utils/log-labels";
 
 export function LogEventSummary({ entry }: LogEntryProps) {
+  const t = useTranslations("logs");
+  const sourceLabel = useLogSourceLabel();
   return (
     <>
       <section className="space-y-3">
@@ -14,7 +18,9 @@ export function LogEventSummary({ entry }: LogEntryProps) {
           />
           <span className="text-muted-foreground flex items-center gap-1.5">
             <IntegrationIcon type={entry.integrationType} />
-            {getSourceLabel(entry.integrationType)}
+            {isLogSourceFilter(entry.integrationType)
+              ? sourceLabel(entry.integrationType)
+              : entry.integrationType}
           </span>
           {entry.statusCode != null && entry.statusCode > 0 ? (
             <span className="text-muted-foreground font-mono text-xs">
@@ -26,13 +32,15 @@ export function LogEventSummary({ entry }: LogEntryProps) {
           {entry.title}
         </h3>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {LOG_STATUS_DESCRIPTIONS[entry.status]}
+          {t(`statusDescriptions.${entry.status}`)}
         </p>
       </section>
       {entry.errorMessage ? (
         <section className="space-y-2">
           <h3 className="text-sm font-medium">
-            {entry.status === "failed" ? "Error details" : "Reason"}
+            {entry.status === "failed"
+              ? t("details.errorDetails")
+              : t("details.reason")}
           </h3>
           <p
             className={`rounded-xl border p-4 text-sm leading-relaxed wrap-break-word whitespace-pre-wrap ${entry.status === "failed" ? "border-destructive/20 bg-destructive/5" : "bg-muted/30"}`}

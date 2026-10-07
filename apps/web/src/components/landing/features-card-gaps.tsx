@@ -1,9 +1,11 @@
-"use client";
-
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { GapMeter } from "@notra/ui/components/geo/gap-meter";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { Button } from "@notra/ui/components/ui/button";
+import { GEO_GAPS_METER_STEPS } from "@notra/ui/constants/geo";
+import { cn } from "@notra/ui/lib/utils";
+
+import { MockFrame } from "@/components/landing/mock-frame";
 import {
   Table,
   TableBody,
@@ -11,11 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@notra/ui/components/ui/table";
-import { GEO_GAPS_METER_STEPS } from "@notra/ui/constants/geo";
-import { cn } from "@notra/ui/lib/utils";
-
-import { MockFrame } from "@/components/landing/mock-frame";
+} from "@/components/marketing-table";
 import {
   FEATURES_GAP_HEADERS,
   FEATURES_GAP_ROWS,

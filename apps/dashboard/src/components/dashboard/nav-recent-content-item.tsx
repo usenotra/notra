@@ -8,16 +8,7 @@ import {
   TextIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -30,16 +21,13 @@ import {
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
-import {
-  NAV_RECENT_TITLE_CLASS,
-  POST_STATUS_DOT_CLASS,
-  POST_STATUS_LABELS,
-} from "@/constants/nav";
+import { NAV_RECENT_TITLE_CLASS, POST_STATUS_DOT_CLASS } from "@/constants/nav";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
+import { useRouter } from "@/lib/navigation";
 import type { NavRecentContentItemProps } from "@/types/components/nav";
 
 import { SidebarNavLink } from "./sidebar-nav-link";
@@ -49,6 +37,10 @@ export function NavRecentContentItem({
   isActive,
   post,
 }: NavRecentContentItemProps) {
+  const t = useTranslations("nav.recentItem");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const tLabels = useTranslations("common.labels");
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { deletePost, isDeleting, isTogglingStatus, togglePostStatus } =
@@ -90,7 +82,7 @@ export function NavRecentContentItem({
                 />
                 <span className={NAV_RECENT_TITLE_CLASS}>{post.title}</span>
                 <span className="text-muted-foreground ml-auto shrink-0 text-[0.625rem]">
-                  {POST_STATUS_LABELS[post.status]}
+                  {tLabels(post.status)}
                 </span>
               </SidebarNavLink>
             }
@@ -104,18 +96,18 @@ export function NavRecentContentItem({
             }}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={LinkSquare02Icon} />
-            Open in new tab
+            {t("openInNewTab")}
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => {
               void navigator.clipboard
                 .writeText(new URL(href, window.location.origin).toString())
-                .then(() => toast.success("Link copied"))
-                .catch(() => toast.error("Failed to copy link"));
+                .then(() => toast.success(t("linkCopied")))
+                .catch(() => toast.error(t("linkCopyFailed")));
             }}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Copy01Icon} />
-            Copy link
+            {t("copyLink")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem
@@ -128,7 +120,9 @@ export function NavRecentContentItem({
               className="mr-2 size-4"
               icon={isPublished ? TextIcon : SentIcon}
             />
-            {isPublished ? "Move to draft" : "Publish"}
+            {isPublished
+              ? tCommon2("labels.moveToDraft")
+              : tCommon2("labels.publish")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem
@@ -137,51 +131,31 @@ export function NavRecentContentItem({
             variant="destructive"
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Delete02Icon} />
-            Delete
+            {tCommon("delete")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isDeleting) {
-            setShowDeleteDialog(open);
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+          title: post.title,
+        })}
+        onConfirm={async () => {
+          const deleted = await deletePost(post.id);
+          if (deleted) {
+            setShowDeleteDialog(false);
+            if (isActive) {
+              router.replace(href.slice(0, href.lastIndexOf("/")));
+            }
           }
         }}
+        onOpenChange={setShowDeleteDialog}
         open={showDeleteDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete post?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{post.title}&quot;. This action
-              cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              variant="destructive"
-              onClick={async () => {
-                const deleted = await deletePost(post.id);
-                if (deleted) {
-                  setShowDeleteDialog(false);
-                  if (isActive) {
-                    router.replace(href.slice(0, href.lastIndexOf("/")));
-                  }
-                }
-              }}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={tCommon2("labels.deletePost")}
+        variant="destructive"
+      />
     </>
   );
 }

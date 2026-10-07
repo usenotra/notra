@@ -1,19 +1,29 @@
 @import "tailwindcss" source("../");
 @import "./ui-sources.css";
 @import "tw-animate-css";
-@import "@c15t/nextjs/styles.css";
+@import "@c15t/react/styles.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource/instrument-serif/400.css";
 @import "../../../../packages/ui/src/styles/cta-button.css";
 @import "../../../../packages/ui/src/styles/motion.css";
 @import "../../../../packages/ui/src/styles/skeleton-shimmer.css";
 @import "../../../../packages/ui/src/styles/status.css";
+@import "../../../../packages/ui/src/styles/text-shimmer.css";
 
-@source "../../mdx-components.tsx";
-@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("../fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   color-scheme: light;
@@ -52,12 +62,12 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --font-inter:
-    "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
   --font-instrument-serif: "Instrument Serif", ui-serif, serif;
   --font-satoshi:
-    "Satoshi", "Inter", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, sans-serif;
+    "Satoshi", "Inter Variable", "Inter", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .dark {
@@ -79,7 +89,7 @@
   --destructive: hsl(358 100% 50%);
   --destructive-foreground: hsl(0 0% 99%);
   --border: hsl(0 1% 17%);
-  --input: hsl(0 0% 14.9%);
+  --input: hsl(240 4% 20%);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.709 0.1592 293.5412);
   --chart-2: oklch(0.8112 0.1013 293.5712);
@@ -369,36 +379,6 @@
   scrollbar-gutter: stable;
 }
 
-@utility cta-gradient-primary-flat {
-  --cta-gradient-from: oklab(69.9% 0.067 -0.16);
-  --cta-gradient-to: oklab(52.6% 0.113 -0.27);
-  background-image: linear-gradient(
-    180deg,
-    var(--cta-gradient-from) 0%,
-    var(--cta-gradient-to) 100%
-  );
-  background-image: linear-gradient(
-    180deg in oklab,
-    var(--cta-gradient-from) 0%,
-    var(--cta-gradient-to) 100%
-  );
-  box-shadow:
-    #28282814 0 0.0625rem 0.125rem,
-    #1e1e1e40 0 0 0 0.0625rem;
-  transition:
-    --cta-gradient-from 200ms ease-out,
-    --cta-gradient-to 200ms ease-out;
-
-  &:hover {
-    --cta-gradient-to: oklab(33.9% 0.073 -0.174);
-  }
-
-  &:active {
-    --cta-gradient-from: oklab(52.6% 0.113 -0.27);
-    --cta-gradient-to: oklab(24.8% 0.053 -0.127);
-  }
-}
-
 .landing-tables [data-slot="table"] {
   background: var(--muted);
 }
@@ -430,6 +410,16 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes granolaBar {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 

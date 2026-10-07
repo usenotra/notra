@@ -1,6 +1,5 @@
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { DeferredDithering } from "@/components/deferred-dithering";
 import {
@@ -33,7 +32,7 @@ function FooterColumnLink({ link }: { link: FooterLink }) {
   return (
     <Link
       className={LINK_CLASS}
-      href={link.href}
+      to={link.href}
       rel={link.external ? "noopener noreferrer" : undefined}
       target={link.external ? "_blank" : undefined}
     >
@@ -61,12 +60,13 @@ export default function FooterSection() {
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 flex justify-center overflow-hidden">
-        <Image
+        <img
+          decoding="async"
+          loading="lazy"
           alt=""
           aria-hidden="true"
           className="h-auto w-[121.4%] max-w-[126rem] min-w-[60rem] translate-y-[23%] dark:opacity-40"
           height={536}
-          sizes="(max-width: 49.42rem) 60rem, (max-width: 103.79rem) 121.4vw, 126rem"
           src="/marketing/landing/footer-wordmark.svg"
           width={1748}
         />
@@ -94,7 +94,7 @@ export default function FooterSection() {
                 <Link
                   aria-label={`Visit Notra on ${social.label}`}
                   className="dark:text-foreground/50 dark:hover:text-foreground text-[#1e1e1e80] transition-colors hover:text-[#1e1e1e]"
-                  href={social.href}
+                  to={social.href}
                   key={social.label}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -109,7 +109,7 @@ export default function FooterSection() {
                 {FOOTER_LEGAL_LINKS.map((link) => (
                   <Link
                     className="dark:text-foreground/50 dark:hover:text-foreground font-sans text-[0.8125rem] leading-[1.125rem] font-medium text-[#1e1e1e66] transition-colors hover:text-[#1e1e1e]"
-                    href={link.href ?? "/"}
+                    to={link.href ?? "/"}
                     key={link.label}
                   >
                     {link.label}

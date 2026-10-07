@@ -1,4 +1,5 @@
 import { formatDistanceToNowStrict } from "date-fns";
+import type { Locale } from "date-fns";
 
 import type { PrSelection, ReleaseSelection } from "@/types/content/preview";
 
@@ -82,9 +83,9 @@ export function getDashboardPostPreview(markdown: string): string {
     .slice(0, DASHBOARD_POST_PREVIEW_MAX_LENGTH);
 }
 
-export function formatLongDate(dateString: string): string {
+export function formatLongDate(dateString: string, locale: string): string {
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(locale, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -94,13 +95,19 @@ export function formatLongDate(dateString: string): string {
   }
 }
 
-export function formatRelativeDate(dateString: string): string {
-  return formatDistanceToNowStrict(new Date(dateString), { addSuffix: true });
+export function formatRelativeDate(
+  dateString: string,
+  locale?: Locale
+): string {
+  return formatDistanceToNowStrict(new Date(dateString), {
+    addSuffix: true,
+    locale,
+  });
 }
 
-export function formatEventDate(dateStr: string): string {
+export function formatEventDate(dateStr: string, locale: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    return new Date(dateStr).toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
     });

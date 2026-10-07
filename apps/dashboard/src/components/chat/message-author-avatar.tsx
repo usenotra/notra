@@ -12,6 +12,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { m, useReducedMotion } from "motion/react";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { MessageAuthorAvatarProps } from "@/types/components/chat-page";
@@ -21,7 +22,8 @@ export function MessageAuthorAvatar({
   author,
   size = "default",
 }: MessageAuthorAvatarProps) {
-  const label = author.name ?? "Former member";
+  const t = useTranslations("chat.author");
+  const label = author.name ?? t("formerMember");
   const reduceMotion = useReducedMotion();
 
   return (

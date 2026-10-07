@@ -1,9 +1,9 @@
 "use client";
 
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
-import { GEO_PROMPT_ANSWER_LOADING_LABEL } from "@/constants/geo-prompts";
 import type { GeoPromptAnswerSkeletonProps } from "@/types/geo-prompt-detail";
 
 function RawAnswerSkeleton() {
@@ -34,7 +34,7 @@ function AnalysisAnswerSkeleton() {
         <Skeleton className="h-14 rounded-xl" />
         <Skeleton className="h-14 rounded-xl" />
       </div>
-      <GeoTableSkeleton rows={4} />
+      <DataTableSkeleton rows={4} />
     </div>
   );
 }
@@ -42,10 +42,11 @@ function AnalysisAnswerSkeleton() {
 export function GeoPromptAnswerSkeleton({
   view,
 }: GeoPromptAnswerSkeletonProps) {
+  const t = useTranslations("geo.geoPromptAnswerSkeleton");
   return (
     <div
       aria-busy="true"
-      aria-label={GEO_PROMPT_ANSWER_LOADING_LABEL}
+      aria-label={t("loading")}
       className="min-h-0 flex-1 overflow-y-auto"
       role="status"
     >

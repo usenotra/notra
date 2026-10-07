@@ -2,13 +2,15 @@
 
 import { parseAsString, useQueryState } from "nuqs";
 import { useMemo } from "react";
+import { useFormatter } from "use-intl";
 
 import {
+  parseLocalDay,
   parseRangeParam,
   rangeIncludesToday,
-  rangeLabel,
   serializeCustomRange,
 } from "@/lib/analytics/date-range";
+import { useAnalyticsRangeLabels } from "@/lib/hooks/use-analytics-range-labels";
 import type {
   AnalyticsDateRange,
   AnalyticsRangeControl,
@@ -24,11 +26,24 @@ export function useAnalyticsRange(
     parseAsString.withDefault(defaultPreset)
   );
 
+  const presetLabels = useAnalyticsRangeLabels();
+  const format = useFormatter();
+
   return useMemo(() => {
     const state = parseRangeParam(raw, defaultPreset);
+    const formatDay = (day: string) =>
+      format.dateTime(parseLocalDay(day), { month: "short", day: "numeric" });
+    const from = formatDay(state.range.dateFrom);
+    const to = formatDay(state.range.dateTo);
+    const customLabel = from === to ? from : `${from} - ${to}`;
+    const { preset } = state;
+    const label =
+      preset === "custom" ? customLabel : presetLabels[preset].compact;
+    const hint = preset === "custom" ? customLabel : presetLabels[preset].hint;
     return {
       ...state,
-      label: rangeLabel(state),
+      label,
+      hint,
       includesToday: rangeIncludesToday(state.range),
       setPreset: (preset: Exclude<AnalyticsRangePreset, "custom">) => {
         setRaw(preset === defaultPreset ? null : preset);
@@ -37,5 +52,5 @@ export function useAnalyticsRange(
         setRaw(serializeCustomRange(range));
       },
     };
-  }, [raw, defaultPreset, setRaw]);
+  }, [raw, defaultPreset, setRaw, presetLabels, format]);
 }

@@ -13,6 +13,7 @@ import {
 } from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -20,6 +21,7 @@ import {
   DEFAULT_USAGE_ALERT,
   USAGE_ALERT_THRESHOLD_OPTIONS,
 } from "@/constants/usage-alerts";
+import { useUsageFeatureName } from "@/lib/hooks/use-usage-feature-name";
 import type {
   UsageAlert,
   UsageAlertFormProps,
@@ -34,6 +36,10 @@ export function UsageAlertForm({
   onSubmit,
   pending,
 }: UsageAlertFormProps) {
+  const t = useTranslations("billing.usageAlerts");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const featureName = useUsageFeatureName();
   const enabledId = useId();
   const featureLabelId = useId();
   const nameId = useId();
@@ -59,30 +65,32 @@ export function UsageAlertForm({
     headingRef.current?.focus();
   }, []);
 
-  const selectedThreshold = USAGE_ALERT_THRESHOLD_OPTIONS.find(
-    (option) => option.value === thresholdType
-  );
+  const featureNameFor = (value: string) => {
+    const feature = features.find((item) => item.id === value);
+    return feature ? featureName(feature) : value;
+  };
+
   const editing = initialAlert !== undefined;
-  let submitLabel = editing ? "Save changes" : "Add alert";
+  let submitLabel = editing ? tCommon("saveChanges") : t("addAlert");
   if (pending) {
-    submitLabel = editing ? "Saving…" : "Adding…";
+    submitLabel = editing ? tCommon("saving") : tCommon2("labels.adding");
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (threshold.trim().length === 0) {
-      setError("Enter a threshold.");
+      setError(t("errors.required"));
       return;
     }
     const numericThreshold = Number(threshold);
     const isPercentage = thresholdType.endsWith("_percentage");
 
     if (!Number.isFinite(numericThreshold) || numericThreshold < 0) {
-      setError("Enter a threshold of 0 or more.");
+      setError(t("errors.min"));
       return;
     }
     if (isPercentage && numericThreshold > 100) {
-      setError("Enter a percentage between 0 and 100.");
+      setError(t("errors.percentage"));
       return;
     }
 
@@ -114,7 +122,7 @@ export function UsageAlertForm({
             icon={ArrowLeft02Icon}
             strokeWidth={2}
           />
-          Usage alerts
+          {tCommon2("labels.usageAlerts")}
         </Button>
         <div className="space-y-1">
           <h2
@@ -122,17 +130,17 @@ export function UsageAlertForm({
             ref={headingRef}
             tabIndex={-1}
           >
-            {editing ? "Edit usage alert" : "Add usage alert"}
+            {editing ? t("editTitle") : t("addTitle")}
           </h2>
           <p className="text-muted-foreground text-sm text-pretty">
-            Choose when this organization should trigger a usage alert.
+            {t("formDescription")}
           </p>
         </div>
       </div>
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Label id={featureLabelId}>Feature</Label>
+          <Label id={featureLabelId}>{t("feature")}</Label>
           <Select
             onValueChange={(value) =>
               setFeatureId(value ?? ALL_USAGE_FEATURES_VALUE)
@@ -143,35 +151,31 @@ export function UsageAlertForm({
               <SelectValue>
                 {(value: string) =>
                   value === ALL_USAGE_FEATURES_VALUE
-                    ? "All features"
-                    : (features.find((feature) => feature.id === value)?.name ??
-                      value)
+                    ? t("allFeatures")
+                    : featureNameFor(value)
                 }
               </SelectValue>
             </SelectTrigger>
             <SelectContent align="start">
               <SelectItem value={ALL_USAGE_FEATURES_VALUE}>
-                All features
+                {t("allFeatures")}
               </SelectItem>
               {features.map((feature) => (
                 <SelectItem key={feature.id} value={feature.id}>
-                  {feature.name}
+                  {featureName(feature)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <p className="text-muted-foreground text-xs">
-            Leave this on all features to apply the alert across every usage
-            balance.
+            {t("allFeaturesHint")}
           </p>
         </div>
 
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-0.5">
-            <Label htmlFor={enabledId}>Enabled</Label>
-            <p className="text-muted-foreground text-xs">
-              Disabled alerts stay saved but do not trigger.
-            </p>
+            <Label htmlFor={enabledId}>{tCommon2("states.enabled")}</Label>
+            <p className="text-muted-foreground text-xs">{t("enabledHint")}</p>
           </div>
           <Switch
             checked={enabled}
@@ -181,18 +185,18 @@ export function UsageAlertForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={nameId}>Name</Label>
+          <Label htmlFor={nameId}>{tCommon2("labels.name")}</Label>
           <Input
             id={nameId}
             maxLength={80}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Optional label for this alert"
+            placeholder={t("namePlaceholder")}
             value={name}
           />
         </div>
 
         <div className="space-y-2">
-          <Label id={thresholdTypeLabelId}>Threshold type</Label>
+          <Label id={thresholdTypeLabelId}>{t("thresholdType")}</Label>
           <Select
             onValueChange={(value) => {
               if (isUsageAlertThresholdType(value)) {
@@ -208,27 +212,25 @@ export function UsageAlertForm({
             >
               <SelectValue>
                 {(value: UsageAlertThresholdType) =>
-                  USAGE_ALERT_THRESHOLD_OPTIONS.find(
-                    (option) => option.value === value
-                  )?.label ?? value
+                  t(`thresholdTypes.${value}.label`)
                 }
               </SelectValue>
             </SelectTrigger>
             <SelectContent align="start">
               {USAGE_ALERT_THRESHOLD_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                <SelectItem key={option} value={option}>
+                  {t(`thresholdTypes.${option}.label`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <p className="text-muted-foreground text-xs">
-            {selectedThreshold?.description}
+            {t(`thresholdTypes.${thresholdType}.description`)}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={thresholdId}>Threshold</Label>
+          <Label htmlFor={thresholdId}>{t("threshold")}</Label>
           <Input
             aria-describedby={error ? `${thresholdId}-error` : undefined}
             aria-invalid={error ? true : undefined}
@@ -262,7 +264,7 @@ export function UsageAlertForm({
             type="button"
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={pending} type="submit">
             {submitLabel}

@@ -15,7 +15,8 @@ import {
   GeoFeatureFlagService,
   GeoModelService,
 } from "@notra/geo-core/deps";
-import { Effect, Layer } from "effect";
+import { sql } from "drizzle-orm";
+import { Deferred, Effect, Layer } from "effect";
 
 import { seedGeoModelCatalog } from "../../../packages/geo-core/src/utils/geo-model-catalog";
 import {
@@ -79,6 +80,7 @@ const testGeoLayer = Layer.mergeAll(
   }),
   Layer.succeed(GeoFeatureFlagService, testFeatureFlags),
   Layer.succeed(GeoEntitlementService, {
+    checkScanBilling: () => Effect.succeed(testBillingGate),
     resolveZdrEntitlement: () => Effect.succeed("not_entitled" as const),
   }),
   Layer.succeed(GeoContentBillingService, {
@@ -185,7 +187,7 @@ describe("geo runner HTTP routes", () => {
     await app.dispose();
   });
 
-  test("removes a new scan when the queue rejects it", async () => {
+  test("preserves a new scan for retry when the queue rejects it", async () => {
     const scope = await seedProject("runner-busy");
     const app = makeHandler(false);
     const response = await postScan(
@@ -193,7 +195,9 @@ describe("geo runner HTTP routes", () => {
       app.handler
     );
     expect(response.status).toBe(503);
-    expect(await testDb.select().from(geoAdhocScans)).toHaveLength(0);
+    const rows = await testDb.select().from(geoAdhocScans);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.status).toBe("queued");
     await app.dispose();
   });
 
@@ -203,6 +207,48 @@ describe("geo runner HTTP routes", () => {
       new Request("http://localhost/health/../scans", { method: "POST" })
     );
     expect(response.status).toBe(401);
+    await app.dispose();
+  });
+
+  test("fails closed for missing or weak secrets and incorrect tokens", async () => {
+    const queue = RunQueue.of({
+      offer: () => Effect.succeed(true),
+      drain: () => Effect.void,
+    });
+    for (const secret of [undefined, "too-short", SECRET]) {
+      const app = createApp(queue, secret, testGeoLayer);
+      const response = await app.fetch(
+        new Request("http://localhost/scans", {
+          method: "POST",
+          headers: { authorization: `Bearer ${SECRET}wrong` },
+          body: "{}",
+        })
+      );
+      expect(response.status).toBe(401);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+    }
+    expect(await testDb.select().from(geoAdhocScans)).toHaveLength(0);
+  });
+
+  test("does not return another project's scan", async () => {
+    const scope = await seedProject("runner-scope");
+    const other = await seedProject("runner-other-scope");
+    const app = makeHandler(true);
+    const created = await postScan(
+      { ...scope, prompt: "best tools", engines: [ENGINE] },
+      app.handler
+    );
+    const { id } = (await created.json()) as { id: string };
+    const response = await app.handler(
+      new Request(
+        `http://localhost/scans/${id}?organizationId=${other.organizationId}&projectId=${other.projectId}`,
+        { headers: { authorization: `Bearer ${SECRET}` } }
+      )
+    );
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: { code: "scan_not_found", message: "Scan not found" },
+    });
     await app.dispose();
   });
 
@@ -226,7 +272,7 @@ describe("geo runner HTTP routes", () => {
       })
     );
     expect(
-      body.models.some((model) => model.id === "meta/muse-spark-1.2")
+      body.models.some((model) => model.id === "cursor/composer-2.5")
     ).toBe(false);
 
     const previousSerp = process.env.SERPAPI_API_KEY;
@@ -274,6 +320,85 @@ describe("geo runner HTTP routes", () => {
     await app.dispose();
   });
 
+  test("reoffers queued retries and preserves the scan through backlog rejection", async () => {
+    const scope = await seedProject("runner-queued-retry");
+    const offers: string[] = [];
+    let accepting = true;
+    const app = createApp(
+      RunQueue.of({
+        offer: (scanId) =>
+          Effect.sync(() => {
+            offers.push(scanId);
+            return accepting;
+          }),
+        drain: () => Effect.void,
+      }),
+      SECRET,
+      testGeoLayer
+    );
+    const key = crypto.randomUUID();
+    const body = { ...scope, prompt: "best tools", engines: [ENGINE] };
+    const first = await postScan(body, app.fetch, key);
+    const { id } = (await first.json()) as { id: string };
+    expect(first.status).toBe(202);
+
+    accepting = false;
+    expect((await postScan(body, app.fetch, key)).status).toBe(503);
+    expect(await testDb.select().from(geoAdhocScans)).toHaveLength(1);
+
+    accepting = true;
+    const retry = await postScan(body, app.fetch, key);
+    expect(retry.status).toBe(202);
+    expect(await retry.json()).toEqual({ id, status: "queued" });
+    expect(offers).toEqual([id, id, id]);
+    expect(await testDb.select().from(geoAdhocScans)).toHaveLength(1);
+  });
+
+  test("a rejecting creator cannot delete a queued retry accepted by another replica", async () => {
+    const scope = await seedProject("runner-replica-retry");
+    const firstOffered = await Effect.runPromise(Deferred.make<void>());
+    const releaseFirst = await Effect.runPromise(Deferred.make<void>());
+    const rejecting = createApp(
+      RunQueue.of({
+        offer: () =>
+          Effect.gen(function* () {
+            yield* Deferred.succeed(firstOffered, undefined);
+            yield* Deferred.await(releaseFirst);
+            return false;
+          }),
+        drain: () => Effect.void,
+      }),
+      SECRET,
+      testGeoLayer
+    );
+    const accepting = createApp(
+      RunQueue.of({
+        offer: () => Effect.succeed(true),
+        drain: () => Effect.void,
+      }),
+      SECRET,
+      testGeoLayer
+    );
+    const key = crypto.randomUUID();
+    const body = { ...scope, prompt: "best tools", engines: [ENGINE] };
+    const original = postScan(body, rejecting.fetch, key);
+    await Effect.runPromise(Deferred.await(firstOffered));
+    try {
+      const retry = await postScan(body, accepting.fetch, key);
+      expect(retry.status).toBe(202);
+      const { id } = (await retry.json()) as { id: string };
+      await Effect.runPromise(Deferred.succeed(releaseFirst, undefined));
+      expect((await original).status).toBe(503);
+      const rows = await testDb.select().from(geoAdhocScans);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.id).toBe(id);
+      expect(rows[0]?.status).toBe("queued");
+    } finally {
+      await Effect.runPromise(Deferred.succeed(releaseFirst, undefined));
+      await original;
+    }
+  });
+
   test("rejects invalid scans and idempotency conflicts", async () => {
     const scope = await seedProject("runner-invalid");
     const app = makeHandler(true);
@@ -296,7 +421,7 @@ describe("geo runner HTTP routes", () => {
     );
     expect(invalid.status).toBe(422);
     const hidden = await postScan(
-      { ...scope, prompt: "best tools", engines: ["meta/muse-spark-1.2"] },
+      { ...scope, prompt: "best tools", engines: ["cursor/composer-2.5"] },
       app.handler
     );
     expect(hidden.status).toBe(422);
@@ -385,6 +510,8 @@ describe("geo runner HTTP routes", () => {
       "OPENROUTER_API_KEY",
       "VERCEL_OIDC_TOKEN",
       "VERCEL",
+      "NODE_ENV",
+      "AUTUMN_SECRET_KEY",
     ] as const;
     const previous = new Map(keys.map((key) => [key, process.env[key]]));
     const restore = () => {
@@ -408,6 +535,28 @@ describe("geo runner HTTP routes", () => {
         await (await app.handler(new Request("http://localhost/ready"))).json()
       ).toEqual({ ok: true });
       await app.dispose();
+
+      await testDb.execute(
+        sql`alter table geo_adhoc_scans rename to geo_adhoc_scans_unmigrated`
+      );
+      try {
+        expect(
+          (await app.handler(new Request("http://localhost/ready"))).status
+        ).toBe(503);
+      } finally {
+        await testDb.execute(
+          sql`alter table geo_adhoc_scans_unmigrated rename to geo_adhoc_scans`
+        );
+      }
+
+      process.env.NODE_ENV = "production";
+      expect(
+        (await app.handler(new Request("http://localhost/ready"))).status
+      ).toBe(503);
+      process.env.AUTUMN_SECRET_KEY = "test-autumn-key";
+      expect(
+        (await app.handler(new Request("http://localhost/ready"))).status
+      ).toBe(200);
 
       const weakApp = createApp(
         RunQueue.of({

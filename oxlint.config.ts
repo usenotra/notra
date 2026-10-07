@@ -1,10 +1,10 @@
 import { defineConfig } from "oxlint";
 import core from "ultracite/oxlint/core";
-import next from "ultracite/oxlint/next";
 import react from "ultracite/oxlint/react";
+import tanstack from "ultracite/oxlint/tanstack";
 
 export default defineConfig({
-  extends: [core, react, next],
+  extends: [core, react, tanstack],
   jsPlugins: ["@shadcn/lint"],
   settings: {
     shadcn: {
@@ -27,7 +27,67 @@ export default defineConfig({
   // Keep the full presets as the source of truth while baselining rules that
   // conflict with existing code. Newly added Ultracite rules stay enabled.
   rules: {
-    "shadcn/no-restyle": ["warn", { allow: ["layout"] }],
+    "shadcn/no-restyle": [
+      "warn",
+      {
+        allow: ["layout"],
+        contracts: [
+          {
+            pattern: "^Card$",
+            allow: ["layout", "gap-6", "p-6"],
+          },
+          { pattern: "^Skeleton$", allow: ["layout", "shape"] },
+          // Icon-only copy buttons sit next to secondary text (code headers,
+          // input addons), so callers mute the idle icon. The tick keeps its
+          // own success colour.
+          {
+            pattern: "^CopyButton$",
+            allow: ["layout", "text-muted-foreground"],
+          },
+          // Spinner draws in currentColor, so callers tint it like an icon.
+          { pattern: "^Spinner$", allow: ["layout", "color"] },
+          {
+            pattern: "^TitleCard$",
+            allow: ["layout", "border-t-0", "pt-0"],
+          },
+          {
+            // TooltipTrigger is wrapped around arbitrary content everywhere, so
+            // the restyles below are the baseline that already exists. Listing
+            // them keeps the rule flagging anything new.
+            pattern: "^TooltipTrigger$",
+            allow: [
+              "layout",
+              "typography",
+              "bg-background/80",
+              "bg-transparent",
+              "border",
+              "border-0",
+              "border-b",
+              "border-border/60",
+              "border-dashed",
+              "border-muted-foreground/30",
+              "data-[direction='-1']:text-geo-down",
+              "data-[direction='1']:text-geo-up",
+              "focus-visible:outline-2",
+              "focus-visible:outline-offset-2",
+              "focus-visible:outline-ring",
+              "focus-visible:ring-2",
+              "focus-visible:ring-ring/50",
+              "hover:bg-background",
+              "hover:text-foreground",
+              "outline-none",
+              "p-0",
+              "p-1",
+              "rounded-md",
+              "rounded-sm",
+              "text-foreground",
+              "text-muted-foreground",
+              "transition-colors",
+            ],
+          },
+        ],
+      },
+    ],
     "shadcn/no-raw-colors": "warn",
     "shadcn/no-arbitrary-values": ["warn", { allow: ["layout"] }],
     "shadcn/no-inline-styles": "warn",
@@ -74,7 +134,6 @@ export default defineConfig({
     "jsx-a11y/interactive-supports-focus": "off",
     "jsx-a11y/no-static-element-interactions": "off",
     "jsx-a11y/prefer-tag-over-role": "off",
-    "nextjs/no-img-element": "off",
     "node/callback-return": "off",
     "oxc/branches-sharing-code": "off",
     "oxc/no-accumulating-spread": "off",
@@ -192,6 +251,7 @@ export default defineConfig({
         "packages/ai/src/integrations/mcp-oauth-errors.ts",
         "packages/ai/src/schemas/slack.ts",
         "packages/ai/src/schemas/github-operations.ts",
+        "packages/ai/src/schemas/qstash.ts",
         "packages/tools/src/schemas/retry.ts",
         "packages/tools/src/schemas/social.ts",
       ],

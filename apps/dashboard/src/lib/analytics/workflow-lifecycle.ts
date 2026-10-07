@@ -18,6 +18,7 @@ import type {
 } from "@/types/analytics/workflow-events";
 import type { BrandAnalysisProgressInput } from "@/types/workflows/brand-analysis";
 import type { TrackContentOutcomeInput } from "@/types/workflows/content-generation-steps";
+import { notifyWorkflowFailure } from "@/utils/workflow-failure-alert";
 import { getCurrentWorkflowRunId } from "@/utils/workflow-run-id";
 import { logWorkflowTelemetry } from "@/utils/workflow-telemetry";
 
@@ -68,12 +69,13 @@ function buildWorkflowOutcomeProperties(
 export async function trackWorkflowOutcomeAndFlush(
   input: WorkflowOutcomeInput
 ): Promise<void> {
+  const runId = getCurrentWorkflowRunId();
   logWorkflowTelemetry({
     event:
       input.outcome === WORKFLOW_OUTCOMES.FAILED
         ? "job.failed"
         : "job.completed",
-    runId: getCurrentWorkflowRunId(),
+    runId,
     executionId: input.runId,
     workflow: input.workflow,
     organizationId: input.organizationId,
@@ -82,6 +84,17 @@ export async function trackWorkflowOutcomeAndFlush(
     outcome: input.outcome === WORKFLOW_OUTCOMES.FAILED ? "error" : "success",
     stepFailed: input.stepFailed,
   });
+  const alertRunId = runId ?? input.runId;
+  if (input.outcome === WORKFLOW_OUTCOMES.FAILED && alertRunId) {
+    await notifyWorkflowFailure({
+      runId: alertRunId,
+      workflow: input.workflow,
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      reason: input.reason ?? input.stepFailed,
+      websiteUrl: input.websiteUrl,
+    });
+  }
   await trackServerEventAndFlush({
     event:
       input.outcome === WORKFLOW_OUTCOMES.FAILED
@@ -145,5 +158,6 @@ export async function trackBrandAnalysisOutcomeAndFlush(
     startedAt: input.startedAt,
     stepFailed: phaseFailed,
     reason: failed ? error : undefined,
+    websiteUrl: input.websiteUrl,
   });
 }

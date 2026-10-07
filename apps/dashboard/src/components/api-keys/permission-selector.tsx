@@ -12,8 +12,13 @@ import {
   PermissionRow,
   PermissionSelector,
 } from "@notra/ui/components/ui/permission-selector";
+import { useTranslations } from "use-intl";
 
-import { API_KEY_ACCESS_MODE_OPTIONS } from "@/constants/api-keys";
+import {
+  API_KEY_RESOURCE_COMMON_LABEL_KEYS,
+  API_KEY_ACCESS_MODE_OPTIONS,
+  API_KEY_TRANSLATED_RESOURCE_IDS,
+} from "@/constants/api-keys";
 import {
   API_KEY_SCOPE_GROUPS,
   applyScopeLevel,
@@ -26,6 +31,7 @@ import type {
   ApiKeyPermissionSelectorProps,
   ApiKeyScopeGroup,
 } from "@/types/api-keys";
+import { hasOwnKey } from "@/utils/has-own-key";
 
 export function ApiKeyPermissionSelector({
   accessMode,
@@ -35,7 +41,26 @@ export function ApiKeyPermissionSelector({
   disabled,
   className,
 }: ApiKeyPermissionSelectorProps) {
+  const t = useTranslations("apiKeys.permissions");
+  const tLabels = useTranslations("common.labels");
   const selected = new Set(value);
+  const resourceText = (
+    group: ApiKeyScopeGroup,
+    field: "label" | "description"
+  ) => {
+    const id = API_KEY_TRANSLATED_RESOURCE_IDS.find(
+      (resourceId) => resourceId === group.id
+    );
+    if (!id) {
+      return group[field];
+    }
+    if (field === "description") {
+      return t(`resources.${id}.description`);
+    }
+    return hasOwnKey(API_KEY_RESOURCE_COMMON_LABEL_KEYS, id)
+      ? tLabels(API_KEY_RESOURCE_COMMON_LABEL_KEYS[id])
+      : t(`resources.${id}.label`);
+  };
   const selectedMode = API_KEY_ACCESS_MODE_OPTIONS.find(
     (option) => option.value === accessMode
   );
@@ -52,7 +77,7 @@ export function ApiKeyPermissionSelector({
         className="w-full"
         disabled={disabled}
         indicatorMotion="fade"
-        label="API key access"
+        label={t("accessLabel")}
         layout="compact"
         onValueChange={(mode) => {
           const nextMode = mode as ApiKeyAccessMode;
@@ -69,7 +94,7 @@ export function ApiKeyPermissionSelector({
             key={option.value}
             value={option.value}
           >
-            {option.label}
+            {t("accessModeLabel", { mode: option.value })}
           </PermissionOption>
         ))}
       </PermissionRow>
@@ -84,31 +109,31 @@ export function ApiKeyPermissionSelector({
             icon={InformationCircleIcon}
           />
           <AlertTitle className="text-sm font-medium">
-            {selectedMode.title}
+            {t("accessModeTitle", { mode: selectedMode.value })}
           </AlertTitle>
           <AlertDescription className="mt-1 text-xs leading-relaxed">
-            {selectedMode.description}
+            {t("accessModeDescription", { mode: selectedMode.value })}
           </AlertDescription>
         </Alert>
       ) : null}
 
       {accessMode === "restricted" ? (
         <div>
-          <p className="text-sm font-medium">Resource access</p>
+          <p className="text-sm font-medium">{t("resourceAccess")}</p>
           <p className="text-muted-foreground text-xs">
-            {API_KEY_ACCESS_MODE_OPTIONS[2].description}
+            {t("accessModeDescription", { mode: "restricted" })}
           </p>
           <div className="mt-3">
             <PermissionSelector
               className={className}
-              label="API key permissions"
+              label={t("permissionsLabel")}
             >
               {API_KEY_SCOPE_GROUPS.map((group) => (
                 <PermissionRow
-                  description={group.description}
+                  description={resourceText(group, "description")}
                   disabled={disabled}
                   key={group.id}
-                  label={group.label}
+                  label={resourceText(group, "label")}
                   onValueChange={(levelValue) =>
                     handleLevelChange(group, levelValue)
                   }
@@ -120,7 +145,7 @@ export function ApiKeyPermissionSelector({
                       tone={level.tone}
                       value={level.value}
                     >
-                      {level.label}
+                      {t("scopeLevel", { level: level.value })}
                     </PermissionOption>
                   ))}
                 </PermissionRow>

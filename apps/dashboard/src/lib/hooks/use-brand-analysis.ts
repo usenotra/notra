@@ -7,6 +7,7 @@ import type {
 } from "@notra/schemas/dashboard/integrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import type {
   BrandSettings,
@@ -160,6 +161,7 @@ export function useAnalyzeBrand(
   organizationId: string,
   startPolling: () => void
 ) {
+  const tToast = useTranslations("brand.toasts");
   const queryClient = useQueryClient();
   const progressKey = dashboardOrpc.brand.analysis.getProgress.queryKey({
     input: { organizationId },
@@ -193,7 +195,8 @@ export function useAnalyzeBrand(
           status: "failed",
           currentStep: 0,
           totalSteps: 3,
-          error: error instanceof Error ? error.message : "Analysis failed",
+          error:
+            error instanceof Error ? error.message : tToast("analysisFailed"),
         },
       });
     },

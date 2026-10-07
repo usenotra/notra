@@ -1,22 +1,26 @@
+import { useLocale, useTranslations } from "use-intl";
+
 import { JourneyPathPill } from "@/components/geo/journey-path-pill";
 import { cn } from "@/lib/utils";
 import type { GeoJourneyTreeNode, JourneyPathTreeProps } from "@/types/geo";
 import { formatGeoJourneyClock } from "@/utils/geo-journey";
 
 function JourneyTreeRow({ node }: { node: GeoJourneyTreeNode }) {
+  const t = useTranslations("geo.journeyPathTree");
+  const locale = useLocale();
   return (
     <div className="flex h-6 items-center gap-2 whitespace-nowrap">
       <JourneyPathPill className="h-6 px-2" node={node} />
       {node.hits > 1 ? (
         <span
           className="text-muted-foreground text-[0.6875rem] tabular-nums"
-          title={`Fetched ${node.hits} times`}
+          title={t("fetchedTimes", { count: node.hits })}
         >
           ×{node.hits}
         </span>
       ) : null}
       <span className="text-muted-foreground/70 text-[0.6875rem] tabular-nums">
-        {formatGeoJourneyClock(node.firstSeenAt)}
+        {formatGeoJourneyClock(node.firstSeenAt, locale)}
       </span>
     </div>
   );
@@ -66,12 +70,9 @@ function JourneyTreeBranch({ node }: { node: GeoJourneyTreeNode }) {
 }
 
 export function JourneyPathTree({ roots }: JourneyPathTreeProps) {
+  const t = useTranslations("geo.journeyPathTree");
   if (roots.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        No pages captured for this journey.
-      </p>
-    );
+    return <p className="text-muted-foreground text-sm">{t("noPages")}</p>;
   }
 
   return (

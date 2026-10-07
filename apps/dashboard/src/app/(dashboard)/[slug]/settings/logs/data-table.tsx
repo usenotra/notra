@@ -1,95 +1,82 @@
 "use client";
 
-import { Button } from "@/components/button";
-import { Table } from "@/components/motion/table";
+import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { DataTable } from "@notra/ui/components/ui/data-table";
+import { useTranslations } from "use-intl";
+
+import { EmptyState } from "@/components/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import type { DataTableProps } from "@/types/logs/data-table";
-import { tableHeightFor } from "@/utils/table";
+import type { DataTableProps as LogsDataTableProps } from "@/types/logs/data-table";
+import { paginatedTableHeightFor } from "@/utils/table";
 
 const LOGS_SKELETON_ROW_COUNT = 10;
 
-export function DataTable<TData>({
+export function LogsDataTable<TData>({
   columns,
   data,
   getRowId,
   page,
-  totalPages,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
   isLoading,
   emptyState,
   onRowClick,
   sort,
   onSortChange,
   totalCount,
-}: DataTableProps<TData>) {
-  const rowCount = isLoading ? LOGS_SKELETON_ROW_COUNT : data.length;
+}: LogsDataTableProps<TData>) {
+  const t = useTranslations("settings.logs");
+  // Paged tables size to their page; only the first load needs room for
+  // skeleton rows.
+  const skeletonHeight =
+    isLoading && data.length === 0
+      ? paginatedTableHeightFor(LOGS_SKELETON_ROW_COUNT, TABLE_ROW_HEIGHT)
+      : undefined;
+
+  if (data.length === 0 && !isLoading && emptyState) {
+    return (
+      <EmptyState
+        actionLabel={emptyState.actionLabel}
+        actionVariant="outline"
+        className="min-h-64"
+        description={emptyState.description ?? ""}
+        onActionClick={emptyState.onActionClick}
+        title={emptyState.title}
+        titleIcon={
+          <HugeiconsIcon
+            aria-hidden="true"
+            className="text-muted-foreground size-5"
+            icon={AnalyticsUpIcon}
+          />
+        }
+      />
+    );
+  }
 
   return (
-    <div>
-      <Table
-        className="rounded-2xl"
-        columns={columns}
-        data={data}
-        defaultSort={{ key: "createdAt", direction: "desc" }}
-        sort={sort}
-        onSortChange={onSortChange}
-        emptyState={
-          emptyState ? (
-            <div className="flex flex-col items-center justify-center gap-2 px-6 py-2 text-center">
-              <p className="text-sm font-medium">{emptyState.title}</p>
-              {emptyState.description && (
-                <p className="text-muted-foreground text-sm">
-                  {emptyState.description}
-                </p>
-              )}
-              {emptyState.actionLabel && emptyState.onActionClick && (
-                <Button
-                  className="mt-2"
-                  onClick={emptyState.onActionClick}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  {emptyState.actionLabel}
-                </Button>
-              )}
-            </div>
-          ) : (
-            "No results."
-          )
-        }
-        getRowId={getRowId}
-        height={tableHeightFor(rowCount, TABLE_ROW_HEIGHT)}
-        loading={isLoading}
-        onRowClick={onRowClick}
-        rowHeight={TABLE_ROW_HEIGHT}
-      />
-      {(totalPages > 1 || data.length > 0) && (
-        <div className="flex items-center justify-between py-4">
-          <span className="text-muted-foreground text-sm">
-            Page {page} of {totalPages}
-            {totalCount !== undefined ? ` · ${totalCount} logs` : ""}
-          </span>
-          <div className="flex items-center space-x-2">
-            <Button
-              disabled={page <= 1}
-              onClick={() => onPageChange(page - 1)}
-              size="sm"
-              variant="outline"
-            >
-              Previous
-            </Button>
-            <Button
-              disabled={page >= totalPages}
-              onClick={() => onPageChange(page + 1)}
-              size="sm"
-              variant="outline"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+    <DataTable
+      columns={columns}
+      data={data}
+      defaultSort={{ key: "createdAt", direction: "desc" }}
+      emptyState={t("noResults")}
+      pagination={{
+        mode: "server",
+        page,
+        pageSize,
+        totalItems: totalCount,
+        onPageChange,
+        onPageSizeChange,
+        itemLabel: t("itemLabel"),
+      }}
+      getRowId={getRowId}
+      height={skeletonHeight}
+      loading={isLoading}
+      onRowClick={onRowClick}
+      onSortChange={onSortChange}
+      rowHeight={TABLE_ROW_HEIGHT}
+      sort={sort}
+    />
   );
 }

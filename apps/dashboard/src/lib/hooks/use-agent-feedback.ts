@@ -10,12 +10,20 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
+  AgentFeedbackActivityRange,
+  AgentFeedbackListData,
   AgentFeedbackSetupResponse,
+  AgentFeedbackStatusChange,
   AgentFeedbackStatusFilter,
 } from "@/types/agent-feedback";
+import {
+  agentFeedbackFilterStatuses,
+  withFeedbackStatus,
+} from "@/utils/agent-feedback";
 
 function toListInput(
   organizationId: string,
@@ -24,7 +32,7 @@ function toListInput(
 ) {
   return {
     organizationId,
-    status: status === "all" ? undefined : status,
+    statuses: agentFeedbackFilterStatuses(status),
     cursor,
     limit: AGENT_FEEDBACK_PAGE_SIZE,
   };
@@ -34,6 +42,7 @@ export function useAgentFeedbackList(
   organizationId: string,
   status: AgentFeedbackStatusFilter
 ) {
+  const t = useTranslations("feedback.toasts");
   return useInfiniteQuery({
     ...dashboardOrpc.agentFeedback.list.infiniteOptions({
       input: (cursor: string | undefined) =>
@@ -43,30 +52,51 @@ export function useAgentFeedbackList(
     }),
     enabled: !!organizationId,
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load feedback" },
+    meta: { errorMessage: t("loadFailed") },
   });
 }
 
 export function useAgentFeedbackUpdateStatus(organizationId: string) {
+  const t = useTranslations("feedback.toasts");
   const queryClient = useQueryClient();
+  const listKey = dashboardOrpc.agentFeedback.list.key();
   return useMutation({
-    mutationFn: (input: { feedbackId: string; status: AgentFeedbackStatus }) =>
+    mutationFn: ({ feedbackId, status }: AgentFeedbackStatusChange) =>
       dashboardOrpc.agentFeedback.updateStatus.call({
         organizationId,
-        ...input,
+        feedbackId,
+        status,
       }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.agentFeedback.list.key(),
+    onMutate: async (change: AgentFeedbackStatusChange) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previous = queryClient.getQueriesData<AgentFeedbackListData>({
+        queryKey: listKey,
       });
+      queryClient.setQueriesData<AgentFeedbackListData>(
+        { queryKey: listKey },
+        (data) => (data ? withFeedbackStatus(data, change) : data)
+      );
+      return { previous };
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update feedback");
+    onError: (error: Error, _input, context) => {
+      for (const [key, data] of context?.previous ?? []) {
+        queryClient.setQueryData(key, data);
+      }
+      toast.error(error.message || t("updateFailed"));
+    },
+    onSettled: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: listKey }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.agentFeedback.activity.key(),
+        }),
+      ]);
     },
   });
 }
 
 export function useAgentFeedbackDelete(organizationId: string) {
+  const t = useTranslations("feedback.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (feedbackId: string) =>
@@ -75,13 +105,18 @@ export function useAgentFeedbackDelete(organizationId: string) {
         feedbackId,
       }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: dashboardOrpc.agentFeedback.list.key(),
-      });
-      toast.success("Feedback deleted");
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.agentFeedback.list.key(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.agentFeedback.activity.key(),
+        }),
+      ]);
+      toast.success(t("deleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete feedback");
+      toast.error(error.message || t("deleteFailed"));
     },
   });
 }
@@ -93,5 +128,20 @@ export function useAgentFeedbackSetup(organizationId: string) {
     }),
     enabled: !!organizationId,
     retry: false,
+  });
+}
+
+export function useAgentFeedbackActivity(
+  organizationId: string,
+  range: AgentFeedbackActivityRange
+) {
+  const t = useTranslations("feedback.activity");
+  return useQuery({
+    ...dashboardOrpc.agentFeedback.activity.queryOptions({
+      input: { organizationId, ...range },
+    }),
+    enabled: !!organizationId,
+    placeholderData: keepPreviousData,
+    meta: { errorMessage: t("loadFailed") },
   });
 }

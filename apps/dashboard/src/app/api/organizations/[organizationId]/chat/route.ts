@@ -5,21 +5,19 @@ import {
 } from "@notra/ai/billing/autumn";
 import { checkChatBilling } from "@notra/ai/billing/chat-billing";
 import { FEATURES } from "@notra/ai/billing/features";
-import { startChatAbortPolling } from "@notra/ai/chat/abort-polling";
 import { getChatRedis } from "@notra/ai/chat/config";
 import {
   clearActiveChatStream,
-  clearChatAbortFlag,
   clearLastResponseStopped,
   generateAndSetChatTitle,
   generateChatId,
-  getChatProjectId,
-  getChatSession,
-  isChatDeleted,
+  getChatSessionState,
   replaceChatHistory,
   setActiveChatStream,
 } from "@notra/ai/chat/history";
 import { getStandaloneChatIntegrations } from "@notra/ai/chat/integrations-cache";
+import { hydrateSavedChatPosts } from "@notra/ai/chat/posts";
+import { createChatStreamLifecycle } from "@notra/ai/chat/stream-lifecycle";
 import { useLogger as getLogger, withEvlog } from "@notra/ai/evlog";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getGranolaToolContextByIntegrationId } from "@notra/ai/integrations/granola";
@@ -38,8 +36,12 @@ import {
   buildChatFinishMetadata,
   stampUserMessageAuthors,
 } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
+import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
+import { withChatStreamCleanup } from "@notra/ai/utils/with-chat-stream-cleanup";
 import { isProjectInOrganization } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
@@ -50,8 +52,6 @@ import {
   type UIMessage,
 } from "ai";
 import { nanoid } from "nanoid";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import {
   AI_CREDITS_SOURCE_STANDALONE_CHAT,
@@ -63,18 +63,19 @@ import {
   getChatContextKinds,
 } from "@/lib/analytics/studio-events";
 import { withOrganizationAuth } from "@/lib/auth/organization";
+import { isCodeResearchEnabledForOrganization } from "@/lib/code-research/flag";
+import { afterResponse } from "@/lib/framework/after-response";
 import { buildStandaloneChatTelemetryMetadata } from "@/lib/tcc";
 import { startStandaloneChatRun } from "@/lib/workflows/start";
 import type { RouteContext } from "@/types/api/routes";
 import { enforceChatGenerationRatelimit } from "@/utils/chat-ratelimit";
 
-export const maxDuration = 1800;
-
 export const POST = withEvlog(async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: RouteContext<{ organizationId: string }>
 ) {
   const log = getLogger();
+  const requestStartedAt = Date.now();
   const requestId = String(log.getContext().requestId);
   let cleanupOrganizationId: string | null = null;
   let cleanupChatId: string | null = null;
@@ -98,19 +99,27 @@ export const POST = withEvlog(async function POST(
     const parseResult = standaloneChatRequestSchema.safeParse(body);
 
     if (!parseResult.success) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Invalid request body", details: parseResult.error.issues },
         { status: 400 }
       );
     }
 
-    const messages = stampUserMessageAuthors(
+    let messages = stampUserMessageAuthors(
       parseResult.data.messages,
       auth.context.user.id
     );
     const chatId = parseResult.data.chatId ?? generateChatId();
     let projectId: string | null = parseResult.data.projectId ?? null;
     let bindProjectFromSession = false;
+
+    const latestMessage = messages.at(-1);
+    if (!latestMessage?.id) {
+      return Response.json(
+        { error: "Latest message must include an id" },
+        { status: 400 }
+      );
+    }
 
     const trackBlocked = (code: string) => {
       trackServerEvent({
@@ -122,11 +131,16 @@ export const POST = withEvlog(async function POST(
       });
     };
 
-    if (parseResult.data.chatId) {
-      const existingSession = await getChatSession(organizationId, chatId);
-      if (existingSession?.externalChannelId?.source === "slack") {
+    const existingSession = parseResult.data.chatId
+      ? await getChatSessionState(organizationId, chatId)
+      : null;
+    if (existingSession) {
+      if (existingSession.deletedAt !== null) {
+        return Response.json({ error: "Chat not found" }, { status: 404 });
+      }
+      if (existingSession.externalChannelSource === "slack") {
         trackBlocked("CHAT_READ_ONLY");
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Slack-mirrored chats are read-only in the dashboard",
             code: "CHAT_READ_ONLY",
@@ -136,10 +150,8 @@ export const POST = withEvlog(async function POST(
       }
       // Existing chats keep the project stored at creation. Continuing with a
       // different active project must not retarget GEO tools or content.
-      if (existingSession) {
-        bindProjectFromSession = true;
-        projectId = await getChatProjectId(organizationId, chatId);
-      }
+      bindProjectFromSession = true;
+      projectId = existingSession.projectId;
     }
 
     if (
@@ -147,7 +159,7 @@ export const POST = withEvlog(async function POST(
       !bindProjectFromSession &&
       !(await isProjectInOrganization(organizationId, projectId))
     ) {
-      return NextResponse.json({ error: "Project not found" }, { status: 400 });
+      return Response.json({ error: "Project not found" }, { status: 400 });
     }
 
     const rateLimited = await enforceChatGenerationRatelimit(
@@ -166,13 +178,12 @@ export const POST = withEvlog(async function POST(
       try {
         billing = await checkChatBilling(organizationId);
       } catch (checkError) {
-        console.error("[Autumn] Check error:", {
-          requestId,
-          customerId: organizationId,
-          error: checkError,
-        });
+        log.error(
+          checkError instanceof Error ? checkError : String(checkError),
+          { billingCheck: "failed" }
+        );
         trackBlocked("BILLING_ERROR");
-        return NextResponse.json(
+        return Response.json(
           { error: "Failed to check usage limits", code: "BILLING_ERROR" },
           { status: 500 }
         );
@@ -180,7 +191,7 @@ export const POST = withEvlog(async function POST(
 
       if (!billing.allowed) {
         trackBlocked("USAGE_LIMIT_REACHED");
-        return NextResponse.json(
+        return Response.json(
           {
             error: "Usage limit reached",
             code: "USAGE_LIMIT_REACHED",
@@ -195,7 +206,7 @@ export const POST = withEvlog(async function POST(
       billingMode = billing.mode;
     } else {
       trackBlocked("BILLING_UNAVAILABLE");
-      return NextResponse.json(
+      return Response.json(
         { error: "Billing service is unavailable", code: "BILLING_ERROR" },
         { status: 503 }
       );
@@ -203,68 +214,83 @@ export const POST = withEvlog(async function POST(
 
     cleanupOrganizationId = organizationId;
     cleanupChatId = chatId;
-    const validatedIntegrations =
-      await getStandaloneChatIntegrations(organizationId);
     const context = parseResult.data.context ?? [];
 
-    if (!messages.length) {
-      return NextResponse.json(
-        { error: "At least one message is required" },
-        { status: 400 }
-      );
-    }
-
-    const latestMessage = messages.at(-1);
-    if (!latestMessage?.id) {
-      return NextResponse.json(
-        { error: "Latest message must include an id" },
-        { status: 400 }
-      );
-    }
-
-    if (
-      parseResult.data.chatId &&
-      (await isChatDeleted(organizationId, chatId))
-    ) {
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
-    }
-
+    const streamId = nanoid();
     const streamAcquired = await setActiveChatStream(
       organizationId,
       chatId,
-      latestMessage.id
+      streamId
     );
     if (!streamAcquired) {
       trackBlocked("ALREADY_GENERATING");
-      return NextResponse.json(
+      return Response.json(
         { error: "A response is already being generated for this chat" },
         { status: 409 }
       );
     }
-    cleanupStreamId = latestMessage.id;
+    cleanupStreamId = streamId;
 
-    const [historySaved] = await Promise.all([
-      replaceChatHistory(
-        organizationId,
-        chatId,
-        messages,
-        undefined,
-        undefined,
-        projectId
-      ),
-      clearLastResponseStopped(organizationId, chatId),
-    ]);
+    // Finish all preparation before error cleanup can release the stream lock.
+    // Code research fails closed on its own, so it never rejects here.
+    const [hydrationResult, integrationsResult, codeResearchResult] =
+      await Promise.allSettled([
+        hydrateSavedChatPosts(organizationId, chatId, messages),
+        getStandaloneChatIntegrations(organizationId),
+        isCodeResearchEnabledForOrganization(organizationId),
+      ]);
+
+    if (hydrationResult.status === "rejected") {
+      throw hydrationResult.reason;
+    }
+    if (integrationsResult.status === "rejected") {
+      throw integrationsResult.reason;
+    }
+    const validatedIntegrations = integrationsResult.value;
+    const codeResearch =
+      codeResearchResult.status === "fulfilled" && codeResearchResult.value;
+    messages = preserveConversationSelection(
+      hydrationResult.value,
+      existingSession?.messages ?? []
+    );
+
+    await clearLastResponseStopped(organizationId, chatId);
+    // Persist only after preparation succeeds so a failed send leaves no turn.
+    const historySaved = await replaceChatHistory(
+      organizationId,
+      chatId,
+      messages,
+      undefined,
+      // Reject a snapshot made stale before acquiring the stream lock.
+      existingSession
+        ? (existingSession.messages.at(-1)?.id ?? null)
+        : undefined,
+      projectId
+    );
 
     if (!historySaved) {
-      await clearActiveChatStream(organizationId, chatId, latestMessage.id);
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+      await clearActiveChatStream(organizationId, chatId, streamId);
+      const currentSession = await getChatSessionState(organizationId, chatId);
+      if (currentSession && currentSession.deletedAt === null) {
+        return Response.json(
+          {
+            error: "Chat changed while sending. Reload the chat and try again.",
+          },
+          { status: 409 }
+        );
+      }
+      return Response.json({ error: "Chat not found" }, { status: 404 });
     }
 
     if (messages.length === 1 && latestMessage.role === "user") {
-      await generateAndSetChatTitle(organizationId, chatId, latestMessage);
+      // Start immediately alongside the response and keep it alive after the request.
+      afterResponse(async () => {
+        await generateAndSetChatTitle(organizationId, chatId, latestMessage);
+      });
     }
 
     const canUseWorkflowStreaming = canUseChatWorkflowStreaming();
+    log.set({ chatStartup: { preparationMs: Date.now() - requestStartedAt } });
 
     trackServerEvent({
       event: POSTHOG_EVENTS.CHAT_MESSAGE_SENT,
@@ -292,6 +318,7 @@ export const POST = withEvlog(async function POST(
 
     if (!canUseWorkflowStreaming) {
       return createDirectStandaloneChatResponse({
+        streamId,
         organizationId,
         userId: auth.context.user.id,
         chatId,
@@ -300,6 +327,7 @@ export const POST = withEvlog(async function POST(
         validatedIntegrations,
         useMarkup,
         chargeAiCredits,
+        codeResearch,
         requestId,
         log,
         model: parseResult.data.model,
@@ -315,6 +343,7 @@ export const POST = withEvlog(async function POST(
     }
 
     const workflowPayload: ChatWorkflowPayload = {
+      streamId,
       requestId,
       organizationId,
       chatId,
@@ -332,9 +361,12 @@ export const POST = withEvlog(async function POST(
 
     await startStandaloneChatRun(workflowPayload);
 
-    return NextResponse.json(
-      { ok: true, chatId, streamId: latestMessage.id },
-      { status: 202, headers: { "X-Chat-Id": chatId } }
+    return Response.json(
+      { ok: true, chatId, streamId },
+      {
+        status: 202,
+        headers: { "X-Chat-Id": chatId, "X-Chat-Stream-Id": streamId },
+      }
     );
   } catch (e) {
     if (cleanupOrganizationId && cleanupChatId && cleanupStreamId) {
@@ -345,12 +377,8 @@ export const POST = withEvlog(async function POST(
       ).catch(() => undefined);
     }
     const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("[Standalone Chat] Error:", {
-      requestId,
-      error: errorMessage,
-      stack: e instanceof Error ? e.stack : undefined,
-    });
-    return NextResponse.json(
+    log.error(e instanceof Error ? e : errorMessage);
+    return Response.json(
       {
         error:
           process.env.NODE_ENV === "development"
@@ -371,6 +399,7 @@ function canUseChatWorkflowStreaming() {
 }
 
 async function createDirectStandaloneChatResponse({
+  streamId,
   organizationId,
   userId,
   chatId,
@@ -379,6 +408,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations,
   useMarkup,
   chargeAiCredits,
+  codeResearch,
   requestId,
   log,
   model,
@@ -391,6 +421,7 @@ async function createDirectStandaloneChatResponse({
   projectId,
   surface,
 }: {
+  streamId: string;
   organizationId: string;
   userId: string;
   chatId: string;
@@ -399,6 +430,7 @@ async function createDirectStandaloneChatResponse({
   validatedIntegrations: ValidatedIntegration[];
   useMarkup: boolean;
   chargeAiCredits: boolean;
+  codeResearch: boolean;
   requestId: string;
   log: ReturnType<typeof getLogger>;
   model?: string;
@@ -412,40 +444,15 @@ async function createDirectStandaloneChatResponse({
   surface?: ChatWorkflowPayload["surface"];
 }) {
   const autumnClient = autumn;
-  const streamId = messages.at(-1)?.id;
 
-  if (!streamId) {
-    throw new Error("Latest message must include an id");
-  }
-
-  const redisAbortController = new AbortController();
-  const stopAbortPolling = startChatAbortPolling({
+  const lifecycle = await createChatStreamLifecycle({
     organizationId,
     chatId,
     streamId,
-    onAbort: () => redisAbortController.abort(),
+    abortSignal,
   });
-
-  const onRequestAbort = () => redisAbortController.abort();
-  abortSignal?.addEventListener("abort", onRequestAbort, { once: true });
-
-  const combinedAbortSignal = abortSignal
-    ? AbortSignal.any([abortSignal, redisAbortController.signal])
-    : redisAbortController.signal;
-
-  let cleanedUp = false;
-  const cleanup = async () => {
-    if (cleanedUp) {
-      return;
-    }
-    cleanedUp = true;
-    stopAbortPolling();
-    abortSignal?.removeEventListener("abort", onRequestAbort);
-    await Promise.allSettled([
-      clearChatAbortFlag(organizationId, chatId, streamId),
-      clearActiveChatStream(organizationId, chatId, streamId),
-    ]);
-  };
+  const combinedAbortSignal = lifecycle.signal;
+  const cleanup = lifecycle.close;
 
   const streamStartedAt = Date.now();
   let firstChunkAt: number | null = null;
@@ -471,6 +478,8 @@ async function createDirectStandaloneChatResponse({
         abortSignal: combinedAbortSignal,
         telemetryMetadata,
         useMarkup,
+        chargeAiCredits,
+        codeResearch,
         projectId,
         surface,
       },
@@ -549,10 +558,9 @@ async function createDirectStandaloneChatResponse({
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after standalone chat:", {
+            logError("[Autumn] Track error after standalone chat", trackError, {
               requestId,
               customerId: organizationId,
-              error: trackError,
             });
           }
         },
@@ -560,12 +568,14 @@ async function createDirectStandaloneChatResponse({
       }
     );
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
       messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
         const effectiveThinkingLevel =
           enableThinking === false
             ? "off"
@@ -584,6 +594,7 @@ async function createDirectStandaloneChatResponse({
 
         if (part.type === "finish") {
           return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
             streamStartedAt,
             firstChunkAt,
             finishedAt: Date.now(),
@@ -596,39 +607,29 @@ async function createDirectStandaloneChatResponse({
           });
         }
 
-        return;
+        return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
-        try {
-          const saved = await replaceChatHistory(
-            organizationId,
-            chatId,
-            responseMessages,
-            undefined,
-            streamId
+        const saved = await replaceChatHistory(
+          organizationId,
+          chatId,
+          responseMessages,
+          undefined,
+          messages.at(-1)?.id
+        );
+        if (!saved) {
+          logWarn(
+            "[Standalone Chat] Skipped saving response: chat was deleted",
+            { requestId, organizationId, chatId }
           );
-          if (!saved) {
-            console.warn(
-              "[Standalone Chat] Skipped saving response: chat was deleted",
-              { requestId, organizationId, chatId }
-            );
-          }
-        } finally {
-          await cleanup();
-          streamDone.resolve();
         }
       },
       onError: (error) => {
-        cleanup().catch(() => undefined);
-        streamDone.resolve();
-        console.error("[Standalone Chat] Direct stream error:", {
-          requestId,
-          error,
-        });
-        if (
+        const isAbort =
           combinedAbortSignal.aborted ||
-          (error instanceof Error && error.name === "AbortError")
-        ) {
+          (error instanceof Error && error.name === "AbortError");
+        logError("[Standalone Chat] Direct stream error", error, { requestId });
+        if (isAbort) {
           return "Generation stopped.";
         }
         if (NoSuchToolError.isInstance(error)) {
@@ -642,8 +643,14 @@ async function createDirectStandaloneChatResponse({
     });
 
     return createUIMessageStreamResponse({
-      headers: { "X-Chat-Id": chatId },
-      stream: uiStream,
+      headers: { "X-Chat-Id": chatId, "X-Chat-Stream-Id": streamId },
+      stream: withChatStreamCleanup(uiStream, async () => {
+        try {
+          await cleanup();
+        } finally {
+          streamDone.resolve();
+        }
+      }),
     });
   };
 

@@ -1,13 +1,14 @@
 "use client";
 
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
+
 import { ChartSeriesLegend } from "@/components/analytics/chart-legend";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { EChartsBarChart } from "@/components/evilcharts/charts/echarts-bar-chart";
 import { EChartsLineChart } from "@/components/evilcharts/charts/echarts-line-chart";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import type { AccountSeriesChartCardProps } from "@/types/analytics";
 
 const CHART_CLASS = "h-56 w-full";

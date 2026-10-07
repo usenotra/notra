@@ -20,12 +20,13 @@ import {
   use,
   useState,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoAnswerMentionCompetitorCard } from "@/components/geo/geo-answer-mention-card";
 import { GeoAnswerMentionContext } from "@/components/geo/geo-answer-mention-context";
 import {
   GEO_ANSWER_MENTION_CLASS,
-  GEO_ANSWER_MENTION_LABEL,
+  GEO_ANSWER_MENTION_LIST_ITEM_CLASS,
   GEO_ANSWER_MENTION_TRIGGER_CLASS,
 } from "@/constants/geo-answer-mentions";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
@@ -36,7 +37,14 @@ import { findMentionedCompetitor } from "@/utils/geo-answer-mention-competitor";
 const MENTION_HOST_PREFIX = "GeoAnswerMention.";
 const SKIP_TAGS = new Set(["code", "pre", "mark", "kbd", "samp", "button"]);
 
-function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
+// Set while highlighting so a block knows it names the user's own brand.
+type OwnMentionFlag = { found: boolean };
+
+function mentionMarks(
+  text: string,
+  terms: readonly GeoAnswerMentionTerm[],
+  ownMention?: OwnMentionFlag
+) {
   const spans = geoAnswerMentionSpans(text, terms);
   if (spans.length === 0) {
     return text;
@@ -45,6 +53,9 @@ function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
   const nodes: ReactNode[] = [];
   let cursor = 0;
   for (const span of spans) {
+    if (ownMention && span.kind === "own") {
+      ownMention.found = true;
+    }
     if (span.start > cursor) {
       nodes.push(text.slice(cursor, span.start));
     }
@@ -65,7 +76,18 @@ function mentionMarks(text: string, terms: readonly GeoAnswerMentionTerm[]) {
   return nodes;
 }
 
-function shouldSkipElement(type: unknown): boolean {
+function markdownTagName(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null || !("tagName" in node)) {
+    return undefined;
+  }
+  return typeof node.tagName === "string" ? node.tagName : undefined;
+}
+
+function shouldSkipElement(type: unknown, node: unknown): boolean {
+  const tagName = markdownTagName(node);
+  if (tagName && SKIP_TAGS.has(tagName)) {
+    return true;
+  }
   if (type === MentionMark || type === CompetitorMentionMark) {
     return true;
   }
@@ -83,7 +105,8 @@ function shouldSkipElement(type: unknown): boolean {
 
 function highlightMentionChildren(
   children: ReactNode,
-  terms: readonly GeoAnswerMentionTerm[]
+  terms: readonly GeoAnswerMentionTerm[],
+  ownMention?: OwnMentionFlag
 ): ReactNode {
   if (terms.length === 0) {
     return children;
@@ -91,19 +114,22 @@ function highlightMentionChildren(
 
   return Children.map(children, (child) => {
     if (typeof child === "string" || typeof child === "number") {
-      return mentionMarks(String(child), terms);
+      return mentionMarks(String(child), terms, ownMention);
     }
     if (!isValidElement<{ children?: ReactNode; node?: unknown }>(child)) {
       return child;
     }
-    if (shouldSkipElement(child.type) || child.props.children == null) {
+    if (
+      shouldSkipElement(child.type, child.props.node) ||
+      child.props.children == null
+    ) {
       return child;
     }
     const { children: nested, node: _node, ...rest } = child.props;
     return createElement(
       child.type,
       { ...rest, key: child.key },
-      highlightMentionChildren(nested, terms)
+      highlightMentionChildren(nested, terms, ownMention)
     );
   });
 }
@@ -115,6 +141,7 @@ function CompetitorMentionMark({
   const { competitors, organizationId, organizationSlug } = use(
     GeoAnswerMentionContext
   );
+  const t = useTranslations("geo.geoAnswerMentionComponents");
   const competitor = findMentionedCompetitor(competitors, phrase);
   const brand = competitor?.name ?? phrase;
   const [open, setOpen] = useState(false);
@@ -128,7 +155,7 @@ function CompetitorMentionMark({
       <HoverCardTrigger
         render={
           <button
-            aria-label={`${brand}, ${GEO_ANSWER_MENTION_LABEL.competitor} details`}
+            aria-label={t("competitorDetails", { brand })}
             className={cn(
               GEO_ANSWER_MENTION_CLASS.competitor,
               GEO_ANSWER_MENTION_TRIGGER_CLASS
@@ -155,6 +182,7 @@ function CompetitorMentionMark({
 }
 
 function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
+  const tGeoShared = useTranslations("geo.shared");
   if (kind === "competitor") {
     return (
       <CompetitorMentionMark phrase={phrase}>{children}</CompetitorMentionMark>
@@ -164,21 +192,37 @@ function MentionMark({ kind, phrase, children }: GeoAnswerMentionMarkProps) {
   return (
     <mark
       className={GEO_ANSWER_MENTION_CLASS[kind]}
-      title={GEO_ANSWER_MENTION_LABEL[kind]}
+      title={
+        kind === "own" ? tGeoShared("yourBrand") : tGeoShared("competitor")
+      }
     >
       {children}
     </mark>
   );
 }
 
-function mentionHost<Tag extends keyof HTMLElementTagNameMap>(tag: Tag) {
+function mentionHost<Tag extends keyof HTMLElementTagNameMap>(
+  tag: Tag,
+  baseClassName?: string
+) {
   function MentionHost({
     children,
+    className,
     node: _node,
     ...rest
   }: ComponentPropsWithoutRef<Tag> & { node?: unknown }) {
     const { terms } = use(GeoAnswerMentionContext);
-    return createElement(tag, rest, highlightMentionChildren(children, terms));
+    const ownMention: OwnMentionFlag = { found: false };
+    const content = highlightMentionChildren(children, terms, ownMention);
+    return createElement(
+      tag,
+      {
+        ...rest,
+        className: cn(baseClassName, className) || undefined,
+        "data-own-mention": ownMention.found || undefined,
+      },
+      content
+    );
   }
   MentionHost.displayName = `${MENTION_HOST_PREFIX}${tag}`;
   return MentionHost;
@@ -190,9 +234,11 @@ function mentionComponent<Props extends { children?: ReactNode }>(
 ) {
   function MentionHost(props: Props) {
     const { terms } = use(GeoAnswerMentionContext);
+    const ownMention: OwnMentionFlag = { found: false };
+    const content = highlightMentionChildren(props.children, terms, ownMention);
     return (
-      <Component {...props}>
-        {highlightMentionChildren(props.children, terms)}
+      <Component {...props} data-own-mention={ownMention.found || undefined}>
+        {content}
       </Component>
     );
   }
@@ -201,7 +247,10 @@ function mentionComponent<Props extends { children?: ReactNode }>(
 }
 
 export const GeoAnswerMentionParagraph = mentionHost("p");
-export const GeoAnswerMentionListItem = mentionHost("li");
+export const GeoAnswerMentionListItem = mentionHost(
+  "li",
+  GEO_ANSWER_MENTION_LIST_ITEM_CLASS
+);
 export const GeoAnswerMentionTableCell = mentionComponent(
   MessageTableCell,
   "td"

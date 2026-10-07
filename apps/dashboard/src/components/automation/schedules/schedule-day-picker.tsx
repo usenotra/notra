@@ -8,9 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { cn } from "@notra/ui/lib/utils";
+import { useFormatter, useTranslations } from "use-intl";
 
-import { DAYS_OF_MONTH, DAYS_OF_WEEK } from "@/constants/schedule";
+import { Button } from "@/components/button";
+import { DAY_MS } from "@/constants/analytics-weekdays";
+import {
+  DAYS_OF_MONTH,
+  DAYS_OF_WEEK,
+  WEEKDAY_REFERENCE_SUNDAY_UTC,
+} from "@/constants/schedule";
 import type { ScheduleDayPickerProps } from "@/types/automation/schedule";
 
 export function ScheduleDayPicker({
@@ -20,6 +26,8 @@ export function ScheduleDayPicker({
   onDayOfWeekChange,
   onDayOfMonthChange,
 }: ScheduleDayPickerProps) {
+  const t = useTranslations("automation.schedules.dayPicker");
+  const format = useFormatter();
   if (frequency !== "weekly" && frequency !== "monthly") {
     return null;
   }
@@ -28,25 +36,26 @@ export function ScheduleDayPicker({
     const selectedDay = dayOfWeek ?? 1;
     return (
       <div className="space-y-2">
-        <Label className="text-muted-foreground text-xs">Day of week</Label>
+        <Label className="text-muted-foreground text-xs">
+          {t("dayOfWeek")}
+        </Label>
         <div className="flex flex-wrap gap-2">
           {DAYS_OF_WEEK.map((day) => {
-            const isActive = day.value === selectedDay;
+            const isActive = day === selectedDay;
             return (
-              <button
+              <Button
                 aria-pressed={isActive}
-                className={cn(
-                  "h-10 min-w-12 rounded-lg border px-3 text-sm font-medium transition-colors",
-                  isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                )}
-                key={day.value}
-                onClick={() => onDayOfWeekChange(day.value)}
+                className="h-10 min-w-12"
+                key={day}
+                onClick={() => onDayOfWeekChange(day)}
                 type="button"
+                variant={isActive ? "secondary" : "outline"}
               >
-                {day.label}
-              </button>
+                {format.dateTime(
+                  new Date(WEEKDAY_REFERENCE_SUNDAY_UTC + day * DAY_MS),
+                  { weekday: "short", timeZone: "UTC" }
+                )}
+              </Button>
             );
           })}
         </div>
@@ -55,11 +64,11 @@ export function ScheduleDayPicker({
   }
 
   const selectedMonthDay = dayOfMonth ?? 1;
-  const skipNote = getMonthDaySkipNote(selectedMonthDay);
+  const skipNote = t(`skipNotes.${getMonthDaySkipNoteKey(selectedMonthDay)}`);
   return (
     <div className="space-y-2">
       <Label className="text-muted-foreground text-xs" htmlFor="day-of-month">
-        Day of month
+        {t("dayOfMonth")}
       </Label>
       <Select
         onValueChange={(val) => {
@@ -70,12 +79,12 @@ export function ScheduleDayPicker({
         value={String(selectedMonthDay)}
       >
         <SelectTrigger className="w-full sm:w-40" id="day-of-month">
-          <SelectValue placeholder="Day" />
+          <SelectValue placeholder={t("dayPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {DAYS_OF_MONTH.map((day) => (
             <SelectItem key={day} value={String(day)}>
-              Day {day}
+              {t("dayOption", { day })}
             </SelectItem>
           ))}
         </SelectContent>
@@ -85,15 +94,17 @@ export function ScheduleDayPicker({
   );
 }
 
-function getMonthDaySkipNote(day: number): string {
+function getMonthDaySkipNoteKey(
+  day: number
+): "day31" | "day30" | "day29" | "default" {
   if (day === 31) {
-    return "Skipped in February, April, June, September, and November.";
+    return "day31";
   }
   if (day === 30) {
-    return "Skipped in February.";
+    return "day30";
   }
   if (day === 29) {
-    return "Skipped in February except leap years.";
+    return "day29";
   }
-  return "If a month is shorter than the selected day, the run is skipped that month.";
+  return "default";
 }

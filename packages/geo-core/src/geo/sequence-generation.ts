@@ -1,12 +1,13 @@
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import { gateway } from "@notra/ai/gateway";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
-  geoCompetitors,
   geoPrompts,
   geoPromptSequences,
   geoSettings,
 } from "@notra/db/schema";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import { generateText, Output } from "ai";
 import { and, asc, count, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -121,7 +122,7 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       [
         geoDb("settings lookup failed", () =>
           db.query.geoSettings.findFirst({
-            columns: { companyName: true, aliases: true },
+            columns: { companyName: true, aliases: true, promptLanguage: true },
             where: eq(geoSettings.projectId, scope.projectId),
           })
         ),
@@ -131,16 +132,12 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
               companyName: true,
               companyDescription: true,
               audience: true,
-              language: true,
             },
             where: eq(brandSettings.id, scope.brandSettingsId),
           })
         ),
         geoDb("competitors lookup failed", () =>
-          db
-            .select({ name: geoCompetitors.name })
-            .from(geoCompetitors)
-            .where(eq(geoCompetitors.projectId, scope.projectId))
+          selectGeoContextCompetitors(scope)
         ),
         geoDb("prompts lookup failed", () =>
           db
@@ -182,8 +179,10 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
       companyName,
       companyDescription: brand?.companyDescription ?? null,
       audience: brand?.audience ?? null,
-      language: brand?.language ?? null,
-      competitors: competitors.map((row) => row.name),
+      // Scans label conversation turns with the prompt language, so the steps
+      // must be written in it rather than in the brand identity's language.
+      language: settings?.promptLanguage ?? DEFAULT_LANGUAGE,
+      competitors: competitors.competitors.map((row) => row.name),
       prompts: prompts.map((row) => row.prompt),
       existingNames: existing.map((row) => row.name),
       count: Math.min(GEO_GENERATED_CONVERSATIONS_MAX, room),
@@ -195,6 +194,9 @@ export const generateGeoSequences = Effect.fn("geo.sequencesGenerate")(
           model: gateway(GEO_DISCOVERY_MODEL, {
             organizationId: scope.organizationId,
           }),
+          providerOptions: {
+            gateway: { tags: ["geo-conversation-generation"] },
+          },
           output: Output.object({ schema: geoConversationGenerationSchema }),
           instructions: GEO_DISCOVERY_SYSTEM_PROMPT,
           prompt: buildConversationGenerationPrompt(context),

@@ -1,15 +1,17 @@
 "use client";
 
-import { GitBranchIcon, Loading03Icon } from "@hugeicons/core-free-icons";
+import { GitBranchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -23,6 +25,7 @@ export function GitHubBranchPicker({
   organizationId,
   repository,
 }: GitHubBranchPickerProps) {
+  const t = useTranslations("integrations.github.branchPicker");
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const queryClient = useQueryClient();
@@ -45,10 +48,10 @@ export function GitHubBranchPicker({
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.integrations.key(),
       });
-      toast.success("Publishing branch updated");
+      toast.success(t("updated"));
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update publishing branch");
+      toast.error(error.message || t("updateFailed"));
     },
   });
   const createBranchMutation = useMutation({
@@ -64,7 +67,7 @@ export function GitHubBranchPicker({
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.integrations.key(),
       });
-      toast.success(`Branch ${branchName} created`);
+      toast.success(t("created", { branch: branchName }));
     },
   });
   const isPending = branchMutation.isPending || createBranchMutation.isPending;
@@ -90,7 +93,10 @@ export function GitHubBranchPicker({
       <PopoverTrigger
         render={
           <Button
-            aria-label={`Change publishing branch ${repository.defaultBranch ?? "not selected"} for ${repository.owner}/${repository.repo}`}
+            aria-label={t("ariaLabel", {
+              branch: repository.defaultBranch ?? t("notSelected"),
+              repository: `${repository.owner}/${repository.repo}`,
+            })}
             className="text-muted-foreground h-7 max-w-52 min-w-0 gap-1.5 px-2 font-normal"
             disabled={isPending}
             onClick={(event) => event.stopPropagation()}
@@ -101,15 +107,15 @@ export function GitHubBranchPicker({
         }
       >
         {isPending ? (
-          <HugeiconsIcon
-            className="size-3.5 animate-spin"
-            icon={Loading03Icon}
-          />
+          <Spinner className="size-3.5" />
         ) : (
           <HugeiconsIcon className="size-3.5" icon={GitBranchIcon} />
         )}
-        <span className="truncate">
-          {repository.defaultBranch ?? "Choose branch"}
+        <span
+          className="truncate"
+          title={repository.defaultBranch ?? undefined}
+        >
+          {repository.defaultBranch ?? t("choose")}
         </span>
       </PopoverTrigger>
       <PopoverContent
@@ -121,11 +127,10 @@ export function GitHubBranchPicker({
           creating={creating}
           createForm={
             <GitHubCreateBranchForm
-              baseBranch={repository.defaultBranch ?? "the publishing branch"}
+              baseBranch={repository.defaultBranch ?? t("fallbackBaseBranch")}
               errorMessage={
                 createBranchMutation.isError
-                  ? createBranchMutation.error.message ||
-                    "Unable to create branch. Check the name and try again."
+                  ? createBranchMutation.error.message || t("createFailed")
                   : undefined
               }
               isPending={createBranchMutation.isPending}

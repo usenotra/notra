@@ -1,21 +1,20 @@
-"use client";
-
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 
 import { ContactFormSuccess } from "@/components/contact/contact-form-success";
-import { ContactTurnstile } from "@/components/contact/contact-turnstile";
+import { Turnstile } from "@/components/turnstile";
 import {
   CONTACT_FORM_ASSURANCE,
   CONTACT_MESSAGE_MIN_LENGTH,
 } from "@/constants/contact";
+import { CONTACT_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { contactMessageSchema } from "@/schemas/contact";
-import type { ContactTurnstileHandle } from "@/types/turnstile";
+import type { TurnstileHandle } from "@/types/turnstile";
 
 type SubmitStatus =
   | "idle"
@@ -37,7 +36,7 @@ const inputClass =
 export function ContactForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [turnstileToken, setTurnstileToken] = useState("");
-  const turnstile = useRef<ContactTurnstileHandle>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
 
   const form = useForm({
     defaultValues: {
@@ -254,7 +253,12 @@ export function ContactForm() {
         }}
       </form.Field>
 
-      <ContactTurnstile onToken={setTurnstileToken} ref={turnstile} />
+      <Turnstile
+        action={CONTACT_TURNSTILE_ACTION}
+        failureMessage="Verification could not load. Please reload the page, or email us at hello@usenotra.com."
+        onToken={setTurnstileToken}
+        ref={turnstile}
+      />
 
       <div aria-live="assertive" role="alert">
         {status === "verification-error" ? (
@@ -289,10 +293,10 @@ export function ContactForm() {
             {CONTACT_FORM_ASSURANCE}
           </p>
           <p className="font-sans text-xs/4.5 text-[#1E1E1E80] dark:text-white/40">
-            By submitting you agree to our{" "}
+            We screen messages for spam. See our{" "}
             <Link
               className="hover:text-primary font-medium text-[#1E1E1E] underline underline-offset-2 dark:text-white"
-              href="/privacy"
+              to="/privacy"
             >
               Privacy Policy
             </Link>
@@ -303,11 +307,12 @@ export function ContactForm() {
           {(canSubmit) => (
             <CtaButton
               className="px-7 text-[0.9375rem]/4.75 tracking-[-0.01em]"
-              disabled={!canSubmit || isSubmitting || !turnstileToken}
+              disabled={!canSubmit || !turnstileToken}
+              loading={isSubmitting}
               type="submit"
               variant="primary"
             >
-              {isSubmitting ? "Sending..." : "Send message"}
+              Send message
             </CtaButton>
           )}
         </form.Subscribe>

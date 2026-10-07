@@ -1,8 +1,8 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import { BatchLinkPlugin } from "@orpc/client/plugins";
 import type { RouterClient } from "@orpc/server";
 
+import { createDashboardLinkPlugins } from "./link-plugins";
 import type { DashboardRouter } from "./router";
 
 function getBaseUrl() {
@@ -17,21 +17,11 @@ function getBaseUrl() {
   );
 }
 
-/**
- * Batch responses are buffered per item, so anything that streams or carries a
- * binary/FormData payload has to stay on its own request. The plugin already
- * skips `Blob`/`FormData`/async-iterator bodies; these namespaces are excluded
- * on top because they exist to move files around.
- */
-const NON_BATCHABLE_ROOT_PATHS = new Set(["attachments", "upload"]);
-
 const link = new RPCLink({
-  plugins: [
-    new BatchLinkPlugin({
-      exclude: ({ path }) => NON_BATCHABLE_ROOT_PATHS.has(path[0] ?? ""),
-      groups: [{ condition: () => true, context: {} }],
-    }),
-  ],
+  // Looked up per call rather than captured once, so a page that swaps
+  // `fetch` (the break-ui preview's write guard) also covers this client.
+  fetch: (request, init) => globalThis.fetch(request, init),
+  plugins: createDashboardLinkPlugins(),
   url: `${getBaseUrl()}/rpc`,
 });
 

@@ -1,14 +1,17 @@
 "use client";
 
-import { GEO_GAPS_LOADING_STATUS } from "@notra/geo-core/constants/geo";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 
 const GAP_ROW_COUNT = 6;
 
 export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
+  const t = useTranslations("geo.pages.gaps");
+  const tCommon = useTranslations("common");
   const table = (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex h-8 shrink-0 flex-wrap items-center justify-between gap-2">
@@ -21,9 +24,9 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
           <Skeleton className="h-8 w-36 rounded-md" />
         </div>
       </div>
-      <GeoTableSkeleton rows={GAP_ROW_COUNT} />
-      <p aria-live="polite" className="text-muted-foreground text-xs">
-        {GEO_GAPS_LOADING_STATUS}
+      <DataTableSkeleton rows={GAP_ROW_COUNT} />
+      <p aria-live="polite" className="sr-only">
+        {t("loadingStatus")}
       </p>
     </div>
   );
@@ -38,15 +41,12 @@ export function GeoGapsSkeleton({ embedded = false }: { embedded?: boolean }) {
       data-geo-gaps-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <header className="flex shrink-0 flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Content Gaps</h1>
-            <p className="text-muted-foreground">
-              Questions engines answer without mentioning you
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.contentGaps")}
+        >
           <Skeleton className="h-9 w-36 rounded-md" />
-        </header>
+        </PageHeading>
         {table}
       </div>
     </PageContainer>

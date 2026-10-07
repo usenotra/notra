@@ -13,9 +13,8 @@ import type { IntegrationConfig } from "@/types/integrations/catalog";
 const INPUT_SOURCES: readonly IntegrationConfig[] = [
   {
     id: "github",
+    descriptionKey: "github",
     name: "GitHub",
-    description:
-      "Connect GitHub repositories for changelogs, blog posts, and draft pull requests",
     icon: <Github />,
     accentColor: "#238636",
     href: "github",
@@ -24,8 +23,8 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
   },
   {
     id: "linear",
+    descriptionKey: "linear",
     name: "Linear",
-    description: "Sync issues and updates from Linear for automated content",
     icon: <Linear />,
     accentColor: "#5E6AD2",
     href: "linear",
@@ -34,9 +33,8 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
   },
   {
     id: "slack",
+    descriptionKey: "slack",
     name: "Slack",
-    description:
-      "Chat with your Notra agent in Slack threads, mirrored live into the dashboard",
     icon: <Slack />,
     accentColor: "#611F69",
     href: "slack",
@@ -45,9 +43,8 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
   },
   {
     id: "granola",
+    descriptionKey: "granola",
     name: "Granola",
-    description:
-      "Pull meeting notes, transcripts, and AI summaries from Granola for automated content",
     icon: <Granola />,
     accentColor: "#B2C248",
     href: "granola",
@@ -56,9 +53,8 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
   },
   {
     id: "google-search-console",
+    descriptionKey: "googleSearchConsole",
     name: "Google Search Console",
-    description:
-      "Turn the search queries you already rank for into AI prompt suggestions for GEO tracking",
     icon: <Google />,
     accentColor: "#4285F4",
     href: "google-search-console",
@@ -70,8 +66,8 @@ const INPUT_SOURCES: readonly IntegrationConfig[] = [
 const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
   {
     id: "framer",
+    descriptionKey: "framer",
     name: "Framer",
-    description: "Import content into Framer automatically",
     icon: <Framer />,
     accentColor: "#0055FF",
     href: "framer",
@@ -83,14 +79,14 @@ const OUTPUT_SOURCES: readonly IntegrationConfig[] = [
 const EXTENSION_SOURCES: readonly IntegrationConfig[] = [
   {
     id: "raycast",
+    descriptionKey: "raycast",
     name: "Raycast",
-    description: "Quickly access and search your Notra content from Raycast",
     icon: <Raycast />,
     accentColor: "#FF6363",
     href: "raycast",
     available: true,
     category: "extension",
-    connectLabel: "Setup Guide",
+    connectLabelKey: "setupGuide",
   },
 ];
 

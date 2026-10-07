@@ -1,8 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslations } from "use-intl";
+
+import {
+  CompetitorChoicesFooter,
+  CompetitorChoicesSearch,
+} from "@/components/geo/competitor-choices-search";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { Checkbox } from "@/components/motion/checkbox";
+import {
+  GEO_COMPETITOR_CHOICES_MAX_SHOWN,
+  GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD,
+} from "@/constants/geo-competitors";
 import type { GeoShelfPresenceFieldsProps } from "@/types/geo-shelf";
+import { visibleCompetitorChoices } from "@/utils/geo-competitors";
 
 export function ShelfPresenceFields({
   id,
@@ -13,15 +25,29 @@ export function ShelfPresenceFields({
   onOwnPresentChange,
   onPresentCompetitorIdsChange,
 }: GeoShelfPresenceFieldsProps) {
+  const t = useTranslations("geo.shelf.shelfPresenceFields");
+  const tGeoShared = useTranslations("geo.shared");
+  const ownLabel = ownBrandName || tGeoShared("youLabel");
   const presentCompetitorIdSet = new Set(presentCompetitorIds);
+  const [query, setQuery] = useState("");
+  const isSearchable =
+    competitors.length > GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD;
+  const { visible, hidden } = visibleCompetitorChoices(
+    competitors,
+    query,
+    GEO_COMPETITOR_CHOICES_MAX_SHOWN
+  );
 
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">Who is already on it</legend>
+      <legend className="text-sm font-medium">{t("legend")}</legend>
+      {isSearchable ? (
+        <CompetitorChoicesSearch onChange={setQuery} value={query} />
+      ) : null}
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="hover:bg-muted/40 flex items-center gap-2.5 rounded-lg border px-3 py-2">
           <Checkbox
-            aria-label={`${ownBrandName || "You"} is on this page`}
+            aria-label={t("isOnPage", { name: ownLabel })}
             checked={ownPresent}
             id={`${id}-own-present`}
             onCheckedChange={onOwnPresentChange}
@@ -30,13 +56,13 @@ export function ShelfPresenceFields({
             className="min-w-0 flex-1 cursor-pointer truncate text-sm font-medium"
             htmlFor={`${id}-own-present`}
           >
-            {ownBrandName || "You"}
+            {ownLabel}
             <span className="text-muted-foreground ml-1 font-normal">
-              (You)
+              {tGeoShared("you")}
             </span>
           </label>
         </div>
-        {competitors.map((competitor) => {
+        {visible.map((competitor) => {
           const checked = presentCompetitorIdSet.has(competitor.id);
           const checkboxId = `${id}-competitor-${competitor.id}`;
           return (
@@ -45,7 +71,7 @@ export function ShelfPresenceFields({
               key={competitor.id}
             >
               <Checkbox
-                aria-label={`${competitor.name} is on this page`}
+                aria-label={t("isOnPage", { name: competitor.name })}
                 checked={checked}
                 id={checkboxId}
                 onCheckedChange={(next) =>
@@ -76,10 +102,14 @@ export function ShelfPresenceFields({
         })}
       </div>
       {competitors.length === 0 ? (
-        <p className="text-muted-foreground text-xs">
-          Add competitors in GEO settings to track who else is on this page.
-        </p>
-      ) : null}
+        <p className="text-muted-foreground text-xs">{t("noCompetitors")}</p>
+      ) : (
+        <CompetitorChoicesFooter
+          hidden={hidden}
+          query={query}
+          visibleCount={visible.length}
+        />
+      )}
     </fieldset>
   );
 }

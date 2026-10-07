@@ -3,6 +3,7 @@
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { DeleteIntegrationDialog } from "@/components/delete-integration-dialog";
 import { EditIntegrationDialog } from "@/components/integrations/edit-integration-dialog";
@@ -13,6 +14,7 @@ import type { GitHubRepositoryActionsProps } from "@/types/integrations/github";
 
 export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
   const { integration, organizationId } = props;
+  const tCommon = useTranslations("common");
   const pauseSwitchId = useId();
   const {
     isEnabled,
@@ -35,15 +37,14 @@ export function GitHubRepositoryActions(props: GitHubRepositoryActionsProps) {
           className="text-muted-foreground cursor-pointer text-xs font-medium"
           htmlFor={pauseSwitchId}
         >
-          {isEnabled ? "Active" : "Paused"}
+          {isEnabled ? tCommon("states.active") : tCommon("labels.paused")}
         </Label>
         <Switch
           id={pauseSwitchId}
-          nativeButton
           aria-label={
             isEnabled
-              ? `Pause ${integration.displayName}`
-              : `Enable ${integration.displayName}`
+              ? tCommon("labels.pauseName", { name: integration.displayName })
+              : tCommon("labels.enableName", { name: integration.displayName })
           }
           checked={isEnabled}
           onCheckedChange={toggle}

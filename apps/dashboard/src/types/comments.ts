@@ -73,6 +73,11 @@ export type CommentItemMenuProps = Pick<
   onStartEdit: () => void;
 };
 
+export type DiscussionProps = CommentTarget & {
+  /** Shows an empty state above the composer until the first comment. */
+  showEmptyState?: boolean;
+};
+
 export interface DiscussionFeedProps extends DiscussionListProps {
   isPending: boolean;
   isError: boolean;
@@ -98,4 +103,6 @@ export interface DiscussionComposerProps {
   onDraftChange: (value: string) => void;
   onSubmit: () => void;
   onCancelReply: () => void;
+  /** Pins the composer to the bottom of the scroll container. */
+  sticky?: boolean;
 }

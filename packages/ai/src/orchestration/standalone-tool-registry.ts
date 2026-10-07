@@ -1,8 +1,10 @@
+import { CODE_RESEARCHER_TOOL_NAME } from "@notra/ai/constants/code-research";
 import { contentTypeSchema } from "@notra/ai/schemas/content";
 import {
   createAddBrandReferenceTool,
   createGetAvailableBrandReferencesTool,
 } from "@notra/ai/tools/brand-references";
+import { createCodeResearcherTool } from "@notra/ai/tools/code-researcher";
 import { exampleTool } from "@notra/ai/tools/example";
 import {
   createGetGeoCompetitorShareTool,
@@ -42,21 +44,15 @@ import {
   getCreatePostToolName,
 } from "@notra/ai/tools/post";
 import {
+  createCreateScheduleTool,
+  createListSchedulesTool,
+} from "@notra/ai/tools/schedules";
+import {
   createCreateSkillTool,
   getSkillByName,
   listAvailableSkills,
 } from "@notra/ai/tools/skills";
-import {
-  createFetchWebpageTool,
-  createUnavailableFetchWebpageTool,
-  createUnavailableWebSearchTool,
-  createWebSearchTool,
-  FETCH_WEBPAGE_TOOL_DESCRIPTION,
-  FETCH_WEBPAGE_TOOL_NAME,
-  isWebSearchAvailable,
-  WEB_SEARCH_TOOL_DESCRIPTION,
-  WEB_SEARCH_TOOL_NAME,
-} from "@notra/ai/tools/web-search";
+import { registerWebSearchTools } from "@notra/ai/tools/web-search";
 import type {
   BuildStandaloneToolSetDeps,
   BuildStandaloneToolSetParams,
@@ -65,11 +61,12 @@ import type {
   ToolSet,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
+import { isCodeResearchConfigured } from "@notra/ai/utils/code-research-box";
 import type { Tool } from "ai";
 
 /** Tools that write user-visible records and must pause for user approval. */
 export function getStandaloneApprovalToolNames(): Set<string> {
-  const toolNames = new Set<string>(["createSkill"]);
+  const toolNames = new Set<string>(["createSchedule", "createSkill"]);
   for (const contentType of contentTypeSchema.options) {
     if (contentType !== "image") {
       toolNames.add(getCreatePostToolName(contentType));
@@ -164,21 +161,18 @@ export function buildStandaloneToolSet(
     "**GEO Analytics**: List GEO projects and inspect AI visibility summaries, trends, prompt-level results, competitor share, and detailed project context using listGeoProjects, getGeoOverview, getGeoTimeseries, getGeoPromptResults, getGeoCompetitorShare, and getGeoProjectContext"
   );
 
+  tools.listSchedules = createListSchedulesTool({ organizationId });
+  tools.createSchedule = createCreateScheduleTool({ organizationId });
   tools.listAvailableSkills = listAvailableSkills({ organizationId });
   tools.getSkillByName = getSkillByName({ organizationId });
   tools.createSkill = createCreateSkillTool({ organizationId });
   descriptions.push(
+    "**Schedules**: List recurring content automations with listSchedules. Create one with createSchedule when the user wants content drafted on a cadence."
+  );
+  descriptions.push(
     "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. Create a new reusable writing skill with createSkill when the user explicitly asks for one or a clearly new, recurring writing need appears."
   );
-  const hasContextDev = isWebSearchAvailable();
-  tools[FETCH_WEBPAGE_TOOL_NAME] = hasContextDev
-    ? createFetchWebpageTool()
-    : createUnavailableFetchWebpageTool();
-  tools[WEB_SEARCH_TOOL_NAME] = hasContextDev
-    ? createWebSearchTool()
-    : createUnavailableWebSearchTool();
-  descriptions.push(FETCH_WEBPAGE_TOOL_DESCRIPTION);
-  descriptions.push(WEB_SEARCH_TOOL_DESCRIPTION);
+  registerWebSearchTools(tools, descriptions);
 
   if (process.env.NODE_ENV === "development") {
     tools.example = exampleTool();
@@ -212,6 +206,21 @@ export function buildStandaloneToolSet(
       { organizationId, allowedIntegrationIds },
       deps?.resolveContext
     );
+
+    if (params.codeResearch && chatId && isCodeResearchConfigured()) {
+      tools[CODE_RESEARCHER_TOOL_NAME] = createCodeResearcherTool({
+        organizationId,
+        // One box per chat and repository, reused across turns.
+        sessionKey: `chat:${chatId}`,
+        allowedIntegrationIds,
+        resolveContext: deps?.resolveContext,
+        useMarkup,
+        chargeAiCredits: params.chargeAiCredits,
+      });
+      descriptions.push(
+        `**Code research**: Read the connected repositories' code to understand a specific feature before writing about it`
+      );
+    }
 
     const repos = getGitHubRepoList(validatedIntegrations);
     descriptions.push(

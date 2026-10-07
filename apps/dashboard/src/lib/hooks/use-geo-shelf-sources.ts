@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import { useRef, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
@@ -82,6 +83,7 @@ export function useGeoShelfSources(
     enabled: boolean;
   }
 ): GeoShelfDbApi {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   const pendingKey = geoCollectionId("shelf", { organizationId, projectId });
@@ -116,7 +118,7 @@ export function useGeoShelfSources(
     enabled: input.enabled && organizationId.length > 0,
     // Keep the current rows on screen while a filter or sort change loads.
     placeholderData: keepPreviousData,
-    meta: { errorMessage: "Failed to load shelf space" },
+    meta: { errorMessage: tToast("loadShelfSpaceFailed") },
   });
 
   const pages = query.data?.pages ?? [];
@@ -230,7 +232,7 @@ export function useGeoShelfSources(
           placements: toShelfPlacementWrites(source),
           opportunity: toShelfOpportunityWrite(source),
         }),
-      "Failed to add shelf"
+      tToast("addShelfFailed")
     );
   };
 
@@ -251,18 +253,19 @@ export function useGeoShelfSources(
           sourceId: serverId,
           opportunity: changes,
         }),
-      "Failed to update ticket"
+      tToast("updateTicketFailed")
     );
   };
 
   const setPlacementStatus: GeoShelfDbApi["setPlacementStatus"] = (
     sourceId,
     competitorId,
-    status
+    status,
+    brand
   ) => {
     const nowIso = new Date().toISOString();
     patchSource(resolveSourceId(sourceId), (source) =>
-      applyShelfPlacementStatus(source, competitorId, status, nowIso)
+      applyShelfPlacementStatus(source, competitorId, status, nowIso, brand)
     );
     persist(
       sourceId,
@@ -273,7 +276,7 @@ export function useGeoShelfSources(
           sourceId: serverId,
           placements: [{ competitorId, status }],
         }),
-      "Failed to update placement"
+      tToast("updatePlacementFailed")
     );
   };
 

@@ -1,8 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
 import { useDeferredMount } from "@/lib/hooks/use-deferred-mount";
+import dynamic from "@/utils/lazy-component";
 
 const SidebarOnboarding = dynamic(
   () =>

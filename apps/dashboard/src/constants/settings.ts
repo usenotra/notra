@@ -18,7 +18,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 import type {
-  SettingsNavGroup,
+  SettingsNavGroupConfig,
   SettingsSectionId,
 } from "@/types/settings/modal";
 
@@ -29,11 +29,11 @@ export const SETTINGS_SECTION_IDS = [
   "members",
   "notifications",
   "attachments",
-  "integrations",
   "billing",
   "usage",
   "usage-alerts",
   "credits",
+  "webhooks",
   "logs",
   ...(process.env.NODE_ENV === "development" ? (["dev"] as const) : []),
   "geo",
@@ -44,38 +44,42 @@ export const SETTINGS_SECTION_IDS = [
 
 export const SETTINGS_QUERY_KEY = "settings";
 
-export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
+export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroupConfig[] = [
   {
     id: "account",
-    label: "Account",
     items: [
       {
         id: "account",
-        label: "Account",
-        description: "Profile, login, and privacy",
         icon: UserCircleIcon,
         keywords: [
           "profile",
           "user",
           "email",
           "password",
-          "privacy",
-          "chat",
           "avatar",
           "login",
           "google",
           "github",
           "name",
           "delete account",
+          "security",
+          "2fa",
+          "mfa",
+          "two-factor",
+          "authenticator",
+          "backup codes",
         ],
       },
       {
         id: "appearance",
-        label: "Appearance",
-        description: "Light, dark, or system mode",
         icon: PaintBoardIcon,
         keywords: [
+          "preferences",
           "appearance",
+          "language",
+          "locale",
+          "privacy",
+          "chat",
           "theme",
           "mode",
           "light",
@@ -88,12 +92,9 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
   },
   {
     id: "organization",
-    label: "Organization",
     items: [
       {
         id: "general",
-        label: "General",
-        description: "Name, logo, and connected accounts",
         icon: Settings01Icon,
         keywords: [
           "organization",
@@ -109,8 +110,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "members",
-        label: "Members",
-        description: "Team access and invitations",
         icon: UserGroupIcon,
         keywords: [
           "team",
@@ -125,8 +124,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "notifications",
-        label: "Notifications",
-        description: "Email alerts and recaps",
         icon: Notification01Icon,
         keywords: [
           "alerts",
@@ -140,85 +137,23 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "attachments",
-        label: "Attachments",
-        description: "Uploaded files",
         icon: Attachment01Icon,
         keywords: ["files", "uploads", "media", "pdf", "images", "storage"],
       },
       {
-        id: "integrations",
-        label: "Integrations",
-        description: "GitHub, Linear, and other connections",
+        id: "webhooks",
         icon: PlugIcon,
         keywords: [
-          "github",
-          "linear",
-          "slack",
-          "granola",
-          "framer",
-          "raycast",
-          "repositories",
-          "pull request",
-          "draft",
-          "connect",
+          "webhooks",
+          "n8n",
+          "outbound",
+          "deliveries",
+          "endpoints",
+          "retry",
         ],
-      },
-      {
-        id: "billing",
-        label: "Billing",
-        description: "Plans, invoices, and subscription",
-        icon: CreditCardIcon,
-        keywords: [
-          "subscription",
-          "plan",
-          "invoice",
-          "payment",
-          "stripe",
-          "trial",
-          "upgrade",
-        ],
-      },
-      {
-        id: "usage",
-        label: "Usage",
-        description: "Quotas and usage history",
-        icon: ChartAnalysisIcon,
-        keywords: [
-          "usage",
-          "remaining",
-          "limits",
-          "quota",
-          "answers",
-          "cycle",
-          "breakdown",
-        ],
-      },
-      {
-        id: "usage-alerts",
-        label: "Usage alerts",
-        description: "Threshold alerts for feature usage",
-        icon: Alert02Icon,
-        keywords: [
-          "usage",
-          "alerts",
-          "threshold",
-          "remaining",
-          "percentage",
-          "limits",
-        ],
-      },
-      {
-        id: "credits",
-        label: "Credits",
-        description: "AI credit balance and top-ups",
-        icon: Wallet01Icon,
-        keywords: ["balance", "top up", "topup", "tokens", "ai", "spend"],
-        requiresAiCredits: true,
       },
       {
         id: "logs",
-        label: "Logs",
-        description: "Integration events",
         icon: AnalyticsUpIcon,
         keywords: [
           "audit",
@@ -233,13 +168,59 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
     ],
   },
   {
+    id: "billing",
+    items: [
+      {
+        id: "billing",
+        icon: CreditCardIcon,
+        keywords: [
+          "subscription",
+          "plan",
+          "invoice",
+          "payment",
+          "stripe",
+          "trial",
+          "upgrade",
+        ],
+      },
+      {
+        id: "usage",
+        icon: ChartAnalysisIcon,
+        keywords: [
+          "usage",
+          "remaining",
+          "limits",
+          "quota",
+          "answers",
+          "cycle",
+          "breakdown",
+        ],
+      },
+      {
+        id: "usage-alerts",
+        icon: Alert02Icon,
+        keywords: [
+          "usage",
+          "alerts",
+          "threshold",
+          "remaining",
+          "percentage",
+          "limits",
+        ],
+      },
+      {
+        id: "credits",
+        icon: Wallet01Icon,
+        keywords: ["balance", "top up", "topup", "tokens", "ai", "spend"],
+        requiresAiCredits: true,
+      },
+    ],
+  },
+  {
     id: "geo",
-    label: "GEO",
     items: [
       {
         id: "geo-brand",
-        label: "Brand",
-        description: "Name, aliases, and conversion paths",
         icon: CorporateIcon,
         keywords: [
           "geo",
@@ -255,8 +236,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "geo-languages",
-        label: "Languages",
-        description: "Languages prompts are scanned in",
         icon: Globe02Icon,
         keywords: [
           "geo",
@@ -269,8 +248,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       },
       {
         id: "geo-models",
-        label: "Models",
-        description: "Engines, schedule, and scanning",
         icon: AiBrowserIcon,
         keywords: [
           "geo",
@@ -292,12 +269,9 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
     ? [
         {
           id: "dev" as const,
-          label: "Development",
           items: [
             {
               id: "dev" as const,
-              label: "Dev",
-              description: "Replay onboarding and manage test data",
               icon: SourceCodeIcon,
               keywords: [
                 "developer",
@@ -312,47 +286,6 @@ export const SETTINGS_NAV_GROUPS: readonly SettingsNavGroup[] = [
       ]
     : []),
 ];
-
-export const SETTINGS_SECTION_LABELS: Record<SettingsSectionId, string> = {
-  account: "Account",
-  appearance: "Appearance",
-  general: "General",
-  members: "Members",
-  notifications: "Notifications",
-  attachments: "Attachments",
-  integrations: "Integrations",
-  billing: "Billing",
-  usage: "Usage",
-  "usage-alerts": "Usage alerts",
-  credits: "Credits",
-  logs: "Logs",
-  dev: "Dev",
-  geo: "Brand",
-  "geo-brand": "Brand",
-  "geo-languages": "Languages",
-  "geo-models": "Models",
-};
-
-export const SETTINGS_SECTION_DESCRIPTIONS: Record<SettingsSectionId, string> =
-  {
-    account: "Manage your profile and account settings",
-    appearance: "Choose how Notra looks on this device",
-    general: "Manage your organization settings",
-    members: "Manage who has access to this organization",
-    notifications: "Configure email notifications for your organization",
-    attachments: "Manage your uploaded files and attachments",
-    integrations: "Open GitHub, Linear, and other connected services",
-    billing: "Manage your plan, invoices, and subscription",
-    usage: "See remaining quotas and usage over time",
-    "usage-alerts": "Configure alerts for usage and remaining balances",
-    credits: "Monitor your AI credit balance and usage",
-    logs: "View integration events and their delivery status",
-    dev: "Development-only tools for testing local flows",
-    geo: "How your brand is identified in answers",
-    "geo-brand": "How your brand is identified in answers",
-    "geo-languages": "Languages your prompts are scanned in",
-    "geo-models": "Which providers run, and how often",
-  };
 
 export const DEFAULT_SETTINGS_SECTION: SettingsSectionId = "account";
 export const DEFAULT_GEO_SETTINGS_SECTION: SettingsSectionId = "geo-brand";

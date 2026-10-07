@@ -1,5 +1,8 @@
-import type { TableColumn } from "@/components/motion/table";
-import type { SortState } from "@/components/motion/table/types";
+import type {
+  TableColumn,
+  SortState,
+} from "@notra/ui/components/ui/data-table";
+
 import type {
   LogSourceFilter,
   LogStatusFilter,
@@ -26,12 +29,13 @@ export interface DataTableProps<TData> {
   data: TData[];
   getRowId?: (row: TData, index: number) => string;
   page: number;
-  totalPages: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
   isLoading?: boolean;
   emptyState?: DataTableEmptyState;
   onRowClick?: (row: TData) => void;
   sort?: SortState | null;
   onSortChange?: (sort: SortState | null) => void;
-  totalCount?: number;
+  totalCount: number;
 }

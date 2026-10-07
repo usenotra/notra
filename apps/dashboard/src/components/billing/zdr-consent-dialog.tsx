@@ -8,16 +8,10 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import {
-  ZDR_CONSENT_BODY,
-  ZDR_CONSENT_CANCEL,
-  ZDR_CONSENT_CONFIRM,
-  ZDR_CONSENT_FOOTNOTE,
-  ZDR_CONSENT_POINTS,
-  ZDR_CONSENT_TITLE,
-} from "@/constants/billing";
+import { ZDR_CONSENT_POINT_KEYS } from "@/constants/billing-zdr";
 import type { ZdrConsentDialogProps } from "@/types/billing/plan";
 
 export function ZdrConsentDialog({
@@ -25,24 +19,24 @@ export function ZdrConsentDialog({
   onOpenChange,
   onConfirm,
 }: ZdrConsentDialogProps) {
+  const t = useTranslations("billing.zdrConsent");
+  const tCommon = useTranslations("common");
   return (
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{ZDR_CONSENT_TITLE}</ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            {ZDR_CONSENT_BODY}
-          </ResponsiveDialogDescription>
+          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>{t("body")}</ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <ul className="text-muted-foreground list-disc space-y-2 pl-5 text-sm">
-          {ZDR_CONSENT_POINTS.map((point) => (
-            <li key={point}>{point}</li>
+          {ZDR_CONSENT_POINT_KEYS.map((point) => (
+            <li key={point}>{t(`points.${point}`)}</li>
           ))}
         </ul>
-        <p className="text-muted-foreground text-xs">{ZDR_CONSENT_FOOTNOTE}</p>
+        <p className="text-muted-foreground text-xs">{t("footnote")}</p>
         <ResponsiveDialogFooter>
           <Button onClick={() => onOpenChange(false)} variant="outline">
-            {ZDR_CONSENT_CANCEL}
+            {t("cancel")}
           </Button>
           <Button
             onClick={() => {
@@ -50,7 +44,7 @@ export function ZdrConsentDialog({
               onOpenChange(false);
             }}
           >
-            {ZDR_CONSENT_CONFIRM}
+            {tCommon("actions.enable")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

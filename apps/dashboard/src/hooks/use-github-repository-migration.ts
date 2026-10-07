@@ -1,25 +1,27 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
-import type { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { GitHubIntegration } from "@/types/integrations";
 
 export function useGitHubRepositoryMigration(
   organizationId: string,
-  refetch: ReturnType<typeof useGitHubRepositorySelection>["query"]["refetch"],
   startInstall: () => Promise<void>
 ) {
+  const t = useTranslations("integrations.github.toasts");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (integration: GitHubIntegration) => {
-      const app = await refetch();
-      if (app.error || !app.data) {
-        throw new Error("Unable to load GitHub repositories. Try again.");
+      const app = await dashboardOrpc.github.app.catalog
+        .call({ organizationId })
+        .catch(() => null);
+      if (!app) {
+        throw new Error(t("migrationLoadFailed"));
       }
       const repositoryIds = integration.repositories.map(
         (legacyRepository) =>
-          app.data.repositories.find(
+          app.repositories.find(
             (repository) =>
               repository.owner.toLowerCase() ===
                 legacyRepository.owner.toLowerCase() &&
@@ -28,14 +30,10 @@ export function useGitHubRepositoryMigration(
           )?.id
       );
       if (repositoryIds.length === 0) {
-        throw new Error(
-          "Configure a repository before switching to the GitHub App."
-        );
+        throw new Error(t("migrationNoRepository"));
       }
       if (repositoryIds.some((id) => !id)) {
-        toast.info(
-          "Allow the Notra GitHub App to access this repository, then return here and switch again."
-        );
+        toast.info(t("migrationAllowAccess"));
         await startInstall();
         return false;
       }
@@ -60,13 +58,8 @@ export function useGitHubRepositoryMigration(
           queryKey: dashboardOrpc.integrations.key(),
         }),
       ]);
-      toast.success(
-        "Switched to GitHub App. Your repository settings were kept."
-      );
+      toast.success(t("migrated"));
     },
-    onError: () =>
-      toast.error(
-        "Unable to switch to the GitHub App. Refresh the page and try again."
-      ),
+    onError: () => toast.error(t("migrationFailed")),
   });
 }

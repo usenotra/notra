@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ScanPreflightDialog } from "@/components/geo/scan-preflight-dialog";
 import {
@@ -30,6 +31,7 @@ export function GeoScanControlsProvider({
   promptCount,
   children,
 }: GeoScanControlsProviderProps) {
+  const t = useTranslations("shared.geoScan");
   const [request, setRequest] = useState<GeoScanRequest | null>(null);
   const submitting = useRef(false);
   const { data } = useGeoSettings(organizationId);
@@ -53,7 +55,7 @@ export function GeoScanControlsProvider({
         await all.mutateAsync({ engines: request.engines });
       }
       setRequest(null);
-      toast.success("Scan started. Follow its progress on the Prompts page.");
+      toast.success(t("scanStarted"));
     } catch {
       // The mutation reports the error; keep the selection available for retry.
     }
@@ -81,6 +83,7 @@ export function GeoScanControlsProvider({
           open
           organizationId={organizationId}
           prompt={request.prompt?.prompt}
+          promptId={request.prompt?.id}
           promptCount={request.prompt ? 1 : promptCount}
         />
       ) : null}

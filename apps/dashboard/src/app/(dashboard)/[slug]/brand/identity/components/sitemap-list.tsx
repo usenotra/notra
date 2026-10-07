@@ -6,16 +6,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +16,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
@@ -47,6 +39,9 @@ export function SitemapList({
   dialogOpen,
   onDialogOpenChange,
 }: SitemapListProps) {
+  const t = useTranslations("brand.sitemap.list");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const { data, isError, isPending, refetch } = useSitemaps(
     organizationId,
     voiceId
@@ -72,12 +67,10 @@ export function SitemapList({
     }
     try {
       await deleteSitemap.mutateAsync(deleteTarget.id);
-      toast.success("Sitemap removed");
+      toast.success(t("removed"));
       setDeleteTargetId(null);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to remove sitemap"
-      );
+      toast.error(error instanceof Error ? error.message : t("removeFailed"));
     }
   };
 
@@ -97,10 +90,10 @@ export function SitemapList({
     return (
       <EmptyState
         actionIcon={<HugeiconsIcon className="size-4" icon={GlobalIcon} />}
-        actionLabel="Retry"
-        description="We couldn't load this brand identity's sitemaps."
+        actionLabel={tCommon("retry")}
+        description={t("loadErrorDescription")}
         onActionClick={() => refetch()}
-        title="Sitemaps unavailable"
+        title={t("loadErrorTitle")}
       />
     );
   }
@@ -110,8 +103,8 @@ export function SitemapList({
       {sitemaps.length === 0 ? (
         <EmptyState
           actionIcon={<HugeiconsIcon className="size-4" icon={GlobalIcon} />}
-          actionLabel="Add Sitemap"
-          description="Add a sitemap to track indexed pages and monitor site health for AI discovery."
+          actionLabel={tBrandShared("addSitemap")}
+          description={t("emptyDescription")}
           onActionClick={() => onDialogOpenChange(true)}
           preview={
             <EmptyStateTablePreview
@@ -119,7 +112,7 @@ export function SitemapList({
               rows={EMPTY_STATE_TABLE_ROWS}
             />
           }
-          title="No sitemaps yet"
+          title={t("emptyTitle")}
         />
       ) : (
         <>
@@ -130,7 +123,7 @@ export function SitemapList({
                 sitemapId={selectedSitemap.id}
                 voiceId={voiceId}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex max-w-full min-w-0 items-center gap-1">
                   <SitemapSelector
                     onSelect={setSelectedSitemapId}
                     selectedSitemapId={selectedSitemap.id}
@@ -140,7 +133,7 @@ export function SitemapList({
                     <DropdownMenuTrigger
                       render={
                         <Button
-                          aria-label="Sitemap actions"
+                          aria-label={t("actions")}
                           size="icon-sm"
                           variant="ghost"
                         />
@@ -157,15 +150,17 @@ export function SitemapList({
                         variant="destructive"
                       >
                         <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-                        Remove sitemap
+                        {t("remove")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </SitemapPagesTable>
               <p className="text-muted-foreground text-xs tabular-nums">
-                {selectedSitemap.indexedPages} of {selectedSitemap.totalPages}{" "}
-                pages indexed
+                {t("indexedPages", {
+                  indexed: selectedSitemap.indexedPages,
+                  total: selectedSitemap.totalPages,
+                })}
               </p>
             </div>
           ) : null}
@@ -180,39 +175,24 @@ export function SitemapList({
         voiceWebsiteUrl={voiceWebsiteUrl}
       />
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={t("removeConfirm")}
+        description={
+          deleteTarget
+            ? t("removeDescriptionNamed", { label: deleteTarget.label })
+            : t("removeDescription")
+        }
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
           if (!open) {
             setDeleteTargetId(null);
           }
         }}
         open={!!deleteTargetId}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Remove sitemap?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This removes
-              {deleteTarget ? ` ${deleteTarget.label}` : " this sitemap"} and
-              its crawled pages from this brand identity.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={deleteSitemap.isPending}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={deleteSitemap.isPending}
-              onClick={handleDelete}
-              variant="destructive"
-            >
-              {deleteSitemap.isPending ? "Removing…" : "Remove Sitemap"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={deleteSitemap.isPending}
+        title={t("removeTitle")}
+        variant="destructive"
+      />
     </div>
   );
 }

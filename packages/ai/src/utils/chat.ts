@@ -44,6 +44,7 @@ export function stampUserMessageAuthors<T extends UIMessage>(
 }
 
 export function buildChatFinishMetadata({
+  activityTimings,
   streamStartedAt,
   firstChunkAt,
   finishedAt,
@@ -76,6 +77,7 @@ export function buildChatFinishMetadata({
       : undefined;
 
   return {
+    activityTimings,
     model,
     requestedModel,
     thinkingLevel,
@@ -107,20 +109,6 @@ export function chatSessionsQueryKey(
   projectId?: string | null
 ) {
   return ["chat-sessions", organizationId, projectId ?? null] as const;
-}
-
-export function chatSessionPath(organizationId: string, chatId: string) {
-  return `/api/organizations/${organizationId}/chat/${chatId}`;
-}
-
-export function chatSessionsPath(
-  organizationId: string,
-  projectId?: string | null
-) {
-  const base = `/api/organizations/${organizationId}/chat/sessions`;
-  return projectId
-    ? `${base}?projectId=${encodeURIComponent(projectId)}`
-    : base;
 }
 
 export function contentChatSessionsQueryKey(
@@ -162,17 +150,6 @@ export function dashboardAgentChatHistoryQueryKey(
   chatId: string | null
 ) {
   return ["dashboard-agent-chat-history", organizationId, chatId] as const;
-}
-
-export function dashboardAgentChatSessionsPath(organizationId: string) {
-  return chatSessionsPath(organizationId);
-}
-
-export function dashboardAgentChatHistoryPath(
-  organizationId: string,
-  chatId: string
-) {
-  return chatSessionPath(organizationId, chatId);
 }
 
 export function sortChatSessions(sessions: ChatSessionSummary[]) {

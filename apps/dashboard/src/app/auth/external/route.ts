@@ -1,6 +1,5 @@
+import { redirect } from "@tanstack/react-router";
 import { Effect } from "effect";
-import { redirect } from "next/navigation";
-import type { NextRequest } from "next/server";
 
 import {
   completeExternalLogin,
@@ -8,18 +7,20 @@ import {
 } from "@/lib/auth/external-login";
 import { getAuthSession } from "@/lib/auth/server";
 
-export async function GET(request: NextRequest) {
-  const externalAuthId = request.nextUrl.searchParams.get("external_auth_id");
+export async function GET(request: Request) {
+  const externalAuthId = new URL(request.url).searchParams.get(
+    "external_auth_id"
+  );
 
   if (!externalAuthId) {
-    redirect("/login");
+    throw redirect({ href: "/login" });
   }
 
   const session = await getAuthSession();
 
   if (!session) {
     const returnTo = `/auth/external?external_auth_id=${encodeURIComponent(externalAuthId)}`;
-    redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+    throw redirect({ href: `/login?returnTo=${encodeURIComponent(returnTo)}` });
   }
 
   const outcome = await Effect.runPromise(
@@ -38,8 +39,8 @@ export async function GET(request: NextRequest) {
   );
 
   if (!outcome.redirectUri) {
-    redirect("/login?error=external-login-failed");
+    throw redirect({ href: "/login?error=external-login-failed" });
   }
 
-  redirect(outcome.redirectUri);
+  throw redirect({ href: outcome.redirectUri });
 }

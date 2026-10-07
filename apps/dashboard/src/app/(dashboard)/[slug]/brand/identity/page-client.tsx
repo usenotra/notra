@@ -4,6 +4,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryState } from "nuqs";
 import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useBrandIdentityAnalysis } from "@/lib/hooks/use-brand-identity-analysis";
@@ -38,17 +39,11 @@ import { BrandIdentityWorkspace } from "./components/brand-identity-workspace";
 import { EmptyBrandIdentityState } from "./components/empty-brand-identity-state";
 import { BrandIdentityPageSkeleton } from "./skeleton";
 
-function buildDeleteSuccessMessage(
+function countDisabledTriggers(
   disabledSchedules: readonly unknown[] | null | undefined,
   disabledEvents: readonly unknown[] | null | undefined
-): string {
-  const disabledCount =
-    (disabledSchedules?.length ?? 0) + (disabledEvents?.length ?? 0);
-  if (disabledCount === 0) {
-    return "Brand identity deleted";
-  }
-  const triggerText = disabledCount === 1 ? "trigger was" : "triggers were";
-  return `Brand identity deleted. ${disabledCount} ${triggerText} disabled.`;
+): number {
+  return (disabledSchedules?.length ?? 0) + (disabledEvents?.length ?? 0);
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
@@ -72,6 +67,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
 function BrandIdentityPage({
   organizationId,
 }: Pick<BrandIdentityWorkspaceProps, "organizationId">) {
+  const t = useTranslations("brand.identity.toasts");
   const { data, isPending: isPendingSettings } =
     useBrandSettings(organizationId);
   const {
@@ -188,17 +184,15 @@ function BrandIdentityPage({
       dispatchUi({ type: "set-delete-target-voice-id", voiceId: null });
 
       toast.success(
-        buildDeleteSuccessMessage(
-          result.disabledSchedules,
-          result.disabledEvents
-        )
+        t("deleted", {
+          count: countDisabledTriggers(
+            result.disabledSchedules,
+            result.disabledEvents
+          ),
+        })
       );
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete brand identity"
-      );
+      toast.error(error instanceof Error ? error.message : t("deleteFailed"));
     }
   };
 
@@ -209,10 +203,10 @@ function BrandIdentityPage({
 
     try {
       await setDefaultMutation.mutateAsync(selectedVoice.id);
-      toast.success("Default brand identity updated");
+      toast.success(t("defaultUpdated"));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to set default"
+        error instanceof Error ? error.message : t("setDefaultFailed")
       );
     }
   };

@@ -1,8 +1,11 @@
 import type { ListEventsRow } from "@/types/billing/credits";
 import { formatSnakeCaseLabel } from "@/utils/format";
-import { getOutputTypeLabel } from "@/utils/output-types";
 
-export function getCreditEventLabel(event: ListEventsRow) {
+export function getCreditEventLabel(
+  event: ListEventsRow,
+  aiChatLabel: string,
+  outputTypeLabel: (outputType: string) => string
+) {
   const properties =
     typeof event.properties === "object" && event.properties !== null
       ? event.properties
@@ -14,7 +17,7 @@ export function getCreditEventLabel(event: ListEventsRow) {
       ? properties.output_type
       : undefined;
   if (outputType) {
-    return getOutputTypeLabel(outputType);
+    return outputTypeLabel(outputType);
   }
   const source =
     properties &&
@@ -23,7 +26,7 @@ export function getCreditEventLabel(event: ListEventsRow) {
       ? properties.source
       : undefined;
   if (source === "standalone_chat" || source === "chat") {
-    return "AI Chat";
+    return aiChatLabel;
   }
   return source ? formatSnakeCaseLabel(source) : "—";
 }

@@ -1,9 +1,9 @@
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -14,9 +14,11 @@ import { useGitHubRepositoryMigration } from "@/hooks/use-github-repository-migr
 import { useGitHubRepositorySelection } from "@/hooks/use-github-repository-selection";
 import { useGitHubRepositoriesDb } from "@/lib/hooks/use-github-repositories-db";
 import { startGitHubInstall } from "@/lib/integrations/github/install";
+import { usePathname } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
 export function useGitHubSettings(organizationSlug: string) {
+  const t = useTranslations("integrations.github.toasts");
   const { getOrganization, isLoading: isLoadingOrganizations } =
     useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
@@ -35,6 +37,7 @@ export function useGitHubSettings(organizationSlug: string) {
   useGitHubCallbackErrorToast();
   const {
     query: githubAppQuery,
+    catalogQuery,
     accounts,
     accountId: dialogAccountId,
     setSelectedAccountId: setSelectedDialogAccountId,
@@ -44,6 +47,7 @@ export function useGitHubSettings(organizationSlug: string) {
     saveMutation: saveRepositoriesMutation,
   } = useGitHubRepositorySelection({
     organizationId,
+    loadCatalog: reposOpen,
     refetchOnMount: false,
     initialAccountId: githubAccountId,
     onSaved: () => setReposOpen(false),
@@ -68,6 +72,11 @@ export function useGitHubSettings(organizationSlug: string) {
       }),
     });
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.github.app.catalog.queryKey({
+        input: { organizationId: organization.id },
+      }),
+    });
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.integrations.key(),
     });
   }, [githubConnected, setCallbackParams, organization?.id, queryClient]);
@@ -78,12 +87,11 @@ export function useGitHubSettings(organizationSlug: string) {
     const callbackPath = pathname || `/${organizationSlug}/integrations/github`;
     const result = await startGitHubInstall({ organizationId, callbackPath });
     if (!result.started) {
-      toast.error("Failed to start GitHub install");
+      toast.error(result.message ?? t("installFailed"));
     }
   };
   const migrationMutation = useGitHubRepositoryMigration(
     organizationId,
-    githubAppQuery.refetch,
     startInstall
   );
   const disconnectMutation = useMutation({
@@ -96,13 +104,18 @@ export function useGitHubSettings(organizationSlug: string) {
             input: { organizationId },
           }),
         }),
+        queryClient.removeQueries({
+          queryKey: dashboardOrpc.github.app.catalog.queryKey({
+            input: { organizationId },
+          }),
+        }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.integrations.key(),
         }),
       ]);
-      toast.success("GitHub disconnected");
+      toast.success(t("disconnected"));
     },
-    onError: () => toast.error("Failed to disconnect GitHub"),
+    onError: () => toast.error(t("disconnectFailed")),
   });
   const handleOpenConnect = () => setConnectOpen(true);
   const handleOpenRepositories = (accountId?: string) => {
@@ -123,6 +136,7 @@ export function useGitHubSettings(organizationSlug: string) {
     legacyOpen,
     setLegacyOpen,
     githubAppQuery,
+    catalogQuery,
     accounts,
     dialogAccountId,
     setSelectedDialogAccountId,

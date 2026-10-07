@@ -27,25 +27,15 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PlanText } from "@/components/content/plan-text";
 import {
-  CONTENT_PLAN_CHECKS_ADD,
-  CONTENT_PLAN_CHECKS_LABEL,
-  CONTENT_PLAN_CHECKS_PLACEHOLDER,
-  CONTENT_PLAN_FAQ_ADD,
-  CONTENT_PLAN_FAQ_LABEL,
-  CONTENT_PLAN_FAQ_PLACEHOLDER,
-  CONTENT_PLAN_LINK_ANCHOR_PLACEHOLDER,
   CONTENT_PLAN_LINK_URL_PLACEHOLDER,
-  CONTENT_PLAN_LINK_WHY_PLACEHOLDER,
-  CONTENT_PLAN_LINKS_ADD,
-  CONTENT_PLAN_LINKS_LABEL,
-  CONTENT_PLAN_POINT_ADD,
-  CONTENT_PLAN_POINT_PLACEHOLDER,
   CONTENT_PLAN_SAVE_DEBOUNCE_MS,
 } from "@/constants/content-plan";
+import { useBlogPostSubtypeLabels } from "@/lib/hooks/use-blog-post-subtype-labels";
 import type {
   ContentPlanViewProps,
   KeyedContentPlan,
@@ -57,7 +47,6 @@ import {
   completePlanLink,
   createPlanId,
   emptyPlanSection,
-  formatPlanSubtypeLabel,
   fromKeyedPlan,
   removeAt,
   replaceAt,
@@ -110,7 +99,7 @@ function AddItemButton({
 }) {
   return (
     <button
-      className="text-muted-foreground hover:text-foreground inline-flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-sm transition-[color,transform] duration-150 ease-out active:scale-[0.96]"
+      className="text-muted-foreground hover:text-foreground inline-flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-sm transition-[color,transform] duration-150 ease-out active:scale-[0.97]"
       onClick={onClick}
       type="button"
     >
@@ -132,7 +121,7 @@ function RemoveItemButton({
   return (
     <Button
       aria-label={label}
-      className="text-muted-foreground size-7 shrink-0 opacity-0 transition-opacity duration-150 ease-out group-focus-within/item:opacity-100 group-hover/item:opacity-100 focus-visible:opacity-100 active:scale-[0.96]"
+      className="text-muted-foreground size-7 shrink-0 opacity-0 transition-opacity duration-150 ease-out group-focus-within/item:opacity-100 group-hover/item:opacity-100 focus-visible:opacity-100"
       onClick={onClick}
       onMouseDown={onMouseDown}
       size="sm"
@@ -190,6 +179,7 @@ function PlanLineList({
   removeAriaLabel,
   showBullet = false,
 }: PlanLineListProps) {
+  const tCommon = useTranslations("common");
   const reduceMotion = useReducedMotion();
   const transition = reduceMotion ? INSTANT_TRANSITION : ITEM_TRANSITION;
   const exitTransition = reduceMotion
@@ -293,7 +283,7 @@ function PlanLineList({
               value={draft}
             />
             <RemoveItemButton
-              label="Cancel"
+              label={tCommon("actions.cancel")}
               onClick={cancelDraft}
               onMouseDown={(event) => event.preventDefault()}
             />
@@ -318,6 +308,8 @@ function PlanLinkList({
   onLinksChange: (links: KeyedPlanLink[]) => void;
   readOnly: boolean;
 }) {
+  const t = useTranslations("content.plan");
+  const tCommon = useTranslations("common");
   const reduceMotion = useReducedMotion();
   const transition = reduceMotion ? INSTANT_TRANSITION : ITEM_TRANSITION;
   const exitTransition = reduceMotion
@@ -369,26 +361,26 @@ function PlanLinkList({
             >
               <div className="flex items-start gap-1">
                 <PlanText
-                  aria-label={`Link ${index + 1} text`}
+                  aria-label={t("links.textLabel", { index: index + 1 })}
                   className="text-sm font-medium"
                   itemId={link.id}
                   onChange={(anchor) =>
                     onLinksChange(replaceAt(links, index, { ...link, anchor }))
                   }
                   onCommit={onCommit}
-                  placeholder={CONTENT_PLAN_LINK_ANCHOR_PLACEHOLDER}
+                  placeholder={t("links.anchorPlaceholder")}
                   readOnly={readOnly}
                   value={link.anchor}
                 />
                 {readOnly ? null : (
                   <RemoveItemButton
-                    label={`Remove link ${index + 1}`}
+                    label={t("links.remove", { index: index + 1 })}
                     onClick={() => onLinksChange(removeAt(links, index))}
                   />
                 )}
               </div>
               <PlanText
-                aria-label={`Link ${index + 1} URL`}
+                aria-label={t("links.urlLabel", { index: index + 1 })}
                 className="text-muted-foreground text-sm"
                 onChange={(url) =>
                   onLinksChange(replaceAt(links, index, { ...link, url }))
@@ -399,13 +391,13 @@ function PlanLinkList({
                 value={link.url}
               />
               <PlanText
-                aria-label={`Link ${index + 1} reason`}
+                aria-label={t("links.reasonLabel", { index: index + 1 })}
                 className="text-muted-foreground text-sm leading-relaxed"
                 onChange={(why) =>
                   onLinksChange(replaceAt(links, index, { ...link, why }))
                 }
                 onCommit={onCommit}
-                placeholder={CONTENT_PLAN_LINK_WHY_PLACEHOLDER}
+                placeholder={t("links.whyPlaceholder")}
                 readOnly={readOnly}
                 value={link.why}
               />
@@ -414,12 +406,12 @@ function PlanLinkList({
         </AnimatePresence>
       </ul>
       <PlanAddSlot
-        addLabel={CONTENT_PLAN_LINKS_ADD}
+        addLabel={t("links.add")}
         atMax={atMax}
         draftRow={
           <div className="group/item flex min-h-9 items-start gap-1">
             <PlanText
-              aria-label="Link URL"
+              aria-label={t("links.draftUrlLabel")}
               autoFocus
               className="text-sm"
               onChange={setDraftUrl}
@@ -430,7 +422,7 @@ function PlanLinkList({
               value={draftUrl}
             />
             <RemoveItemButton
-              label="Cancel"
+              label={tCommon("actions.cancel")}
               onClick={cancelDraft}
               onMouseDown={(event) => event.preventDefault()}
             />
@@ -450,6 +442,12 @@ export function ContentPlanView({
   onChange,
   onDirtyChange,
 }: ContentPlanViewProps) {
+  const t = useTranslations("content.plan");
+  const tCommon = useTranslations("common");
+  const tContentShared = useTranslations("content.shared");
+  const subtypeLabels = useBlogPostSubtypeLabels();
+  const formatSubtype = (subtype: string) =>
+    isBlogPostSubtype(subtype) ? subtypeLabels[subtype] : subtype;
   const readOnly = isWriting || !onChange;
   const [draft, setDraft] = useState(() => toKeyedPlan(brief));
   const briefRef = useRef(brief);
@@ -519,51 +517,51 @@ export function ContentPlanView({
         className="mx-auto w-full max-w-3xl space-y-12"
       >
         <PlanText
-          aria-label="Title"
+          aria-label={tCommon("labels.title")}
           className="text-3xl leading-tight font-semibold tracking-tight text-pretty md:text-4xl"
           maxLength={GEO_BRIEF_MAX_TITLE_LENGTH}
           onChange={(workingTitle) => update({ ...draft, workingTitle })}
           onCommit={() => commit()}
-          placeholder="Title"
+          placeholder={tCommon("labels.title")}
           readOnly={readOnly}
           value={draft.workingTitle}
         />
 
         <section className="space-y-6">
-          <PlanField label="Target prompt">
+          <PlanField label={t("targetPrompt.label")}>
             <PlanText
-              aria-label="Target prompt"
+              aria-label={t("targetPrompt.label")}
               onChange={(targetPrompt) => update({ ...draft, targetPrompt })}
               onCommit={() => commit()}
-              placeholder="The question a buyer would ask"
+              placeholder={t("targetPrompt.placeholder")}
               readOnly={readOnly}
               value={draft.targetPrompt}
             />
           </PlanField>
           <div className="grid gap-6 sm:grid-cols-2">
-            <PlanField label="Intent">
+            <PlanField label={tCommon("labels.intent")}>
               <PlanText
-                aria-label="Intent"
+                aria-label={tCommon("labels.intent")}
                 onChange={(intent) => update({ ...draft, intent })}
                 onCommit={() => commit()}
-                placeholder="Why someone is searching for this"
+                placeholder={t("intent.placeholder")}
                 readOnly={readOnly}
                 value={draft.intent}
               />
             </PlanField>
-            <PlanField label="Audience">
+            <PlanField label={t("audience.label")}>
               <PlanText
-                aria-label="Audience"
+                aria-label={t("audience.label")}
                 onChange={(audience) => update({ ...draft, audience })}
                 onCommit={() => commit()}
-                placeholder="Who this is for"
+                placeholder={t("audience.placeholder")}
                 readOnly={readOnly}
                 value={draft.audience}
               />
             </PlanField>
-            <PlanField label="Type">
+            <PlanField label={tCommon("labels.type")}>
               {readOnly ? (
-                <p>{formatPlanSubtypeLabel(draft.contentSubtype)}</p>
+                <p>{formatSubtype(draft.contentSubtype)}</p>
               ) : (
                 <Select
                   onValueChange={(value) => {
@@ -580,34 +578,34 @@ export function ContentPlanView({
                   value={draft.contentSubtype}
                 >
                   <SelectTrigger
-                    aria-label="Content type"
+                    aria-label={tCommon("labels.contentType")}
                     className="h-auto min-h-0 w-fit gap-1 border-0 bg-transparent p-0 shadow-none dark:bg-transparent dark:hover:bg-transparent"
                     size="sm"
                   >
                     <SelectValue>
                       {(value) =>
                         typeof value === "string"
-                          ? formatPlanSubtypeLabel(value)
-                          : "Choose a type"
+                          ? formatSubtype(value)
+                          : t("type.placeholder")
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent align="start">
                     {BLOG_POST_SUBTYPES.map((subtype) => (
                       <SelectItem key={subtype} value={subtype}>
-                        {formatPlanSubtypeLabel(subtype)}
+                        {formatSubtype(subtype)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             </PlanField>
-            <PlanField label="Job to be done">
+            <PlanField label={t("jobToBeDone.label")}>
               <PlanText
-                aria-label="Job to be done"
+                aria-label={t("jobToBeDone.label")}
                 onChange={(jobToBeDone) => update({ ...draft, jobToBeDone })}
                 onCommit={() => commit()}
-                placeholder="What the article should help them do"
+                placeholder={t("jobToBeDone.placeholder")}
                 readOnly={readOnly}
                 value={draft.jobToBeDone}
               />
@@ -617,7 +615,7 @@ export function ContentPlanView({
 
         <section className="space-y-5">
           <h2 className="text-muted-foreground text-[0.6875rem] font-medium tracking-wide uppercase">
-            Outline
+            {t("outline.title")}
           </h2>
           <div className="space-y-8">
             {draft.sections.map((section, index) => (
@@ -631,7 +629,9 @@ export function ContentPlanView({
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="group/item flex items-start gap-1">
                     <PlanText
-                      aria-label={`Section ${index + 1} heading`}
+                      aria-label={t("outline.headingLabel", {
+                        index: index + 1,
+                      })}
                       className="text-base leading-snug font-medium"
                       onChange={(heading) =>
                         update({
@@ -643,14 +643,14 @@ export function ContentPlanView({
                         })
                       }
                       onCommit={() => commit()}
-                      placeholder="Section heading"
+                      placeholder={t("outline.headingPlaceholder")}
                       readOnly={readOnly}
                       value={section.heading}
                     />
                     {readOnly ||
                     draft.sections.length <= GEO_BRIEF_MIN_SECTIONS ? null : (
                       <RemoveItemButton
-                        label={`Remove section ${index + 1}`}
+                        label={t("outline.removeSection", { index: index + 1 })}
                         onClick={() =>
                           update({
                             ...draft,
@@ -661,7 +661,7 @@ export function ContentPlanView({
                     )}
                   </div>
                   <PlanText
-                    aria-label={`Section ${index + 1} goal`}
+                    aria-label={t("outline.goalLabel", { index: index + 1 })}
                     className="text-muted-foreground text-sm leading-relaxed"
                     onChange={(goal) =>
                       update({
@@ -673,14 +673,17 @@ export function ContentPlanView({
                       })
                     }
                     onCommit={() => commit()}
-                    placeholder="What the reader should take away"
+                    placeholder={t("outline.goalPlaceholder")}
                     readOnly={readOnly}
                     value={section.goal}
                   />
                   <PlanLineList
-                    addLabel={CONTENT_PLAN_POINT_ADD}
+                    addLabel={t("outline.addPoint")}
                     itemAriaLabel={(claimIndex) =>
-                      `Section ${index + 1} point ${claimIndex + 1}`
+                      t("outline.pointLabel", {
+                        section: index + 1,
+                        index: claimIndex + 1,
+                      })
                     }
                     itemClassName="text-muted-foreground text-sm leading-relaxed"
                     items={section.claims}
@@ -695,10 +698,10 @@ export function ContentPlanView({
                         }),
                       })
                     }
-                    placeholder={CONTENT_PLAN_POINT_PLACEHOLDER}
+                    placeholder={t("outline.pointPlaceholder")}
                     readOnly={readOnly}
                     removeAriaLabel={(claimIndex) =>
-                      `Remove point ${claimIndex + 1}`
+                      t("outline.removePoint", { index: claimIndex + 1 })
                     }
                     showBullet
                   />
@@ -709,7 +712,7 @@ export function ContentPlanView({
           {readOnly ||
           draft.sections.length >= GEO_BRIEF_MAX_SECTIONS ? null : (
             <AddItemButton
-              label="Add section"
+              label={t("outline.addSection")}
               onClick={() =>
                 update({
                   ...draft,
@@ -722,26 +725,26 @@ export function ContentPlanView({
 
         <section className="space-y-3">
           <h2 className="text-muted-foreground text-[0.6875rem] font-medium tracking-wide uppercase">
-            {CONTENT_PLAN_FAQ_LABEL}
+            {tContentShared("faq")}
           </h2>
           <PlanLineList
-            addLabel={CONTENT_PLAN_FAQ_ADD}
-            itemAriaLabel={(index) => `FAQ ${index + 1}`}
+            addLabel={t("faq.add")}
+            itemAriaLabel={(index) => t("faq.itemLabel", { index: index + 1 })}
             items={draft.questionsToAnswer}
             maxItems={GEO_BRIEF_MAX_QUESTIONS}
             onCommit={() => commit()}
             onItemsChange={(questionsToAnswer) =>
               update({ ...draft, questionsToAnswer })
             }
-            placeholder={CONTENT_PLAN_FAQ_PLACEHOLDER}
+            placeholder={t("faq.placeholder")}
             readOnly={readOnly}
-            removeAriaLabel={(index) => `Remove question ${index + 1}`}
+            removeAriaLabel={(index) => t("faq.remove", { index: index + 1 })}
           />
         </section>
 
         <section className="space-y-3">
           <h2 className="text-muted-foreground text-[0.6875rem] font-medium tracking-wide uppercase">
-            {CONTENT_PLAN_LINKS_LABEL}
+            {tCommon("labels.links")}
           </h2>
           <PlanLinkList
             links={draft.internalLinks}
@@ -755,20 +758,24 @@ export function ContentPlanView({
 
         <section className="space-y-3">
           <h2 className="text-muted-foreground text-[0.6875rem] font-medium tracking-wide uppercase">
-            {CONTENT_PLAN_CHECKS_LABEL}
+            {t("checks.title")}
           </h2>
           <PlanLineList
-            addLabel={CONTENT_PLAN_CHECKS_ADD}
-            itemAriaLabel={(index) => `Check ${index + 1}`}
+            addLabel={t("checks.add")}
+            itemAriaLabel={(index) =>
+              t("checks.itemLabel", { index: index + 1 })
+            }
             items={draft.acceptanceChecklist}
             maxItems={GEO_BRIEF_MAX_CHECKLIST}
             onCommit={() => commit()}
             onItemsChange={(acceptanceChecklist) =>
               update({ ...draft, acceptanceChecklist })
             }
-            placeholder={CONTENT_PLAN_CHECKS_PLACEHOLDER}
+            placeholder={t("checks.placeholder")}
             readOnly={readOnly}
-            removeAriaLabel={(index) => `Remove check ${index + 1}`}
+            removeAriaLabel={(index) =>
+              t("checks.remove", { index: index + 1 })
+            }
           />
         </section>
       </div>

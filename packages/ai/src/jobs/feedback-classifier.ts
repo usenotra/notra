@@ -21,6 +21,7 @@ import type {
   AgentFeedbackClassification,
   ClassifyAgentFeedbackParams,
 } from "@notra/ai/types/feedback-classifier";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { generateText, Output } from "ai";
 
@@ -49,7 +50,10 @@ async function generateClassification(
       prompt: buildPrompt(params),
       abortSignal: AbortSignal.timeout(FEEDBACK_CLASSIFIER_TIMEOUT_MS),
       providerOptions: withRouterDefaults(
-        { openai: { reasoningEffort: FEEDBACK_CLASSIFIER_REASONING_EFFORT } },
+        {
+          openai: { reasoningEffort: FEEDBACK_CLASSIFIER_REASONING_EFFORT },
+          gateway: { tags: ["feedback-classifier"] },
+        },
         { modelId: FEEDBACK_CLASSIFIER_MODEL_ID }
       ),
       ...buildTelemetryOptions({
@@ -60,10 +64,9 @@ async function generateClassification(
     });
     return output;
   } catch (error) {
-    console.error("[AgentFeedback] Classification failed", {
+    logError("[AgentFeedback] Classification failed", error, {
       organizationId: params.organizationId,
       feedbackId: params.feedbackId,
-      error,
     });
     return null;
   }

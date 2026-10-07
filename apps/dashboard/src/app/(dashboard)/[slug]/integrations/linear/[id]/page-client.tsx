@@ -9,13 +9,15 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { LinearIntegration } from "@/types/integrations";
+import dynamic from "@/utils/lazy-component";
 
 import { LinearIntegrationDetailSkeleton } from "./skeleton";
 
@@ -57,42 +59,79 @@ export default function PageClient({ integrationId }: PageClientProps) {
     return null;
   }
 
-  if (organizationId && isLoadingIntegration && !integration) {
+  if (isLoadingIntegration && !integration) {
     return <LinearIntegrationDetailSkeleton />;
   }
 
   if (!integration) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <div className="w-full space-y-6 px-4 lg:px-6">
-          <div className="rounded-xl border border-dashed p-12 text-center">
-            <h3 className="text-lg font-medium">Integration not found</h3>
-            <p className="text-muted-foreground text-sm">
-              This integration may have been deleted or you don't have access to
-              it.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LinearIntegrationMissing />;
   }
 
-  const formattedDate = format(new Date(integration.createdAt), "MMM d, yyyy");
-  const createdLabel = integration.createdByUser
-    ? `Added by ${integration.createdByUser.name} on ${formattedDate}`
-    : `Created on ${formattedDate}`;
-  const statusLabel = integration.enabled ? "Enabled" : "Disabled";
+  return (
+    <LinearIntegrationLoaded
+      editDialogOpen={editDialogOpen}
+      integration={integration}
+      onEditOpenChange={setEditDialogOpen}
+      organizationId={organizationId}
+    />
+  );
+}
+
+function LinearIntegrationMissing() {
+  const t = useTranslations("integrations.detailPage");
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
+        <div className="rounded-xl border border-dashed p-12 text-center">
+          <h3 className="text-lg font-medium">{t("notFoundTitle")}</h3>
+          <p className="text-muted-foreground text-sm">
+            {t("notFoundDescription")}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LinearIntegrationLoaded({
+  editDialogOpen,
+  integration,
+  onEditOpenChange,
+  organizationId,
+}: {
+  editDialogOpen: boolean;
+  integration: LinearIntegration;
+  onEditOpenChange: (open: boolean) => void;
+  organizationId: string;
+}) {
+  const t = useTranslations("integrations.detailPage");
+  const tCard = useTranslations("integrations.card");
+  const tCommon = useTranslations("common");
+  const dateFnsLocale = useDateFnsLocale();
+  const formattedDate = format(new Date(integration.createdAt), "MMM d, yyyy", {
+    locale: dateFnsLocale,
+  });
+  const createdLabel = integration.createdByUser
+    ? tCard("addedBy", {
+        name: integration.createdByUser.name,
+        date: formattedDate,
+      })
+    : tCard("createdOn", { date: formattedDate });
+  const statusLabel = integration.enabled
+    ? tCommon("states.enabled")
+    : tCommon("states.disabled");
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="w-full space-y-6 px-4 lg:px-6">
+        <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:justify-between">
+          <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="min-w-0 text-3xl font-bold tracking-tight wrap-anywhere">
                       <span className="cursor-help">
                         {integration.displayName}
                       </span>
@@ -106,26 +145,28 @@ export default function PageClient({ integrationId }: PageClientProps) {
               </Badge>
             </div>
             {integration.linearOrganizationName ? (
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
                 <Linear className="size-4 shrink-0" />
-                <span>{integration.linearOrganizationName}</span>
+                <span className="min-w-0 wrap-anywhere">
+                  {integration.linearOrganizationName}
+                </span>
                 {integration.linearTeamName ? (
                   <>
                     <span
                       aria-hidden="true"
                       className="bg-muted-foreground/70 size-1 rounded-full"
                     />
-                    <span>{integration.linearTeamName}</span>
+                    <span className="min-w-0 wrap-anywhere">
+                      {integration.linearTeamName}
+                    </span>
                   </>
                 ) : null}
               </div>
             ) : null}
-            <p className="text-muted-foreground">
-              Configure your Linear integration settings
-            </p>
+            <p className="text-muted-foreground">{t("linearSubtitle")}</p>
           </div>
           <Button
-            onClick={() => setEditDialogOpen(true)}
+            onClick={() => onEditOpenChange(true)}
             size="sm"
             variant="outline"
           >
@@ -139,49 +180,55 @@ export default function PageClient({ integrationId }: PageClientProps) {
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <title>Edit icon</title>
+              <title>{t("editIcon")}</title>
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
-            <span className="ml-2">Edit</span>
+            <span className="ml-2">{tCommon("actions.edit")}</span>
           </Button>
         </div>
 
         <EditLinearIntegrationDialog
           integration={integration}
-          onOpenChange={setEditDialogOpen}
+          onOpenChange={onEditOpenChange}
           open={editDialogOpen}
           organizationId={organizationId}
         />
 
         <div className="space-y-6">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Details</h2>
+            <h2 className="text-lg font-semibold">{t("details")}</h2>
             <div className="divide-y rounded-lg border">
               {integration.linearOrganizationName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
-                  <span className="text-sm font-medium">Workspace</span>
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-sm font-medium">
+                    {tCommon("labels.workspace")}
+                  </span>
+                  <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearOrganizationName}
                   </span>
                 </div>
               ) : null}
               {integration.linearTeamName ? (
                 <div className="flex items-center justify-between gap-4 px-4 py-3">
-                  <span className="text-sm font-medium">Team</span>
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-sm font-medium">{t("team")}</span>
+                  <span className="text-muted-foreground min-w-0 text-right text-sm wrap-anywhere">
                     {integration.linearTeamName}
                   </span>
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <span className="text-sm font-medium">Status</span>
+                <span className="text-sm font-medium">
+                  {tCommon("labels.status")}
+                </span>
                 <Badge variant={integration.enabled ? "default" : "secondary"}>
                   {statusLabel}
                 </Badge>
               </div>
               <div className="flex items-center justify-between gap-4 px-4 py-3">
-                <span className="text-sm font-medium">Created</span>
+                <span className="text-sm font-medium">
+                  {tCommon("labels.created")}
+                </span>
                 <span className="text-muted-foreground text-sm">
                   {createdLabel}
                 </span>

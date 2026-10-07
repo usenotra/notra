@@ -4,8 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_WRITER_NAV_LINK } from "@notra/geo-core/constants/geo";
 import { SidebarGroup } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import dynamic from "next/dynamic";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -19,6 +19,7 @@ import {
 import { useHasGeoFeature } from "@/lib/hooks/use-plan";
 import type { NavModePrimaryActionProps } from "@/types/components/nav";
 import { geoNavHref } from "@/utils/geo-paths";
+import dynamic from "@/utils/lazy-component";
 
 import { SidebarNavLink } from "./sidebar-nav-link";
 
@@ -38,6 +39,8 @@ export function NavModePrimaryAction({
   organizationId,
   projectId,
 }: NavModePrimaryActionProps) {
+  const t = useTranslations("nav.primaryActions");
+  const tLabels = useTranslations("common.labels");
   const { isLocked: geoLocked } = useHasGeoFeature();
   const [createOpen, setCreateOpen] = useState(false);
   const [createMounted, setCreateMounted] = useState(false);
@@ -47,6 +50,8 @@ export function NavModePrimaryAction({
   const showSlot = studioActive || showWrite;
   const writeAction = NAV_PRIMARY_ACTIONS.geo;
   const createAction = NAV_PRIMARY_ACTIONS.studio;
+  const writeLabel = t("newContent");
+  const createLabel = tLabels("newPost");
 
   function openCreate() {
     setCreateMounted(true);
@@ -82,11 +87,11 @@ export function NavModePrimaryAction({
                   }
                   size="sm"
                   tabIndex={geoActive ? undefined : -1}
-                  title={writeAction.label}
+                  title={writeLabel}
                 >
                   <HugeiconsIcon icon={writeAction.icon} />
                   <span className="group-data-[collapsible=icon]:hidden">
-                    {writeAction.label}
+                    {writeLabel}
                   </span>
                 </Button>
               ) : null}
@@ -102,11 +107,11 @@ export function NavModePrimaryAction({
                 onClick={openCreate}
                 size="sm"
                 tabIndex={studioActive ? undefined : -1}
-                title={createAction.label}
+                title={createLabel}
               >
                 <HugeiconsIcon icon={createAction.icon} />
                 <span className="group-data-[collapsible=icon]:hidden">
-                  {createAction.label}
+                  {createLabel}
                 </span>
               </Button>
             </div>

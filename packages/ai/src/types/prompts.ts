@@ -62,6 +62,7 @@ export interface StandaloneChatPromptParams {
   }>;
   toolDescriptions?: string[];
   hasGitHubEnabled: boolean;
+  hasCodeResearch?: boolean;
   hasLinearEnabled: boolean;
   hasMcpEnabled: boolean;
   timezone?: string;

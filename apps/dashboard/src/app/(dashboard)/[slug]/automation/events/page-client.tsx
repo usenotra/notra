@@ -2,6 +2,11 @@
 
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Kbd } from "@notra/ui/components/ui/kbd";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import {
@@ -14,6 +19,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { BrandVoiceCell } from "@/components/automation/brand-voice-cell";
 import { EventsPageSkeleton } from "@/components/automation/events-skeleton";
@@ -26,7 +32,6 @@ import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
@@ -34,38 +39,27 @@ import {
 } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useCreateFromSuggestion } from "@/lib/hooks/use-onboarding";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { BrandSettings } from "@/types/hooks/brand-analysis";
 import type { Trigger } from "@/types/triggers/triggers";
+import { indexBrandVoices } from "@/utils/brand-voices";
 import {
   getDefaultEventTriggerValues,
   isAutomationOutputType,
 } from "@/utils/event-trigger-form";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { OutputTypeIcon } from "@/utils/output-types";
 import { tableHeightFor } from "@/utils/table";
-
-const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-function formatEventList(events?: string[]) {
-  if (!events || events.length === 0) {
-    return "All events";
-  }
-  return events.map((event) => event.replace("_", " ")).join(", ");
-}
-
-function formatDate(dateString: string) {
-  return DATE_FORMATTER.format(new Date(dateString));
-}
+import { countEnabled } from "@/utils/trigger-status";
 
 interface PageClientProps {
   organizationSlug: string;
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("automation.events.page");
+  const tAutomationShared = useTranslations("automation.shared");
+  const tCommon = useTranslations("common");
   const { getOrganization } = useOrganizationsContext();
   const organization = getOrganization(organizationSlug);
   const organizationId = organization?.id;
@@ -95,14 +89,9 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     })
   );
 
-  const brandVoiceMap: Record<string, BrandSettings> = {};
-  let defaultBrandVoice: BrandSettings | undefined;
-  for (const voice of brandResponse?.voices ?? []) {
-    brandVoiceMap[voice.id] = voice;
-    if (voice.isDefault) {
-      defaultBrandVoice = voice;
-    }
-  }
+  const { brandVoiceMap, defaultBrandVoice } = indexBrandVoices(
+    brandResponse?.voices
+  );
 
   const updateMutation = useMutation({
     mutationFn: async (trigger: Trigger) => {
@@ -138,7 +127,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
       });
     },
     onError: () => {
-      toast.error("Failed to update trigger");
+      toast.error(tAutomationShared("failedToUpdateTrigger"));
     },
   });
 
@@ -159,10 +148,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           input: { organizationId: organizationId ?? "" },
         }),
       });
-      toast.success("Event trigger removed");
+      toast.success(t("removed"));
     },
     onError: () => {
-      toast.error("Failed to delete trigger");
+      toast.error(t("deleteFailed"));
     },
   });
 
@@ -174,15 +163,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
     activeTab === "active" ? trigger.enabled : !trigger.enabled
   );
 
-  let active = 0;
-  let paused = 0;
-  for (const trigger of eventTriggers) {
-    if (trigger.enabled) {
-      active++;
-    } else {
-      paused++;
-    }
-  }
+  const { active, paused } = countEnabled(eventTriggers);
 
   const handleToggle = (trigger: Trigger) => {
     updateMutation.mutate(trigger);
@@ -199,14 +180,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-            <p className="text-muted-foreground">
-              React to GitHub activity and trigger content generation
-              automatically
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.events")}
+        >
           <CreateEventTriggerDialog
             onOpenChange={(open) => {
               setCreateOpen(open);
@@ -228,13 +205,13 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
               <Button className="w-fit gap-2">
                 <span className="inline-flex items-center gap-1.5">
                   <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                  Create Trigger
+                  {t("create")}
                 </span>
                 <Kbd className="hidden sm:inline-flex">C</Kbd>
               </Button>
             }
           />
-        </div>
+        </PageHeading>
 
         {organizationId && (
           <OnboardingSuggestions
@@ -247,78 +224,29 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
           />
         )}
 
-        {isPending && <EventsPageSkeleton />}
-
-        {!isPending && eventTriggers.length === 0 && (
-          <EmptyState
-            action={
-              <CreateEventTriggerDialog
-                onSuccess={() =>
-                  queryClient.invalidateQueries({
-                    queryKey: dashboardOrpc.automation.events.list.queryKey({
-                      input: { organizationId: organizationId ?? "" },
-                    }),
-                  })
-                }
-                organizationId={organizationId ?? ""}
-                trigger={
-                  <Button className="gap-1.5" variant="outline">
-                    <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                    Create Trigger
-                  </Button>
-                }
-              />
-            }
-            description="Create your first event trigger to react to GitHub activity."
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.events}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title="No event triggers yet"
-          />
-        )}
-
-        {!isPending && eventTriggers.length > 0 && (
-          <Tabs
-            defaultValue="active"
-            onValueChange={(value) =>
-              setActiveTab(value as "active" | "paused")
-            }
-          >
-            <TabsList variant="line">
-              <TabsTrigger value="active">Active ({active})</TabsTrigger>
-              <TabsTrigger value="paused">Paused ({paused})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent className="mt-4" value="active">
-              <EventTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                triggers={filteredTriggers}
-              />
-            </TabsContent>
-
-            <TabsContent className="mt-4" value="paused">
-              <EventTable
-                brandVoiceMap={brandVoiceMap}
-                createdSortOrder={createdSortOrder}
-                defaultBrandVoice={defaultBrandVoice}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onSortCreatedChange={setCreatedSortOrder}
-                onToggle={handleToggle}
-                triggers={filteredTriggers}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+        <EventsPageBody
+          active={active}
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          eventTriggers={eventTriggers}
+          filteredTriggers={filteredTriggers}
+          isPending={isPending}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          onEmptyCreateSuccess={() =>
+            queryClient.invalidateQueries({
+              queryKey: dashboardOrpc.automation.events.list.queryKey({
+                input: { organizationId: organizationId ?? "" },
+              }),
+            })
+          }
+          onSortCreatedChange={setCreatedSortOrder}
+          onTabChange={setActiveTab}
+          onToggle={handleToggle}
+          organizationId={organizationId}
+          paused={paused}
+        />
       </div>
       {editTrigger && (
         <CreateEventTriggerDialog
@@ -340,11 +268,121 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   );
 }
 
+function EventsPageBody({
+  active,
+  brandVoiceMap,
+  createdSortOrder,
+  defaultBrandVoice,
+  eventTriggers,
+  filteredTriggers,
+  isPending,
+  onDelete,
+  onEdit,
+  onEmptyCreateSuccess,
+  onSortCreatedChange,
+  onTabChange,
+  onToggle,
+  organizationId,
+  paused,
+}: {
+  active: number;
+  brandVoiceMap: Record<string, BrandSettings>;
+  createdSortOrder: false | "asc" | "desc";
+  defaultBrandVoice?: BrandSettings;
+  eventTriggers: Trigger[];
+  filteredTriggers: Trigger[];
+  isPending: boolean;
+  onDelete: (triggerId: string) => void;
+  onEdit: (trigger: Trigger) => void;
+  onEmptyCreateSuccess: () => void;
+  onSortCreatedChange: (next: false | "asc" | "desc") => void;
+  onTabChange: (tab: "active" | "paused") => void;
+  onToggle: (trigger: Trigger) => void;
+  organizationId?: string;
+  paused: number;
+}) {
+  const t = useTranslations("automation.events.page");
+  const tAutomationShared = useTranslations("automation.shared");
+  if (isPending) {
+    return <EventsPageSkeleton />;
+  }
+
+  if (eventTriggers.length === 0) {
+    return (
+      <EmptyState
+        action={
+          <CreateEventTriggerDialog
+            onSuccess={onEmptyCreateSuccess}
+            organizationId={organizationId ?? ""}
+            trigger={
+              <Button className="gap-1.5" variant="outline">
+                <HugeiconsIcon className="size-4" icon={Add01Icon} />
+                {t("create")}
+              </Button>
+            }
+          />
+        }
+        description={t("emptyDescription")}
+        preview={
+          <EmptyStateTablePreview
+            columns={EMPTY_STATE_TABLE_COLUMNS.events}
+            rows={EMPTY_STATE_TABLE_ROWS}
+          />
+        }
+        title={t("emptyTitle")}
+      />
+    );
+  }
+
+  return (
+    <Tabs
+      defaultValue="active"
+      onValueChange={(value) => onTabChange(value as "active" | "paused")}
+    >
+      <TabsList variant="line">
+        <TabsTrigger value="active">
+          {tAutomationShared("activeCount", { count: active })}
+        </TabsTrigger>
+        <TabsTrigger value="paused">
+          {tAutomationShared("pausedCount", { count: paused })}
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent className="mt-4" value="active">
+        <EventTable
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onSortCreatedChange={onSortCreatedChange}
+          onToggle={onToggle}
+          triggers={filteredTriggers}
+        />
+      </TabsContent>
+
+      <TabsContent className="mt-4" value="paused">
+        <EventTable
+          brandVoiceMap={brandVoiceMap}
+          createdSortOrder={createdSortOrder}
+          defaultBrandVoice={defaultBrandVoice}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onSortCreatedChange={onSortCreatedChange}
+          onToggle={onToggle}
+          triggers={filteredTriggers}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 function EventTable({
   triggers,
   brandVoiceMap,
   createdSortOrder,
   defaultBrandVoice,
+  loading = false,
   onSortCreatedChange,
   onToggle,
   onDelete,
@@ -354,15 +392,35 @@ function EventTable({
   brandVoiceMap: Record<string, BrandSettings>;
   createdSortOrder: false | "asc" | "desc";
   defaultBrandVoice?: BrandSettings;
+  loading?: boolean;
   onSortCreatedChange: (next: false | "asc" | "desc") => void;
   onToggle: (trigger: Trigger) => void;
   onDelete: (triggerId: string) => void;
   onEdit: (trigger: Trigger) => void;
 }) {
+  const t = useTranslations("automation.events.page");
+  const tCommon = useTranslations("common");
+  const tLabels = useTranslations("common.labels");
+  const eventNameLabel = (event: "release" | "push") =>
+    event === "release" ? tLabels("release") : t("eventNames.push");
+  const format = useFormatter();
+  const outputTypeLabel = useOutputTypeLabel();
+  const formatEventList = (events?: string[]) => {
+    if (!events || events.length === 0) {
+      return t("allEvents");
+    }
+    return events
+      .map((event) =>
+        event === "release" || event === "push"
+          ? eventNameLabel(event)
+          : event.replace("_", " ")
+      )
+      .join(", ");
+  };
   const columns: TableColumn<Trigger>[] = [
     {
       key: "sourceType",
-      header: "Type",
+      header: tCommon("labels.type"),
       width: "1fr",
       minWidth: "13rem",
       cell: () => (
@@ -370,23 +428,25 @@ function EventTable({
           <span className="bg-muted/50 flex size-8 shrink-0 items-center justify-center rounded-lg border">
             <Github className="size-4" />
           </span>
-          <span className="text-sm whitespace-nowrap">GitHub Webhook</span>
+          <span className="text-sm whitespace-nowrap">
+            {t("githubWebhook")}
+          </span>
         </div>
       ),
     },
     {
       key: "events",
-      header: "Events",
+      header: tCommon("labels.events"),
       width: "8rem",
       cell: (trigger) => (
-        <span className="text-muted-foreground capitalize">
+        <span className="text-muted-foreground">
           {formatEventList(trigger.sourceConfig.eventTypes)}
         </span>
       ),
     },
     {
       key: "identity",
-      header: "Identity",
+      header: tCommon("labels.identity"),
       width: "12rem",
       cell: (trigger) => {
         const explicitBrandVoiceId = trigger.outputConfig?.brandVoiceId;
@@ -406,21 +466,21 @@ function EventTable({
     },
     {
       key: "outputType",
-      header: "Output",
+      header: tCommon("labels.output"),
       width: "10rem",
       cell: (trigger) => (
-        <span className="text-muted-foreground flex items-center gap-1.5 capitalize">
+        <span className="text-muted-foreground flex items-center gap-1.5">
           <OutputTypeIcon
             className="size-3.5 shrink-0"
             outputType={trigger.outputType}
           />
-          {getOutputTypeLabel(trigger.outputType)}
+          {outputTypeLabel(trigger.outputType)}
         </span>
       ),
     },
     {
       key: "sources",
-      header: "Sources",
+      header: tCommon("labels.sources"),
       width: "8rem",
       cell: (trigger) => (
         <span className="text-muted-foreground">
@@ -430,25 +490,29 @@ function EventTable({
     },
     {
       key: "enabled",
-      header: "Status",
+      header: tCommon("labels.status"),
       width: "7rem",
       cell: (trigger) => <TriggerStatusBadge enabled={trigger.enabled} />,
     },
     {
       key: "createdAt",
-      header: "Created At",
+      header: tCommon("labels.createdAt"),
       width: "10rem",
       sortable: true,
       sortValue: (trigger) => new Date(trigger.createdAt).getTime(),
       cell: (trigger) => (
         <span className="text-muted-foreground whitespace-nowrap tabular-nums">
-          {formatDate(trigger.createdAt)}
+          {format.dateTime(new Date(trigger.createdAt), {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
         </span>
       ),
     },
     {
       key: "actions",
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="sr-only">{tCommon("labels.actions")}</span>,
       width: "5rem",
       cell: (trigger) => (
         <TriggerRowActions
@@ -462,13 +526,13 @@ function EventTable({
   ];
 
   return (
-    <Table
-      className="rounded-2xl"
+    <DataTable
       columns={columns}
       data={triggers}
-      emptyState="No event triggers in this category."
+      emptyState={t("emptyCategory")}
       getRowId={(trigger) => trigger.id}
       height={tableHeightFor(triggers.length)}
+      loading={loading}
       onSortChange={(sort) => onSortCreatedChange(sort?.direction ?? false)}
       rowHeight={TABLE_ROW_HEIGHT}
       sort={

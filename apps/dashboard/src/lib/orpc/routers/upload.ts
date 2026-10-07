@@ -19,6 +19,7 @@ import {
 } from "@/constants/company-logo";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { getChatAttachmentSizeBucket } from "@/lib/analytics/studio-events";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { getFileExtension } from "@/lib/upload/mime";
 import { getR2Config } from "@/lib/upload/r2";
@@ -30,7 +31,12 @@ import {
 } from "@/lib/upload/server";
 import { validateUpload } from "@/lib/upload/validate";
 
-import { badRequest, forbidden, unauthorized } from "../utils/errors";
+import {
+  assertNotDemo,
+  badRequest,
+  forbidden,
+  unauthorized,
+} from "../utils/errors";
 
 const TRAILING_SLASH_REGEX = /\/$/;
 
@@ -38,6 +44,7 @@ export const uploadRouter = {
   createPresignedUpload: authorizedProcedure
     .input(uploadSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       return createPresignedUpload({
         fileSize: input.fileSize,
         fileType: input.fileType,
@@ -80,10 +87,13 @@ export const uploadRouter = {
   logoFromUrl: authorizedProcedure
     .input(uploadLogoFromUrlSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
-        throw unauthorized("Active organization required for logo upload");
+        throw unauthorized(
+          (await getTranslations("common.labels"))("noActiveOrganization")
+        );
       }
 
       const membership = await db.query.members.findFirst({
@@ -95,7 +105,8 @@ export const uploadRouter = {
       });
 
       if (!membership) {
-        throw forbidden("You do not have access to this organization");
+        const tErrors = await getTranslations("errors.upload");
+        throw forbidden(tErrors("noOrganizationAccess"));
       }
 
       const sourceUrl = new URL(input.sourceUrl);
@@ -104,7 +115,8 @@ export const uploadRouter = {
         COMPANY_LOGO_SOURCE_HOSTS.some((host) => host === sourceUrl.hostname);
 
       if (!isAllowedSource) {
-        throw badRequest("Logo source is not allowed");
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoSourceNotAllowed"));
       }
 
       let response: Response;
@@ -113,18 +125,20 @@ export const uploadRouter = {
           signal: AbortSignal.timeout(COMPANY_LOGO_FETCH_TIMEOUT_MS),
         });
       } catch {
-        throw badRequest("Could not fetch the logo image");
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoFetchFailed"));
       }
 
       if (!response.ok) {
-        throw badRequest("Could not fetch the logo image");
+        const tErrors = await getTranslations("errors.upload");
+        throw badRequest(tErrors("logoFetchFailed"));
       }
 
       const fileType =
         response.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
       const body = Buffer.from(await response.arrayBuffer());
 
-      validateUpload({
+      await validateUpload({
         type: "logo",
         fileType,
         fileSize: body.byteLength,
@@ -153,10 +167,13 @@ export const uploadRouter = {
   uploadSvg: authorizedProcedure
     .input(uploadSvgSchema)
     .handler(async ({ context, input }) => {
+      assertNotDemo();
       const orgId = context.session?.activeOrganizationId;
 
       if (!orgId) {
-        throw unauthorized("Active organization required for SVG upload");
+        throw unauthorized(
+          (await getTranslations("common.labels"))("noActiveOrganization")
+        );
       }
 
       const membership = await db.query.members.findFirst({
@@ -168,7 +185,8 @@ export const uploadRouter = {
       });
 
       if (!membership) {
-        throw forbidden("You do not have access to this organization");
+        const tErrors = await getTranslations("errors.upload");
+        throw forbidden(tErrors("noOrganizationAccess"));
       }
 
       let sanitized: string;
@@ -176,7 +194,8 @@ export const uploadRouter = {
         sanitized = await sanitizeSvg(input.svg);
       } catch (error) {
         if (error instanceof SvgSanitizationError) {
-          throw badRequest(error.message);
+          const tErrors = await getTranslations("errors.upload");
+          throw badRequest(tErrors("svgInvalid"));
         }
         throw error;
       }

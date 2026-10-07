@@ -3,6 +3,7 @@
 import { Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "use-intl";
 
 import { EVENT_TYPE_META } from "@/constants/event-triggers";
 import type { EventTypeCardProps } from "@/types/automation/event-trigger";
@@ -12,6 +13,8 @@ export function EventTypeCard({
   selected,
   onSelect,
 }: EventTypeCardProps) {
+  const t = useTranslations("automation.events.eventTypes");
+  const tLabels = useTranslations("common.labels");
   const meta = EVENT_TYPE_META[eventType];
 
   return (
@@ -48,9 +51,13 @@ export function EventTypeCard({
         </div>
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-medium">{meta.label}</p>
+        <p className="text-sm font-medium">
+          {eventType === "release"
+            ? tLabels("releasePublished")
+            : t(`${eventType}.label`)}
+        </p>
         <p className="text-muted-foreground text-xs leading-relaxed">
-          {meta.description}
+          {t(`${eventType}.description`)}
         </p>
       </div>
     </button>

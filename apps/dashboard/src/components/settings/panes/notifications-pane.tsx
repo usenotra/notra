@@ -4,8 +4,10 @@ import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { MarketingEmailsCard } from "@/components/settings/marketing-emails-card";
 import {
   NotificationToggleRow,
   NotificationToggleRowSkeleton,
@@ -14,7 +16,11 @@ import { SettingsPane } from "@/components/settings/settings-pane";
 import { authClient } from "@/lib/auth/client";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { NOTIFICATION_TOGGLE_GROUPS } from "@/lib/settings/notification-toggles";
-import type { NotificationSettings } from "@/types/settings/notifications";
+import type {
+  NotificationSettings,
+  NotificationToggleGroup,
+  NotificationToggleKey,
+} from "@/types/settings/notifications";
 
 interface MemberRow {
   userId: string;
@@ -23,6 +29,18 @@ interface MemberRow {
 }
 
 export function NotificationsSettingsPane() {
+  const t = useTranslations("settings.panes.notifications");
+  const tLabels = useTranslations("common.labels");
+  const groupLabels: Record<NotificationToggleGroup["id"], string> = {
+    content: tLabels("content"),
+    geo: tLabels("geo"),
+  };
+  const toggleLabels: Record<NotificationToggleKey, string> = {
+    scheduledContentCreation: tLabels("created"),
+    scheduledContentFailed: tLabels("failed"),
+    scheduledContentSkipped: tLabels("skipped"),
+    dailySummary: t("toggles.dailySummary.label"),
+  };
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const organization = activeOrganization;
@@ -64,7 +82,7 @@ export function NotificationsSettingsPane() {
       });
     },
     onSuccess: () => {
-      toast.success("Notification settings updated");
+      toast.success(t("updated"));
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.notifications.get.queryKey({
           input: { organizationId: organization?.id ?? "" },
@@ -72,11 +90,7 @@ export function NotificationsSettingsPane() {
       });
     },
     onError: (error) => {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update notification settings"
-      );
+      toast.error(error instanceof Error ? error.message : t("updateFailed"));
     },
   });
 
@@ -96,19 +110,23 @@ export function NotificationsSettingsPane() {
       {NOTIFICATION_TOGGLE_GROUPS.map((group) => (
         <TitleCard
           contentClassName="px-2 py-2"
-          heading={group.heading}
-          key={group.heading}
+          heading={groupLabels[group.id]}
+          key={group.id}
         >
           <div className="flex flex-col gap-1">
             {group.toggles.map((toggle) =>
               isLoadingSettings ? (
                 <NotificationToggleRowSkeleton
-                  key={`${group.heading}-${toggle.key}`}
+                  key={`${group.id}-${toggle.key}`}
                 />
               ) : (
                 <NotificationToggleRow
                   checked={settings?.[toggle.key] ?? toggle.defaultValue}
-                  config={toggle}
+                  config={{
+                    ...toggle,
+                    label: toggleLabels[toggle.key],
+                    description: t(`toggles.${toggle.key}.description`),
+                  }}
                   disabled={controlsDisabled}
                   key={toggle.key}
                   onCheckedChange={(checked) =>
@@ -122,10 +140,10 @@ export function NotificationsSettingsPane() {
       ))}
 
       {!(isLoadingMembers || isOwner) && (
-        <p className="text-muted-foreground text-xs">
-          Only the organization owner can manage notification settings.
-        </p>
+        <p className="text-muted-foreground text-xs">{t("ownerOnly")}</p>
       )}
+
+      <MarketingEmailsCard />
     </SettingsPane>
   );
 }

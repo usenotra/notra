@@ -9,22 +9,36 @@ import type {
   SitemapsQueryOptions,
 } from "@/types/hooks/brand-sitemaps";
 
-import { fetchAllSitemapPages, fetchSitemapJson } from "../sitemap/api-client";
-import { sitemapPagesKey, sitemapsKey } from "../sitemap/query-keys";
+import { dashboardOrpc } from "../orpc/query";
+import { fetchAllSitemapPages } from "../sitemap/api-client";
+
+function sitemapsQueryKey(organizationId: string, voiceId: string) {
+  return dashboardOrpc.brand.sitemaps.list.queryKey({
+    input: { organizationId, voiceId },
+  });
+}
+
+function sitemapPagesQueryKey(
+  organizationId: string,
+  voiceId: string,
+  sitemapId: string
+) {
+  return dashboardOrpc.brand.sitemaps.pages.queryKey({
+    input: { organizationId, sitemapId, voiceId },
+  });
+}
 
 export function useSitemaps(
   organizationId: string,
   voiceId: string,
   options?: SitemapsQueryOptions
 ) {
-  return useQuery<SitemapListResponse>({
-    queryKey: sitemapsKey(organizationId, voiceId),
-    queryFn: () =>
-      fetchSitemapJson<SitemapListResponse>(
-        `/api/organizations/${organizationId}/brand-identities/${voiceId}/sitemaps`
-      ),
-    enabled: !!organizationId && !!voiceId && (options?.enabled ?? true),
-  });
+  return useQuery<SitemapListResponse>(
+    dashboardOrpc.brand.sitemaps.list.queryOptions({
+      input: { organizationId, voiceId },
+      enabled: !!organizationId && !!voiceId && (options?.enabled ?? true),
+    })
+  );
 }
 
 export function useSitemapPages(
@@ -33,7 +47,7 @@ export function useSitemapPages(
   sitemapId: string
 ) {
   return useQuery<SitemapPagesResponse>({
-    queryKey: sitemapPagesKey(organizationId, voiceId, sitemapId),
+    queryKey: sitemapPagesQueryKey(organizationId, voiceId, sitemapId),
     queryFn: () => fetchAllSitemapPages(organizationId, voiceId, sitemapId),
     enabled: !!organizationId && !!voiceId && !!sitemapId,
   });
@@ -44,20 +58,14 @@ export function useCreateSitemap(organizationId: string, voiceId: string) {
 
   return useMutation<Sitemap, Error, { url: string; label?: string }>({
     mutationFn: async (input) => {
-      const result = await fetchSitemapJson<{
-        sitemap: Sitemap;
-        pages: SitemapPagesResponse["pages"];
-      }>(
-        `/api/organizations/${organizationId}/brand-identities/${voiceId}/sitemaps`,
-        {
-          body: JSON.stringify(input),
-          headers: { "Content-Type": "application/json" },
-          method: "POST",
-        }
-      );
+      const result = await dashboardOrpc.brand.sitemaps.create.call({
+        ...input,
+        organizationId,
+        voiceId,
+      });
 
       queryClient.setQueryData<SitemapPagesResponse>(
-        sitemapPagesKey(organizationId, voiceId, result.sitemap.id),
+        sitemapPagesQueryKey(organizationId, voiceId, result.sitemap.id),
         { pages: result.pages }
       );
 
@@ -65,7 +73,7 @@ export function useCreateSitemap(organizationId: string, voiceId: string) {
     },
     onSuccess: (sitemap) => {
       queryClient.setQueryData<SitemapListResponse>(
-        sitemapsKey(organizationId, voiceId),
+        sitemapsQueryKey(organizationId, voiceId),
         (current) => ({
           sitemaps: [
             ...(current?.sitemaps.filter((item) => item.id !== sitemap.id) ??
@@ -83,14 +91,15 @@ export function useDeleteSitemap(organizationId: string, voiceId: string) {
 
   return useMutation<void, Error, string>({
     mutationFn: async (sitemapId) => {
-      await fetchSitemapJson(
-        `/api/organizations/${organizationId}/brand-identities/${voiceId}/sitemaps/${sitemapId}`,
-        { method: "DELETE" }
-      );
+      await dashboardOrpc.brand.sitemaps.delete.call({
+        organizationId,
+        sitemapId,
+        voiceId,
+      });
     },
     onSuccess: (_data, sitemapId) => {
       queryClient.setQueryData<SitemapListResponse>(
-        sitemapsKey(organizationId, voiceId),
+        sitemapsQueryKey(organizationId, voiceId),
         (current) => ({
           sitemaps:
             current?.sitemaps.filter((sitemap) => sitemap.id !== sitemapId) ??
@@ -98,7 +107,7 @@ export function useDeleteSitemap(organizationId: string, voiceId: string) {
         })
       );
       queryClient.removeQueries({
-        queryKey: sitemapPagesKey(organizationId, voiceId, sitemapId),
+        queryKey: sitemapPagesQueryKey(organizationId, voiceId, sitemapId),
       });
     },
   });

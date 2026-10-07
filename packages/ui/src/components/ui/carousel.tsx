@@ -2,6 +2,7 @@
 
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -178,6 +179,7 @@ function CarouselPrevious({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+  const labels = useUiLabels();
 
   return (
     <Button
@@ -196,7 +198,7 @@ function CarouselPrevious({
       {...props}
     >
       <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{labels.previousSlide}</span>
     </Button>
   );
 }
@@ -208,6 +210,7 @@ function CarouselNext({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
+  const labels = useUiLabels();
 
   return (
     <Button
@@ -226,7 +229,7 @@ function CarouselNext({
       {...props}
     >
       <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{labels.nextSlide}</span>
     </Button>
   );
 }

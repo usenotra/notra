@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
@@ -34,6 +35,8 @@ export function ReferencesList({
   dialogOpen,
   onDialogOpenChange,
 }: ReferencesListProps) {
+  const t = useTranslations("brand.references.list");
+  const tBrandShared = useTranslations("brand.shared");
   const { data, isPending } = useReferences(organizationId, voiceId);
   const deleteMutation = useDeleteReference(organizationId, voiceId);
   const updateMutation = useUpdateReference(organizationId, voiceId);
@@ -51,7 +54,7 @@ export function ReferencesList({
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.CONNECTED_ACCOUNTS.list(organizationId),
       });
-      toast.success("X account connected");
+      toast.success(t("xConnected"));
       setInitialStep("import-x");
       onDialogOpenChange(true);
       void setTwitterConnected(null);
@@ -62,6 +65,7 @@ export function ReferencesList({
     queryClient,
     organizationId,
     onDialogOpenChange,
+    t,
   ]);
 
   const references = data?.references ?? [];
@@ -71,11 +75,9 @@ export function ReferencesList({
     setDeletingId(id);
     try {
       await deleteMutation.mutateAsync(id);
-      toast.success("Reference deleted");
+      toast.success(t("deleted"));
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete reference"
-      );
+      toast.error(error instanceof Error ? error.message : t("deleteFailed"));
     }
     setDeletingId(null);
   };
@@ -85,7 +87,7 @@ export function ReferencesList({
       await updateMutation.mutateAsync({ referenceId: id, data: { note } });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update note"
+        error instanceof Error ? error.message : t("updateNoteFailed")
       );
     }
   };
@@ -101,7 +103,7 @@ export function ReferencesList({
       });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to update platforms"
+        error instanceof Error ? error.message : t("updatePlatformsFailed")
       );
     }
   };
@@ -114,7 +116,7 @@ export function ReferencesList({
   };
 
   let content = (
-    <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
+    <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2">
       {references.map((ref) => (
         <ReferenceCard
           isDeleting={deletingId === ref.id}
@@ -131,7 +133,7 @@ export function ReferencesList({
   if (isPending) {
     content = (
       <output>
-        <span className="sr-only">Loading references</span>
+        <span className="sr-only">{t("loading")}</span>
         <div aria-hidden="true" className="grid gap-3 sm:grid-cols-2">
           <Skeleton className="h-52 w-full rounded-xl" />
           <Skeleton className="h-52 w-full rounded-xl" />
@@ -142,8 +144,8 @@ export function ReferencesList({
     content = (
       <EmptyState
         actionIcon={<HugeiconsIcon className="size-4" icon={Add01Icon} />}
-        actionLabel="Add Reference"
-        description="Add a tweet or writing sample so the AI can match your style."
+        actionLabel={tBrandShared("addReference")}
+        description={t("emptyDescription")}
         onActionClick={() => onDialogOpenChange(true)}
         preview={
           <EmptyStateCardsPreview
@@ -152,7 +154,7 @@ export function ReferencesList({
             variant="reference"
           />
         }
-        title="No references yet"
+        title={t("emptyTitle")}
       />
     );
   }

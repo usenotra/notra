@@ -1,9 +1,10 @@
 import { posix } from "node:path";
 
-import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { GITHUB_IMAGE_EXTENSION_REGEX } from "@notra/schemas/constants/dashboard/github";
 import { fromMarkdown } from "mdast-util-from-markdown";
 
+import { CONTENT_IMAGE_MIME_EXTENSIONS } from "@/constants/content-image";
+import { CONTENT_VIDEO_MIME_EXTENSIONS } from "@/constants/content-video";
 import {
   GITHUB_CONTENT_MAX_ASSET_BYTES,
   GITHUB_CONTENT_MAX_ASSET_COUNT,
@@ -14,40 +15,51 @@ import type {
   PrepareGitHubContentAssetsParams,
   PreparedGitHubContent,
 } from "@/types/integrations/github";
+import {
+  contentImageKeyBelongsToOrganization,
+  contentMediaExtension,
+  getAppContentImageKey,
+  readAppOrigin,
+} from "@/utils/content-image-key";
 
-import { getOptionalR2PublicUrl, getR2StorageConfig } from "../../upload/r2";
+import { readContentImage } from "../../upload/content-image-store";
+import { getOptionalR2PublicUrl } from "../../upload/r2";
 
 const CONTENT_TYPE_EXTENSIONS: Readonly<Record<string, string>> = {
-  "image/avif": ".avif",
-  "image/gif": ".gif",
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
+  ...dottedExtensions(CONTENT_IMAGE_MIME_EXTENSIONS),
+  ...dottedExtensions(CONTENT_VIDEO_MIME_EXTENSIONS),
   "image/svg+xml": ".svg",
-  "image/webp": ".webp",
 };
+
+function dottedExtensions(extensions: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(extensions).map(([mime, extension]) => [
+      mime,
+      `.${extension}`,
+    ])
+  );
+}
 
 export function expandGitHubPathTemplate(template: string, slug: string) {
   return template.replaceAll(":slug", slug);
 }
 
 /**
- * Returns the byte ranges of inline image destinations (`![alt](url)`) in
- * source order. Only the URL span is reported so alt text, titles, and
- * angle-bracket destinations are preserved verbatim when the URL is swapped.
- *
- * Reference-style images (`![alt][ref]`) and raw `<img>` HTML are left
- * untouched: Notra's editor and generators only emit inline images.
+ * Returns image and video URL spans in source order. Image destinations keep
+ * alt text, titles, and angle-bracket forms. Reference-style images and raw
+ * `<img>` HTML stay untouched: the editor only emits inline images and
+ * `<video controls src="...">`.
  *
  * The extension overrides mdast-util-from-markdown's default
  * `resourceDestinationString` handlers, which is the only place the parser
  * exposes the destination's offsets. The replacement keeps the default
  * behaviour (`buffer` on enter, `resume` + `node.url` on exit).
  */
-function findMarkdownImageOccurrences(markdown: string) {
+function findMarkdownMediaOccurrences(markdown: string) {
   const occurrences: Array<{ end: number; start: number; url: string }> = [];
   let destination: { end: number; image: boolean; start: number } | undefined;
 
-  fromMarkdown(markdown, {
+  const tree = fromMarkdown(markdown, {
     mdastExtensions: [
       {
         enter: {
@@ -82,7 +94,47 @@ function findMarkdownImageOccurrences(markdown: string) {
     ],
   });
 
+  visitMarkdown(tree as MarkdownNode, (node) => {
+    if (node.type !== "html" || !node.value) {
+      return;
+    }
+    const offset = node.position?.start.offset;
+    if (offset == null) {
+      return;
+    }
+    const match = VIDEO_SRC_PATTERN.exec(node.value);
+    const url = match?.[1];
+    if (!(match && url) || match.index === undefined) {
+      return;
+    }
+    const relative = node.value.indexOf(url, match.index);
+    if (relative < 0) {
+      return;
+    }
+    const start = offset + relative;
+    occurrences.push({ end: start + url.length, start, url });
+  });
+
   return occurrences.sort((left, right) => left.start - right.start);
+}
+
+interface MarkdownNode {
+  children?: MarkdownNode[];
+  position?: { start: { offset?: number | null } };
+  type: string;
+  value?: string;
+}
+
+const VIDEO_SRC_PATTERN = /<video\b[^>]*?\ssrc="([^"]+)"/i;
+
+function visitMarkdown(
+  node: MarkdownNode,
+  visit: (node: MarkdownNode) => void
+) {
+  visit(node);
+  for (const child of node.children ?? []) {
+    visitMarkdown(child, visit);
+  }
 }
 
 function getR2Key(imageUrl: string, publicUrl: string) {
@@ -113,23 +165,31 @@ function getR2Key(imageUrl: string, publicUrl: string) {
 }
 
 function resolveImageExtension(key: string, contentType?: string) {
-  const pathExtension =
-    GITHUB_IMAGE_EXTENSION_REGEX.exec(key)?.[0].toLowerCase();
-  return pathExtension ?? CONTENT_TYPE_EXTENSIONS[contentType ?? ""] ?? ".png";
+  return (
+    contentMediaExtension(key) ??
+    CONTENT_TYPE_EXTENSIONS[contentType ?? ""] ??
+    ".png"
+  );
 }
 
-function resolveIndexedImagePath(
+function resolveStoredAssetPath(
   template: string,
   extension: string,
-  index: number
+  key: string
 ) {
-  // The extension always follows the source image; one configured in the
-  // template would mislabel other formats (a JPEG stored as `cover.png`).
+  const stem =
+    key
+      .split("/")
+      .pop()
+      ?.replace(/\.[^.]+$/, "") || "media";
+  // Identity-stable: reorder and republish keep the same GitHub path.
   const base = template
-    .replaceAll(":index", String(index))
+    .replaceAll(":index", stem)
     .replace(GITHUB_IMAGE_EXTENSION_REGEX, "");
-  const suffix = index === 1 || template.includes(":index") ? "" : `-${index}`;
-  return `${base}${suffix}${extension}`;
+  if (template.includes(":index")) {
+    return `${base}${extension}`;
+  }
+  return `${base}-${stem}${extension}`;
 }
 
 function encodeMarkdownPath(path: string) {
@@ -144,8 +204,17 @@ function encodeMarkdownPath(path: string) {
     .join("/");
 }
 
+function sourceFragment(sourceUrl: string) {
+  try {
+    return new URL(sourceUrl).hash.slice(1);
+  } catch {
+    const hashIndex = sourceUrl.indexOf("#");
+    return hashIndex === -1 ? "" : sourceUrl.slice(hashIndex + 1);
+  }
+}
+
 function appendSourceFragment(destination: string, sourceUrl: string) {
-  const fragment = new URL(sourceUrl).hash.slice(1);
+  const fragment = sourceFragment(sourceUrl);
   if (!fragment) {
     return destination;
   }
@@ -171,6 +240,26 @@ function appendSourceFragment(destination: string, sourceUrl: string) {
   return `${destination}#${encodedFragment}`;
 }
 
+export function resolveGitHubImagePathTemplate(
+  contentPath: string,
+  configured: string | null | undefined
+) {
+  const trimmed = configured?.trim();
+  if (trimmed) {
+    return trimmed;
+  }
+  return contentPath.replace(/\.(?:md|mdx)$/i, "");
+}
+
+function resolveStoredImageKey(
+  imageUrl: string,
+  publicUrl: string | null,
+  appOrigin: string | null
+) {
+  const r2Key = publicUrl ? getR2Key(imageUrl, publicUrl) : null;
+  return r2Key ?? getAppContentImageKey(imageUrl, appOrigin);
+}
+
 function resolveMarkdownImagePath(contentPath: string, imagePath: string) {
   if (imagePath.startsWith("public/")) {
     return `/${encodeMarkdownPath(imagePath.slice("public/".length))}`;
@@ -183,15 +272,22 @@ function resolveMarkdownImagePath(contentPath: string, imagePath: string) {
     : `./${encodedRelativePath}`;
 }
 
-async function prepareGitHubContentAssets(
+export async function prepareGitHubContentAssets(
   params: PrepareGitHubContentAssetsParams
 ): Promise<PreparedGitHubContent> {
-  const occurrences = findMarkdownImageOccurrences(params.markdown);
+  const occurrences = findMarkdownMediaOccurrences(params.markdown);
   const imageUrlsByKey = new Map<string, string[]>();
 
   for (const occurrence of occurrences) {
-    const key = getR2Key(occurrence.url, params.publicUrl);
-    if (key) {
+    const key = resolveStoredImageKey(
+      occurrence.url,
+      params.publicUrl,
+      params.appOrigin
+    );
+    if (
+      key &&
+      contentImageKeyBelongsToOrganization(key, params.organizationId)
+    ) {
       const imageUrls = imageUrlsByKey.get(key) ?? [];
       if (!imageUrls.includes(occurrence.url)) {
         imageUrls.push(occurrence.url);
@@ -201,11 +297,12 @@ async function prepareGitHubContentAssets(
   }
   if (imageUrlsByKey.size > GITHUB_CONTENT_MAX_ASSET_COUNT) {
     throw new Error(
-      `A GitHub draft can include at most ${GITHUB_CONTENT_MAX_ASSET_COUNT} images`
+      `A GitHub draft can include at most ${GITHUB_CONTENT_MAX_ASSET_COUNT} images or videos`
     );
   }
   const images: Array<{
     asset: GitHubSourceImageAsset;
+    assetKey: string;
     imageUrls: string[];
   }> = [];
   let remainingBytes = GITHUB_CONTENT_MAX_ASSET_BYTES;
@@ -216,20 +313,19 @@ async function prepareGitHubContentAssets(
     );
     const asset = await params.loadImage(key, maxBytes);
     if (asset.contents.byteLength > maxBytes) {
-      throw new Error("GitHub draft image assets exceed the size limit");
+      throw new Error("GitHub draft files exceed the size limit");
     }
     remainingBytes -= asset.contents.byteLength;
-    images.push({ asset, imageUrls });
+    images.push({ asset, assetKey: key, imageUrls });
   }
 
   const assets = [];
   const replacements = new Map<string, string>();
-  for (const [offset, image] of images.entries()) {
-    const index = offset + 1;
-    const imagePath = resolveIndexedImagePath(
+  for (const image of images) {
+    const imagePath = resolveStoredAssetPath(
       expandGitHubPathTemplate(params.imagePathTemplate, params.slug),
       image.asset.extension,
-      index
+      image.assetKey
     );
     assets.push({ contents: image.asset.contents, path: imagePath });
     const markdownImagePath = resolveMarkdownImagePath(
@@ -259,48 +355,23 @@ export async function prepareR2GitHubContentAssets(params: {
   contentPath: string;
   imagePathTemplate: string;
   markdown: string;
+  organizationId: string;
   slug: string;
 }) {
   const publicUrl = getOptionalR2PublicUrl();
-  if (!publicUrl) {
-    return { assets: [], markdown: params.markdown };
-  }
-  const { bucketName, client } = getR2StorageConfig();
 
   return prepareGitHubContentAssets({
     ...params,
+    appOrigin: readAppOrigin(),
     publicUrl,
     loadImage: async (key, maxBytes) => {
-      const abortController = new AbortController();
-      const response = await client.send(
-        new GetObjectCommand({ Bucket: bucketName, Key: key }),
-        { abortSignal: abortController.signal }
-      );
-      if (
-        response.ContentLength === undefined ||
-        response.ContentLength > maxBytes
-      ) {
-        abortController.abort();
-        throw new Error(`Image asset ${key} exceeds the size limit`);
-      }
-      if (!response.Body) {
-        abortController.abort();
-        throw new Error(`Image asset ${key} is empty`);
-      }
-      let contents: Uint8Array;
-      try {
-        contents = await response.Body.transformToByteArray();
-      } catch (error) {
-        abortController.abort();
-        throw error;
-      }
-      if (contents.byteLength > maxBytes) {
-        abortController.abort();
-        throw new Error(`Image asset ${key} exceeds the size limit`);
+      const stored = await readContentImage(key, maxBytes);
+      if (!stored) {
+        throw new Error(`Content file ${key} is missing`);
       }
       return {
-        contents,
-        extension: resolveImageExtension(key, response.ContentType),
+        contents: stored.bytes,
+        extension: resolveImageExtension(key, stored.mimeType),
       };
     },
   });

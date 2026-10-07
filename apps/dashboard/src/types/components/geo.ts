@@ -1,4 +1,6 @@
+import type { GeoSuggestionKeyword } from "@notra/geo-core/types/geo";
 import type {
+  GeoCsvIssue,
   GeoCsvParseResult,
   GeoImportKind,
 } from "@notra/geo-core/types/geo-import";
@@ -10,6 +12,8 @@ import type { GeoPromptSuggestion } from "@/types/geo";
 export interface PromptSuggestionsProps {
   organizationId: string;
   callbackPath: string;
+  /** Opens the prompts tab, focused on one prompt when an id is given. */
+  onViewTrackedPrompt: (promptId?: string) => void;
 }
 
 export interface SuggestionRowActionsProps {
@@ -28,6 +32,15 @@ export interface SuggestionColumnsOptions {
   disabled: boolean;
   onAccept: (suggestionId: string) => void;
   onDismiss: (suggestion: GeoPromptSuggestion) => void;
+  onOpen: (suggestion: GeoPromptSuggestion) => void;
+  locale: string;
+  labels: {
+    prompt: string;
+    impressions: string;
+    clicks: string;
+    position: string;
+    openDetails: (prompt: string) => string;
+  };
 }
 
 export interface SearchConsoleToolbarProps {
@@ -35,32 +48,23 @@ export interface SearchConsoleToolbarProps {
   organizationId: string;
   callbackPath: string;
   isPending: boolean;
-  onDismiss?: () => void;
   onPropertyPickerOpenChange: (open: boolean) => void;
   propertyPickerOpen: boolean;
   status: GeoSearchConsoleStatus | undefined;
 }
 
-export interface SearchConsoleHeaderRowProps {
-  action?: ReactNode;
-  titleId: string;
-  onDismiss?: () => void;
-}
-
-export interface SearchConsoleConnectActionProps {
+export interface SearchConsoleSetupStateProps {
   organizationId: string;
   callbackPath: string;
-  configured: boolean;
-  reauth: boolean;
-}
-
-export interface SearchConsoleSelectSiteStateProps {
-  organizationId: string;
-  callbackPath: string;
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
   status: GeoSearchConsoleStatus;
   websiteUrl: string | null;
+}
+
+export interface SearchConsoleReconnectButtonProps {
+  organizationId: string;
+  callbackPath: string;
+  label: string;
+  variant?: "default" | "outline";
 }
 
 export interface SearchConsolePropertyPickerProps {
@@ -80,15 +84,62 @@ export interface SearchConsoleConnectedStateProps {
   websiteUrl: string | null;
 }
 
+export interface TrackAllButtonProps {
+  pending: boolean;
+  onClick: () => void;
+}
+
+export interface SuggestionDetailActionsProps {
+  accepting: boolean;
+  disabled: boolean;
+  dismissing: boolean;
+  onAccept: () => void;
+  onDismiss: () => void;
+}
+
+export interface DismissSuggestionDialogProps {
+  suggestion: GeoPromptSuggestion | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (suggestionId: string) => void;
+}
+
+export interface PromptSuggestionSheetProps {
+  suggestion: GeoPromptSuggestion | null;
+  actions?: ReactNode;
+  onOpenChange: (open: boolean) => void;
+}
+
+export interface SuggestionQueryTableProps {
+  queries: readonly GeoSuggestionKeyword[];
+}
+
+export interface SuggestionKeywordTotals {
+  impressions: number;
+  clicks: number;
+  position: number | null;
+  ctr: number | null;
+}
+
 export interface GeoUpgradeGateProps {
   slug: string;
   children: ReactNode;
+  fallback?: ReactNode;
+  /** The server found the GEO entitlement: render while billing loads. */
+  entitled?: boolean;
+}
+
+export interface GeoPageGateProps {
+  children: ReactNode;
+  fallback: ReactNode;
+  entitled?: boolean;
 }
 
 export interface GeoUpgradeDialogProps {
   slug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onOpenChangeComplete?: (open: boolean) => void;
+  entry?: "geo" | "sidebar" | "studio";
 }
 
 export interface GeoCsvImportDialogProps<TRow> {
@@ -98,6 +149,47 @@ export interface GeoCsvImportDialogProps<TRow> {
   parse: (text: string) => GeoCsvParseResult<TRow>;
   onImport: (rows: TRow[]) => Promise<unknown>;
   isPending: boolean;
+  /** Splits rows into new, updated and over-limit before importing. */
+  capacity?: GeoCsvImportCapacity<TRow>;
+}
+
+export interface GeoCsvImportCapacity<TRow> {
+  /** False until the tracked list has loaded; the split is unknown before. */
+  isReady: boolean;
+  limit: number;
+  existingKeys: ReadonlySet<string>;
+  keyOf: (row: TRow) => string;
+}
+
+export interface GeoCsvImportPlan<TRow> {
+  rows: TRow[];
+  added: number;
+  updated: number;
+  overLimit: number;
+}
+
+export interface CsvImportPlanRowsProps<TRow> {
+  capacity: GeoCsvImportCapacity<TRow> | undefined;
+  plan: GeoCsvImportPlan<TRow>;
+  readyCount: number;
+}
+
+export interface CsvImportSummaryProps<
+  TRow,
+> extends CsvImportPlanRowsProps<TRow> {
+  duplicates: number;
+  issues: GeoCsvIssue[];
+}
+
+export interface CompetitorChoicesSearchProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export interface CompetitorChoicesFooterProps {
+  query: string;
+  hidden: number;
+  visibleCount: number;
 }
 
 export interface GeoImportDialogProps {

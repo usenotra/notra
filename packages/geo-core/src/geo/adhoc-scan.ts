@@ -92,6 +92,9 @@ function toAdhocCheck(row: GeoCheckWrite): GeoAdhocScanCheck {
     outputTokens: row.outputTokens,
     reasoningTokens: row.reasoningTokens,
     zdrEnforced: row.zdrEnforced ?? null,
+    durationMs: row.durationMs ?? null,
+    costUsd: row.costUsd ?? null,
+    judgeTokens: row.judgeTokens ?? null,
     capturedAt: row.capturedAt.toISOString(),
   };
 }

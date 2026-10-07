@@ -8,12 +8,15 @@ import { ManagedRuntime } from "effect";
 
 import {
   RUNNER_DEFAULT_PORT,
+  RUNNER_DRAIN_TIMEOUT_MS,
   RUNNER_IDLE_TIMEOUT_SECONDS,
   RUNNER_LOCAL_SECRET,
+  RUNNER_LOG_FLUSH_TIMEOUT_MS,
   RUNNER_MAX_REQUEST_BODY_BYTES,
 } from "./constants/runner";
 import { createApp } from "./http/routes";
 import { RunQueue, runQueueLive } from "./services/run-queue";
+import { withShutdownDeadline } from "./utils/shutdown";
 
 setLogFlushScheduler((flush) => {
   setTimeout(() => {
@@ -36,25 +39,34 @@ const requests = new Set<Promise<Response>>();
 geoLog.info({ event: "geo.runner.starting", port });
 await flushLogs().catch(() => undefined);
 
-// Railway sends SIGTERM on redeploy. Stop accepting, fail anything still
-// queued here, then dispose. Dispose interrupts in-flight scans, which mark
+// Railway sends SIGTERM on redeploy. Stop accepting, clear the local backlog,
+// then dispose. Dispose interrupts in-flight scans, which mark
 // themselves failed and release their billing reservation.
-function stopRunner(signal: "SIGTERM" | "SIGINT") {
+async function stopRunner(signal: "SIGTERM" | "SIGINT") {
+  if (!accepting) {
+    return;
+  }
   accepting = false;
   geoLog.info({ event: "geo.runner.stopping", signal });
-  void Promise.allSettled(requests)
-    .then(() => runtime.runPromise(queue.drain()))
-    .then(() => runtime.dispose())
-    .finally(async () => {
-      await flushLogs().catch(() => undefined);
-      process.exit(0);
-    });
+  const drained = await withShutdownDeadline(async () => {
+    const stopped = server.stop();
+    await Promise.allSettled(requests);
+    await stopped;
+    await runtime.runPromise(queue.drain());
+    await runtime.dispose();
+  }, RUNNER_DRAIN_TIMEOUT_MS);
+  if (!drained) {
+    server.stop(true);
+    geoLog.error({ event: "geo.runner.drain_failed" });
+  }
+  await withShutdownDeadline(flushLogs, RUNNER_LOG_FLUSH_TIMEOUT_MS);
+  process.exit(0);
 }
 
 process.once("SIGTERM", () => stopRunner("SIGTERM"));
 process.once("SIGINT", () => stopRunner("SIGINT"));
 
-export default {
+const server = Bun.serve({
   hostname: development ? "127.0.0.1" : undefined,
   port,
   idleTimeout: RUNNER_IDLE_TIMEOUT_SECONDS,
@@ -79,4 +91,4 @@ export default {
       requests.delete(response);
     });
   }),
-};
+});

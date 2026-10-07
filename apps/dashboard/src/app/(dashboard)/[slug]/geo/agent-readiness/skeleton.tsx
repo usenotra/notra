@@ -1,15 +1,15 @@
 "use client";
 
-import {
-  AGENT_READINESS_PAGE_DESCRIPTION,
-  AGENT_READINESS_PAGE_TITLE,
-  AGENT_READINESS_SKELETON_ROW_KEYS,
-} from "@notra/geo-core/constants/agent-readiness";
+import { AGENT_READINESS_SKELETON_ROW_KEYS } from "@notra/geo-core/constants/agent-readiness";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 
 export function AgentReadinessSkeleton() {
+  const t = useTranslations("geo.pages.agentReadiness");
+  const tCommon = useTranslations("common");
   const content = (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-6 rounded-2xl border p-6">
@@ -38,14 +38,10 @@ export function AgentReadinessSkeleton() {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {AGENT_READINESS_PAGE_TITLE}
-          </h1>
-          <p className="text-muted-foreground">
-            {AGENT_READINESS_PAGE_DESCRIPTION}
-          </p>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.agentReadiness")}
+        />
         {content}
       </div>
     </PageContainer>

@@ -1,5 +1,7 @@
 "use client";
 
+import type { SortState } from "@notra/ui/components/ui/data-table";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { useQuery } from "@tanstack/react-query";
 import {
   parseAsInteger,
@@ -8,15 +10,15 @@ import {
   useQueryState,
 } from "nuqs";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
-import { columns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
-import { DataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";
+import { useLogColumns } from "@/app/(dashboard)/[slug]/settings/logs/columns";
+import { LogsDataTable } from "@/app/(dashboard)/[slug]/settings/logs/data-table";
 import { LogsPageSkeleton } from "@/app/(dashboard)/[slug]/settings/logs/skeleton";
 import { Button } from "@/components/button";
 import { LogDetailsSheet } from "@/components/logs/log-details-sheet";
 import { LogFilters } from "@/components/logs/log-filters";
 import { LogRetentionHint } from "@/components/logs/log-retention-hint";
-import type { SortState } from "@/components/motion/table/types";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SettingsPane } from "@/components/settings/settings-pane";
 import {
@@ -30,9 +32,19 @@ import type { LogSelection } from "@/types/logs/details-sheet";
 import { getLogPage } from "@/utils/log-pagination";
 
 export function LogsSettingsPane() {
+  const t = useTranslations("settings.panes.logs");
+  const tCommon = useTranslations("common.actions");
+  const columns = useLogColumns();
   const { activeOrganization } = useOrganizationsContext();
   const organizationId = activeOrganization?.id ?? "";
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [rawPageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger.withDefault(LOGS_PAGE_SIZE)
+  );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, LOGS_PAGE_SIZE);
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [source, setSource] = useQueryState(
     "source",
@@ -64,7 +76,7 @@ export function LogsSettingsPane() {
   });
   const result = getLogPage(logsQuery.data?.logs ?? [], {
     page,
-    pageSize: LOGS_PAGE_SIZE,
+    pageSize,
     source,
     status,
     search,
@@ -105,15 +117,15 @@ export function LogsSettingsPane() {
           role="alert"
           className="flex items-center justify-between gap-3 text-sm"
         >
-          <p>Unable to load logs. Try refreshing.</p>
+          <p>{t("loadFailed")}</p>
           <Button variant="outline" size="sm" onClick={refreshLogs}>
-            Retry
+            {tCommon("retry")}
           </Button>
         </div>
       ) : null}
       {organizationId && logsQuery.isPending ? <LogsPageSkeleton /> : null}
       {logsQuery.data ? (
-        <DataTable
+        <LogsDataTable
           columns={columns}
           data={result.logs}
           getRowId={(log) => log.id}
@@ -125,22 +137,23 @@ export function LogsSettingsPane() {
           emptyState={
             filtersActive
               ? {
-                  title: "No logs match your filters",
-                  description: "Try a different search, source, or status.",
-                  actionLabel: "Reset filters",
+                  title: t("noMatchTitle"),
+                  description: t("noMatchDescription"),
+                  actionLabel: t("resetFilters"),
                   onActionClick: resetFilters,
                 }
               : {
-                  title: "No logs yet",
-                  description:
-                    "Activity from your integrations, automations, GEO scans, and syncs will show up here.",
+                  title: t("emptyTitle"),
+                  description: t("emptyDescription"),
                 }
           }
           onPageChange={setPage}
           onRowClick={(log) => setSelection({ organizationId, log })}
           page={result.page}
-          totalPages={result.totalPages}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
           totalCount={result.totalCount}
+          isLoading={logsQuery.isFetching && Boolean(logsQuery.data)}
         />
       ) : null}
       <LogDetailsSheet

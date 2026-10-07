@@ -1,4 +1,5 @@
 import { runBackgroundGen } from "@notra/ai/agents/background-gen";
+import { CONTENT_AGENT_PROFILES } from "@notra/ai/constants/content-agents";
 import type {
   LinkedInAgentOptions,
   LinkedInAgentResult,
@@ -10,10 +11,7 @@ export async function generateLinkedInPost(
   return runBackgroundGen({
     organizationId: options.organizationId,
     collectionId: options.collectionId,
-    skillName: "linkedin",
-    contentType: "linkedin_post",
-    brandAgentType: "linkedin",
-    contentLabel: "LinkedIn post",
+    ...CONTENT_AGENT_PROFILES.linkedin_post,
     voiceId: options.voiceId,
     repositories: options.repositories,
     linearIntegrations: options.linearIntegrations,

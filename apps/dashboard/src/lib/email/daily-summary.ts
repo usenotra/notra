@@ -1,3 +1,4 @@
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   geoCompetitors,
@@ -14,7 +15,6 @@ import {
 } from "@notra/db/utils/geo-checks";
 import { EMAIL_CONFIG } from "@notra/email/utils/config";
 import { engineEmailLogoSrc } from "@notra/email/utils/engine-logo";
-import { getResend } from "@notra/email/utils/resend";
 import { toGeoCompetitor } from "@notra/geo-core/geo/mappers";
 import type { GeoChangeEvent, GeoChangeKind } from "@notra/geo-core/types/geo";
 import {
@@ -30,6 +30,7 @@ import { and, asc, eq, gte, inArray, isNull, lt, or } from "drizzle-orm";
 
 import {
   DAILY_SUMMARY_MAX_ITEMS,
+  DAILY_SUMMARY_LISTED_CHANGE_KINDS,
   DAILY_SUMMARY_PROMPT_MAX_LENGTH,
 } from "@/constants/daily-summary";
 import { sendDailySummaryEmail } from "@/lib/email/send";
@@ -40,8 +41,8 @@ import {
   formatDailySummaryChangeDetail,
   getPreviousUtcDayWindow,
   groupDailySummaryItems,
+  isDailySummaryTrigger,
   isQuietDailySummary,
-  isUnchangedDailySummary,
   mergeChangesSummaries,
   truncatePrompt,
   utcDateKey,
@@ -65,7 +66,6 @@ export async function runDailySummaryCron(
     new Date(start.getTime() - 24 * 60 * 60 * 1000)
   );
   const appUrl = EMAIL_CONFIG.getAppUrl();
-  const resend = getResend();
 
   const result: DailySummaryCronResult = {
     windowStart: start.toISOString(),
@@ -75,10 +75,6 @@ export async function runDailySummaryCron(
     skippedQuiet: 0,
     failed: 0,
   };
-
-  if (!resend) {
-    throw new Error("Resend API key not configured");
-  }
 
   const optedInSettings = await db
     .select({ organizationId: organizations.id })
@@ -106,7 +102,6 @@ export async function runDailySummaryCron(
         dateKey,
         previousDateKey,
         appUrl,
-        resend,
       });
 
       if (sent === "quiet") {
@@ -117,9 +112,8 @@ export async function runDailySummaryCron(
       }
     } catch (error) {
       result.failed += 1;
-      console.error("[DailySummary] Failed to send GEO recap", {
+      logError("[DailySummary] Failed to send GEO recap", error, {
         organizationId: setting.organizationId,
-        error,
       });
     }
   }
@@ -134,7 +128,6 @@ async function sendDailySummaryForOrganization({
   dateKey,
   previousDateKey,
   appUrl,
-  resend,
 }: {
   organizationId: string;
   start: Date;
@@ -142,7 +135,6 @@ async function sendDailySummaryForOrganization({
   dateKey: string;
   previousDateKey: string;
   appUrl: string;
-  resend: NonNullable<ReturnType<typeof getResend>>;
 }): Promise<DailySummaryOrganizationResult> {
   const [
     org,
@@ -246,40 +238,39 @@ async function sendDailySummaryForOrganization({
     projectRows.map((project) => [project.id, project.name])
   );
   const includeProjectName = projectIds.length > 1;
-  const changeEvents = projectChanges.flatMap((entry) => entry?.events ?? []);
-  const summaryItems = groupDailySummaryItems(
-    projectChanges.flatMap((entry) => {
-      if (!entry) {
-        return [];
-      }
+  const changeEvents = projectChanges.flatMap((entry) =>
+    entry
+      ? entry.events.map((event) => ({ projectId: entry.projectId, event }))
+      : []
+  );
+  if (!changeEvents.some(({ event }) => isDailySummaryTrigger(event))) {
+    return "quiet";
+  }
 
-      const projectName = projectNames.get(entry.projectId);
-      return entry.events.map((event) =>
-        toSummaryChangeItem(event, {
-          projectId: entry.projectId,
-          projectName: includeProjectName ? projectName : undefined,
-        })
-      );
-    })
+  // Changes that triggered the email go first so the visible rows always
+  // explain the headline, even when other projects have many rank changes.
+  const listedEvents = changeEvents
+    .filter(({ event }) => DAILY_SUMMARY_LISTED_CHANGE_KINDS.has(event.kind))
+    .toSorted(
+      (left, right) =>
+        Number(isDailySummaryTrigger(right.event)) -
+        Number(isDailySummaryTrigger(left.event))
+    );
+  const summaryItems = groupDailySummaryItems(
+    listedEvents.map(({ projectId, event }) =>
+      toSummaryChangeItem(event, {
+        projectId,
+        projectName: includeProjectName
+          ? projectNames.get(projectId)
+          : undefined,
+      })
+    )
   );
   const summaries = projectChanges.flatMap((entry) =>
     entry ? [summarizeGeoChanges(entry.events)] : []
   );
-  const hasNewEngine = changeEvents.some(
-    (event) => event.kind === "new_engine"
-  );
   const previousDay = aggregateMentionTotals(previousOverview);
   const changes = mergeChangesSummaries(summaries);
-  if (
-    isUnchangedDailySummary({
-      yesterday,
-      previousDay,
-      changes,
-      hasNewEngine,
-    })
-  ) {
-    return "quiet";
-  }
 
   const visibleItems = summaryItems.slice(0, DAILY_SUMMARY_MAX_ITEMS);
   const summary = buildDailySummary({
@@ -294,9 +285,9 @@ async function sendDailySummaryForOrganization({
 
   let sent = 0;
   let failed = false;
-  // Send sequentially so recipient retries do not create concurrent Resend bursts.
+  // Send sequentially so recipient retries do not create concurrent Brew bursts.
   for (const recipientEmail of ownerEmails) {
-    const result = await sendDailySummaryEmail(resend, {
+    const result = await sendDailySummaryEmail({
       recipientEmail,
       organizationName: org.name,
       organizationSlug: org.slug,
@@ -314,10 +305,9 @@ async function sendDailySummaryForOrganization({
     });
 
     if (result.error) {
-      console.warn(
-        `[DailySummary] Failed to send GEO recap to ${recipientEmail}:`,
-        result.error
-      );
+      logWarn("[DailySummary] Failed to send GEO recap", {
+        error: result.error.message,
+      });
       failed = true;
       continue;
     }
@@ -335,7 +325,7 @@ function toSummaryChangeItem(
   const prompt = truncatePrompt(event.prompt, DAILY_SUMMARY_PROMPT_MAX_LENGTH);
   const family = engineFamilyOf(event.engine);
   const engineLabel = engineFamilyLabel(family);
-  const detail = formatDailySummaryChangeDetail(event.kind, event.competitors);
+  const detail = formatDailySummaryChangeDetail(event);
 
   return {
     id: `${projectId}:${event.promptId}:${event.engine}`,

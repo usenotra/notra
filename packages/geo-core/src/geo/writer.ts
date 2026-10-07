@@ -1,6 +1,6 @@
 import { generateGeoContentBrief } from "@notra/ai/agents/geo-writer";
 import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
-import { GEO_WRITER_MODEL } from "@notra/ai/constants/models";
+import { GEO_WRITER_PLANNER_MODEL } from "@notra/ai/constants/models";
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import type {
   GeoContentBrief,
@@ -16,7 +16,6 @@ import {
   brandSettings,
   brandSitemapPages,
   brandSitemaps,
-  geoCompetitors,
   geoContentBriefs,
   geoMentionChecks,
   geoPromptSuggestions,
@@ -25,6 +24,7 @@ import {
   postCollections,
 } from "@notra/db/schema";
 import type { PostSourceMetadata } from "@notra/db/schema";
+import { selectGeoContextCompetitors } from "@notra/db/utils/geo-context-competitors";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { slugify } from "@notra/utils/slugify";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
@@ -52,6 +52,7 @@ import type {
   GeoWriterUpdateInput,
 } from "../types/geo";
 import { REUSABLE_BRIEF_STATUSES } from "../utils/geo-gaps";
+import { logGeoFailure } from "../utils/geo-log";
 import {
   geoBriefToMarkdown,
   markdownToGeoBrief,
@@ -414,7 +415,10 @@ export const updateGeoContentBrief = Effect.fn("geo.writer.briefUpdate")(
                 eq(geoContentBriefs.id, input.briefId),
                 eq(
                   sql<Date>`date_trunc('milliseconds', ${geoContentBriefs.updatedAt})`,
-                  new Date(input.expectedUpdatedAt)
+                  // The column has no timezone. Cast the ISO string in SQL so the
+                  // UTC wall-clock value is compared as-is; binding a JS Date would
+                  // let node-postgres shift it by the Node process timezone.
+                  sql`${input.expectedUpdatedAt}::timestamp`
                 ),
                 inArray(geoContentBriefs.status, [...REVISABLE_BRIEF_STATUSES])
               )
@@ -566,7 +570,12 @@ const approveAndStartGeoWriterInScope = Effect.fn("geo.writer.startInScope")(
       .pipe(
         Effect.mapError((cause) => new GeoWriterStartError({ cause })),
         Effect.catch((error) => {
-          console.error("[GEO] writer tracking failed:", error.cause);
+          logGeoFailure(
+            "geo.writer.tracking_failed",
+            "Writer generation tracking failed",
+            error.cause,
+            { runId, projectId: scope.projectId }
+          );
           return Effect.void;
         })
       );
@@ -594,6 +603,42 @@ const approveAndStartGeoWriterInScope = Effect.fn("geo.writer.startInScope")(
     return response;
   }
 );
+
+const reuseOpenBrief = Effect.fn("geo.writer.reuseOpenBrief")(function* (
+  scope: Required<GeoScopeInput>,
+  open: BriefRow,
+  autoApprove: boolean | undefined
+) {
+  const isReviewable = open.status === "draft" || open.status === "failed";
+  let postId = open.postId;
+  if (!postId && isReviewable) {
+    const repairedDraft = yield* createBriefDraftPost({
+      organizationId: scope.organizationId,
+      projectId: scope.projectId,
+      briefId: open.id,
+      brief: open.brief,
+      brandVoiceId: open.brandSettingsId,
+      sourceKind: open.sourceKind,
+      sourceId: open.sourceId,
+      collectionId: open.collectionId,
+      postId: open.postId,
+    });
+    postId = repairedDraft.postId;
+  }
+  if (!autoApprove || !isReviewable) {
+    return { ...toPlanResponse(open), postId };
+  }
+  const started = yield* approveAndStartGeoWriterInScope(scope, open.id, {
+    autoApproved: true,
+  });
+  const response: GeoWriterPlanResponse = {
+    ...toPlanResponse(open),
+    status: "writing",
+    runId: started.runId,
+    postId,
+  };
+  return response;
+});
 
 export const approveAndStartGeoWriter = Effect.fn("geo.writer.start")(
   function* (
@@ -629,24 +674,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   if (sourceKind !== "manual" && sourceId) {
     const open = yield* findReusableBrief(scope, sourceKind, sourceId);
     if (open) {
-      if (
-        !open.postId &&
-        (open.status === "draft" || open.status === "failed")
-      ) {
-        const repairedDraft = yield* createBriefDraftPost({
-          organizationId: scope.organizationId,
-          projectId: scope.projectId,
-          briefId: open.id,
-          brief: open.brief,
-          brandVoiceId: open.brandSettingsId,
-          sourceKind: open.sourceKind,
-          sourceId: open.sourceId,
-          collectionId: open.collectionId,
-          postId: open.postId,
-        });
-        return { ...toPlanResponse(open), postId: repairedDraft.postId };
-      }
-      return toPlanResponse(open);
+      return yield* reuseOpenBrief(scope, open, input.autoApprove);
     }
   }
 
@@ -656,55 +684,49 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   }
   const brandSettingsId = selectedBrandId ?? scope.brandSettingsId;
 
-  const competitorFilter =
-    input.competitorIds && input.competitorIds.length > 0
-      ? inArray(geoCompetitors.id, input.competitorIds)
-      : undefined;
-
   const evidenceSourceId =
     sourceId && (sourceKind === "gap" || sourceKind === "prompt")
       ? sourceId
       : null;
 
-  const [brand, settings, competitors, gapData, sitemap, evidence] =
-    yield* Effect.all([
-      geoDb("brand identity lookup failed", () =>
-        db.query.brandSettings.findFirst({
-          columns: {
-            name: true,
-            companyName: true,
-            companyDescription: true,
-            audience: true,
-            websiteUrl: true,
-          },
-          where: eq(brandSettings.id, brandSettingsId),
-        })
-      ),
-      geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          columns: { companyName: true, aliases: true },
-          where: eq(geoSettings.projectId, scope.projectId),
-        })
-      ),
-      geoDb("competitors lookup failed", () =>
-        db
-          .select({ name: geoCompetitors.name, domain: geoCompetitors.domain })
-          .from(geoCompetitors)
-          .where(
-            competitorFilter
-              ? and(
-                  eq(geoCompetitors.projectId, scope.projectId),
-                  competitorFilter
-                )
-              : eq(geoCompetitors.projectId, scope.projectId)
-          )
-      ),
-      loadPlannerGapPrompts(scope.projectId),
-      loadSitemapPages(brandSettingsId, input.sitemapId),
-      evidenceSourceId
-        ? loadPromptEvidence(scope.projectId, evidenceSourceId)
-        : Effect.succeed(null),
-    ]);
+  const [brand, settings, gapData, sitemap, evidence] = yield* Effect.all([
+    geoDb("brand identity lookup failed", () =>
+      db.query.brandSettings.findFirst({
+        columns: {
+          name: true,
+          companyName: true,
+          companyDescription: true,
+          audience: true,
+          websiteUrl: true,
+        },
+        where: eq(brandSettings.id, brandSettingsId),
+      })
+    ),
+    geoDb("settings lookup failed", () =>
+      db.query.geoSettings.findFirst({
+        columns: { companyName: true, aliases: true },
+        where: eq(geoSettings.projectId, scope.projectId),
+      })
+    ),
+    loadPlannerGapPrompts(scope.projectId),
+    loadSitemapPages(brandSettingsId, input.sitemapId),
+    evidenceSourceId
+      ? loadPromptEvidence(scope.projectId, evidenceSourceId)
+      : Effect.succeed(null),
+  ]);
+
+  // Brands the engines named for this prompt rank first, then the ones they
+  // recommend most often overall.
+  const competitorSelection = yield* geoDb("competitors lookup failed", () =>
+    selectGeoContextCompetitors(scope, {
+      ids: input.competitorIds,
+      preferNames: evidence?.competitorMentions.map((mention) => mention.name),
+    })
+  );
+  const competitors = competitorSelection.competitors.map((competitor) => ({
+    name: competitor.name,
+    domain: competitor.domain,
+  }));
 
   const companyName =
     settings?.companyName?.trim() || brand?.companyName?.trim() || "the brand";
@@ -763,7 +785,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
           reservation: gate,
           action: "confirm",
           usage: result.usage,
-          fallbackModelId: GEO_WRITER_MODEL,
+          fallbackModelId: GEO_WRITER_PLANNER_MODEL,
           properties: {
             source: "geo_writer_planner",
             run_id: planningRunId,
@@ -793,8 +815,9 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
         .pipe(
           Effect.catch((releaseError) =>
             Effect.sync(() => {
-              console.error(
-                "[GEO] planner credit release failed:",
+              logGeoFailure(
+                "geo.writer.planner_release_failed",
+                "Planner credit release failed",
                 releaseError
               );
             })
@@ -832,7 +855,7 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
   if (inserted.length === 0 && sourceKind !== "manual" && sourceId) {
     const winner = yield* findReusableBrief(scope, sourceKind, sourceId);
     if (winner) {
-      return toPlanResponse(winner);
+      return yield* reuseOpenBrief(scope, winner, input.autoApprove);
     }
   }
 
@@ -899,7 +922,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         columns: { prompt: true },
         where: and(
           eq(geoPromptSuggestions.id, sourceId),
-          eq(geoPromptSuggestions.organizationId, organizationId)
+          eq(geoPromptSuggestions.organizationId, organizationId),
+          eq(geoPromptSuggestions.projectId, projectId)
         ),
       })
     );
@@ -908,7 +932,8 @@ const resolveWriterTopic = Effect.fn("geo.writer.topic")(function* (
         new GeoPromptNotFoundError({ promptId: sourceId })
       );
     }
-    return suggestion.prompt;
+    // Keep the suggestion as the reuse key, but honor edits to its topic.
+    return input.topic;
   }
 
   const promptRow = yield* geoDb("prompt lookup failed", () =>

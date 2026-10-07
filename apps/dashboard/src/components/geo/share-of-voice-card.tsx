@@ -1,14 +1,12 @@
 "use client";
 
-import {
-  GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES,
-  GEO_SHARE_OF_VOICE_TRACKING_HINT,
-} from "@notra/geo-core/constants/geo";
+import { GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES } from "@notra/geo-core/constants/geo";
 import type { ShareOfVoiceRow } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
+import { useTranslations } from "use-intl";
 
 import { ShareOfVoiceTable } from "@/components/geo/share-of-voice-table";
-import { InstrumentSection } from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
@@ -25,6 +23,7 @@ export function ShareOfVoiceCard({
   companyName,
   aliases,
 }: ShareOfVoiceCardProps) {
+  const tGeoShared = useTranslations("geo.shared");
   const navigation = useGeoCompetitorRowNavigation(
     organizationSlug,
     organizationId
@@ -48,8 +47,8 @@ export function ShareOfVoiceCard({
     <InstrumentSection
       bodyClassName="flex min-h-0 flex-1 flex-col"
       className="h-full"
-      eyebrow="Share of voice"
-      hint={GEO_SHARE_OF_VOICE_TRACKING_HINT}
+      eyebrow={tGeoShared("shareOfVoice")}
+      hint={tGeoShared("discoveredBrandsComeFromScan")}
     >
       <ShareOfVoiceTable
         aliases={aliases}

@@ -23,9 +23,24 @@ import {
 import { MARQUEE_CAPTION } from "@/constants/landing/marquee-quote";
 import {
   PRICING_HEADING,
+  PRICING_PLANS as PRICING_CARD_PLANS,
   PRICING_SUBHEADING,
 } from "@/constants/landing/pricing";
+import {
+  PROMPT_CALCULATOR_ANCHOR,
+  PROMPT_CALCULATOR_DAYS_PER_MONTH,
+  PROMPT_CALCULATOR_DEFAULT_FREQUENCY,
+  PROMPT_CALCULATOR_DEFAULT_PROMPTS,
+  PROMPT_CALCULATOR_FREQUENCIES,
+  PROMPT_CALCULATOR_MAX_PROMPTS,
+  PROMPT_CALCULATOR_MILESTONES,
+  PROMPT_CALCULATOR_MIN_PROMPTS,
+  PROMPT_CALCULATOR_PARAMS,
+} from "@/constants/landing/prompt-calculator";
+import { PROMPT_CALCULATOR_ENGINES } from "@/constants/landing/prompt-calculator-engines";
 import { BRAND_ASSETS, BRAND_COLORS, BRAND_FONTS } from "@/lib/brand/constants";
+import type { PromptCalculatorInput } from "@/types/landing/prompt-calculator";
+import { NOTRA_CONTACT_EMAIL } from "@/utils/agent-metadata";
 import {
   COMPARISON_FEATURES,
   PRICING_PLANS,
@@ -34,6 +49,11 @@ import {
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { markdownSection } from "@/utils/markdown";
 import { SITE_DESCRIPTION, SITE_TAGLINE } from "@/utils/metadata";
+import {
+  buildPromptCalculatorSearch,
+  estimatePromptUsage,
+  findFittingCadence,
+} from "@/utils/prompt-calculator";
 import { SITE_URL } from "@/utils/urls";
 
 function renderPlanPrice(
@@ -72,7 +92,7 @@ export function buildFeaturesMarkdown() {
     "",
     SITE_DESCRIPTION,
     "",
-    "Every answer is kept, so you can read what each engine actually said. A crawler fetch and a citation are not the same thing, and Notra keeps them apart.",
+    "Notra keeps every answer, so you can read what each engine said. It counts crawler fetches and citations separately.",
     "",
     markdownSection("What Notra tracks", [
       "### Prompts",
@@ -85,10 +105,10 @@ export function buildFeaturesMarkdown() {
       "Run the same prompts in up to five languages. Each language gets its own mention rate, so you can see where you win in English and lose in German.",
       "",
       "### Conversations",
-      "Multi-turn chats of up to five turns, replayed against every engine with web search. The follow-up question is usually where the recommendation happens.",
+      "Notra replays multi-turn chats of up to five turns on every engine with web search. Engines often make their recommendation in a follow-up answer.",
       "",
       "### Scans",
-      "Scans run daily by default, or every 48 hours, 3 days, week, 2 weeks or 30 days. Every answer is stored in full with the searches the engine ran and the pages it cited. Zero data retention is available as an add-on for teams that need it.",
+      "Scans run daily by default, or every 48 hours, 3 days, week, 2 weeks or 30 days. Every answer is stored in full with the searches the engine ran and the pages it cited. Zero data retention is available as an add-on.",
     ]),
     markdownSection("What the dashboard shows", [
       `### ${FEATURES_ENGINES_COPY.title}`,
@@ -101,7 +121,7 @@ export function buildFeaturesMarkdown() {
       ANSWER_EXAMPLE_SUBCOPY,
       "",
       "### Competitors",
-      "Track up to 25 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
+      "Track up to 2,000 competitors with their domains and the misspellings people use for them. Open any of them to see mentions over time and the exact prompts and engines where they appear instead of you.",
       "",
       "### Agent journeys",
       "Follow a single AI agent across your site: which pages it fetched, in what order and whether it asked for markdown.",
@@ -109,7 +129,7 @@ export function buildFeaturesMarkdown() {
     markdownSection("AI traffic, attributed", [
       FEATURES_TRAFFIC_COPY.description,
       "",
-      "No script tag. You add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt, TanStack Start, Astro or SvelteKit site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
+      "You don't need a script tag. Add the @usenotra/geo package as a proxy or middleware in your Next.js, Nuxt, TanStack Start, Astro or SvelteKit site. It sends a small request envelope to Notra, matching happens on our side and anything human is dropped before it is stored.",
       "",
       "Every hit is labelled by purpose: model training, search index, cited in answer (an assistant read the page while answering someone) or referral (a person clicked through from an AI answer).",
     ]),
@@ -131,7 +151,7 @@ export function buildFeaturesMarkdown() {
       "- OAuth 2.1 through oauth.usenotra.com or scoped API keys.",
       "- MCP server at https://mcp.usenotra.com/mcp.",
       "- @usenotra/geo on npm for traffic capture, agent classification and link tagging.",
-      "- Docs at https://docs.usenotra.com.",
+      "- Docs at https://www.usenotra.com/docs.",
     ]),
     markdownSection("Studio", [
       "The content automation that Notra started with is still here. Connect GitHub, Linear and Slack, and Notra drafts changelogs, launch posts and social updates in your brand voice, on a schedule or when something ships.",
@@ -142,6 +162,144 @@ export function buildFeaturesMarkdown() {
       "- [Changelog](https://www.usenotra.com/changelog.md)",
       "- [Start for free](https://app.usenotra.com/signup)",
     ]),
+  ].join("\n");
+}
+
+const CALCULATOR_EXAMPLES: {
+  situation: string;
+  input: PromptCalculatorInput;
+}[] = [
+  {
+    situation: "A startup checking whether AI engines mention it at all",
+    input: {
+      prompts: 25,
+      models: ["chatgpt", "claude", "perplexity"],
+      frequency: "weekly",
+    },
+  },
+  {
+    situation: "A team tracking one category every day",
+    input: {
+      prompts: 100,
+      models: ["chatgpt", "claude", "gemini"],
+      frequency: "daily",
+    },
+  },
+  {
+    situation: "An agency tracking several brands on every engine",
+    input: {
+      prompts: 250,
+      models: ["chatgpt", "claude", "gemini", "perplexity", "grok"],
+      frequency: "daily",
+    },
+  },
+];
+
+function calculatorUrl(input: PromptCalculatorInput) {
+  return `${SITE_URL}/pricing${buildPromptCalculatorSearch(input)}`;
+}
+
+function describeEstimate(input: PromptCalculatorInput) {
+  const estimate = estimatePromptUsage(input);
+  const answers = estimate.answersPerMonth.toLocaleString("en-US");
+  if (estimate.plan.answersPerMonth !== null) {
+    return `${answers} AI answers / month → ${estimate.plan.name} (${estimate.plan.price.monthly}${estimate.plan.priceSuffix?.monthly ?? ""})`;
+  }
+  const fit = findFittingCadence(input);
+  if (!fit) {
+    return `${answers} AI answers / month → Enterprise, contact ${NOTRA_CONTACT_EMAIL}`;
+  }
+  const slower = { ...input, frequency: fit.frequency };
+  const slowerAnswers =
+    estimatePromptUsage(slower).answersPerMonth.toLocaleString("en-US");
+  return `${answers} AI answers / month → Enterprise. Scanning \`${fit.frequency}\` instead brings it to ${slowerAnswers} → ${fit.plan.name} (${fit.plan.price.monthly}/month): ${calculatorUrl(slower)}`;
+}
+
+function buildPromptCalculatorMarkdown() {
+  const quotas = PRICING_CARD_PLANS.map((plan) =>
+    plan.answersPerMonth === null
+      ? `| ${plan.name} | more than ${PRICING_CARD_PLANS.at(-2)?.answersPerMonth?.toLocaleString("en-US") ?? ""} | ${plan.price.monthly} |`
+      : `| ${plan.name} | ${plan.answersPerMonth.toLocaleString("en-US")} | ${plan.price.monthly}/month or ${plan.price.yearly}/year |`
+  );
+  // Exact scans per month, so an agent's arithmetic matches the calculator.
+  const frequencies = PROMPT_CALCULATOR_FREQUENCIES.map((option) => {
+    if (option.intervalDays === 1) {
+      return `\`${option.id}\` (${PROMPT_CALCULATOR_DAYS_PER_MONTH})`;
+    }
+    const exact = PROMPT_CALCULATOR_DAYS_PER_MONTH / option.intervalDays;
+    const shown = Number.isInteger(exact)
+      ? String(exact)
+      : `${PROMPT_CALCULATOR_DAYS_PER_MONTH}/${option.intervalDays} ≈ ${exact.toFixed(3)}`;
+    return `\`${option.id}\` (${shown})`;
+  });
+  const projectLimits = PRICING_CARD_PLANS.map(
+    (plan) =>
+      `${plan.name} ${plan.features.find((feature) => feature.icon === "projects")?.label ?? ""}`
+  ).join(", ");
+  const promptGuide = PROMPT_CALCULATOR_MILESTONES.map(
+    (milestone) =>
+      `- Up to ${milestone.prompts.toLocaleString("en-US")}: ${milestone.name} ${milestone.detail}`
+  );
+  const examples = CALCULATOR_EXAMPLES.map(({ situation, input }, index) =>
+    [
+      `${index + 1}. ${situation}: ${input.prompts} prompts on ${input.models.join(", ")}, \`${input.frequency}\``,
+      `   - ${calculatorUrl(input)}`,
+      `   - ${describeEstimate(input)}`,
+    ].join("\n")
+  );
+
+  return [
+    "## Estimate your AI answers",
+    "",
+    "Plans are sized by AI answers tracked per month. One AI answer is one prompt answered by one model in one scan.",
+    "",
+    "| Plan | AI answers / month | Price |",
+    "| --- | --- | --- |",
+    ...quotas,
+    "",
+    "### Guide for AI agents",
+    "",
+    "Use these steps to recommend a plan and hand the user a link with the calculator already filled in.",
+    "",
+    `1. **Models.** Ask which AI engines their buyers use. Each model counts separately. An engine name like \`claude\` stands for its default model; to track two models of one engine (say Claude Opus 5.5 and Sonnet 5), list both model ids. An engine name and its default model id are the same model, and duplicates count once. Mixing engine names and model ids is fine. See the model list below.`,
+    '2. **Prompts.** Use the number the customer gives. Otherwise pick from these ranges, e.g. 5 to 10 for "a handful" or the upper bound of the matching range:',
+    ...promptGuide.map((line) => `   ${line}`),
+    `3. **Frequency.** Default to \`${PROMPT_CALCULATOR_DEFAULT_FREQUENCY}\`. Slower scans cost fewer answers.`,
+    `4. **Compute.** AI answers / month = prompts × models × scans per month, where scans per month = ${PROMPT_CALCULATOR_DAYS_PER_MONTH} ÷ the interval in days (weekly is ${PROMPT_CALCULATOR_DAYS_PER_MONTH}/7, not 4.3). Round only the final total up.`,
+    `5. **Pick the plan.** Choose the smallest plan whose quota is at least the estimate; an estimate exactly at the quota fits but leaves no room to add prompts, so mention the next plan if they expect to grow. Then check projects: each brand or website is usually its own project (${projectLimits}). When projects call for a larger plan, recommend that plan and use its quota for step 6.`,
+    "6. **Too big for the plan?** Try the next slower frequency until the estimate fits the plan's quota, and recommend the fastest frequency that fits. If even `monthly` exceeds Scale, recommend Enterprise.",
+    `7. **Share the link.** \`${SITE_URL}/pricing?${PROMPT_CALCULATOR_PARAMS.prompts}=…&${PROMPT_CALCULATOR_PARAMS.models}=…&${PROMPT_CALCULATOR_PARAMS.frequency}=…#${PROMPT_CALCULATOR_ANCHOR}\`. The calculator sizes the plan by AI answers only, so when projects call for a larger plan (step 5), say so next to the link, e.g. "the calculator shows Starter, but with 3 brands you need Growth".`,
+    "",
+    "### Query params",
+    "",
+    "| Param | Values | Default |",
+    "| --- | --- | --- |",
+    `| \`${PROMPT_CALCULATOR_PARAMS.prompts}\` | Whole number, ${PROMPT_CALCULATOR_MIN_PROMPTS} to ${PROMPT_CALCULATOR_MAX_PROMPTS.toLocaleString("en-US")}. Out-of-range values are clamped | ${PROMPT_CALCULATOR_DEFAULT_PROMPTS} |`,
+    `| \`${PROMPT_CALCULATOR_PARAMS.models}\` | Comma-separated engine names or model ids, mixed freely. Unknown ids are ignored; if none are left, the default applies | ${PROMPT_CALCULATOR_ENGINES.slice(
+      0,
+      3
+    )
+      .map((engine) => engine.id)
+      .join(",")} |`,
+    `| \`${PROMPT_CALCULATOR_PARAMS.frequency}\` | One of ${frequencies.join(", ")}; scans per month in brackets | ${PROMPT_CALCULATOR_DEFAULT_FREQUENCY} |`,
+    "",
+    "Params you leave out fall back to their default, and the page updates the URL as the user changes inputs, so the link always matches what they see.",
+    "",
+    "Good to know: the estimate covers the prompts in the project's main language. Each extra language re-runs up to the first 5 prompts, multi-turn conversations add one answer per turn and persona conversations count two answers per turn, so leave headroom when a customer plans to use any of them. When an organization uses up its monthly AI answers, scheduled scans run on its AI credits instead and are skipped only when no credits are left either. Zero data retention adds 20% to Starter, Growth and Scale and is included on Enterprise; only add it when the customer asks for it.",
+    "",
+    "### Models",
+    "",
+    "| Engine name | Model ids, newest first |",
+    "| --- | --- |",
+    ...PROMPT_CALCULATOR_ENGINES.map(
+      (engine) =>
+        `| \`${engine.id}\` (${engine.name}) | ${engine.models.map((model) => `\`${model.id}\`${model.id === engine.defaultModel ? " (default)" : ""}`).join(", ")} |`
+    ),
+    "",
+    "### Worked examples",
+    "",
+    ...examples,
+    "",
   ].join("\n");
 }
 
@@ -181,9 +339,10 @@ export function buildPricingMarkdown() {
     "",
     "Choose the right Notra plan for your team.",
     "",
-    "Upgrade when you need more images, posts, or projects.",
+    "Upgrade when you need more images, posts or projects.",
     "",
     planSections,
+    buildPromptCalculatorMarkdown(),
     "## Feature Comparison",
     "",
     comparisonSections,
@@ -267,7 +426,7 @@ export function buildBrandMarkdown() {
     (color) => `- ${color.name}: ${color.hex} (${color.value}) - ${color.usage}`
   );
   const fontLines = BRAND_FONTS.map(
-    (font) => `- [${font.name}](${font.googleFontsUrl}) - ${font.role}`
+    (font) => `- [${font.name}](${font.sourceUrl}) - ${font.role}`
   );
 
   return [
@@ -283,7 +442,7 @@ export function buildBrandMarkdown() {
     ]),
     markdownSection("Logo", [
       "The Notra mark is a feather with a lavender fill and ink strokes.",
-      "Keep it on a light surface and give it room to breathe. On dark surfaces, place the mark on a cream tile.",
+      "Keep it on a light surface with clear space around it. On dark surfaces, place the mark on a cream tile.",
     ]),
     markdownSection("Colors", colorLines),
     markdownSection("Typography", [

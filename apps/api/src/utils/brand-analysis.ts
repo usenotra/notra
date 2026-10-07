@@ -53,13 +53,6 @@ export function isConfirmedWorkflowTriggerRejection(error: unknown) {
     return error.kind === "configuration" || error.kind === "authentication";
   }
 
-  if (
-    error instanceof Error &&
-    error.message === "Brand analysis workflow URL is not configured"
-  ) {
-    return true;
-  }
-
   return false;
 }
 
@@ -75,7 +68,10 @@ export async function triggerBrandAnalysisWorkflow(
   const url = getBrandAnalysisWorkflowUrl(env);
 
   if (!url) {
-    throw new Error("Brand analysis workflow URL is not configured");
+    throw new InternalDashboardAdapterError({
+      kind: "configuration",
+      message: "Brand analysis workflow URL is not configured",
+    });
   }
 
   return await startDashboardWorkflow(url, payload);

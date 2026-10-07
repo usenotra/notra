@@ -2,7 +2,9 @@ import type { createOctokit } from "@notra/ai/utils/octokit";
 import type { redis } from "@notra/ai/utils/redis";
 import { Data } from "effect";
 import type React from "react";
+import type { useTranslations } from "use-intl";
 
+import type messages from "../../../messages/en.json";
 import type { GitHubIntegration, GitHubRepository } from "../integrations";
 
 export interface GitHubRepositoryRowProps {
@@ -30,11 +32,6 @@ export interface GitHubRepositoryMenuProps extends GitHubRepositoryActionsProps 
   isPending: boolean;
   onToggle: () => void;
   onDialog: (dialog: GitHubRepositoryDialog) => void;
-}
-
-export interface GitHubLegacyPageProps {
-  params: Promise<{ slug: string; id: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export interface GitHubWebhookSettingsProps {
@@ -104,7 +101,7 @@ export type GitHubInstallFailureReason =
 
 export type StartGitHubInstallResult =
   | { started: true }
-  | { started: false; reason: GitHubInstallFailureReason };
+  | { started: false; reason: GitHubInstallFailureReason; message?: string };
 
 export interface ConnectGitHubDialogProps {
   onConnect: () => void;
@@ -207,9 +204,7 @@ export interface GitHubBranchPanelTransitionProps {
 }
 
 export interface GitHubContentPublishingSettingsProps extends GitHubPublishingSettingsProps {
-  contentLabel: string;
   contentType: GitHubPublishContentType;
-  pluralLabel: string;
 }
 
 export interface GitHubContentDirectoryMutationVariables {
@@ -224,7 +219,7 @@ export interface GitHubContentPathMutationVariables {
 }
 
 export interface GitHubPublishingPathFieldsProps {
-  contentLabel: string;
+  contentType: GitHubPublishContentType;
   contentPath: string | null;
   directory: string;
   disabled?: boolean;
@@ -237,7 +232,7 @@ export interface GitHubPublishingPathFieldsProps {
 }
 
 export interface GitHubDirectoryPickerProps {
-  contentLabel: string;
+  contentType: GitHubPublishContentType;
   directory: string;
   disabled?: boolean;
   isSaving?: boolean;
@@ -362,10 +357,12 @@ export interface GitHubSourceImageAsset {
 }
 
 export interface PrepareGitHubContentAssetsParams {
+  appOrigin: string | null;
   contentPath: string;
   imagePathTemplate: string;
   markdown: string;
-  publicUrl: string;
+  organizationId: string;
+  publicUrl: string | null;
   slug: string;
   loadImage: (key: string, maxBytes: number) => Promise<GitHubSourceImageAsset>;
 }
@@ -405,10 +402,10 @@ export interface PublishContentDraftPullRequestParams {
   path: string;
   title: string;
   markdown: string;
+  /** Organization billed for follow-up commit-message generation. */
+  organizationId?: string;
   assets?: GitHubContentAsset[];
   assetPathsToDelete?: string[];
-  /** Markdown shown in the pull request body when repository-local asset URLs differ from the committed file. */
-  pullRequestMarkdown?: string;
   /** Prepares repository-local assets after an existing draft's pinned content path is known. */
   prepareContent?: (contentPath: string) => Promise<PreparedGitHubContent>;
   /**
@@ -420,6 +417,20 @@ export interface PublishContentDraftPullRequestParams {
   contentUrl?: string;
   /** Absolute URLs of the "Open in Notra" badge images per color scheme. */
   badgeUrls?: OpenInNotraBadgeUrls;
+  /**
+   * Open pull request already stored for this content. A new commit is pushed
+   * to its branch instead of opening another draft.
+   */
+  linkedPullRequest?: {
+    branchName: string;
+    number: number;
+  };
+  /**
+   * Fail instead of opening a new draft when the stored pull request is not
+   * open on the default branch. A pull request marked ready for review still
+   * receives the update.
+   */
+  requireLinkedPullRequest?: boolean;
 }
 
 export interface GitHubPullRequestSummary {
@@ -476,7 +487,16 @@ export type GitHubPublishRecovery = (
 export interface UseGitHubRepositorySelectionOptions {
   organizationId: string;
   enabled?: boolean;
+  /** Live GitHub catalog. The settings page enables this only while the picker is open. */
+  loadCatalog?: boolean;
   refetchOnMount?: boolean;
   initialAccountId?: string | null;
   onSaved: () => void;
 }
+
+export type GitHubFormsTranslator = ReturnType<
+  typeof useTranslations<"integrations.githubForms">
+>;
+
+export type GitHubCallbackErrorMessageKey =
+  keyof (typeof messages)["integrations"]["github"]["callbackErrors"];

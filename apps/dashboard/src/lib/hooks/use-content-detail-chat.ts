@@ -6,6 +6,7 @@ import {
   uiMessageSchema,
 } from "@notra/ai/schemas/chat";
 import type {
+  ChatAttachment,
   ChatSessionSummary,
   ContextItem,
   TextSelection,
@@ -19,7 +20,7 @@ import {
 import type { ContentResponse } from "@notra/schemas/dashboard/content";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, isToolUIPart, type UIMessage } from "ai";
 import { nanoid } from "nanoid";
 import {
   useCallback,
@@ -29,19 +30,30 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import type { ContentDetailChatComposerProps } from "@/components/content/content-detail-chat-shell";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { CONTENT_PLAN_CHAT_PLACEHOLDER } from "@/constants/content-plan";
 import { emitAutumnRefresh } from "@/lib/billing/autumn-refresh";
 import {
   applyContentChatToolOutputEffect,
   collectContentChatToolOutputEffects,
 } from "@/lib/content/apply-content-chat-tool-output";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
+import type { ContentChatInputHandle } from "@/types/components/chat-input";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
+import {
+  hasPendingApproval,
+  isTerminalToolState,
+} from "@/utils/chat-approvals";
 import { handleStandaloneChatError } from "@/utils/chat-error";
+import { buildUserMessageParts } from "@/utils/chat-message-parts";
+import {
+  markQueuedMessageSteering,
+  shouldDrainQueueAfterFinish,
+  takeQueuedMessage,
+} from "@/utils/chat-queue";
 import { snapshotContentChatAttachments } from "@/utils/content-chat-attachments";
 
 interface UseContentDetailChatParams {
@@ -59,6 +71,9 @@ export function useContentDetailChat({
   content,
   contentDocument,
 }: UseContentDetailChatParams) {
+  const tToast = useTranslations("chat.toasts");
+  const tChatErrors = useTranslations("chat.errors");
+  const tPlan = useTranslations("content.plan");
   const {
     editedMarkdown,
     editedMarkdownRef,
@@ -89,12 +104,21 @@ export function useContentDetailChat({
   const [chatIdToHydrate, setChatIdToHydrate] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
+  const floatingInputRef = useRef<ContentChatInputHandle | null>(null);
+  const panelInputRef = useRef<ContentChatInputHandle | null>(null);
   const drainQueueRef = useRef<() => void>(() => {});
+  const flushSteerAfterStopRef = useRef<() => void>(() => {});
   const isDrainingRef = useRef(false);
   const wasStoppedByUserRef = useRef(false);
+  const wasInterruptedForQueueRef = useRef(false);
   const queuedMessagesRef = useRef<QueuedMessage[]>([]);
+  const steerAfterStopRef = useRef<QueuedMessage | null>(null);
+  const steerInFlightRef = useRef<QueuedMessage | null>(null);
+  const skipQueueDrainRef = useRef(false);
   const messagesRef = useRef<UIMessage[]>([]);
   const isAgentBusyRef = useRef(false);
+  const seenToolOutputsRef = useRef<Set<string>>(new Set());
+  const prevIsAgentBusyRef = useRef(false);
   const processedToolCallsRef = useRef<Set<string>>(new Set());
   const contentScopeKey = `${organizationId}:${contentId}`;
   const contentScopeRef = useRef(contentScopeKey);
@@ -152,7 +176,15 @@ export function useContentDetailChat({
     transport: new DefaultChatTransport({
       api: `/api/organizations/${organizationId}/content/${contentId}/chat`,
     }),
-    onFinish: () => {
+    onFinish: ({
+      messages: finishedMessages,
+      isAbort,
+      isError,
+      isDisconnect,
+    }) => {
+      const wasInterruptedForQueue = wasInterruptedForQueueRef.current;
+      wasInterruptedForQueueRef.current = false;
+      messagesRef.current = finishedMessages;
       clearSelection();
       emitAutumnRefresh();
       if (activeChatId) {
@@ -173,15 +205,41 @@ export function useContentDetailChat({
         });
       isDrainingRef.current = false;
       isAgentBusyRef.current = false;
-      if (wasStoppedByUserRef.current) {
-        wasStoppedByUserRef.current = false;
+      steerInFlightRef.current = null;
+      skipQueueDrainRef.current = false;
+      if (steerAfterStopRef.current) {
+        flushSteerAfterStopRef.current();
         return;
       }
-      drainQueueRef.current();
+      if (wasStoppedByUserRef.current) {
+        return;
+      }
+      if (
+        shouldDrainQueueAfterFinish({
+          isAbort,
+          isError,
+          isDisconnect,
+          wasInterruptedForQueue,
+          wasStoppedByUser: wasStoppedByUserRef.current,
+        })
+      ) {
+        drainQueueRef.current();
+      }
     },
     onError: (err) => {
       isDrainingRef.current = false;
       isAgentBusyRef.current = false;
+      if (steerAfterStopRef.current) {
+        return;
+      }
+      const steered = steerInFlightRef.current;
+      if (steered) {
+        steerInFlightRef.current = null;
+        const restored = [steered, ...queuedMessagesRef.current];
+        queuedMessagesRef.current = restored;
+        setQueuedMessages(restored);
+      }
+      skipQueueDrainRef.current = false;
       queryClient
         .invalidateQueries({
           queryKey: contentChatSessionsQueryKey(organizationId, contentId),
@@ -209,10 +267,13 @@ export function useContentDetailChat({
 
       const { isUsageLimit } = handleStandaloneChatError(err, {
         setChatError,
+        messages: {
+          usageLimit: tChatErrors("usageLimit"),
+          fallback: tChatErrors("fallback"),
+        },
       });
       if (!isUsageLimit) {
-        toast.error("Failed to edit content");
-        drainQueueRef.current();
+        toast.error(tToast("editContentFailed"));
       }
     },
   });
@@ -233,6 +294,9 @@ export function useContentDetailChat({
     setChatInputValue("");
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
+    steerAfterStopRef.current = null;
+    steerInFlightRef.current = null;
+    skipQueueDrainRef.current = false;
     setChatError(null);
     processedToolCallsRef.current = new Set();
     wasStoppedByUserRef.current = false;
@@ -258,7 +322,9 @@ export function useContentDetailChat({
 
   useLayoutEffect(() => {
     messagesRef.current = messages;
-    isAgentBusyRef.current = isAgentBusy;
+    if (isAgentBusy) {
+      isAgentBusyRef.current = true;
+    }
   }, [messages, isAgentBusy]);
 
   useLayoutEffect(() => {
@@ -342,6 +408,9 @@ export function useContentDetailChat({
       }
       setQueuedMessages([]);
       queuedMessagesRef.current = [];
+      steerAfterStopRef.current = null;
+      steerInFlightRef.current = null;
+      skipQueueDrainRef.current = false;
       processedToolCallsRef.current = new Set();
       setMessages([]);
       setActiveChatId(chatId);
@@ -356,6 +425,9 @@ export function useContentDetailChat({
     }
     setQueuedMessages([]);
     queuedMessagesRef.current = [];
+    steerAfterStopRef.current = null;
+    steerInFlightRef.current = null;
+    skipQueueDrainRef.current = false;
     setChatInputValue("");
     if (messagesRef.current.length === 0) {
       processedToolCallsRef.current = new Set();
@@ -424,35 +496,48 @@ export function useContentDetailChat({
   const dispatchContentEdit = useCallback(
     async (
       instruction: string,
-      attachments: ContentChatMessageMetadata = {}
+      attachments: ContentChatMessageMetadata = {},
+      files: ChatAttachment[] = []
     ) => {
       if (!activeChatId) {
         return;
       }
       const nextSelection = attachments.selection;
       const nextContext = attachments.context ?? [];
+      const metadata = snapshotContentChatAttachments(
+        nextSelection ?? null,
+        nextContext
+      );
+      const requestBody = {
+        chatId: activeChatId,
+        currentMarkdown:
+          content?.contentType === "image"
+            ? ""
+            : (editedMarkdown ?? content?.markdown ?? ""),
+        contentType: content?.contentType,
+        documentMode: isGeoWriterPlanReviewableNow ? "plan" : undefined,
+        selection: nextSelection,
+        context: nextContext,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      };
+      if (files.length > 0) {
+        const parts = buildUserMessageParts(instruction, files);
+        await sendMessage(
+          {
+            role: "user",
+            parts,
+            metadata,
+          },
+          { body: requestBody }
+        );
+        return;
+      }
       await sendMessage(
         {
           text: instruction,
-          metadata: snapshotContentChatAttachments(
-            nextSelection ?? null,
-            nextContext
-          ),
+          metadata,
         },
-        {
-          body: {
-            chatId: activeChatId,
-            currentMarkdown:
-              content?.contentType === "image"
-                ? ""
-                : (editedMarkdown ?? content?.markdown ?? ""),
-            contentType: content?.contentType,
-            documentMode: isGeoWriterPlanReviewableNow ? "plan" : undefined,
-            selection: nextSelection,
-            context: nextContext,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        }
+        { body: requestBody }
       );
     },
     [
@@ -466,7 +551,7 @@ export function useContentDetailChat({
   );
 
   const handleAiEdit = useCallback(
-    async (instruction: string) => {
+    async (instruction: string, files: ChatAttachment[] = []) => {
       openPanel("content");
       const attachments = snapshotContentChatAttachments(selection, context);
       if (isAgentBusyRef.current) {
@@ -477,6 +562,7 @@ export function useContentDetailChat({
             text: instruction,
             selection: attachments.selection,
             context: attachments.context,
+            ...(files.length > 0 ? { attachments: files } : {}),
           },
         ];
         queuedMessagesRef.current = next;
@@ -485,17 +571,29 @@ export function useContentDetailChat({
       }
       wasStoppedByUserRef.current = false;
       isAgentBusyRef.current = true;
-      await dispatchContentEdit(instruction, attachments);
+      await dispatchContentEdit(instruction, attachments, files);
     },
     [context, dispatchContentEdit, openPanel, selection]
   );
 
   const handleStop = useCallback(() => {
+    wasInterruptedForQueueRef.current = false;
+    steerAfterStopRef.current = null;
+    const next = queuedMessagesRef.current.map((message) => ({
+      ...message,
+      steering: false,
+    }));
+    queuedMessagesRef.current = next;
+    setQueuedMessages(next);
     wasStoppedByUserRef.current = true;
     stop();
   }, [stop]);
 
   const handleRemoveQueued = useCallback((id: string) => {
+    if (steerAfterStopRef.current?.id === id) {
+      steerAfterStopRef.current = null;
+      wasStoppedByUserRef.current = true;
+    }
     const next = queuedMessagesRef.current.filter(
       (message) => message.id !== id
     );
@@ -504,6 +602,20 @@ export function useContentDetailChat({
   }, []);
 
   const handleEditQueued = useCallback((message: QueuedMessage) => {
+    // Restore files into whichever composer is on screen; if they don't fit,
+    // the message stays queued.
+    if (message.attachments?.length) {
+      const visibleInput = [floatingInputRef, panelInputRef]
+        .map((ref) => ref.current)
+        .find((input) => input?.isVisible());
+      if (!visibleInput?.setAttachments(message.attachments)) {
+        return;
+      }
+    }
+    if (steerAfterStopRef.current?.id === message.id) {
+      steerAfterStopRef.current = null;
+      wasStoppedByUserRef.current = true;
+    }
     const next = queuedMessagesRef.current.filter(
       (queued) => queued.id !== message.id
     );
@@ -518,8 +630,88 @@ export function useContentDetailChat({
     }
   }, []);
 
+  const restoreSteeredMessage = useCallback(() => {
+    const next = steerInFlightRef.current;
+    if (!next) {
+      return;
+    }
+    steerInFlightRef.current = null;
+    isAgentBusyRef.current = false;
+    const restored = [next, ...queuedMessagesRef.current];
+    queuedMessagesRef.current = restored;
+    setQueuedMessages(restored);
+  }, []);
+
+  const sendSteeredMessage = useCallback(
+    (message: QueuedMessage) => {
+      const taken = takeQueuedMessage(queuedMessagesRef.current, message.id);
+      if (!taken) {
+        return;
+      }
+      queuedMessagesRef.current = taken.remaining;
+      setQueuedMessages(taken.remaining);
+      steerInFlightRef.current = message;
+      skipQueueDrainRef.current = true;
+      wasStoppedByUserRef.current = false;
+      isAgentBusyRef.current = true;
+      dispatchContentEdit(
+        message.text,
+        { selection: message.selection, context: message.context },
+        message.attachments
+      ).catch((error) => {
+        console.error("[Content] Failed to steer queued message:", error);
+        restoreSteeredMessage();
+      });
+    },
+    [dispatchContentEdit, restoreSteeredMessage]
+  );
+
+  const flushSteerAfterStop = useCallback(() => {
+    const next = steerAfterStopRef.current;
+    if (!next) {
+      return;
+    }
+    steerAfterStopRef.current = null;
+    sendSteeredMessage(next);
+  }, [sendSteeredMessage]);
+
+  const handleSteerQueued = useCallback(
+    (message: QueuedMessage) => {
+      if (steerAfterStopRef.current) {
+        return;
+      }
+      if (
+        !queuedMessagesRef.current.some((queued) => queued.id === message.id)
+      ) {
+        return;
+      }
+      if (!isAgentBusyRef.current) {
+        sendSteeredMessage(message);
+        return;
+      }
+      const next = markQueuedMessageSteering(
+        queuedMessagesRef.current,
+        message.id
+      );
+      queuedMessagesRef.current = next;
+      setQueuedMessages(next);
+      steerAfterStopRef.current = message;
+      wasStoppedByUserRef.current = false;
+      stop();
+    },
+    [sendSteeredMessage, stop]
+  );
+
   const drainQueue = useCallback(() => {
-    if (isDrainingRef.current) {
+    if (
+      isDrainingRef.current ||
+      isAgentBusyRef.current ||
+      wasStoppedByUserRef.current ||
+      steerAfterStopRef.current ||
+      steerInFlightRef.current ||
+      skipQueueDrainRef.current ||
+      hasPendingApproval(messagesRef.current)
+    ) {
       return;
     }
     const queue = queuedMessagesRef.current;
@@ -529,14 +721,17 @@ export function useContentDetailChat({
     }
 
     isDrainingRef.current = true;
+    isAgentBusyRef.current = true;
     queuedMessagesRef.current = queue.slice(1);
     setQueuedMessages(queue.slice(1));
-    dispatchContentEdit(next.text, {
-      selection: next.selection,
-      context: next.context,
-    }).catch((error) => {
+    dispatchContentEdit(
+      next.text,
+      { selection: next.selection, context: next.context },
+      next.attachments
+    ).catch((error) => {
       console.error("[Content] Failed to drain queued message:", error);
       isDrainingRef.current = false;
+      isAgentBusyRef.current = false;
       const restored = [next, ...queuedMessagesRef.current];
       queuedMessagesRef.current = restored;
       setQueuedMessages(restored);
@@ -547,6 +742,69 @@ export function useContentDetailChat({
     drainQueueRef.current = drainQueue;
   }, [drainQueue]);
 
+  useLayoutEffect(() => {
+    flushSteerAfterStopRef.current = flushSteerAfterStop;
+  }, [flushSteerAfterStop]);
+
+  useEffect(() => {
+    if (isAgentBusy && !prevIsAgentBusyRef.current) {
+      const snapshot = new Set<string>();
+      for (const message of messagesRef.current) {
+        if (message.role !== "assistant") {
+          continue;
+        }
+        for (const part of message.parts) {
+          if (isToolUIPart(part) && isTerminalToolState(part.state)) {
+            snapshot.add(part.toolCallId);
+          }
+        }
+      }
+      seenToolOutputsRef.current = snapshot;
+      isDrainingRef.current = false;
+    }
+    prevIsAgentBusyRef.current = isAgentBusy;
+  }, [isAgentBusy]);
+
+  useEffect(() => {
+    if (!isAgentBusy) {
+      return;
+    }
+    if (isDrainingRef.current || wasStoppedByUserRef.current) {
+      return;
+    }
+    if (queuedMessages.length === 0) {
+      return;
+    }
+    if (hasPendingApproval(messages)) {
+      return;
+    }
+
+    let hasNewToolOutput = false;
+    for (const message of messages) {
+      if (message.role !== "assistant") {
+        continue;
+      }
+      for (const part of message.parts) {
+        if (
+          isToolUIPart(part) &&
+          isTerminalToolState(part.state) &&
+          !seenToolOutputsRef.current.has(part.toolCallId)
+        ) {
+          seenToolOutputsRef.current.add(part.toolCallId);
+          hasNewToolOutput = true;
+        }
+      }
+    }
+
+    if (!hasNewToolOutput) {
+      return;
+    }
+
+    isDrainingRef.current = true;
+    wasInterruptedForQueueRef.current = true;
+    stop();
+  }, [isAgentBusy, messages, queuedMessages.length, stop]);
+
   const isChatDisabled =
     isGeoWriterChatLocked ||
     !activeChatId ||
@@ -554,7 +812,7 @@ export function useContentDetailChat({
     contentChatHistoryQuery.isFetching ||
     contentChatHistoryQuery.isError;
 
-  const composerProps: ContentDetailChatComposerProps = {
+  const composerProps: Omit<ContentDetailChatComposerProps, "ref"> = {
     context,
     disabled: isChatDisabled,
     error: chatError,
@@ -565,13 +823,14 @@ export function useContentDetailChat({
     onEditQueued: handleEditQueued,
     onRemoveContext: handleRemoveContext,
     onRemoveQueued: handleRemoveQueued,
+    onSteerQueued: handleSteerQueued,
     onSend: handleAiEdit,
     onStop: handleStop,
     onValueChange: setChatInputValue,
     organizationId,
     organizationSlug,
     placeholder: isGeoWriterPlanReviewableNow
-      ? CONTENT_PLAN_CHAT_PLACEHOLDER
+      ? tPlan("chatPlaceholder")
       : undefined,
     queuedMessages,
     selection,
@@ -580,6 +839,7 @@ export function useContentDetailChat({
 
   const floatingChatProps = {
     ...composerProps,
+    ref: floatingInputRef,
     sidebarOffsetClass:
       sidebarState === "collapsed" ? "md:left-14" : "md:left-64",
     hideOnLargeScreens: isRightPanelOpen,
@@ -595,7 +855,7 @@ export function useContentDetailChat({
     onSelectChat: handleSelectChat,
     sessions: contentChatSessions,
     status,
-    composer: composerProps,
+    composer: { ...composerProps, ref: panelInputRef },
   };
 
   return {

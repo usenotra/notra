@@ -1,13 +1,13 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { ViewTransition } from "react";
 import type { BlogPostCardProps } from "~types/blog";
 
 import { BlogAuthorAvatar } from "@/components/blog-author-avatar";
 import { DeferredDithering } from "@/components/deferred-dithering";
 import { BLOG_CARD_DITHER_MAX_PIXELS } from "@/constants/dithering";
-import { formatBlogDate } from "@/utils/blog";
 import { getBlogCardDither } from "@/utils/blog-card-dither";
 import { blogPostTitleTransitionName } from "@/utils/blog-view-transitions";
+import { formatBlogDate } from "@/utils/format-date";
 
 export function BlogPostCard({ item }: BlogPostCardProps) {
   return (
@@ -28,7 +28,7 @@ export function BlogPostCard({ item }: BlogPostCardProps) {
         <ViewTransition name={blogPostTitleTransitionName(item.slug)}>
           <h2 className="font-display group-hover:text-primary text-xl font-medium tracking-[-0.015em] text-[#1E1E1E] transition-colors sm:text-2xl dark:text-white">
             <Link
-              href={item.href}
+              to={item.href}
               className="focus-visible:after:outline-primary after:absolute after:inset-0 after:z-10 after:rounded-2xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2"
             >
               {item.title}
@@ -43,7 +43,7 @@ export function BlogPostCard({ item }: BlogPostCardProps) {
       <div className="mt-auto flex items-center gap-3 pt-6 font-sans text-sm text-[#1E1E1E99] dark:text-white/60">
         {item.author ? (
           <Link
-            href={item.author.href}
+            to={item.author.href}
             className="hover:text-foreground focus-visible:outline-primary relative z-20 flex items-center gap-2 rounded-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
           >
             <BlogAuthorAvatar

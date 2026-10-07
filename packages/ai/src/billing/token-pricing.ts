@@ -2,6 +2,7 @@ import type { Balance } from "autumn-js";
 
 import type { AgentTokenUsage } from "../types/agents";
 import type { ModelPricing } from "../types/billing";
+import type { GatewayId } from "../types/router";
 
 /** OpenAI charges double above this prompt size on its long-context models. */
 const OPENAI_LONG_CONTEXT_PROMPT_TOKENS = 272_000;
@@ -25,6 +26,13 @@ const CLAUDE_OPUS_5_PRICING: ModelPricing = {
   outputPerMillionTokens: 25.0,
   cacheReadPerMillionTokens: 0.5,
   cacheWritePerMillionTokens: 6.25,
+};
+
+const CLAUDE_OPUS_5_5_PRICING: ModelPricing = {
+  inputPerMillionTokens: 4.0,
+  outputPerMillionTokens: 20.0,
+  cacheReadPerMillionTokens: 0.2,
+  cacheWritePerMillionTokens: 5.0,
 };
 
 const CLAUDE_OPUS_4_8_PRICING: ModelPricing = {
@@ -56,6 +64,9 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   "opencode/claude-opus-5": CLAUDE_OPUS_5_PRICING,
   "anthropic/claude-opus-5": CLAUDE_OPUS_5_PRICING,
   "vercel/anthropic/claude-opus-5": CLAUDE_OPUS_5_PRICING,
+  "opencode/claude-opus-5.5": CLAUDE_OPUS_5_5_PRICING,
+  "anthropic/claude-opus-5.5": CLAUDE_OPUS_5_5_PRICING,
+  "vercel/anthropic/claude-opus-5.5": CLAUDE_OPUS_5_5_PRICING,
   "opencode/claude-opus-4-8": CLAUDE_OPUS_4_8_PRICING,
   "anthropic/claude-opus-4.8": CLAUDE_OPUS_4_8_PRICING,
   "vercel/anthropic/claude-opus-4.8": CLAUDE_OPUS_4_8_PRICING,
@@ -65,6 +76,8 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
   "opencode/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
   "vercel/anthropic/claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
+  "anthropic/claude-sonnet-5.5": CLAUDE_SONNET_5_PRICING,
+  "vercel/anthropic/claude-sonnet-5.5": CLAUDE_SONNET_5_PRICING,
   "anthropic/claude-haiku-4.5": {
     inputPerMillionTokens: 1.0,
     outputPerMillionTokens: 5.0,
@@ -128,6 +141,32 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
       cacheWritePerMillionTokens: 0,
     },
   },
+  "openai/gpt-6-sol": {
+    inputPerMillionTokens: 2.0,
+    outputPerMillionTokens: 10.0,
+    cacheReadPerMillionTokens: 0.2,
+    cacheWritePerMillionTokens: 2.5,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 4.0,
+      outputPerMillionTokens: 15.0,
+      cacheReadPerMillionTokens: 0.4,
+      cacheWritePerMillionTokens: 5.0,
+    },
+  },
+  "openai/gpt-6-luna": {
+    inputPerMillionTokens: 0.1,
+    outputPerMillionTokens: 0.5,
+    cacheReadPerMillionTokens: 0.01,
+    cacheWritePerMillionTokens: 0.125,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 0.2,
+      outputPerMillionTokens: 0.75,
+      cacheReadPerMillionTokens: 0.02,
+      cacheWritePerMillionTokens: 0.25,
+    },
+  },
   "openai/gpt-5.6-luna": {
     inputPerMillionTokens: 0.2,
     outputPerMillionTokens: 1.2,
@@ -167,6 +206,25 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
       cacheWritePerMillionTokens: 5.0,
     },
   },
+  "vercel/openai/gpt-5.6-sol": {
+    inputPerMillionTokens: 4.0,
+    outputPerMillionTokens: 20.0,
+    cacheReadPerMillionTokens: 0.4,
+    cacheWritePerMillionTokens: 5.0,
+    longContext: {
+      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+      inputPerMillionTokens: 8.0,
+      outputPerMillionTokens: 30.0,
+      cacheReadPerMillionTokens: 0.8,
+      cacheWritePerMillionTokens: 10.0,
+    },
+  },
+  "moonshotai/kimi-k3": {
+    inputPerMillionTokens: 3.0,
+    outputPerMillionTokens: 15.0,
+    cacheReadPerMillionTokens: 0.3,
+    cacheWritePerMillionTokens: 0,
+  },
   "openai/gpt-oss-120b": {
     inputPerMillionTokens: 0.1,
     outputPerMillionTokens: 0.5,
@@ -196,9 +254,10 @@ const MINIMUM_COST_CENTS = 1;
 export function calculateTokenCostCents(
   usage: AgentTokenUsage,
   modelId?: string,
-  applyMarkup = true
+  applyMarkup = true,
+  gateway?: GatewayId
 ): number {
-  const baseCostDollars = calculateTokenCostUsd(usage, modelId);
+  const baseCostDollars = calculateTokenCostUsd(usage, modelId, gateway);
 
   const multiplier = applyMarkup ? MARKUP_MULTIPLIER : 1;
   const costCents = Math.ceil(baseCostDollars * multiplier * 100);
@@ -209,13 +268,14 @@ export function calculateTokenCostCents(
 /** Unrounded token cost; round and apply markup only when settling the total. */
 export function calculateTokenCostUsd(
   usage: AgentTokenUsage,
-  modelId?: string
+  modelId?: string,
+  gateway?: GatewayId
 ): number {
   if (usage.tokenCostUsd !== undefined) {
     return usage.tokenCostUsd;
   }
 
-  const pricing = resolvePricingTier(getModelPricing(modelId), usage);
+  const pricing = resolvePricingTier(getModelPricing(modelId, gateway), usage);
 
   const inputCostDollars =
     (usage.inputTokens / 1_000_000) * pricing.inputPerMillionTokens;
@@ -249,8 +309,17 @@ export function shouldApplyMarkup(balance: Balance | null): boolean {
   return false;
 }
 
-export function getModelPricing(modelId?: string): ModelPricing {
-  return (modelId && MODEL_PRICING[modelId]) || DEFAULT_PRICING;
+export function getModelPricing(
+  modelId?: string,
+  gateway?: GatewayId
+): ModelPricing {
+  const routedModelId =
+    gateway && modelId ? `${gateway}/${modelId}` : undefined;
+  return (
+    (routedModelId && MODEL_PRICING[routedModelId]) ||
+    (modelId && MODEL_PRICING[modelId]) ||
+    DEFAULT_PRICING
+  );
 }
 
 /** Everything the model read for one call: fresh, cache-read and cache-write. */

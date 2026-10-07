@@ -12,16 +12,7 @@ import {
   sortKnownEngines,
 } from "@notra/geo-core/utils/geo-engines";
 import { geoModelsForProvider } from "@notra/geo-core/utils/geo-model-catalog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@notra/ui/components/ui/alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Label } from "@notra/ui/components/ui/label";
 import { Switch } from "@notra/ui/components/ui/switch";
@@ -32,11 +23,12 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { motion, useReducedMotion } from "motion/react";
-import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
+import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   hasProviderWordmark,
@@ -45,7 +37,6 @@ import {
 import { Checkbox } from "@/components/motion/checkbox";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
-  ZDR_ADDON_ADD_SUCCESS,
   ZDR_ADDON_ANCHOR,
   ZDR_CHECKOUT_SUCCESS_PARAM,
 } from "@/constants/billing";
@@ -87,6 +78,7 @@ function GeoModelRow({
   revealed?: boolean;
   showZdrState: boolean;
 }) {
+  const t = useTranslations("geo.geoEnginePicker");
   const reduceMotion = useReducedMotion();
   const hasRevealAnimation = revealed !== undefined;
   const staggerDelay = revealed
@@ -122,12 +114,12 @@ function GeoModelRow({
         <span className="min-w-0 text-xs">{model.label}</span>
         {showZdrState && model.zdr === "none" ? (
           <span className="text-muted-foreground shrink-0 text-xs">
-            {approved ? "Approved without ZDR" : "No ZDR host"}
+            {approved ? t("approvedWithoutZdr") : t("noZdrHost")}
           </span>
         ) : null}
       </Label>
       <Checkbox
-        aria-label={`Toggle ${model.label}`}
+        aria-label={t("toggleModel", { model: model.label })}
         checked={checked}
         disabled={disabled}
         id={id}
@@ -151,6 +143,8 @@ export function GeoEnginePicker({
   labeled = true,
   scheduleRow,
 }: GeoEnginePickerProps) {
+  const t = useTranslations("geo.geoEnginePicker");
+  const tCommon2 = useTranslations("common");
   const id = useId();
   const { activeOrganization } = useOrganizationsContext();
   const { attach, data: customer, refetch } = useBillingCustomer();
@@ -304,7 +298,7 @@ export function GeoEnginePicker({
     );
     const addonPlanId = zdrAddonPlanId(activeSubscription?.planId);
     if (!addonPlanId) {
-      toast.error("Choose a plan before adding zero data retention.");
+      toast.error(t("choosePlan"));
       return;
     }
 
@@ -325,12 +319,12 @@ export function GeoEnginePicker({
       }
       await refetch();
       handleZdrChange(true);
-      toast.success(ZDR_ADDON_ADD_SUCCESS);
+      toast.success(tCommon2("messages.zeroDataRetentionIsNow"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Could not add zero data retention. Please try again."
+          : tCommon2("messages.couldNotAddZeroData")
       );
     }
     setAddonLoading(false);
@@ -344,11 +338,8 @@ export function GeoEnginePicker({
     <div className="space-y-3">
       {labeled ? (
         <div className="space-y-1">
-          <p className="text-sm font-medium">Models</p>
-          <p className="text-muted-foreground text-xs">
-            Every prompt runs against each enabled model. Turn off the ones you
-            do not need to keep scans lean.
-          </p>
+          <p className="text-sm font-medium">{tCommon2("labels.models")}</p>
+          <p className="text-muted-foreground text-xs">{t("description")}</p>
         </div>
       ) : null}
 
@@ -376,27 +367,25 @@ export function GeoEnginePicker({
           <div className={`${ROW_CLASS} py-2.5`}>
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <Label htmlFor={`${id}-zdr`}>Enforce ZDR</Label>
+                <Label htmlFor={`${id}-zdr`}>{t("enforceZdr")}</Label>
                 {canEnforceZdr ? null : (
                   <Badge size="sm" variant="outline">
-                    Add-on
+                    {tCommon2("labels.addOn")}
                   </Badge>
                 )}
               </div>
               <p className="text-muted-foreground text-xs">
                 {canEnforceZdr ? (
-                  "Only run models on zero-data-retention hosts. Not every model has one; those are marked in the list."
+                  t("zdrEnabledHint")
                 ) : (
                   <>
-                    Zero data retention is an add-on for every plan, 20% on top
-                    of the plan price. Not every model has a zero-data-retention
-                    host; those are marked in the list.{" "}
+                    {t("zdrAddonHint")}{" "}
                     {billingHref ? (
                       <Link
                         className="text-foreground underline underline-offset-4"
                         href={billingHref}
                       >
-                        Add it in billing
+                        {t("addInBilling")}
                       </Link>
                     ) : null}
                   </>
@@ -414,7 +403,7 @@ export function GeoEnginePicker({
               <Tooltip>
                 <TooltipTrigger render={<span className="inline-flex" />}>
                   <Switch
-                    aria-label="Add zero data retention"
+                    aria-label={t("addZdr")}
                     checked={false}
                     className="cursor-pointer disabled:cursor-not-allowed"
                     disabled={disabled || planLoading || addonLoading}
@@ -423,9 +412,7 @@ export function GeoEnginePicker({
                   />
                 </TooltipTrigger>
                 <TooltipContent side="top">
-                  {planLoading
-                    ? "Checking your plan…"
-                    : "Add the zero data retention add-on to enforce it."}
+                  {planLoading ? t("checkingPlan") : t("addZdrTooltip")}
                 </TooltipContent>
               </Tooltip>
             )}
@@ -439,59 +426,33 @@ export function GeoEnginePicker({
         open={consentOpen}
       />
 
-      <AlertDialog
+      <ConfirmDialog
+        confirmLabel={t("enableWithoutZdr")}
+        description={t("noZdrDescription")}
+        onConfirm={approvePending}
         onOpenChange={(open) => {
           if (!open) {
             setPendingApproval(null);
           }
         }}
         open={pendingApproval !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {pendingApproval?.label} has no zero-data-retention host
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Prompts sent to this model may be stored by the provider even
-              though ZDR is enforced for this project. Enable it anyway?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={approvePending}>
-              Enable without ZDR
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t("noZdrTitle", { model: pendingApproval?.label ?? "" })}
+      />
 
-      <AlertDialog
+      <ConfirmDialog
+        confirmLabel={t("turnOff")}
+        description={t("turnOffDescription", {
+          model: pendingDisable?.label ?? "",
+        })}
+        onConfirm={confirmDisable}
         onOpenChange={(open) => {
           if (!open) {
             setPendingDisable(null);
           }
         }}
         open={pendingDisable !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Turn off {pendingDisable?.label}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingDisable?.label} is no longer listed for new tracking. If
-              you turn it off, you cannot turn it back on for this project.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDisable}>
-              Turn off
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title={t("turnOffTitle", { model: pendingDisable?.label ?? "" })}
+      />
     </div>
   );
 }
@@ -513,6 +474,7 @@ function GeoEngineProviderList({
   showMore,
   zdrActive,
 }: GeoEngineProviderListProps) {
+  const t = useTranslations("geo.geoEnginePicker");
   const reduceMotion = useReducedMotion();
   const selectedIds = new Set(selected);
   const approvedNonZdrIds = new Set(nonZdrApproved);
@@ -569,8 +531,8 @@ function GeoEngineProviderList({
             </span>
             <span>
               {showMore
-                ? "Show fewer providers"
-                : `Show ${hiddenCount} more providers`}
+                ? t("showFewerProviders")
+                : t("showMoreProviders", { count: hiddenCount })}
             </span>
           </button>
         </li>
@@ -659,6 +621,7 @@ function GeoEngineProviderRow({
   showMore,
   zdrActive,
 }: GeoEngineProviderRowProps) {
+  const t = useTranslations("geo.geoEnginePicker");
   const models = geoModelsForProvider(catalog, provider.id, selectedIds);
   const row = geoProviderRowModel({
     hiddenCount,
@@ -751,7 +714,7 @@ function GeoEngineProviderRow({
           />
         </button>
         <Checkbox
-          aria-label={`Toggle all ${provider.label} models`}
+          aria-label={t("toggleProvider", { provider: provider.label })}
           checked={row.allOn}
           disabled={disabled || row.providerLocked}
           id={row.checkboxId}
@@ -811,6 +774,7 @@ function GeoEngineProviderModels({
   showAllModels,
   zdrActive,
 }: GeoEngineProviderModelsProps) {
+  const t = useTranslations("geo.geoEnginePicker");
   return (
     <ul>
       {primaryModels.map((model) => {
@@ -874,8 +838,8 @@ function GeoEngineProviderModels({
             type="button"
           >
             {showAllModels
-              ? "Show fewer models"
-              : `Show ${additionalModels.length} other ${additionalModels.length === 1 ? "model" : "models"}`}
+              ? t("showFewerModels")
+              : t("showMoreModels", { count: additionalModels.length })}
           </button>
         </li>
       ) : null}

@@ -1,5 +1,9 @@
 import { db } from "@notra/db/drizzle";
 import { brandSettings, projects } from "@notra/db/schema";
+import {
+  markEmptyShelfSync,
+  readEmptyShelfSync,
+} from "@notra/db/utils/geo-check-cache";
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
 import {
   loadGeoCompetitors,
@@ -12,39 +16,28 @@ import {
 } from "@notra/schemas/dashboard/geo-shelf";
 import {
   canonicalizeShelfUrl,
-  shelfDomainFromUrl,
   tryCanonicalizeShelfUrl,
 } from "@notra/schemas/utils/dashboard/shelf-url";
 import { eq, sql } from "drizzle-orm";
 import { Effect } from "effect";
-import { after } from "next/server";
 
-import {
-  GEO_SHELF_DUPLICATE_URL_MESSAGE,
-  GEO_SHELF_OPEN_STATUSES,
-} from "@/constants/geo-shelf";
-import { isUniqueConstraintError } from "@/lib/db/errors";
 import { queryCitedShelfPages } from "@/lib/geo-shelf/citation-query";
-import { citationsEqual, emptyShelfCitations } from "@/lib/geo-shelf/citations";
+import { citationsEqual } from "@/lib/geo-shelf/citations";
 import {
   shelfKindFromDomain,
   shelfOwnershipFromDomain,
 } from "@/lib/geo-shelf/classify";
 import { buildGeoShelfFixture } from "@/lib/geo-shelf/fixtures";
-import { assertGeoShelfOpportunityMembers } from "@/lib/geo-shelf/members";
 import {
   type GeoShelfDbExecutor,
-  insertGeoShelfSource,
   insertGeoShelfSources,
   listGeoShelfCitationStates,
   listGeoShelfSourceUrls,
   listPersistedGeoShelfSources,
-  patchGeoShelfSource,
   queryGeoShelfSourcePage,
   updateGeoShelfCitations,
 } from "@/lib/geo-shelf/store";
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
-import { conflict } from "@/lib/orpc/utils/errors";
 import { getWebsiteDomain } from "@/utils/brand";
 import {
   compareGeoShelfSources,
@@ -55,10 +48,7 @@ import {
 import type {
   GeoShelfCitationState,
   GeoShelfCitedPage,
-  GeoShelfCreateInput,
   GeoShelfMember,
-  GeoShelfOpportunity,
-  GeoShelfOpportunityWrite,
   GeoShelfPageQuery,
   GeoShelfPlacement,
   GeoShelfPlacementWrite,
@@ -67,8 +57,6 @@ import type {
   GeoShelfSourcePage,
   GeoShelfStoreKey,
   GeoShelfStoreSeed,
-  GeoShelfUpdateInput,
-  GeoShelfUpdateResult,
 } from "../../types/geo-shelf";
 
 interface GeoShelfBrand {
@@ -105,7 +93,7 @@ export const loadGeoShelfContext = Effect.fn("geo.shelf.context")(function* (
   };
 });
 
-function storeKey(seed: GeoShelfStoreSeed): GeoShelfStoreKey {
+export function storeKey(seed: GeoShelfStoreSeed): GeoShelfStoreKey {
   return {
     organizationId: seed.settings.organizationId,
     projectId: seed.settings.projectId,
@@ -113,7 +101,7 @@ function storeKey(seed: GeoShelfStoreSeed): GeoShelfStoreKey {
 }
 
 /** Fixture rows are demo content: never seed them outside sample data mode. */
-function seedFixture(seed: GeoShelfStoreSeed) {
+export function seedFixture(seed: GeoShelfStoreSeed) {
   return () => {
     if (!GEO_SAMPLE_DATA_ENABLED) {
       return [];
@@ -228,24 +216,6 @@ async function writeCitedShelfPages(
   const inserted = await insertGeoShelfSources(key, toInsert, executor);
   await updateGeoShelfCitations(key, citationUpdates, executor);
   return inserted.length + citationUpdates.length;
-}
-
-/** Runs after the response, so a failed refresh never fails the run itself. */
-export function scheduleGeoShelfCitationSync(scope: GeoScopeInput): void {
-  const target = {
-    organizationId: scope.organizationId,
-    projectId: scope.projectId,
-  };
-  after(async () => {
-    try {
-      await syncGeoShelfCitationsForScope(target);
-    } catch (error) {
-      console.error("Could not refresh GEO shelf citations", {
-        ...target,
-        error,
-      });
-    }
-  });
 }
 
 /**
@@ -363,49 +333,22 @@ export async function listGeoShelfSourcePage(
   const page = await queryGeoShelfSourcePage(key, query);
   // A project whose last scan predates the post-scan sync has no scan rows
   // yet, even when someone already added a shelf by hand.
-  if (
-    page.hasScanData ||
-    query.offset > 0 ||
-    (await syncGeoShelfCitations(seed)) === 0
-  ) {
+  if (page.hasScanData || query.offset > 0) {
+    return { ...page, isSampleData: false };
+  }
+  const emptySync = await readEmptyShelfSync(key);
+  if (emptySync.current) {
+    return { ...page, isSampleData: false };
+  }
+  if ((await syncGeoShelfCitations(seed)) === 0) {
+    if (emptySync.generation !== null) {
+      void markEmptyShelfSync(key, emptySync.generation);
+    }
     return { ...page, isSampleData: false };
   }
   return {
     ...(await queryGeoShelfSourcePage(key, query)),
     isSampleData: false,
-  };
-}
-
-function isClosedStatus(status: GeoShelfOpportunityWrite["status"]): boolean {
-  return !GEO_SHELF_OPEN_STATUSES.includes(status);
-}
-
-function normalizeTitle(title: string | null | undefined): string | null {
-  const trimmed = title?.trim() ?? "";
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-function buildOpportunity(
-  write: GeoShelfOpportunityWrite,
-  userId: string,
-  nowIso: string,
-  existing: GeoShelfOpportunity | null
-): GeoShelfOpportunity {
-  const resolvedAt = isClosedStatus(write.status)
-    ? (existing?.resolvedAt ?? nowIso)
-    : null;
-  // The point of contact defaults to the assignee, so storing the same person
-  // twice would only create a second id to keep in sync.
-  const pocMemberId =
-    write.pocMemberId === write.assigneeMemberId ? null : write.pocMemberId;
-  return {
-    id: existing?.id ?? crypto.randomUUID(),
-    ...write,
-    pocMemberId,
-    createdByUserId: existing?.createdByUserId ?? userId,
-    resolvedAt,
-    createdAt: existing?.createdAt ?? nowIso,
-    updatedAt: nowIso,
   };
 }
 
@@ -449,7 +392,7 @@ function toPlacement(
   };
 }
 
-function buildPlacements(
+export function buildPlacements(
   seed: GeoShelfStoreSeed,
   writes: GeoShelfPlacementWrite[],
   nowIso: string,
@@ -458,22 +401,24 @@ function buildPlacements(
   const statusByBrand = new Map(
     writes.map((write) => [placementKey(write.competitorId), write.status])
   );
-  return shelfBrands(seed).map((brand) =>
-    toPlacement(
-      brand,
-      statusByBrand.get(placementKey(brand.competitorId)) ?? "unknown",
-      nowIso,
-      undefined,
-      evidence
-    )
-  );
+  // A project can track hundreds of competitors, so only the own brand and
+  // competitors with a known status are stored. A missing competitor reads as
+  // "unknown".
+  return shelfBrands(seed).flatMap((brand) => {
+    const status =
+      statusByBrand.get(placementKey(brand.competitorId)) ?? "unknown";
+    if (brand.competitorId !== null && status === "unknown") {
+      return [];
+    }
+    return [toPlacement(brand, status, nowIso, undefined, evidence)];
+  });
 }
 
 /**
  * Only the brands named in `writes` whose status really changed are rewritten.
  * Everything else keeps its fetch evidence, position and check timestamp.
  */
-function mergePlacements(
+export function mergePlacements(
   seed: GeoShelfStoreSeed,
   existing: GeoShelfPlacement[],
   writes: GeoShelfPlacementWrite[],
@@ -494,6 +439,15 @@ function mergePlacements(
     );
     const previous = next[index];
     if (previous?.status === write.status) {
+      continue;
+    }
+    // A competitor without a stored placement reads as "unknown", so
+    // clearing one drops it instead of storing "unknown".
+    if (write.competitorId !== null && write.status === "unknown") {
+      if (previous) {
+        next.splice(index, 1);
+        changed = true;
+      }
       continue;
     }
     const brand =
@@ -521,110 +475,6 @@ function mergePlacements(
     next[index] = placement;
   }
   return changed ? next : existing;
-}
-
-export async function createGeoShelfSource(
-  seed: GeoShelfStoreSeed,
-  input: GeoShelfCreateInput,
-  userId: string
-): Promise<GeoShelfSource> {
-  assertGeoShelfOpportunityMembers(seed.members, input.opportunity, null);
-  const nowIso = new Date().toISOString();
-  const url = canonicalizeShelfUrl(input.url);
-  const key = storeKey(seed);
-  if (await isGeoShelfUrlOnShelf(seed, url)) {
-    throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
-  }
-  // Validate before touching the store: a rejected record must not end up in
-  // the shelf list of the organization.
-  const source = geoShelfSourceSchema.parse({
-    id: crypto.randomUUID(),
-    url,
-    domain: shelfDomainFromUrl(url),
-    title: normalizeTitle(input.title),
-    kind: input.kind,
-    ownership: "third_party",
-    origin: "manual",
-    fetchStatus: "pending",
-    lastFetchedAt: null,
-    citations: emptyShelfCitations(),
-    placements: buildPlacements(seed, input.placements, nowIso),
-    opportunity: input.opportunity
-      ? buildOpportunity(input.opportunity, userId, nowIso, null)
-      : null,
-    createdByUserId: userId,
-    createdAt: nowIso,
-    updatedAt: nowIso,
-  } satisfies GeoShelfSource);
-  try {
-    return await insertGeoShelfSource(key, source);
-  } catch (error) {
-    if (isUniqueConstraintError(error)) {
-      throw conflict(GEO_SHELF_DUPLICATE_URL_MESSAGE);
-    }
-    throw error;
-  }
-}
-
-export async function updateGeoShelfSource(
-  seed: GeoShelfStoreSeed,
-  input: GeoShelfUpdateInput,
-  userId: string
-): Promise<GeoShelfUpdateResult | null> {
-  const nowIso = new Date().toISOString();
-  const resolveOpportunity = (
-    current: GeoShelfOpportunity | null
-  ): GeoShelfOpportunity | null => {
-    if (input.opportunity === undefined) {
-      return current;
-    }
-    if (input.opportunity === null) {
-      return null;
-    }
-    const write = {
-      status: current?.status ?? "open",
-      priority: current?.priority ?? null,
-      assigneeMemberId: current?.assigneeMemberId ?? null,
-      pocMemberId: current?.pocMemberId ?? null,
-      notes: current?.notes ?? null,
-      dueAt: current?.dueAt ?? null,
-      ...input.opportunity,
-    } satisfies GeoShelfOpportunityWrite;
-    assertGeoShelfOpportunityMembers(seed.members, input.opportunity, current);
-    return buildOpportunity(write, userId, nowIso, current);
-  };
-  let assigneeChanged = false;
-  let placementsChanged = false;
-  const source = await patchGeoShelfSource(
-    storeKey(seed),
-    seedFixture(seed),
-    input.sourceId,
-    (current) => {
-      const opportunity = resolveOpportunity(current.opportunity);
-      const placements = input.placements
-        ? mergePlacements(seed, current.placements, input.placements, nowIso)
-        : current.placements;
-      assigneeChanged =
-        (opportunity?.assigneeMemberId ?? null) !==
-        (current.opportunity?.assigneeMemberId ?? null);
-      placementsChanged = placements !== current.placements;
-      return geoShelfSourceSchema.parse({
-        ...current,
-        title:
-          input.title === undefined
-            ? current.title
-            : normalizeTitle(input.title),
-        kind: input.kind ?? current.kind,
-        placements,
-        opportunity,
-        updatedAt: nowIso,
-      } satisfies GeoShelfSource);
-    }
-  );
-  if (!source) {
-    return null;
-  }
-  return { source, assigneeChanged, placementsChanged };
 }
 
 function hasGeoShelfScanData(sources: GeoShelfSource[]): boolean {

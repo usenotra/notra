@@ -2,30 +2,22 @@
 
 import { Delete02Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { COMPETITORS_TABLE_ROW_HEIGHT } from "@notra/geo-core/constants/geo";
 import {
-  COMPETITOR_TYPE_FILTER_VALUES,
-  COMPETITOR_TYPE_FILTERS,
-  COMPETITORS_TABLE_HEIGHT,
-  COMPETITORS_TABLE_ROW_HEIGHT,
-} from "@notra/geo-core/constants/geo";
-import type { GeoCompetitorTypeFilter } from "@notra/geo-core/types/geo";
-import { Badge } from "@notra/ui/components/ui/badge";
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@notra/ui/components/ui/select";
-import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
+import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { Table, type TableColumn } from "@/components/motion/table";
+import { ShareOfVoiceCell } from "@/components/geo/share-of-voice-cell";
+import { GEO_COMPETITORS_TABLE_VISIBLE_ROWS } from "@/constants/geo-competitors";
 import { useGeoCompetitorRowNavigation } from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb } from "@/lib/hooks/use-geo-db";
 import type { CompetitorsTableProps } from "@/types/geo";
@@ -33,27 +25,7 @@ import type { GeoCompetitorRowEntry } from "@/types/geo-competitors";
 import {
   buildCompetitorRows,
   findOwnBrandDomain,
-  formatCompetitorKind,
 } from "@/utils/geo-competitors";
-
-const COMPETITOR_NOUNS = {
-  singular: "competitor",
-  plural: "competitors",
-} as const;
-
-function competitorRemoveDescription(items: string[]): string {
-  if (items.length > 1) {
-    return "These brands will no longer be called out in GEO scans. Historical mentions stay in your results.";
-  }
-  return `"${items[0]}" will no longer be called out in GEO scans. Historical mentions stay in your results.`;
-}
-
-function toTypeFilter(value: string): GeoCompetitorTypeFilter {
-  if (value === "direct" || value === "indirect") {
-    return value;
-  }
-  return "all";
-}
 
 function isOwnBrandRow(row: GeoCompetitorRowEntry): boolean {
   return row.isOwnBrand;
@@ -66,7 +38,19 @@ export function CompetitorsTable({
   companyName,
   aliases,
   ownDomain: projectDomain,
+  shareByBrand,
 }: CompetitorsTableProps) {
+  const t = useTranslations("geo.competitorsTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const competitorNouns = {
+    singular: t("nounSingular"),
+    plural: t("nounPlural"),
+  };
+  const competitorRemoveDescription = (items: string[]): string =>
+    items.length > 1
+      ? t("removeDescriptionMany")
+      : t("removeDescriptionOne", { name: items[0] ?? "" });
   const { pendingCompetitorIds, removeCompetitor } =
     useGeoCompetitorsDb(organizationId);
   const { openRow, prefetchRow } = useGeoCompetitorRowNavigation(
@@ -76,12 +60,6 @@ export function CompetitorsTable({
   const [search, setSearch] = useQueryState(
     "q",
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
-  );
-  const [typeFilter, setTypeFilter] = useQueryState(
-    "type",
-    parseAsStringLiteral(COMPETITOR_TYPE_FILTER_VALUES)
-      .withDefault("all")
-      .withOptions({ clearOnDefault: true })
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -99,8 +77,13 @@ export function CompetitorsTable({
     companyName,
     aliases,
     ownDomain,
-    search,
-    typeFilter
+    search
+  );
+  const shareOf = (row: GeoCompetitorRowEntry) =>
+    shareByBrand.get(row.name.toLowerCase());
+  const topShare = Math.max(...rows.map((row) => shareOf(row)?.share ?? 0), 0);
+  const hasShareData = [...shareByBrand.values()].some(
+    (row) => row.mentions > 0
   );
 
   const selectedIdSet = new Set(selectedIds);
@@ -111,180 +94,152 @@ export function CompetitorsTable({
   const columns: TableColumn<GeoCompetitorRowEntry>[] = [
     {
       key: "name",
-      header: (
-        <span className="inline-flex items-center gap-1.5">
-          Brand
-          <span className="text-muted-foreground font-normal tabular-nums">
-            ({rows.length})
-          </span>
-        </span>
-      ),
+      header: tCommon("labels.brand"),
       sortable: true,
-      width: "1.4fr",
+      width: "1fr",
       cell: (row) => (
-        <span className="flex min-w-0 items-center gap-2.5">
+        <span className="flex min-w-0 items-center gap-3">
           {row.isOwnBrand ? (
             <ProjectLogo
-              className="size-6 shrink-0 rounded-md"
+              className="size-7 shrink-0 rounded-md"
               domain={row.domain}
               fallbackClassName="bg-background p-1 ring-1 ring-foreground/10"
               name={row.name}
             />
           ) : (
             <CompetitorLogo
-              className="size-6 shrink-0 rounded-md"
+              className="size-7 shrink-0 rounded-md"
               domain={row.domain}
               name={row.name}
             />
           )}
-          <span className="truncate font-medium">
-            {row.name}
-            {row.isOwnBrand && (
-              <span className="text-muted-foreground ml-1">(You)</span>
-            )}
+          <span className="flex min-w-0 flex-col">
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate font-medium">{row.name}</span>
+              {row.isOwnBrand && (
+                <span className="bg-primary/10 text-primary inline-flex h-5 shrink-0 items-center rounded-md px-1.5 text-xs font-medium">
+                  {tGeoShared("youLabel")}
+                </span>
+              )}
+              {!row.isOwnBrand && row.kind === "indirect" && (
+                <span className="bg-muted text-muted-foreground inline-flex h-5 shrink-0 items-center rounded-md px-1.5 text-xs">
+                  {tGeoShared("indirect")}
+                </span>
+              )}
+            </span>
+            {row.domain ? (
+              <a
+                className="text-muted-foreground hover:text-foreground w-fit max-w-full truncate text-xs hover:underline"
+                href={`https://${row.domain}`}
+                onClick={(event) => event.stopPropagation()}
+                rel="noopener"
+                target="_blank"
+              >
+                {row.domain}
+              </a>
+            ) : null}
           </span>
         </span>
       ),
     },
     {
-      key: "domain",
-      header: "Domain",
-      width: "1.2fr",
-      cell: (row) =>
-        row.domain ? (
-          <a
-            className="text-muted-foreground hover:text-foreground hover:underline"
-            href={`https://${row.domain}`}
-            onClick={(event) => event.stopPropagation()}
-            rel="noopener"
-            target="_blank"
-          >
-            {row.domain}
-          </a>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        ),
-    },
-    {
-      key: "kind",
-      header: "Type",
-      width: "7rem",
+      key: "share",
+      header: tGeoShared("shareOfVoice"),
+      width: "16rem",
       sortable: true,
-      cell: (row) =>
-        row.isOwnBrand ? (
-          <span className="text-muted-foreground">-</span>
-        ) : (
-          <Badge variant={row.kind === "direct" ? "default" : "secondary"}>
-            {formatCompetitorKind(row.kind)}
-          </Badge>
-        ),
-    },
-    {
-      key: "synonyms",
-      header: "Synonyms",
-      width: "1fr",
-      cell: (row) =>
-        row.synonyms.length > 0 ? (
-          <span
-            className="text-muted-foreground truncate"
-            title={row.synonyms.join(", ")}
-          >
-            {row.synonyms.join(", ")}
-          </span>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        ),
-      sortValue: (row) => row.synonyms.length,
+      collapsePriority: 1,
+      sortValue: (row) => shareOf(row)?.share ?? 0,
+      cell: (row) => {
+        const share = shareOf(row);
+        if (!share || share.mentions === 0) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+        return (
+          <ShareOfVoiceCell
+            max={topShare}
+            own={row.isOwnBrand}
+            share={share.share}
+          />
+        );
+      },
     },
     {
       key: "actions",
       header: "",
-      width: "4rem",
+      width: "3.5rem",
       align: "right",
       cell: (row) =>
         row.isOwnBrand ? null : (
-          <Button
-            aria-label={`Remove ${row.name}`}
-            disabled={pendingCompetitorIds.has(row.id)}
-            onClick={(event) => {
-              event.stopPropagation();
-              requestDelete([row.name]);
-            }}
-            size="icon"
-            variant="ghost"
-          >
-            <HugeiconsIcon icon={Delete02Icon} size={14} />
-          </Button>
+          <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+            <Button
+              aria-label={tCommon("labels.removeName", { name: row.name })}
+              disabled={pendingCompetitorIds.has(row.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                requestDelete([row.name]);
+              }}
+              size="icon-sm"
+              variant="ghost"
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={14} />
+            </Button>
+          </span>
         ),
     },
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-0 flex-1 sm:max-w-72">
-          <HugeiconsIcon
-            className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
-            icon={SearchIcon}
-            size={15}
-          />
-          <Input
-            aria-label="Filter competitors by name"
-            className="pl-9"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Filter by name..."
-            value={search}
-          />
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-1.5 text-sm font-medium">
+          {t("title")}
+          <span className="text-muted-foreground font-normal tabular-nums">
+            {competitors.length}
+          </span>
+        </h2>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {selectedNames.length > 0 && (
+            <Button
+              onClick={() => requestDelete(selectedNames)}
+              size="sm"
+              variant="outline"
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={14} />
+              {tGeoShared("removeCount", { count: selectedNames.length })}
+            </Button>
+          )}
+          <div className="relative min-w-0 flex-1 sm:w-56 sm:flex-none">
+            <HugeiconsIcon
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+              icon={SearchIcon}
+              size={14}
+            />
+            <Input
+              aria-label={t("filterLabel")}
+              className="h-8 pl-8"
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t("filterPlaceholder")}
+              value={search}
+            />
+          </div>
         </div>
-        <Select
-          onValueChange={(value) => setTypeFilter(toTypeFilter(value ?? "all"))}
-          value={typeFilter}
-        >
-          <SelectTrigger className="w-40 capitalize">
-            <SelectValue>
-              {COMPETITOR_TYPE_FILTERS.find(
-                (option) => option.value === typeFilter
-              )?.label ?? "All types"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="w-64">
-            {COMPETITOR_TYPE_FILTERS.map((option) => (
-              <SelectItem
-                className="items-start py-1.5"
-                key={option.value}
-                value={option.value}
-              >
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span>{option.label}</span>
-                  <span className="text-muted-foreground text-xs whitespace-normal">
-                    {option.description}
-                  </span>
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {selectedNames.length > 0 && (
-          <Button
-            onClick={() => requestDelete(selectedNames)}
-            size="sm"
-            variant="outline"
-          >
-            <HugeiconsIcon icon={Delete02Icon} size={14} />
-            Remove ({selectedNames.length})
-          </Button>
-        )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Table
-          className="rounded-2xl"
-          columns={columns}
+        <DataTable
+          columns={
+            hasShareData
+              ? columns
+              : columns.filter((column) => column.key !== "share")
+          }
           data={rows}
           defaultSort={{ key: "name", direction: "asc" }}
-          emptyState="No competitors match these filters"
+          emptyState={t("empty")}
           getRowId={(row) => row.id}
-          height={COMPETITORS_TABLE_HEIGHT}
+          height={
+            (Math.min(rows.length, GEO_COMPETITORS_TABLE_VISIBLE_ROWS) + 1) *
+            COMPETITORS_TABLE_ROW_HEIGHT
+          }
           isRowPinned={isOwnBrandRow}
           onRowClick={(row) => {
             if (row.isOwnBrand) {
@@ -299,7 +254,6 @@ export function CompetitorsTable({
             prefetchRow(row.name);
           }}
           onSelectionChange={setSelectedIds}
-          resizable
           rowHeight={COMPETITORS_TABLE_ROW_HEIGHT}
           selectable
           selectedRowIds={selectedIds}
@@ -310,7 +264,7 @@ export function CompetitorsTable({
         description={competitorRemoveDescription}
         isPending={false}
         items={pendingDeleteNames}
-        nouns={COMPETITOR_NOUNS}
+        nouns={competitorNouns}
         onConfirm={() => {
           const idsByName = new Map(
             competitors.map((competitor) => [competitor.name, competitor.id])
@@ -332,6 +286,6 @@ export function CompetitorsTable({
         }}
         open={deleteOpen}
       />
-    </div>
+    </section>
   );
 }

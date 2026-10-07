@@ -4,26 +4,32 @@ import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { StoreIntegrationCard } from "@/components/integrations/store-integration-card";
 import { StoreIntegrationDialogs } from "@/components/integrations/store-integration-dialogs";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { buildOrganizationIntegrationsPath } from "@/lib/integrations/deeplink";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   McpStoreIntegration,
   StoreIntegrationsSectionProps,
 } from "@/types/integrations/mcp";
+import {
+  isStoreConnectPending,
+  resolveStoreIntegrationSelection,
+} from "@/utils/store-integrations";
 
 export function StoreIntegrationsSection({
   organizationId,
   organizationSlug,
   connectSlug,
 }: StoreIntegrationsSectionProps) {
+  const t = useTranslations("integrations.store.section");
   const queryClient = useQueryClient();
   const router = useRouter();
   const [connectingIntegration, setConnectingIntegration] =
@@ -82,7 +88,7 @@ export function StoreIntegrationsSection({
       setConfirmingIntegration(null);
       dismissDeeplink();
       invalidateIntegrations();
-      toast.success("Integration connected");
+      toast.success(t("connectedToast"));
     },
     onError: (error) => {
       toast.error(error.message);
@@ -134,89 +140,51 @@ export function StoreIntegrationsSection({
   };
 
   const integrations = data?.integrations ?? [];
-
-  const deeplinkIntegration =
-    connectSlug && dismissedConnectSlug !== connectSlug
-      ? (integrations.find(
-          (integration) =>
-            integration.slug === connectSlug || integration.id === connectSlug
-        ) ?? null)
-      : null;
-
-  const activeManagingIntegration =
-    integrations.find(
-      (integration) => integration.id === managingIntegrationId
-    ) ?? (deeplinkIntegration?.connected ? deeplinkIntegration : null);
-
-  const activeConnectingIntegration =
-    connectingIntegration ??
-    (!deeplinkIntegration?.connected &&
-    deeplinkIntegration?.authType === "headers"
-      ? deeplinkIntegration
-      : null);
-
-  const activeConfirmingIntegration =
-    confirmingIntegration ??
-    (deeplinkIntegration &&
-    !deeplinkIntegration.connected &&
-    deeplinkIntegration.authType !== "headers"
-      ? deeplinkIntegration
-      : null);
-
-  const isConnectPending = (integration: McpStoreIntegration) =>
-    (connectPublicMutation.isPending &&
-      connectPublicMutation.variables?.id === integration.id) ||
-    (beginOAuthMutation.isPending &&
-      beginOAuthMutation.variables?.id === integration.id);
+  const selection = resolveStoreIntegrationSelection({
+    integrations,
+    connectSlug,
+    dismissedConnectSlug,
+    connectingIntegration,
+    confirmingIntegration,
+    managingIntegrationId,
+  });
 
   if (!isPending && integrations.length === 0) {
     return null;
   }
 
+  const connectPending = (integration: McpStoreIntegration) =>
+    isStoreConnectPending(
+      integration,
+      connectPublicMutation,
+      beginOAuthMutation
+    );
+
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">
-          From the integration store
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          MCP servers published by the Notra community. Connect them with your
-          own credentials.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
-      {isPending ? (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {[0, 1, 2].map((item) => (
-            <Skeleton className="h-28 w-full rounded-lg" key={item} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {integrations.map((integration) => (
-            <StoreIntegrationCard
-              connectPending={isConnectPending(integration)}
-              integration={integration}
-              key={integration.id}
-              onConnect={connectIntegration}
-              onManage={(target) => setManagingIntegrationId(target.id)}
-            />
-          ))}
-        </div>
-      )}
+      <StoreIntegrationsGrid
+        connectPending={connectPending}
+        integrations={integrations}
+        isPending={isPending}
+        onConnect={connectIntegration}
+        onManage={(target) => setManagingIntegrationId(target.id)}
+      />
 
       <StoreIntegrationDialogs
-        confirmingIntegration={activeConfirmingIntegration}
+        confirmingIntegration={selection.confirming}
         confirmingPending={
-          activeConfirmingIntegration
-            ? isConnectPending(activeConfirmingIntegration)
-            : false
+          selection.confirming ? connectPending(selection.confirming) : false
         }
-        connectingIntegration={activeConnectingIntegration}
-        managingIntegration={activeManagingIntegration}
+        connectingIntegration={selection.connecting}
+        managingIntegration={selection.managing}
         onConfirmConnect={() => {
-          if (activeConfirmingIntegration) {
-            connectIntegration(activeConfirmingIntegration);
+          if (selection.confirming) {
+            connectIntegration(selection.confirming);
           }
         }}
         onConfirmingClose={() => {
@@ -242,5 +210,43 @@ export function StoreIntegrationsSection({
         organizationId={organizationId}
       />
     </section>
+  );
+}
+
+function StoreIntegrationsGrid({
+  connectPending,
+  integrations,
+  isPending,
+  onConnect,
+  onManage,
+}: {
+  connectPending: (integration: McpStoreIntegration) => boolean;
+  integrations: McpStoreIntegration[];
+  isPending: boolean;
+  onConnect: (integration: McpStoreIntegration) => void;
+  onManage: (integration: McpStoreIntegration) => void;
+}) {
+  if (isPending) {
+    return (
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {[0, 1, 2].map((item) => (
+          <Skeleton className="h-28 w-full rounded-lg" key={item} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      {integrations.map((integration) => (
+        <StoreIntegrationCard
+          connectPending={connectPending(integration)}
+          integration={integration}
+          key={integration.id}
+          onConnect={onConnect}
+          onManage={onManage}
+        />
+      ))}
+    </div>
   );
 }

@@ -1,5 +1,5 @@
+import type { OperationalLogEvent } from "@notra/ai/types/operational-log";
 import { httpErrorKind } from "@notra/ai/utils/http-error-kind";
-import { logOperationalEvent } from "@notra/ai/utils/operational-log";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   captureServerEvent,
@@ -140,8 +140,8 @@ export function trackApiRequest(c: Context, latencyMs: number): void {
   }
 }
 
-export function logApiRequest(c: Context, durationMs: number): void {
-  logOperationalEvent({
+export function apiRequestLogFields(c: Context, durationMs: number) {
+  return {
     event: "api.request.completed",
     surface: "api",
     method: c.req.method,
@@ -152,7 +152,7 @@ export function logApiRequest(c: Context, durationMs: number): void {
     durationMs,
     organizationId: safeOrganizationId(c),
     projectId: safeGeoProjectId(c),
-  });
+  } satisfies OperationalLogEvent;
 }
 
 export function trackApiException(

@@ -1,9 +1,19 @@
 import type { IconSvgElement } from "@hugeicons/react";
 
+export type ChatSuggestionId =
+  | "blogPost"
+  | "releaseNotes"
+  | "socialPost"
+  | "newsletter"
+  | "comparison"
+  | "geoStatus"
+  | "geoVisibility"
+  | "brandVoice"
+  | "thread"
+  | "faq";
+
 export interface ChatSuggestion {
-  title: string;
-  description: string;
-  prompt: string;
+  id: ChatSuggestionId;
   icon: IconSvgElement;
 }
 

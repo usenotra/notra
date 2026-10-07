@@ -13,6 +13,11 @@ export const GEO_PERSONA_PROMPT_MAX_LENGTH = 400;
 export const GEO_PERSONA_BRIEF_MAX_LENGTH = 2000;
 /** Messages a persona may type per engine in one scan. */
 export const GEO_PERSONA_MAX_TURNS = 2;
+/**
+ * Persona answers bill at this multiple of a prompt answer: AI answers in a
+ * scan, AI credits when the organization pays by credits.
+ */
+export const GEO_PERSONA_BILLING_MULTIPLIER = 2;
 export const GEO_PERSONA_GENERATION_MODEL = "moonshotai/kimi-k3";
 export const GEO_PERSONA_GENERATION_MAX_TOKENS = 20_000;
 export const GEO_PERSONA_CONTEXT_PAGE_LIMIT = 30;
@@ -23,4 +28,4 @@ export const GEO_SCAN_PERSONA_BATCH_SIZE = 3;
 export const GEO_PERSONA_PROMPT_ID_PREFIX = "persona-";
 export const GEO_PERSONA_GENERATION_TRIGGER_ID = "geo-personas";
 export const GEO_PERSONA_GENERATION_SYSTEM_PROMPT =
-  "You design distinct buyer archetypes for AI visibility research. Each archetype has a short, recognizable name and a concrete customer profile grounded in the supplied audience and category. You output only JSON matching the requested schema, and you never invent facts about the company itself.";
+  "You design distinct buyer archetypes for AI visibility research. Each archetype has a short, recognizable name and a concrete customer profile grounded in the supplied audience and category. The conversation prompts are the literal messages that person would type into ChatGPT: everyday words, one intent, no marketing language. You output only JSON matching the requested schema, and you never invent facts about the company itself.";

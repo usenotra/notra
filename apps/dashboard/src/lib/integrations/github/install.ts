@@ -1,11 +1,11 @@
 "use client";
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { ORPCError } from "@orpc/client";
 import { Effect } from "effect";
 
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
-import { isNextRedirectError } from "@/lib/auth/redirect-error";
 import { startSocialSignInAction } from "@/lib/auth/social-actions";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
@@ -21,10 +21,6 @@ function authorizeGitHub(callbackURL: string) {
       await startSocialSignInAction({
         provider: "github",
         returnTo: callbackURL,
-      }).catch((error) => {
-        if (!isNextRedirectError(error)) {
-          throw error;
-        }
       });
       return true;
     },
@@ -112,13 +108,21 @@ export async function startGitHubInstall(params: {
         }
       ),
       Effect.match({
-        onFailure: (error): StartGitHubInstallResult => ({
-          started: false,
-          reason:
-            error._tag === "GitHubAccountConnectionIncompleteError"
-              ? "account-connection-incomplete"
-              : "install-start-failed",
-        }),
+        onFailure: (error): StartGitHubInstallResult => {
+          if (error._tag === "GitHubAccountConnectionIncompleteError") {
+            return { started: false, reason: "account-connection-incomplete" };
+          }
+          // Forbidden carries a message meant for the user, e.g. that
+          // installing is off in the demo.
+          const { cause } = error;
+          const isForbidden =
+            cause instanceof ORPCError && cause.code === "FORBIDDEN";
+          return {
+            started: false,
+            reason: "install-start-failed",
+            ...(isForbidden ? { message: cause.message } : {}),
+          };
+        },
         onSuccess: (): StartGitHubInstallResult => ({ started: true }),
       })
     )

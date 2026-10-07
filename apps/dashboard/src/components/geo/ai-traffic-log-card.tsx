@@ -4,13 +4,16 @@ import { FilterHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_CITATIONS_ROW_HEIGHT,
-  GEO_TRAFFIC_LOG_PAGE_PARAM,
   GEO_TRAFFIC_LOG_PURPOSE_OPTIONS,
   GEO_TRAFFIC_LOG_VISITOR_OPTIONS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoTrafficLogFilters } from "@notra/geo-core/types/geo";
 import { toggleGeoTrafficFilterValue } from "@notra/geo-core/utils/ai-traffic";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -22,69 +25,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { CitationsTable } from "@/components/geo/citations-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
+import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
 import { TRAFFIC_LOG_FILTER_KINDS } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { useGeoTrafficLog } from "@/lib/hooks/use-geo";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useTablePagination } from "@/lib/hooks/use-table-pagination";
 import type { AiTrafficLogCardProps } from "@/types/geo";
-import { paginatedTableHeightFor } from "@/utils/table";
+import { tableHeightFor } from "@/utils/table";
 
 const LOG_SKELETON_ROWS = 6;
 
 export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
+  const t = useTranslations("geo.aiTrafficLogCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const [filters, setFilters] = useState<GeoTrafficLogFilters>({
     visitorTypes: [],
     categories: [],
   });
   const [hostQuery] = useGeoTrafficHostQuery();
-  const { data, isPending } = useGeoTrafficLog(organizationId, filters, {
-    host: hostQuery,
-  });
-  const log = data?.log ?? [];
-  const pagination = useTablePagination({
-    key: GEO_TRAFFIC_LOG_PAGE_PARAM,
-    totalItems: log.length,
-    isReady: !isPending,
-  });
-  const previousHostRef = useRef(hostQuery);
-  const setLogPage = pagination.setPage;
-
-  useEffect(() => {
-    if (previousHostRef.current === hostQuery) {
-      return;
+  const { data, isPending, isPlaceholderData } = useGeoTrafficLog(
+    organizationId,
+    filters,
+    {
+      host: hostQuery,
     }
-    previousHostRef.current = hostQuery;
-    setLogPage(1);
-  }, [hostQuery, setLogPage]);
+  );
+  const log = data?.log ?? [];
 
   let body: ReactNode;
-  if (isPending) {
-    body = <GeoTableSkeleton rows={LOG_SKELETON_ROWS} />;
-  } else if (log.length === 0) {
-    body = (
-      <InstrumentEmpty
-        message="No visits match these filters"
-        seed="geo-traffic-log"
-      />
-    );
+  if (!isPending && log.length === 0) {
+    body = <InstrumentEmpty message={t("empty")} seed="geo-traffic-log" />;
   } else {
     body = (
       <CitationsTable
         entries={log}
-        height={paginatedTableHeightFor(
-          pagination.pageRowCount,
+        height={tableHeightFor(
+          log.length === 0 ? LOG_SKELETON_ROWS : log.length,
           GEO_CITATIONS_ROW_HEIGHT
         )}
-        pagination={pagination}
+        liveKey={
+          isPlaceholderData ? undefined : JSON.stringify([filters, hostQuery])
+        }
+        // Live refetches swap rows in place; only a new filter or host,
+        // which shows the previous result as placeholder, dims the table.
+        loading={isPending || isPlaceholderData}
       />
     );
   }
@@ -93,7 +82,6 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   const toggleVisitor = (
     value: GeoTrafficLogFilters["visitorTypes"][number]
   ) => {
-    pagination.setPage(1);
     trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
       filter: TRAFFIC_LOG_FILTER_KINDS.VISITOR_TYPE,
       value,
@@ -105,7 +93,6 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
     }));
   };
   const togglePurpose = (value: GeoTrafficLogFilters["categories"][number]) => {
-    pagination.setPage(1);
     trackEvent(POSTHOG_EVENTS.TRAFFIC_LOG_FILTER_CHANGED, {
       filter: TRAFFIC_LOG_FILTER_KINDS.PURPOSE,
       value,
@@ -126,7 +113,7 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
           icon={FilterHorizontalIcon}
           strokeWidth={2}
         />
-        Filter
+        {tCommon("labels.filter")}
         {activeFilters > 0 ? (
           <span className="bg-primary/15 text-primary rounded-full px-1.5 text-xs tabular-nums">
             {activeFilters}
@@ -135,27 +122,29 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Visitors</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("visitors")}</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_VISITOR_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.visitorTypes.includes(option.value)}
               key={option.value}
               onCheckedChange={() => toggleVisitor(option.value)}
             >
-              {option.label}
+              {option.value === "crawler"
+                ? tGeoShared("aiCrawler")
+                : tGeoShared("aiReferral")}
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Purpose</DropdownMenuLabel>
+          <DropdownMenuLabel>{tGeoShared("purpose")}</DropdownMenuLabel>
           {GEO_TRAFFIC_LOG_PURPOSE_OPTIONS.map((option) => (
             <DropdownMenuCheckboxItem
               checked={filters.categories.includes(option.value)}
               key={option.value}
               onCheckedChange={() => togglePurpose(option.value)}
             >
-              {option.label}
+              {tGeoShared(AI_TRAFFIC_PURPOSE_LABEL_KEYS[option.value])}
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
@@ -164,11 +153,10 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                pagination.setPage(1);
                 setFilters({ visitorTypes: [], categories: [] });
               }}
             >
-              Clear filters
+              {tGeoShared("clearFilters")}
             </DropdownMenuItem>
           </>
         ) : null}
@@ -177,7 +165,10 @@ export function AiTrafficLogCard({ organizationId }: AiTrafficLogCardProps) {
   );
 
   return (
-    <InstrumentSection action={filterRow} eyebrow="Recent AI requests">
+    <InstrumentSection
+      action={filterRow}
+      eyebrow={tGeoShared("recentAiRequests")}
+    >
       {body}
     </InstrumentSection>
   );

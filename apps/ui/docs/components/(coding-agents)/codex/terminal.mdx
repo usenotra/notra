@@ -1,0 +1,17 @@
+---
+title: Terminal
+description: The Codex window with a title bar, a scrolling transcript and a pinned composer.
+---
+
+<Component path="codex/examples/codex-terminal" />
+
+<RegistryInstall name="codex-terminal" />
+
+`CodexTerminal` is a shadcn `Card`. The title bar is a `CardHeader`, the transcript scrolls in a `ScrollArea`, and `footer` stays pinned under it like the Codex prompt. Rows run edge to edge, so user turns and the composer draw full-width bands. It accepts every `Card` prop.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `title` | | Text centered in the title bar, like `codex — ~/acme/web`. |
+| `footer` | | Pinned below the transcript. Usually a `CodexComposer`. |
+
+<include>./_used-in.mdx</include>

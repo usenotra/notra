@@ -1,4 +1,4 @@
-import type { ClaudeTodo } from "@notra/ui/components/brainless/claude/claude-todo-list";
+import type { ClaudeCodeTodo } from "@notra/ui/components/ai-skins/claude-code/claude-code-todo-list";
 
 import { DatabuddyLogo } from "@/components/landing/marquee-logos/databuddy-logo";
 import type {
@@ -28,7 +28,7 @@ export const FEEDBACK_MD_DESCRIPTION =
   "feedback.md is a Markdown file at the root of your site. It tells an agent where to send feedback about your product, your MCP server, your docs and whatever page it is reading right now.";
 
 export const FEEDBACK_MD_HERO_LEAD =
-  "You already talk to your users. Their agents hit dead ends and find bugs nobody reports, then quietly move on. feedback.md gives them a place to say so.";
+  "You already talk to your users. Their agents hit dead ends and find bugs nobody reports, then move on. feedback.md gives them a place to report it.";
 
 export const FEEDBACK_MD_CLIENTS: FeedbackMdClient[] = [
   {
@@ -88,25 +88,24 @@ Feedback lands in the Fall team's inbox and is triaged within a week. We do not 
 export const FEEDBACK_MD_TERMINAL_TITLE = "claude — ~/storefront";
 
 export const FEEDBACK_MD_TERMINAL_HEADER: FeedbackMdTerminalHeader = {
-  version: "v2.1.206",
-  user: "Dominik",
-  model: "Fable 5 with xhigh effort · Claude Max",
-  org: "dominik@usefall.com's Organization",
+  version: "v2.1.285",
+  model: "Opus 5.5 (1M context)",
+  org: "Claude Max",
   cwd: "~/storefront",
-  tips: ["Sites with a /feedback.md accept bug reports from agents"],
-  whatsNew: [
+  tips: [
     "feedback.md discovered on usefall.com",
     "Failed tool calls can be reported without stopping the task",
   ],
+  whatsNew: ["Sites with a `/feedback.md` accept bug reports from agents."],
 };
 
 export const FEEDBACK_MD_TERMINAL_USER_MESSAGE =
   "add Fall checkout to the pricing page and test a $49 charge";
 
 export const FEEDBACK_MD_TERMINAL_ASSISTANT_MESSAGE =
-  "create_checkout rejected the request. Checking where Fall wants feedback before I retry.";
+  "`create_checkout` rejected the request. Checking where Fall wants feedback before I retry.";
 
-export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeTodo[] = [
+export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeCodeTodo[] = [
   { label: "Install @usefall/checkout and add the keys", status: "done" },
   { label: "Wire the pricing page to create_checkout", status: "done" },
   { label: "Report the failed charge via feedback.md", status: "active" },
@@ -115,39 +114,45 @@ export const FEEDBACK_MD_TERMINAL_TODOS: ClaudeTodo[] = [
 
 export const FEEDBACK_MD_TERMINAL_TOOL_CALLS: FeedbackMdTerminalToolCall[] = [
   {
-    tool: "fall · create_checkout",
+    tool: "fall - create_checkout (MCP)",
     arg: "amount: 49",
     result: "422 amount must be an integer in cents, docs say dollars",
     status: "error",
   },
   {
-    tool: "fetch",
+    tool: "Fetch",
     arg: "usefall.com/feedback.md",
     result: "3 channels, MCP preferred",
     status: "success",
   },
   {
-    tool: "fall · submit_feedback",
-    arg: "bug",
+    tool: "fall - submit_feedback (MCP)",
+    arg: 'kind: "bug"',
     result: "202 accepted · fb_x8k2q · docs and API disagree on amount units",
     status: "success",
   },
 ];
 
 export const FEEDBACK_MD_TERMINAL_RESULT_MESSAGE =
-  "Filed the docs mismatch with the exact request that failed and moved on. Retrying with amount: 4900.";
+  "Filed the docs mismatch with the exact request that failed and moved on. Retrying with `amount: 4900`.";
+
+export const FEEDBACK_MD_TERMINAL_TURN_SUMMARY = {
+  verb: "Worked",
+  duration: "31s",
+  doneAt: "4:12 PM",
+};
 
 export const FEEDBACK_MD_TERMINAL_PROMPT_PLACEHOLDER =
   'Try "send feedback about the last tool call that failed"';
 
 export const FEEDBACK_MD_PRINCIPLES: FeedbackMdPrinciple[] = [
   {
-    title: "A file, not a protocol",
+    title: "Just a Markdown file",
     description:
-      "Plain Markdown at /feedback.md. No handshake and no schema to validate against. If an agent can read llms.txt it can read this.",
+      "/feedback.md is plain Markdown with no handshake or schema. Any agent that can read llms.txt can read it.",
   },
   {
-    title: "Where, not how",
+    title: "Where feedback goes",
     description:
       "auth.md explains how to sign in. feedback.md only says where feedback goes and what to put in it. Bring your own endpoint, MCP tool or inbox.",
   },
@@ -175,13 +180,13 @@ export const FEEDBACK_MD_SECTIONS: FeedbackMdSection[] = [
     heading: "What to include",
     required: false,
     description:
-      "Shapes the report without a schema. What the agent tried, what happened and the URL or tool involved is enough for a human to act on.",
+      "Asks for what the agent tried, what happened and the URL or tool involved. That is enough for a person to act on.",
   },
   {
     heading: "What happens next",
     required: false,
     description:
-      "Sets expectations. Say who reads it and roughly when. Tell the agent not to wait for a reply.",
+      "Say who reads the feedback and roughly when, and tell the agent not to wait for a reply.",
   },
 ];
 
@@ -258,7 +263,7 @@ export const FEEDBACK_MD_QUESTIONS: FeedbackMdQuestion[] = [
     id: "no-endpoint",
     question: "What if I do not have a feedback endpoint?",
     answer:
-      "An email address or a link to your issue tracker is a valid channel. The file gives agents an address. It does not ask you to run infrastructure. You can upgrade the channel later without changing anything an agent has already learned.",
+      "An email address or a link to your issue tracker is a valid channel. The file only gives agents an address, so you don't need to run any infrastructure. You can upgrade the channel later without changing anything an agent has already learned.",
   },
   {
     id: "need-notra",

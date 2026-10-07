@@ -4,18 +4,28 @@ import {
   AUTUMN_READ_TIMEOUT_MS,
 } from "@notra/ai/billing/autumn";
 import { FEATURES, PAID_OR_LEGACY_PLAN_IDS } from "@notra/ai/billing/features";
-import type { GeoZdrEntitlement } from "@notra/geo-core/types/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { ORPCError } from "@orpc/server";
+import { Cache, Duration, Effect, Exit } from "effect";
 
 import {
   ENTITLEMENT_FEATURES,
   ENTITLEMENT_SURFACES,
 } from "@/constants/analytics-events";
-import { GEO_PLAN_REQUIRED_MESSAGE } from "@/constants/billing";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { internalServerError, paymentRequired } from "@/lib/orpc/utils/errors";
+
+/**
+ * Positive billing answers are reused across requests for a minute: every
+ * GEO batch and dashboard render otherwise waits on an Autumn round trip.
+ * Denials and provider failures are never cached, so an upgrade applies on the
+ * next request; a cancellation takes up to the TTL to apply. Concurrent checks
+ * for one organization share a single lookup.
+ */
+const GRANTED_ACCESS_TTL = Duration.minutes(1);
+const GRANTED_ACCESS_CACHE_CAPACITY = 10_000;
 
 const checkAiAnswersEntitlement = async (organizationId: string) => {
   if (!autumn) {
@@ -30,6 +40,26 @@ const checkAiAnswersEntitlement = async (organizationId: string) => {
     { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
   );
 };
+
+const geoEntitlementCache = Effect.runSync(
+  Cache.makeWith(
+    (organizationId: string) =>
+      Effect.tryPromise({
+        try: async (): Promise<"entitled" | "denied"> => {
+          const data = await checkAiAnswersEntitlement(organizationId);
+          return data?.balance == null ? "denied" : "entitled";
+        },
+        catch: (cause) => cause,
+      }),
+    {
+      capacity: GRANTED_ACCESS_CACHE_CAPACITY,
+      timeToLive: (exit) =>
+        Exit.isSuccess(exit) && exit.value === "entitled"
+          ? GRANTED_ACCESS_TTL
+          : Duration.zero,
+    }
+  )
+);
 
 async function hasAiCreditsBalance(organizationId: string): Promise<boolean> {
   if (!autumn) {
@@ -66,33 +96,49 @@ export async function hasAiCreditsGrant(
   return data.balance != null;
 }
 
-/**
- * Non-throwing lookup of the zero data retention entitlement, granted by the
- * ZDR add-on on any plan. Development without billing counts as entitled; a
- * billing outage answers `unknown` so each gate can decide how to fail.
- */
-export async function resolveZdrEntitlement(
-  organizationId: string
-): Promise<GeoZdrEntitlement> {
-  if (allowUnmeteredAiInDevelopment) {
-    return "entitled";
-  }
+async function lookupAiProductAccess(organizationId: string) {
   if (!autumn) {
-    return process.env.NODE_ENV === "production" ? "not_entitled" : "entitled";
+    return { hasAccess: true, activePlanId: null };
   }
-  try {
-    const data = await autumn.check(
-      {
-        customerId: organizationId,
-        featureId: FEATURES.ZDR,
-      },
-      { timeoutMs: AUTUMN_READ_TIMEOUT_MS }
-    );
-    return data.allowed === true ? "entitled" : "not_entitled";
-  } catch {
-    return "unknown";
-  }
+
+  const customer = await autumn.customers.getOrCreate({
+    customerId: organizationId,
+  });
+
+  const activePlanId =
+    customer.subscriptions.find(
+      (subscription) => !subscription.addOn && subscription.status === "active"
+    )?.planId ?? null;
+
+  const hasPaidPlan = customer.subscriptions.some(
+    (subscription) =>
+      !subscription.addOn &&
+      subscription.status === "active" &&
+      PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
+  );
+
+  return {
+    hasAccess: hasPaidPlan || (await hasAiCreditsBalance(organizationId)),
+    activePlanId,
+  };
 }
+
+const aiProductAccessCache = Effect.runSync(
+  Cache.makeWith(
+    (organizationId: string) =>
+      Effect.tryPromise({
+        try: () => lookupAiProductAccess(organizationId),
+        catch: (cause) => cause,
+      }),
+    {
+      capacity: GRANTED_ACCESS_CACHE_CAPACITY,
+      timeToLive: (exit) =>
+        Exit.isSuccess(exit) && exit.value.hasAccess
+          ? GRANTED_ACCESS_TTL
+          : Duration.zero,
+    }
+  )
+);
 
 export async function resolveAiProductAccess(organizationId: string) {
   if (allowUnmeteredAiInDevelopment) {
@@ -106,38 +152,16 @@ export async function resolveAiProductAccess(organizationId: string) {
     return { hasAccess: true, activePlanId: null };
   }
 
-  let hasAccess = false;
-  let activePlanId: string | null = null;
-
   try {
-    const customer = await autumn.customers.getOrCreate({
-      customerId: organizationId,
-    });
-
-    activePlanId =
-      customer.subscriptions.find(
-        (subscription) =>
-          !subscription.addOn && subscription.status === "active"
-      )?.planId ?? null;
-
-    hasAccess = customer.subscriptions.some(
-      (subscription) =>
-        !subscription.addOn &&
-        subscription.status === "active" &&
-        PAID_OR_LEGACY_PLAN_IDS.has(subscription.planId)
+    return await Effect.runPromise(
+      Cache.get(aiProductAccessCache, organizationId)
     );
-
-    if (!hasAccess) {
-      hasAccess = await hasAiCreditsBalance(organizationId);
-    }
   } catch (error) {
     if (error instanceof ORPCError) {
       throw error;
     }
     throw internalServerError("Failed to verify subscription status");
   }
-
-  return { hasAccess, activePlanId };
 }
 
 export async function assertActiveSubscription(
@@ -153,7 +177,8 @@ export async function assertActiveSubscription(
       organizationId,
       properties: { procedure: procedure ?? null, plan_id: activePlanId },
     });
-    throw paymentRequired("Active subscription required");
+    const tErrors = await getTranslations("errors.billing");
+    throw paymentRequired(tErrors("subscriptionRequired"));
   }
 }
 
@@ -209,8 +234,8 @@ export async function resolveGeoEntitlement(
     const memo = headers ? getORPCRequestMemo(headers) : undefined;
     let outcome = memo?.geoEntitlementByOrganization.get(organizationId);
     if (!outcome) {
-      outcome = checkAiAnswersEntitlement(organizationId).then((data) =>
-        data?.balance != null ? "entitled" : "denied"
+      outcome = Effect.runPromise(
+        Cache.get(geoEntitlementCache, organizationId)
       );
       memo?.geoEntitlementByOrganization.set(organizationId, outcome);
     }
@@ -224,7 +249,9 @@ export async function resolveGeoEntitlement(
 }
 
 /** Reports the denial and rejects the request. Call only for confirmed members. */
-export function rejectGeoEntitlementDenied(organizationId: string): never {
+export async function rejectGeoEntitlementDenied(
+  organizationId: string
+): Promise<never> {
   trackServerEvent({
     event: POSTHOG_EVENTS.ENTITLEMENT_DENIED,
     organizationId,
@@ -233,7 +260,8 @@ export function rejectGeoEntitlementDenied(organizationId: string): never {
       surface: ENTITLEMENT_SURFACES.DASHBOARD,
     },
   });
-  throw paymentRequired(GEO_PLAN_REQUIRED_MESSAGE);
+  const tCommon = await getTranslations("common.messages");
+  throw paymentRequired(tCommon("aiVisibilityTrackingIsIncluded"));
 }
 
 /** Call only after confirming organization membership. */
@@ -243,6 +271,6 @@ export async function assertGeoEntitlement(
 ): Promise<void> {
   const outcome = await resolveGeoEntitlement(organizationId, headers);
   if (outcome === "denied") {
-    rejectGeoEntitlementDenied(organizationId);
+    await rejectGeoEntitlementDenied(organizationId);
   }
 }

@@ -21,48 +21,43 @@ import type {
 import type { ChartMarker } from "@/types/charts";
 import { chartKey } from "@/utils/chart-keys";
 
-const compactFormatter = new Intl.NumberFormat("en", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-const sparklineDayLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-
-const fullDayLabelFormatter = new Intl.DateTimeFormat("en-NZ", {
-  weekday: "long",
-  month: "long",
-  day: "numeric",
-  timeZone: "UTC",
-});
+const PERCENT = 100;
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function formatMetric(value: number | null): string {
+export function formatMetric(
+  value: number | null,
+  locale: string,
+  notAvailableLabel: string
+): string {
   if (value === null) {
-    return "N/A";
+    return notAvailableLabel;
   }
-  return compactFormatter.format(value);
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
-export function formatSparklineDayLabel(day: string): string {
+export function formatEngagementRate(percent: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(percent / PERCENT);
+}
+
+export function formatFullDayLabel(day: string, locale: string): string {
   const date = new Date(`${day}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) {
     return day;
   }
-  return sparklineDayLabelFormatter.format(date);
-}
-
-export function formatFullDayLabel(day: string): string {
-  const date = new Date(`${day}T00:00:00Z`);
-  if (Number.isNaN(date.getTime())) {
-    return day;
-  }
-  return fullDayLabelFormatter.format(date);
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 export function accountSeriesKey(
@@ -76,7 +71,8 @@ export function buildAccountSeriesRows(
   timelineDays: string[],
   accountKeys: string[],
   points: EngagementTimeseriesPoint[],
-  metric: (point: EngagementTimeseriesPoint) => number
+  metric: (point: EngagementTimeseriesPoint) => number,
+  locale: string
 ): AccountSeriesRow[] {
   const valuesByDay = new Map<string, Map<string, number>>();
   for (const point of points) {
@@ -87,7 +83,10 @@ export function buildAccountSeriesRows(
   }
 
   return timelineDays.map((day) => {
-    const row: AccountSeriesRow = { day: formatDayLabel(day), rawDay: day };
+    const row: AccountSeriesRow = {
+      day: formatDayLabel(day, locale),
+      rawDay: day,
+    };
     const dayValues = valuesByDay.get(day);
     for (const key of accountKeys) {
       row[key] = dayValues?.get(key) ?? 0;
@@ -98,7 +97,8 @@ export function buildAccountSeriesRows(
 
 function markerLabelForDate(
   timelineDays: string[],
-  isoDate: string | null
+  isoDate: string | null,
+  locale: string
 ): string | null {
   if (!isoDate) {
     return null;
@@ -113,7 +113,7 @@ function markerLabelForDate(
     return null;
   }
   const index = timelineDays.indexOf(day);
-  return index === -1 ? null : formatDayLabel(day);
+  return index === -1 ? null : formatDayLabel(day, locale);
 }
 
 export function sumMetric(
@@ -277,8 +277,8 @@ export function cursorTipPosition(event: {
   };
 }
 
-export function timezoneAbbreviation(): string {
-  const parts = new Intl.DateTimeFormat(undefined, {
+export function timezoneAbbreviation(locale: string): string {
+  const parts = new Intl.DateTimeFormat(locale, {
     timeZoneName: "short",
   }).formatToParts(new Date());
   return parts.find((part) => part.type === "timeZoneName")?.value ?? "";
@@ -303,27 +303,29 @@ export function postingSlotHeightPercent(
 
 export function buildAdoptionMarkers(
   timelineDays: string[],
-  adoption: NotraAdoptionResponse | undefined
+  adoption: NotraAdoptionResponse | undefined,
+  labels: { joined: string; firstPost: string },
+  locale: string
 ): ChartMarker[] {
   const result: ChartMarker[] = [];
   const joined = markerLabelForDate(
     timelineDays,
-    adoption?.organizationCreatedAt ?? null
+    adoption?.organizationCreatedAt ?? null,
+    locale
   );
   if (joined !== null) {
-    result.push({ value: joined, label: "Joined Notra" });
+    result.push({ value: joined, label: labels.joined });
   }
   const firstPost = markerLabelForDate(
     timelineDays,
-    adoption?.firstNotraPostAt ?? null
+    adoption?.firstNotraPostAt ?? null,
+    locale
   );
   if (firstPost !== null && firstPost !== joined) {
-    result.push({ value: firstPost, label: "First Notra post" });
+    result.push({ value: firstPost, label: labels.firstPost });
   }
   return result;
 }
-
-const PERCENT = 100;
 
 export function buildAnalyticsHeroSummary(
   accounts: SocialOverviewAccount[],
@@ -355,22 +357,48 @@ export function previewPostContent(content: string): string {
 }
 
 export function leaderboardDetailMetrics(
-  account: SocialOverviewAccount
+  account: SocialOverviewAccount,
+  locale: string,
+  notAvailableLabel: string
 ): LeaderboardDetailMetric[] {
   const interactions =
     (account.likes ?? 0) + (account.replies ?? 0) + (account.reposts ?? 0);
   const engagementRate =
     account.impressions && account.impressions > 0
-      ? `${((interactions / account.impressions) * PERCENT).toFixed(1)}%`
-      : "N/A";
+      ? formatEngagementRate(
+          (interactions / account.impressions) * PERCENT,
+          locale
+        )
+      : notAvailableLabel;
   return [
-    { label: "Followers", value: formatMetric(account.followersCount) },
-    { label: "Impressions", value: formatMetric(account.impressions) },
-    { label: "Likes", value: formatMetric(account.likes) },
-    { label: "Replies", value: formatMetric(account.replies) },
-    { label: "Reposts", value: formatMetric(account.reposts) },
-    { label: "Quotes", value: formatMetric(account.quotes) },
-    { label: "Bookmarks", value: formatMetric(account.bookmarks) },
-    { label: "Eng. rate", value: engagementRate },
+    {
+      labelKey: "followers",
+      value: formatMetric(account.followersCount, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "impressions",
+      value: formatMetric(account.impressions, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "likes",
+      value: formatMetric(account.likes, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "replies",
+      value: formatMetric(account.replies, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "reposts",
+      value: formatMetric(account.reposts, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "quotes",
+      value: formatMetric(account.quotes, locale, notAvailableLabel),
+    },
+    {
+      labelKey: "bookmarks",
+      value: formatMetric(account.bookmarks, locale, notAvailableLabel),
+    },
+    { labelKey: "engagementRate", value: engagementRate },
   ];
 }

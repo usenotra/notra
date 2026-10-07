@@ -1,0 +1,41 @@
+---
+title: Tooltip
+description: A shadcn Base UI tooltip with the Depth surface of the buttons that glides between neighbouring triggers.
+---
+
+Hover one button, then slide along the toolbar. The tooltip glides over to the next button and resizes to its label instead of closing and reopening.
+
+<Component path="tooltip/examples/tooltip-toolbar" />
+
+## Installation
+
+<RegistryInstall name="notra-tooltip" />
+
+This replaces `components/ui/tooltip.tsx`. The surface is built from your `--foreground` and `--background` tokens, so it inverts with your theme like the secondary button.
+
+## Moving between tooltips
+
+Wrap neighbouring triggers in one `TooltipProvider`. Every tooltip inside it shares a single popup, so moving to the next trigger slides the popup over, animates its width and swaps the label. The `delay` only applies to the first tooltip. Tooltips outside a provider open and close on their own.
+
+```tsx
+<TooltipProvider delay={400}>
+  <Tooltip>
+    <TooltipTrigger render={<Button size="icon-sm" variant="ghost" />}>
+      <BoldIcon />
+    </TooltipTrigger>
+    <TooltipContent>
+      Bold
+      <KbdGroup>
+        <Kbd>⌘</Kbd>
+        <Kbd>B</Kbd>
+      </KbdGroup>
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+```
+
+## Sides
+
+<Component path="tooltip/examples/tooltip-sides" />
+
+The popup scales in from its trigger and drifts a couple of pixels away from it. With reduced motion it only fades.

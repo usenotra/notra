@@ -13,21 +13,29 @@ const RELATIVE_UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
   { unit: "minute", ms: 60_000 },
 ];
 
-const relativeFormatter = new Intl.RelativeTimeFormat("en", {
-  numeric: "auto",
-});
+export function skillDisplayName(name: string): string {
+  return name
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export function formatSkillUpdatedAt(
   value: string | Date,
+  locale: string,
   now = Date.now()
-): string {
+): string | null {
   const diff = new Date(value).getTime() - now;
+  const relativeFormatter = new Intl.RelativeTimeFormat(locale, {
+    numeric: "auto",
+  });
   for (const { unit, ms } of RELATIVE_UNITS) {
     if (Math.abs(diff) >= ms) {
       return relativeFormatter.format(Math.round(diff / ms), unit);
     }
   }
-  return "Just now";
+  return null;
 }
 
 export function filterSkills<T extends SkillListItem>(
@@ -38,11 +46,17 @@ export function filterSkills<T extends SkillListItem>(
   if (!needle) {
     return skills;
   }
-  return skills.filter(
-    (skill) =>
-      skill.name.toLowerCase().includes(needle) ||
-      skill.description.toLowerCase().includes(needle)
-  );
+  return skills.filter((skill) => {
+    const name = skill.name.toLowerCase();
+    return (
+      name.includes(needle) ||
+      skill.description.toLowerCase().includes(needle) ||
+      // Labels only insert spaces where the slug has hyphens, so a needle
+      // without a space that matches the label already matches the slug.
+      (needle.includes(" ") &&
+        skillDisplayName(skill.name).toLowerCase().includes(needle))
+    );
+  });
 }
 
 function compareBy(key: SkillSortKey, a: SkillListItem, b: SkillListItem) {
@@ -67,6 +81,24 @@ export function sortSkills<T extends SkillListItem>(
     const primary = compareBy(sort.key, a, b) * sign;
     return primary === 0 ? a.name.localeCompare(b.name) : primary;
   });
+}
+
+export function skillQuickstartError(
+  url: string
+): "unsupportedHost" | "invalidUrl" | null {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname !== "skills.sh") {
+      return "unsupportedHost";
+    }
+    return null;
+  } catch {
+    return "invalidUrl";
+  }
 }
 
 export function toggleSkillSort(

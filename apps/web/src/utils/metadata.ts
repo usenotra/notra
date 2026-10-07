@@ -1,9 +1,16 @@
+import type { Metadata } from "@/types/metadata";
+
+import { RSS_FEED_PATH } from "./constants";
+import { SITE_URL } from "./urls";
+
+const TRAILING_SLASHES_REGEX = /\/+$/;
+
 export const SITE_TAGLINE = "Get recommended by AI engines.";
 
 export const SITE_TITLE = `Notra. ${SITE_TAGLINE}`;
 
 export const SITE_DESCRIPTION =
-  "Notra asks ChatGPT, Claude, Gemini and Perplexity the questions your buyers ask, tracks which AI agents read your site, and writes the content for the questions you lose.";
+  "Notra is a GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. It shows whether you appear, who appears instead and how to fix it.";
 
 export const DEFAULT_SOCIAL_IMAGE = {
   url: "/og-image.png",
@@ -16,6 +23,24 @@ const SOCIAL_IMAGE_WIDTH = 1200;
 const SOCIAL_IMAGE_HEIGHT = 630;
 
 export const PAGE_SOCIAL_IMAGES = {
+  personas: {
+    url: "/og/personas.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra personas social preview image",
+  },
+  conversations: {
+    url: "/og/conversations.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra conversations social preview image",
+  },
+  aiCrawlerLogs: {
+    url: "/og/ai-crawler-logs.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra AI crawler logs social preview image",
+  },
   features: {
     url: "/og/features.png",
     width: SOCIAL_IMAGE_WIDTH,
@@ -82,6 +107,73 @@ export const PAGE_SOCIAL_IMAGES = {
     height: SOCIAL_IMAGE_HEIGHT,
     alt: "Notra Slack integration social preview image",
   },
+  github: {
+    url: "/og/github-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra GitHub integration social preview image",
+  },
+  linear: {
+    url: "/og/linear-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra Linear integration social preview image",
+  },
+  granola: {
+    url: "/og/granola-integration.png",
+    width: SOCIAL_IMAGE_WIDTH,
+    height: SOCIAL_IMAGE_HEIGHT,
+    alt: "Notra Granola integration social preview image",
+  },
 } as const;
 
 export const TWITTER_HANDLE = "@usenotra";
+
+export function pageAlternates(url: string): Metadata["alternates"] {
+  const pageUrl = url.replace(TRAILING_SLASHES_REGEX, "");
+  const markdownUrl =
+    pageUrl === SITE_URL ? `${SITE_URL}/index.md` : `${pageUrl}.md`;
+
+  return {
+    canonical: pageUrl,
+    types: {
+      "text/plain": `${SITE_URL}/llms.txt`,
+      "text/markdown": markdownUrl,
+    },
+  };
+}
+
+export const TITLE_TEMPLATE = "%s - Notra";
+
+export const ROOT_METADATA: Metadata = {
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: SITE_URL,
+    types: {
+      "text/plain": `${SITE_URL}/llms.txt`,
+      "application/rss+xml": `${SITE_URL}${RSS_FEED_PATH}`,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: "Notra",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE.url],
+    site: TWITTER_HANDLE,
+    creator: TWITTER_HANDLE,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};

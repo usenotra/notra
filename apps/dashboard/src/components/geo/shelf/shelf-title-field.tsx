@@ -3,7 +3,8 @@
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import type { GeoShelfTitleFieldProps } from "@/types/geo-shelf";
 
@@ -18,19 +19,23 @@ export function ShelfTitleField({
   onBlur,
   onChange,
 }: GeoShelfTitleFieldProps) {
+  const t = useTranslations("geo.shelf.shelfTitleField");
+  const tCommon = useTranslations("common");
   const errorId = `${id}-error`;
 
   return (
     <div className="space-y-1.5">
       <span className="flex items-center justify-between gap-2">
         <Label htmlFor={id}>
-          Title{" "}
-          <span className="text-muted-foreground font-normal">(optional)</span>
+          {tCommon("labels.title")}{" "}
+          <span className="text-muted-foreground font-normal">
+            {tCommon("labels.optional")}
+          </span>
         </Label>
         {isPreviewLoading ? (
           <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-            <Loader2Icon className="size-3 animate-spin" />
-            Reading page title
+            <Spinner className="size-3" />
+            {t("readingTitle")}
           </span>
         ) : null}
         {!isPreviewLoading &&
@@ -42,7 +47,7 @@ export function ShelfTitleField({
             onClick={() => onChange(previewTitle)}
             type="button"
           >
-            Use page title
+            {t("usePageTitle")}
           </button>
         ) : null}
       </span>
@@ -53,9 +58,7 @@ export function ShelfTitleField({
         maxLength={GEO_SHELF_TITLE_MAX_LENGTH}
         onBlur={onBlur}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={
-          previewTitle ?? "We'll read it from the page if you leave this empty"
-        }
+        placeholder={previewTitle ?? t("placeholder")}
         value={showPreviewTitle ? (previewTitle ?? "") : value}
       />
       {errors.length > 0 ? (
@@ -64,9 +67,7 @@ export function ShelfTitleField({
         </p>
       ) : null}
       {showPreviewTitle ? (
-        <p className="text-muted-foreground text-xs">
-          From the page's title tag. Type to override.
-        </p>
+        <p className="text-muted-foreground text-xs">{t("fromTitleTag")}</p>
       ) : null}
       {previewError ? (
         <p className="text-muted-foreground text-xs">{previewError}</p>

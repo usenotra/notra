@@ -9,13 +9,10 @@ import {
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
 import { Button } from "@notra/ui/components/ui/button";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { createContext, use, useEffect, useLayoutEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import {
-  CONTENT_PLAN_WRITE_LABEL,
-  CONTENT_PLAN_WRITING_LABEL,
-} from "@/constants/content-plan";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoWriterBrief,
@@ -49,12 +46,13 @@ function useWriterExecute() {
 function WriterExecuteProvider({
   organizationId,
   briefId,
+  projectId,
   hasUnsavedChanges,
   onArticleReady,
   children,
 }: Omit<WriterExecuteRootProps, "briefId"> & { briefId: string }) {
-  const briefQuery = useGeoWriterBrief(organizationId, briefId);
-  const startMutation = useGeoWriterStart(organizationId);
+  const briefQuery = useGeoWriterBrief(organizationId, briefId, projectId);
+  const startMutation = useGeoWriterStart(organizationId, projectId);
   const status = briefQuery.data?.status;
   const isStarting = startMutation.isPending;
   const isBusy = isStarting || status === "writing" || status === "approved";
@@ -64,15 +62,27 @@ function WriterExecuteProvider({
     onArticleReadyRef.current = onArticleReady;
   }, [onArticleReady]);
   const notifiedCompletionRef = useRef(false);
+  const sawWritingRef = useRef(false);
+
+  useEffect(() => {
+    notifiedCompletionRef.current = false;
+    sawWritingRef.current = false;
+  }, [briefId]);
 
   useEffect(() => {
     if (status !== "completed") {
       notifiedCompletionRef.current = false;
+      sawWritingRef.current ||= isBusy;
       return;
     }
-    if (hasUnsavedChanges || notifiedCompletionRef.current) {
+    if (notifiedCompletionRef.current) {
       return;
     }
+    // Edits made while the writer ran belong to the plan, never the article.
+    if (hasUnsavedChanges && !sawWritingRef.current) {
+      return;
+    }
+    sawWritingRef.current = false;
     notifiedCompletionRef.current = true;
     trackEvent(POSTHOG_EVENTS.GEO_WRITER_ARTICLE_READY_VIEWED, {
       brief_id: briefId,
@@ -81,7 +91,7 @@ function WriterExecuteProvider({
     if (ready instanceof Promise) {
       ready.catch(() => undefined);
     }
-  }, [briefId, hasUnsavedChanges, status]);
+  }, [briefId, hasUnsavedChanges, isBusy, status]);
 
   const value: WriterExecuteContextValue = {
     state: {
@@ -118,6 +128,7 @@ function WriterExecuteRoot({
 }
 
 function WriterExecuteBanner() {
+  const t = useTranslations("geo.writer.writerExecute");
   const {
     state: { status, error },
   } = useWriterExecute();
@@ -125,11 +136,9 @@ function WriterExecuteBanner() {
   if (status === "writing" || status === "approved") {
     return (
       <Alert>
-        <StatusSpinner />
-        <AlertTitle>Writing the article</AlertTitle>
-        <AlertDescription>
-          The writer is drafting this post. It stays a draft until you publish.
-        </AlertDescription>
+        <Spinner className="size-3.5" />
+        <AlertTitle>{t("writingTitle")}</AlertTitle>
+        <AlertDescription>{t("writingDescription")}</AlertDescription>
       </Alert>
     );
   }
@@ -138,11 +147,8 @@ function WriterExecuteBanner() {
     return (
       <Alert variant="destructive">
         <HugeiconsIcon icon={Alert02Icon} />
-        <AlertTitle>Writing failed</AlertTitle>
-        <AlertDescription>
-          {error ??
-            "The writer could not finish this article. Retry Execute to try again."}
-        </AlertDescription>
+        <AlertTitle>{t("failedTitle")}</AlertTitle>
+        <AlertDescription>{error ?? t("failedDescription")}</AlertDescription>
       </Alert>
     );
   }
@@ -151,6 +157,9 @@ function WriterExecuteBanner() {
 }
 
 function WriterExecuteButton() {
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tActions = useTranslations("common.actions");
   const {
     state: { status, isBusy, isStarting, isPending, hasUnsavedChanges },
     actions: { execute },
@@ -163,15 +172,15 @@ function WriterExecuteButton() {
   const isFailed = status === "failed";
   const label = (() => {
     if (isStarting) {
-      return "Starting...";
+      return tCommon("labels.starting");
     }
     if (status === "writing" || status === "approved") {
-      return CONTENT_PLAN_WRITING_LABEL;
+      return tGeoShared("writingInProgress");
     }
     if (isFailed) {
-      return "Retry";
+      return tActions("retry");
     }
-    return CONTENT_PLAN_WRITE_LABEL;
+    return tGeoShared("writeArticle");
   })();
 
   return (
@@ -182,7 +191,7 @@ function WriterExecuteButton() {
       variant={isFailed ? "outline" : "default"}
     >
       {isBusy ? (
-        <StatusSpinner />
+        <Spinner className="size-3.5" />
       ) : (
         <HugeiconsIcon className="size-4" icon={PlayIcon} />
       )}

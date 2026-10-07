@@ -1,4 +1,5 @@
 import "zod/compile";
+import { DASHBOARD_LOCALES } from "@notra/schemas/constants/dashboard/locales";
 import { RETURN_TO_MAX_LENGTH } from "@notra/schemas/dashboard/auth/return-to";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way to import
 import * as z from "zod";
@@ -25,7 +26,10 @@ export const updateUserInputSchema = z.object({
     .optional(),
   hidePersonalData: z.boolean().optional(),
   showAgentStats: z.boolean().optional(),
+  locale: z.enum(DASHBOARD_LOCALES).nullable().optional(),
 });
+
+export const dashboardLocaleSchema = z.enum(DASHBOARD_LOCALES);
 
 export const unlinkAccountInputSchema = z.object({
   providerId: z.string().trim().min(1).max(PROVIDER_ID_MAX_LENGTH),

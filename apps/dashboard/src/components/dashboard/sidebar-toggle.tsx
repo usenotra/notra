@@ -9,19 +9,21 @@ import { Button } from "@notra/ui/components/ui/button";
 import { useSidebar } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
 import type { ComponentProps } from "react";
+import { useTranslations } from "use-intl";
 
 export function SidebarToggle({
   className,
   onClick,
   ...props
 }: ComponentProps<typeof Button>) {
+  const t = useTranslations("nav.sidebar");
   const { isMobile, open, openMobile, toggleSidebar } = useSidebar();
   const isOpen = isMobile ? openMobile : open;
 
   return (
     <Button
       aria-expanded={isOpen}
-      aria-label={isOpen ? "Hide sidebar" : "Show sidebar"}
+      aria-label={isOpen ? t("hide") : t("show")}
       className={cn(
         "hover:bg-muted aria-expanded:hover:bg-muted dark:hover:bg-muted/50 dark:aria-expanded:hover:bg-muted/50 cursor-pointer bg-transparent aria-expanded:bg-transparent",
         className

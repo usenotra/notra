@@ -10,8 +10,8 @@ import {
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
-import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
@@ -20,14 +20,11 @@ import type {
   EngineFamilyPromptHit,
   EngineFamilySheetProps,
 } from "@/types/geo";
-import { engineFamilyModeTotals } from "@/utils/geo-charts";
 import {
   engineFamilyBrandRows,
   findOwnBrandDomain,
 } from "@/utils/geo-competitors";
-import { familyImproveInsight } from "@/utils/geo-family-improve";
 import { resolveOrganizationId } from "@/utils/geo-overview-organization";
-import { geoGapsEngineHref } from "@/utils/geo-paths";
 import {
   engineFamilyPromptHits,
   promptTableRowForId,
@@ -45,11 +42,11 @@ export function useEngineFamilySheet({
 }: Omit<EngineFamilySheetProps, "family" | "open" | "onOpenChange"> & {
   family: GeoEngineFamily;
 }) {
+  const tShared = useTranslations("geo.shared");
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
   const [writeInitial, setWriteInitial] =
     useState<WriteDialogInitialState | null>(null);
-  const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = organizationSlug
     ? resolveOrganizationId(
@@ -79,22 +76,9 @@ export function useEngineFamilySheet({
   const brandRows = engineFamilyBrandRows(
     family.family,
     promptResults,
-    brandScope
+    brandScope,
+    tShared("youLabel")
   );
-  const missedCount = promptHits.filter(
-    (hit) => !(hit.mentioned || hit.ownedSourceCited)
-  ).length;
-  const improveInsight = familyImproveInsight({
-    familyLabel: name,
-    search: engineFamilyModeTotals(family, "search"),
-    memory: engineFamilyModeTotals(family, "memory"),
-    missed: missedCount,
-  });
-  const gapsHref =
-    canWrite && organizationSlug
-      ? geoGapsEngineHref(organizationSlug, family.family, projectId)
-      : undefined;
-
   function handleWrite(hit: EngineFamilyPromptHit) {
     setWriteInitial(
       writeDialogStateFromGap({
@@ -116,8 +100,6 @@ export function useEngineFamilySheet({
     promptHits,
     brandScope,
     brandRows,
-    improveInsight,
-    gapsHref,
     writeOpen,
     setWriteOpen,
     writeInitial,

@@ -11,12 +11,19 @@ import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
+import { GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES } from "@/constants/github";
 import { assertAuthenticated } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import type {
   UploadPresignedResponse,
   UploadType,
 } from "@/types/upload/client";
+import { compressContentImage } from "@/utils/compress-content-image";
+import { contentImageKeyBelongsToOrganization } from "@/utils/content-image-key";
+import { contentImageCompressedTooLargeMessage } from "@/utils/content-image-size";
+import { validateContentVideo } from "@/utils/validate-content-video";
 
+import { readContentImage, saveContentImage } from "./content-image-store";
 import { getFileExtension } from "./mime";
 import { getR2Config } from "./r2";
 import { validateUpload } from "./validate";
@@ -49,7 +56,7 @@ async function assertUploadAccess({
 
   if (requiresOrganization && !organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
@@ -64,7 +71,9 @@ async function assertUploadAccess({
 
     if (!membership) {
       throw new ORPCError("FORBIDDEN", {
-        message: "You do not have access to this organization",
+        message: (await getTranslations("errors.upload"))(
+          "noOrganizationAccess"
+        ),
       });
     }
   }
@@ -91,7 +100,7 @@ async function resolveUploadTarget({
     type,
   });
 
-  validateUpload({
+  await validateUpload({
     fileSize,
     fileType,
     type,
@@ -120,7 +129,7 @@ async function resolveUploadTarget({
       break;
     default:
       throw new ORPCError("BAD_REQUEST", {
-        message: "Unsupported upload type",
+        message: (await getTranslations("errors.upload"))("fileTypeNotAllowed"),
       });
   }
 
@@ -186,14 +195,14 @@ export async function deleteChatUpload({
 
   if (!organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
   const expectedPrefix = `organization/${organizationId}/chat/`;
   if (!key.startsWith(expectedPrefix)) {
     throw new ORPCError("FORBIDDEN", {
-      message: "You do not have access to this chat upload",
+      message: (await getTranslations("errors.upload"))("noOrganizationAccess"),
     });
   }
 
@@ -237,7 +246,7 @@ export async function recordChatAttachment({
 
   if (!organizationId) {
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Active organization required for this upload type",
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
     });
   }
 
@@ -245,19 +254,21 @@ export async function recordChatAttachment({
 
   if (!key.startsWith(expectedPrefix)) {
     throw new ORPCError("FORBIDDEN", {
-      message: "You do not have access to this chat upload",
+      message: (await getTranslations("errors.upload"))("noOrganizationAccess"),
     });
   }
 
   if (!ALLOWED_CHAT_MIME_TYPES.includes(mediaType as AllowedChatMimeType)) {
     throw new ORPCError("BAD_REQUEST", {
-      message: `Media type ${mediaType} is not allowed in chat`,
+      message: (await getTranslations("errors.upload"))("fileTypeNotAllowed"),
     });
   }
 
   if (size > MAX_CHAT_FILE_SIZE) {
     throw new ORPCError("BAD_REQUEST", {
-      message: `Attachment exceeds maximum size of ${MAX_CHAT_FILE_SIZE / 1024 / 1024}MB`,
+      message: (await getTranslations("errors.upload"))("fileTooLarge", {
+        maxMb: MAX_CHAT_FILE_SIZE / 1024 / 1024,
+      }),
     });
   }
 
@@ -275,4 +286,99 @@ export async function recordChatAttachment({
     .onConflictDoNothing({ target: chatAttachments.key });
 
   return { success: true };
+}
+
+async function requireContentOrganization(headers: Headers) {
+  const { organizationId } = await assertUploadAccess({
+    headers,
+    type: "content",
+  });
+  if (!organizationId) {
+    throw new ORPCError("UNAUTHORIZED", {
+      message: (await getTranslations("common.labels"))("noActiveOrganization"),
+    });
+  }
+  return organizationId;
+}
+
+export async function uploadContentImage({
+  bytes,
+  headers,
+}: {
+  bytes: Uint8Array;
+  headers: Headers;
+}) {
+  const organizationId = await requireContentOrganization(headers);
+  let compressed: Awaited<ReturnType<typeof compressContentImage>>;
+  try {
+    compressed = await compressContentImage(bytes);
+  } catch (error) {
+    throw new ORPCError("BAD_REQUEST", {
+      message:
+        error instanceof Error ? error.message : "Could not read that image",
+    });
+  }
+
+  if (compressed.bytes.byteLength > GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: contentImageCompressedTooLargeMessage(),
+    });
+  }
+
+  return saveContentImage({
+    bytes: compressed.bytes,
+    mimeType: compressed.mimeType,
+    organizationId,
+  });
+}
+
+export async function uploadContentVideo({
+  bytes,
+  headers,
+}: {
+  bytes: Uint8Array;
+  headers: Headers;
+}) {
+  const organizationId = await requireContentOrganization(headers);
+  let mimeType: ReturnType<typeof validateContentVideo>;
+  try {
+    mimeType = validateContentVideo(bytes);
+  } catch (error) {
+    throw new ORPCError("BAD_REQUEST", {
+      message:
+        error instanceof Error ? error.message : "Could not read that video",
+    });
+  }
+
+  return saveContentImage({ bytes, mimeType, organizationId });
+}
+
+export async function readAuthorizedContentImage({
+  headers,
+  key,
+}: {
+  headers: Headers;
+  key: string;
+}) {
+  const { organizationId } = await assertUploadAccess({
+    headers,
+    type: "content",
+  });
+  if (
+    !(
+      organizationId &&
+      contentImageKeyBelongsToOrganization(key, organizationId)
+    )
+  ) {
+    throw new ORPCError("NOT_FOUND", { message: "Image not found" });
+  }
+
+  const image = await readContentImage(
+    key,
+    GITHUB_CONTENT_MAX_SINGLE_ASSET_BYTES
+  );
+  if (!image) {
+    throw new ORPCError("NOT_FOUND", { message: "Image not found" });
+  }
+  return image;
 }

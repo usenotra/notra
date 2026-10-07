@@ -17,6 +17,12 @@ import {
   patchPostRequestSchema,
   patchPostResponseSchema,
 } from "@notra/schemas/api/content";
+import {
+  InternalDashboardError,
+  InternalDashboardTimeoutError,
+} from "@notra/schemas/api/internal-dashboard";
+import { rateLimitResponseSchema } from "@notra/schemas/api/responses";
+import { Effect } from "effect";
 
 import {
   createPost,
@@ -29,6 +35,7 @@ import {
   preparePatchPost,
 } from "../programs/posts";
 import { runGeoEffect } from "../runtime/geo";
+import { isOAuthAuth } from "../types/auth";
 import type { DbClient } from "../types/db";
 import { getOrganizationId } from "../utils/auth";
 import {
@@ -46,8 +53,14 @@ import {
   runPostProgram,
   serializePost,
 } from "../utils/posts";
-import { enforceRatelimit, RATE_LIMITS, ratelimit } from "../utils/ratelimit";
+import {
+  enforceRatelimit,
+  RATE_LIMITS,
+  ratelimit,
+  setRatelimitHeaders,
+} from "../utils/ratelimit";
 import { getRedis } from "../utils/redis";
+import { syncPostGitHub } from "../utils/sync-post-github";
 
 export const postsRoutes = createOpenApiApp();
 
@@ -141,7 +154,7 @@ const patchPostRoute = createRoute({
   operationId: "updatePost",
   summary: "Update a single post",
   description:
-    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs.",
+    "Updates any combination of title, slug, markdown, and status. Sending markdown re-renders the stored HTML, and when title is omitted it is taken from the first heading in the markdown, keeping the existing title when the markdown has no heading. Slugs are only accepted for blog posts and changelogs. Title, slug, or markdown updates also sync an existing linked GitHub pull request; no new pull request is created. GitHub sync errors occur after saving the post: 429 includes Retry-After, 502 indicates a sync error, and 504 indicates an unknown sync outcome. Check the PR before retrying an unconfirmed sync.",
   request: {
     params: getPostParamsSchema,
     body: {
@@ -167,11 +180,21 @@ const patchPostRoute = createRoute({
     403: errorResponse("Forbidden"),
     404: errorResponse("Post not found"),
     409: errorResponse("Post slug already exists or concurrent modification"),
-    429: rateLimitResponse(
-      RATE_LIMITS.postUpdate.requests,
-      RATE_LIMITS.postUpdate.window,
-      "API key"
+    502: errorResponse(
+      "Post saved, but linked GitHub pull request sync failed"
     ),
+    504: errorResponse(
+      "Post saved; GitHub sync timed out with an unknown outcome"
+    ),
+    429: {
+      ...rateLimitResponse(
+        RATE_LIMITS.postUpdate.requests,
+        RATE_LIMITS.postUpdate.window,
+        "API key"
+      ),
+      description:
+        "Post update or GitHub publish rate limit exceeded. The error states whether the post was already saved; Retry-After specifies when to retry.",
+    },
     503: errorResponse("Authentication service unavailable"),
   },
 });
@@ -224,7 +247,7 @@ const createPostGenerationRoute = createRoute({
   operationId: "createPostGeneration",
   summary: "Queue async post generation",
   description:
-    "Queues a generation job for one content type and returns 202 with the job. Select sources with integrations.github, integrations.linear, or github.repositories; when no selector is given at all, every connected GitHub integration is used. Poll GET /v1/posts/generate/{jobId} until job.status is completed, failed, or skipped. Notra does not send webhooks when the job finishes.",
+    "Queues a generation job for one content type and returns 202 with the job. Select sources with integrations.github, integrations.linear, or github.repositories; when no selector is given at all, every connected GitHub integration is used. Poll GET /v1/posts/generate/{jobId} until job.status is completed, failed, or skipped. Subscribe to post.generation.completed, post.generation.failed, or post.generation.skipped using /v1/webhooks for completion notifications.",
   request: {
     body: {
       content: {
@@ -472,6 +495,64 @@ postsRoutes.openapi(patchPostRoute, async (c) => {
     );
   }
 
+  if (
+    post.githubPublish &&
+    (post.contentType === "blog_post" || post.contentType === "changelog") &&
+    (body.title !== undefined ||
+      body.slug !== undefined ||
+      body.markdown !== undefined)
+  ) {
+    try {
+      const auth = c.get("auth");
+      await syncPostGitHub(
+        c.env ?? {},
+        orgId,
+        post.id,
+        isOAuthAuth(auth) ? auth.userId : `api-key:${auth.keyId}`
+      );
+    } catch (error) {
+      c.get("log").error(error instanceof Error ? error : String(error), {
+        errorCode: "post_github_sync_failed",
+        postId: post.id,
+      });
+      if (
+        error instanceof InternalDashboardTimeoutError ||
+        (error instanceof InternalDashboardError && error.status === 504)
+      ) {
+        return c.json(
+          {
+            error:
+              "Post saved in Notra. GitHub sync timed out and may still complete. The sync outcome is unknown; check the linked pull request before retrying the content update.",
+          },
+          504
+        );
+      }
+      if (error instanceof InternalDashboardError && error.status === 429) {
+        const rateLimit = rateLimitResponseSchema.safeParse(
+          await new Response(error.body).json().catch(() => null)
+        );
+        if (rateLimit.success) {
+          const retryAfter = setRatelimitHeaders(c, rateLimit.data);
+          c.header("Retry-After", String(retryAfter));
+          return c.json(
+            {
+              ...rateLimit.data,
+              error: `Post saved in Notra, but GitHub sync was rate-limited. Retry the content update in ${retryAfter} seconds to sync the linked pull request.`,
+            },
+            429
+          );
+        }
+      }
+      return c.json(
+        {
+          error:
+            "Post saved in Notra, but the linked GitHub pull request update could not be confirmed. Check the pull request before retrying the content update.",
+        },
+        502
+      );
+    }
+  }
+
   return c.json({ post: serializePost(post), organization }, 200);
 });
 
@@ -554,42 +635,36 @@ postsRoutes.openapi(createPostGenerationRoute, async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  let repositoryIds: string[] | undefined;
-  let linearIntegrationIds: string[] | undefined;
-  let resolvedBrandVoiceId: string | null = null;
   const requestedIntegrations = {
     github: body.integrations?.github ?? body.repositoryIds,
     linear: body.integrations?.linear ?? body.linearIntegrationIds,
   };
 
-  try {
-    repositoryIds = await resolveRequestedRepositoryIds(c.get("db"), orgId, {
-      integrations: requestedIntegrations,
-      github: body.github,
-    });
-    linearIntegrationIds = await resolveRequestedLinearIntegrationIds(
-      c.get("db"),
-      orgId,
-      {
+  const targets = await runPostProgram(
+    Effect.all({
+      repositoryIds: resolveRequestedRepositoryIds(c.get("db"), orgId, {
         integrations: requestedIntegrations,
-      }
-    );
-    resolvedBrandVoiceId = await resolveRequestedBrandVoiceId(
-      c.get("db"),
-      orgId,
-      body.brandIdentityId ?? body.brandVoiceId
-    );
-  } catch (error) {
-    return c.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to resolve requested repositories",
-      },
-      400
-    );
+        github: body.github,
+      }),
+      linearIntegrationIds: resolveRequestedLinearIntegrationIds(
+        c.get("db"),
+        orgId,
+        { integrations: requestedIntegrations }
+      ),
+      resolvedBrandVoiceId: resolveRequestedBrandVoiceId(
+        c.get("db"),
+        orgId,
+        body.brandIdentityId ?? body.brandVoiceId
+      ),
+    })
+  );
+
+  if (targets._tag === "Failure") {
+    return c.json({ error: targets.failure.message }, 400);
   }
+
+  const { repositoryIds, linearIntegrationIds, resolvedBrandVoiceId } =
+    targets.success;
 
   // Charged immediately before the billable generation is queued: the 503, 404
   // and 400 responses above must not spend the caller's budget.

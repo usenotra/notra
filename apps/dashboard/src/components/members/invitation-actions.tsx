@@ -6,16 +6,7 @@ import {
   MoreVerticalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -32,17 +23,15 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { authClient } from "@/lib/auth/client";
-import {
-  isTeamMemberLimitError,
-  mapBillingLimitErrorMessage,
-} from "@/lib/billing/limits";
+import { isTeamMemberLimitError } from "@/lib/billing/limits";
+import { useRouter } from "@/lib/navigation";
 import type { InvitationSummary } from "@/types/organizations/actions";
 
 interface InvitationActionsProps {
@@ -50,6 +39,10 @@ interface InvitationActionsProps {
 }
 
 export function InvitationActions({ invitation }: InvitationActionsProps) {
+  const t = useTranslations("members.invitationActions");
+  const tMembersShared = useTranslations("members.shared");
+  const tMembers = useTranslations("members");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const { activeOrganization } = useOrganizationsContext();
   const router = useRouter();
@@ -75,15 +68,12 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
       });
 
       if (error) {
-        const message = mapBillingLimitErrorMessage(
-          error.message,
-          "Failed to resend invitation"
-        );
+        const message = error.message || t("resendFailed");
 
-        if (isTeamMemberLimitError(error.message)) {
+        if (isTeamMemberLimitError(error.code)) {
           toast.error(message, {
             action: {
-              label: "View plans",
+              label: tMembers("viewPlans"),
               onClick: () =>
                 router.push(`/${activeOrganization.slug}/settings/billing`),
             },
@@ -97,7 +87,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         return;
       }
 
-      toast.success(`Invitation resent to ${invitation.email}`);
+      toast.success(t("resent", { email: invitation.email }));
 
       await queryClient.invalidateQueries({
         queryKey: ["invitations", activeOrganization.id],
@@ -106,7 +96,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
       setShowResendDialog(false);
     } catch (error) {
       console.error("Error resending invitation:", error);
-      toast.error("Failed to resend invitation");
+      toast.error(t("resendFailed"));
     }
     setIsResending(false);
   }
@@ -126,13 +116,13 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         if (error.message) {
           toast.error(error.message);
         } else {
-          toast.error("Failed to cancel invitation");
+          toast.error(t("cancelFailed"));
         }
         setIsCanceling(false);
         return;
       }
 
-      toast.success(`Invitation to ${invitation.email} has been canceled`);
+      toast.success(t("canceled", { email: invitation.email }));
 
       await queryClient.invalidateQueries({
         queryKey: ["invitations", activeOrganization.id],
@@ -141,7 +131,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
       setShowCancelDialog(false);
     } catch (error) {
       console.error("Error canceling invitation:", error);
-      toast.error("Failed to cancel invitation");
+      toast.error(t("cancelFailed"));
     }
     setIsCanceling(false);
   }
@@ -152,7 +142,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
         <DropdownMenuTrigger
           render={
             <Button className="size-8 p-0" variant="ghost">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{tCommon("labels.openMenu")}</span>
               <HugeiconsIcon className="size-4" icon={MoreVerticalIcon} />
             </Button>
           }
@@ -163,7 +153,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
             onClick={() => setShowResendDialog(true)}
           >
             <HugeiconsIcon className="mr-2 size-4" icon={MailSend01Icon} />
-            Resend invitation
+            {tMembersShared("resendInvitation")}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={isResending || isCanceling}
@@ -171,7 +161,7 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
             variant="destructive"
           >
             <HugeiconsIcon className="mr-2 size-4" icon={Cancel01Icon} />
-            Cancel invitation
+            {tMembersShared("cancelInvitation")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -186,13 +176,14 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
       >
         <ResponsiveDialogContent>
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Resend invitation?</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              This will resend the invitation email to{" "}
-              <span className="font-semibold underline">
-                {invitation.email}
-              </span>
-              . They will receive a new invitation link.
+            <ResponsiveDialogTitle>{t("resendTitle")}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription className="wrap-anywhere">
+              {t.rich("resendDescription", {
+                email: invitation.email,
+                strong: (chunks) => (
+                  <span className="font-semibold underline">{chunks}</span>
+                ),
+              })}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <ResponsiveDialogFooter>
@@ -200,47 +191,27 @@ export function InvitationActions({ invitation }: InvitationActionsProps) {
               disabled={isResending}
               render={<Button variant="outline" />}
             >
-              Cancel
+              {tCommon("actions.cancel")}
             </ResponsiveDialogClose>
             <Button disabled={isResending} onClick={handleResendInvitation}>
-              {isResending ? "Resending..." : "Resend Invitation"}
+              {isResending
+                ? t("resending")
+                : tMembersShared("resendInvitation")}
             </Button>
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(open) => {
-          if (!isCanceling) {
-            setShowCancelDialog(open);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tMembersShared("cancelInvitation")}
+        description={t("cancelDescription", { email: invitation.email })}
+        onConfirm={handleCancelInvitation}
+        onOpenChange={setShowCancelDialog}
         open={showCancelDialog}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Cancel invitation?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will cancel the invitation sent to {invitation.email}. They
-              will no longer be able to accept this invitation.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isCanceling}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isCanceling}
-              onClick={handleCancelInvitation}
-            >
-              {isCanceling ? "Canceling..." : "Cancel Invitation"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isCanceling}
+        title={t("cancelTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

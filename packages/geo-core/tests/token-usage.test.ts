@@ -162,21 +162,67 @@ describe("GEO billing usage", () => {
     expect(asEngine.totalUsd).not.toBe(untagged.totalUsd);
   });
 
-  test("carries reasoning tokens through aggregation", () => {
+  test("uses the gateway-specific price for routed model usage", () => {
     const total = addAgentTokenUsage(EMPTY_AGENT_TOKEN_USAGE, {
-      inputTokens: 10,
-      outputTokens: 20,
-      totalTokens: 30,
-      outputTokenDetails: { textTokens: 5, reasoningTokens: 15 },
+      inputTokens: 100_000,
+      outputTokens: 100_000,
+      totalTokens: 200_000,
+      modelId: "openai/gpt-5.6-sol",
+      route: {
+        gateway: "vercel",
+        requestedModel: "openai/gpt-5.6-sol",
+        model: "openai/gpt-5.6-sol",
+        reason: "paid",
+      },
     });
-    expect(total.reasoningTokens).toBe(15);
-    expect(
-      addAgentTokenUsage(total, {
-        inputTokens: 1,
-        outputTokens: 2,
-        totalTokens: 3,
-        reasoningTokens: 4,
-      }).reasoningTokens
-    ).toBe(19);
+    expect(total.totalUsd).toBeCloseTo(2.4);
+  });
+
+  test("settles raw token usage using the served route", () => {
+    const cost = calculateAiCreditCostCents(
+      {
+        inputTokens: 100_000,
+        outputTokens: 100_000,
+        totalTokens: 200_000,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        route: {
+          gateway: "vercel",
+          requestedModel: "openai/gpt-5.6-sol",
+          model: "openai/gpt-5.4-mini",
+          reason: "paid",
+        },
+      },
+      "openai/gpt-5.4-mini",
+      false,
+      "vercel"
+    );
+
+    expect(cost.billingBasis).toBe("tokens");
+    expect(cost.costCents).toBe(53);
+  });
+
+  test("uses preserved per-call cost for a mixed-route aggregate", () => {
+    const cost = calculateAiCreditCostCents(
+      {
+        inputTokens: 200_000,
+        outputTokens: 200_000,
+        totalTokens: 400_000,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        tokenCostUsd: 1.725,
+        route: {
+          gateway: "vercel",
+          requestedModel: "openai/gpt-5.6-sol",
+          model: "openai/gpt-5.6-sol",
+          reason: "paid",
+        },
+      },
+      "openai/gpt-5.6-sol",
+      false,
+      "vercel"
+    );
+
+    expect(cost.costCents).toBe(173);
   });
 });

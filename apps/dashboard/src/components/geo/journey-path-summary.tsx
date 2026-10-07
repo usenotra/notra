@@ -1,3 +1,5 @@
+import { useTranslations } from "use-intl";
+
 import { JourneyPathPill } from "@/components/geo/journey-path-pill";
 import type { JourneyPathSummaryProps } from "@/types/geo";
 import {
@@ -14,6 +16,7 @@ export function JourneyPathSummary({
   paths,
   distinctPaths,
 }: JourneyPathSummaryProps) {
+  const t = useTranslations("geo.journeyPathSummary");
   if (!entryPath) {
     return <span className="text-muted-foreground text-xs">—</span>;
   }
@@ -28,7 +31,7 @@ export function JourneyPathSummary({
       />
       {more > 0 ? (
         <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-          +{more.toLocaleString()} {more === 1 ? "page" : "pages"}
+          {t("morePages", { count: more })}
         </span>
       ) : null}
     </span>

@@ -9,6 +9,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "use-intl";
 
 import { EVENT_BADGE } from "@/constants/content-preview";
 import type { EventType } from "@/types/content/preview";
@@ -35,6 +36,14 @@ export function EventRow({
   selected,
   onToggle,
 }: EventRowProps) {
+  const t = useTranslations("content.create.eventTypes");
+  const tCommon = useTranslations("common.labels");
+  const typeLabels: Record<EventType, string> = {
+    Commit: tCommon("commit"),
+    PR: t("PR"),
+    Release: tCommon("release"),
+    LinearIssue: tCommon("issue"),
+  };
   return (
     <button
       className={cn(
@@ -55,12 +64,14 @@ export function EventRow({
         {selected && <HugeiconsIcon className="size-3" icon={Tick01Icon} />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{label}</p>
+        <p className="truncate text-sm" title={label}>
+          {label}
+        </p>
         <p className="text-muted-foreground truncate text-xs">{meta}</p>
       </div>
       <Badge className={cn("shrink-0", EVENT_BADGE[type])}>
         <HugeiconsIcon className="size-3!" icon={EVENT_ICON[type]} />
-        {type === "LinearIssue" ? "Issue" : type}
+        {typeLabels[type]}
       </Badge>
     </button>
   );

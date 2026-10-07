@@ -1,4 +1,4 @@
-/** Scans in flight at once. Each one fans out to at most four model calls. */
+/** Scans in flight at once. Each one fans out to at most five model calls. */
 export const RUNNER_SCAN_CONCURRENCY = 3;
 /** Accepted-but-waiting scans. Past this the runner answers 503 instead of queueing. */
 export const RUNNER_QUEUE_CAPACITY = 100;
@@ -9,3 +9,6 @@ export const RUNNER_DEFAULT_PORT = 3000;
 export const RUNNER_MAX_REQUEST_BODY_BYTES = 16 * 1024;
 export const RUNNER_SECRET_MIN_LENGTH = 32;
 export const RUNNER_LOCAL_SECRET = "geo-runner-local-development-secret";
+/** Leave time for logs before Railway's 30-second shutdown limit. */
+export const RUNNER_DRAIN_TIMEOUT_MS = 20_000;
+export const RUNNER_LOG_FLUSH_TIMEOUT_MS = 5_000;

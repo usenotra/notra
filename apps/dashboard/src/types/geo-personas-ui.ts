@@ -4,17 +4,9 @@ import type {
   GeoPersonaMemory,
   GeoPersonaScanSummary,
 } from "@notra/geo-core/types/geo-personas";
-import type { ReactNode } from "react";
 
+import type { GEO_PERSONA_GENERATION_STEPS } from "@/constants/geo-personas";
 import type { GeoSequenceEngineThread } from "@/types/geo";
-
-export interface GeoPersonasPageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export interface GeoPersonasPageHeaderProps {
-  action?: ReactNode;
-}
 
 export interface PersonaGenerationCounterProps {
   progress: PersonaGenerationProgress;
@@ -101,7 +93,6 @@ export interface PersonaProfileEditorProps extends PersonaProfileProps {
 /** Memories of one kind, ready to render as a labelled group. */
 export interface PersonaMemoryGroup {
   kind: GeoPersonaMemoryKind;
-  label: string;
   memories: GeoPersonaMemory[];
 }
 
@@ -109,7 +100,7 @@ export interface PersonaGenerationProgress {
   /** 1-based step shown to the user. */
   step: number;
   total: number;
-  label: string;
+  stepKey: (typeof GEO_PERSONA_GENERATION_STEPS)[number]["key"];
 }
 
 export interface GeneratePersonasButtonProps {
@@ -117,12 +108,16 @@ export interface GeneratePersonasButtonProps {
   progress: PersonaGenerationProgress | null;
   onClick: () => void;
 }
-export interface PersonaConversationProps {
+export interface PersonaConversationEmptyProps {
+  enabled: boolean;
+  isScanning: boolean;
+  canRun: boolean;
+  onRun: () => void;
+}
+export interface PersonaConversationProps extends PersonaConversationEmptyProps {
   organizationId: string;
   active: GeoSequenceEngineThread | null;
   isLoading: boolean;
-  isWaitingForScan: boolean;
-  enabled: boolean;
 }
 export interface PersonaAddDialogProps {
   open: boolean;
@@ -130,4 +125,8 @@ export interface PersonaAddDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (brief: string) => Promise<boolean>;
   isPending: boolean;
+}
+
+export interface PersonaAnswerCostBadgeProps {
+  className?: string;
 }

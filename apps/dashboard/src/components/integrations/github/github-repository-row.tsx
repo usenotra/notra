@@ -9,6 +9,7 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import type { GitHubRepositoryRowProps } from "@/types/integrations/github";
 
@@ -24,6 +25,7 @@ export function GitHubRepositoryRow({
   isMigrating,
   onManageRepositories,
 }: GitHubRepositoryRowProps) {
+  const t = useTranslations("integrations.github.repositoryRow");
   const [webhooksOpen, setWebhooksOpen] = useState(false);
   const legacy = !integration.managedByGitHubApp;
   const primaryRepository = integration.repositories[0];
@@ -51,7 +53,14 @@ export function GitHubRepositoryRow({
             <Github className="size-4" />
           </div>
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="truncate text-sm font-medium">
+            <h3
+              className="max-w-full truncate text-sm font-medium"
+              title={
+                primaryRepository
+                  ? `${primaryRepository.owner}/${primaryRepository.repo}`
+                  : integration.displayName
+              }
+            >
               {primaryRepository ? (
                 <a
                   className="underline-offset-4 hover:underline"
@@ -96,7 +105,10 @@ export function GitHubRepositoryRow({
           <div key={repository.id}>
             {integration.repositories.length > 1 ? (
               <div className="mb-2 flex min-w-0 items-center gap-1">
-                <h4 className="min-w-0 flex-1 truncate text-sm font-medium">
+                <h4
+                  className="min-w-0 flex-1 truncate text-sm font-medium"
+                  title={`${repository.owner}/${repository.repo}`}
+                >
                   {repository.owner}/{repository.repo}
                 </h4>
                 <span className="text-muted-foreground text-xs">·</span>
@@ -114,10 +126,7 @@ export function GitHubRepositoryRow({
           </div>
         ))}
         {integration.repositories.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No repository configured. Choose Edit repository from the menu to
-            finish setup.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("noRepository")}</p>
         ) : null}
         {legacy && integration.repositories.length > 0 ? (
           <div id={`webhooks-${integration.id}`} hidden={!webhooksOpen}>

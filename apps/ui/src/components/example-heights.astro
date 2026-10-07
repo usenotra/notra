@@ -1,0 +1,30 @@
+<script>
+  import { EXAMPLE_HEIGHTS } from "../constants/example-heights";
+
+  const FRAME_SELECTOR = "iframe[data-blume-example-frame]";
+  const EXAMPLES_PREFIX = "/blume-examples/";
+  // Blume's own floor for a preview pane (18rem).
+  const PANE_MIN_PX = 288;
+
+  // Sets the known height on both tab panels before Blume's own report arrives, without the
+  // settle tween, so the page below the preview does not move.
+  const applyKnownHeights = () => {
+    for (const frame of document.querySelectorAll<HTMLIFrameElement>(FRAME_SELECTOR)) {
+      const key = new URL(frame.src, window.location.origin).pathname.replace(EXAMPLES_PREFIX, "");
+      const height = EXAMPLE_HEIGHTS[key];
+      const tabs = frame.closest("blume-tabs");
+      if (!height || !tabs || frame.dataset.blumeReportedHeight) {
+        continue;
+      }
+      for (const panel of tabs.querySelectorAll<HTMLElement>("[data-blume-tab-panel]")) {
+        panel.style.transition = "none";
+        panel.style.height = `${Math.max(PANE_MIN_PX, height)}px`;
+        void panel.offsetHeight;
+        panel.style.transition = "";
+      }
+    }
+  };
+
+  applyKnownHeights();
+  document.addEventListener("astro:after-swap", applyKnownHeights);
+</script>

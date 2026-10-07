@@ -1,19 +1,10 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { ApiKeyRevealField } from "@/components/api-keys/api-key-reveal-field";
 import { Button } from "@/components/button";
@@ -24,6 +15,7 @@ import {
 import type { TrackingTokenCardProps } from "@/types/api-keys";
 
 export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
+  const t = useTranslations("apiKeys.trackingToken");
   const { data, isPending } = useGeoIngestSetup(organizationId);
   const rotate = useGeoIngestTokenRotate(organizationId);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -38,24 +30,19 @@ export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="flex items-center gap-2 text-sm font-medium">
-            Tracking token
-            <Badge variant="secondary">Write-only</Badge>
+            {t("title")}
+            <Badge variant="secondary">{t("writeOnly")}</Badge>
           </h2>
-          <p className="text-muted-foreground text-sm">
-            Authenticates the AI traffic proxy on your site. It can only send
-            traffic events, nothing else.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("description")}</p>
         </div>
         <Button
-          disabled={isPending || rotate.isPending}
+          disabled={isPending}
+          loading={rotate.isPending}
           onClick={() => setConfirmOpen(true)}
           size="sm"
           variant="outline"
         >
-          {rotate.isPending ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : null}
-          Rotate
+          {t("rotate")}
         </Button>
       </div>
       {isPending ? (
@@ -64,31 +51,17 @@ export function TrackingTokenCard({ organizationId }: TrackingTokenCardProps) {
         <ApiKeyRevealField value={token} />
       )}
 
-      <ResponsiveAlertDialog onOpenChange={setConfirmOpen} open={confirmOpen}>
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Rotate the tracking token?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              Every deployed copy stops working right away, including
-              project-scoped tokens. Update the token on your site after
-              rotating.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel>Cancel</ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              onClick={() => {
-                setConfirmOpen(false);
-                rotate.mutate();
-              }}
-            >
-              Rotate token
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+      <ConfirmDialog
+        confirmLabel={t("confirm")}
+        description={t("confirmDescription")}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          rotate.mutate();
+        }}
+        onOpenChange={setConfirmOpen}
+        open={confirmOpen}
+        title={t("confirmTitle")}
+      />
     </section>
   );
 }

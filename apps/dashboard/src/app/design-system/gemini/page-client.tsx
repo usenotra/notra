@@ -2,10 +2,10 @@
 
 import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GeminiActions } from "@notra/ui/components/brainless/gemini/gemini-actions";
-import { GeminiComposer } from "@notra/ui/components/brainless/gemini/gemini-composer";
-import { GeminiMessage } from "@notra/ui/components/brainless/gemini/gemini-message";
-import { GeminiThinking } from "@notra/ui/components/brainless/gemini/gemini-thinking";
+import { GeminiActions } from "@notra/ui/components/ai-skins/gemini/gemini-actions";
+import { GeminiComposer } from "@notra/ui/components/ai-skins/gemini/gemini-composer";
+import { GeminiMessage } from "@notra/ui/components/ai-skins/gemini/gemini-message";
+import { GeminiThinking } from "@notra/ui/components/ai-skins/gemini/gemini-thinking";
 import {
   MessageScroller,
   MessageScrollerButton,

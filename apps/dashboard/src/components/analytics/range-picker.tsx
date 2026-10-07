@@ -14,9 +14,11 @@ import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/calendar";
 import { ANALYTICS_RANGE_PRESETS } from "@/constants/analytics";
 import { localDayString, parseLocalDay } from "@/lib/analytics/date-range";
+import { useAnalyticsRangeLabels } from "@/lib/hooks/use-analytics-range-labels";
 import type { AnalyticsRangePickerProps } from "@/types/analytics";
 
 export function AnalyticsRangePicker({ control }: AnalyticsRangePickerProps) {
+  const presetLabels = useAnalyticsRangeLabels();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>();
 
@@ -61,7 +63,7 @@ export function AnalyticsRangePicker({ control }: AnalyticsRangePickerProps) {
                   control.preset === preset.value ? "secondary" : "ghost"
                 }
               >
-                {preset.label}
+                {presetLabels[preset.value].label}
               </Button>
             ))}
           </div>

@@ -2,7 +2,8 @@
 
 import { GEO_BRAND_SEARCH_MAX_QUERY_LENGTH } from "@notra/geo-core/constants/geo";
 import { Combobox, ComboboxInput } from "@notra/ui/components/ui/combobox";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { CompetitorSearchContent } from "@/components/onboarding/competitor-search-content";
 import { useCompetitorSearchState } from "@/lib/hooks/use-competitor-search-state";
@@ -18,6 +19,8 @@ export function CompetitorSearch({
   disabled,
   onAdd,
 }: CompetitorSearchProps) {
+  const t = useTranslations("onboarding.competitorSearch");
+  const tCommon = useTranslations("common");
   const search = useCompetitorSearchState({
     organizationId,
     ownDomain,
@@ -41,15 +44,15 @@ export function CompetitorSearch({
       value={null}
     >
       <ComboboxInput
-        aria-label="Search brands"
+        aria-label={tCommon("labels.searchBrands")}
         className="h-11 rounded-xl"
         maxLength={GEO_BRAND_SEARCH_MAX_QUERY_LENGTH}
-        placeholder="Type a name or domain"
+        placeholder={t("placeholder")}
         showTrigger={false}
       >
         {search.searching ? (
           <span className="text-muted-foreground flex items-center pr-3">
-            <Loader2Icon className="size-4 animate-spin" />
+            <Spinner />
           </span>
         ) : null}
       </ComboboxInput>

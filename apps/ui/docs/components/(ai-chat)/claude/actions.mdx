@@ -1,0 +1,21 @@
+---
+title: Actions
+description: The copy, feedback and retry row under a message.
+---
+
+<Component path="claude/examples/claude-actions" />
+
+<RegistryInstall name="claude-actions" />
+
+Each action is a ghost shadcn `Button` with a shadcn `Tooltip`. Assistant messages get Copy, Read aloud, Good response, Bad response and Retry. User messages get Retry, Edit and Copy. Copy writes `text` to the clipboard and shows a check for a moment.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `text` | | The text Copy puts on the clipboard. |
+| `from` | `assistant` | Picks the action set and alignment. |
+| `timestamp` | | Shown after the assistant actions or before the user actions. |
+| `onRetry`, `onEdit`, `onReadAloud`, `onGoodResponse`, `onBadResponse` | | Click handlers for each action. |
+
+`ClaudeActionButton` is exported too, for adding your own actions to the row.
+
+<include>./_used-in.mdx</include>

@@ -9,9 +9,13 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { GEO_GAPS_LOGO_STACK_LIMIT } from "@notra/ui/constants/geo";
+import {
+  DEFAULT_LOGO_STACK_LABELS,
+  GEO_GAPS_LOGO_STACK_LIMIT,
+} from "@notra/ui/constants/geo";
 import type { LogoStackItem, LogoStackProps } from "@notra/ui/types/geo";
 
 function LogoStackItemDetail({ item }: { item: LogoStackItem }) {
@@ -35,11 +39,13 @@ export function LogoStack({
   limit = GEO_GAPS_LOGO_STACK_LIMIT,
   emptyLabel,
   showLabel = false,
+  labels,
 }: LogoStackProps) {
+  const resolvedLabels = { ...DEFAULT_LOGO_STACK_LABELS, ...labels };
   if (items.length === 0) {
     return (
       <span className="text-muted-foreground text-xs">
-        {emptyLabel ?? "None"}
+        {emptyLabel ?? resolvedLabels.none}
       </span>
     );
   }
@@ -60,6 +66,7 @@ export function LogoStack({
           : "inline-flex items-center gap-1"
       }
     >
+      <TooltipProvider>
       {visible.map((item) => (
         <Tooltip key={item.key}>
           <TooltipTrigger
@@ -86,10 +93,11 @@ export function LogoStack({
           </TooltipContent>
         </Tooltip>
       ))}
+      </TooltipProvider>
       {hidden.length > 0 ? (
         <Popover>
           <PopoverTrigger
-            aria-label={`Show ${hidden.length} additional items`}
+            aria-label={resolvedLabels.showAdditionalItems(hidden.length)}
             className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex min-h-6 min-w-6 shrink-0 cursor-pointer items-center justify-center rounded-sm text-xs tabular-nums outline-none focus-visible:ring-2"
             onClick={(event) => event.stopPropagation()}
             openOnHover
@@ -103,13 +111,15 @@ export function LogoStack({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex shrink-0 items-center justify-between gap-3 border-b px-3 py-2.5">
-              <PopoverTitle className="text-xs">Additional items</PopoverTitle>
+              <PopoverTitle className="text-xs">
+                {resolvedLabels.additionalItems}
+              </PopoverTitle>
               <span className="text-muted-foreground text-xs tabular-nums">
                 {hidden.length}
               </span>
             </div>
             <div
-              aria-label="Additional items"
+              aria-label={resolvedLabels.additionalItems}
               className="min-h-0 overflow-y-auto overscroll-contain p-3 focus-visible:outline-2 focus-visible:-outline-offset-2"
               role="region"
               tabIndex={0}

@@ -10,19 +10,19 @@
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@notra/ai": "workspace:*",
     "@notra/analytics": "workspace:*",
     "@notra/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "effect": "4.0.0-rc.112",
+    "effect": "4.0.0",
     "eve": "0.19.0",
     "post-for-me": "^2.7.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
     "@types/node": "^24.0.0",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }

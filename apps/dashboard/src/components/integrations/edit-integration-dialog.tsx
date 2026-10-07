@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type EditGitHubIntegrationFormValues,
-  editGitHubIntegrationFormSchema,
-} from "@notra/schemas/dashboard/integrations";
+import type { EditGitHubIntegrationFormValues } from "@notra/schemas/dashboard/integrations";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -21,11 +18,13 @@ import { Switch } from "@notra/ui/components/ui/switch";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type React from "react";
-import { isValidElement, useState } from "react";
+import { isValidElement, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { createEditGitHubIntegrationFormSchema } from "@/schemas/github-integration-forms";
 import type { GitHubIntegration } from "@/types/integrations";
 
 interface EditIntegrationDialogProps {
@@ -43,6 +42,14 @@ export function EditIntegrationDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: EditIntegrationDialogProps) {
+  const t = useTranslations("integrations.editDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tForms = useTranslations("integrations.githubForms");
+  const tCommon = useTranslations("common");
+  const editGitHubIntegrationFormSchema = useMemo(
+    () => createEditGitHubIntegrationFormSchema(tForms, tIntegrationsShared),
+    [tForms, tIntegrationsShared]
+  );
   const firstRepository = integration.repositories[0];
   const primaryRepository =
     integration.repositories.length === 1 && firstRepository
@@ -88,7 +95,7 @@ export function EditIntegrationDialog({
           },
         }),
       });
-      toast.success("Integration updated successfully");
+      toast.success(tIntegrationsShared("integrationUpdatedSuccessfully"));
       setOpen(false);
     },
     onError: (error: Error) => {
@@ -125,10 +132,10 @@ export function EditIntegrationDialog({
         <ResponsiveDialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-[500px] [&>*]:min-w-0">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="text-2xl">
-              Edit Integration
+              {tIntegrationsShared("editIntegration")}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Update your GitHub integration settings
+              {t("description")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <form
@@ -143,9 +150,9 @@ export function EditIntegrationDialog({
                 {(field) => (
                   <div className="flex items-center justify-between space-x-2">
                     <div className="space-y-0.5">
-                      <Label>Enable Integration</Label>
+                      <Label>{tIntegrationsShared("enableIntegration")}</Label>
                       <p className="text-muted-foreground text-sm">
-                        When disabled, no outputs will be generated
+                        {tIntegrationsShared("whenDisabledNoOutputsWill")}
                       </p>
                     </div>
                     <Switch
@@ -165,12 +172,14 @@ export function EditIntegrationDialog({
               >
                 {(field) => (
                   <Field>
-                    <FieldLabel>Display Name</FieldLabel>
+                    <FieldLabel>
+                      {tIntegrationsShared("displayName")}
+                    </FieldLabel>
                     <Input
                       disabled={mutation.isPending}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="My GitHub Integration"
+                      placeholder={t("displayNamePlaceholder")}
                       value={field.state.value}
                     />
                     {field.state.meta.errors.length > 0 ? (
@@ -179,7 +188,7 @@ export function EditIntegrationDialog({
                           ? field.state.meta.errors[0]
                           : ((
                               field.state.meta.errors[0] as { message?: string }
-                            )?.message ?? "Invalid value")}
+                            )?.message ?? tCommon("labels.invalidValue"))}
                       </p>
                     ) : null}
                   </Field>
@@ -197,12 +206,12 @@ export function EditIntegrationDialog({
                     >
                       {(field) => (
                         <Field>
-                          <FieldLabel>Owner</FieldLabel>
+                          <FieldLabel>{t("owner")}</FieldLabel>
                           <Input
                             disabled={mutation.isPending}
                             onBlur={field.handleBlur}
                             onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="owner"
+                            placeholder={t("ownerPlaceholder")}
                             value={field.state.value}
                           />
                           {field.state.meta.errors.length > 0 ? (
@@ -213,7 +222,7 @@ export function EditIntegrationDialog({
                                     field.state.meta.errors[0] as {
                                       message?: string;
                                     }
-                                  )?.message ?? "Invalid value")}
+                                  )?.message ?? tCommon("labels.invalidValue"))}
                             </p>
                           ) : null}
                         </Field>
@@ -227,12 +236,14 @@ export function EditIntegrationDialog({
                     >
                       {(field) => (
                         <Field>
-                          <FieldLabel>Repository</FieldLabel>
+                          <FieldLabel>
+                            {tCommon("labels.repository")}
+                          </FieldLabel>
                           <Input
                             disabled={mutation.isPending}
                             onBlur={field.handleBlur}
                             onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="repo"
+                            placeholder={t("repositoryPlaceholder")}
                             value={field.state.value}
                           />
                           {field.state.meta.errors.length > 0 ? (
@@ -243,7 +254,7 @@ export function EditIntegrationDialog({
                                     field.state.meta.errors[0] as {
                                       message?: string;
                                     }
-                                  )?.message ?? "Invalid value")}
+                                  )?.message ?? tCommon("labels.invalidValue"))}
                             </p>
                           ) : null}
                         </Field>
@@ -254,7 +265,7 @@ export function EditIntegrationDialog({
                   <form.Field name="branch">
                     {(field) => (
                       <Field>
-                        <FieldLabel>Publishing Branch</FieldLabel>
+                        <FieldLabel>{t("publishingBranch")}</FieldLabel>
                         <Input
                           disabled={mutation.isPending}
                           onBlur={field.handleBlur}
@@ -273,7 +284,7 @@ export function EditIntegrationDialog({
                 disabled={mutation.isPending}
                 render={<Button variant="outline" />}
               >
-                Cancel
+                {tCommon("actions.cancel")}
               </ResponsiveDialogClose>
               <form.Subscribe selector={(state) => [state.canSubmit]}>
                 {([canSubmit]) => (
@@ -285,7 +296,9 @@ export function EditIntegrationDialog({
                     }}
                     type="button"
                   >
-                    {mutation.isPending ? "Saving..." : "Save Changes"}
+                    {mutation.isPending
+                      ? tCommon("actions.saving")
+                      : tCommon("actions.saveChanges")}
                   </Button>
                 )}
               </form.Subscribe>

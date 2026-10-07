@@ -3,6 +3,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { mergeRegister } from "@lexical/utils";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import {
   Select,
   SelectContent,
@@ -19,10 +20,9 @@ import {
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
 } from "lexical";
-import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { cn } from "@/lib/utils";
 
 import { $isKiboCodeBlockNode } from "./kibo-code-block-node";
@@ -71,16 +71,15 @@ export default function KiboCodeBlockComponent({
   language,
   nodeKey,
 }: KiboCodeBlockComponentProps) {
+  const t = useTranslations("content.editor.codeBlock");
   const [editor] = useLexicalComposerContext();
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey);
   const [localCode, setLocalCode] = useState(code);
   const [prevCode, setPrevCode] = useState(code);
-  const [isCopied, setIsCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lineIdPrefix = useId();
 
   const normalizedLanguage = language || "plain";
@@ -100,15 +99,6 @@ export default function KiboCodeBlockComponent({
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [localCode]);
-
-  // Cleanup copy timeout
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) {
-        clearTimeout(copyTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     const onDelete = (event: KeyboardEvent) => {
@@ -177,25 +167,6 @@ export default function KiboCodeBlockComponent({
     });
   };
 
-  const handleCopy = () => {
-    if (typeof window === "undefined" || !navigator?.clipboard?.writeText) {
-      return;
-    }
-    navigator.clipboard.writeText(localCode).catch(() => {
-      // Ignore clipboard errors
-    });
-    setIsCopied(true);
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-    }
-    copyTimeoutRef.current = setTimeout(() => {
-      setIsCopied(false);
-      copyTimeoutRef.current = null;
-    }, 2000);
-  };
-
-  const CopyButtonIcon = isCopied ? CheckIcon : CopyIcon;
-
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Interactive editor element
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: Interactive editor element
@@ -211,7 +182,7 @@ export default function KiboCodeBlockComponent({
       <div className="bg-secondary flex items-center justify-between border-b px-1 py-1">
         <Select onValueChange={handleLanguageChange} value={normalizedLanguage}>
           <SelectTrigger
-            aria-label="Select code language"
+            aria-label={t("selectLanguage")}
             className="text-muted-foreground h-7 w-fit gap-1 border-none bg-transparent text-xs shadow-none"
             size="sm"
           >
@@ -220,23 +191,19 @@ export default function KiboCodeBlockComponent({
           <SelectContent>
             {Object.entries(CODE_LANGUAGES).map(([key, label]) => (
               <SelectItem key={key} value={key}>
-                {label}
+                {key === "plain" ? t("plainText") : label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button
-          aria-label={isCopied ? "Code copied" : "Copy code"}
-          className="h-7 shrink-0"
-          onClick={handleCopy}
-          size="icon"
-          variant="ghost"
-        >
-          <CopyButtonIcon
-            className={isCopied ? "text-success" : "text-muted-foreground"}
-            size={14}
-          />
-        </Button>
+        <CopyButton
+          aria-label={t("copy")}
+          className="text-muted-foreground"
+          copiedAriaLabel={t("copied")}
+          iconClassName="size-3.5"
+          size="icon-sm"
+          value={localCode}
+        />
       </div>
       <div className="flex">
         <div
@@ -251,7 +218,7 @@ export default function KiboCodeBlockComponent({
           className="block flex-1 resize-none bg-transparent py-4 pr-4 pl-3 font-mono text-sm leading-relaxed outline-none"
           onChange={handleCodeChange}
           onKeyDown={handleKeyDown}
-          placeholder="Enter code here..."
+          placeholder={t("placeholder")}
           ref={textareaRef}
           rows={1}
           spellCheck={false}

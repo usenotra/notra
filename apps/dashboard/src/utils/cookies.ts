@@ -1,18 +1,16 @@
-import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-
 import {
   LAST_VISITED_ORGANIZATION_COOKIE,
   LAST_VISITED_ORGANIZATION_COOKIE_MAX_AGE,
   LAST_VISITED_PROJECT_COOKIE,
   LAST_VISITED_PROJECT_COOKIE_MAX_AGE,
+  ONBOARDING_BANNER_DISMISSED_COOKIE_MAX_AGE,
+  ONBOARDING_BANNER_DISMISSED_COOKIE_PREFIX,
   SIDEBAR_MODE_COOKIE,
   SIDEBAR_MODE_COOKIE_MAX_AGE,
 } from "@/constants/cookies";
 import type { SidebarMode } from "@/types/components/nav";
+import type { CookieJar } from "@/types/cookies";
 import { isSidebarMode } from "@/utils/nav";
-
-type CookieJar = RequestCookies | ReadonlyRequestCookies;
 
 function parseLastVisitedProject(
   value: string | undefined,
@@ -128,6 +126,28 @@ export const getLastVisitedProjectFromClient = (
     readClientCookie(LAST_VISITED_PROJECT_COOKIE),
     organizationSlug
   );
+
+/**
+ * Per workspace, so the shell loader can leave a dismissed onboarding banner
+ * out of the server render instead of hiding it after hydration.
+ */
+export const onboardingBannerDismissedCookie = (organizationId: string) =>
+  `${ONBOARDING_BANNER_DISMISSED_COOKIE_PREFIX}${organizationId}`;
+
+export const isOnboardingBannerDismissedFromClient = (
+  organizationId: string
+): boolean =>
+  readClientCookie(onboardingBannerDismissedCookie(organizationId)) === "1";
+
+export const setOnboardingBannerDismissedCookie = async (
+  organizationId: string
+): Promise<void> => {
+  await setClientCookie(
+    onboardingBannerDismissedCookie(organizationId),
+    "1",
+    ONBOARDING_BANNER_DISMISSED_COOKIE_MAX_AGE
+  );
+};
 
 export const setSidebarModeCookie = async (
   mode: SidebarMode,

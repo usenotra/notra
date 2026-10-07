@@ -35,6 +35,8 @@ export type Labels = {
   months?: string[];
   weekdays?: string[];
   totalCount?: string;
+  title?: string;
+  levelTitle?: (level: number) => string;
   legend?: {
     less?: string;
     more?: string;
@@ -388,7 +390,7 @@ export const ContributionGraphCalendar = ({
         style={{ aspectRatio: `${width} / ${height}`, minWidth: width }}
         viewBox={`0 0 ${width} ${height}`}
       >
-        <title>Contribution Graph</title>
+        <title>{labels.title ?? "Contribution Graph"}</title>
         {!hideMonthLabels && (
           <g className="fill-current">
             {monthLabels.map(({ label, weekIndex }) => (
@@ -428,7 +430,7 @@ export const ContributionGraphFooter = ({
 }: ContributionGraphFooterProps) => (
   <div
     className={cn(
-      "flex w-full flex-wrap items-center justify-between gap-1 whitespace-nowrap sm:gap-x-4",
+      "flex w-full flex-wrap items-center justify-between gap-2 sm:gap-x-4",
       className
     )}
     {...props}
@@ -491,7 +493,11 @@ export const ContributionGraphLegend = ({
           <Fragment key={level}>{children({ level })}</Fragment>
         ) : (
           <svg height={blockSize} key={level} width={blockSize}>
-            <title>{`${level} contributions`}</title>
+            <title>
+              {labels.levelTitle
+                ? labels.levelTitle(level)
+                : `${level} contributions`}
+            </title>
             <rect
               className={cn(
                 "stroke-[1px] stroke-border",

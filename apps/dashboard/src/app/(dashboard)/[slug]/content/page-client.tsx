@@ -2,9 +2,12 @@
 
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Button } from "@notra/ui/components/ui/button";
+import { normalizePageSize } from "@notra/ui/lib/data-table";
 import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { CollectionsView } from "@/components/content/collections-view";
 import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
@@ -12,7 +15,10 @@ import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CONTENT_COLLECTION_VIEWS } from "@/constants/content-collections";
+import {
+  CONTENT_COLLECTION_VIEWS,
+  COLLECTIONS_PAGE_SIZE,
+} from "@/constants/content-collections";
 import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
@@ -26,7 +32,11 @@ import { CollectionsPageSkeleton } from "./skeleton";
 
 export default function PageClient({
   organizationSlug,
+  initialProjectId,
 }: ContentListPageClientProps) {
+  const t = useTranslations("content.list");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -40,15 +50,22 @@ export default function PageClient({
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
   );
   const page = Math.max(1, rawPage);
+  const [rawPageSize, setPageSize] = useQueryState(
+    "pageSize",
+    parseAsInteger
+      .withDefault(COLLECTIONS_PAGE_SIZE)
+      .withOptions({ clearOnDefault: true })
+  );
+  // The URL is untrusted: snap it to an offered size before it drives paging
+  // or a request with a bounded limit.
+  const pageSize = normalizePageSize(rawPageSize, COLLECTIONS_PAGE_SIZE);
   const [view, setView] = useQueryState(
     "view",
     parseAsStringLiteral(CONTENT_COLLECTION_VIEWS).withDefault("list")
   );
 
-  const { data, isPending, isError, refetch } = useCollections(
-    organizationId,
-    page
-  );
+  const { data, isPending, isError, isPlaceholderData, refetch } =
+    useCollections(organizationId, page, pageSize, initialProjectId);
 
   const collections = useMemo(
     () => data?.collections ?? [],
@@ -63,6 +80,10 @@ export default function PageClient({
     totalItems: data?.pagination.totalCount ?? collections.length,
     pageRowCount: collections.length,
     setPage: (next) => setPage(Math.min(Math.max(1, next), pageCount)),
+    onPageSizeChange: (next) => {
+      void setPageSize(next);
+      void setPage(1);
+    },
   };
 
   const isEmpty =
@@ -71,25 +92,22 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Content</h1>
-            <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-              Posts and collections in one place.
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon2("labels.content")}
+        >
           <LazyCreateContentDialog
             entry="content_list"
             organizationId={organizationId}
             organizationSlug={organizationSlug}
           />
-        </header>
+        </PageHeading>
 
         <div className="space-y-3">
           <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-medium">All content</h2>
+            <h2 className="text-sm font-medium">{t("allContent")}</h2>
             <div
-              aria-label="Content view"
+              aria-label={t("viewToggle")}
               className="bg-muted inline-flex items-center rounded-lg p-0.5"
               role="group"
             >
@@ -116,7 +134,9 @@ export default function PageClient({
                       className="size-3.5"
                       icon={option === "list" ? ListViewIcon : GridViewIcon}
                     />
-                    {option === "list" ? "List" : "Grid"}
+                    {option === "list"
+                      ? tCommon2("labels.list")
+                      : t("viewGrid")}
                   </button>
                 );
               })}
@@ -134,30 +154,32 @@ export default function PageClient({
                   }}
                   variant="outline"
                 >
-                  Try again
+                  {tCommon("tryAgain")}
                 </Button>
               }
-              description="Please try loading your content again."
-              title="Couldn't load content"
+              description={t("loadFailedDescription")}
+              title={t("loadFailedTitle")}
             />
           ) : null}
 
           {isEmpty ? (
             <EmptyState
-              description="Start with New post to write from scratch, or Generate content to use your sources."
+              description={t("emptyDescription")}
               preview={
                 <EmptyStateTablePreview
                   columns={EMPTY_STATE_TABLE_COLUMNS.content}
                   rows={EMPTY_STATE_TABLE_ROWS}
                 />
               }
-              title="No content yet"
+              title={t("emptyTitle")}
             />
           ) : null}
 
           {!(isPending || isEmpty || isError) ? (
             <CollectionsView
               collections={collections}
+              loading={isPlaceholderData}
+              organizationId={organizationId}
               organizationSlug={organizationSlug}
               pagination={pagination}
               view={view}

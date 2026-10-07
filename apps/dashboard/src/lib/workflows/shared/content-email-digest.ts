@@ -1,14 +1,23 @@
-import { redis } from "@notra/ai/utils/redis";
-import { getResend } from "@notra/email/utils/resend";
+import "@/workflows/runtime";
+import { randomUUID } from "node:crypto";
 
-import { CONTENT_EMAIL_DIGEST_TTL_SECONDS } from "@/constants/workflows";
+import { redis } from "@notra/ai/utils/redis";
+import { logWarn } from "@notra/ai/utils/server-log";
+import type { EmailResult } from "@notra/email/types/brew";
+
+import {
+  ACK_CONTENT_EMAIL_DIGEST_SCRIPT,
+  CONTENT_EMAIL_DIGEST_BATCH_SENT,
+  CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS,
+  CONTENT_EMAIL_DIGEST_TTL_SECONDS,
+  PIN_CONTENT_EMAIL_DIGEST_SCRIPT,
+} from "@/constants/workflows";
 import {
   sendAiCreditsDepletedEmail,
   sendScheduledContentCreatedEmail,
   sendScheduledContentFailedEmail,
   sendScheduledContentSkippedEmail,
 } from "@/lib/email/send";
-import type { EmailResult } from "@/types/email/send";
 import type {
   ContentEmailDigestEvent,
   ContentEmailDigestKind,
@@ -18,6 +27,7 @@ import type {
 
 const DIGEST_KEY_PREFIX = "content-email-digest";
 const DIGEST_LOCK_KEY_PREFIX = "content-email-digest-lock";
+const DIGEST_BATCH_KEY_PREFIX = "content-email-digest-batch";
 
 export function getContentEmailDigestKey({
   organizationId,
@@ -58,21 +68,25 @@ export async function appendContentEmailDigestEvent({
   return true;
 }
 
-export async function claimContentEmailDigestWindow(digestKey: string) {
+/** Returns the lock token when this call opened the window, else null. */
+export async function claimContentEmailDigestWindow(
+  digestKey: string
+): Promise<string | null> {
   if (!redis) {
-    return false;
+    return null;
   }
 
+  const lockToken = randomUUID();
   const claimed = await redis.set(
     getContentEmailDigestLockKey(digestKey),
-    "1",
+    lockToken,
     {
       ex: CONTENT_EMAIL_DIGEST_TTL_SECONDS,
       nx: true,
     }
   );
 
-  return claimed === "OK";
+  return claimed === "OK" ? lockToken : null;
 }
 
 export async function releaseContentEmailDigestWindow(digestKey: string) {
@@ -83,14 +97,20 @@ export async function releaseContentEmailDigestWindow(digestKey: string) {
   await redis.del(getContentEmailDigestLockKey(digestKey));
 }
 
+/**
+ * Upstash deserializes JSON list items on read, so events usually arrive as
+ * objects; strings only show up for clients with that turned off.
+ */
 function parseDigestEvents(
-  rawEvents: string[],
+  rawEvents: unknown[],
   kind: ContentEmailDigestKind
 ): ContentEmailDigestEvent[] {
   return rawEvents.flatMap((rawEvent) => {
     try {
-      const parsed = JSON.parse(rawEvent) as ContentEmailDigestEvent;
-      return parsed.kind === kind ? [parsed] : [];
+      const parsed = (
+        typeof rawEvent === "string" ? JSON.parse(rawEvent) : rawEvent
+      ) as ContentEmailDigestEvent | null;
+      return parsed?.kind === kind ? [parsed] : [];
     } catch {
       return [];
     }
@@ -138,40 +158,74 @@ function assertEmailSent({
     return;
   }
 
-  console.warn(
-    `[ContentEmailDigest] Failed to send ${kind} notification to ${recipientEmail}:`,
-    result.error
-  );
+  logWarn("[ContentEmailDigest] Failed to send notification", {
+    kind,
+    error: result.error.message,
+  });
 
   throw new Error(
     `Failed to send ${kind} notification to ${recipientEmail}: ${result.error.message}`
   );
 }
 
-export async function flushContentEmailDigest({
-  digestKey,
-  recipientEmail,
-  kind,
-}: ContentEmailDigestPayload) {
-  "use step";
-
+/**
+ * Pins the events a flush sends to its first attempt, so a retry resends the
+ * same email under the same Brew idempotency key. Events appended meanwhile
+ * go to the next flush. `acknowledge` is safe to repeat and tells whether
+ * such events are waiting. A run that lost its window sends nothing.
+ */
+async function readDigestBatch(
+  { digestKey, lockToken = "" }: ContentEmailDigestPayload,
+  batchId: string
+) {
   if (!redis) {
-    return;
+    return null;
   }
 
-  const rawEvents = await redis.lrange<string>(digestKey, 0, -1);
-  const events = parseDigestEvents(rawEvents, kind);
-  if (events.length === 0) {
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
-    return;
+  const client = redis;
+  const keys = [
+    digestKey,
+    getContentEmailDigestLockKey(digestKey),
+    `${DIGEST_BATCH_KEY_PREFIX}:${batchId}`,
+  ];
+  const batch = await client.eval<string[], number | string | null>(
+    PIN_CONTENT_EMAIL_DIGEST_SCRIPT,
+    keys,
+    [
+      lockToken,
+      String(CONTENT_EMAIL_DIGEST_TTL_SECONDS),
+      String(CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS),
+    ]
+  );
+  if (batch === null) {
+    return null;
   }
 
-  const resend = getResend();
-  if (!resend) {
-    throw new Error("Resend API key not configured");
-  }
+  const alreadySent = batch === CONTENT_EMAIL_DIGEST_BATCH_SENT;
+  const batchSize = alreadySent ? 0 : Number(batch);
+  const rawEvents =
+    batchSize > 0
+      ? await client.lrange<unknown>(digestKey, 0, batchSize - 1)
+      : [];
 
+  return {
+    rawEvents,
+    alreadySent,
+    acknowledge: async () =>
+      (await client.eval(ACK_CONTENT_EMAIL_DIGEST_SCRIPT, keys, [
+        lockToken,
+        String(CONTENT_EMAIL_DIGEST_TTL_SECONDS),
+        String(CONTENT_EMAIL_DIGEST_BATCH_TTL_SECONDS),
+        CONTENT_EMAIL_DIGEST_BATCH_SENT,
+      ])) === 1,
+  };
+}
+
+async function sendDigest(
+  { recipientEmail, kind }: ContentEmailDigestPayload,
+  events: ContentEmailDigestEvent[],
+  digestBatchKey: string
+) {
   const firstEvent = events[0];
   if (!firstEvent) {
     return;
@@ -190,7 +244,8 @@ export async function flushContentEmailDigest({
     )?.limitLabel;
 
     assertEmailSent({
-      result: await sendAiCreditsDepletedEmail(resend, {
+      result: await sendAiCreditsDepletedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstEvent.organizationName,
         organizationSlug: firstEvent.organizationSlug,
@@ -200,8 +255,6 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
     return;
   }
 
@@ -223,7 +276,8 @@ export async function flushContentEmailDigest({
     );
 
     assertEmailSent({
-      result: await sendScheduledContentCreatedEmail(resend, {
+      result: await sendScheduledContentCreatedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstCreatedEvent.organizationName,
         organizationSlug: firstCreatedEvent.organizationSlug,
@@ -239,8 +293,6 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
     return;
   }
 
@@ -254,7 +306,8 @@ export async function flushContentEmailDigest({
     }
 
     assertEmailSent({
-      result: await sendScheduledContentFailedEmail(resend, {
+      result: await sendScheduledContentFailedEmail({
+        digestBatchKey,
         recipientEmail,
         organizationName: firstFailedEvent.organizationName,
         organizationSlug: firstFailedEvent.organizationSlug,
@@ -271,8 +324,6 @@ export async function flushContentEmailDigest({
       recipientEmail,
       kind,
     });
-    await redis.ltrim(digestKey, rawEvents.length, -1);
-    await redis.del(getContentEmailDigestLockKey(digestKey));
     return;
   }
 
@@ -285,7 +336,8 @@ export async function flushContentEmailDigest({
   }
 
   assertEmailSent({
-    result: await sendScheduledContentSkippedEmail(resend, {
+    result: await sendScheduledContentSkippedEmail({
+      digestBatchKey,
       recipientEmail,
       organizationName: firstSkippedEvent.organizationName,
       organizationSlug: firstSkippedEvent.organizationSlug,
@@ -302,6 +354,29 @@ export async function flushContentEmailDigest({
     recipientEmail,
     kind,
   });
-  await redis.ltrim(digestKey, rawEvents.length, -1);
-  await redis.del(getContentEmailDigestLockKey(digestKey));
+}
+
+/**
+ * Sends one digest and returns whether newer events are waiting for another
+ * flush. `batchId` must be unique per flush and stable across its retries
+ * (the workflow step id): it scopes the batch and the idempotency key.
+ */
+export async function flushContentEmailDigest(
+  payload: ContentEmailDigestPayload,
+  batchId: string
+): Promise<boolean> {
+  const batch = await readDigestBatch(payload, batchId);
+  if (!batch) {
+    return false;
+  }
+
+  const { rawEvents, alreadySent, acknowledge } = batch;
+  if (!alreadySent) {
+    await sendDigest(
+      payload,
+      parseDigestEvents(rawEvents, payload.kind),
+      `${payload.digestKey}:${batchId}`
+    );
+  }
+  return acknowledge();
 }

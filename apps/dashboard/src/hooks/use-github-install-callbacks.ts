@@ -1,8 +1,9 @@
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
-import { GITHUB_CALLBACK_ERROR_MESSAGES } from "@/constants/github";
+import { GITHUB_CALLBACK_ERROR_MESSAGE_KEYS } from "@/constants/github";
 import {
   hasAttemptedGitHubReauthorization,
   markGitHubReauthorizationAttempted,
@@ -12,6 +13,8 @@ import {
 import type { GitHubInstallResumeParams } from "@/types/integrations/github-settings";
 
 export function useGitHubCallbackErrorToast() {
+  const t = useTranslations("integrations.github.callbackErrors");
+  const tShared = useTranslations("integrations.shared");
   const [{ githubError: errorCode }, setParams] = useQueryStates(
     { githubError: parseAsString },
     { history: "replace" }
@@ -24,13 +27,15 @@ export function useGitHubCallbackErrorToast() {
     handledErrorRef.current = true;
     void setParams({ githubError: null });
     toast.error(
-      GITHUB_CALLBACK_ERROR_MESSAGES[errorCode] ??
-        GITHUB_CALLBACK_ERROR_MESSAGES.github_callback_failed
+      errorCode === "forbidden"
+        ? tShared("youDoNotHaveAccess")
+        : t(GITHUB_CALLBACK_ERROR_MESSAGE_KEYS[errorCode] ?? "callbackFailed")
     );
-  }, [errorCode, setParams]);
+  }, [errorCode, setParams, t, tShared]);
 }
 
 export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
+  const t = useTranslations("integrations.github.toasts");
   const [
     {
       githubAccountConnected: shouldResume,
@@ -64,7 +69,7 @@ export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
     });
     if (reauthorizationInstallationId && reauthorizationState) {
       if (hasAttemptedGitHubReauthorization(reauthorizationState)) {
-        toast.error("Failed to reconnect GitHub. Please try again.");
+        toast.error(t("reconnectFailedRetry"));
         return;
       }
       markGitHubReauthorizationAttempted(reauthorizationState);
@@ -80,7 +85,7 @@ export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
       reauthorizeGitHub(`${callbackUrl.pathname}${callbackUrl.search}`).then(
         (started) => {
           if (!started) {
-            toast.error("Failed to reconnect GitHub");
+            toast.error(t("reconnectFailed"));
           }
         }
       );
@@ -96,8 +101,8 @@ export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
       }
       toast.error(
         result.reason === "account-connection-incomplete"
-          ? "GitHub account connection didn't complete. Please try connecting again."
-          : "Failed to resume GitHub installation"
+          ? t("accountConnectionIncomplete")
+          : t("resumeFailed")
       );
     });
   }, [
@@ -107,5 +112,6 @@ export function useResumeGitHubInstall(params: GitHubInstallResumeParams) {
     reauthorizationState,
     shouldResume,
     setParams,
+    t,
   ]);
 }

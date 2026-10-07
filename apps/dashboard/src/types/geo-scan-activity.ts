@@ -1,12 +1,13 @@
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
-import type { GeoScanRunSummary } from "@notra/geo-core/types/geo-scan-history";
-import type { ReactNode } from "react";
+import type {
+  GeoScanResultSummary,
+  GeoScanRunSummary,
+} from "@notra/geo-core/types/geo-scan-history";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { useTranslations } from "use-intl";
 
+import type { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
-
-export interface GeoScanActivityProps {
-  organizationId: string;
-}
 
 export interface GeoScanActivityStatusProps {
   run: GeoScanRunSummary | undefined;
@@ -30,7 +31,6 @@ export interface GeoScanControlsProviderProps {
 export interface GeoScanModelOption {
   id: string;
   label: string;
-  answerMode: string | null;
   tracked: boolean;
   zdrBlocked: boolean;
 }
@@ -47,12 +47,47 @@ export interface GeoScanModelMenuProps {
   compact?: boolean;
   label?: string;
   primary?: boolean;
+  /** Controlled open state, e.g. for a hotkey. Uncontrolled when omitted. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onContinue: (engines: string[]) => void;
 }
 
 export interface GeoScanRunDetailProps {
   organizationId: string;
+}
+
+export interface GeoScanRunDetailState {
+  /** Scan the pages and filters below belong to. */
+  runId: string | null;
+  view: GeoScanRunView;
+  offset: number;
+  pendingOffset: number;
+  engine: string;
+}
+
+export interface GeoScanOpenAnswer {
+  checkId: string;
+  scanId: string;
+  language: string;
+}
+
+export interface GeoScanRunEmptyProps {
+  isError: boolean;
+  onRetry: () => void;
+}
+
+export interface GeoScanRunLoadedProps {
+  organizationId: string;
   run: GeoScanRunSummary;
+  query: ReturnType<typeof useGeoScanRun>;
+  state: GeoScanRunDetailState;
+  onStateChange: Dispatch<SetStateAction<GeoScanRunDetailState>>;
+}
+
+export interface GeoScanViewCountProps {
+  count: number;
+  locale: string;
 }
 
 export type GeoScanRunView = "answers" | "pending";
@@ -89,9 +124,71 @@ export interface GeoScanPromptCellProps {
   turn: number | null;
 }
 
-export interface GeoScanTablePaginationProps {
-  offset: number;
-  total: number;
-  itemLabel: string;
-  onOffsetChange: (offset: number) => void;
+export interface GeoScanRunEmptyStateInput {
+  running: boolean;
+  isError: boolean;
+  hasData: boolean;
+  loading: boolean;
+  onRetry: () => void;
 }
+
+export interface GeoScanRunPendingTableProps {
+  pending: GeoScanPendingAnswer[];
+  showLanguage: boolean;
+  emptyState: ReactNode;
+  running: boolean;
+  offset: number;
+  onOffsetChange: (offset: number) => void;
+  total: number;
+  height: number;
+  loading: boolean;
+}
+
+export interface GeoScanRunAnswersTableProps {
+  results: GeoScanResultSummary[];
+  showLanguage: boolean;
+  emptyState: ReactNode;
+  offset: number;
+  onOffsetChange: (offset: number) => void;
+  total: number;
+  height: number;
+  loading: boolean;
+  onRowClick: (row: GeoScanResultSummary) => void;
+}
+
+export interface ScanRunDetailViewInput {
+  run: GeoScanRunSummary;
+  view: GeoScanRunView;
+  data: ReturnType<typeof useGeoScanRun>["data"];
+  isPending: boolean;
+  isPlaceholderData: boolean;
+  pendingOffset: number;
+}
+
+export interface ScanRunDetailView {
+  running: boolean;
+  pendingTotal: number;
+  pending: GeoScanPendingAnswer[];
+  results: GeoScanResultSummary[];
+  activeView: GeoScanRunView;
+  showLanguage: boolean;
+  loading: boolean;
+  hasFilters: boolean;
+  engines: readonly string[];
+  height: number;
+  pendingOffset: number;
+  total: number;
+  answerCount: number;
+}
+
+export type ScanActivityStatusTranslator = ReturnType<
+  typeof useTranslations<"geo.scanActivityStatus">
+>;
+
+export type ScanRunDetailTranslator = ReturnType<
+  typeof useTranslations<"geo.scanRunDetail">
+>;
+
+export type ScanActivityRelativeFormatter = ReturnType<
+  typeof useFormatRelative
+>;

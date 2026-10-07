@@ -89,6 +89,7 @@ export interface RouteMetadata {
   plan?: Plan;
   generationId?: string;
   upstreamProvider?: string;
+  costUsd?: number;
   fallbackFrom?: GatewayId;
   fallbackReason?: FallbackReason;
   /** Whether the call that produced this metadata ran with ZDR enforced. */
@@ -129,14 +130,24 @@ export interface GatewayAdapter {
   ): SharedV4ProviderOptions;
   checkHealth(): Promise<GatewayHealth>;
   getBalance(): Promise<GatewayBalance>;
+  /**
+   * `servedModelId` is the model id the provider reported in its response,
+   * which differs from the requested one after a gateway-side fallback.
+   */
   extractRouteMetadata(
-    providerMetadata: SharedV4ProviderMetadata | undefined
+    providerMetadata: SharedV4ProviderMetadata | undefined,
+    servedModelId?: string
   ): Partial<
-    Pick<RouteMetadata, "generationId" | "upstreamProvider" | "model">
+    Pick<
+      RouteMetadata,
+      "generationId" | "upstreamProvider" | "model" | "costUsd"
+    >
   >;
   lookupRouteMetadata?(
     generationId: string
-  ): Promise<Partial<Pick<RouteMetadata, "upstreamProvider" | "model">>>;
+  ): Promise<
+    Partial<Pick<RouteMetadata, "upstreamProvider" | "model" | "costUsd">>
+  >;
 }
 
 export interface BuildProviderOptionsInput {
@@ -335,7 +346,7 @@ export interface RouteUsageSummary {
   route?: RouteMetadata;
   /** Prompt size of the largest step, for long-context pricing. */
   maxPromptTokens?: number;
-  /** Token cost of the steps, summed per call. */
+  /** Reported modeled spend when complete, otherwise estimated token cost, summed per call. */
   tokenCostUsd?: number;
 }
 

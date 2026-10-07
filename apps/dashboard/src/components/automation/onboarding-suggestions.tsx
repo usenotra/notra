@@ -17,6 +17,7 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { SuggestionDetailsSheet } from "@/components/automation/suggestion-details-sheet";
 import { Button } from "@/components/button";
@@ -35,6 +36,8 @@ export function OnboardingSuggestions({
   type,
   onCreate,
 }: OnboardingSuggestionsProps) {
+  const t = useTranslations("automation.suggestions");
+  const tCommon = useTranslations("common");
   const { data: agentRun } = useOnboardingAgentRun(organizationId);
   const agentRunning = agentRun?.running ?? false;
   const { data: suggestions } = useOnboardingSuggestions(organizationId, {
@@ -53,7 +56,7 @@ export function OnboardingSuggestions({
     dismissMutation.mutate(
       { organizationId, suggestionId },
       {
-        onError: () => toast.error("Couldn't dismiss the suggestion"),
+        onError: () => toast.error(t("dismissFailed")),
         onSuccess: () => {
           trackEvent(POSTHOG_EVENTS.ONBOARDING_SUGGESTION_DISMISSED, {
             suggestion_id: suggestionId,
@@ -93,8 +96,15 @@ export function OnboardingSuggestions({
             className="text-muted-foreground size-4"
             icon={SparklesIcon}
           />
-          <h2 className="text-sm font-medium">Suggestions</h2>
-          {agentRunning && <BrailleLoader className="text-xs" />}
+          <h2 className="text-sm font-medium">
+            {tCommon("labels.suggestions")}
+          </h2>
+          {agentRunning && (
+            <BrailleLoader
+              ariaLabel={tCommon("states.loading")}
+              className="text-xs"
+            />
+          )}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {matching.map((suggestion) => {
@@ -113,13 +123,15 @@ export function OnboardingSuggestions({
                       onClick={() => createFromSuggestion(suggestion.id)}
                       size="sm"
                     >
-                      Create
+                      {tCommon("actions.create")}
                     </Button>
                     <BaseTooltip.Root>
                       <TooltipTrigger
                         render={
                           <Button
-                            aria-label={`Dismiss suggestion "${suggestion.title}"`}
+                            aria-label={t("dismissLabel", {
+                              title: suggestion.title,
+                            })}
                             disabled={dismissPendingId === suggestion.id}
                             onClick={() => dismissSuggestion(suggestion.id)}
                             size="icon-sm"
@@ -129,9 +141,7 @@ export function OnboardingSuggestions({
                       >
                         <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
                       </TooltipTrigger>
-                      <TooltipContent className="data-open:zoom-in-100 data-[side=top]:slide-in-from-bottom-0 data-[state=delayed-open]:zoom-in-100">
-                        Dismiss suggestion
-                      </TooltipContent>
+                      <TooltipContent>{t("dismissTooltip")}</TooltipContent>
                     </BaseTooltip.Root>
                   </div>
                 }
@@ -144,9 +154,7 @@ export function OnboardingSuggestions({
                     >
                       {suggestion.title}
                     </TooltipTrigger>
-                    <TooltipContent className="data-open:zoom-in-100 data-[side=top]:slide-in-from-bottom-0 data-[state=delayed-open]:zoom-in-100">
-                      {suggestion.title}
-                    </TooltipContent>
+                    <TooltipContent>{suggestion.title}</TooltipContent>
                   </BaseTooltip.Root>
                 }
                 icon={<HugeiconsIcon icon={SparklesIcon} />}
@@ -164,13 +172,13 @@ export function OnboardingSuggestions({
                     </p>
                   ) : null}
                   <button
-                    aria-label={`View details for "${suggestion.title}"`}
+                    aria-label={t("viewDetails", { title: suggestion.title })}
                     className="peer focus-visible:ring-ring absolute inset-0 cursor-pointer rounded-t-lg focus-visible:ring-2"
                     onClick={openDetails}
                     type="button"
                   />
                   <span className="from-background via-background/90 text-foreground duration-normal pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-gradient-to-t to-transparent pt-6 pb-2 text-sm font-medium opacity-0 transition-opacity peer-hover:opacity-100 peer-focus-visible:opacity-100">
-                    Click to expand
+                    {t("clickToExpand")}
                     <HugeiconsIcon className="size-4" icon={ArrowRight01Icon} />
                   </span>
                 </div>

@@ -17,6 +17,7 @@ export interface AgentSessionScope {
   brandAgentType?: string;
   sourceMetadata?: object;
   generationConfig?: object;
+  codeResearch?: boolean;
 }
 
 export interface StartAgentSessionInput {
@@ -29,7 +30,6 @@ export interface StartAgentSessionInput {
 export interface StartAgentSessionResult {
   agentSessionId: string;
   eveSessionId: string;
-  continuationToken: string;
 }
 
 export interface AgentTaskRunResult {

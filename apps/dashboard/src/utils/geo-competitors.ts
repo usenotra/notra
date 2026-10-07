@@ -1,17 +1,14 @@
 import {
   GEO_FAMILY_BRANDS_LIMIT,
-  GEO_FAMILY_OWN_BRAND_FALLBACK,
   OWN_BRAND_ROW_ID,
 } from "@notra/geo-core/constants/geo";
 import { competitorKey } from "@notra/geo-core/geo/domain";
 import type {
   GeoCompetitor,
-  GeoCompetitorKind,
   GeoCompetitorPromptRow,
   GeoCompetitorPromptSummary,
   GeoCompetitorSharePoint,
   GeoCompetitorShareTimeseriesPoint,
-  GeoCompetitorTypeFilter,
   GeoPromptResultSummary,
   GeoSparklinePoint,
   ShareOfVoiceRow,
@@ -35,10 +32,6 @@ const DOMAIN_LIKE_REGEX = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const URL_PROTOCOL_PREFIX_REGEX = /^https?:\/\//;
 const WWW_PREFIX_REGEX = /^www\./;
 const TRAILING_SLASH_REGEX = /\/+$/;
-
-export function formatCompetitorKind(kind: GeoCompetitorKind): string {
-  return kind === "direct" ? "Direct" : "Indirect";
-}
 
 export function findOwnBrandDomain(aliases: readonly string[]): string | null {
   for (const alias of aliases) {
@@ -135,7 +128,8 @@ export function competitorPromptSummary(
 export function engineFamilyBrandRows(
   family: string,
   results: readonly GeoPromptResultSummary[],
-  scope: EngineFamilyBrandScope = {},
+  scope: EngineFamilyBrandScope,
+  ownFallbackName: string,
   limit = GEO_FAMILY_BRANDS_LIMIT
 ): EngineFamilyBrandRow[] {
   const scoped = results.filter(
@@ -184,7 +178,7 @@ export function engineFamilyBrandRows(
   });
   const ownRow = toRow(
     OWN_BRAND_ROW_ID,
-    scope.companyName?.trim() || GEO_FAMILY_OWN_BRAND_FALLBACK,
+    scope.companyName?.trim() || ownFallbackName,
     ownMentionedPrompts.size,
     true
   );
@@ -424,8 +418,7 @@ export function buildCompetitorRows(
   companyName: string,
   aliases: readonly string[],
   ownDomain: string | null,
-  search: string,
-  typeFilter: GeoCompetitorTypeFilter
+  search: string
 ): GeoCompetitorRowEntry[] {
   const query = search.trim().toLowerCase();
   const rows: GeoCompetitorRowEntry[] = [
@@ -454,12 +447,9 @@ export function buildCompetitorRows(
     });
   });
 
-  const filtered = rows.filter((row) => {
-    if (typeFilter !== "all" && !row.isOwnBrand && row.kind !== typeFilter) {
-      return false;
-    }
-    return fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query);
-  });
+  const filtered = rows.filter((row) =>
+    fuzzyMatches([row.name, row.domain ?? "", ...row.synonyms], query)
+  );
 
   if (query.length === 0) {
     return filtered;
@@ -475,4 +465,53 @@ export function buildCompetitorRows(
     }))
     .sort((a, b) => b.score - a.score)
     .map((entry) => entry.row);
+}
+
+const COMPETITOR_MATCH_EXACT = 0;
+const COMPETITOR_MATCH_PREFIX = 1;
+const COMPETITOR_MATCH_PARTIAL = 2;
+
+/** Lower is better; null when the competitor does not match at all. */
+function competitorMatchRank(
+  competitor: GeoCompetitor,
+  query: string
+): number | null {
+  const names = [competitor.name, ...competitor.synonyms].map((value) =>
+    value.trim().toLowerCase()
+  );
+  if (names.includes(query)) {
+    return COMPETITOR_MATCH_EXACT;
+  }
+  if (names.some((name) => name.startsWith(query))) {
+    return COMPETITOR_MATCH_PREFIX;
+  }
+  const haystack = [...names, competitor.domain?.toLowerCase() ?? ""].join(" ");
+  return haystack.includes(query) ? COMPETITOR_MATCH_PARTIAL : null;
+}
+
+/**
+ * What a competitor picker renders: the competitors matching the search
+ * query, exact name matches first, then prefix matches, capped so a project
+ * with hundreds of competitors does not render hundreds of cards.
+ */
+export function visibleCompetitorChoices(
+  competitors: readonly GeoCompetitor[],
+  query: string,
+  maxShown: number
+): { visible: GeoCompetitor[]; hidden: number } {
+  const normalizedQuery = query.trim().toLowerCase();
+  const matches =
+    normalizedQuery.length > 0
+      ? competitors
+          .flatMap((competitor) => {
+            const rank = competitorMatchRank(competitor, normalizedQuery);
+            return rank === null ? [] : [{ competitor, rank }];
+          })
+          .toSorted((left, right) => left.rank - right.rank)
+          .map((entry) => entry.competitor)
+      : [...competitors];
+  return {
+    visible: matches.slice(0, maxShown),
+    hidden: Math.max(0, matches.length - maxShown),
+  };
 }

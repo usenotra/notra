@@ -41,10 +41,9 @@ import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { CreditBalanceMenuItem } from "@/components/billing/credit-balance-button";
 import { CreditTopupModal } from "@/components/billing/credit-topup-modal";
@@ -52,11 +51,15 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { authClient } from "@/lib/auth/client";
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
+import { useIsClient } from "@/lib/hooks/use-is-client";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname, useRouter } from "@/lib/navigation";
 import { cn, errorMessageOr } from "@/lib/utils";
 import type { OrganizationOptionsListProps } from "@/types/dashboard";
 import { planDisplayName } from "@/utils/billing-plans";
 import { setLastVisitedOrganization } from "@/utils/cookies";
+import dynamic from "@/utils/lazy-component";
+import { nameInitials } from "@/utils/name-initials";
 import { QUERY_KEYS } from "@/utils/query-keys";
 import { scheduleDemo } from "@/utils/schedule-demo";
 
@@ -65,78 +68,11 @@ import {
   useOrganizationsContext,
 } from "../providers/organization-provider";
 
-const CreateOrgModal = dynamic(
-  () =>
-    import("./create-org-modal").then((mod) => ({
-      default: mod.CreateOrgModal,
-    })),
-  { ssr: false }
+const CreateOrgModal = dynamic(() =>
+  import("./create-org-modal").then((mod) => ({
+    default: mod.CreateOrgModal,
+  }))
 );
-
-function OverflowAwareText({
-  text,
-  className,
-  thresholdMultiplier = 1,
-}: {
-  text?: string;
-  className?: string;
-  thresholdMultiplier?: number;
-}) {
-  const [shouldShowEllipsis, setShouldShowEllipsis] = useState(true);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const ellipsisRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!text) {
-      return;
-    }
-
-    const textElement = textRef.current;
-    const ellipsisElement = ellipsisRef.current;
-
-    if (!textElement || !ellipsisElement) {
-      return;
-    }
-
-    const updateEllipsisState = () => {
-      const overflowWidth = textElement.scrollWidth - textElement.clientWidth;
-      const ellipsisWidth = ellipsisElement.offsetWidth * thresholdMultiplier;
-
-      setShouldShowEllipsis(overflowWidth > ellipsisWidth);
-    };
-
-    updateEllipsisState();
-
-    const resizeObserver = new ResizeObserver(updateEllipsisState);
-    resizeObserver.observe(textElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [text, thresholdMultiplier]);
-
-  return (
-    <div className="relative min-w-0 flex-1">
-      <span
-        className={cn(
-          "block min-w-0 overflow-hidden whitespace-nowrap",
-          shouldShowEllipsis ? "text-ellipsis" : "",
-          className
-        )}
-        ref={textRef}
-      >
-        {text}
-      </span>
-      <span
-        aria-hidden
-        className={cn("invisible absolute", className)}
-        ref={ellipsisRef}
-      >
-        ...
-      </span>
-    </div>
-  );
-}
 
 function OrgSelectorTrigger({
   isSwitching,
@@ -147,6 +83,7 @@ function OrgSelectorTrigger({
   activeOrganization: Organization | null;
   planBadge: string | null;
 }) {
+  const t = useTranslations("nav.orgSelector");
   return (
     <DropdownMenuTrigger
       render={
@@ -154,7 +91,7 @@ function OrgSelectorTrigger({
           className="data-popup-open:bg-sidebar-accent/90 data-popup-open:text-sidebar-accent-foreground data-popup-open:ring-sidebar-border/70 min-w-0 cursor-pointer data-popup-open:ring-1"
           disabled={isSwitching}
           size="lg"
-          tooltip={`Organization | ${activeOrganization?.name}`}
+          tooltip={t("tooltip", { name: activeOrganization?.name ?? "" })}
         >
           <Avatar className="size-8 shrink-0 rounded-lg after:rounded-lg">
             <AvatarImage
@@ -162,14 +99,16 @@ function OrgSelectorTrigger({
               src={activeOrganization?.logo || undefined}
             />
             <AvatarFallback className="bg-sidebar-accent rounded-lg">
-              {activeOrganization?.name.charAt(0)}
+              {nameInitials(activeOrganization?.name ?? "", 1)}
             </AvatarFallback>
           </Avatar>
           <div className="duration-normal flex min-w-0 flex-1 items-center gap-2 text-left text-sm leading-tight transition-opacity ease-(--sidebar-ease) group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:delay-75 group-data-[state=expanded]:delay-150 motion-reduce:transition-none motion-reduce:delay-0">
-            <OverflowAwareText
-              className="text-sm font-medium"
-              text={activeOrganization?.name}
-            />
+            <span
+              className="min-w-0 flex-1 truncate text-sm font-medium"
+              title={activeOrganization?.name}
+            >
+              {activeOrganization?.name}
+            </span>
             {planBadge ? (
               <Badge
                 className="bg-primary/10 text-primary shrink-0 font-semibold uppercase"
@@ -214,17 +153,19 @@ function OrganizationOptionsList({
   onCreate,
   disabled = false,
 }: OrganizationOptionsListProps) {
+  const t = useTranslations("nav.orgSelector");
+  const tCommon2 = useTranslations("common");
   if (!organizations.length) {
     return (
       <div className="text-muted-foreground px-2 py-4 text-center text-sm">
-        No organizations found
+        {t("noOrganizations")}
       </div>
     );
   }
 
   return (
     <DropdownMenuGroup>
-      <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+      <DropdownMenuLabel>{tCommon2("labels.organizations")}</DropdownMenuLabel>
       {organizations.map((org) => {
         const isSelected = selectedOrganizationId === org.id;
         return (
@@ -238,14 +179,12 @@ function OrganizationOptionsList({
             <Avatar className="size-5 rounded-md after:rounded-md">
               <AvatarImage src={org.logo || undefined} />
               <AvatarFallback className="rounded-md text-[10px]">
-                {org.name.slice(0, 2)}
+                {nameInitials(org.name)}
               </AvatarFallback>
             </Avatar>
-            <OverflowAwareText
-              className="text-sm"
-              text={org.name}
-              thresholdMultiplier={1.75}
-            />
+            <span className="min-w-0 flex-1 truncate text-sm" title={org.name}>
+              {org.name}
+            </span>
             {isSelected ? (
               <HugeiconsIcon
                 className="text-muted-foreground ml-auto size-4"
@@ -262,7 +201,7 @@ function OrganizationOptionsList({
           onClick={onCreate}
         >
           <HugeiconsIcon icon={PlusSignIcon} />
-          New organization
+          {t("newOrganization")}
         </DropdownMenuItem>
       ) : null}
     </DropdownMenuGroup>
@@ -270,6 +209,10 @@ function OrganizationOptionsList({
 }
 
 export function OrgSelector() {
+  const t = useTranslations("nav.orgSelector");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const isClient = useIsClient();
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -340,7 +283,7 @@ export function OrgSelector() {
       if (error) {
         const message = errorMessageOr(
           error.message,
-          "Failed to switch organization"
+          tCommon2("labels.failedToSwitchOrganization")
         );
         toast.error(message);
         setIsSwitching(false);
@@ -368,7 +311,7 @@ export function OrgSelector() {
         router.replace(targetPath);
       });
     } catch (error) {
-      toast.error("Failed to switch organization");
+      toast.error(tCommon2("labels.failedToSwitchOrganization"));
       console.error(error);
       setIsSwitching(false);
     }
@@ -376,9 +319,9 @@ export function OrgSelector() {
 
   function handleCreateOrganization() {
     if (!hasActivePaidPlan) {
-      toast("Subscribe to create more organizations", {
+      toast(t("subscribeToCreate"), {
         action: {
-          label: "Upgrade",
+          label: tCommon("upgrade"),
           onClick: () => openSettings("billing"),
         },
       });
@@ -435,7 +378,7 @@ export function OrgSelector() {
               onClick={() => openFeedback()}
             >
               <HugeiconsIcon icon={Message01Icon} />
-              Feedback
+              {tCommon2("labels.feedback")}
               <Kbd className="ml-auto">F</Kbd>
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -445,7 +388,7 @@ export function OrgSelector() {
               }}
             >
               <HugeiconsIcon icon={Calendar03Icon} />
-              Schedule a Demo
+              {t("scheduleDemo")}
               <Kbd className="ml-auto">S</Kbd>
             </DropdownMenuItem>
             {hasActivePaidPlan ? null : (
@@ -457,7 +400,7 @@ export function OrgSelector() {
                 onClick={() => openSettings("billing")}
               >
                 <HugeiconsIcon icon={SparklesIcon} />
-                Upgrade to Growth
+                {t("upgradeToGrowth")}
               </DropdownMenuItem>
             )}
 
@@ -468,7 +411,7 @@ export function OrgSelector() {
               onClick={() => openSettings("account")}
             >
               <HugeiconsIcon icon={Settings01Icon} />
-              Settings
+              {tCommon("settings")}
               <KbdGroup className="ml-auto">
                 <Kbd>{isApplePlatform ? "⌘" : "Ctrl"}</Kbd>
                 <Kbd>,</Kbd>
@@ -480,16 +423,20 @@ export function OrgSelector() {
               onClick={toggleTheme}
             >
               <HugeiconsIcon icon={isDark ? Sun03Icon : Moon02Icon} />
-              {isDark ? "Light Mode" : "Dark Mode"}
+              {isDark ? t("lightMode") : t("darkMode")}
               <Kbd className="ml-auto">D</Kbd>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <CreateOrgModal
-          onOpenChange={setIsCreateModalOpen}
-          open={isCreateModalOpen}
-        />
+        <Suspense fallback={null}>
+          {isClient ? (
+            <CreateOrgModal
+              onOpenChange={setIsCreateModalOpen}
+              open={isCreateModalOpen}
+            />
+          ) : null}
+        </Suspense>
 
         <CreditTopupModal
           onOpenChange={setIsTopupModalOpen}

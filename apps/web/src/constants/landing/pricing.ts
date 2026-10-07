@@ -41,7 +41,7 @@ export const PRICING_HEADING =
   "Simple pricing that scales with what you track.";
 
 export const PRICING_SUBHEADING =
-  "Every plan comes with prompt tracking, traffic attribution and the writer. The difference is how many answers you track a month. Cancel whenever.";
+  "Every plan comes with prompt tracking, traffic attribution and the writer. Plans differ in how many answers you track a month, and you can cancel anytime.";
 
 const SIGNUP_URL = "https://app.usenotra.com/signup";
 const ENTERPRISE_MAIL_URL = "mailto:hello@usenotra.com";
@@ -49,6 +49,7 @@ const ENTERPRISE_MAIL_URL = "mailto:hello@usenotra.com";
 export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "starter",
+    answersPerMonth: 2_000,
     name: "Starter",
     description: "For founders tracking their first prompts.",
     price: { monthly: "$100", yearly: "$1,000" },
@@ -79,6 +80,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: "growth",
+    answersPerMonth: 6_000,
     name: "Growth",
     description: "For teams tracking prompts across engines and languages.",
     price: { monthly: "$250", yearly: "$2,500" },
@@ -109,6 +111,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: "scale",
+    answersPerMonth: 12_000,
     name: "Scale",
     description: "For agencies and teams running several brands.",
     price: { monthly: "$550", yearly: "$5,500" },
@@ -139,6 +142,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: "enterprise",
+    answersPerMonth: null,
     name: "Enterprise",
     description: "For large orgs with custom scale and compliance needs.",
     price: { monthly: "Custom", yearly: "Custom" },

@@ -2,20 +2,23 @@
 
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
 import { Button } from "@notra/ui/components/ui/button";
 import { SPRING } from "@notra/ui/lib/motion";
 import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { CursorTooltip } from "@/components/analytics/cursor-tooltip";
+import { POSTING_ACTIVITY_BAR_CLASSES } from "@/constants/analytics";
 import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
-import {
-  POSTING_ACTIVITY_BAR_CLASSES,
-  POSTING_ACTIVITY_LABELS,
-} from "@/constants/analytics";
+  DAY_MS,
+  WEEKDAY_REFERENCE_MONDAY_UTC,
+} from "@/constants/analytics-weekdays";
+import { useFormatMetric } from "@/lib/hooks/use-format-metric";
 import { cn } from "@/lib/utils";
 import type {
   CursorTipState,
@@ -27,7 +30,6 @@ import {
   cursorTipPosition,
   findBestPostingSlot,
   formatHourRange,
-  formatMetric,
   postingSlotHeightPercent,
   timezoneAbbreviation,
   WEEKDAY_LABELS,
@@ -38,6 +40,20 @@ export function PostingPerformanceCard({
   points,
   action,
 }: PostingPerformanceCardProps) {
+  const t = useTranslations("analytics.postingPerformance");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const formatMetric = useFormatMetric();
+  const format = useFormatter();
+  const weekdayLabel = (index: number) =>
+    format.dateTime(new Date(WEEKDAY_REFERENCE_MONDAY_UTC + index * DAY_MS), {
+      weekday: "short",
+      timeZone: "UTC",
+    });
+  const postsDetail = (posts: number) =>
+    posts > 0
+      ? ` · ${tCommon("messages.countPluralOnePostOther", { count: posts })}`
+      : "";
   const reduceMotion = useReducedMotion();
   const [selectedWeekday, setSelectedWeekday] = useState<number | null>(null);
   const [tip, setTip] = useState<CursorTipState | null>(null);
@@ -58,15 +74,18 @@ export function PostingPerformanceCard({
     0
   );
   const selectedLabel =
-    selectedWeekday === null ? null : WEEKDAY_LABELS[selectedWeekday - 1];
+    selectedWeekday === null ? null : weekdayLabel(selectedWeekday - 1);
+  const bestWeekdayLabel = best
+    ? weekdayLabel(WEEKDAY_LABELS.indexOf(best.weekday))
+    : "";
   const direction = selectedWeekday === null ? -1 : 1;
   const slide = reduceMotion ? 0 : PANEL_SLIDE;
 
   return (
     <InstrumentModule
       action={action}
-      description="When your posts earn the most engagement"
-      eyebrow="Best time to post"
+      description={t("description")}
+      eyebrow={t("title")}
       variant="panel"
     >
       {hasData ? (
@@ -86,14 +105,15 @@ export function PostingPerformanceCard({
                   {best && (
                     <div>
                       <p className="font-mono text-xl tracking-tight tabular-nums">
-                        {best.weekday} {formatHourRange(best.hour)}
+                        {bestWeekdayLabel} {formatHourRange(best.hour)}
                         <span className="text-muted-foreground ml-2 text-sm">
-                          {timezoneAbbreviation()}
+                          {timezoneAbbreviation(locale)}
                         </span>
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        Highest average engagement (
-                        {formatMetric(best.avgEngagement)} per post)
+                        {t("highestEngagement", {
+                          value: formatMetric(best.avgEngagement),
+                        })}
                       </p>
                     </div>
                   )}
@@ -115,12 +135,12 @@ export function PostingPerformanceCard({
                           key={WEEKDAY_LABELS[dayIndex]}
                         >
                           <span className="text-muted-foreground w-7 shrink-0 font-mono text-[0.625rem]">
-                            {WEEKDAY_LABELS[dayIndex]}
+                            {weekdayLabel(dayIndex)}
                           </span>
                           <div className="flex min-w-0 flex-1 gap-0.5">
                             {row.map((cell) => (
                               <button
-                                aria-label={`${WEEKDAY_LABELS[dayIndex]} ${formatHourRange(cell.hour)}: ${POSTING_ACTIVITY_LABELS[cell.level]}`}
+                                aria-label={`${weekdayLabel(dayIndex)} ${formatHourRange(cell.hour)}: ${t(`activity.${cell.level}`)}`}
                                 className={cn(
                                   "h-3.5 min-w-0 flex-1 cursor-pointer rounded-[0.1875rem]",
                                   POSTING_ACTIVITY_BAR_CLASSES[cell.level]
@@ -130,8 +150,8 @@ export function PostingPerformanceCard({
                                 onPointerMove={(event) =>
                                   setTip({
                                     ...cursorTipPosition(event),
-                                    title: `${WEEKDAY_LABELS[dayIndex]} ${formatHourRange(cell.hour)}`,
-                                    detail: `${POSTING_ACTIVITY_LABELS[cell.level]}${cell.posts > 0 ? ` · ${cell.posts.toLocaleString()} ${cell.posts === 1 ? "post" : "posts"}` : ""}`,
+                                    title: `${weekdayLabel(dayIndex)} ${formatHourRange(cell.hour)}`,
+                                    detail: `${t(`activity.${cell.level}`)}${postsDetail(cell.posts)}`,
                                   })
                                 }
                                 type="button"
@@ -158,7 +178,7 @@ export function PostingPerformanceCard({
                       variant="ghost"
                     >
                       <HugeiconsIcon icon={ArrowLeft01Icon} size={12} />
-                      Week
+                      {t("week")}
                     </Button>
                   </div>
                   {best && (
@@ -166,12 +186,13 @@ export function PostingPerformanceCard({
                       <p className="font-mono text-xl tracking-tight tabular-nums">
                         {selectedLabel} {formatHourRange(best.hour)}
                         <span className="text-muted-foreground ml-2 text-sm">
-                          {timezoneAbbreviation()}
+                          {timezoneAbbreviation(locale)}
                         </span>
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        Highest average engagement (
-                        {formatMetric(best.avgEngagement)} per post)
+                        {t("highestEngagement", {
+                          value: formatMetric(best.avgEngagement),
+                        })}
                       </p>
                     </div>
                   )}
@@ -191,7 +212,7 @@ export function PostingPerformanceCard({
                         const isBest = best?.hour === slot.hour;
                         return (
                           <button
-                            aria-label={`${formatHourRange(slot.hour)}: ${POSTING_ACTIVITY_LABELS[slot.level]}`}
+                            aria-label={`${formatHourRange(slot.hour)}: ${t(`activity.${slot.level}`)}`}
                             className={cn(
                               "min-w-0 flex-1 rounded-full",
                               isBest &&
@@ -202,7 +223,7 @@ export function PostingPerformanceCard({
                               setTip({
                                 ...cursorTipPosition(event),
                                 title: formatHourRange(slot.hour),
-                                detail: `${POSTING_ACTIVITY_LABELS[slot.level]}${slot.posts > 0 ? ` · ${slot.posts.toLocaleString()} ${slot.posts === 1 ? "post" : "posts"}` : ""}`,
+                                detail: `${t(`activity.${slot.level}`)}${postsDetail(slot.posts)}`,
                               })
                             }
                             style={{
@@ -235,7 +256,7 @@ export function PostingPerformanceCard({
       ) : (
         <InstrumentEmpty
           className="h-56"
-          message="No posting data for this time frame"
+          message={t("empty")}
           seed="Best time to post"
         />
       )}

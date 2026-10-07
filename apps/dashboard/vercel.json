@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "git": {
+    "deploymentEnabled": false
+  },
+  "installCommand": "cd ../.. && bunx bun@1.4.0 install --frozen-lockfile --filter 'dashboard...' --filter turbo",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "regions": ["iad1"],
   "crons": [
     {
@@ -11,8 +17,16 @@
       "schedule": "*/10 * * * *"
     },
     {
+      "path": "/api/cron/geo-content-gaps",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/daily-summary",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/brew-contacts",
+      "schedule": "30 3 * * *"
     }
   ]
 }

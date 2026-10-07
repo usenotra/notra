@@ -15,13 +15,12 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import { ActionResultError } from "@/lib/actions/action-result-error";
 import { authClient } from "@/lib/auth/client";
-import {
-  isTeamMemberLimitError,
-  mapBillingLimitErrorMessage,
-} from "@/lib/billing/limits";
+import { isTeamMemberLimitError } from "@/lib/billing/limits";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
 import { cn } from "@/lib/utils";
 import type { InviteMemberPopoverProps } from "@/types/settings/members";
@@ -32,6 +31,10 @@ type InviteRole = (typeof INVITE_ROLES)[number];
 export function InviteMemberPopover({
   organizationId,
 }: InviteMemberPopoverProps) {
+  const t = useTranslations("members.invite");
+  const tMembersShared = useTranslations("members.shared");
+  const tMembers = useTranslations("members");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<InviteRole>("member");
@@ -51,11 +54,11 @@ export function InviteMemberPopover({
         organizationId,
       });
       if (error) {
-        throw new Error(error.message);
+        throw new ActionResultError(error.message, error.code);
       }
     },
     onSuccess: () => {
-      toast.success("Invitation sent successfully");
+      toast.success(t("sent"));
       setOpen(false);
       reset();
       queryClient.invalidateQueries({
@@ -63,14 +66,14 @@ export function InviteMemberPopover({
       });
     },
     onError: (error) => {
-      const message = mapBillingLimitErrorMessage(
-        error.message,
-        "Failed to send invitation"
-      );
-      if (isTeamMemberLimitError(error.message)) {
+      const message = error.message || t("sendFailed");
+      if (
+        error instanceof ActionResultError &&
+        isTeamMemberLimitError(error.code)
+      ) {
         toast.error(message, {
           action: {
-            label: "View plans",
+            label: tMembers("viewPlans"),
             onClick: () => openSettings("billing"),
           },
         });
@@ -96,7 +99,7 @@ export function InviteMemberPopover({
         render={
           <Button size="sm">
             <HugeiconsIcon className="size-4" icon={Add01Icon} />
-            Invite Member
+            {tMembersShared("inviteMember")}
           </Button>
         }
       />
@@ -106,10 +109,8 @@ export function InviteMemberPopover({
         side="bottom"
       >
         <PopoverHeader>
-          <PopoverTitle>Invite member</PopoverTitle>
-          <PopoverDescription>
-            They'll get an email invitation to join this organization.
-          </PopoverDescription>
+          <PopoverTitle>{tMembersShared("inviteMember")}</PopoverTitle>
+          <PopoverDescription>{t("description")}</PopoverDescription>
         </PopoverHeader>
         <form
           className="space-y-3"
@@ -122,22 +123,22 @@ export function InviteMemberPopover({
           }}
         >
           <div className="space-y-1.5">
-            <Label htmlFor="invite-email">Email</Label>
+            <Label htmlFor="invite-email">{tCommon("labels.email")}</Label>
             <Input
               autoComplete="email"
               autoFocus
               id="invite-email"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="member@example.com"
+              placeholder={t("emailPlaceholder")}
               required
               type="email"
               value={email}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="invite-role">Role</Label>
+            <Label htmlFor="invite-role">{tCommon("labels.role")}</Label>
             <div
-              aria-label="Role"
+              aria-label={tCommon("labels.role")}
               className="bg-muted grid grid-cols-2 rounded-lg p-[3px]"
               id="invite-role"
               role="radiogroup"
@@ -148,7 +149,7 @@ export function InviteMemberPopover({
                   <button
                     aria-checked={selected}
                     className={cn(
-                      "rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-colors",
+                      "rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
                       selected
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -158,7 +159,7 @@ export function InviteMemberPopover({
                     role="radio"
                     type="button"
                   >
-                    {value}
+                    {tMembers("roleLabel", { role: value })}
                   </button>
                 );
               })}
@@ -172,10 +173,10 @@ export function InviteMemberPopover({
               type="button"
               variant="outline"
             >
-              Cancel
+              {tCommon("actions.cancel")}
             </Button>
             <Button disabled={!canSubmit} size="sm" type="submit">
-              {isPending ? "Sending…" : "Send"}
+              {isPending ? tCommon("labels.sending") : tCommon("labels.send")}
             </Button>
           </div>
         </form>

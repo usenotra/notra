@@ -7,7 +7,9 @@ import type {
   OrchestrateResult,
 } from "@notra/ai/types/orchestration";
 import { normalizeMarkdownFileAttachments } from "@notra/ai/utils/message-attachments";
+import { resolveConversationRoute } from "@notra/ai/utils/resolve-conversation-route";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
+import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import {
   convertToModelMessages,
@@ -21,7 +23,7 @@ import {
   hasEnabledLinearIntegration,
   validateIntegrations,
 } from "./integration-validator";
-import { routeAndSelectModel } from "./router";
+import { routeMessage, selectAutoModel } from "./router";
 import { getThinkingProviderOptions } from "./thinking";
 import {
   buildToolSet,
@@ -35,6 +37,7 @@ export async function orchestrateChat(
 ): Promise<OrchestrateResult> {
   const {
     organizationId,
+    chatId,
     messages,
     currentMarkdown,
     contentType,
@@ -45,6 +48,7 @@ export async function orchestrateChat(
     selection,
     context = [],
     maxSteps = 1,
+    abortSignal,
     log: inputLog,
     timezone,
     telemetryMetadata,
@@ -65,12 +69,28 @@ export async function orchestrateChat(
 
   const lastUserMessage = getLastUserMessage(messages);
   const hasAttachments = lastUserMessageHasNonTextParts(messages);
-  const routedDecision = await routeAndSelectModel(
-    lastUserMessage,
-    hasIntegrationContext,
-    log,
-    hasAttachments,
-    telemetryMetadata
+  const routedDecision = await resolveConversationRoute(
+    messages,
+    undefined,
+    async () => {
+      const decision = await routeMessage(
+        lastUserMessage,
+        hasIntegrationContext,
+        log,
+        hasAttachments,
+        telemetryMetadata
+      );
+      const auto = selectAutoModel(decision);
+      return {
+        model: auto.model,
+        thinkingLevel: auto.thinkingLevel,
+        complexity: decision.complexity,
+        requiresTools: true,
+        reasoning: decision.requiresTools
+          ? `auto → ${auto.model}: ${decision.reasoning}`
+          : `auto → ${auto.model}: ${decision.reasoning} (tools available by default)`,
+      };
+    }
   );
   const routingDecision = {
     ...routedDecision,
@@ -83,7 +103,7 @@ export async function orchestrateChat(
   const modelWithMemory = createModel(
     organizationId,
     routingDecision.model,
-    {},
+    { supermemory: { customId: chatId } },
     log
   );
 
@@ -120,26 +140,42 @@ export async function orchestrateChat(
   });
 
   const messagesForModel = normalizeMarkdownFileAttachments(messages);
+  let firstChunkFired = false;
 
+  const thinkingProviderOptions = getThinkingProviderOptions(
+    routingDecision.model,
+    true,
+    routingDecision.thinkingLevel ?? "low"
+  );
   const stream = streamText({
     model: modelWithMemory,
     instructions: systemPrompt,
     messages: await convertToModelMessages(messagesForModel, {
+      tools,
       ignoreIncompleteToolCalls: true,
     }),
     tools,
     stopWhen: isStepCount(maxSteps),
+    abortSignal,
     providerOptions: withRouterDefaults(
-      getThinkingProviderOptions(
-        routingDecision.model,
-        true,
-        routingDecision.thinkingLevel ?? "low"
-      ),
+      {
+        ...thinkingProviderOptions,
+        gateway: { tags: ["content-chat"] },
+      },
       {
         modelId: routingDecision.model,
       }
     ),
     ...buildTelemetryOptions(telemetryMetadata),
+    onChunk({ chunk }) {
+      if (firstChunkFired) {
+        return;
+      }
+      if (chunk.type === "text-delta" || chunk.type === "reasoning-delta") {
+        firstChunkFired = true;
+        deps?.onFirstChunk?.();
+      }
+    },
     async onEnd({ usage, steps }) {
       await deps?.onUsage?.(
         usage,
@@ -148,10 +184,9 @@ export async function orchestrateChat(
       );
     },
     onError({ error }) {
-      console.error("[Chat Stream Error]", {
+      logError("[Chat] Stream failed", error, {
         organizationId,
         model: routingDecision.model,
-        error: error instanceof Error ? error.message : String(error),
       });
     },
   });
@@ -176,17 +211,16 @@ function lastUserMessageHasNonTextParts(messages: UIMessage[]): boolean {
 function getLastUserMessage(messages: UIMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
-    if (!message) {
+    if (!message || message.role !== "user") {
       continue;
     }
-    if (message.role === "user") {
-      const parts = message.parts;
-      if (Array.isArray(parts)) {
-        for (const part of parts) {
-          if (part.type === "text") {
-            return part.text;
-          }
-        }
+    const parts = message.parts;
+    if (!Array.isArray(parts)) {
+      continue;
+    }
+    for (const part of parts) {
+      if (part.type === "text") {
+        return part.text;
       }
     }
   }

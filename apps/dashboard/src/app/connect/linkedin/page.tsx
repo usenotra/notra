@@ -8,19 +8,20 @@ import {
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Notra } from "@notra/ui/components/ui/svgs/notra";
-import { Loader2Icon } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
+import Link from "@/components/framework/link";
 import {
   useCompleteLinkedInSelection,
   useLinkedInSelection,
 } from "@/lib/hooks/use-linkedin-selection";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { SelectionShellProps } from "@/types/components/linkedin-connect";
 
@@ -37,6 +38,8 @@ function buildConnectedPath(callbackPath: string): string {
 }
 
 function LinkedInConnectContent() {
+  const t = useTranslations("onboarding.linkedinConnect");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [token] = useQueryState("token", parseAsString.withDefault(""));
   const { data, isLoading, isError, error } = useLinkedInSelection(token);
@@ -77,7 +80,7 @@ function LinkedInConnectContent() {
           toast.error(
             mutationError instanceof Error && mutationError.message
               ? mutationError.message
-              : "Failed to connect the LinkedIn profiles"
+              : t("connectFailed")
           );
         },
       }
@@ -87,11 +90,9 @@ function LinkedInConnectContent() {
   if (!token) {
     return (
       <SelectionShell>
-        <p className="text-destructive text-sm">
-          This connection link is invalid. Please start the connection again.
-        </p>
+        <p className="text-destructive text-sm">{t("invalidLink")}</p>
         <Link className={cn(buttonVariants({ variant: "outline" }))} href="/">
-          Back to dashboard
+          {t("backToDashboard")}
         </Link>
       </SelectionShell>
     );
@@ -115,10 +116,10 @@ function LinkedInConnectContent() {
         <p className="text-destructive text-sm">
           {error instanceof Error && error.message
             ? error.message
-            : "Failed to load your LinkedIn profiles. Please start the connection again."}
+            : t("loadFailed")}
         </p>
         <Link className={cn(buttonVariants({ variant: "outline" }))} href="/">
-          Back to dashboard
+          {t("backToDashboard")}
         </Link>
       </SelectionShell>
     );
@@ -162,7 +163,7 @@ function LinkedInConnectContent() {
                   {account.username}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {isPage ? "Company page" : "Personal profile"}
+                  {isPage ? t("companyPage") : t("personalProfile")}
                 </p>
               </div>
               <span
@@ -186,18 +187,14 @@ function LinkedInConnectContent() {
           className={cn(buttonVariants({ variant: "outline" }))}
           href={buildSafePath(data.callbackPath)}
         >
-          Cancel
+          {tCommon("actions.cancel")}
         </Link>
         <Button
-          disabled={completeMutation.isPending || selectedIds.length === 0}
+          disabled={selectedIds.length === 0}
+          loading={completeMutation.isPending}
           onClick={handleConnect}
         >
-          {completeMutation.isPending && (
-            <Loader2Icon className="size-4 animate-spin" />
-          )}
-          {selectedIds.length === 1
-            ? "Connect 1 profile"
-            : `Connect ${selectedIds.length} profiles`}
+          {t("connectProfiles", { count: selectedIds.length })}
         </Button>
       </div>
     </SelectionShell>
@@ -205,6 +202,7 @@ function LinkedInConnectContent() {
 }
 
 function SelectionShell({ children }: SelectionShellProps) {
+  const t = useTranslations("onboarding.linkedinConnect");
   return (
     <div className="bg-muted/40 flex min-h-svh flex-col items-center justify-center px-4 py-12">
       <div className="mb-8 flex items-center gap-2.5">
@@ -217,10 +215,8 @@ function SelectionShell({ children }: SelectionShellProps) {
       </div>
       <div className="bg-background w-full max-w-md rounded-xl border p-6 shadow-sm">
         <div className="mb-5 space-y-1">
-          <h1 className="text-lg font-bold">Where should we post from?</h1>
-          <p className="text-muted-foreground text-sm">
-            Pick the LinkedIn profiles you want to post as.
-          </p>
+          <h1 className="text-lg font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("description")}</p>
         </div>
         <div className="space-y-4">{children}</div>
       </div>
@@ -233,7 +229,7 @@ export default function LinkedInConnectPage() {
     <Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">
-          <Loader2Icon className="text-muted-foreground size-6 animate-spin" />
+          <Spinner className="text-muted-foreground size-6" />
         </div>
       }
     >

@@ -19,6 +19,7 @@ export async function generateSentimentAnalysis(
 ): Promise<SentimentAgentResult> {
   const result = await generateText({
     model,
+    providerOptions: { gateway: { tags: ["geo-sentiment-analysis"] } },
     instructions: SENTIMENT_ANALYSIS_SYSTEM,
     prompt: JSON.stringify({ brand, answers: sample }),
     output: Output.object({ schema: sentimentThemeOutputSchema }),

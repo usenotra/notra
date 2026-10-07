@@ -10,6 +10,7 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GEO_PERSONA_PROFILE_SECTIONS } from "@/constants/geo-personas";
@@ -18,22 +19,36 @@ import {
   useGeoPersonaUpdate,
 } from "@/lib/hooks/use-geo-personas";
 import type { PersonaProfileEditorProps } from "@/types/geo-personas-ui";
-import { groupPersonaMemories } from "@/utils/geo-personas";
+import { groupPersonaMemories, personaPointsText } from "@/utils/geo-personas";
+
+/**
+ * The editor splits glued points onto their own lines for display. An
+ * untouched field goes back as stored, so saving without edits does not
+ * count as a change (and regenerate prompts) or push it past the length cap.
+ */
+function unsplitPoints(value: FormDataEntryValue | null, stored: string) {
+  return value === personaPointsText(stored) ? stored : value;
+}
 
 export function PersonaProfileEditor({
   persona,
   organizationId,
   onCancel,
 }: PersonaProfileEditorProps) {
+  const t = useTranslations("geo.personaProfileEditor");
+  const tCommon2 = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common.actions");
+  const tLabels = useTranslations("common.labels");
   const id = useId();
   const update = useGeoPersonaUpdate(organizationId);
   const generatePersona = useGeoPersonasGenerate(organizationId);
   const isPending = update.isPending || generatePersona.isPending;
-  let submitLabel = "Save persona";
+  let submitLabel = t("savePersona");
   if (update.isPending) {
-    submitLabel = "Saving…";
+    submitLabel = tCommon("saving");
   } else if (generatePersona.isPending) {
-    submitLabel = "Regenerating prompts…";
+    submitLabel = t("regeneratingPrompts");
   }
   const [error, setError] = useState<string | null>(null);
   const [stack, setStack] = useState(() => [
@@ -64,8 +79,11 @@ export function PersonaProfileEditor({
           name: form.get("name"),
           role: form.get("role"),
           company: form.get("company"),
-          summary: form.get("summary"),
-          searchStyle: form.get("searchStyle"),
+          summary: unsplitPoints(form.get("summary"), persona.summary),
+          searchStyle: unsplitPoints(
+            form.get("searchStyle"),
+            persona.searchStyle
+          ),
           profile,
         });
         if (!parsed.success) {
@@ -80,7 +98,7 @@ export function PersonaProfileEditor({
         if (!hasGeoPersonaDetailsChanged(persona, parsed.data)) {
           setStack([...new Set(parsed.data.profile.currentStack)]);
           setStackDraft("");
-          toast.success("Persona saved");
+          toast.success(t("saved"));
           onCancel();
           return;
         }
@@ -90,7 +108,7 @@ export function PersonaProfileEditor({
             onSuccess: () => {
               setStack([...new Set(parsed.data.profile.currentStack)]);
               setStackDraft("");
-              toast.success("Persona saved. Regenerating prompts…");
+              toast.success(t("savedRegenerating"));
               generatePersona.mutate({
                 personaId: persona.id,
                 promptsOnly: true,
@@ -103,11 +121,11 @@ export function PersonaProfileEditor({
     >
       <fieldset
         disabled={isPending}
-        className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5"
+        className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-6"
       >
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium" htmlFor={`${id}-name`}>
-            Name
+        <div className="space-y-2">
+          <label className="block text-sm font-medium" htmlFor={`${id}-name`}>
+            {tCommon2("labels.name")}
           </label>
           <Input
             id={`${id}-name`}
@@ -117,12 +135,15 @@ export function PersonaProfileEditor({
             required
           />
         </div>
-        <section className="space-y-2">
-          <h3 className="text-base font-semibold">Employment</h3>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor={`${id}-role`}>
-                Job title
+        <section className="space-y-4 border-t pt-6">
+          <h3 className="text-base font-semibold">{t("employment")}</h3>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label
+                className="block text-sm font-medium"
+                htmlFor={`${id}-role`}
+              >
+                {t("jobTitle")}
               </label>
               <Input
                 id={`${id}-role`}
@@ -132,9 +153,12 @@ export function PersonaProfileEditor({
                 required
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor={`${id}-company`}>
-                Company profile
+            <div className="space-y-2">
+              <label
+                className="block text-sm font-medium"
+                htmlFor={`${id}-company`}
+              >
+                {t("companyProfile")}
               </label>
               <Textarea
                 className="resize-none"
@@ -148,50 +172,53 @@ export function PersonaProfileEditor({
             </div>
           </div>
         </section>
-        <section className="space-y-2">
-          <h3 className="text-base font-semibold">Behavior</h3>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor={`${id}-summary`}>
-                Motivations
+        <section className="space-y-4 border-t pt-6">
+          <h3 className="text-base font-semibold">{t("behavior")}</h3>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label
+                className="block text-sm font-medium"
+                htmlFor={`${id}-summary`}
+              >
+                {t("motivations")}
               </label>
               <Textarea
                 className="resize-none"
                 id={`${id}-summary`}
                 name="summary"
-                defaultValue={persona.summary}
+                defaultValue={personaPointsText(persona.summary)}
                 maxLength={800}
                 required
                 rows={3}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
-                className="text-sm font-medium"
+                className="block text-sm font-medium"
                 htmlFor={`${id}-searchStyle`}
               >
-                How they search
+                {t("howTheySearch")}
               </label>
               <Textarea
                 className="resize-none"
                 id={`${id}-searchStyle`}
                 name="searchStyle"
-                defaultValue={persona.searchStyle}
+                defaultValue={personaPointsText(persona.searchStyle)}
                 maxLength={800}
                 required
                 rows={3}
               />
             </div>
             {GEO_PERSONA_PROFILE_SECTIONS.map((section) => (
-              <div className="space-y-1.5" key={section.key}>
+              <div className="space-y-2" key={section.key}>
                 <label
-                  className="text-sm font-medium"
+                  className="block text-sm font-medium"
                   htmlFor={`${id}-${section.key}`}
                 >
-                  {section.label}
+                  {t(`sections.${section.key}`)}
                 </label>
                 {section.key === "currentStack" ? (
-                  <div className="border-input flex flex-wrap items-center gap-1.5 rounded-lg border p-2">
+                  <div className="border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex flex-wrap items-center gap-1.5 rounded-lg border bg-transparent px-2 py-1.5 transition-colors focus-within:ring-2">
                     {stack.map((tool) => (
                       <Badge
                         className="max-w-full gap-1 pr-0.5 font-normal"
@@ -202,7 +229,7 @@ export function PersonaProfileEditor({
                         <button
                           type="button"
                           className="hover:bg-muted focus-visible:ring-ring flex size-6 shrink-0 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
-                          aria-label={`Remove ${tool}`}
+                          aria-label={t("removeTool", { tool })}
                           onClick={() => {
                             setStack((items) =>
                               items.filter((item) => item !== tool)
@@ -217,8 +244,8 @@ export function PersonaProfileEditor({
                     <input
                       ref={stackInput}
                       id={`${id}-${section.key}`}
-                      className="placeholder:text-muted-foreground focus-visible:ring-ring min-h-8 min-w-24 flex-1 rounded-sm bg-transparent px-1 text-base outline-none focus-visible:ring-2 md:text-sm"
-                      placeholder="Add tool…"
+                      className="placeholder:text-muted-foreground min-h-7 min-w-24 flex-1 bg-transparent px-1 text-base outline-none md:text-sm"
+                      placeholder={t("addTool")}
                       maxLength={200}
                       value={stackDraft}
                       onChange={(event) => setStackDraft(event.target.value)}
@@ -239,9 +266,7 @@ export function PersonaProfileEditor({
                           return;
                         }
                         if (stack.length >= 6) {
-                          setError(
-                            "Current stack can contain up to six tools."
-                          );
+                          setError(t("stackLimit"));
                           return;
                         }
                         setStack((items) => [...items, tool]);
@@ -264,9 +289,9 @@ export function PersonaProfileEditor({
           </div>
         </section>
         {persona.memories.length > 0 ? (
-          <details className="group/memories border-t pt-4">
+          <details className="group/memories border-t pt-6">
             <summary className="hover:bg-muted/50 focus-visible:ring-ring -mx-2 flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-              <span>Memories</span>
+              <span>{tGeoShared("memories")}</span>
               <span className="text-muted-foreground bg-muted rounded-md px-1.5 py-0.5 text-xs font-normal tabular-nums">
                 {persona.memories.length}
               </span>
@@ -281,7 +306,9 @@ export function PersonaProfileEditor({
               {groupPersonaMemories(persona.memories).map((group) => (
                 <section className="space-y-2" key={group.kind}>
                   <h4 className="text-muted-foreground text-xs font-medium">
-                    {group.label}
+                    {group.kind === "background"
+                      ? tLabels("background")
+                      : t(`memoryKinds.${group.kind}`)}
                   </h4>
                   <ul className="bg-muted/20 divide-border/60 divide-y rounded-lg border px-3">
                     {group.memories.map((memory) => (
@@ -312,7 +339,7 @@ export function PersonaProfileEditor({
             disabled={isPending}
             onClick={onCancel}
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
             {submitLabel}

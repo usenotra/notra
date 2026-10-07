@@ -6,6 +6,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
+import { useTranslations } from "use-intl";
 
 import type { BrandIdentityTabsProps, BrandTab } from "@/types/brand-identity";
 
@@ -28,6 +29,9 @@ export function BrandIdentityTabs({
   voiceId,
   voiceWebsiteUrl,
 }: BrandIdentityTabsProps) {
+  const t = useTranslations("brand.identity.tabs");
+  const tCommon = useTranslations("common");
+  const tStates = useTranslations("common.actions");
   return (
     <Tabs
       onValueChange={(value) => onActiveTabChange(value as BrandTab)}
@@ -36,10 +40,16 @@ export function BrandIdentityTabs({
       <div className="flex min-w-0 items-center justify-between gap-4">
         <div className="min-w-0 overflow-x-auto pb-2">
           <TabsList variant="line">
-            <TabsTrigger value="identity">Company Info</TabsTrigger>
-            <TabsTrigger value="guidelines">Guidelines</TabsTrigger>
-            <TabsTrigger value="references">References</TabsTrigger>
-            <TabsTrigger value="sitemap">Sitemap</TabsTrigger>
+            <TabsTrigger value="identity">
+              {tCommon("labels.companyInfo")}
+            </TabsTrigger>
+            <TabsTrigger value="guidelines">{t("guidelines")}</TabsTrigger>
+            <TabsTrigger value="references">
+              {tCommon("labels.references")}
+            </TabsTrigger>
+            <TabsTrigger value="sitemap">
+              {tCommon("labels.sitemap")}
+            </TabsTrigger>
           </TabsList>
         </div>
         {activeTab === "identity" && isSaving ? (
@@ -48,7 +58,7 @@ export function BrandIdentityTabs({
             className="text-muted-foreground shrink-0 text-xs"
             role="status"
           >
-            Saving…
+            {tStates("saving")}
           </span>
         ) : null}
       </div>

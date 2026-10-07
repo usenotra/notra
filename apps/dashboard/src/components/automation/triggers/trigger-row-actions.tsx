@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "use-intl";
 
 import type { Trigger } from "@/types/triggers/triggers";
 
@@ -29,6 +30,8 @@ export function TriggerRowActions({
   onDelete,
   onEdit,
 }: TriggerRowActionsProps) {
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="hover:bg-accent flex size-8 cursor-pointer items-center justify-center rounded-md">
@@ -41,7 +44,7 @@ export function TriggerRowActions({
         {onEdit && (
           <DropdownMenuItem onClick={() => onEdit(trigger)}>
             <HugeiconsIcon className="size-4" icon={Edit02Icon} />
-            Edit
+            {tCommon("edit")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={() => onToggle(trigger)}>
@@ -49,7 +52,7 @@ export function TriggerRowActions({
             className="size-4"
             icon={trigger.enabled ? PauseIcon : PlayIcon}
           />
-          {trigger.enabled ? "Pause" : "Enable"}
+          {trigger.enabled ? tCommon2("labels.pause") : tCommon("enable")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -57,7 +60,7 @@ export function TriggerRowActions({
           variant="destructive"
         >
           <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-          Delete
+          {tCommon("delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

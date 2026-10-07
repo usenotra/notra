@@ -202,6 +202,17 @@ export type AnalyticsRangePreset =
   | "all"
   | "custom";
 
+export interface AnalyticsRangePresetLabel {
+  label: string;
+  compact: string;
+  hint: string;
+}
+
+export type AnalyticsRangePresetLabels = Record<
+  Exclude<AnalyticsRangePreset, "custom">,
+  AnalyticsRangePresetLabel
+>;
+
 export interface AnalyticsRangeState {
   preset: AnalyticsRangePreset;
   range: AnalyticsDateRange;
@@ -209,6 +220,7 @@ export interface AnalyticsRangeState {
 
 export interface AnalyticsRangeControl extends AnalyticsRangeState {
   label: string;
+  hint: string;
   includesToday: boolean;
   setPreset: (preset: Exclude<AnalyticsRangePreset, "custom">) => void;
   setCustom: (range: AnalyticsDateRange) => void;
@@ -364,16 +376,13 @@ export interface LeaderboardResponse {
 export interface TopPostsCardProps {
   posts: TopPostItem[];
   action?: ReactNode;
+  isPending?: boolean;
 }
 
 export interface LeaderboardCardProps {
   organizationId: string;
   organizationSlug: string;
   variant?: "module" | "page";
-}
-
-export interface AnalyticsPageClientProps {
-  organizationSlug: string;
 }
 
 export type AnalyticsProviderFilter = "all" | "twitter" | "linkedin";
@@ -409,7 +418,15 @@ export interface AccountIdentity {
 }
 
 export interface LeaderboardDetailMetric {
-  label: string;
+  labelKey:
+    | "followers"
+    | "impressions"
+    | "likes"
+    | "replies"
+    | "reposts"
+    | "quotes"
+    | "bookmarks"
+    | "engagementRate";
   value: string;
 }
 

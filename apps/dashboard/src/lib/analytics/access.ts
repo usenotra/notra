@@ -1,6 +1,6 @@
-import { ANALYTICS_UNAVAILABLE_DESCRIPTION } from "@/constants/analytics";
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import { forbidden } from "@/lib/orpc/utils/errors";
 
@@ -37,6 +37,7 @@ async function assertAnalyticsEnabled(
   }
   const enabled = await evaluation;
   if (!enabled) {
-    throw forbidden(ANALYTICS_UNAVAILABLE_DESCRIPTION);
+    const t = await getTranslations("errors.analytics");
+    throw forbidden(t("unavailable"));
   }
 }

@@ -4,15 +4,11 @@ import {
   Add01Icon,
   AlertCircleIcon,
   InformationCircleIcon,
-  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CUSTOM_SCHEDULE_DEFAULT_INTERVAL_DAYS } from "@notra/ai/constants/schedule-interval";
 import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
-import {
-  type ScheduleFormValues,
-  scheduleFormSchema,
-} from "@notra/schemas/dashboard/automation/schedule-form";
+import type { ScheduleFormValues } from "@notra/schemas/dashboard/automation/schedule-form";
 import {
   LOOKBACK_WINDOWS,
   type LookbackWindow,
@@ -62,6 +58,7 @@ import { useForm, useStore } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { BrandIdentityRadioGroup } from "@/components/brand-identity-radio-group";
 import { Button } from "@/components/button";
@@ -69,16 +66,19 @@ import { FormatCard } from "@/components/content/create/format-card";
 import { AddRepositoryButton } from "@/components/integrations/add-repository-button";
 import { AddRepositoryDialog } from "@/components/integrations/add-repository-dialog";
 import { LegacyAddIntegrationDialog as AddIntegrationDialog } from "@/components/integrations/legacy/add-integration-dialog";
-import { FORMAT_CARD_META, FORMAT_ORDER } from "@/constants/content-formats";
+import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
+import { FORMAT_ORDER } from "@/constants/content-formats";
+import { LOOKBACK_WINDOW_COMMON_LABEL_KEYS } from "@/constants/schedule";
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { createScheduleFormSchema } from "@/schemas/schedule-form";
 import type {
   CreateScheduleDialogProps,
   ScheduleCron,
   ScheduleIntegrationOption,
 } from "@/types/automation/schedule";
 import type { Trigger } from "@/types/triggers/triggers";
-import { formatSnakeCaseLabel } from "@/utils/format";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 import {
   buildAutoScheduleName,
   formatTimeValue,
@@ -100,6 +100,18 @@ export function CreateScheduleDialog({
   onOpenChange: controlledOnOpenChange,
   presetId,
 }: CreateScheduleDialogProps) {
+  const t = useTranslations("automation.schedules");
+  const tAutomationShared = useTranslations("automation.shared");
+  const tValidation = useTranslations("automation.schedules.validation");
+  const tCommon = useTranslations("common");
+  const lookbackLabel = (window: LookbackWindow) =>
+    window === "current_day"
+      ? t("lookbackWindows.current_day")
+      : tCommon(`labels.${LOOKBACK_WINDOW_COMMON_LABEL_KEYS[window]}`);
+  const scheduleFormSchema = useMemo(
+    () => createScheduleFormSchema(tValidation),
+    [tValidation]
+  );
   const isEditMode = !!editTrigger;
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -156,21 +168,21 @@ export function CreateScheduleDialog({
             schedulePayload
           );
         } catch (error) {
-          if (error instanceof Error && error.message === "Duplicate trigger") {
-            throw new Error("Schedule already exists");
+          if (getOrpcErrorDataCode(error) === "DUPLICATE_TRIGGER") {
+            throw new Error(t("dialog.alreadyExists"));
           }
           if (error instanceof Error && error.message) {
             throw error;
           }
           throw new Error(
             isEditMode
-              ? "Failed to update schedule"
-              : "Failed to create schedule"
+              ? tAutomationShared("failedToUpdateSchedule")
+              : t("dialog.createFailed")
           );
         }
       },
       onSuccess: (data) => {
-        toast.success(isEditMode ? "Schedule updated" : "Schedule added");
+        toast.success(isEditMode ? t("dialog.updated") : t("dialog.added"));
         onSuccess?.(data.trigger);
         setOpen(false);
       },
@@ -211,7 +223,8 @@ export function CreateScheduleDialog({
   useEffect(() => {
     const newAutoName = buildAutoScheduleName(
       { frequency, intervalDays },
-      outputType
+      outputType,
+      t
     );
     const currentName = form.state.values.name;
     if (
@@ -221,7 +234,7 @@ export function CreateScheduleDialog({
       form.setFieldValue("name", newAutoName);
     }
     previousAutoNameRef.current = newAutoName;
-  }, [outputType, frequency, intervalDays, form]);
+  }, [outputType, frequency, intervalDays, form, t]);
 
   const { data: integrationsResponse, isLoading: isLoadingRepos } = useQuery(
     dashboardOrpc.integrations.list.queryOptions({
@@ -241,8 +254,8 @@ export function CreateScheduleDialog({
   const nonDefaultBrandVoices = brandVoices.filter((voice) => !voice.isDefault);
   const defaultBrandVoice = brandVoices.find((voice) => voice.isDefault);
   const defaultBrandVoiceLabel = defaultBrandVoice
-    ? `${defaultBrandVoice.name} (Default)`
-    : "Default brand voice";
+    ? t("dialog.defaultVoiceName", { name: defaultBrandVoice.name })
+    : t("dialog.defaultVoice");
 
   const { integrationOptions, githubIntegrationId } = useMemo(() => {
     const githubIntegrations =
@@ -331,11 +344,10 @@ export function CreateScheduleDialog({
         <ResponsiveDialogContent className="flex h-[85vh] max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
           <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
             <ResponsiveDialogTitle className="text-base">
-              {isEditMode ? "Edit schedule" : "New schedule"}
+              {isEditMode ? t("dialog.editTitle") : t("dialog.newTitle")}
             </ResponsiveDialogTitle>
             <p className="text-muted-foreground text-sm">
-              Pick a content type, set a schedule, and we'll handle the rest on
-              autopilot.
+              {t("dialog.description")}
             </p>
           </ResponsiveDialogHeader>
 
@@ -352,13 +364,13 @@ export function CreateScheduleDialog({
                 <section className="space-y-3">
                   <div className="space-y-1">
                     <h3 className="flex items-center gap-1 text-base font-semibold">
-                      Name
+                      {tCommon("labels.name")}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      Just for you, won't appear in any output.
+                      {t("dialog.nameHint")}
                     </p>
                   </div>
                   <form.Field name="name">
@@ -371,7 +383,8 @@ export function CreateScheduleDialog({
                         }}
                         placeholder={buildAutoScheduleName(
                           { frequency, intervalDays },
-                          outputType
+                          outputType,
+                          t
                         )}
                         value={field.state.value}
                       />
@@ -381,9 +394,11 @@ export function CreateScheduleDialog({
 
                 <section className="space-y-3">
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold">Content format</h3>
+                    <h3 className="text-base font-semibold">
+                      {t("dialog.contentFormat")}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      What should we generate?
+                      {t("dialog.contentFormatHint")}
                     </p>
                   </div>
                   <form.Field name="outputType">
@@ -405,21 +420,20 @@ export function CreateScheduleDialog({
                 <section className="space-y-3">
                   <div className="space-y-1">
                     <h3 className="flex items-center gap-2 text-base font-semibold">
-                      Instructions
+                      {t("dialog.instructions")}
                       <span className="text-muted-foreground rounded-full border px-2 py-0.5 text-[11px] font-medium">
-                        Optional
+                        {tCommon("states.optional")}
                       </span>
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      Tell us what this schedule should write about. Brand voice
-                      still applies.
+                      {t("dialog.instructionsHint")}
                     </p>
                   </div>
                   <form.Field name="instructions">
                     {(field) => (
                       <div className="space-y-2">
                         <Textarea
-                          aria-label="Instructions"
+                          aria-label={t("dialog.instructions")}
                           className="max-h-80 min-h-24 resize-none overflow-y-auto"
                           id={field.name}
                           maxLength={MAX_SCHEDULE_INSTRUCTIONS_LENGTH}
@@ -427,13 +441,11 @@ export function CreateScheduleDialog({
                           onChange={(event) => {
                             field.handleChange(event.target.value);
                           }}
-                          placeholder="e.g. Write a tutorial-style post that walks through one feature shipped in this window, with code samples."
+                          placeholder={t("dialog.instructionsPlaceholder")}
                           value={field.state.value}
                         />
                         <div className="text-muted-foreground flex items-center justify-between text-xs">
-                          <span>
-                            Passed to the writer as extra guidance on every run.
-                          </span>
+                          <span>{t("dialog.instructionsFooter")}</span>
                           <span className="tabular-nums">
                             {field.state.value.length} /{" "}
                             {MAX_SCHEDULE_INSTRUCTIONS_LENGTH}
@@ -446,9 +458,11 @@ export function CreateScheduleDialog({
 
                 <section className="space-y-3">
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold">Schedule</h3>
+                    <h3 className="text-base font-semibold">
+                      {tCommon("labels.schedule")}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      When should this run? Times use UTC.
+                      {t("dialog.scheduleHint")}
                     </p>
                   </div>
                   <ScheduleFrequencyTabs
@@ -479,7 +493,7 @@ export function CreateScheduleDialog({
                       className="text-muted-foreground text-xs"
                       htmlFor="schedule-time"
                     >
-                      Time
+                      {t("dialog.time")}
                     </Label>
                     <Input
                       className="bg-background w-full appearance-none sm:w-40 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
@@ -501,20 +515,20 @@ export function CreateScheduleDialog({
                 <section className="space-y-3">
                   <div className="space-y-1">
                     <h3 className="flex items-center gap-1 text-base font-semibold">
-                      Sources
+                      {tCommon("labels.sources")}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      Pick which integrations we should pull activity from.
+                      {t("dialog.sourcesHint")}
                     </p>
                   </div>
                   {isLoadingRepos && <Skeleton className="h-10 w-full" />}
                   {!isLoadingRepos && integrationOptions.length === 0 && (
                     <div className="flex items-center gap-2 rounded-lg border border-dashed p-3">
                       <span className="text-muted-foreground flex-1 text-xs">
-                        No integrations connected yet.
+                        {tCommon("labels.noIntegrationsConnectedYet")}
                       </span>
                       <AddRepositoryButton
                         onAdd={() => {
@@ -546,24 +560,34 @@ export function CreateScheduleDialog({
                                   return null;
                                 }
                                 return (
-                                  <ComboboxChip key={opt.value}>
-                                    <span className="flex items-center gap-1.5">
+                                  <ComboboxChip
+                                    className="max-w-full"
+                                    key={opt.value}
+                                  >
+                                    <span className="flex min-w-0 items-center gap-1.5">
                                       {opt.type === "github" ? (
                                         <Github className="size-3 shrink-0" />
                                       ) : (
                                         <Linear className="size-3 shrink-0" />
                                       )}
-                                      {opt.label}
+                                      <span
+                                        className="truncate"
+                                        title={opt.label}
+                                      >
+                                        {opt.label}
+                                      </span>
                                     </span>
                                   </ComboboxChip>
                                 );
                               })}
-                              <ComboboxChipsInput placeholder="Search integrations" />
+                              <ComboboxChipsInput
+                                placeholder={t("dialog.searchIntegrations")}
+                              />
                               <ComboboxTrigger className="ml-auto flex shrink-0 items-center self-center" />
                             </ComboboxChips>
                             <ComboboxContent anchor={comboboxAnchor.current}>
                               <ComboboxEmpty>
-                                No integrations found.
+                                {t("dialog.noIntegrationsFound")}
                               </ComboboxEmpty>
                               <ComboboxList>
                                 {integrationOptions.map((opt) => (
@@ -571,13 +595,18 @@ export function CreateScheduleDialog({
                                     key={opt.value}
                                     value={opt.value}
                                   >
-                                    <span className="flex items-center gap-2">
+                                    <span className="flex min-w-0 items-center gap-2">
                                       {opt.type === "github" ? (
                                         <Github className="size-3.5 shrink-0" />
                                       ) : (
                                         <Linear className="size-3.5 shrink-0" />
                                       )}
-                                      {opt.label}
+                                      <span
+                                        className="truncate"
+                                        title={opt.label}
+                                      >
+                                        {opt.label}
+                                      </span>
                                     </span>
                                   </ComboboxItem>
                                 ))}
@@ -593,10 +622,14 @@ export function CreateScheduleDialog({
                 <section className="space-y-3">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold">
-                      {FORMAT_CARD_META[outputType].label} rules
+                      {t("dialog.rules", {
+                        type: tCommon(
+                          `labels.${OUTPUT_TYPE_LABEL_KEYS[outputType]}`
+                        ),
+                      })}
                     </h3>
                     <p className="text-muted-foreground text-sm">
-                      How far back we look and how the post should sound.
+                      {t("dialog.rulesHint")}
                     </p>
                   </div>
                   <form.Field name="lookbackWindow">
@@ -606,7 +639,7 @@ export function CreateScheduleDialog({
                           className="text-muted-foreground text-xs"
                           htmlFor="schedule-lookback"
                         >
-                          Lookback window
+                          {tCommon("labels.lookbackWindow")}
                         </Label>
                         <Select
                           onValueChange={(value) => {
@@ -620,18 +653,16 @@ export function CreateScheduleDialog({
                             className="w-full"
                             id="schedule-lookback"
                           >
-                            <SelectValue placeholder="Lookback window">
-                              <span className="capitalize">
-                                {formatSnakeCaseLabel(field.state.value)}
-                              </span>
+                            <SelectValue
+                              placeholder={tCommon("labels.lookbackWindow")}
+                            >
+                              <span>{lookbackLabel(field.state.value)}</span>
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {LOOKBACK_WINDOWS.map((window) => (
                               <SelectItem key={window} value={window}>
-                                <span className="capitalize">
-                                  {formatSnakeCaseLabel(window)}
-                                </span>
+                                <span>{lookbackLabel(window)}</span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -644,14 +675,16 @@ export function CreateScheduleDialog({
                     <form.Field name="brandVoiceId">
                       {(field) => (
                         <BrandIdentityRadioGroup
-                          description="Choose which brand voice to use for generated content."
+                          description={t("dialog.brandVoiceDescription")}
                           emptyOption={{
                             label: defaultBrandVoiceLabel,
-                            description: "Use your default brand voice.",
+                            description: t(
+                              "dialog.brandVoiceDefaultDescription"
+                            ),
                             voice: defaultBrandVoice,
                           }}
                           id={field.name}
-                          label="Brand voice"
+                          label={tCommon("labels.brandVoice")}
                           onChange={field.handleChange}
                           value={field.state.value}
                           voices={nonDefaultBrandVoices}
@@ -669,7 +702,7 @@ export function CreateScheduleDialog({
                               className="cursor-pointer text-sm font-medium"
                               htmlFor={field.name}
                             >
-                              Auto-publish
+                              {t("dialog.autoPublish")}
                             </Label>
                             <Tooltip>
                               <TooltipTrigger className="text-muted-foreground inline-flex cursor-help">
@@ -680,8 +713,7 @@ export function CreateScheduleDialog({
                               </TooltipTrigger>
                               <TooltipContent side="top">
                                 <p className="max-w-50 text-xs">
-                                  When on, posts are published immediately
-                                  instead of saved as drafts.
+                                  {t("dialog.autoPublishHint")}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -713,23 +745,13 @@ export function CreateScheduleDialog({
                     type="button"
                     variant="ghost"
                   >
-                    Cancel
+                    {tCommon("actions.cancel")}
                   </Button>
-                  <Button disabled={mutation.isPending} type="submit">
-                    {mutation.isPending ? (
-                      <>
-                        <HugeiconsIcon
-                          className="size-4 animate-spin"
-                          icon={Loading03Icon}
-                        />
-                        {isEditMode ? "Saving..." : "Adding..."}
-                      </>
-                    ) : (
-                      <>
-                        <HugeiconsIcon className="size-4" icon={Add01Icon} />
-                        {isEditMode ? "Save changes" : "Add schedule"}
-                      </>
-                    )}
+                  <Button loading={mutation.isPending} type="submit">
+                    <HugeiconsIcon className="size-4" icon={Add01Icon} />
+                    {isEditMode
+                      ? tCommon("actions.saveChanges")
+                      : t("dialog.add")}
                   </Button>
                 </div>
               </div>
@@ -765,6 +787,8 @@ interface FooterStatusProps {
 }
 
 function FooterStatus({ errorMessage, repositoryCount }: FooterStatusProps) {
+  const t = useTranslations("automation.schedules.dialog");
+  const tCommon2 = useTranslations("common");
   if (errorMessage) {
     return (
       <span className="text-destructive flex items-center gap-1.5 text-xs font-medium">
@@ -778,8 +802,8 @@ function FooterStatus({ errorMessage, repositoryCount }: FooterStatusProps) {
       className={cn("text-muted-foreground flex items-center gap-1.5 text-xs")}
     >
       {repositoryCount === 0
-        ? "No sources selected yet"
-        : `${repositoryCount} source${repositoryCount === 1 ? "" : "s"} selected`}
+        ? tCommon2("labels.noSourcesSelectedYet")
+        : t("sourcesSelected", { count: repositoryCount })}
     </span>
   );
 }

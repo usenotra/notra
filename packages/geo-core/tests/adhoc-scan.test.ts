@@ -11,7 +11,7 @@ import {
 import type { ContentBillingReservation } from "@notra/ai/types/billing";
 import { geoAdhocScans, geoMentionChecks } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Deferred, Effect, Fiber } from "effect";
 
 import {
   GEO_ADHOC_SCAN_QUEUED_STALE_MS,
@@ -46,6 +46,7 @@ const {
   discardQueuedGeoAdhocScan,
   executeGeoAdhocScan,
   failStaleGeoAdhocScans,
+  getGeoAdhocScan,
 } = await import("../src/geo/adhoc-scan");
 
 function createGeoAdhocScan(
@@ -78,7 +79,7 @@ const groundedModels: GeoModelServiceShape = {
           },
         ],
       },
-      sources: [],
+      sources: [{ url: "https://example.com/pricing", title: "Pricing" }],
       finishReason: "stop",
       zdrEnforced: false,
       usage: {
@@ -116,6 +117,8 @@ function run<A, E>(
       Effect.provideService(GeoFeatureFlagService, testFeatureFlags),
       Effect.provideService(GeoEntitlementService, {
         resolveZdrEntitlement: () => Effect.succeed("not_entitled" as const),
+        checkScanBilling: () =>
+          Effect.die("Unexpected tracked scan billing check"),
       }),
       Effect.provideService(GeoContentBillingService, {
         gateContentBilling: () =>
@@ -161,6 +164,9 @@ describe("one-off GEO scan", () => {
     expect(check?.position).toBe(1);
     expect(check?.ownedSourceCited).toBe(true);
     expect(check?.grounding.queries).toEqual(["best tools"]);
+    expect(check?.durationMs).toBeGreaterThanOrEqual(0);
+    expect(check?.costUsd).toBeGreaterThan(0);
+    expect(check?.judgeTokens).toBe(0);
 
     expect(await testDb.select().from(geoMentionChecks)).toHaveLength(0);
     expect((await settingsFor(scope.projectId))?.scanStartedAt).toBeNull();
@@ -168,6 +174,186 @@ describe("one-off GEO scan", () => {
     expect(settled[0]?.action).toBe("confirm");
     expect(settled[0]?.units).toBe(1);
     expect(settled[0]?.properties?.source).toBe("geo_adhoc_scan");
+  });
+
+  test("returns the computed engine and judge cost and judge token usage", async () => {
+    const scope = await seedProject("adhoc-usage-fields");
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    const settled: FinalizeContentBillingInput[] = [];
+    await run(executeGeoAdhocScan(id), {
+      settled,
+      models: {
+        ...groundedModels,
+        groundedAnswer: (input) =>
+          groundedModels.groundedAnswer(input).pipe(
+            Effect.map((answer) => ({
+              ...answer,
+              usage: { ...answer.usage, totalUsd: 0.25 },
+            }))
+          ),
+        judge: (input) =>
+          fakeModels.judge(input).pipe(
+            Effect.map((judged) => ({
+              ...judged,
+              usage: {
+                inputTokens: 3,
+                outputTokens: 4,
+                totalTokens: 7,
+                inputTokenDetails: {
+                  noCacheTokens: 3,
+                  cacheReadTokens: 0,
+                  cacheWriteTokens: 0,
+                },
+                outputTokenDetails: { textTokens: 4, reasoningTokens: 0 },
+                totalUsd: 0.5,
+              },
+            }))
+          ),
+      },
+    });
+    const check = (await loadScan(id))?.results?.checks[0];
+    expect(check?.costUsd).toBe(0.75);
+    expect(check?.judgeTokens).toBe(7);
+    expect(check?.promptTokens).toBe(1);
+    expect(check?.outputTokens).toBe(1);
+    expect(settled[0]?.usage?.totalTokens).toBe(9);
+    expect(settled[0]?.usage?.totalUsd).toBe(0.75);
+  });
+
+  test("search candidates alone do not imply an owned source citation", async () => {
+    const scope = await seedProject("adhoc-search-candidate");
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    await run(executeGeoAdhocScan(id), {
+      models: {
+        ...groundedModels,
+        groundedAnswer: (input) =>
+          groundedModels
+            .groundedAnswer(input)
+            .pipe(Effect.map((answer) => ({ ...answer, sources: [] }))),
+      },
+    });
+    const scan = await loadScan(id);
+    expect(scan?.status).toBe("completed");
+    expect(scan?.results?.checks[0]?.grounding.sources).toHaveLength(1);
+    expect(scan?.results?.checks[0]?.ownedSourceCited).toBe(false);
+  });
+
+  test("concurrent runners claim a scan once and settle one reservation", async () => {
+    const scope = await seedProject("adhoc-concurrent");
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    const ready = await Effect.runPromise(Deferred.make<void>());
+    const resume = await Effect.runPromise(Deferred.make<void>());
+    const settled: FinalizeContentBillingInput[] = [];
+    let calls = 0;
+    const models: GeoModelServiceShape = {
+      ...groundedModels,
+      groundedAnswer: (input) =>
+        Effect.gen(function* () {
+          calls += 1;
+          yield* Deferred.succeed(ready, undefined);
+          yield* Deferred.await(resume);
+          return yield* groundedModels.groundedAnswer(input);
+        }),
+    };
+    const first = run(executeGeoAdhocScan(id), { models, settled });
+    await Effect.runPromise(Deferred.await(ready));
+    try {
+      expect(
+        await run(executeGeoAdhocScan(id), { models, settled })
+      ).toBeNull();
+      expect(calls).toBe(1);
+    } finally {
+      await Effect.runPromise(Deferred.succeed(resume, undefined));
+      await first;
+    }
+    expect(settled).toHaveLength(1);
+    expect((await loadScan(id))?.status).toBe("completed");
+  });
+
+  test("interrupting a running scan releases billing and leaves a retryable failure", async () => {
+    const scope = await seedProject("adhoc-interrupted");
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    const ready = await Effect.runPromise(Deferred.make<void>());
+    const settled: FinalizeContentBillingInput[] = [];
+    await run(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const fiber = yield* executeGeoAdhocScan(id).pipe(Effect.forkScoped);
+          yield* Deferred.await(ready);
+          yield* Fiber.interrupt(fiber);
+        })
+      ),
+      {
+        settled,
+        models: {
+          ...groundedModels,
+          groundedAnswer: () =>
+            Deferred.succeed(ready, undefined).pipe(
+              Effect.andThen(Effect.never)
+            ),
+        },
+      }
+    );
+    const scan = await loadScan(id);
+    expect(scan?.status).toBe("failed");
+    expect(scan?.errorCode).toBe("interrupted");
+    expect(scan?.retryable).toBe(true);
+    expect(settled.map((entry) => entry.action)).toEqual(["release"]);
+  });
+
+  test("polling does not expose another project or organization and hides the idempotency key", async () => {
+    const scope = await seedProject("adhoc-private");
+    const otherProject = await seedProject("adhoc-other-project");
+    const otherOrganization = await seedProject("adhoc-other-org", {
+      organizationId: "org-other",
+    });
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    const own = await run(getGeoAdhocScan(scope, id));
+    expect(own.id).toBe(id);
+    expect("idempotencyKey" in own).toBe(false);
+    for (const foreign of [otherProject, otherOrganization]) {
+      const error = await run(getGeoAdhocScan(foreign, id).pipe(Effect.flip));
+      expect(error._tag).toBe("GeoAdhocScanNotFoundError");
+    }
+    const wrongOrganization = await run(
+      getGeoAdhocScan({ ...scope, organizationId: "org-other" }, id).pipe(
+        Effect.flip
+      )
+    );
+    expect(wrongOrganization._tag).toBe("GeoProjectNotFoundError");
+  });
+
+  test("an empty paid answer keeps token usage but bills no successful answers", async () => {
+    const scope = await seedProject("adhoc-empty");
+    const settled: FinalizeContentBillingInput[] = [];
+    const { id } = await run(
+      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
+    );
+    await run(executeGeoAdhocScan(id), {
+      settled,
+      models: {
+        ...groundedModels,
+        groundedAnswer: (input) =>
+          groundedModels
+            .groundedAnswer(input)
+            .pipe(Effect.map((answer) => ({ ...answer, text: "  " }))),
+      },
+    });
+    expect((await loadScan(id))?.errorCode).toBe("no_answers");
+    expect(settled).toHaveLength(1);
+    expect(settled[0]?.action).toBe("confirm");
+    expect(settled[0]?.units).toBe(0);
+    expect(settled[0]?.usage?.totalTokens).toBe(2);
   });
 
   test("a second runner handed the same id takes nothing", async () => {

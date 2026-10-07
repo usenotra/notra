@@ -5,6 +5,7 @@ import {
 import { updateUsageAlertsInputSchema } from "@notra/schemas/dashboard/usage-alerts";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { forbidden, serviceUnavailable } from "@/lib/orpc/utils/errors";
 import { setDevelopmentUsageAlerts } from "@/utils/development-usage-alerts";
@@ -20,7 +21,8 @@ export const usageAlertsRouter = {
       });
 
       if (access.membership.role !== "owner") {
-        throw forbidden("Only the organization owner can manage usage alerts");
+        const tErrors = await getTranslations("errors.usageAlerts");
+        throw forbidden(tErrors("ownerOnly"));
       }
 
       if (!autumn) {
@@ -32,7 +34,9 @@ export const usageAlertsRouter = {
             ),
           };
         }
-        throw serviceUnavailable("Billing is not configured");
+        throw serviceUnavailable(
+          (await getTranslations("common.errors"))("generic")
+        );
       }
 
       await autumn.customers.update({

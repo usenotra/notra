@@ -3,6 +3,7 @@ import {
   autumn,
 } from "@notra/ai/billing/autumn";
 import {
+  checkContentBilling,
   confirmContentBilling,
   releaseContentBilling,
   reserveContentBilling,
@@ -49,6 +50,24 @@ const billingLayer = Layer.succeed(GeoContentBillingService, {
 });
 
 const entitlementLayer = Layer.succeed(GeoEntitlementService, {
+  checkScanBilling: Effect.fn("GeoRunnerEntitlement.checkScanBilling")(
+    (organizationId) => {
+      if (!(autumn || allowUnmeteredAiInDevelopment)) {
+        return Effect.fail(
+          new Error("Billing is not configured. Set AUTUMN_SECRET_KEY.")
+        );
+      }
+      return Effect.tryPromise({
+        try: () =>
+          checkContentBilling({
+            organizationId,
+            outputType: null,
+            quotaFeatureId: FEATURES.AI_ANSWERS,
+          }),
+        catch: (cause) => cause,
+      });
+    }
+  ),
   resolveZdrEntitlement: Effect.fn("GeoRunnerEntitlement.resolveZdr")(
     function* (organizationId) {
       if (allowUnmeteredAiInDevelopment) {

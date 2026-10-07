@@ -7,15 +7,11 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@notra/ui/components/ui/sidebar";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
-import {
-  CONTENT_NAV_LINK,
-  NAV_RECENT_LABEL,
-  NAV_RECENT_LIMIT,
-  NAV_RECENT_SKELETON_IDS,
-} from "@/constants/nav";
-import { usePosts } from "@/lib/hooks/use-posts";
+import { CONTENT_NAV_LINK, NAV_RECENT_SKELETON_IDS } from "@/constants/nav";
+import { useRecentPosts } from "@/lib/hooks/use-posts";
+import { usePathname } from "@/lib/navigation";
 import type { NavRecentContentProps } from "@/types/components/nav";
 
 import { NavRecentContentItem } from "./nav-recent-content-item";
@@ -26,14 +22,9 @@ export function NavRecentContent({
   organizationId,
   enabled = true,
 }: NavRecentContentProps) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
-  // Request only what the sidebar shows — a full page ships every post body.
-  const { data, isPending } = usePosts(
-    organizationId,
-    1,
-    enabled,
-    NAV_RECENT_LIMIT
-  );
+  const { data, isPending } = useRecentPosts(organizationId, enabled);
   const posts = data?.posts ?? [];
 
   if (!enabled || (!isPending && posts.length === 0)) {
@@ -43,7 +34,7 @@ export function NavRecentContent({
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>
-        <SidebarLabel>{NAV_RECENT_LABEL}</SidebarLabel>
+        <SidebarLabel>{t("recent")}</SidebarLabel>
       </SidebarGroupLabel>
       <SidebarMenu>
         {isPending

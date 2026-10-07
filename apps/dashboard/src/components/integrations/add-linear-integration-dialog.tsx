@@ -14,6 +14,7 @@ import {
 import { Linear } from "@notra/ui/components/ui/svgs/linear";
 import type React from "react";
 import { isValidElement, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { INTEGRATION_PROVIDERS } from "@/constants/integration-analytics";
@@ -32,6 +33,9 @@ export function AddLinearIntegrationDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: AddLinearIntegrationDialogProps) {
+  const t = useTranslations("integrations.linearDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -50,25 +54,20 @@ export function AddLinearIntegrationDialog({
             <Linear className="size-7" />
             <div>
               <ResponsiveDialogTitle className="text-xl">
-                Add Linear Integration
+                {t("title")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                Connect a Linear workspace to enable AI-powered outputs like
-                changelogs, blog posts, and tweets.
+                {t("description")}
               </ResponsiveDialogDescription>
             </div>
           </div>
         </ResponsiveDialogHeader>
         <div className="space-y-3 py-4">
-          <p className="text-muted-foreground text-sm">
-            You will be redirected to Linear to authorize read access to your
-            workspace. Once authorized, your integration will be created
-            automatically.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("redirectNote")}</p>
         </div>
         <ResponsiveDialogFooter>
           <ResponsiveDialogClose render={<Button variant="outline" />}>
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
           <Button
             onClick={() => {
@@ -79,7 +78,7 @@ export function AddLinearIntegrationDialog({
               });
             }}
           >
-            Add Integration
+            {tIntegrationsShared("addIntegration")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

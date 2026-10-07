@@ -1,7 +1,11 @@
 import { lookup } from "node:dns/promises";
 import { BlockList } from "node:net";
 
-import { fetchWebpage } from "@notra/ai/utils/context-dev";
+import {
+  fetchWebpage,
+  isContextDevConfigured,
+} from "@notra/ai/utils/context-dev";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { GEO_SHELF_TITLE_MAX_LENGTH } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
   canonicalizeShelfUrl,
@@ -86,7 +90,7 @@ function cleanDescription(value: string | undefined): string | null {
 }
 
 function hasContextDevKey(): boolean {
-  return Boolean(process.env.CONTEXT_DEV_API_KEY?.trim());
+  return isContextDevConfigured();
 }
 
 export async function previewGeoShelfUrl(
@@ -136,7 +140,7 @@ export async function previewGeoShelfUrl(
       available: true,
     };
   } catch (error) {
-    console.warn("[GEO] shelf preview failed", {
+    logWarn("[GEO] shelf preview failed", {
       url,
       error: error instanceof Error ? error.message : "Unknown error",
     });

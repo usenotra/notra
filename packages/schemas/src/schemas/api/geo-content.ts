@@ -41,6 +41,9 @@ const promptGapSchema = z.object({
   mentionedEngines: z.array(z.string()),
   competitors: z.array(z.string()),
   discoveredCompetitors: z.array(z.string()),
+  searchQueries: z.array(z.string()).openapi({
+    description: "Web searches AI engines ran while answering this prompt.",
+  }),
   ownMentionRate: z.number(),
   engineCoverage: z.number(),
   opportunity: z.number(),
@@ -84,12 +87,37 @@ const searchGapSchema = z.object({
   recommendation: searchGapRecommendationSchema,
 });
 
+const aiSearchGapSchema = z.object({
+  id: z.string(),
+  query: z.string(),
+  variants: z.array(z.string()),
+  prompts: z.array(z.string()),
+  engines: z.array(z.string()),
+  searches: z.number().openapi({
+    description:
+      "Scan answers in which an engine ran this web search without mentioning the brand or citing its site.",
+  }),
+  ownMentionRate: z.number(),
+  competitors: z.array(z.string()),
+  discoveredCompetitors: z.array(z.string()),
+  opportunity: z.number(),
+  brief: gapBriefRefSchema.nullable(),
+});
+
 export const contentGapsResponseSchema = z
   .object({
     promptGaps: z.array(promptGapSchema),
     searchGaps: z.array(searchGapSchema),
+    aiSearchGaps: z.array(aiSearchGapSchema).openapi({
+      description:
+        "Web searches AI engines ran in scan answers without mentioning the brand or citing its site.",
+    }),
     hasScanData: z.boolean().openapi({
       description: "False until the project has at least one scan result.",
+    }),
+    snapshotReady: z.boolean().openapi({
+      description:
+        "False while the project's content gaps snapshot is being prepared.",
     }),
     organization: organizationResponseSchema,
   })

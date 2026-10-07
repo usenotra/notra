@@ -1,6 +1,7 @@
 "use client";
 
 import { ResponsiveDialogClose } from "@notra/ui/components/shared/responsive-dialog";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { McpDialogFooterProps } from "@/types/integrations/mcp";
@@ -12,15 +13,19 @@ export function McpDialogFooter({
   onCancel,
   onTest,
 }: McpDialogFooterProps) {
+  const t = useTranslations("integrations.mcp.footer");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const isCreating = status === "creating";
   const isRedirecting = status === "redirecting";
   const isTesting = status === "testing";
   const isPending = isCreating || isRedirecting;
-  let submitLabel = authType === "oauth" ? "Connect & Authorize" : "Add Server";
+  let submitLabel =
+    authType === "oauth" ? t("connectAndAuthorize") : t("addServer");
   if (isCreating) {
-    submitLabel = "Adding...";
+    submitLabel = tCommon("labels.adding");
   } else if (isRedirecting) {
-    submitLabel = "Redirecting...";
+    submitLabel = tIntegrationsShared("redirecting");
   }
 
   return (
@@ -33,7 +38,7 @@ export function McpDialogFooter({
           type="button"
           variant="outline"
         >
-          {isTesting ? "Testing..." : "Test Connection"}
+          {isTesting ? t("testing") : t("testConnection")}
         </Button>
       ) : (
         <div className="sm:mr-auto" />
@@ -43,7 +48,7 @@ export function McpDialogFooter({
         onClick={onCancel}
         render={<Button type="button" variant="outline" />}
       >
-        Cancel
+        {tCommon("actions.cancel")}
       </ResponsiveDialogClose>
       <Button disabled={!canSubmit || isPending} type="submit">
         {submitLabel}

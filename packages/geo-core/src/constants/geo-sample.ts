@@ -1,6 +1,11 @@
 import type { GeoCheckSource } from "@notra/db/types/geo-checks";
 
 import type { GeoCompetitorSeed } from "../types/geo";
+import type {
+  GeoSampleCrawler,
+  GeoSampleProfile,
+  GeoSampleReferral,
+} from "../types/geo-sample";
 import {
   GEO_CLAUDE_CODE_ENGINE_IDS,
   GEO_CODEX_ENGINE_IDS,
@@ -258,10 +263,7 @@ export const GEO_SAMPLE_TRAFFIC_PATHS: readonly string[] = [
   "/pricing",
 ];
 
-export const GEO_SAMPLE_CRAWLERS: readonly {
-  agent: string;
-  category: string;
-}[] = [
+export const GEO_SAMPLE_CRAWLERS: readonly GeoSampleCrawler[] = [
   { agent: "Claude Code", category: "assistant-browse" },
   { agent: "GPTBot", category: "training-crawler" },
   { agent: "OAI-SearchBot", category: "search-index" },
@@ -278,10 +280,7 @@ export const GEO_SAMPLE_CRAWLERS: readonly {
   { agent: "Shap-User", category: "assistant-browse" },
 ];
 
-export const GEO_SAMPLE_REFERRALS: readonly {
-  source: string;
-  referer: string;
-}[] = [
+export const GEO_SAMPLE_REFERRALS: readonly GeoSampleReferral[] = [
   { source: "chatgpt", referer: "https://chatgpt.com/" },
   { source: "perplexity", referer: "https://www.perplexity.ai/" },
   { source: "claude", referer: "https://claude.ai/" },
@@ -291,3 +290,29 @@ export const GEO_SAMPLE_REFERRALS: readonly {
   { source: "meta", referer: "https://www.meta.ai/" },
   { source: "instagram", referer: "https://www.instagram.com/" },
 ];
+
+const GEO_SAMPLE_TRAFFIC_HOSTS: readonly string[] = [
+  "www.example.com",
+  "docs.example.com",
+  "app.example.com",
+];
+
+export const GEO_SAMPLE_DEFAULT_PROFILE: GeoSampleProfile = {
+  projectName: GEO_SAMPLE_PROJECT_NAME,
+  days: GEO_SAMPLE_DAYS,
+  competitors: GEO_SAMPLE_COMPETITORS,
+  prompts: GEO_SAMPLE_PROMPTS,
+  sequences: GEO_SAMPLE_SEQUENCES,
+  sources: GEO_SAMPLE_SOURCES,
+  codingAgentSources: GEO_SAMPLE_OPENCODE_SOURCES,
+  trafficPaths: GEO_SAMPLE_TRAFFIC_PATHS,
+  trafficHosts: GEO_SAMPLE_TRAFFIC_HOSTS,
+  excerpts: {
+    mentioned:
+      "{brand} shows up as a strong option for GEO and AI content, alongside {competitors}.",
+    missing: "The answer lists {competitors} without naming the company.",
+    mentionedGerman:
+      "{brand} wird häufig für GEO und KI-Content empfohlen, neben {competitors}.",
+    missingGerman: "Die Antwort nennt {competitors}, ohne die eigene Marke.",
+  },
+};

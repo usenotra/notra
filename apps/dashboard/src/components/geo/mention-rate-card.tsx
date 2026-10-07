@@ -5,15 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
-  GEO_FAMILY_STAT_TREND_HINT,
   GEO_MAX_ENGINES,
   GEO_MENTION_FADE_HEIGHT_REM,
   GEO_MENTION_ROW_HEIGHT_REM,
   GEO_MENTION_SUMMARY_VISIBLE,
-  GEO_MENTION_UNTRACKED_HINT,
-  GEO_MENTIONS_LABEL,
-  GEO_PROVIDER_COLUMN_LABEL,
-  GEO_PROVIDER_MENTIONS_COLUMN_LABEL,
 } from "@notra/geo-core/constants/geo";
 import type { GeoEngineFamily } from "@notra/geo-core/types/geo";
 import {
@@ -21,30 +16,33 @@ import {
   engineFamilyOf,
 } from "@notra/geo-core/utils/geo-engine-family";
 import { resolveGeoZdrMode } from "@notra/geo-core/utils/geo-engines";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { FadeSwap } from "@notra/ui/components/fade-swap";
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
+import { DetailCardContent } from "@notra/ui/components/ui/detail-card";
 import {
   HoverCard,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { FADE_SWAP_TRANSITION } from "@notra/ui/constants/fade-swap";
+import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
-import { StatusSpinner } from "@/components/geo/status-spinner";
-import { TrafficBreakdownCard } from "@/components/geo/traffic-breakdown-card";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
   useGeoModelCatalog,
@@ -63,6 +61,7 @@ import {
   visibilityOverviewTotals,
   withTrackedMentionEngines,
 } from "@/utils/geo-charts";
+import { loadMotionFeatures } from "@/utils/load-motion-features";
 
 const ROW_STYLE = { height: `${GEO_MENTION_ROW_HEIGHT_REM}rem` } as const;
 const LIST_STYLE = {
@@ -79,14 +78,17 @@ function ProviderRow({
   trackingDisabled,
   tracking,
 }: MentionProviderRowProps) {
+  const t = useTranslations("geo.mentionRateCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const { family, totals, visibilityDelta, tracked } = row;
   const name = engineFamilyLabel(family.family);
   const clickable = totals.visible > 0;
   const buttonProps = {
     "aria-disabled": !clickable,
     "aria-label": clickable
-      ? `Open ${name} visibility breakdown`
-      : `${name}, no visibility`,
+      ? t("openBreakdown", { name })
+      : t("noVisibility", { name }),
     className: cn(
       "grid w-full grid-cols-[1rem_minmax(0,1fr)_auto] items-center gap-1.5 border-b text-left transition-colors",
       clickable ? "hover:bg-muted/50 cursor-pointer" : "cursor-default",
@@ -109,15 +111,21 @@ function ProviderRow({
         <span className="truncate text-sm font-medium">{name}</span>
       </span>
       <span className="flex shrink-0 items-center justify-end gap-2">
-        <span
+        <FadeSwap
           className={cn(
             "text-sm tabular-nums",
             totals.visible === 0 && "text-muted-foreground"
           )}
+          swapKey={String(totals.visible)}
+          value={totals.visible}
         >
-          {totals.visible.toLocaleString()}
-        </span>
-        <GeoStatDelta delta={visibilityDelta} label={`${name} visibility`} />
+          {totals.visible.toLocaleString(locale)}
+        </FadeSwap>
+        <GeoStatDelta
+          animated
+          delta={visibilityDelta}
+          label={t("visibilityLabel", { name })}
+        />
       </span>
     </>
   );
@@ -131,11 +139,11 @@ function ProviderRow({
       <HoverCardTrigger render={<button {...buttonProps} />}>
         {content}
       </HoverCardTrigger>
-      <TrafficBreakdownCard
+      <DetailCardContent
         aside={
           trackEngine ? (
             <Button
-              aria-label={`Track ${name}`}
+              aria-label={t("trackAria", { name })}
               disabled={trackingDisabled}
               onClick={() => onTrack(trackEngine, name)}
               size="xs"
@@ -143,7 +151,7 @@ function ProviderRow({
               variant="outline"
             >
               {tracking ? (
-                <StatusSpinner />
+                <Spinner className="size-3.5" />
               ) : (
                 <HugeiconsIcon
                   data-icon="inline-start"
@@ -151,7 +159,7 @@ function ProviderRow({
                   strokeWidth={2}
                 />
               )}
-              Track
+              {tGeoShared("track")}
             </Button>
           ) : null
         }
@@ -159,9 +167,9 @@ function ProviderRow({
         title={name}
       >
         <p className="text-muted-foreground px-3 py-1.5 text-xs text-pretty">
-          {GEO_MENTION_UNTRACKED_HINT}
+          {t("untrackedHint")}
         </p>
-      </TrafficBreakdownCard>
+      </DetailCardContent>
     </HoverCard>
   );
 }
@@ -174,8 +182,14 @@ export function MentionRateCard({
   promptResults = GEO_EMPTY_PROMPT_RESULTS,
   isScanning = false,
   organizationSlug,
+  companyName,
+  aliases,
   competitors,
 }: MentionRateCardProps) {
+  const t = useTranslations("geo.mentionRateCard");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const organizationId = settings?.organizationId ?? "";
   const { data: catalog } = useGeoModelCatalog(organizationId);
   const addEngine = useGeoSettingsEngineAdd(organizationId);
@@ -247,47 +261,67 @@ export function MentionRateCard({
       return;
     }
     addEngine.mutate(engine, {
-      onSuccess: () => toast.success(`${name} added to tracking`),
+      onSuccess: () => toast.success(t("addedToTracking", { name })),
     });
   };
   const { ref, atEnd } = useScrollOverflow<HTMLDivElement>(ranked.length);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="relative h-full">
       <InstrumentModule
         className="h-full"
-        eyebrow={GEO_MENTIONS_LABEL}
+        eyebrow={tCommon("labels.visibility")}
         variant="table"
       >
         {ranked.length === 0 || !totals ? (
           <InstrumentEmpty
             busy={isScanning}
             className="h-40"
-            message={geoScanEmptyMessage(isScanning, "No scans yet")}
+            message={
+              isScanning
+                ? tGeoShared("scanningEngines")
+                : tGeoShared("noScansYet")
+            }
             seed="Mentions"
           />
         ) : (
           <div className="flex flex-1 flex-col gap-4">
             <div className="flex items-end gap-2">
               <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {totals.visible.toLocaleString()}
+                <FadeSwap
+                  swapKey={String(totals.visible)}
+                  value={totals.visible}
+                >
+                  {totals.visible.toLocaleString(locale)}
+                </FadeSwap>
               </p>
-              <GeoStatDelta
-                className="mb-0.5"
-                delta={overviewDelta}
-                hint={GEO_FAMILY_STAT_TREND_HINT}
-                label={GEO_MENTIONS_LABEL}
-              />
+              {/* Slides with the number's width instead of jumping under the
+                  outgoing value. */}
+              <LazyMotion features={loadMotionFeatures} strict>
+                <m.span
+                  className="mb-0.5 inline-flex"
+                  layout={reduceMotion ? false : "position"}
+                  transition={FADE_SWAP_TRANSITION}
+                >
+                  <GeoStatDelta
+                    animated
+                    delta={overviewDelta}
+                    hint={tGeoShared("vsFirstHalfOfThis")}
+                    label={tCommon("labels.visibility")}
+                  />
+                </m.span>
+              </LazyMotion>
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
               <div className="flex items-center justify-between gap-3 text-sm font-medium">
-                <span>{GEO_PROVIDER_COLUMN_LABEL}</span>
-                <span>{GEO_PROVIDER_MENTIONS_COLUMN_LABEL}</span>
+                <span>{tGeoShared("provider")}</span>
+                <span>{tCommon("labels.visibility")}</span>
               </div>
               <div className="relative">
                 <div
-                  aria-label="Visibility by provider"
+                  aria-label={t("visibilityByProvider")}
                   className="border-border focus-visible:ring-ring relative overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 [&::-webkit-scrollbar]:hidden [&>button:last-of-type]:border-b-0"
                   ref={ref}
                   role="region"
@@ -321,8 +355,8 @@ export function MentionRateCard({
           </div>
         )}
         <EngineFamilySheet
-          aliases={settings?.aliases}
-          companyName={settings?.companyName}
+          aliases={settings?.aliases ?? aliases}
+          companyName={settings?.companyName ?? companyName}
           competitors={competitors}
           family={selected}
           onOpenChange={(open) => {

@@ -1,8 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { usePathname } from "@/lib/navigation";
 import type {
   RightPanelContextValue,
   RightPanelId,

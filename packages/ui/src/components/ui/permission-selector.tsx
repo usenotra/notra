@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { cn } from "@notra/ui/lib/utils";
 import {
   PermissionOption,
@@ -20,9 +21,10 @@ export interface PermissionSelectorProps {
 
 function PermissionSelector({
   children,
-  label = "Permissions",
+  label,
   className,
 }: PermissionSelectorProps) {
+  const labels = useUiLabels();
   return (
     <fieldset
       className={cn(
@@ -30,7 +32,7 @@ function PermissionSelector({
         className
       )}
     >
-      <legend className="sr-only">{label}</legend>
+      <legend className="sr-only">{label ?? labels.permissions}</legend>
       {children}
     </fieldset>
   );

@@ -1,22 +1,22 @@
 "use client";
 
-import {
-  type EventTriggerFormValues,
-  eventTriggerFormSchema,
-} from "@notra/schemas/dashboard/automation/event-trigger-form";
+import type { EventTriggerFormValues } from "@notra/schemas/dashboard/automation/event-trigger-form";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { createEventTriggerFormSchema } from "@/schemas/event-trigger-form";
 import type { UseEventTriggerFormProps } from "@/types/automation/event-trigger";
 import type { Trigger } from "@/types/triggers/triggers";
 import {
   getDefaultEventTriggerValues,
   parseIgnoreCommitPatternsText,
 } from "@/utils/event-trigger-form";
+import { getOrpcErrorDataCode } from "@/utils/orpc-errors";
 
 export function useEventTriggerForm({
   organizationId,
@@ -25,6 +25,13 @@ export function useEventTriggerForm({
   onSuccess,
   onClose,
 }: UseEventTriggerFormProps) {
+  const t = useTranslations("automation.events.dialog");
+  const tAutomationShared = useTranslations("automation.shared");
+  const tValidation = useTranslations("automation.events.validation");
+  const eventTriggerFormSchema = useMemo(
+    () => createEventTriggerFormSchema(tValidation),
+    [tValidation]
+  );
   const isEditMode = !!editTrigger;
   const lastResetKeyRef = useRef<string | null>(null);
 
@@ -67,19 +74,21 @@ export function useEventTriggerForm({
         }
         return await dashboardOrpc.automation.events.create.call(payload);
       } catch (error) {
-        if (error instanceof Error && error.message === "Duplicate trigger") {
-          throw new Error("Trigger already exists");
+        if (getOrpcErrorDataCode(error) === "DUPLICATE_TRIGGER") {
+          throw new Error(t("alreadyExists"));
         }
         if (error instanceof Error && error.message) {
           throw error;
         }
         throw new Error(
-          isEditMode ? "Failed to update trigger" : "Failed to create trigger"
+          isEditMode
+            ? tAutomationShared("failedToUpdateTrigger")
+            : t("createFailed")
         );
       }
     },
     onSuccess: (data) => {
-      toast.success(isEditMode ? "Trigger updated" : "Trigger added");
+      toast.success(isEditMode ? t("updated") : t("added"));
       onSuccess?.(data.trigger);
       onClose();
     },

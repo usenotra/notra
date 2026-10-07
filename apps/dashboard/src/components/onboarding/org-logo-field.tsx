@@ -11,6 +11,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { cn } from "@notra/ui/lib/utils";
 import { useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import type { OrgLogoFieldProps } from "@/types/onboarding";
 
@@ -22,6 +23,8 @@ export function OrgLogoField({
   onSelect,
   previewUrl,
 }: OrgLogoFieldProps) {
+  const t = useTranslations("onboarding.logoField");
+  const tCommon = useTranslations("common");
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (isLoading && !previewUrl) {
@@ -45,7 +48,7 @@ export function OrgLogoField({
         type="file"
       />
       <button
-        aria-label="Upload logo"
+        aria-label={t("upload")}
         className="group/logo shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
@@ -58,7 +61,7 @@ export function OrgLogoField({
           )}
         >
           <AvatarImage
-            alt="Logo"
+            alt={tCommon("labels.logo")}
             className="rounded-xl"
             src={previewUrl ?? undefined}
           />

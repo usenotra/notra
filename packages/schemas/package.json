@@ -21,12 +21,12 @@
     "@notra/db": "workspace:*",
     "@notra/geo-core": "workspace:*",
     "@notra/utils": "workspace:*",
-    "effect": "4.0.0-rc.112",
-    "zod": "^4.5.0"
+    "effect": "4.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
     "@types/node": "24.13.2",
-    "typescript": "^5"
+    "typescript": "7.0.2"
   }
 }

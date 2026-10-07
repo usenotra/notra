@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
 import {
   createContext,
   type ReactNode,
@@ -14,6 +13,7 @@ import {
 } from "react";
 
 import { authClient } from "@/lib/auth/client";
+import { usePathname } from "@/lib/navigation";
 import type { ClientSessionData } from "@/types/auth/session";
 import { setLastVisitedOrganization } from "@/utils/cookies";
 import { getOrganizationSlugFromPathname } from "@/utils/organization-pathname";
@@ -33,6 +33,7 @@ interface OrganizationsContextValue {
   organizations: Organization[];
   activeOrganization: Organization | null;
   isLoading: boolean;
+  isOrganizationListLoading: boolean;
   getOrganization: (slug: string) => Organization | undefined;
   requestOrganizations: () => void;
 }
@@ -45,6 +46,7 @@ const FALLBACK_ORGANIZATIONS_CONTEXT: OrganizationsContextValue = {
   organizations: [],
   activeOrganization: null,
   isLoading: true,
+  isOrganizationListLoading: false,
   getOrganization: () => undefined,
   requestOrganizations: () => undefined,
 };
@@ -103,9 +105,8 @@ export function OrganizationsProvider({
 
   const organizations =
     organizationsData ?? FALLBACK_ORGANIZATIONS_CONTEXT.organizations;
-  const isOrganizationListPending =
+  const isOrganizationListLoading =
     isPendingOrgs || Boolean(isOrgListPlaceholder);
-  const isLoading = isOrganizationListPending || isLoadingActive;
   const organizationFromPath = useMemo(
     () =>
       slugFromPath
@@ -131,6 +132,7 @@ export function OrganizationsProvider({
       activeOrganizationForPath ??
       seededActiveOrganization)
     : (activeOrganization ?? optimisticActiveOrg ?? seededActiveOrganization);
+  const isLoading = resolvedActiveOrganization == null && isLoadingActive;
 
   // Clear optimistic state when real data arrives
   const [prevActiveOrganization, setPrevActiveOrganization] =
@@ -175,7 +177,7 @@ export function OrganizationsProvider({
   // Auto-select first organization if no active organization is set
   useEffect(() => {
     if (
-      !(isOrganizationListPending || isLoadingActive) &&
+      !(isOrganizationListLoading || isLoadingActive) &&
       organizationsData &&
       organizationsData.length > 0 &&
       !activeOrganization &&
@@ -217,7 +219,7 @@ export function OrganizationsProvider({
       hasAutoSelectedRef.current = false;
     }
   }, [
-    isOrganizationListPending,
+    isOrganizationListLoading,
     isLoadingActive,
     organizationsData,
     activeOrganization,
@@ -239,6 +241,7 @@ export function OrganizationsProvider({
       organizations,
       activeOrganization: resolvedActiveOrganization,
       isLoading,
+      isOrganizationListLoading,
       getOrganization,
       requestOrganizations,
     }),
@@ -246,6 +249,7 @@ export function OrganizationsProvider({
       organizations,
       resolvedActiveOrganization,
       isLoading,
+      isOrganizationListLoading,
       getOrganization,
       requestOrganizations,
     ]

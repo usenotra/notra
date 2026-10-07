@@ -1,3 +1,4 @@
+import { logInfo } from "@notra/ai/utils/server-log";
 import type { ScheduleOutputType } from "@notra/schemas/dashboard/integrations";
 
 import { AGENT_CONTENT_TASK_TYPES } from "@/constants/agent-content";
@@ -55,9 +56,9 @@ export async function generateScheduledContent(
     : null;
 
   if (!handler) {
-    console.log(
-      `[Schedule] Output type ${outputType} not fully implemented yet`
-    );
+    logInfo("[Schedule] Output type not fully implemented yet", {
+      outputType,
+    });
     return {
       status: "unsupported_output_type",
       outputType,

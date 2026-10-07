@@ -1,66 +1,41 @@
-"use client";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 
-import { useEffect, useState } from "react";
+import type { DashboardSessionState } from "@/types/auth/session";
+import { getNavbarSession } from "@/utils/navbar-session";
 
-import { APP_URL } from "@/utils/urls";
-
-const SESSION_ENDPOINT =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:3000/api/session"
-    : `${APP_URL}/api/session`;
-const SESSION_PROBE_TIMEOUT_MS = 4_000;
-
-export interface DashboardSessionState {
-  isAuthenticated: boolean;
-  isResolved: boolean;
+function getServerSnapshot() {
+  return undefined;
 }
 
 export function useDashboardSession(): DashboardSessionState {
-  const [state, setState] = useState<DashboardSessionState>({
-    isAuthenticated: false,
-    isResolved: false,
-  });
-
-  useEffect(() => {
-    const controller = new AbortController();
+  const fallback = useRef<boolean | undefined>(undefined);
+  const subscribe = useCallback((onChange: () => void) => {
     let cancelled = false;
-    const timeoutId = window.setTimeout(() => {
-      controller.abort();
-    }, SESSION_PROBE_TIMEOUT_MS);
-
-    fetch(SESSION_ENDPOINT, {
-      credentials: "include",
-      signal: controller.signal,
-    })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (cancelled) {
-          return;
-        }
-        setState({
-          isAuthenticated: Boolean(data),
-          isResolved: true,
-        });
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-        setState({
-          isAuthenticated: false,
-          isResolved: true,
-        });
-      })
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-      });
-
+    getNavbarSession().then((isAuthenticated) => {
+      if (!cancelled) {
+        fallback.current = isAuthenticated;
+        onChange();
+      }
+    });
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
-      controller.abort();
     };
   }, []);
+  const getSnapshot = useCallback(
+    () =>
+      window.__notraNavbarSession
+        ? window.__notraNavbarSessionResolved
+        : fallback.current,
+    []
+  );
+  const isAuthenticated = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
-  return state;
+  return {
+    isAuthenticated: isAuthenticated === true,
+    isResolved: isAuthenticated !== undefined,
+  };
 }

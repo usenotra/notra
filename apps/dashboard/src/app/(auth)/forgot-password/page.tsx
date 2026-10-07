@@ -2,14 +2,18 @@
 
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { forgotPasswordAction } from "@/lib/auth/password-actions";
 
 export default function ForgotPassword() {
+  const t = useTranslations("auth.forgotPassword");
+  const tAuthShared = useTranslations("auth.shared");
+  const tCommon = useTranslations("common");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -28,7 +32,7 @@ export default function ForgotPassword() {
       await forgotPasswordAction({ email });
       setIsSubmitted(true);
     } catch {
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error(tAuthShared("networkErrorPleaseCheckYour"));
     }
     setIsLoading(false);
   }
@@ -38,24 +42,21 @@ export default function ForgotPassword() {
       <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
         <div className="text-center">
           <h1 className="text-xl font-semibold lg:text-2xl">
-            Check your email
+            {t("checkEmailTitle")}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            If an account exists with that email, we&apos;ve sent you a link to
-            reset your password.
+            {t("checkEmailDescription")}
           </p>
         </div>
 
         <div className="flex flex-col gap-4 text-center">
-          <p className="text-muted-foreground text-sm">
-            Didn&apos;t receive an email? Check your spam folder or try again.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("notReceived")}</p>
           <Button
             onClick={() => setIsSubmitted(false)}
             type="button"
             variant="outline"
           >
-            Try again
+            {tCommon("actions.tryAgain")}
           </Button>
         </div>
 
@@ -64,7 +65,7 @@ export default function ForgotPassword() {
             className="hover:text-primary underline underline-offset-4"
             href="/login"
           >
-            Back to login
+            {tAuthShared("backToLogin")}
           </Link>
         </div>
       </div>
@@ -74,34 +75,29 @@ export default function ForgotPassword() {
   return (
     <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
       <div className="text-center">
-        <h1 className="text-xl font-semibold lg:text-2xl">
-          Forgot your password?
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Enter your email and we&apos;ll send you a link to reset your
-          password.
-        </p>
+        <h1 className="text-xl font-semibold lg:text-2xl">{t("title")}</h1>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-3">
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="email">
-              Email
+              {tCommon("labels.email")}
             </Label>
             <Input
               autoComplete="email"
               disabled={isLoading}
               id="email"
               name="email"
-              placeholder="Email"
+              placeholder={tCommon("labels.email")}
               required
               type="email"
             />
           </div>
         </div>
         <Button className="mt-4 w-full" disabled={isLoading} type="submit">
-          {isLoading ? "Sending…" : "Send Reset Link"}
+          {isLoading ? tCommon("labels.sending") : t("submit")}
         </Button>
       </form>
 
@@ -110,7 +106,7 @@ export default function ForgotPassword() {
           className="hover:text-primary underline underline-offset-4"
           href="/login"
         >
-          Back to login
+          {tAuthShared("backToLogin")}
         </Link>
       </div>
     </div>

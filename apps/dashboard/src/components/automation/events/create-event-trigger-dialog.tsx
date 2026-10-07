@@ -10,6 +10,7 @@ import {
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useEventTriggerForm } from "@/lib/hooks/use-event-trigger-form";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -30,6 +31,7 @@ export function CreateEventTriggerDialog({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: CreateEventTriggerDialogProps) {
+  const t = useTranslations("automation.events.dialog");
   const isEditMode = !!editTrigger;
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -121,11 +123,9 @@ export function CreateEventTriggerDialog({
         <ResponsiveDialogContent className="flex h-[85vh] max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
           <ResponsiveDialogHeader className="shrink-0 border-b p-4 pr-14">
             <ResponsiveDialogTitle className="text-base">
-              {isEditMode ? "Edit event trigger" : "New event trigger"}
+              {isEditMode ? t("editTitle") : t("newTitle")}
             </ResponsiveDialogTitle>
-            <p className="text-muted-foreground text-sm">
-              React to GitHub activity and generate content automatically.
-            </p>
+            <p className="text-muted-foreground text-sm">{t("description")}</p>
           </ResponsiveDialogHeader>
 
           <form

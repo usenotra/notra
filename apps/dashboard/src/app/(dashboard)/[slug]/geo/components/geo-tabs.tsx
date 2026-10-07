@@ -2,11 +2,14 @@
 
 import { GEO_EMPTY_COMPETITOR_SHARE_TIMESERIES } from "@notra/geo-core/constants/geo";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentGrid } from "@notra/ui/components/instrument/instrument-grid";
+import { InstrumentReveal } from "@notra/ui/components/instrument/instrument-reveal";
 import {
   PermissionOption,
   PermissionRow,
 } from "@notra/ui/components/ui/permission-selector";
-import type { ReactNode } from "react";
+import { Activity, type ReactNode } from "react";
+import { useTranslations } from "use-intl";
 
 import { BrandSentimentCard } from "@/components/geo/brand-sentiment-card";
 import { EngineRateTable } from "@/components/geo/engine-rate-table";
@@ -16,24 +19,10 @@ import { MentionRateCard } from "@/components/geo/mention-rate-card";
 import { MentionTrendCard } from "@/components/geo/mention-trend-card";
 import { ShareOfVoiceCard } from "@/components/geo/share-of-voice-card";
 import { WhatChangedCard } from "@/components/geo/what-changed-card";
-import { InstrumentGrid } from "@/components/instrument/instrument-grid";
-import { InstrumentReveal } from "@/components/instrument/instrument-reveal";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type { GeoTabsProps } from "@/types/geo";
-import { journeyTotals } from "@/utils/geo-journey";
 import { toGeoTab } from "@/utils/geo-tabs";
-
-function TriggerCount({ count }: { count: number }) {
-  if (count <= 0) {
-    return null;
-  }
-  return (
-    <span className="text-xs tabular-nums opacity-70">
-      {count.toLocaleString()}
-    </span>
-  );
-}
 
 function TabSection({
   active,
@@ -72,16 +61,20 @@ export function GeoTabs({
   promptResults,
   isScanning,
   journeys,
+  journeysFailed,
   journeyStats,
   journeyStatsFailed,
   journeysLoading,
   organizationId,
 }: GeoTabsProps) {
+  const t = useTranslations("geo.pages.tabs");
+  const tCommon = useTranslations("common");
+
   return (
     <div className="flex min-w-0 flex-col">
       <PermissionRow
         className="w-fit shrink-0"
-        label="GEO sections"
+        label={t("label")}
         layout="compact"
         onValueChange={(value) => {
           const tab = toGeoTab(value);
@@ -90,25 +83,18 @@ export function GeoTabs({
         }}
         value={activeTab}
       >
-        <PermissionOption value="visibility">Visibility</PermissionOption>
+        <PermissionOption value="visibility">
+          {tCommon("labels.visibility")}
+        </PermissionOption>
         <PermissionOption value="brand-sentiment">
-          Brand Sentiment
+          {tCommon("labels.brandSentiment")}
         </PermissionOption>
         <PermissionOption value="journeys">
-          <span className="flex items-baseline gap-1.5">
-            Journeys
-            <TriggerCount
-              count={
-                journeyStats
-                  ? journeyTotals(journeyStats.sources).journeys
-                  : journeys.length
-              }
-            />
-          </span>
+          {tCommon("labels.journeys")}
         </PermissionOption>
       </PermissionRow>
 
-      {activeTab === "visibility" ? (
+      <Activity mode={activeTab === "visibility" ? "visible" : "hidden"}>
         <div className="mt-6 flex flex-col gap-6 overflow-visible">
           <InstrumentGrid className="grid-cols-1 items-stretch gap-4 overflow-visible @min-[44rem]/main:grid-cols-12">
             <TabSection
@@ -183,7 +169,7 @@ export function GeoTabs({
             </TabSection>
           </InstrumentGrid>
         </div>
-      ) : null}
+      </Activity>
 
       {activeTab === "brand-sentiment" ? (
         <div className="mt-6">
@@ -198,11 +184,13 @@ export function GeoTabs({
 
       {activeTab === "journeys" ? (
         <JourneysTab
+          journeysFailed={journeysFailed}
           journeyStats={journeyStats}
           journeyStatsFailed={journeyStatsFailed}
           journeys={journeys}
           loading={journeysLoading}
           organizationId={organizationId}
+          organizationSlug={organizationSlug}
           revealActive={revealActive}
         />
       ) : null}

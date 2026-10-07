@@ -10,16 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
 import { formatChatIdFallback, normalizeChatTitle } from "@notra/ai/utils/chat";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,16 +21,18 @@ import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
   useChatSessionMutations,
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { displayChatTitle } from "@/utils/chat-history-groups";
 
 interface ChatTopbarTitleProps {
   chatId: string;
@@ -49,11 +42,24 @@ function ChatTopbarTitleLabel({
   displayTitle,
   hasTitle,
   isGeneratingTitle,
+  isLoading,
 }: {
   displayTitle: string;
   hasTitle: boolean;
   isGeneratingTitle: boolean;
+  isLoading: boolean;
 }) {
+  const t = useTranslations("dashboard.chatTitle");
+  const tNav = useTranslations("nav.sidebar");
+  if (isLoading) {
+    return (
+      <Skeleton
+        aria-label={tNav("loadingChatHistory")}
+        className="h-4 w-28"
+        role="status"
+      />
+    );
+  }
   let titleMotionKey = "fallback";
   if (isGeneratingTitle) {
     titleMotionKey = "generating";
@@ -78,7 +84,7 @@ function ChatTopbarTitleLabel({
         >
           {isGeneratingTitle ? (
             <Skeleton
-              aria-label="Generating title"
+              aria-label={t("generating")}
               className="h-4 w-28"
               role="status"
             />
@@ -92,15 +98,20 @@ function ChatTopbarTitleLabel({
 }
 
 export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
+  const t = useTranslations("dashboard.chatTitle");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const { activeOrganization } = useOrganizationsContext();
   const router = useRouter();
   const slug = activeOrganization?.slug;
 
-  const { sessions, generatingTitleChatIds } = useChatSessions();
+  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const session = sessions.find((item) => item.chatId === chatId);
-  const title = session?.title ?? null;
+  const title = session
+    ? displayChatTitle(session.title, tCommon2("labels.newChat"))
+    : null;
   const isGeneratingTitle = generatingTitleChatIds.has(chatId);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -135,7 +146,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
     const nextTitle = normalizeChatTitle(draftTitle);
 
     if (!nextTitle) {
-      toast.error("Title can't be empty");
+      toast.error(t("emptyTitle"));
       setDraftTitle(session.title);
       setIsEditing(false);
       return;
@@ -239,6 +250,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     displayTitle={displayTitle}
                     hasTitle={hasTitle}
                     isGeneratingTitle={isGeneratingTitle}
+                    isLoading={isLoading}
                   />
                   <HugeiconsIcon
                     className={cn(
@@ -260,14 +272,14 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     <HugeiconsIcon
                       icon={session?.pinnedAt ? PinOffIcon : PinIcon}
                     />
-                    {session?.pinnedAt ? "Unpin" : "Pin"}
+                    {session?.pinnedAt ? t("unpin") : t("pin")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={!session || isGeneratingTitle}
                     onClick={startEditing}
                   >
                     <HugeiconsIcon icon={PencilEdit02Icon} />
-                    Rename
+                    {tCommon("rename")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={!session}
@@ -275,7 +287,7 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
                     variant="destructive"
                   >
                     <HugeiconsIcon icon={Delete02Icon} />
-                    Delete
+                    {tCommon("delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -284,41 +296,26 @@ export function ChatTopbarTitle({ chatId }: ChatTopbarTitleProps) {
         </AnimatePresence>
       </div>
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={
+          session?.title
+            ? tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+                title: session.title,
+              })
+            : t("deleteDescriptionFallback")
+        }
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
-          if (!open && !isDeleting) {
+          if (!open) {
             setDeleteOpen(false);
           }
         }}
         open={deleteOpen}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete chat?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{session?.title ?? "this chat"}
-              &quot;. This action cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={t("deleteTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

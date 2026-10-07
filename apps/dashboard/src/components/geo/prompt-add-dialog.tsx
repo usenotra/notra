@@ -1,5 +1,7 @@
 "use client";
 
+import { Upload01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_PROMPT_MAX_LENGTH,
   GEO_PROMPT_MIN_LENGTH,
@@ -23,6 +25,7 @@ import {
   InputGroupText,
 } from "@notra/ui/components/ui/input-group";
 import { Label } from "@notra/ui/components/ui/label";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import {
   Tabs,
   TabsContent,
@@ -30,10 +33,10 @@ import {
   TabsTrigger,
 } from "@notra/ui/components/ui/tabs";
 import { type FormEvent, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PromptKeywordTextarea } from "@/components/geo/prompt-keyword-textarea";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoGenerateFromWebsite, useGscKeywords } from "@/lib/hooks/use-geo";
 import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
@@ -52,8 +55,14 @@ const MODE_PANEL_CLASS =
 export function PromptAddDialog({
   open,
   onOpenChange,
+  onImportCsv,
   organizationId,
 }: PromptAddDialogProps) {
+  const t = useTranslations("geo.promptAddDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
+  const tShared = useTranslations("geo.pages.shared");
   const formId = useId();
   const promptId = useId();
   const promptHintId = useId();
@@ -79,11 +88,14 @@ export function PromptAddDialog({
   const canGenerate = normalizedUrl !== null && !busy;
   const writeMode = mode === "write";
 
-  const close = () => {
+  const close = () => onOpenChange(false);
+
+  // Cleared once the close animation is done, so the closing dialog keeps
+  // showing what the user saw instead of snapping back to an empty draft.
+  const reset = () => {
     setMode("write");
     setDraft("");
     setUrl("");
-    onOpenChange(false);
   };
 
   const handleAdd = () => {
@@ -124,6 +136,11 @@ export function PromptAddDialog({
 
   return (
     <ResponsiveDialog
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) {
+          reset();
+        }
+      }}
       onOpenChange={(next) => {
         if (next) {
           onOpenChange(true);
@@ -135,7 +152,9 @@ export function PromptAddDialog({
     >
       <ResponsiveDialogContent className="sm:max-w-md">
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Add prompt</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tGeoShared("addPrompt")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription className="grid">
             <span
               aria-hidden={!writeMode}
@@ -144,7 +163,7 @@ export function PromptAddDialog({
                 !writeMode && "invisible opacity-0"
               )}
             >
-              A question your buyers ask AI engines.
+              {t("writeDescription")}
             </span>
             <span
               aria-hidden={writeMode}
@@ -153,7 +172,7 @@ export function PromptAddDialog({
                 writeMode && "invisible opacity-0"
               )}
             >
-              Generate more buyer questions from a site you already have.
+              {t("websiteDescription")}
             </span>
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
@@ -165,10 +184,10 @@ export function PromptAddDialog({
           <Tabs onValueChange={handleModeChange} value={mode}>
             <TabsList className="grid h-9 w-full grid-cols-2">
               <TabsTrigger disabled={busy} value="write">
-                Write one
+                {t("writeTab")}
               </TabsTrigger>
               <TabsTrigger disabled={busy} value="website">
-                From a website
+                {t("websiteTab")}
               </TabsTrigger>
             </TabsList>
             <div className="mt-4 grid">
@@ -181,7 +200,9 @@ export function PromptAddDialog({
                 value="write"
               >
                 <div className="space-y-2">
-                  <Label htmlFor={promptId}>Question</Label>
+                  <Label htmlFor={promptId}>
+                    {tCommon2("labels.question")}
+                  </Label>
                   <PromptKeywordTextarea
                     aria-describedby={promptHintId}
                     autoFocus
@@ -198,7 +219,10 @@ export function PromptAddDialog({
                         handleAdd();
                       }
                     }}
-                    placeholder="best way to turn github activity into a changelog for a small team"
+                    // A fixed height: a growing textarea resized (and
+                    // re-centred) the whole dialog on every wrapped line.
+                    className="field-sizing-fixed h-28 resize-none"
+                    placeholder={t("questionPlaceholder")}
                     ref={promptRef}
                     rows={4}
                     value={draft}
@@ -208,13 +232,11 @@ export function PromptAddDialog({
                     id={promptHintId}
                   >
                     {searchConsoleKeywords.length > 0 ? (
-                      <span>
-                        Top Search Console queries highlight as you type.
-                      </span>
+                      <span>{t("searchConsoleHint")}</span>
                     ) : null}
                     <span className="ml-auto tabular-nums">
                       {remainingToMin > 0 && trimmed.length > 0
-                        ? `${remainingToMin} more characters`
+                        ? t("moreCharacters", { count: remainingToMin })
                         : `${trimmed.length}/${GEO_PROMPT_MAX_LENGTH}`}
                     </span>
                   </div>
@@ -229,7 +251,7 @@ export function PromptAddDialog({
                 value="website"
               >
                 <div className="space-y-2">
-                  <Label htmlFor={urlId}>Website</Label>
+                  <Label htmlFor={urlId}>{tCommon2("labels.website")}</Label>
                   <InputGroup>
                     <InputGroupAddon className="border-input border-r pr-2">
                       <InputGroupText>https://</InputGroupText>
@@ -249,8 +271,7 @@ export function PromptAddDialog({
                     />
                   </InputGroup>
                   <p className="text-muted-foreground text-xs" id={urlHintId}>
-                    We'll add buyer questions, plus aliases and competitors.
-                    Existing prompts stay.
+                    {t("websiteHint")}
                   </p>
                 </div>
               </TabsContent>
@@ -258,22 +279,37 @@ export function PromptAddDialog({
           </Tabs>
         </form>
         <ResponsiveDialogFooter>
+          {onImportCsv ? (
+            <Button
+              className="sm:mr-auto"
+              disabled={busy}
+              onClick={() => {
+                close();
+                onImportCsv();
+              }}
+              type="button"
+              variant="ghost"
+            >
+              <HugeiconsIcon icon={Upload01Icon} size={14} />
+              {tShared("importCsv")}
+            </Button>
+          ) : null}
           <Button
             disabled={busy}
             onClick={close}
             type="button"
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           {writeMode ? (
             <Button disabled={!canAdd} form={formId} type="submit">
-              Add prompt
+              {tGeoShared("addPrompt")}
             </Button>
           ) : (
             <Button disabled={!canGenerate} form={formId} type="submit">
-              {generate.isPending ? <StatusSpinner /> : null}
-              Generate prompts
+              {generate.isPending ? <Spinner className="size-3.5" /> : null}
+              {tGeoShared("generatePrompts")}
             </Button>
           )}
         </ResponsiveDialogFooter>

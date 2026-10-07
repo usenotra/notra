@@ -1,4 +1,5 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   mcpServerIntegrations,
@@ -75,10 +76,9 @@ export async function refreshMcpToolIndexForOrganization({
         })
       );
     } catch (error) {
-      console.error("[MCP Tool Index Organization Refresh Error]", {
+      logError("[MCP Tool Index] Organization refresh failed", error, {
         organizationId,
         integrationId: integration.id,
-        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -259,10 +259,9 @@ export async function refreshMcpToolIndexForIntegration({
       })
       .where(eq(mcpServerIntegrations.id, integrationId));
 
-    console.error("[MCP Tool Index Refresh Error]", {
+    logError("[MCP Tool Index] Refresh failed", error, {
       integrationId,
       organizationId,
-      error: message,
     });
     throw error;
   } finally {
@@ -304,9 +303,8 @@ export async function searchMcpToolIndex({
   if (activeCount === 0) {
     await refreshMcpToolIndexForOrganization({ organizationId }).catch(
       (error) => {
-        console.error("[MCP Tool Index Refresh During Search Error]", {
+        logError("[MCP Tool Index] Refresh during search failed", error, {
           organizationId,
-          error: error instanceof Error ? error.message : String(error),
         });
       }
     );
@@ -559,10 +557,9 @@ export async function activateSessionMcpTools({
       organizationId,
       integrationId,
     }).catch((error) => {
-      console.error("[MCP Tool Index Stale Refresh Error]", {
+      logError("[MCP Tool Index] Stale refresh failed", error, {
         organizationId,
         integrationId,
-        error: error instanceof Error ? error.message : String(error),
       });
     });
   }
@@ -889,10 +886,9 @@ async function listMcpToolsForIndex(
       redirect: "error",
     },
     onUncaughtError: (error) => {
-      console.error("[MCP Index Client Error]", {
+      logError("[MCP Tool Index] Uncaught client error", error, {
         integrationId,
         organizationId,
-        error: error instanceof Error ? error.message : String(error),
       });
     },
   });

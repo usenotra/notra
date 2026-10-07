@@ -4,6 +4,7 @@ import { useDbClient, useLiveQuery } from "@tanstack/react-db";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import {
   githubRepositoriesCollection,
@@ -25,6 +26,7 @@ import { pendingOutputId } from "@/utils/github-outputs";
 export function useGitHubRepositoriesDb(
   organizationId: string
 ): GitHubRepositoriesDbApi {
+  const t = useTranslations("integrations.github.toasts");
   const isEnabled = organizationId.length > 0;
   const dbClient = useDbClient();
   const queryClient = useQueryClient();
@@ -91,7 +93,7 @@ export function useGitHubRepositoriesDb(
         repository.enabled = enabled;
       }
     });
-    await persist(integrationId, transaction, "Failed to update repository");
+    await persist(integrationId, transaction, t("repositoryUpdateFailed"));
     await queryClient.invalidateQueries({
       queryKey: dashboardOrpc.github.app.get.queryKey({
         input: { organizationId },
@@ -112,6 +114,10 @@ export function useGitHubRepositoriesDb(
     if (!integration) {
       return;
     }
+    const currentOutputs =
+      integration.repositories.find(
+        (repository) => repository.id === repositoryId
+      )?.outputs ?? [];
     const transaction = collection.update(integration.id, (draft) => {
       const repository = draft.repositories.find(
         (candidate) => candidate.id === repositoryId
@@ -119,27 +125,31 @@ export function useGitHubRepositoriesDb(
       if (!repository) {
         return;
       }
-      const outputs = repository.outputs ?? [];
-      const output = outputs.find(
+      const output = repository.outputs?.find(
         (candidate) => candidate.outputType === outputType
       );
       if (output) {
         output.enabled = enabled;
-      } else {
-        outputs.push({
+        return;
+      }
+      // Assign a plain array: pushing onto the draft's array and assigning it
+      // back makes TanStack DB's change proxy read the new index from the
+      // original object, where it is undefined, and the update throws.
+      repository.outputs = [
+        ...currentOutputs,
+        {
           id: pendingOutputId(repositoryId, outputType),
           outputType,
           enabled,
-        });
-      }
-      repository.outputs = outputs;
+        },
+      ];
     });
-    await persist(integration.id, transaction, "Failed to update publishing");
+    await persist(integration.id, transaction, t("publishingUpdateFailed"));
   };
 
   const removeRepository = async (integrationId: string) => {
     const transaction = collection.delete(integrationId);
-    await persist(integrationId, transaction, "Failed to remove repository");
+    await persist(integrationId, transaction, t("repositoryRemoveFailed"));
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: dashboardOrpc.github.app.get.queryKey({

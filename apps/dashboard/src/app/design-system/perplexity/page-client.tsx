@@ -2,12 +2,12 @@
 
 import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PerplexityActions } from "@notra/ui/components/brainless/perplexity/perplexity-actions";
-import { PerplexityCitation } from "@notra/ui/components/brainless/perplexity/perplexity-citation";
-import { PerplexityComposer } from "@notra/ui/components/brainless/perplexity/perplexity-composer";
-import { PerplexityMessage } from "@notra/ui/components/brainless/perplexity/perplexity-message";
-import { PerplexitySearch } from "@notra/ui/components/brainless/perplexity/perplexity-search";
-import { PerplexityThinking } from "@notra/ui/components/brainless/perplexity/perplexity-thinking";
+import { PerplexityActions } from "@notra/ui/components/ai-skins/perplexity/perplexity-actions";
+import { PerplexityCitation } from "@notra/ui/components/ai-skins/perplexity/perplexity-citation";
+import { PerplexityComposer } from "@notra/ui/components/ai-skins/perplexity/perplexity-composer";
+import { PerplexityMessage } from "@notra/ui/components/ai-skins/perplexity/perplexity-message";
+import { PerplexitySearch } from "@notra/ui/components/ai-skins/perplexity/perplexity-search";
+import { PerplexityThinking } from "@notra/ui/components/ai-skins/perplexity/perplexity-thinking";
 import {
   MessageScroller,
   MessageScrollerButton,

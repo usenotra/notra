@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "src/start.ts",
+    "src/client.tsx",
+    "src/router.tsx",
+    "src/lib/framework/runtime.ts",
+    "src/routes/**/*.{ts,tsx}",
+    "src/app/**/route.ts",
     "scripts/*.ts",
     "tests/fixtures/*.fixture.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
@@ -9,8 +15,15 @@
   "paths": {
     "@/*": ["./src/*"]
   },
-  "ignoreDependencies": ["@ai-sdk/code-mode"],
+  "ignoreDependencies": [
+    "@ai-sdk/code-mode",
+    "@ai-sdk/devtools",
+    "@cursor/sdk",
+    "@resvg/resvg-js",
+    "tailwindcss"
+  ],
   "ignoreIssues": {
+    "src/utils/framework-workflow-plugin.test.ts": ["unlisted"],
     "src/app/(dashboard)/**/constants/**/*.ts": ["exports"],
     "src/components/**/*.tsx": ["types"],
     "src/components/content/content-card.tsx": ["exports"],
@@ -34,7 +47,6 @@
     "src/components/evilcharts/**/*.{ts,tsx}": ["exports", "types"],
     "src/components/motion/**/*.{ts,tsx}": ["exports", "types"],
     "src/lib/ease.ts": ["exports", "types"],
-    "src/lib/geo-ingest/**/*.ts": ["exports", "types"],
     "src/lib/geo-shelf/preview.ts": ["exports"],
     "src/lib/analytics/posthog-lazy.ts": ["exports"],
     "src/lib/content/image-export.ts": ["exports"]

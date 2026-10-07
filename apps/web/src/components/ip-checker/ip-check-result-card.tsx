@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
@@ -81,8 +79,9 @@ export function IpCheckResultCard({ result }: IpCheckResultCardProps) {
         </div>
         <p className="font-sans text-[0.875rem]/5.5 text-pretty text-[#1E1E1EBF] dark:text-white/70">
           None of the {result.listsChecked} vendor lists we reached include this
-          address. It can still be a bot: many agents fetch from ordinary cloud
-          or residential addresses, and some spoof a crawler user agent.
+          address. It can still be a bot, because many agents fetch from
+          ordinary cloud or residential addresses, and some spoof a crawler user
+          agent.
         </p>
         {coverage}
       </m.div>

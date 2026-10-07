@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubAccountCardProps } from "@/types/integrations/github";
@@ -26,6 +27,8 @@ export function GitHubAccountCard({
   onDisconnect,
   isDisconnecting,
 }: GitHubAccountCardProps) {
+  const t = useTranslations("integrations.github.accountCard");
+  const tCommon = useTranslations("common");
   const selectedIds = new Set(selectedRepositoryIds);
   const count = repositories.filter((repository) =>
     selectedIds.has(repository.id)
@@ -36,8 +39,7 @@ export function GitHubAccountCard({
     accountLogin: account.login,
   });
   const needsWriteAccess = account.canPublish === false;
-  const publishAccessCopy =
-    "Write access needed for draft pull requests. Review permissions on GitHub.";
+  const publishAccessCopy = t("writeAccessNeeded");
   let publishAccessNotice = null;
   if (needsWriteAccess && permissionsUrl) {
     publishAccessNotice = (
@@ -65,9 +67,9 @@ export function GitHubAccountCard({
         <p className="truncate text-sm font-medium">{account.login}</p>
         <p className="text-muted-foreground text-xs">
           {account.type === "Organization"
-            ? "Organization"
-            : "Personal account"}{" "}
-          · {count} {count === 1 ? "repository" : "repositories"}
+            ? tCommon("labels.organization")
+            : t("personalAccount")}{" "}
+          · {tCommon("messages.countPluralOneRepositoryOther", { count })}
         </p>
         {publishAccessNotice}
       </div>
@@ -75,7 +77,7 @@ export function GitHubAccountCard({
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label={`Manage ${account.login}`}
+              aria-label={t("manageAriaLabel", { login: account.login })}
               disabled={isDisconnecting}
               size="icon-sm"
               variant="ghost"
@@ -86,7 +88,7 @@ export function GitHubAccountCard({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuItem onClick={onAddRepositories}>
-            Manage repositories
+            {t("manageRepositories")}
           </DropdownMenuItem>
           {permissionsUrl ? (
             <DropdownMenuItem
@@ -97,13 +99,13 @@ export function GitHubAccountCard({
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  Review permissions on GitHub
+                  {t("reviewPermissions")}
                 </a>
               }
             />
           ) : null}
           <DropdownMenuItem onClick={onDisconnect} variant="destructive">
-            Disconnect account
+            {t("disconnect")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

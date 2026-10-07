@@ -12,11 +12,13 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useId, useState } from "react";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import { Button } from "@/components/button";
 import type { PlanCardProps } from "@/types/billing/plan";
 import { planCardClassName } from "@/utils/billing-plans";
+import { currencyAffix } from "@/utils/format";
 
 export function PlanCard({
   name,
@@ -29,10 +31,15 @@ export function PlanCard({
   action,
   addon,
   button,
+  renewalTerms,
 }: PlanCardProps) {
   const listId = useId();
   const addonId = `${listId}-addon`;
   const [consentOpen, setConsentOpen] = useState(false);
+  const locale = useLocale();
+  const format = useFormatter();
+  const t = useTranslations("billing.plans");
+  const currency = currencyAffix(locale, price);
 
   const handleAddonChange = (checked: boolean) => {
     if (!addon) {
@@ -57,15 +64,25 @@ export function PlanCard({
             {description}
           </p>
           <div className="mt-2 flex items-end">
-            <span className="text-3xl leading-none font-bold">$</span>
+            {currency.position === "prefix" ? (
+              <span className="text-3xl leading-none font-bold">
+                {currency.symbol}
+              </span>
+            ) : null}
             <Counter
               fontSize={30}
               fontWeight={700}
               gap={0}
               gradientHeight={0}
+              locale={locale}
               padding={0}
               value={price}
             />
+            {currency.position === "suffix" ? (
+              <span className="ml-1 text-3xl leading-none font-bold">
+                {currency.symbol}
+              </span>
+            ) : null}
             <span className="text-muted-foreground mb-0.5 ml-1 text-sm font-normal">
               /{intervalLabel}
             </span>
@@ -109,6 +126,19 @@ export function PlanCard({
         >
           {button.label}
         </Button>
+        {renewalTerms ? (
+          <p className="text-muted-foreground text-xs">
+            {t("renewalTerms", {
+              kind: renewalTerms,
+              price: format.number(price, {
+                style: "currency",
+                currency: "USD",
+              }),
+              interval: intervalLabel,
+            })}
+            {addon?.checked ? ` ${t("addonExtra")}` : null}
+          </p>
+        ) : null}
 
         <ul className="space-y-2.5 pt-2">
           {features.map((feature) => (

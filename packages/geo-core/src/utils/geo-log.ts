@@ -1,4 +1,4 @@
-import { flushGeoLog, geoLog, geoLogDrainEnabled } from "@notra/ai/evlog";
+import { flushGeoLog, geoLog } from "@notra/ai/evlog";
 import type { GeoLogEvent } from "@notra/ai/types/evlog";
 import { Cause, Effect } from "effect";
 import { parseError } from "evlog";
@@ -90,9 +90,21 @@ export function logGeoSkip(
   } else {
     geoLog.error(base);
   }
-  if (!geoLogDrainEnabled) {
-    console.error(`[GEO] ${message}:`, error);
-  }
+  console.error(`[GEO] ${message}:`, error);
+}
+
+/**
+ * Structured replacement for `console.error` / `console.warn` on GEO paths
+ * that catch and continue: one evlog event with the parsed error fields.
+ */
+export function logGeoFailure(
+  event: GeoLogEvent["event"],
+  message: string,
+  error: unknown,
+  fields?: Record<string, unknown>,
+  level: "error" | "warn" = "error"
+): void {
+  geoLog[level]({ ...fields, event, message, ...describeGeoError(error) });
 }
 
 export function geoLogInfo(event: GeoLogEvent): Effect.Effect<void> {

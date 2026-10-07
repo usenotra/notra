@@ -2,9 +2,10 @@
 
 import { GEO_LOGO_SIZE_PX } from "@notra/geo-core/constants/geo";
 import { cn } from "@notra/ui/lib/utils";
-import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import type { CompetitorBrandLogoProps } from "@/types/onboarding";
 
@@ -14,6 +15,7 @@ export function CompetitorBrandLogo({
   logo,
   className,
 }: CompetitorBrandLogoProps) {
+  const tCommon = useTranslations("common");
   const [failed, setFailed] = useState(false);
 
   if (!logo || failed) {
@@ -28,7 +30,7 @@ export function CompetitorBrandLogo({
       )}
     >
       <Image
-        alt={`${name} logo`}
+        alt={tCommon("labels.nameLogo", { name })}
         className="size-full object-contain"
         height={GEO_LOGO_SIZE_PX}
         onError={() => setFailed(true)}

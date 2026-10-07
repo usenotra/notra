@@ -2,6 +2,7 @@ import "zod/compile";
 import { z } from "@hono/zod-openapi";
 import {
   chatModelSchema,
+  chatToolApprovalResponseSchema,
   externalChannelLookupSourceSchema,
   externalChannelSourceSchema,
   thinkingLevelSchema,
@@ -66,10 +67,19 @@ export const getChatParamsSchema = z.object({
 
 export const sendChatMessageRequestSchema = z
   .object({
-    message: z.string().trim().min(1).max(50_000).openapi({
+    message: z.string().trim().min(1).max(50_000).optional().openapi({
       description: "The user message to send.",
       example: "Summarize what shipped in the last week.",
     }),
+    approvals: z
+      .array(chatToolApprovalResponseSchema)
+      .min(1)
+      .max(50)
+      .optional()
+      .openapi({
+        description:
+          "Respond to every pending tool approval in the latest assistant message. Send either message or approvals. Only supported on an existing chat.",
+      }),
     model: chatModelSchema.optional().openapi({
       description:
         "Model to respond with. Defaults to auto, which lets Notra choose.",
@@ -98,6 +108,13 @@ export const sendChatMessageRequestSchema = z
         "Link the chat to a Discord or Slack channel so it can be found later with GET /v1/chats/by-external.",
     }),
   })
+  .refine(
+    (value) =>
+      (value.message !== undefined) !== (value.approvals !== undefined),
+    {
+      message: "Provide either message or approvals, but not both",
+    }
+  )
   .openapi("SendChatMessageRequest");
 
 export const getChatByExternalQuerySchema = z.object({

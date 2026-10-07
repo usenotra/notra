@@ -1,0 +1,150 @@
+---
+import type { LandingInstallCommand } from "../types/landing";
+
+type Props = LandingInstallCommand;
+
+const { items, prefix } = Astro.props;
+const [firstItem = ""] = items;
+const longestItem = Math.max(...items.map((item) => item.length));
+---
+
+<notra-install-command
+  class="flex w-fit max-w-full items-center gap-4 rounded-xl border border-white/70 bg-white/60 py-2 ps-4 pe-2 font-mono text-sm shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-black/40"
+  data-items={JSON.stringify(items)}
+  data-prefix={prefix}
+>
+  <code class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap">
+    <span class="text-muted-foreground">{prefix}</span><span
+      class="inline-grid text-foreground"
+      data-slot
+      style={`min-width: ${longestItem}ch`}><span class="[grid-area:1/1]" data-item>{firstItem}</span></span>
+  </code>
+  <button
+    aria-label="Copy install command"
+    class="relative inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-(--notra-primary)"
+    data-copy
+    type="button"
+  >
+    <svg aria-hidden="true" class="size-4 transition-opacity duration-150 in-data-copied:opacity-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24">
+      <rect height="14" rx="2" width="14" x="8" y="8"></rect>
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+    </svg>
+    <svg aria-hidden="true" class="absolute size-4 opacity-0 transition-opacity duration-150 in-data-copied:opacity-100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24">
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+  </button>
+</notra-install-command>
+
+<script>
+  const COPIED_MS = 1500;
+  const ROTATE_MS = 2200;
+  const SWAP = { duration: 220, easing: "cubic-bezier(0.2, 0, 0, 1)" };
+  const OFFSET = "0.45em";
+  const BLUR = "blur(3px)";
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  class NotraInstallCommand extends HTMLElement {
+    connectedCallback() {
+      this.querySelector("[data-copy]")?.addEventListener("click", this.copy);
+      this.addEventListener("pointerenter", this.pause);
+      this.addEventListener("pointerleave", this.resume);
+      this.addEventListener("focusin", this.pause);
+      this.addEventListener("focusout", this.resume);
+      this.resume();
+    }
+
+    disconnectedCallback() {
+      this.querySelector("[data-copy]")?.removeEventListener("click", this.copy);
+      this.removeEventListener("pointerenter", this.pause);
+      this.removeEventListener("pointerleave", this.resume);
+      this.removeEventListener("focusin", this.pause);
+      this.removeEventListener("focusout", this.resume);
+      this.pause();
+    }
+
+    resetTimer: number | undefined;
+    rotateTimer: number | undefined;
+    index = 0;
+
+    get items(): string[] {
+      return JSON.parse(this.dataset.items ?? "[]");
+    }
+
+    get command() {
+      return `${this.dataset.prefix ?? ""}${this.items[this.index] ?? ""}`;
+    }
+
+    pause = () => {
+      window.clearInterval(this.rotateTimer);
+      this.rotateTimer = undefined;
+    };
+
+    resume = () => {
+      if (this.rotateTimer !== undefined || this.items.length < 2 || this.matches(":hover, :focus-within")) {
+        return;
+      }
+      this.rotateTimer = window.setInterval(this.rotate, ROTATE_MS);
+    };
+
+    rotate = () => {
+      const outgoing = this.querySelector<HTMLElement>("[data-item]:last-child");
+      if (!outgoing || document.hidden) {
+        return;
+      }
+      this.index = (this.index + 1) % this.items.length;
+      const text = this.items[this.index] ?? "";
+      if (reducedMotion.matches) {
+        outgoing.textContent = text;
+        return;
+      }
+      const incoming = outgoing.cloneNode() as HTMLElement;
+      incoming.textContent = text;
+      outgoing.after(incoming);
+      outgoing
+        .animate(
+          [
+            { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
+            { filter: BLUR, opacity: 0, transform: `translateY(-${OFFSET})` },
+          ],
+          { ...SWAP, fill: "forwards" },
+        )
+        .finished.then(() => outgoing.remove(), () => outgoing.remove());
+      incoming.animate(
+        [
+          { filter: BLUR, opacity: 0, transform: `translateY(${OFFSET})` },
+          { filter: "blur(0)", opacity: 1, transform: "translateY(0)" },
+        ],
+        SWAP,
+      );
+    };
+
+    copy = async () => {
+      const button = this.querySelector<HTMLButtonElement>("[data-copy]");
+      try {
+        await navigator.clipboard.writeText(this.command);
+      } catch {
+        this.announce(button, "Copy failed", false);
+        return;
+      }
+      this.announce(button, "Copied", true);
+    };
+
+    announce = (button: HTMLButtonElement | null, label: string, copied: boolean) => {
+      if (copied) {
+        button?.setAttribute("data-copied", "");
+      }
+      button?.setAttribute("aria-label", label);
+      button?.setAttribute("title", label);
+      window.clearTimeout(this.resetTimer);
+      this.resetTimer = window.setTimeout(() => {
+        button?.removeAttribute("data-copied");
+        button?.setAttribute("aria-label", "Copy install command");
+        button?.removeAttribute("title");
+      }, COPIED_MS);
+    };
+  }
+
+  if (!customElements.get("notra-install-command")) {
+    customElements.define("notra-install-command", NotraInstallCommand);
+  }
+</script>

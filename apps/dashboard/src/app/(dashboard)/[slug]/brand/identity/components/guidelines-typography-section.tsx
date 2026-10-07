@@ -3,9 +3,9 @@
 import { Edit02Icon, TextFontIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { FONT_ROLE_LABELS } from "@/constants/brand-guideline-ui";
 import type { GuidelinesTypographySectionProps } from "@/types/brand-identity";
 import type { BrandGuidelineFont } from "@/types/hooks/brand-guidelines";
 import {
@@ -21,21 +21,38 @@ export function GuidelinesTypographySection({
   organizationId,
   voiceId,
 }: GuidelinesTypographySectionProps) {
+  const t = useTranslations("brand.guidelines");
+  const tCommon = useTranslations("common");
   const [editing, setEditing] = useState<BrandGuidelineFont | null>(null);
+  const [unavailableFonts, setUnavailableFonts] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     const families = [
       ...new Set(fonts.flatMap((font) => (font.family ? [font.family] : []))),
     ];
 
-    if (families.length === 0) {
-      return;
-    }
-
     const links = families.map((family) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = googleFontHref(family);
+      const markUnavailable = () => {
+        if (link.isConnected) {
+          setUnavailableFonts((previous) => new Set(previous).add(family));
+        }
+      };
+      link.onload = () => {
+        document.fonts
+          .load(`16px ${cssFontFamily(family)}`, family)
+          .then((loaded) => {
+            if (loaded.length === 0) {
+              markUnavailable();
+            }
+          })
+          .catch(markUnavailable);
+      };
+      link.onerror = markUnavailable;
       document.head.appendChild(link);
       return link;
     });
@@ -58,7 +75,7 @@ export function GuidelinesTypographySection({
           className="text-muted-foreground size-4"
           icon={TextFontIcon}
         />
-        <h2 className="text-sm font-semibold">Typography</h2>
+        <h2 className="text-sm font-semibold">{t("typography.title")}</h2>
         <span className="text-muted-foreground text-xs tabular-nums">
           {fonts.length}
         </span>
@@ -67,10 +84,12 @@ export function GuidelinesTypographySection({
       <div className="space-y-2">
         {fonts.map((font) => {
           const meta = joinMeta([
-            font.role !== "unknown" ? FONT_ROLE_LABELS[font.role] : null,
-            font.weight ? `Weight ${font.weight}` : null,
-            font.size ? `Size ${font.size}` : null,
-            font.lineHeight ? `Line height ${font.lineHeight}` : null,
+            font.role !== "unknown" ? t(`fontRoles.${font.role}`) : null,
+            font.weight ? t("typography.weight", { value: font.weight }) : null,
+            font.size ? t("typography.size", { value: font.size }) : null,
+            font.lineHeight
+              ? t("typography.lineHeight", { value: font.lineHeight })
+              : null,
           ]);
 
           return (
@@ -93,10 +112,15 @@ export function GuidelinesTypographySection({
                     {meta}
                   </p>
                 ) : null}
+                {unavailableFonts.has(font.family) ? (
+                  <p className="text-muted-foreground mt-2 text-xs">
+                    {t("typography.previewUnavailable")}
+                  </p>
+                ) : null}
               </div>
 
               <Button
-                aria-label={`Edit ${font.family}`}
+                aria-label={tCommon("labels.editName", { name: font.family })}
                 className="shrink-0"
                 onClick={() => setEditing(font)}
                 size="icon-sm"

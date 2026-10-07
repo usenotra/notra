@@ -1,10 +1,15 @@
+import { logWarn } from "@notra/ai/utils/server-log";
+
+import { getTranslations } from "@/lib/i18n/server";
 import { recordGitHubPublishFailure } from "@/lib/integrations/github/github-publish-failure-state";
 import {
   GitHubContentBranchConflictError,
   GitHubContentPublishError,
   GitHubContentTargetExistsError,
+  GitHubLinkedPullRequestUnavailableError,
   GitHubRepositoryEmptyError,
 } from "@/lib/integrations/github/publish-content-to-github";
+import type { GitHubPublishRecovery } from "@/types/integrations/github";
 import type { GitHubPublishFailureContext } from "@/types/integrations/github-publish-policy";
 import { hasGitHubStatus } from "@/utils/github-publish-failure";
 import { getGitHubPublishFailurePolicy } from "@/utils/github-publish-policy";
@@ -18,6 +23,30 @@ import {
   unauthorized,
 } from "./errors";
 
+export async function getGitHubRecoveryMessage(
+  recovery: GitHubPublishRecovery
+): Promise<string> {
+  const tErrors = await getTranslations("errors.github");
+  switch (recovery.code) {
+    case "github_app_permissions_required":
+      return tErrors("recovery.appPermissions");
+    case "github_token_authentication_required":
+      return tErrors("recovery.tokenRejected");
+    case "github_authentication_required":
+      return tErrors("recovery.appAuthenticationFailed");
+    case "github_token_permissions_required":
+      return tErrors("recovery.tokenPermissions");
+    case "github_content_publishing_paused":
+      return tErrors("publishingPausedAfterFailures");
+    case "github_repository_connection_required": {
+      const tContentErrors = await getTranslations("errors.content");
+      return tContentErrors("connectViaGithubApp");
+    }
+    default:
+      return tErrors("recovery.appAuthenticationFailed");
+  }
+}
+
 export async function toGitHubPublishOrpcError(
   error: unknown,
   context: GitHubPublishFailureContext
@@ -28,10 +57,12 @@ export async function toGitHubPublishOrpcError(
   if (error instanceof GitHubContentBranchConflictError) {
     return conflict(error.message, { branchName: error.branchName });
   }
+  if (error instanceof GitHubLinkedPullRequestUnavailableError) {
+    return badRequest(error.message);
+  }
   if (error instanceof GitHubRepositoryEmptyError) {
-    return badRequest(
-      "Initialize the GitHub repository with a first commit before publishing"
-    );
+    const tErrors = await getTranslations("errors.github");
+    return badRequest(tErrors("repositoryEmpty"));
   }
   if (!(error instanceof GitHubContentPublishError)) {
     return internalServerError("Failed to publish content to GitHub", error);
@@ -46,7 +77,7 @@ export async function toGitHubPublishOrpcError(
     connectionMethod,
     installationId,
   } = context;
-  console.warn("GitHub content publishing failed", {
+  logWarn("GitHub content publishing failed", {
     organizationId,
     repositoryId,
     connectionMethod,
@@ -64,33 +95,37 @@ export async function toGitHubPublishOrpcError(
       });
       paused = result.paused;
     } catch (trackingError) {
-      console.warn("Failed to record GitHub publish failure state", {
+      logWarn("Failed to record GitHub publish failure state", {
         organizationId,
         repositoryId,
-        error: trackingError,
+        error:
+          trackingError instanceof Error
+            ? trackingError.message
+            : String(trackingError),
       });
     }
     if (paused) {
-      return forbidden(
-        "GitHub content publishing was paused after repeated failures",
-        { code: "github_content_publishing_paused" }
-      );
+      const tErrors = await getTranslations("errors.github");
+      return forbidden(tErrors("publishingPausedAfterFailures"), {
+        code: "github_content_publishing_paused",
+      });
     }
   }
   if (policy.recovery) {
     const respond =
       policy.failureKind === "authentication" ? unauthorized : forbidden;
-    return respond(policy.recovery.message, policy.recovery.data);
+    return respond(
+      await getGitHubRecoveryMessage(policy.recovery.data),
+      policy.recovery.data
+    );
   }
   if (policy.failureKind === "rate_limit") {
-    return tooManyRequests(
-      "GitHub's API rate limit was reached. Please try again later."
-    );
+    const tErrors = await getTranslations("errors.github");
+    return tooManyRequests(tErrors("apiRateLimited"));
   }
   if (policy.failureKind === "forbidden") {
-    return forbidden(
-      "GitHub blocked this request. An organization owner may need to review repository access and organization policies."
-    );
+    const tErrors = await getTranslations("errors.github");
+    return forbidden(tErrors("requestBlocked"));
   }
   if (hasGitHubStatus(error.cause, 404) || hasGitHubStatus(error.cause, 422)) {
     return badRequest(error.message, { branchName: error.branchName });

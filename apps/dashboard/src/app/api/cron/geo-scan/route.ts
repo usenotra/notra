@@ -1,12 +1,12 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 import { runGeoScanCronSweep } from "@notra/geo-core/geo/scan-schedule";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import { geoCoreDashboardLayer } from "@/lib/geo/configure";
 
 // One sweep starts up to GEO_SCAN_DUE_LIMIT_PER_SWEEP workflows in sequence;
 // the platform default would cut a busy catch-up sweep short.
-export const maxDuration = 300;
 
 /**
  * Vercel Cron entry point for scheduled GEO scans. The schedule is a due
@@ -24,6 +24,12 @@ export async function GET(request: Request) {
     request.headers.get("authorization") !== `Bearer ${cronSecret}`
   ) {
     return new Response("Unauthorized", { status: 401 });
+  }
+  // The public demo runs no background jobs; scans start on demand. Checked
+  // after auth so reading the request keeps this route dynamic (a static
+  // 204 breaks the build).
+  if (isDemoMode()) {
+    return new Response(null, { status: 204 });
   }
 
   try {

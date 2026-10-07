@@ -24,7 +24,7 @@ export default function GeoTrafficDesignSystemClientPage() {
 
   return (
     <DesignSystemFrame
-      description="AI traffic sources as three stacked tables. The live-update control previews the same selective number transition used by the dashboard."
+      description="AI traffic activity and sources. The live-update control previews the same selective number transition used by the dashboard."
       title="GEO traffic"
     >
       <div className="flex flex-wrap items-center gap-3">

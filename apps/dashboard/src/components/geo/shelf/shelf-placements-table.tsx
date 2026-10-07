@@ -4,16 +4,26 @@ import { Link04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_SHELF_PLACEMENT_STATUSES } from "@notra/schemas/constants/dashboard/geo-shelf";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import {
+  CompetitorChoicesFooter,
+  CompetitorChoicesSearch,
+} from "@/components/geo/competitor-choices-search";
 import { CompetitorLogo } from "@/components/geo/competitor-logo";
 import { ShelfPlacementMark } from "@/components/geo/shelf/shelf-placement-badge";
-import { Table, type TableColumn } from "@/components/motion/table";
+import { GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD } from "@/constants/geo-competitors";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { cn } from "@/lib/utils";
 import type {
@@ -21,6 +31,7 @@ import type {
   GeoShelfPlacementStatus,
   GeoShelfPlacementsTableProps,
 } from "@/types/geo-shelf";
+import { withUncheckedCompetitors } from "@/utils/geo-shelf";
 import { tableHeightFor } from "@/utils/table";
 
 function toPlacementStatus(value: string): GeoShelfPlacementStatus {
@@ -31,19 +42,33 @@ function toPlacementStatus(value: string): GeoShelfPlacementStatus {
 
 export function ShelfPlacementsTable({
   row,
+  competitors,
   ownBrandName,
   onSetPlacementStatus,
   disabled,
 }: GeoShelfPlacementsTableProps) {
+  const t = useTranslations("geo.shelf.shelfPlacementsTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
+  const [query, setQuery] = useState("");
+  const isSearchable =
+    competitors.length > GEO_COMPETITOR_CHOICES_SEARCH_THRESHOLD;
+  const normalizedQuery = query.trim().toLowerCase();
+  const competitorPlacements = withUncheckedCompetitors(
+    row.competitorPlacements,
+    competitors
+  ).filter((placement) =>
+    placement.brandName.toLowerCase().includes(normalizedQuery)
+  );
   const placements = [
     ...(row.ownPlacement ? [row.ownPlacement] : []),
-    ...row.competitorPlacements,
+    ...competitorPlacements,
   ];
 
   const columns: TableColumn<GeoShelfPlacement>[] = [
     {
       key: "brandName",
-      header: "Brand",
+      header: tCommon("labels.brand"),
       width: "1fr",
       minWidth: "12rem",
       cell: (placement) => {
@@ -62,7 +87,7 @@ export function ShelfPlacementsTable({
               {brandName}
               {isOwn ? (
                 <span className="text-muted-foreground ml-1 font-normal">
-                  (You)
+                  {tGeoShared("you")}
                 </span>
               ) : null}
             </span>
@@ -72,7 +97,7 @@ export function ShelfPlacementsTable({
     },
     {
       key: "status",
-      header: "On the page",
+      header: t("onThePage"),
       width: "12rem",
       cell: (placement) => (
         <Select
@@ -81,13 +106,14 @@ export function ShelfPlacementsTable({
             onSetPlacementStatus(
               row.id,
               placement.competitorId,
-              toPlacementStatus(value ?? "unknown")
+              toPlacementStatus(value ?? "unknown"),
+              { name: placement.brandName, domain: placement.brandDomain }
             )
           }
           value={placement.status}
         >
           <SelectTrigger
-            aria-label={`Presence of ${placement.brandName}`}
+            aria-label={t("presenceOf", { brand: placement.brandName })}
             className="w-40"
             size="sm"
           >
@@ -107,7 +133,7 @@ export function ShelfPlacementsTable({
     },
     {
       key: "position",
-      header: "Position",
+      header: tCommon("labels.position"),
       width: "7rem",
       align: "right",
       cell: (placement) => (
@@ -123,13 +149,13 @@ export function ShelfPlacementsTable({
     },
     {
       key: "hasLink",
-      header: "Link",
+      header: tCommon("labels.link"),
       width: "8rem",
       cell: (placement) =>
         placement.hasLink ? (
           <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
             <HugeiconsIcon className="size-3.5" icon={Link04Icon} />
-            Outbound
+            {t("outbound")}
           </span>
         ) : (
           <span className="text-muted-foreground">—</span>
@@ -137,13 +163,27 @@ export function ShelfPlacementsTable({
     },
   ];
 
-  return (
-    <Table
+  const table = (
+    <DataTable
       columns={columns}
       data={placements}
       getRowId={(placement) => placement.competitorId ?? "own"}
       height={tableHeightFor(placements.length)}
       rowHeight={TABLE_ROW_HEIGHT}
     />
+  );
+  if (!isSearchable) {
+    return table;
+  }
+  return (
+    <div className="space-y-2">
+      <CompetitorChoicesSearch onChange={setQuery} value={query} />
+      {table}
+      <CompetitorChoicesFooter
+        hidden={0}
+        query={query}
+        visibleCount={competitorPlacements.length}
+      />
+    </div>
   );
 }

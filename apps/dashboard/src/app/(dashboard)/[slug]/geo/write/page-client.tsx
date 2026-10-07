@@ -3,13 +3,14 @@
 import { PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GEO_GAPS_NAV_LINK } from "@notra/geo-core/constants/geo";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { type ReactNode, useCallback, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { BriefHistory } from "@/components/geo/writer/brief-history";
 import { GeoWriterNeedsSetup } from "@/components/geo/writer/page-gate";
 import { WriteDialog } from "@/components/geo/writer/write-dialog";
@@ -23,6 +24,7 @@ import {
 import { GEO_WRITE_DIALOG_ENTRIES } from "@/constants/geo-analytics";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoWriterBriefs } from "@/lib/hooks/use-geo-writer";
+import { useRouter } from "@/lib/navigation";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import type { GeoPageClientProps } from "@/types/geo";
 import { withGeoProject } from "@/utils/geo-paths";
@@ -31,6 +33,8 @@ import { emptyWriteDialogState, geoContentPath } from "@/utils/geo-write-entry";
 import { GeoWriterSkeleton } from "./skeleton";
 
 export default function PageClient({ organizationSlug }: GeoPageClientProps) {
+  const t = useTranslations("geo.pages.write");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
@@ -62,9 +66,9 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
   if (!(isSettingsPending || settingsData?.settings)) {
     return (
       <GeoWriterNeedsSetup
-        description="Plan a custom article from a prompt, type, brand, and competitors"
+        description={t("setupDescription")}
         organizationId={organizationId}
-        title="Write"
+        title={tCommon("labels.write")}
       />
     );
   }
@@ -88,17 +92,17 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
           action={
             <Button className="gap-1.5" onClick={() => openDialog()}>
               <HugeiconsIcon className="size-4" icon={PencilEdit01Icon} />
-              New article
+              {t("newArticle")}
             </Button>
           }
-          description="Start from a custom topic. After you approve the brief, the draft opens in Content."
+          description={t("emptyDescription")}
           preview={
             <EmptyStateTablePreview
               columns={EMPTY_STATE_TABLE_COLUMNS.write}
               rows={EMPTY_STATE_TABLE_ROWS}
             />
           }
-          title="No articles yet"
+          title={t("emptyTitle")}
         />
       </div>
     );
@@ -106,6 +110,7 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
     history = (
       <BriefHistory
         briefs={briefs}
+        loading={briefsQuery.isFetching}
         onHover={(briefId) => {
           const summary = briefs.find((brief) => brief.id === briefId);
           if (summary?.postId) {
@@ -128,26 +133,25 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
       data-geo-write-page=""
     >
       <div className="flex min-h-0 w-full flex-1 flex-col gap-6 px-4 lg:px-6">
-        <header className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Write</h1>
-            <p className="text-muted-foreground max-w-2xl text-sm text-pretty">
-              Plan a custom article from a topic, type, and brand. Questions
-              engines already answer live on{" "}
+        <PageHeading
+          className="@min-[40rem]/main:items-center"
+          description={t.rich("description", {
+            link: (chunks) => (
               <Link
                 className="hover:text-foreground underline decoration-from-font underline-offset-4"
                 href={gapsHref}
               >
-                Content Gaps
+                {chunks}
               </Link>
-              .
-            </p>
-          </div>
+            ),
+          })}
+          title={tCommon("labels.write")}
+        >
           <Button className="gap-1.5" onClick={() => openDialog()}>
             <HugeiconsIcon className="size-4" icon={PencilEdit01Icon} />
-            New article
+            {t("newArticle")}
           </Button>
-        </header>
+        </PageHeading>
 
         {history}
       </div>

@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_FILTER_TRIGGER_CLASS,
   GEO_MENTION_TREND_AGENT_ICON_LIMIT,
-  GEO_MENTION_TREND_ALL_PROVIDERS_LABEL,
 } from "@notra/geo-core/constants/geo";
 import { engineFamilyOf } from "@notra/geo-core/utils/geo-engine-family";
 import {
@@ -16,6 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,8 @@ export function MentionTrendAgentsPicker({
   onToggle,
   disabled = false,
 }: MentionTrendAgentsPickerProps) {
+  const t = useTranslations("geo.mentionTrendAgents");
+  const tGeoShared = useTranslations("geo.shared");
   const seenProviders = new Set<string>();
   const preview = series
     .filter((entry) => {
@@ -39,11 +41,10 @@ export function MentionTrendAgentsPicker({
     })
     .slice(0, GEO_MENTION_TREND_AGENT_ICON_LIMIT);
   const active = series.filter((entry) => activeKeys.has(entry.key));
-  const accessibleLabel = `Mention activity for all providers. ${
-    active.length === 0
-      ? "No individual lines shown"
-      : `Individual lines shown for ${active.map((entry) => entry.label).join(", ")}`
-  }`;
+  const accessibleLabel = t("accessibleLabel", {
+    count: active.length,
+    names: active.map((entry) => entry.label).join(", "),
+  });
 
   return (
     <DropdownMenu>
@@ -67,7 +68,7 @@ export function MentionTrendAgentsPicker({
             ))}
           </span>
         ) : null}
-        <span>{GEO_MENTION_TREND_ALL_PROVIDERS_LABEL}</span>
+        <span>{tGeoShared("allModels")}</span>
         <HugeiconsIcon
           className="text-muted-foreground"
           icon={ArrowUpDownIcon}
@@ -76,7 +77,7 @@ export function MentionTrendAgentsPicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Show by provider</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("showByProvider")}</DropdownMenuLabel>
           {series.map((entry) => (
             <DropdownMenuCheckboxItem
               checked={activeKeys.has(entry.key)}

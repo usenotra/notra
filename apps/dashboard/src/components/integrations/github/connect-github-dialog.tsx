@@ -1,12 +1,9 @@
 "use client";
 
-import { Loading03Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
   ResponsiveDialogContent,
-  ResponsiveDialogDescription,
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
@@ -15,6 +12,7 @@ import {
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import type React from "react";
 import { isValidElement, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GITHUB_APP_PERMISSIONS } from "@/constants/github";
@@ -27,6 +25,9 @@ export function ConnectGitHubDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: ConnectGitHubDialogProps) {
+  const t = useTranslations("integrations.github.connectDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -46,20 +47,11 @@ export function ConnectGitHubDialog({
               <Github className="size-6" />
             </span>
             <ResponsiveDialogTitle className="text-xl">
-              Connect GitHub
+              {tIntegrationsShared("connectGithub")}
             </ResponsiveDialogTitle>
           </div>
-          <ResponsiveDialogDescription>
-            Install the Notra GitHub App to turn your commits and releases into
-            changelogs, blog posts, and more.
-          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
-        <div className="space-y-4 py-2">
-          <p className="text-muted-foreground text-sm">
-            You will be redirected to GitHub to choose an account or
-            organization and select which repositories Notra can access. You can
-            change this anytime from GitHub.
-          </p>
+        <div className="py-2">
           <ul className="space-y-2">
             {GITHUB_APP_PERMISSIONS.map((permission) => (
               <li
@@ -67,7 +59,7 @@ export function ConnectGitHubDialog({
                 key={permission}
               >
                 <span className="bg-foreground/40 mt-1.5 size-1.5 shrink-0 rounded-full" />
-                {permission}
+                {t(`permissions.${permission}`)}
               </li>
             ))}
           </ul>
@@ -77,18 +69,11 @@ export function ConnectGitHubDialog({
             disabled={isConnecting}
             render={<Button variant="outline" />}
           >
-            Cancel
+            {tCommon("actions.cancel")}
           </ResponsiveDialogClose>
-          <Button className="gap-2" disabled={isConnecting} onClick={onConnect}>
-            {isConnecting ? (
-              <HugeiconsIcon
-                className="size-4 animate-spin"
-                icon={Loading03Icon}
-              />
-            ) : (
-              <Github className="size-4" />
-            )}
-            {isConnecting ? "Redirecting…" : "Install on GitHub"}
+          <Button className="gap-2" loading={isConnecting} onClick={onConnect}>
+            <Github className="size-4" />
+            {t("install")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

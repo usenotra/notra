@@ -1,5 +1,7 @@
 "use client";
 
+import { FrameworkProvider } from "@notra/ui/components/framework-provider";
+import { UiLabelsProvider } from "@notra/ui/components/shared/ui-labels-provider";
 import { Toaster } from "@notra/ui/components/ui/sonner";
 import { TooltipProvider } from "@notra/ui/components/ui/tooltip";
 import {
@@ -8,32 +10,39 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import dynamic from "next/dynamic";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import { PostHogIdentity } from "@/components/providers/posthog-identity";
 import { POSTHOG_PROJECT_TOKEN } from "@/constants/posthog";
+import { useIsClient } from "@/lib/hooks/use-is-client";
+import { useUiLabelsTranslations } from "@/lib/i18n/ui-labels";
+import { configureZodLocale } from "@/lib/i18n/zod";
+import dynamic from "@/utils/lazy-component";
 
-const DatabuddyAnalytics = dynamic(
-  () =>
-    import("@/components/providers/databuddy-analytics").then(
-      (module) => module.DatabuddyAnalytics
-    ),
-  { ssr: false }
+const DatabuddyAnalytics = dynamic(() =>
+  import("@/components/providers/databuddy-analytics").then(
+    (module) => module.DatabuddyAnalytics
+  )
 );
 
 const ReactQueryDevtools =
   process.env.NODE_ENV === "development"
-    ? dynamic(
-        () =>
-          import("@tanstack/react-query-devtools").then(
-            (mod) => mod.ReactQueryDevtools
-          ),
-        { ssr: false }
+    ? dynamic(() =>
+        import("@tanstack/react-query-devtools").then(
+          (mod) => mod.ReactQueryDevtools
+        )
       )
     : null;
+
+function RetryToastLabel() {
+  const t = useTranslations("common.actions");
+  return t("retry");
+}
 
 function createProviderClients() {
   const queryClient = new QueryClient({
@@ -48,7 +57,7 @@ function createProviderClients() {
             duration: showRetryAction ? Number.POSITIVE_INFINITY : undefined,
             action: showRetryAction
               ? {
-                  label: "Retry",
+                  label: <RetryToastLabel />,
                   onClick: () => {
                     query.fetch().catch(() => undefined);
                   },
@@ -85,24 +94,37 @@ function createProviderClients() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(createProviderClients);
+  configureZodLocale(useLocale());
+  const uiLabels = useUiLabelsTranslations();
+  const isClient = useIsClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
-      <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
-        <TooltipProvider delay={500}>
-          <NuqsAdapter>
-            {children}
-            {POSTHOG_PROJECT_TOKEN ? (
+    <FrameworkProvider Image={Image} Link={Link}>
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={null}>
+          {isClient && ReactQueryDevtools ? (
+            <ReactQueryDevtools initialIsOpen={false} />
+          ) : null}
+        </Suspense>
+        <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
+          <UiLabelsProvider labels={uiLabels}>
+            <TooltipProvider delay={500} glide={false}>
+              <NuqsAdapter>
+                {children}
+                {POSTHOG_PROJECT_TOKEN ? (
+                  <Suspense fallback={null}>
+                    <PostHogIdentity />
+                  </Suspense>
+                ) : null}
+              </NuqsAdapter>
+              <Toaster position="bottom-right" />
               <Suspense fallback={null}>
-                <PostHogIdentity />
+                {isClient ? <DatabuddyAnalytics /> : null}
               </Suspense>
-            ) : null}
-          </NuqsAdapter>
-          <Toaster position="top-center" />
-          <DatabuddyAnalytics />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+            </TooltipProvider>
+          </UiLabelsProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </FrameworkProvider>
   );
 }

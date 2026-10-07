@@ -1,4 +1,5 @@
 import type { GscSite } from "@notra/ai/types/google-search-console";
+import type { GeoSearchConsoleStatus } from "@notra/geo-core/types/google-search-console";
 
 const SC_DOMAIN_PREFIX = "sc-domain:";
 
@@ -89,4 +90,13 @@ export function findMatchingGscSiteUrl(
   }
 
   return prefixMatch;
+}
+
+/** True once Google access is active and a property feeds suggestions. */
+export function isSearchConsoleSynced(
+  status: GeoSearchConsoleStatus | undefined
+): boolean {
+  return Boolean(
+    status?.connected && status.status === "active" && status.siteUrl
+  );
 }

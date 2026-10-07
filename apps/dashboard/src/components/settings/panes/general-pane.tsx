@@ -22,10 +22,9 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
@@ -42,10 +41,8 @@ import {
   useRefreshConnectedAccount,
 } from "@/lib/hooks/use-connected-accounts";
 import { useSocialConnectCallbackToasts } from "@/lib/hooks/use-social-connect-callback-toasts";
-import {
-  getOrganizationMembershipActionLabel,
-  type OrganizationMembershipAction,
-} from "@/lib/organizations/membership-action";
+import { useRouter } from "@/lib/navigation";
+import type { OrganizationMembershipAction } from "@/lib/organizations/membership-action";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { ConnectedAccountsGroupProps } from "@/types/settings/general";
 import { setLastVisitedOrganization } from "@/utils/cookies";
@@ -53,6 +50,9 @@ import { QUERY_KEYS } from "@/utils/query-keys";
 import { isSquareTwitterAvatar } from "@/utils/twitter";
 
 export function GeneralSettingsPane() {
+  const t = useTranslations("settings.panes.general");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const queryClient = useQueryClient();
   const {
@@ -98,8 +98,8 @@ export function GeneralSettingsPane() {
 
     const successMessage =
       action === "delete"
-        ? `Deleted ${organization.name}`
-        : `Left ${organization.name}`;
+        ? tSettingsShared("deletedName", { name: organization.name })
+        : tSettingsShared("leftName", { name: organization.name });
 
     try {
       await dashboardOrpc.user.membership.applyAction.call({
@@ -132,7 +132,7 @@ export function GeneralSettingsPane() {
 
       const firstOrg = freshOrgs[0];
       if (!firstOrg) {
-        toast.error("You must keep at least one organization");
+        toast.error(tCommon("messages.youMustKeepAtLeast"));
         setIsRemovingOrganization(false);
         return;
       }
@@ -148,7 +148,7 @@ export function GeneralSettingsPane() {
       toast.success(successMessage);
       router.push(`/${firstOrg.slug}?settings=account`);
     } catch (error) {
-      toast.error("Failed to update organization membership");
+      toast.error(tSettingsShared("failedToUpdateOrganizationMembership"));
       console.error(error);
     }
     setIsRemovingOrganization(false);
@@ -168,15 +168,27 @@ export function GeneralSettingsPane() {
 
       <ConnectedAccountsSection organizationId={organization.id} />
 
-      <TitleCard heading="Danger Zone">
+      <TitleCard
+        className="border-destructive/50 bg-destructive/5"
+        heading={t("deleteOrganization")}
+      >
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Delete Organization</p>
+          <p className="text-muted-foreground text-sm">
+            {t("deleteDescription")}
+          </p>
+          {!isLoadingOwnedOrganizations && !ownedOrganization && (
+            <p className="text-muted-foreground text-xs">
+              {t("onlyOwnersCanDelete")}
+            </p>
+          )}
+          {!isLoadingOwnedOrganizations &&
+            ownedOrganization &&
+            organizations.length <= 1 && (
               <p className="text-muted-foreground text-xs">
-                Permanently delete this organization and all its data
+                {t("needOneOrganization")}
               </p>
-            </div>
+            )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             {canDeleteOrganization ? (
               <OrganizationMembershipActionDialog
                 action="delete"
@@ -185,40 +197,24 @@ export function GeneralSettingsPane() {
                 organizationName={organization.name}
                 trigger={
                   <Button
-                    disabled={isRemovingOrganization}
-                    size="sm"
+                    className="w-full sm:w-auto"
+                    loading={isRemovingOrganization}
                     variant="destructive"
                   >
-                    {isRemovingOrganization ? (
-                      <>
-                        <Loader2Icon className="size-4 animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      `${getOrganizationMembershipActionLabel("delete")} Organization`
-                    )}
+                    {t("deleteOrganization")}
                   </Button>
                 }
               />
             ) : (
-              <Button disabled size="sm" variant="destructive">
-                Delete Organization
+              <Button
+                className="w-full sm:w-auto"
+                disabled
+                variant="destructive"
+              >
+                {t("deleteOrganization")}
               </Button>
             )}
           </div>
-          {!isLoadingOwnedOrganizations && !ownedOrganization && (
-            <p className="text-muted-foreground text-xs">
-              Only organization owners can delete this organization.
-            </p>
-          )}
-          {!isLoadingOwnedOrganizations &&
-            ownedOrganization &&
-            organizations.length <= 1 && (
-              <p className="text-muted-foreground text-xs">
-                You need at least one organization. Create another before
-                deleting this one.
-              </p>
-            )}
         </div>
       </TitleCard>
     </SettingsPane>
@@ -230,6 +226,9 @@ function ConnectedAccountsSection({
 }: {
   organizationId: string;
 }) {
+  const t = useTranslations("settings.panes.general.connectedAccounts");
+  const tSettingsShared2 = useTranslations("settings.shared");
+  const tCommon2 = useTranslations("common");
   const { data, isLoading, isError } = useConnectedAccounts(organizationId);
   useSocialConnectCallbackToasts(organizationId);
   const twitterConnect = useHandleConnectSocialAccount(
@@ -246,11 +245,9 @@ function ConnectedAccountsSection({
   const linkedinAccounts = accounts.filter((a) => a.provider === "linkedin");
 
   return (
-    <TitleCard heading="Connected Accounts">
+    <TitleCard heading={tSettingsShared2("connectedAccounts")}>
       <div className="space-y-6">
-        <p className="text-muted-foreground text-sm">
-          X and LinkedIn accounts connected to this organization
-        </p>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
 
         {isLoading && (
           <div className="space-y-3">
@@ -261,9 +258,7 @@ function ConnectedAccountsSection({
 
         {!isLoading && isError && (
           <div className="rounded-lg border border-dashed py-8 text-center">
-            <p className="text-destructive text-sm">
-              Failed to load connected accounts
-            </p>
+            <p className="text-destructive text-sm">{t("loadFailed")}</p>
           </div>
         )}
 
@@ -271,8 +266,8 @@ function ConnectedAccountsSection({
           <>
             <ConnectedAccountsGroup
               accounts={twitterAccounts}
-              connectLabel="Connect X Account"
-              emptyLabel="No X accounts connected"
+              connectLabel={t("connectX")}
+              emptyLabel={tCommon2("labels.noXAccountsConnected")}
               icon={NewTwitterIcon}
               isConnecting={twitterConnect.isPending}
               label="X"
@@ -281,8 +276,8 @@ function ConnectedAccountsSection({
             />
             <ConnectedAccountsGroup
               accounts={linkedinAccounts}
-              connectLabel="Connect LinkedIn Account"
-              emptyLabel="No LinkedIn accounts connected"
+              connectLabel={t("connectLinkedin")}
+              emptyLabel={t("noLinkedin")}
               icon={Linkedin02Icon}
               isConnecting={linkedinConnect.isPending}
               label="LinkedIn"
@@ -306,6 +301,9 @@ function ConnectedAccountsGroup({
   onConnect,
   isConnecting,
 }: ConnectedAccountsGroupProps) {
+  const t = useTranslations("settings.panes.general.connectedAccounts");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const disconnectMutation = useDisconnectAccount(organizationId);
   const refreshMutation = useRefreshConnectedAccount(organizationId);
 
@@ -317,13 +315,9 @@ function ConnectedAccountsGroup({
           <p className="text-sm font-medium">{label}</p>
         </div>
         {accounts.length > 0 && (
-          <Button disabled={isConnecting} onClick={onConnect} size="sm">
-            {isConnecting ? (
-              <Loader2Icon className="size-3.5 animate-spin" />
-            ) : (
-              <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
-            )}
-            Connect
+          <Button loading={isConnecting} onClick={onConnect} size="sm">
+            <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
+            {tCommon("connect")}
           </Button>
         )}
       </div>
@@ -336,18 +330,9 @@ function ConnectedAccountsGroup({
           <div className="text-center">
             <p className="text-muted-foreground text-sm">{emptyLabel}</p>
           </div>
-          <Button disabled={isConnecting} onClick={onConnect} size="sm">
-            {isConnecting ? (
-              <>
-                <Loader2Icon className="size-3.5 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
-                {connectLabel}
-              </>
-            )}
+          <Button loading={isConnecting} onClick={onConnect} size="sm">
+            <HugeiconsIcon className="size-3.5" icon={Add01Icon} />
+            {connectLabel}
           </Button>
         </div>
       )}
@@ -362,85 +347,85 @@ function ConnectedAccountsGroup({
 
         return (
           <div
-            className="flex items-center gap-3 rounded-lg border p-3"
+            className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center"
             key={account.id}
           >
-            <Avatar
-              className={
-                hasSquareAvatar ? "size-9 rounded-md" : "size-9 rounded-full"
-              }
-              size="sm"
-            >
-              {account.profileImageUrl && (
-                <AvatarImage
-                  alt={account.displayName}
-                  src={account.profileImageUrl}
-                />
-              )}
-              <AvatarFallback>
-                {account.username.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 truncate text-sm font-medium">
-                {account.displayName}
-                <XVerificationBadge
-                  className="size-4 shrink-0"
-                  verified={account.verified}
-                  verifiedType={account.verifiedType}
-                />
-              </p>
-              <p className="text-muted-foreground truncate text-xs">
-                @{account.username}
-              </p>
-            </div>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    aria-label={`Refresh @${account.username}`}
-                    disabled={refreshMutation.isPending}
-                    onClick={() => refreshMutation.mutate(account.id)}
-                    size="icon-sm"
-                    variant="outline"
-                  />
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar
+                className={
+                  hasSquareAvatar ? "size-9 rounded-md" : "size-9 rounded-full"
                 }
+                size="sm"
               >
-                {isRefreshing ? (
-                  <Loader2Icon className="size-3.5 animate-spin" />
-                ) : (
+                {account.profileImageUrl && (
+                  <AvatarImage
+                    alt={account.displayName}
+                    src={account.profileImageUrl}
+                  />
+                )}
+                <AvatarFallback>
+                  {account.username.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                  <span className="truncate" title={account.displayName}>
+                    {account.displayName}
+                  </span>
+                  <XVerificationBadge
+                    className="size-4 shrink-0"
+                    verified={account.verified}
+                    verifiedType={account.verifiedType}
+                  />
+                </p>
+                <p className="text-muted-foreground truncate text-xs">
+                  @{account.username}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      aria-label={t("refreshAccount", {
+                        username: account.username,
+                      })}
+                      disabled={refreshMutation.isPending}
+                      loading={isRefreshing}
+                      onClick={() => refreshMutation.mutate(account.id)}
+                      size="icon-sm"
+                      variant="outline"
+                    />
+                  }
+                >
                   <HugeiconsIcon
                     className="size-3.5"
                     icon={ArrowReloadHorizontalIcon}
                   />
-                )}
-              </TooltipTrigger>
-              <TooltipContent>Refresh account details</TooltipContent>
-            </Tooltip>
-            <Button
-              aria-label={`Disconnect @${account.username}`}
-              disabled={disconnectMutation.isPending}
-              onClick={() => {
-                disconnectMutation.mutate(account.id, {
-                  onSuccess: () => toast.success("Account disconnected"),
-                  onError: () => toast.error("Failed to disconnect account"),
-                });
-              }}
-              size="sm"
-              variant="outline"
-            >
-              {isDisconnecting ? (
-                <>
-                  <Loader2Icon className="size-3.5 animate-spin" />
-                  Disconnecting...
-                </>
-              ) : (
-                <>
-                  <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
-                  Disconnect
-                </>
-              )}
-            </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("refreshTooltip")}</TooltipContent>
+              </Tooltip>
+              <Button
+                aria-label={t("disconnectAccount", {
+                  username: account.username,
+                })}
+                disabled={disconnectMutation.isPending}
+                loading={isDisconnecting}
+                onClick={() => {
+                  disconnectMutation.mutate(account.id, {
+                    onSuccess: () => toast.success(t("disconnected")),
+                    onError: () =>
+                      toast.error(tCommon2("labels.failedToDisconnectAccount")),
+                  });
+                }}
+                size="sm"
+                variant="outline"
+              >
+                <HugeiconsIcon className="size-3.5" icon={Cancel01Icon} />
+                {tCommon("disconnect")}
+              </Button>
+            </div>
           </div>
         );
       })}

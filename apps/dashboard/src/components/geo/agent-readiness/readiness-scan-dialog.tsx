@@ -1,21 +1,7 @@
 "use client";
 
-import {
-  AGENT_READINESS_SCAN_DIALOG_BODY,
-  AGENT_READINESS_SCAN_DIALOG_CANCEL,
-  AGENT_READINESS_SCAN_DIALOG_CONFIRM,
-  AGENT_READINESS_SCAN_DIALOG_TITLE,
-} from "@notra/geo-core/constants/agent-readiness";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
+import { useTranslations } from "use-intl";
 
 import type { AgentReadinessScanDialogProps } from "@/types/agent-readiness";
 
@@ -25,26 +11,17 @@ export function AgentReadinessScanDialog({
   onConfirm,
   isPending,
 }: AgentReadinessScanDialogProps) {
+  const t = useTranslations("geo.agentReadiness.scanDialog");
+
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>
-            {AGENT_READINESS_SCAN_DIALOG_TITLE}
-          </ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            {AGENT_READINESS_SCAN_DIALOG_BODY}
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={isPending}>
-            {AGENT_READINESS_SCAN_DIALOG_CANCEL}
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction disabled={isPending} onClick={onConfirm}>
-            {isPending ? "Starting…" : AGENT_READINESS_SCAN_DIALOG_CONFIRM}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={t("confirm")}
+      description={t("body")}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={isPending}
+      title={t("title")}
+    />
   );
 }

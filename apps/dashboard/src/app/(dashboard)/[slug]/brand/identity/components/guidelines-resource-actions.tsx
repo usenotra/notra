@@ -6,6 +6,7 @@ import {
   LinkSquare02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
 import { cn } from "@/lib/utils";
@@ -17,11 +18,13 @@ export function GuidelinesResourceActions({
   label,
   onEdit,
 }: GuidelinesResourceActionsProps) {
+  const t = useTranslations("brand.guidelines.resourceActions");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex shrink-0 items-center gap-0.5">
       {onEdit ? (
         <Button
-          aria-label={`Edit ${label}`}
+          aria-label={tCommon("labels.editLabel", { label })}
           onClick={onEdit}
           size="icon-sm"
           variant="ghost"
@@ -30,7 +33,7 @@ export function GuidelinesResourceActions({
         </Button>
       ) : null}
       <a
-        aria-label={`Open ${label}`}
+        aria-label={t("open", { label })}
         className={cn(buttonVariants({ size: "icon-sm", variant: "ghost" }))}
         href={url}
         rel="noopener noreferrer"
@@ -39,7 +42,7 @@ export function GuidelinesResourceActions({
         <HugeiconsIcon className="size-3.5" icon={LinkSquare02Icon} />
       </a>
       <Button
-        aria-label={`Copy ${label} URL`}
+        aria-label={t("copyUrl", { label })}
         onClick={() => copyToClipboard(url)}
         size="icon-sm"
         variant="ghost"

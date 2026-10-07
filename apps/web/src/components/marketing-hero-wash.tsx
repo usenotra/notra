@@ -8,6 +8,7 @@ export function MarketingHeroWash({
   className,
   title,
   subtitle,
+  media,
 }: MarketingHeroWashProps) {
   return (
     <section className={cn("w-full px-6 pt-6", className)}>
@@ -28,6 +29,9 @@ export function MarketingHeroWash({
             <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:gap-7">
               {children}
             </div>
+          ) : null}
+          {media ? (
+            <div className="mt-10 w-full max-w-300 lg:mt-14">{media}</div>
           ) : null}
         </div>
       </div>

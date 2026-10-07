@@ -9,6 +9,7 @@ export const ROUTED_MODEL_PROVIDER = "notra-router";
 export const DEFAULT_PLAN_CACHE_TTL_MS = 60_000;
 export const DEFAULT_CREDIT_CHECK_TTL_MS = 30_000;
 export const DEFAULT_UNAVAILABLE_TTL_MS = 5 * 60_000;
+export const ROUTE_USAGE_LOOKUP_CONCURRENCY = 4;
 
 export const DEFAULT_OPENROUTER_ACCOUNT_BASE_URL =
   "https://openrouter.ai/api/v1";
@@ -29,6 +30,7 @@ export const OPENROUTER_MODEL_ALIASES: Readonly<Record<string, string>> = {
   "meta/llama-3.1-8b": "meta-llama/llama-3.1-8b-instruct",
   "mistral/mistral-medium-3.5": "mistralai/mistral-medium-3-5",
   "mistral/mistral-large-3": "mistralai/mistral-large-2512",
+  "spacexai/grok-4.7": "x-ai/grok-4.7",
   "spacexai/grok-4.6": "x-ai/grok-4.6",
   "spacexai/grok-4.5": "x-ai/grok-4.5",
   "spacexai/grok-build-0.1": "x-ai/grok-build-0.1",

@@ -1,5 +1,3 @@
-"use client";
-
 import { Download04Icon, StarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -290,12 +288,13 @@ export function StarVideoPreview() {
         <div className="flex flex-col items-center gap-2 sm:items-end">
           <CtaButton
             className="font-display h-12 rounded-2xl px-6 text-[1.0625rem] font-medium tracking-[-0.015em]"
-            disabled={!inputProps || isRendering}
+            disabled={!inputProps}
+            loading={isRendering}
             onClick={onDownload}
             variant="light"
           >
             <HugeiconsIcon className="size-4" icon={Download04Icon} />
-            {isRendering ? "Rendering" : "Download MP4"}
+            Download MP4
           </CtaButton>
           {inputProps ? (
             <p className="font-sans text-xs text-[#1E1E1E99] dark:text-white/50">

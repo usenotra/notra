@@ -1,5 +1,3 @@
-"use client";
-
 import { Label } from "@notra/ui/components/ui/label";
 import {
   Select,
@@ -42,7 +40,7 @@ export default function BrandVoicePreview({
                 <Label>Description</Label>
                 <Textarea
                   className="min-h-[80px] resize-none"
-                  defaultValue="Notra connects to GitHub, Linear, and Slack to turn shipped work into ready-to-publish content."
+                  defaultValue="Notra connects to GitHub, Linear and Slack to turn shipped work into ready-to-publish content."
                   placeholder="A short overview of your company"
                 />
               </div>

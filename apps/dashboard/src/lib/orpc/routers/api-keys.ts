@@ -1,3 +1,5 @@
+import { db } from "@notra/db/drizzle";
+import { demoSandboxes } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   createApiKeySchema,
@@ -5,12 +7,15 @@ import {
   updateKeyInputSchema,
 } from "@notra/schemas/dashboard/api-keys";
 import { organizationIdInputSchema } from "@notra/schemas/dashboard/auth/organization";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import type {
   KeyResponseData,
   V2ApisListKeysResponseBody,
 } from "@unkey/api/models/components";
+import { and, eq } from "drizzle-orm";
 
 import { API_KEY_EXPIRATION_MS } from "@/constants/api-keys";
+import { DEMO_DISABLED_MESSAGE } from "@/constants/demo";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import {
   expandLegacyApiKeyScopes,
@@ -22,10 +27,12 @@ import {
 import { unkey } from "@/lib/api-keys/unkey";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 
 import {
   badRequest,
+  forbidden,
   internalServerError,
   notFound,
   serviceUnavailable,
@@ -54,20 +61,34 @@ function inferExpirationOption(createdAt: number, expires: number | null) {
   return "90d" as const;
 }
 
-function requireUnkeyConfig() {
-  if (!unkey) {
-    throw serviceUnavailable("API key service is not configured");
-  }
-
+async function requireUnkeyConfig() {
   const apiId = process.env.UNKEY_API_ID;
-  if (!apiId) {
-    throw serviceUnavailable("API key service is not configured");
+  if (!(unkey && apiId)) {
+    const tErrors = await getTranslations("common.errors");
+    throw serviceUnavailable(tErrors("generic"));
   }
 
   return {
     apiId,
     client: unkey,
   };
+}
+
+/** The sandbox's own key powers the API playground, so it must survive. */
+async function assertNotDemoSandboxKey(organizationId: string, keyId: string) {
+  if (!isDemoMode()) {
+    return;
+  }
+  const sandbox = await db.query.demoSandboxes.findFirst({
+    where: and(
+      eq(demoSandboxes.organizationId, organizationId),
+      eq(demoSandboxes.apiKeyId, keyId)
+    ),
+    columns: { anonymousId: true },
+  });
+  if (sandbox) {
+    throw forbidden(DEMO_DISABLED_MESSAGE);
+  }
 }
 
 type ListKeysResult =
@@ -122,7 +143,7 @@ export const apiKeysRouter = {
         user: context.user,
       });
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
       const keysData = await listOrganizationKeys(
         client,
         apiId,
@@ -165,7 +186,7 @@ export const apiKeysRouter = {
       });
       await assertActiveSubscription(input.organizationId);
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
       const expiresMs = API_KEY_EXPIRATION_MS[input.expiration];
       const expires = expiresMs ? Date.now() + expiresMs : undefined;
       const permissions = getApiKeyPermissionsForAccessMode(
@@ -223,11 +244,16 @@ export const apiKeysRouter = {
       });
       await assertActiveSubscription(input.organizationId);
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
 
       if (input.payload.keyId !== input.keyIdParam) {
-        throw badRequest("Key ID mismatch");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
+
+      // The playground depends on the demo key keeping full access.
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
 
       const key = await findOrganizationKey(
         client,
@@ -312,11 +338,15 @@ export const apiKeysRouter = {
         user: context.user,
       });
 
-      const { apiId, client } = requireUnkeyConfig();
+      const { apiId, client } = await requireUnkeyConfig();
 
       if (input.payload.keyId !== input.keyIdParam) {
-        throw badRequest("Key ID mismatch");
+        throw badRequest(
+          (await getTranslations("errors.actions"))("invalidInput")
+        );
       }
+
+      await assertNotDemoSandboxKey(input.organizationId, input.payload.keyId);
 
       const key = await findOrganizationKey(
         client,

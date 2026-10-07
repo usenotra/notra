@@ -15,6 +15,7 @@ import {
   listAgentChatsResponseSchema,
   sendAgentMessageRequestSchema,
 } from "@notra/schemas/api/agent-chats";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import type { Context } from "hono";
 
 import { createAgentClient, isAgentApiEnabled } from "../lib/agent/client";
@@ -31,6 +32,10 @@ const chatRateLimitResponse = rateLimitResponse(
   RATE_LIMITS.chatGeneration.window
 );
 
+// The demo has no agent service; /v1/chats answers with the demo agent.
+const DEMO_AGENT_UNAVAILABLE =
+  "The agent session API isn't available in the demo. Use POST /v1/chats to try the agent.";
+
 const commonErrorResponses = {
   401: errorResponse("Missing or invalid API key"),
   403: errorResponse("Forbidden, or usage limit reached"),
@@ -42,6 +47,12 @@ async function requireAgentContext(
 ): Promise<
   { ok: true; organizationId: string } | { ok: false; response: Response }
 > {
+  if (isDemoMode()) {
+    return {
+      ok: false,
+      response: c.json({ error: DEMO_AGENT_UNAVAILABLE }, 403),
+    };
+  }
   if (!isAgentApiEnabled()) {
     return {
       ok: false,
@@ -103,10 +114,13 @@ agentChatsRoutes.openAPIRegistry.registerPath(
 );
 
 agentChatsRoutes.post("/eve/v1/session", async (c) => {
+  const log = c.get("log");
+  log.set({ feature: "agent_session" });
   const context = await requireAgentContext(c);
   if (!context.ok) {
     return context.response;
   }
+  log.set({ organizationId: context.organizationId });
   const credits = await checkAgentAiCredits(context.organizationId);
   if (!credits.allowed) {
     return c.json({ error: credits.error, code: credits.code }, credits.status);
@@ -132,17 +146,28 @@ agentChatsRoutes.post("/eve/v1/session", async (c) => {
       },
       message: parsed.data.message,
     });
+    log.set({ sessionId: created.eveSessionId });
+    log.audit({
+      action: "agent.session.created",
+      actor: {
+        type: "api",
+        id: c.get("auth").keyId ?? context.organizationId,
+      },
+      target: { type: "agent_session", id: created.eveSessionId },
+      outcome: "success",
+    });
     return c.json(
       {
         ok: true,
         sessionId: created.eveSessionId,
-        continuationToken: created.continuationToken,
       },
       200,
       { "x-eve-session-id": created.eveSessionId }
     );
   } catch (error) {
-    console.error("[agent-chats] Session creation failed", error);
+    log.error(error instanceof Error ? error : String(error), {
+      errorCode: "agent_session_create_failed",
+    });
     return c.json({ error: "Agent session creation failed" }, 502);
   }
 });
@@ -183,12 +208,18 @@ agentChatsRoutes.openAPIRegistry.registerPath(
   })
 );
 
+// Continues a session the create call already audited; one audit row per
+// turn would only be noise.
+// evlog-map-disable-next-line audit -- audited on session creation
 agentChatsRoutes.post("/eve/v1/session/:sessionId", async (c) => {
+  const log = c.get("log");
+  log.set({ feature: "agent_session_message" });
   const context = await requireAgentContext(c);
   if (!context.ok) {
     return context.response;
   }
   const sessionId = c.req.param("sessionId");
+  log.set({ organizationId: context.organizationId, sessionId });
   const mapping = await getAgentSessionMapping(
     context.organizationId,
     sessionId
@@ -221,7 +252,6 @@ agentChatsRoutes.post("/eve/v1/session/:sessionId", async (c) => {
     return await forwardAgentFollowUp({
       fetchUpstream: (path, init) => client.fetch(path, init),
       eveSessionId: sessionId,
-      continuationToken: mapping.continuationToken,
       message: parsed.data.message,
       inputResponses: parsed.data.inputResponses,
     });
@@ -260,12 +290,18 @@ agentChatsRoutes.openAPIRegistry.registerPath(
   })
 );
 
+// Continues a session the create call already audited; one audit row per
+// turn would only be noise.
+// evlog-map-disable-next-line audit -- audited on session creation
 agentChatsRoutes.get("/eve/v1/session/:sessionId/stream", async (c) => {
+  const log = c.get("log");
+  log.set({ feature: "agent_session_stream" });
   const context = await requireAgentContext(c);
   if (!context.ok) {
     return context.response;
   }
   const sessionId = c.req.param("sessionId");
+  log.set({ organizationId: context.organizationId, sessionId });
   const mapping = await getAgentSessionMapping(
     context.organizationId,
     sessionId
@@ -304,6 +340,9 @@ const listAgentChatsRoute = createRoute({
 });
 
 agentChatsRoutes.openapi(listAgentChatsRoute, async (c) => {
+  if (isDemoMode()) {
+    return c.json({ error: DEMO_AGENT_UNAVAILABLE }, 403);
+  }
   if (!isAgentApiEnabled()) {
     return c.json({ error: "Agent service is not configured" }, 503);
   }

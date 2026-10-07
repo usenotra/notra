@@ -1,0 +1,49 @@
+---
+title: Google AI Overview
+description: A full recreation of Google's AI Overview with highlights, citation chips and a collapsible Show more.
+---
+
+A pixel-matched rebuild of the AI Overview on Google Search, composed from the [Google AI Overview components](/components/ai-overview/header). Hover a citation chip to highlight the claim it backs.
+
+<Component path="google-ai-overview/examples/google-ai-overview-preview" />
+
+<PreviewToaster />
+
+## Installation
+
+<RegistryInstall name="google-ai-overview" />
+
+This adds every AI Overview component to `components/google-ai-overview`, a Vercel demo and the source logos to `public/google-ai-overview`.
+
+The demo shows a shadcn `sonner` toast when you click a source's three-dot button. Mount `<Toaster />` once in your root layout, as shadcn recommends, and the toast works anywhere.
+
+The components use Google Sans with a Google Sans Flex, Roboto and Arial fallback. Load [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex) in your app for the closest match.
+
+## AIOverview
+
+The root is a shadcn `Collapsible` rendered as a `section`, so it takes every Collapsible prop. Show more is a `CollapsibleTrigger` rendering a shadcn `Button`.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `collapsible` | `true` | Clips the answer behind a fade and a Show more button. |
+| `open`, `defaultOpen`, `onOpenChange` | | Collapsible state, controlled or uncontrolled. |
+| `showMoreLabel` | `Show more` | The button label. |
+
+Set the clipped height with `[--aio-collapsed-height:20rem]`. It defaults to Google's 36.4375rem.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Collapsible`, `Button`, `Badge`, `HoverCard` and `Skeleton`, and the CLI installs any you're missing.
+
+Its colors are `--aio-*` tokens that the CLI adds to your CSS with Google's light and dark values, mapped to utilities like `bg-aio-mark` and `text-aio-fg`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --aio-mark: var(--accent);
+  --aio-fg: var(--foreground);
+}
+```
+
+## Trademarks
+
+Google is a trademark of Google LLC, a subsidiary of Alphabet Inc. Notra is not affiliated with or endorsed by Google. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

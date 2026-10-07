@@ -1,27 +1,32 @@
 "use client";
 
-import { updateSkillSchema } from "@notra/schemas/dashboard/skills";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
-import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { SkillDeleteDialog } from "@/components/skills/skill-delete-dialog";
 import { SkillDetailHeader } from "@/components/skills/skill-detail-header";
 import { SkillEditorForm } from "@/components/skills/skill-editor-form";
+import { SkillUnsavedChangesToast } from "@/components/skills/skill-unsaved-changes-toast";
 import { SKILL_EDITOR_VIEWS } from "@/constants/skills";
+import { useRouter } from "@/lib/navigation";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import { updateSkillFormSchema } from "@/schemas/skill-form";
 import type { SkillDetailPageClientProps } from "@/types/skills/page";
 
 import { SkillEditorSkeleton } from "../skeleton";
 
-export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
-  const { activeOrganization } = useOrganizationsContext();
-  const organizationId = activeOrganization?.id;
+export default function PageClient({
+  slug,
+  name,
+  organizationId,
+}: SkillDetailPageClientProps) {
+  const t = useTranslations("skills");
+  const tCommon2 = useTranslations("common");
+  const tValidation = useTranslations("skills.validation");
   const queryClient = useQueryClient();
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -43,14 +48,13 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const handleSaveRef = useRef<(() => void) | null>(null);
   const handleDiscardRef = useRef<(() => void) | null>(null);
 
-  const { data: skill, isPending } = useQuery({
-    ...dashboardOrpc.skills.getByName.queryOptions({
-      input: { organizationId: organizationId ?? "", name },
-    }),
-    enabled: !!organizationId,
-  });
+  const { data: skill, isPending } = useQuery(
+    dashboardOrpc.skills.getByName.queryOptions({
+      input: { organizationId, name },
+    })
+  );
 
-  if (skill && !original) {
+  if (skill?.name === name && original?.name !== skill.name) {
     setOriginal({
       name: skill.name,
       description: skill.description,
@@ -70,12 +74,12 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const invalidate = () => {
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.skills.list.queryKey({
-        input: { organizationId: organizationId ?? "" },
+        input: { organizationId },
       }),
     });
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.skills.getByName.queryKey({
-        input: { organizationId: organizationId ?? "", name },
+        input: { organizationId, name },
       }),
     });
   };
@@ -83,16 +87,18 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
       const willRename = nameInput !== name;
-      const parsed = updateSkillSchema.safeParse({
+      const parsed = updateSkillFormSchema(tValidation, tCommon2).safeParse({
         name: willRename ? nameInput : undefined,
         description,
         content,
       });
       if (!parsed.success) {
-        throw new Error(parsed.error.issues[0]?.message ?? "Invalid input");
+        throw new Error(
+          parsed.error.issues[0]?.message ?? tValidation("invalidInput")
+        );
       }
       return dashboardOrpc.skills.update.call({
         organizationId,
@@ -104,7 +110,7 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
       setOriginal({ name: data.name, description, content });
       setNameInput(data.name);
       invalidate();
-      toast.success("Skill saved");
+      toast.success(t("toasts.saved"));
       if (data.name !== name) {
         router.replace(`/${slug}/skills/${data.name}`);
       }
@@ -117,13 +123,13 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!organizationId) {
-        throw new Error("Organization ID is required");
+        throw new Error(tCommon2("labels.organizationIdIsRequired"));
       }
       return dashboardOrpc.skills.delete.call({ organizationId, name });
     },
     onSuccess: () => {
       invalidate();
-      toast.success("Skill deleted");
+      toast.success(t("toasts.deleted"));
       router.push(`/${slug}/skills`);
     },
     onError: (error: Error) => {
@@ -152,23 +158,10 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
     if (hasChanges && !saveToastIdRef.current) {
       saveToastIdRef.current = toast.custom(
         () => (
-          <div className="border-border bg-background rounded-[14px] border p-0.5 shadow-sm">
-            <div className="bg-background flex items-center gap-3 rounded-lg px-4 py-3">
-              <span className="text-muted-foreground text-sm">
-                Unsaved changes
-              </span>
-              <Button
-                onClick={() => handleDiscardRef.current?.()}
-                size="sm"
-                variant="ghost"
-              >
-                Discard
-              </Button>
-              <Button onClick={() => handleSaveRef.current?.()} size="sm">
-                Save
-              </Button>
-            </div>
-          </div>
+          <SkillUnsavedChangesToast
+            onDiscard={() => handleDiscardRef.current?.()}
+            onSave={() => handleSaveRef.current?.()}
+          />
         ),
         { duration: Number.POSITIVE_INFINITY, position: "bottom-right" }
       );
@@ -208,9 +201,9 @@ export default function PageClient({ slug, name }: SkillDetailPageClientProps) {
           slug={slug}
         />
 
-        {organizationId && isPending ? <SkillEditorSkeleton /> : null}
+        {isPending ? <SkillEditorSkeleton /> : null}
 
-        {!(organizationId && isPending) && skill ? (
+        {!isPending && skill ? (
           <SkillEditorForm
             content={content}
             description={description}

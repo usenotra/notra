@@ -3,15 +3,17 @@
 import { CarouselProgress } from "@notra/ui/components/ui/carousel-progress";
 import { cn } from "@notra/ui/lib/utils";
 import { useReducedMotion } from "motion/react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import {
   AUTH_TESTIMONIAL_INTERVAL_MS,
   AUTH_TESTIMONIALS,
 } from "@/constants/auth-testimonials";
 
 export function TestimonialCarousel() {
+  const t = useTranslations("auth.testimonials");
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const shouldReduceMotion = useReducedMotion();
@@ -43,7 +45,7 @@ export function TestimonialCarousel() {
 
   return (
     <section
-      aria-label="Customer testimonials"
+      aria-label={t("label")}
       aria-roledescription="carousel"
       className="flex w-full max-w-xl flex-col gap-5"
     >
@@ -54,7 +56,10 @@ export function TestimonialCarousel() {
         {AUTH_TESTIMONIALS.map((testimonial, index) => (
           <figure
             aria-hidden={index !== activeIndex}
-            aria-label={`Testimonial ${index + 1} of ${AUTH_TESTIMONIALS.length}`}
+            aria-label={t("slide", {
+              index: index + 1,
+              total: AUTH_TESTIMONIALS.length,
+            })}
             aria-roledescription="slide"
             className={cn(
               "duration-slower col-start-1 row-start-1 flex flex-col justify-between gap-5 transition-opacity ease-in-out motion-reduce:transition-none",
@@ -89,9 +94,7 @@ export function TestimonialCarousel() {
       </div>
       <CarouselProgress
         activeIndex={activeIndex}
-        labels={AUTH_TESTIMONIALS.map(
-          (item) => `Show testimonial from ${item.name}`
-        )}
+        labels={AUTH_TESTIMONIALS.map((item) => t("show", { name: item.name }))}
         onSelect={(index) => {
           if (index === activeIndex) {
             return;

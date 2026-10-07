@@ -30,3 +30,12 @@ export const writeGeoCache = Effect.fn("geo.cache.write")(function* (
     client.set(key, value, { ex: ttlSeconds }).catch(() => null)
   );
 });
+
+export const deleteGeoCache = Effect.fn("geo.cache.delete")(function* (
+  ...keys: string[]
+) {
+  const client = redis;
+  if (client && keys.length > 0) {
+    yield* Effect.promise(() => client.del(...keys).catch(() => null));
+  }
+});

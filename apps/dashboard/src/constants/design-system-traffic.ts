@@ -44,7 +44,12 @@ export const DESIGN_SYSTEM_TRAFFIC_SOURCES: GeoTrafficSource[] = [
 
 export const DESIGN_SYSTEM_TRAFFIC_RESPONSE: AiTrafficResponse = {
   configured: true,
-  points: [],
+  points: DESIGN_SYSTEM_TRAFFIC_SOURCES.map((row, index) => ({
+    day: `2026-09-${16 + (index % 8)}`,
+    visitorType: row.visitorType,
+    source: row.source,
+    visits: row.visits,
+  })),
   previousConversions: null,
   sources: DESIGN_SYSTEM_TRAFFIC_SOURCES,
   totals: toGeoTrafficTotals(DESIGN_SYSTEM_TRAFFIC_SOURCES),

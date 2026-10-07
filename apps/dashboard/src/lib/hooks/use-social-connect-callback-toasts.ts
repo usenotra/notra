@@ -5,16 +5,24 @@ import { useQueryClient } from "@tanstack/react-query";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import {
-  SOCIAL_CONNECT_ERROR_MESSAGES,
+  SOCIAL_CONNECT_ERROR_CODES,
   SOCIAL_PLATFORM_LABELS,
 } from "@/constants/social-connect";
 import { dashboardOrpc } from "@/lib/orpc/query";
 
 const SOCIAL_PLATFORMS: SocialConnectPlatform[] = ["twitter", "linkedin"];
 
+function isSocialConnectErrorCode(
+  value: string
+): value is (typeof SOCIAL_CONNECT_ERROR_CODES)[number] {
+  return SOCIAL_CONNECT_ERROR_CODES.some((code) => code === value);
+}
+
 export function useSocialConnectCallbackToasts(organizationId: string) {
+  const t = useTranslations("integrations.socialConnect");
   const [{ twitterConnected, linkedinConnected, error }, setParams] =
     useQueryStates(
       {
@@ -33,10 +41,12 @@ export function useSocialConnectCallbackToasts(organizationId: string) {
     }
 
     const isSocialConnectError = error !== null && !error.startsWith("mcp_");
-    const errorMessage = isSocialConnectError
-      ? (SOCIAL_CONNECT_ERROR_MESSAGES[error] ??
-        "Failed to connect the account. Please try again.")
-      : null;
+    let errorMessage: string | null = null;
+    if (isSocialConnectError) {
+      errorMessage = isSocialConnectErrorCode(error)
+        ? t(`errors.${error}`)
+        : t("connectFailed");
+    }
     const connectedFlags = {
       twitter: twitterConnected,
       linkedin: linkedinConnected,
@@ -51,7 +61,9 @@ export function useSocialConnectCallbackToasts(organizationId: string) {
     handled.current = true;
 
     for (const platform of connectedPlatforms) {
-      toast.success(`${SOCIAL_PLATFORM_LABELS[platform]} account connected`);
+      toast.success(
+        t("accountConnected", { platform: SOCIAL_PLATFORM_LABELS[platform] })
+      );
     }
     if (errorMessage) {
       toast.error(errorMessage);
@@ -74,5 +86,6 @@ export function useSocialConnectCallbackToasts(organizationId: string) {
     setParams,
     queryClient,
     organizationId,
+    t,
   ]);
 }

@@ -1,0 +1,37 @@
+---
+title: Claude
+description: A full recreation of the claude.ai chat with web search, serif replies, message actions and the model picker.
+---
+
+A rebuild of the claude.ai chat screen, composed from the [Claude components](/components/claude/composer). The search step starts collapsed. Type a message to get a canned reply, and hover the model chip to switch model and effort.
+
+<Component path="claude/examples/claude-demo" />
+
+## Installation
+
+<RegistryInstall name="claude" />
+
+This adds every Claude component to `components/claude`, along with the demo, its playback hook and the demo conversation.
+
+The components use Anthropic Sans and Anthropic Serif with system fallbacks. Set `--font-claude` and `--font-claude-serif` to load your own.
+
+## Playback
+
+The demo is driven by `useClaudePlayback(script, reducedMotion)` in `hooks/use-claude-playback.ts`. It shows the whole script at rest. `play()` can replay it turn by turn: user turns appear, assistant turns with a search wait for the search timeline, others show [Thinking](/components/claude/thinking), then the reply streams in word by word. `send(text, reply)` plays one extra exchange and `stop()` resets to the script. Reduced motion skips the timeline and streaming.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Avatar`, `Button`, `Card`, `Collapsible`, `DropdownMenu`, `HoverCard`, `InputGroup`, `Item`, `Kbd`, `ScrollArea`, `Separator` and `Tooltip`, plus the Notra [Shimmer](/components/shimmer), and the CLI installs any you're missing.
+
+Its colors are `--claude-*` tokens that the CLI adds to your CSS with claude.ai's light and dark values, mapped to utilities like `bg-claude-bg`, `bg-claude-bubble` and `text-claude-muted`. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --claude-bg: var(--background);
+  --claude-accent: var(--primary);
+}
+```
+
+## Trademarks
+
+Claude and Anthropic are trademarks of Anthropic PBC. Notra is not affiliated with or endorsed by Anthropic. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

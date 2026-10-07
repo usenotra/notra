@@ -10,8 +10,10 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GEO_CONTENT_GAPS_PREPARING_POLL_MS } from "@/constants/geo-content-gaps";
 import { toErrorMessage } from "@/utils/error-message";
 import { withoutPromptGap, withRestoredPromptGap } from "@/utils/geo-gaps";
 import { getConflictRevision, isNotFoundError } from "@/utils/orpc-errors";
@@ -19,32 +21,41 @@ import { getConflictRevision, isNotFoundError } from "@/utils/orpc-errors";
 import { dashboardOrpc } from "../orpc/query";
 
 export function useGeoWriterGaps(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoContentGapsResponse>({
     ...dashboardOrpc.geo.writerGaps.queryOptions({
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load content gaps" },
+    refetchInterval: (query) =>
+      query.state.data?.snapshotReady === false
+        ? GEO_CONTENT_GAPS_PREPARING_POLL_MS
+        : false,
+    meta: { errorMessage: tToast("loadContentGapsFailed") },
   });
 }
 
 export function useGeoWriterBriefs(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   return useQuery<GeoContentBriefsResponse>({
     ...dashboardOrpc.geo.writerBriefsList.queryOptions({
       input: { organizationId, projectId },
     }),
     enabled: !!organizationId,
-    meta: { errorMessage: "Failed to load briefs" },
+    meta: { errorMessage: tToast("loadBriefsFailed") },
   });
 }
 
 export function useGeoWriterBrief(
   organizationId: string,
-  briefId: string | null
+  briefId: string | null,
+  briefProjectId?: string
 ) {
-  const { projectId } = useGeoProjectScope();
+  const tToast = useTranslations("geo.toasts");
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   return useQuery<GeoContentBriefDetail>({
     ...dashboardOrpc.geo.writerBrief.queryOptions({
       input: { organizationId, projectId, briefId: briefId ?? "" },
@@ -60,12 +71,14 @@ export function useGeoWriterBrief(
         : false;
     },
     refetchIntervalInBackground: false,
-    meta: { errorMessage: "Failed to load the brief" },
+    meta: { errorMessage: tToast("loadBriefFailed") },
   });
 }
 
-function useInvalidateWriterQueries(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+function useInvalidateWriterQueries(
+  organizationId: string,
+  projectId: string | undefined
+) {
   const queryClient = useQueryClient();
   return async () => {
     await queryClient.invalidateQueries({
@@ -82,6 +95,7 @@ function useInvalidateWriterQueries(organizationId: string) {
 }
 
 export function useGeoPromptGapIgnore(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const queryClient = useQueryClient();
   const gapsQueryKey = dashboardOrpc.geo.writerGaps.queryKey({
@@ -119,7 +133,7 @@ export function useGeoPromptGapIgnore(organizationId: string) {
           (current) => current && withRestoredPromptGap(current, removed)
         );
       }
-      toast.error(toErrorMessage(error, "Failed to update the gap"));
+      toast.error(toErrorMessage(error, tToast("updateGapFailed")));
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: gapsQueryKey });
@@ -128,8 +142,9 @@ export function useGeoPromptGapIgnore(organizationId: string) {
 }
 
 export function useGeoWriterPlan(organizationId: string) {
+  const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (input: GeoWriterPlanInput) =>
       dashboardOrpc.geo.writerPlan.call({
@@ -141,15 +156,20 @@ export function useGeoWriterPlan(organizationId: string) {
       await invalidate();
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to plan the article"));
+      toast.error(toErrorMessage(error, tToast("planArticleFailed")));
     },
   });
 }
 
-export function useGeoWriterStart(organizationId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterStart(
+  organizationId: string,
+  briefProjectId?: string
+) {
+  const tToast = useTranslations("geo.toasts");
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   return useMutation({
     mutationFn: (briefId: string) =>
       dashboardOrpc.geo.writerStart.call({
@@ -168,15 +188,21 @@ export function useGeoWriterStart(organizationId: string) {
       ]);
     },
     onError: (error) => {
-      toast.error(toErrorMessage(error, "Failed to start writing"));
+      toast.error(toErrorMessage(error, tToast("startWritingFailed")));
     },
   });
 }
 
-export function useGeoWriterUpdate(organizationId: string, contentId: string) {
-  const { projectId } = useGeoProjectScope();
+export function useGeoWriterUpdate(
+  organizationId: string,
+  contentId: string,
+  briefProjectId?: string
+) {
+  const tToast = useTranslations("geo.toasts");
+  const { projectId: scopeProjectId } = useGeoProjectScope();
+  const projectId = briefProjectId ?? scopeProjectId;
   const queryClient = useQueryClient();
-  const invalidate = useInvalidateWriterQueries(organizationId);
+  const invalidate = useInvalidateWriterQueries(organizationId, projectId);
   const latestRevisionByBrief = useRef(new Map<string, string>());
   return useMutation({
     scope: { id: `geo-writer-update:${organizationId}:${projectId}` },
@@ -237,7 +263,7 @@ export function useGeoWriterUpdate(organizationId: string, contentId: string) {
           }),
         ]);
       }
-      toast.error(toErrorMessage(error, "Failed to update the plan"));
+      toast.error(toErrorMessage(error, tToast("updatePlanFailed")));
     },
   });
 }

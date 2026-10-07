@@ -9,7 +9,8 @@ import {
   geoAnswerMarkdownFontClass,
 } from "@notra/ui/lib/geo-answer-font";
 import type { PerplexitySearchSource } from "@notra/ui/types/perplexity";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { AnswerSentiment } from "@/components/geo/answer-sentiment";
 import { GeoAnswerActions } from "@/components/geo/geo-answer-actions";
@@ -29,7 +30,9 @@ import {
 import { GeoAnswerMentionProvider } from "@/components/geo/geo-answer-mentions";
 import { GeoAnswerSearch } from "@/components/geo/geo-answer-search";
 import { GeoSkinMessage } from "@/components/geo/geo-skin-message";
+import { GEO_ANSWER_CODE_BLOCK_CLASS } from "@/constants/geo-answer-code-block";
 import { useGeoAnswerMentionData } from "@/lib/hooks/use-geo-answer-mentions";
+import { useOwnMentionLines } from "@/lib/hooks/use-own-mention-lines";
 import { cn } from "@/lib/utils";
 import type { GeoPromptAnswerThreadProps } from "@/types/geo";
 import type { GeoAnswerMentionComponents } from "@/types/geo-answer-mentions";
@@ -51,16 +54,6 @@ const GEO_ANSWER_MENTION_COMPONENTS: GeoAnswerMentionComponents = {
   h6: GeoAnswerMentionHeading6,
   blockquote: GeoAnswerMentionBlockquote,
 };
-
-function emptyAnswerCopy(mentioned: boolean, ownedSourceCited = false): string {
-  if (mentioned) {
-    return "Mentioned, but no answer was captured.";
-  }
-  if (ownedSourceCited) {
-    return "An owned source was cited, but no answer was captured.";
-  }
-  return "This engine did not mention you.";
-}
 
 function displayAnswer(result: { answer: string; excerpt: string }): string {
   return result.answer.trim() || result.excerpt.trim();
@@ -93,7 +86,11 @@ export function AnswerMarkdown({
 }) {
   return (
     <MessageResponse
-      className={cn(ANSWER_MARKDOWN_CLASS, geoAnswerMarkdownFontClass(skin))}
+      className={cn(
+        ANSWER_MARKDOWN_CLASS,
+        GEO_ANSWER_CODE_BLOCK_CLASS,
+        geoAnswerMarkdownFontClass(skin)
+      )}
       components={GEO_ANSWER_MENTION_COMPONENTS}
       mode={mode}
     >
@@ -115,13 +112,20 @@ function AssistantBody({
   mode?: "static" | "streaming";
   skin: GeoChatSkin;
 }) {
+  const t = useTranslations("geo.geoPromptAnswerThread");
   if (answer.length > 0) {
     return <AnswerMarkdown mode={mode} skin={skin} text={answer} />;
+  }
+  let emptyCopy = t("notMentioned");
+  if (mentioned) {
+    emptyCopy = t("mentionedNoAnswer");
+  } else if (ownedSourceCited) {
+    emptyCopy = t("citedNoAnswer");
   }
 
   return (
     <p className={cn("text-muted-foreground", geoAnswerEmptyClassName(skin))}>
-      {emptyAnswerCopy(mentioned, ownedSourceCited)}
+      {emptyCopy}
     </p>
   );
 }
@@ -192,6 +196,8 @@ export function GeoPromptAnswerThread({
 }: GeoPromptAnswerThreadProps) {
   const skin = geoChatSkin(result.engine);
   const answer = displayAnswer(result);
+  const threadRef = useRef<HTMLDivElement>(null);
+  useOwnMentionLines(threadRef);
   const { terms: mentionTerms, competitors } = useGeoAnswerMentionData(
     organizationId,
     result.competitors
@@ -228,7 +234,10 @@ export function GeoPromptAnswerThread({
               : undefined
           }
         >
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8">
+          <div
+            className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-8"
+            ref={threadRef}
+          >
             <AnswerSentiment result={result} />
             <ThreadMessages
               answer={answer}

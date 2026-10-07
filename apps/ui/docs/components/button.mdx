@@ -1,0 +1,46 @@
+---
+title: Button
+description: A shadcn Base UI button with Depth primary, secondary, outline and destructive variants and squircle corners.
+---
+
+Primary, secondary, outline and destructive get a vertical gradient, a top highlight and a soft drop shadow. They also use squircle corners where the browser supports `corner-shape`.
+
+<Component path="button/examples/button-variants" />
+
+## Installation
+
+<RegistryInstall name="notra-button" />
+
+This replaces `components/ui/button.tsx`. The gradient is built from your `--primary`, `--foreground`, `--background`, `--muted` and `--destructive` tokens, so it follows your theme.
+
+## Sizes
+
+<Component path="button/examples/button-sizes" />
+
+`xs`, `sm`, `default` and `lg`, plus `icon`, `icon-xs`, `icon-sm` and `icon-lg` for square buttons. Disabled buttons stay flat and don't scale on press.
+
+## Loading
+
+Pass `loading` while an action runs. The label blurs up and out, three dots rise in from below and bounce in turn, and the button keeps its width so nothing around it shifts. A loading button can't be clicked again but stays focusable, and sets `aria-busy`.
+
+The animated layers live in `components/ui/button-content.tsx`, a client component, so `button.tsx` and `buttonVariants` still work in server components.
+
+<Component path="button/examples/button-loading" />
+
+```tsx
+<Button loading={isSaving} onClick={save}>
+  Save changes
+</Button>
+```
+
+## Progress
+
+For uploads and other work you can measure, pass `progress` from `0` to `100`. The button fills from the left with a tint of its own text color, so it fits every variant. For work you can't measure, like an import, use `loading` instead. Set it back to `undefined` when the work is done: the fill runs to the end and fades out. The fill is a Base UI `Progress`, and the button is busy and can't be clicked while it shows.
+
+<Component path="button/examples/button-progress" />
+
+```tsx
+<Button progress={uploadProgress} onClick={upload} variant="secondary">
+  Upload file
+</Button>
+```

@@ -1,0 +1,31 @@
+---
+import data from "blume:data";
+import PageLayout from "blume/components/layout/PageLayout.astro";
+
+import LandingHero from "../src/components/landing-hero.astro";
+import LandingSections from "../src/components/landing-sections.astro";
+import ThemeHotkey from "../src/components/theme-hotkey.astro";
+
+const { config, navigation } = data;
+const repoUrl = config.repoUrl ?? "https://github.com/usenotra/notra";
+---
+
+<PageLayout
+  analytics={config.analytics}
+  favicon={config.favicon}
+  fontCssVars={data.fontCssVars}
+  logo={config.logo}
+  navigation={navigation}
+  page={{
+    description: config.description,
+    route: "/",
+    title: "Notra UI: the components behind Notra",
+  }}
+  searchEnabled={config.search.enabled}
+  site={{ description: config.description, title: config.title }}
+  themeMode={config.theme.mode}
+>
+  <LandingHero repoUrl={repoUrl} />
+  <LandingSections />
+  <ThemeHotkey slot="footer" />
+</PageLayout>

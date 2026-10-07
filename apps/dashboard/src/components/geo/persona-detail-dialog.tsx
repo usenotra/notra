@@ -3,10 +3,21 @@
 import {
   AiChat01Icon,
   Loading03Icon,
+  PauseIcon,
   PlayIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { GEO_PERSONA_BILLING_MULTIPLIER } from "@notra/geo-core/constants/geo-personas";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import {
   Select,
   SelectContent,
@@ -22,21 +33,24 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
+import { PersonaAnswerCostBadge } from "@/components/geo/persona-answer-cost";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
 import { PersonaProfileEditor } from "@/components/geo/persona-profile-editor";
 import { PersonaPrompts } from "@/components/geo/persona-prompts";
 import { PromptEngineSwitcher } from "@/components/geo/prompt-engine-switcher";
 import { GeoConversationSkeleton } from "@/components/geo/skeleton-parts";
-import {
-  GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION,
-  GEO_PERSONA_CONVERSATION_EMPTY_TITLE,
-  GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION,
-  GEO_PERSONA_DIALOG_VIEWS,
-} from "@/constants/geo-personas";
+import { GEO_PERSONA_DIALOG_VIEWS } from "@/constants/geo-personas";
+import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
 import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -44,6 +58,7 @@ import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
   PersonaDetailDialogProps,
   PersonaDetailHeaderProps,
+  PersonaConversationEmptyProps,
   PersonaConversationProps,
   PersonaDialogView,
 } from "@/types/geo-personas-ui";
@@ -79,6 +94,15 @@ function PersonaDetailHeader({
   onEngineChange,
   onViewChange,
 }: PersonaDetailHeaderProps) {
+  const t = useTranslations("geo.personaDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  const tLabels = useTranslations("common.labels");
+  const viewLabels: Record<PersonaDialogView, string> = {
+    conversation: tGeoShared("conversation"),
+    prompts: tLabels("prompts"),
+    profile: t("views.profile"),
+  };
+  const locale = useLocale();
   const latestCheck = latestCheckAt(threads);
   const selectedScan =
     scans.find((scan) => scan.id === selectedScanId) ?? scans.at(0) ?? null;
@@ -89,34 +113,43 @@ function PersonaDetailHeader({
         <PersonaAvatar className="mt-0.5 size-12" persona={persona} size="lg" />
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex min-w-0 items-center gap-3">
-            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance">
+            <SheetTitle className="min-w-0 flex-1 text-xl leading-snug font-semibold text-balance wrap-anywhere">
               {persona.name}
             </SheetTitle>
-            <Button
-              className="shrink-0"
-              disabled={
-                !persona.enabled ||
-                persona.conversationPrompts.length === 0 ||
-                isRunning
-              }
-              onClick={onRun}
-              size="sm"
-              type="button"
-            >
-              <HugeiconsIcon
-                className={isRunning ? "animate-spin" : undefined}
-                icon={isRunning ? Loading03Icon : PlayIcon}
-                size={14}
-              />
-              {isRunning ? "Running…" : "Run scan"}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    className="shrink-0"
+                    disabled={
+                      !persona.enabled ||
+                      persona.conversationPrompts.length === 0
+                    }
+                    focusableWhenDisabled
+                    loading={isRunning}
+                    onClick={onRun}
+                    size="sm"
+                    type="button"
+                  />
+                }
+              >
+                <HugeiconsIcon icon={PlayIcon} size={14} />
+                {tGeoShared("runScan")}
+                <PersonaAnswerCostBadge />
+              </TooltipTrigger>
+              <TooltipContent>
+                {t("answerCost", {
+                  multiplier: GEO_PERSONA_BILLING_MULTIPLIER,
+                })}
+              </TooltipContent>
+            </Tooltip>
           </div>
           <SheetDescription className="text-muted-foreground text-sm leading-snug">
             {persona.role} · {persona.company}
           </SheetDescription>
           {latestCheck ? (
             <SheetDescription className="text-muted-foreground text-xs leading-snug">
-              {formatAiTrafficTimestamp(latestCheck)}
+              {formatAiTrafficTimestamp(latestCheck, locale)}
             </SheetDescription>
           ) : null}
         </div>
@@ -127,14 +160,14 @@ function PersonaDetailHeader({
           onValueChange={(value) => onViewChange(value as PersonaDialogView)}
           value={view}
         >
-          <TabsList aria-label="View">
+          <TabsList aria-label={t("viewAria")}>
             {GEO_PERSONA_DIALOG_VIEWS.map((option) => (
               <TabsTrigger
                 className="px-2.5 text-xs"
-                key={option.value}
-                value={option.value}
+                key={option}
+                value={option}
               >
-                {option.label}
+                {viewLabels[option]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -153,17 +186,29 @@ function PersonaDetailHeader({
               onValueChange={onSelectScan}
               value={selectedScanId}
             >
-              <SelectTrigger aria-label="Persona scan history" className="w-44">
+              <SelectTrigger aria-label={t("scanHistory")} className="w-44">
                 <SelectValue>
-                  {selectedScan.id === scans.at(0)?.id ? "Latest · " : ""}
-                  {formatAiTrafficTimestamp(selectedScan.capturedAt)}
+                  {selectedScan.id === scans.at(0)?.id
+                    ? t("latestScan", {
+                        time: formatAiTrafficTimestamp(
+                          selectedScan.capturedAt,
+                          locale
+                        ),
+                      })
+                    : formatAiTrafficTimestamp(selectedScan.capturedAt, locale)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {scans.map((scan, index) => (
                   <SelectItem key={scan.id} value={scan.id}>
-                    {index === 0 ? "Latest · " : ""}
-                    {formatAiTrafficTimestamp(scan.capturedAt)}
+                    {index === 0
+                      ? t("latestScan", {
+                          time: formatAiTrafficTimestamp(
+                            scan.capturedAt,
+                            locale
+                          ),
+                        })
+                      : formatAiTrafficTimestamp(scan.capturedAt, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -175,23 +220,68 @@ function PersonaDetailHeader({
   );
 }
 
-function ConversationEmpty({ enabled }: { enabled: boolean }) {
+function ConversationEmpty({
+  enabled,
+  isScanning,
+  canRun,
+  onRun,
+}: PersonaConversationEmptyProps) {
+  const t = useTranslations("geo.personaDetailDialog");
+  const tGeoShared = useTranslations("geo.shared");
+  if (isScanning) {
+    return (
+      <Empty aria-busy="true" aria-live="polite" className="h-full">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon
+              className="motion-safe:animate-spin"
+              icon={Loading03Icon}
+            />
+          </EmptyMedia>
+          <EmptyTitle>
+            <Shimmer as="span">{t("scanningTitle")}</Shimmer>
+          </EmptyTitle>
+          <EmptyDescription>{t("scanningDescription")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
   return (
-    <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4 px-6 pb-6">
-      <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-full">
-        <HugeiconsIcon icon={AiChat01Icon} size={18} />
-      </div>
-      <div className="space-y-1 text-center">
-        <p className="text-sm font-medium">
-          {GEO_PERSONA_CONVERSATION_EMPTY_TITLE}
-        </p>
-        <p className="text-muted-foreground text-sm text-pretty">
-          {enabled
-            ? GEO_PERSONA_CONVERSATION_EMPTY_DESCRIPTION
-            : GEO_PERSONA_CONVERSATION_PAUSED_DESCRIPTION}
-        </p>
-      </div>
-    </div>
+    <Empty className="h-full">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={enabled ? AiChat01Icon : PauseIcon} />
+        </EmptyMedia>
+        <EmptyTitle>{enabled ? t("emptyTitle") : t("pausedTitle")}</EmptyTitle>
+        <EmptyDescription>
+          {enabled ? t("emptyDescription") : t("pausedDescription")}
+        </EmptyDescription>
+      </EmptyHeader>
+      {enabled ? (
+        <EmptyContent>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  disabled={!canRun}
+                  focusableWhenDisabled
+                  onClick={onRun}
+                  size="sm"
+                  type="button"
+                />
+              }
+            >
+              <HugeiconsIcon icon={PlayIcon} size={14} />
+              {tGeoShared("runScan")}
+              <PersonaAnswerCostBadge />
+            </TooltipTrigger>
+            <TooltipContent>
+              {t("answerCost", { multiplier: GEO_PERSONA_BILLING_MULTIPLIER })}
+            </TooltipContent>
+          </Tooltip>
+        </EmptyContent>
+      ) : null}
+    </Empty>
   );
 }
 
@@ -199,8 +289,10 @@ function PersonaConversation({
   organizationId,
   active,
   isLoading,
-  isWaitingForScan,
+  isScanning,
   enabled,
+  canRun,
+  onRun,
 }: PersonaConversationProps) {
   if (active) {
     return (
@@ -216,19 +308,18 @@ function PersonaConversation({
   if (isLoading) {
     return (
       <div className="h-full overflow-y-auto" aria-busy="true">
-        <p
-          role="status"
-          className="text-muted-foreground mx-auto w-full max-w-3xl px-6 pt-6 text-sm"
-        >
-          {isWaitingForScan
-            ? "Scan in progress. This persona’s conversation will appear when results are ready."
-            : "Loading conversation…"}
-        </p>
         <GeoConversationSkeleton />
       </div>
     );
   }
-  return <ConversationEmpty enabled={enabled} />;
+  return (
+    <ConversationEmpty
+      canRun={canRun}
+      enabled={enabled}
+      isScanning={isScanning}
+      onRun={onRun}
+    />
+  );
 }
 
 export function PersonaDetailDialog({
@@ -253,9 +344,16 @@ export function PersonaDetailDialog({
     setEngine,
   } = usePersonaConversation(organizationId, persona, open, showConversation);
 
+  const isProjectScanning = useIsGeoScanning(organizationId);
+
   if (!persona) {
     return null;
   }
+
+  const onRun = () =>
+    runPersona.mutate(persona.id, {
+      onSuccess: () => selectScan(null),
+    });
 
   return (
     <Sheet
@@ -296,11 +394,7 @@ export function PersonaDetailDialog({
           active={active}
           isRunning={runPersona.isPending}
           onEngineChange={setEngine}
-          onRun={() =>
-            runPersona.mutate(persona.id, {
-              onSuccess: () => selectScan(null),
-            })
-          }
+          onRun={onRun}
           onSelectScan={selectScan}
           onViewChange={setView}
           persona={persona}
@@ -316,8 +410,17 @@ export function PersonaDetailDialog({
               organizationId={organizationId}
               active={active}
               isLoading={showConversationLoading}
-              isWaitingForScan={isWaitingForScan}
+              isScanning={
+                isWaitingForScan ||
+                (persona.enabled &&
+                  persona.conversationPrompts.length > 0 &&
+                  isProjectScanning)
+              }
               enabled={persona.enabled}
+              canRun={
+                persona.conversationPrompts.length > 0 && !runPersona.isPending
+              }
+              onRun={onRun}
             />
           ) : null}
           {view === "prompts" ? (

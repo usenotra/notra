@@ -1,18 +1,22 @@
 "use client";
 
 import type {
+  ChatAttachment,
   ChatSessionSummary,
   ContextItem,
   TextSelection,
 } from "@notra/ai/types/chat";
 import type { ChatStatus, UIMessage } from "ai";
+import type { RefObject } from "react";
 
 import ChatInput from "@/components/chat-input";
 import type { QueuedMessage } from "@/components/chat/chat-queue";
 import { ContentChatActivityPanel } from "@/components/content/content-chat-activity-panel";
 import { RightPanel } from "@/components/dashboard/right-panel";
+import type { ContentChatInputHandle } from "@/types/components/chat-input";
 
 export interface ContentDetailChatComposerProps {
+  ref: RefObject<ContentChatInputHandle | null>;
   context: ContextItem[];
   disabled: boolean;
   error: string | null;
@@ -23,7 +27,11 @@ export interface ContentDetailChatComposerProps {
   onEditQueued: (message: QueuedMessage) => void;
   onRemoveContext: (item: ContextItem) => void;
   onRemoveQueued: (id: string) => void;
-  onSend: (instruction: string) => Promise<void>;
+  onSteerQueued: (message: QueuedMessage) => void;
+  onSend: (
+    instruction: string,
+    attachments?: ChatAttachment[]
+  ) => Promise<void>;
   onStop: () => void;
   onValueChange: (value: string) => void;
   organizationId: string;

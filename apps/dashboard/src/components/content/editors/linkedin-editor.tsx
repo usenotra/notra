@@ -9,6 +9,7 @@ import {
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useEffect, useRef } from "react";
+import { useTranslations } from "use-intl";
 
 import { LinkedInPost } from "@/components/linkedin-post";
 import { useSelectedSocialAccount } from "@/lib/hooks/use-selected-social-account";
@@ -33,6 +34,8 @@ export function LinkedInEditor({
   organizationId,
   writeFocusNonce = 0,
 }: ContentEditorProps) {
+  const t = useTranslations("content.editors");
+  const tCommon = useTranslations("common");
   const [view, setView] = useQueryState(
     "view",
     parseAsStringLiteral(VIEW_OPTIONS).withDefault("preview")
@@ -47,7 +50,7 @@ export function LinkedInEditor({
   const author = selectedAccount
     ? linkedInAuthorFromAccount(selectedAccount)
     : {
-        name: organization?.name ?? "Your Name",
+        name: organization?.name ?? tCommon("labels.yourName"),
         avatar: organization?.logo ?? undefined,
       };
 
@@ -75,13 +78,15 @@ export function LinkedInEditor({
       <TitleCard
         action={
           <TabsList variant="line">
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="raw">Raw</TabsTrigger>
+            <TabsTrigger value="preview">
+              {tCommon("labels.preview")}
+            </TabsTrigger>
+            <TabsTrigger value="raw">{t("raw")}</TabsTrigger>
           </TabsList>
         }
         heading={
           <input
-            aria-label="Post title"
+            aria-label={tCommon("labels.postTitle")}
             className="w-full bg-transparent outline-none focus:ring-0"
             onChange={(e) => actions.setEditingTitle(e.target.value)}
             onFocus={(e) => {
@@ -117,13 +122,13 @@ export function LinkedInEditor({
             defaultExpanded
             onContentChange={(value) => actions.setEditedMarkdown(value)}
             onSelectionChange={actions.onSelectionChange}
-            timestamp="Just now"
+            timestamp={tCommon("labels.justNow")}
             truncate={false}
           />
         </TabsContent>
         <TabsContent className="mt-0" value="raw">
           <textarea
-            aria-label="LinkedIn post content editor"
+            aria-label={t("linkedinContentEditor")}
             className="selection:bg-primary/30 field-sizing-content w-full resize-none rounded-lg border-0 bg-transparent font-mono text-sm whitespace-pre-wrap focus:ring-0 focus:outline-none"
             onChange={(e) => {
               actions.setEditedMarkdown(e.target.value);

@@ -2,6 +2,7 @@
 
 import {
   GEO_PERSONA_MAX_COUNT,
+  GEO_PERSONA_BILLING_MULTIPLIER,
   GEO_PERSONA_MAX_TURNS,
 } from "@notra/geo-core/constants/geo-personas";
 import type {
@@ -11,12 +12,17 @@ import type {
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useMutationState } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
 import { PersonaAvatar } from "@/components/geo/persona-avatar";
@@ -25,7 +31,6 @@ import {
   PersonaTableContextMenu,
   PersonaTableRowActions,
 } from "@/components/geo/persona-table-actions";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import {
   GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
@@ -54,6 +59,9 @@ export function PersonasTable({
   openPersonaId,
   onAutoOpenClose,
 }: PersonaTableProps) {
+  const t = useTranslations("geo.personasTable");
+  const tCommon = useTranslations("common");
+  const tGeoShared = useTranslations("geo.shared");
   const { projectId } = useGeoProjectScope();
   const deletePersona = useGeoPersonaDelete(organizationId);
   const updatePersona = useGeoPersonaUpdate(organizationId);
@@ -95,13 +103,12 @@ export function PersonasTable({
         key: "name",
         header: (
           <span className="inline-flex items-center gap-1.5">
-            Persona
+            {t("persona")}
             <span className="text-muted-foreground font-normal tabular-nums">
-              {`(${activePersonaCount} active${
-                archivedPersonaCount > 0
-                  ? ` · ${archivedPersonaCount} archived`
-                  : ""
-              })`}
+              {t("counts", {
+                active: activePersonaCount,
+                archived: archivedPersonaCount,
+              })}
             </span>
           </span>
         ),
@@ -122,13 +129,13 @@ export function PersonasTable({
                 <span className="truncate">{row.name}</span>
                 {row.archivedAt ? (
                   <Badge size="sm" variant="outline">
-                    Archived
+                    {tCommon("labels.archived")}
                   </Badge>
                 ) : null}
               </span>
               <span className="text-muted-foreground truncate text-xs">
                 {generationPending && generatingPersonaId === row.id
-                  ? "Regenerating…"
+                  ? tCommon("labels.regenerating")
                   : `${row.role} · ${row.company}`}
               </span>
             </span>
@@ -141,12 +148,9 @@ export function PersonasTable({
         header: (
           <Tooltip>
             <TooltipTrigger render={<span className="cursor-help" />}>
-              Memories
+              {tGeoShared("memories")}
             </TooltipTrigger>
-            <TooltipContent>
-              Background facts and preferences used to generate this persona’s
-              fixed prompts
-            </TooltipContent>
+            <TooltipContent>{t("memoriesHint")}</TooltipContent>
           </Tooltip>
         ),
         width: GEO_PERSONAS_MEMORIES_COLUMN_WIDTH,
@@ -172,11 +176,12 @@ export function PersonasTable({
             <TooltipTrigger
               render={<button className="cursor-help" type="button" />}
             >
-              Max. messages
+              {t("maxMessages")}
             </TooltipTrigger>
             <TooltipContent>
-              Maximum messages this persona asks each AI engine per scan, not
-              completed activity
+              {t("maxMessagesHint", {
+                multiplier: GEO_PERSONA_BILLING_MULTIPLIER,
+              })}
             </TooltipContent>
           </Tooltip>
         ),
@@ -196,7 +201,7 @@ export function PersonasTable({
       },
       {
         key: "actions",
-        header: <span className="sr-only">Actions</span>,
+        header: <span className="sr-only">{tCommon("labels.actions")}</span>,
         width: GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
         minWidth: GEO_PERSONAS_ACTIONS_COLUMN_WIDTH,
         align: "right",
@@ -228,17 +233,17 @@ export function PersonasTable({
       regeneratePersona,
       restoreAtLimit,
       restorePersona.isPending,
+      t,
     ]
   );
 
   return (
     <section className="space-y-3">
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={personas}
         defaultSort={{ key: "name", direction: "asc" }}
-        emptyState="No personas yet — generate a set to have them research your category during scans"
+        emptyState={t("empty")}
         getRowId={(row) => row.id}
         height={tableHeightFor(
           Math.max(
@@ -313,12 +318,12 @@ export function PersonasTable({
         }
       />
       <GeoRemoveDialog
-        actionLabel="Archive persona"
-        description="This persona will be removed from future scans. Its historical scan data will be retained."
+        actionLabel={tGeoShared("archivePersona")}
+        description={t("archiveDescription")}
         destructive={false}
         isPending={deletePersona.isPending}
         items={removing ? [removing.name] : []}
-        nouns={{ singular: "persona", plural: "personas" }}
+        nouns={{ singular: t("nounSingular"), plural: t("nounPlural") }}
         onConfirm={() => {
           if (!removing) {
             return;
@@ -333,8 +338,7 @@ export function PersonasTable({
           }
         }}
         open={removing !== null}
-        pendingLabel="Archiving…"
-        title="Archive persona?"
+        title={t("archiveTitle")}
       />
     </section>
   );

@@ -1,7 +1,7 @@
 import type {
   ChatgptActivitySite,
   ChatgptActivitySource,
-} from "@notra/ui/components/brainless/chatgpt/chatgpt-activity";
+} from "@notra/ui/components/ai-skins/chatgpt/chatgpt-activity";
 import type { ChatgptMessageRole } from "@notra/ui/types/chatgpt";
 
 export interface ChatgptStorySearch {

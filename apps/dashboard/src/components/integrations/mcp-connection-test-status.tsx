@@ -1,6 +1,7 @@
 import { Alert01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import type { McpConnectionTestStatusProps } from "@/types/integrations/mcp";
 
@@ -8,6 +9,7 @@ export function McpConnectionTestStatus({
   message,
   status,
 }: McpConnectionTestStatusProps) {
+  const t = useTranslations("integrations.mcp.testStatus");
   if (status === "idle") {
     return null;
   }
@@ -18,27 +20,29 @@ export function McpConnectionTestStatus({
     >
       {status === "testing" ? (
         <>
-          <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
-          <span className="text-muted-foreground">Testing connection...</span>
+          <Spinner className="text-muted-foreground" />
+          <span className="text-muted-foreground">{t("testing")}</span>
         </>
       ) : null}
       {status === "success" ? (
         <>
           <HugeiconsIcon
-            className="text-success size-4"
+            className="text-success size-4 shrink-0"
             icon={CheckmarkCircle02Icon}
           />
-          <span>{message || "Connection successful"}</span>
+          <span className="min-w-0 wrap-anywhere">
+            {message || t("success")}
+          </span>
         </>
       ) : null}
       {status === "error" ? (
         <>
           <HugeiconsIcon
-            className="text-destructive size-4"
+            className="text-destructive size-4 shrink-0"
             icon={Alert01Icon}
           />
-          <span className="text-destructive">
-            {message || "Could not reach the server"}
+          <span className="text-destructive min-w-0 wrap-anywhere">
+            {message || t("error")}
           </span>
         </>
       ) : null}

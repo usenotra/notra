@@ -18,7 +18,7 @@ export const HERO_HEADLINE_CYCLE: HeroCycleWord[] = [
 export const HERO_HEADLINE_CYCLE_MS = 2600;
 
 export const HERO_SUBHEAD =
-  "Notra asks ChatGPT, Claude, Gemini and Perplexity the questions your buyers ask. You see whether you come up, who comes up instead, and what to write about it.";
+  "Notra is a GEO tool that asks ChatGPT, Claude and Gemini the questions your buyers ask. It shows whether you appear, who appears instead and how to fix it.";
 
 export const HERO_SIGNUP_SOURCE = "hero";
 

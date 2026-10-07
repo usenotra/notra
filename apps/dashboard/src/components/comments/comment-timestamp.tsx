@@ -6,9 +6,10 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { useEffect, useState } from "react";
+import { useLocale } from "use-intl";
 
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type { CommentTimestampProps } from "@/types/comments";
-import { formatRelative } from "@/utils/format-relative";
 
 const ABSOLUTE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
   year: "numeric",
@@ -22,13 +23,15 @@ const ABSOLUTE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
 
 export function CommentTimestamp({ createdAt }: CommentTimestampProps) {
   const [absolute, setAbsolute] = useState(createdAt);
+  const locale = useLocale();
+  const formatRelative = useFormatRelative();
 
   useEffect(() => {
     // react-doctor-disable-next-line react-hooks-js/set-state-in-effect
     setAbsolute(
-      new Date(createdAt).toLocaleString(undefined, ABSOLUTE_TIME_OPTIONS)
+      new Date(createdAt).toLocaleString(locale, ABSOLUTE_TIME_OPTIONS)
     );
-  }, [createdAt]);
+  }, [createdAt, locale]);
 
   return (
     <Tooltip>

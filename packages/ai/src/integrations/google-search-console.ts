@@ -1,9 +1,11 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   geoPromptSuggestions,
   googleSearchConsoleIntegrations,
+  projects,
 } from "@notra/db/schema";
-import { and, eq, isNull, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 
 import {
@@ -217,10 +219,22 @@ export async function upsertGscIntegration(
     if (existing?.disconnectingAt) {
       throw new GscDisconnectInProgressError();
     }
-    const googleAccountChanged = shouldClearGscSiteOnReconnect(
+    const oldSiteMustBeCleared = shouldClearGscSiteOnReconnect(
       existing ?? null,
       params.googleAccountEmail
     );
+    const selectedProject =
+      existing && !existing.googleAccountEmail?.trim()
+        ? await tx.query.projects.findFirst({
+            columns: { id: true },
+            where: and(
+              eq(projects.organizationId, params.organizationId),
+              isNotNull(projects.gscSiteUrl)
+            ),
+          })
+        : null;
+    const googleAccountChanged =
+      !existing || oldSiteMustBeCleared || Boolean(selectedProject);
 
     signal?.throwIfAborted();
     const [row] = await tx
@@ -271,6 +285,17 @@ export async function upsertGscIntegration(
           )
         );
     }
+    if (googleAccountChanged) {
+      await tx
+        .update(projects)
+        .set({
+          gscSiteUrl: null,
+          gscTopQueries: [],
+          gscLastSyncedAt: null,
+          gscLastError: null,
+        })
+        .where(eq(projects.organizationId, params.organizationId));
+    }
 
     return {
       row,
@@ -298,8 +323,8 @@ export async function upsertGscIntegration(
       await assertLockOwned?.();
       signal?.throwIfAborted();
     } catch (error) {
-      console.error(
-        "[GSC] Integration lock lost after saving the connection; skipping revocation of the previous grant:",
+      logError(
+        "[GSC] Integration lock lost after saving the connection; skipping revocation of the previous grant",
         error
       );
       return row;
@@ -490,6 +515,15 @@ export async function deleteGscIntegration(
           eq(geoPromptSuggestions.status, "pending")
         )
       );
+    await tx
+      .update(projects)
+      .set({
+        gscSiteUrl: null,
+        gscTopQueries: [],
+        gscLastSyncedAt: null,
+        gscLastError: null,
+      })
+      .where(eq(projects.organizationId, integration.organizationId));
     return row;
   });
 }
@@ -510,13 +544,13 @@ export async function revokeGscToken(
     if (response.ok || response.status === 400) {
       return true;
     }
-    console.error(
-      `[GSC] Failed to revoke Google token with status ${response.status}`
-    );
+    logError("[GSC] Failed to revoke Google token", undefined, {
+      status: response.status,
+    });
     return false;
   } catch (error) {
     signal?.throwIfAborted();
-    console.error("[GSC] Failed to revoke Google token:", error);
+    logError("[GSC] Failed to revoke Google token", error);
     return false;
   }
 }

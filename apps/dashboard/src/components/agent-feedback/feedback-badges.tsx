@@ -1,17 +1,19 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "use-intl";
 
 import { AgentFeedbackStatusIcon } from "@/components/agent-feedback/feedback-status-icon";
 import {
   AGENT_FEEDBACK_KIND_ICONS,
-  AGENT_FEEDBACK_KIND_LABELS,
   AGENT_FEEDBACK_KIND_PILL_CLASS,
   AGENT_FEEDBACK_LABEL_PILL_CLASS,
   AGENT_FEEDBACK_SENTIMENT_ICONS,
-  AGENT_FEEDBACK_SENTIMENT_LABELS,
   AGENT_FEEDBACK_SENTIMENT_PILL_CLASS,
-  AGENT_FEEDBACK_STATUS_LABELS,
 } from "@/constants/agent-feedback";
+import {
+  useAgentFeedbackKindLabels,
+  useAgentFeedbackStatusLabels,
+} from "@/lib/hooks/use-agent-feedback-labels";
 import type {
   AgentFeedbackKindBadgeProps,
   AgentFeedbackSentimentLabelProps,
@@ -22,19 +24,21 @@ export function AgentFeedbackStatusBadge({
   status,
   showLabel = true,
 }: AgentFeedbackStatusBadgeProps) {
+  const statusLabels = useAgentFeedbackStatusLabels();
   return (
     <span className="inline-flex items-center gap-1.5">
       <AgentFeedbackStatusIcon status={status} />
       {showLabel ? (
-        <span className="text-sm">{AGENT_FEEDBACK_STATUS_LABELS[status]}</span>
+        <span className="text-sm">{statusLabels[status]}</span>
       ) : (
-        <span className="sr-only">{AGENT_FEEDBACK_STATUS_LABELS[status]}</span>
+        <span className="sr-only">{statusLabels[status]}</span>
       )}
     </span>
   );
 }
 
 export function AgentFeedbackKindBadge({ kind }: AgentFeedbackKindBadgeProps) {
+  const kindLabels = useAgentFeedbackKindLabels();
   return (
     <span
       className={cn(
@@ -48,7 +52,7 @@ export function AgentFeedbackKindBadge({ kind }: AgentFeedbackKindBadgeProps) {
         icon={AGENT_FEEDBACK_KIND_ICONS[kind]}
         strokeWidth={2}
       />
-      {AGENT_FEEDBACK_KIND_LABELS[kind]}
+      {kindLabels[kind]}
     </span>
   );
 }
@@ -56,6 +60,7 @@ export function AgentFeedbackKindBadge({ kind }: AgentFeedbackKindBadgeProps) {
 export function AgentFeedbackSentimentLabel({
   sentiment,
 }: AgentFeedbackSentimentLabelProps) {
+  const t = useTranslations("common.labels");
   if (!sentiment) {
     return <span className="text-muted-foreground text-xs">–</span>;
   }
@@ -72,7 +77,7 @@ export function AgentFeedbackSentimentLabel({
         icon={AGENT_FEEDBACK_SENTIMENT_ICONS[sentiment]}
         strokeWidth={2}
       />
-      {AGENT_FEEDBACK_SENTIMENT_LABELS[sentiment]}
+      {t(sentiment)}
     </span>
   );
 }

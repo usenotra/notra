@@ -2,7 +2,9 @@
 
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConnectGitHubDialog } from "@/components/integrations/github/connect-github-dialog";
@@ -17,6 +19,8 @@ import type { GitHubSettingsPageProps } from "@/types/integrations/github-settin
 export default function PageClient({
   organizationSlug,
 }: GitHubSettingsPageProps) {
+  const t = useTranslations("integrations.github.page");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const settings = useGitHubSettings(organizationSlug);
   const {
     githubIntegrations,
@@ -36,14 +40,7 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-10 px-4 lg:px-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">GitHub</h1>
-            <p className="text-muted-foreground">
-              Manage repository access and where Notra publishes draft pull
-              requests.
-            </p>
-          </div>
+        <PageHeading title="GitHub">
           {githubIntegrations.length > 0 ? (
             <Button
               className="gap-1.5"
@@ -52,11 +49,13 @@ export default function PageClient({
               }
             >
               <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              {isConnected ? "Add repositories" : "Connect GitHub"}
+              {isConnected
+                ? t("addRepositories")
+                : tIntegrationsShared("connectGithub")}
               <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
             </Button>
           ) : null}
-        </div>
+        </PageHeading>
         <GitHubRepositoriesSection {...settings} />
         {showGitHubAppSection ? <GitHubAppSection {...settings} /> : null}
       </div>
@@ -69,13 +68,16 @@ export default function PageClient({
       <SelectRepositoriesDialog
         accounts={settings.accounts}
         initialSelected={settings.selectedRepositoryIds}
-        isLoading={githubAppQuery.isPending || githubAppQuery.isFetching}
+        isLoading={
+          !settings.catalogQuery.data &&
+          (settings.catalogQuery.isPending || settings.catalogQuery.isFetching)
+        }
         error={
-          githubAppQuery.isError
-            ? "Unable to load repositories from GitHub."
+          settings.catalogQuery.isError && !settings.catalogQuery.data
+            ? tIntegrationsShared("unableToLoadRepositoriesFrom")
             : undefined
         }
-        onRetry={() => githubAppQuery.refetch()}
+        onRetry={() => settings.catalogQuery.refetch()}
         isSaving={settings.saveRepositoriesMutation.isPending}
         onAddAccount={settings.startInstall}
         onOpenChange={settings.setReposOpen}

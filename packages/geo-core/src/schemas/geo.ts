@@ -127,13 +127,25 @@ export const geoSettingsEngineAddInputSchema =
     engine: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
   });
 
+const geoSupportedLanguageSchema = string()
+  .min(1)
+  .refine((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value), {
+    message: "Unsupported language",
+  });
+
+const geoTrackingLanguagesSchema = array(string().min(1))
+  .min(1)
+  .max(GEO_MAX_LANGUAGES)
+  .refine(
+    (values) => values.every((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value)),
+    {
+      message: "Unsupported language",
+    }
+  );
+
 export const geoSettingsLanguageAddInputSchema =
   geoOrganizationInputSchema.extend({
-    language: string()
-      .min(1)
-      .refine((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value), {
-        message: "Unsupported language",
-      }),
+    language: geoSupportedLanguageSchema,
   });
 
 export const geoConversionPathSchema = string()
@@ -264,11 +276,17 @@ export const geoProjectCreateInputSchema = object({
   organizationId: string().min(1),
   name: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
   brandSettingsId: string().min(1),
+  /** Tracked languages; the first one is the language prompts are written in. */
+  languages: geoTrackingLanguagesSchema.optional(),
 });
 
 export const geoProjectDeleteInputSchema = object({
   organizationId: string().min(1),
   projectId: string().min(1),
+});
+
+export const geoProjectUpdateInputSchema = geoProjectDeleteInputSchema.extend({
+  brandSettingsId: string().min(1),
 });
 
 export const geoPromptResultDetailInputSchema =
@@ -358,38 +376,46 @@ export const geoGenerateFromWebsiteInputSchema =
     url: publicWebsiteUrlSchema,
   });
 
-const geoTrackingLanguagesSchema = array(string().min(1))
-  .min(1)
-  .max(GEO_MAX_LANGUAGES)
+export const geoDiscoverWebsiteInputSchema =
+  geoGenerateFromWebsiteInputSchema.extend({
+    language: geoSupportedLanguageSchema.optional(),
+  });
+
+export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema
+  .extend({
+    companyName: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    aliases: array(string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)).max(
+      GEO_MAX_ALIASES
+    ),
+    prompts: array(
+      object({
+        prompt: string().trim().min(MIN_PROMPT_LENGTH).max(MAX_PROMPT_LENGTH),
+        title: string().trim().min(1).max(GEO_GAP_TITLE_MAX_LENGTH),
+      })
+    ).max(GEO_ONBOARDING_MAX_PROMPTS),
+    languages: geoTrackingLanguagesSchema.optional(),
+    promptLanguage: geoSupportedLanguageSchema.optional(),
+    audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
+    engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
+      .min(1)
+      .max(GEO_MAX_ENGINES)
+      .optional(),
+    enforceZdr: boolean().optional(),
+    nonZdrApprovedEngines: array(
+      string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)
+    )
+      .max(GEO_MAX_ENGINES)
+      .optional(),
+  })
   .refine(
-    (values) => values.every((value) => GEO_SUPPORTED_LANGUAGE_SET.has(value)),
+    (input) =>
+      !(input.promptLanguage && input.languages) ||
+      input.languages.includes(input.promptLanguage),
     {
-      message: "Unsupported language",
+      message: "The prompt language must be one of the tracked languages",
+      path: ["promptLanguage"],
     }
   );
-
-export const geoOnboardingBrandInputSchema = geoOrganizationInputSchema.extend({
-  companyName: string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
-  aliases: array(string().trim().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH)).max(
-    GEO_MAX_ALIASES
-  ),
-  prompts: array(
-    object({
-      prompt: string().trim().min(MIN_PROMPT_LENGTH).max(MAX_PROMPT_LENGTH),
-      title: string().trim().min(1).max(GEO_GAP_TITLE_MAX_LENGTH),
-    })
-  ).max(GEO_ONBOARDING_MAX_PROMPTS),
-  languages: geoTrackingLanguagesSchema.optional(),
-  audienceType: enumType(GEO_AUDIENCE_TYPES).optional(),
-  engines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
-    .min(1)
-    .max(GEO_MAX_ENGINES)
-    .optional(),
-  enforceZdr: boolean().optional(),
-  nonZdrApprovedEngines: array(string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH))
-    .max(GEO_MAX_ENGINES)
-    .optional(),
-});
 
 export const geoCompetitorSuggestionsInputSchema =
   geoOrganizationInputSchema.extend({
@@ -545,6 +571,7 @@ export const geoWriterPlanInputSchema = geoOrganizationInputSchema.extend({
     "gap",
     "prompt",
     "search_console",
+    "ai_search",
   ]).optional(),
   sourceId: string().min(1).optional(),
   existingPageUrl: url().max(GEO_EXISTING_PAGE_URL_MAX_LENGTH).optional(),
@@ -574,3 +601,17 @@ export const geoWriterWorkflowPayloadSchema = object({
 export const geoSuggestionIdInputSchema = geoOrganizationInputSchema.extend({
   suggestionId: string().min(1),
 });
+
+export const geoPromptTranslationTargetInputSchema =
+  geoOrganizationInputSchema.extend({
+    promptId: string().min(1).max(GEO_SHORT_FIELD_MAX_LENGTH),
+    language: geoSupportedLanguageSchema,
+  });
+
+export const geoPromptTranslationSelectInputSchema =
+  geoPromptTranslationTargetInputSchema.extend({ selected: boolean() });
+
+export const geoPromptTranslationUpdateInputSchema =
+  geoPromptTranslationTargetInputSchema.extend({
+    text: string().trim().min(1).max(MAX_PROMPT_LENGTH),
+  });

@@ -7,11 +7,13 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "use-intl";
 
+import { useRouter } from "@/lib/navigation";
 import type { AccountModalProps } from "@/types/analytics";
 
 export function AccountModal({ title, children }: AccountModalProps) {
+  const t = useTranslations("analytics.accountModal");
   const router = useRouter();
 
   return (
@@ -28,8 +30,8 @@ export function AccountModal({ title, children }: AccountModalProps) {
           <ResponsiveDialogTitle className="text-xl font-semibold">
             @{title}
           </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            Engagement and recent posts for @{title}
+          <ResponsiveDialogDescription className="wrap-anywhere">
+            {t("description", { handle: title })}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         {children}

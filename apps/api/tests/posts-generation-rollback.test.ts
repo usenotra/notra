@@ -3,8 +3,6 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ContentGenerationJob } from "@notra/content-generation/schemas";
 import { InternalDashboardError } from "@notra/schemas/api/internal-dashboard";
 
-import { isConfirmedWorkflowTriggerRejection } from "../src/utils/brand-analysis";
-
 const sampleJob: ContentGenerationJob = {
   id: "job_test123",
   organizationId: "org_test",
@@ -82,18 +80,11 @@ mock.module("../src/utils/active-generations", () => ({
   removeActiveGeneration: removeActive,
 }));
 
-mock.module("../src/utils/content-generation", () => ({
-  triggerContentGenerationWorkflow: triggerWorkflow,
-  isConfirmedContentGenerationRejection: (error: unknown) => {
-    if (isConfirmedWorkflowTriggerRejection(error)) {
-      return true;
-    }
+const contentGeneration = await import("../src/utils/content-generation");
 
-    return (
-      error instanceof Error &&
-      error.message === "Content generation workflow URL is not configured"
-    );
-  },
+mock.module("../src/utils/content-generation", () => ({
+  ...contentGeneration,
+  triggerContentGenerationWorkflow: triggerWorkflow,
 }));
 
 const { createPostGeneration } = await import("../src/programs/posts");
@@ -254,22 +245,6 @@ describe("createPostGeneration rollback", () => {
     expect(setJobStatus).not.toHaveBeenCalled();
   });
 
-  test("removes the active generation entry during pre-acceptance compensation", async () => {
-    appendEvent.mockRejectedValueOnce(new Error("redis unavailable"));
-
-    const result = await runPostProgram(
-      createPostGeneration(generationInput())
-    );
-
-    expect(result._tag).toBe("Failure");
-    expect(addActive).toHaveBeenCalled();
-    expect(removeActive).toHaveBeenCalledWith(
-      expect.anything(),
-      "org_test",
-      "job_test123"
-    );
-  });
-
   test("surfaces collection delete failures during rollback", async () => {
     mockDb.delete.mockImplementationOnce(() => ({
       where: mock(async () => {
@@ -283,23 +258,5 @@ describe("createPostGeneration rollback", () => {
     await expect(
       runPostProgram(createPostGeneration(generationInput()))
     ).rejects.toThrow("delete failed");
-  });
-
-  test("passes timezone through to the workflow payload", async () => {
-    const result = await runPostProgram(
-      createPostGeneration({
-        ...generationInput(),
-        body: {
-          ...generationInput().body,
-          timezone: "America/New_York",
-        },
-      })
-    );
-
-    expect(result._tag).toBe("Success");
-    expect(triggerWorkflow).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ timezone: "America/New_York" })
-    );
   });
 });

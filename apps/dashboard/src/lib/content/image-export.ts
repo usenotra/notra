@@ -7,25 +7,27 @@ import {
   sanitizeDownloadFilename,
 } from "@/utils/download";
 import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
+import {
+  commonLabelToastMessage,
+  imageExportToastMessage,
+} from "@/utils/toast-message";
 
 type CopyAsFigma = (typeof import("@notra/kiwi"))["copyAsFigma"];
 type CopyAsPaper = (typeof import("@notra/kiwi/paper"))["copyAsPaper"];
 type CopyAsFigmaImport = () => Promise<CopyAsFigma>;
 type CopyAsPaperImport = () => Promise<CopyAsPaper>;
 
-const defaultImportCopyAsFigma: CopyAsFigmaImport = async () => {
+const importCopyAsFigma: CopyAsFigmaImport = async () => {
   const kiwi = await import("@notra/kiwi");
   // Inter (~1.17 MB) is a nested dynamic import. Warm it here so copy-ready
   // means the click path will not wait on the font before clipboard.write.
   await kiwi.loadFallbackFont();
   return kiwi.copyAsFigma;
 };
-const defaultImportCopyAsPaper: CopyAsPaperImport = () =>
+const importCopyAsPaper: CopyAsPaperImport = () =>
   import("@notra/kiwi/paper").then((module) => module.copyAsPaper);
 
 // Kiwi (Figma/Paper paste + Inter payload) stays off `/content/[id]` initial JS.
-let importCopyAsFigma = defaultImportCopyAsFigma;
-let importCopyAsPaper = defaultImportCopyAsPaper;
 let copyAsFigmaPromise: Promise<CopyAsFigma> | null = null;
 let copyAsPaperPromise: Promise<CopyAsPaper> | null = null;
 let copyAsFigmaFn: CopyAsFigma | null = null;
@@ -68,19 +70,6 @@ export function isImageExportCopyReady(target: ImageExportTarget): boolean {
   return false;
 }
 
-/** Test-only: drop copy caches so a later case can start a fresh import. */
-export function resetImageExportCopyForTests(next?: {
-  figma?: CopyAsFigmaImport;
-  paper?: CopyAsPaperImport;
-}): void {
-  copyAsFigmaPromise = null;
-  copyAsPaperPromise = null;
-  copyAsFigmaFn = null;
-  copyAsPaperFn = null;
-  importCopyAsFigma = next?.figma ?? defaultImportCopyAsFigma;
-  importCopyAsPaper = next?.paper ?? defaultImportCopyAsPaper;
-}
-
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */
 export function preloadImageExportCopy(
   target: ImageExportTarget
@@ -102,17 +91,22 @@ export function preloadImageExportCopy(
 }
 
 function createExportElement(html: string): HTMLDivElement {
+  const host = document.createElement("div");
+  host.style.all = "initial";
+  host.style.position = "fixed";
+  host.style.left = "-10000px";
+  host.style.top = "0";
+  host.style.pointerEvents = "none";
+
   const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
   container.style.width = "1200px";
   container.style.height = "630px";
   container.style.overflow = "hidden";
-  container.style.pointerEvents = "none";
+  container.style.display = "block";
 
   container.replaceChildren(sanitizeExportHtml(html));
-  document.body.appendChild(container);
+  host.attachShadow({ mode: "open" }).appendChild(container);
+  document.body.appendChild(host);
 
   return container;
 }
@@ -151,7 +145,8 @@ async function withExportElement(
   try {
     await copy(exportElement);
   } finally {
-    exportElement.remove();
+    const root = exportElement.getRootNode();
+    (root instanceof ShadowRoot ? root.host : exportElement).remove();
   }
   return true;
 }
@@ -166,7 +161,7 @@ export async function copyImageAsFigma(
     await preloadImageExportCopy("figma");
     const copyAsFigma = copyAsFigmaFn;
     if (!copyAsFigma) {
-      toast.error("Copy is still loading. Try again in a moment.");
+      toast.error(imageExportToastMessage("copyLoading"));
       return;
     }
     const copied = await withExportElement(
@@ -178,19 +173,18 @@ export async function copyImageAsFigma(
       }
     );
     if (!copied) {
-      toast.error("Image is not ready yet");
+      toast.error(imageExportToastMessage("imageNotReady"));
       return;
     }
-    toast.success("Copied for Figma. Paste it into your Figma file.");
+    toast.success(imageExportToastMessage("figmaCopied"));
   } catch (error) {
     console.error("Failed to copy image for Figma", error);
-    toast.error("Failed to copy for Figma");
+    toast.error(imageExportToastMessage("figmaCopyFailed"));
   }
 }
 
 export async function copyImageAsPaper(
   element: HTMLElement | null,
-  label?: string,
   html?: string | null,
   htmlUrl?: string | null
 ): Promise<void> {
@@ -198,7 +192,7 @@ export async function copyImageAsPaper(
     await preloadImageExportCopy("paper");
     const copyAsPaper = copyAsPaperFn;
     if (!copyAsPaper) {
-      toast.error("Copy is still loading. Try again in a moment.");
+      toast.error(imageExportToastMessage("copyLoading"));
       return;
     }
     const copied = await withExportElement(
@@ -206,17 +200,17 @@ export async function copyImageAsPaper(
       html,
       htmlUrl,
       async (exportElement) => {
-        await copyAsPaper(exportElement, { label, name: label });
+        await copyAsPaper(exportElement);
       }
     );
     if (!copied) {
-      toast.error("Image is not ready yet");
+      toast.error(imageExportToastMessage("imageNotReady"));
       return;
     }
-    toast.success("Copied for Paper. Paste it into your Paper file.");
+    toast.success(imageExportToastMessage("paperCopied"));
   } catch (error) {
     console.error("Failed to copy image for Paper", error);
-    toast.error("Failed to copy for Paper");
+    toast.error(imageExportToastMessage("paperCopyFailed"));
   }
 }
 
@@ -225,7 +219,7 @@ export async function downloadImage(
   label?: string
 ): Promise<void> {
   if (!imageUrl) {
-    toast.error("Image is not ready yet");
+    toast.error(imageExportToastMessage("imageNotReady"));
     return;
   }
 
@@ -239,9 +233,9 @@ export async function downloadImage(
 
     const blob = await response.blob();
     downloadBlob(blob, buildImageDownloadFilename(baseName, blob.type, "png"));
-    toast.success("Downloaded image");
+    toast.success(commonLabelToastMessage("downloadedImage"));
   } catch (error) {
     console.error("Failed to download image", error);
-    toast.error("Failed to download image");
+    toast.error(imageExportToastMessage("downloadFailed"));
   }
 }

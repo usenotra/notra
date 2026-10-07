@@ -1,23 +1,22 @@
 "use client";
 
 import {
+  BubbleChatQuestionIcon,
   Copy01Icon,
   Delete02Icon,
-  PauseIcon,
   PlayIcon,
+  PlusSignIcon,
   SearchIcon,
   Tag01Icon,
+  Upload01Icon,
   ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST,
   PROMPTS_TABLE_HEIGHT,
   PROMPTS_TABLE_ROW_HEIGHT,
 } from "@notra/geo-core/constants/geo";
-import { geoPromptIntentLabel } from "@notra/geo-core/utils/geo-prompt-intent";
 import { collectPromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
 import {
   GEO_PROMPT_FILTER_ALL,
   GEO_PROMPT_INTENT_FILTER_VALUES,
@@ -28,6 +27,18 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "@notra/ui/components/ui/context-menu";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Select,
@@ -36,97 +47,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
-import { Switch } from "@notra/ui/components/ui/switch";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
-import { useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoRemoveDialog } from "@/components/geo/geo-remove-dialog";
-import {
-  PromptIntentBadge,
-  PromptPresenceBadge,
-} from "@/components/geo/prompt-badges";
+import { PromptPresenceBadge } from "@/components/geo/prompt-badges";
 import { PromptDetailDialog } from "@/components/geo/prompt-detail-dialog";
-import { PromptSavedViewsMenu } from "@/components/geo/prompt-saved-views-menu";
+import { PromptMentionedInsteadCell } from "@/components/geo/prompt-mentioned-instead-cell";
 import { PromptTagsActionDialog } from "@/components/geo/prompt-tags-action-dialog";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import {
   GEO_PROMPT_DEFAULT_FILTERS,
+  GEO_PROMPT_DETAIL_QUERY_KEY,
   GEO_PROMPT_FILTER_SELECT_CLASS,
-  GEO_PROMPT_INTENT_FILTER_OPTIONS,
-  GEO_PROMPT_SOURCE_FILTER_OPTIONS,
-  GEO_PROMPT_TAG_FILTER_ALL_LABEL,
-  GEO_PROMPT_TAGS_COPY,
-  GEO_PROMPT_VIEWS_COPY,
 } from "@/constants/geo-prompts";
-import { useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
-import { useGeoSavedViews } from "@/lib/hooks/use-geo-saved-views";
+import { usePrefetchGeoPromptAnswer } from "@/lib/hooks/use-geo";
+import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
+import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
+import { useGeoPromptSourceLabels } from "@/lib/hooks/use-geo-prompt-source-labels";
 import type {
-  GeoPromptSavedView,
+  GeoPromptIntentFilter,
   GeoPromptTableFilters,
   GeoPromptTableRow,
   PromptTagsDialogTarget,
   PromptsTableProps,
 } from "@/types/geo";
 import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
-import { promptFiltersActive } from "@/utils/geo-prompt-views";
+import { promptFiltersActive } from "@/utils/geo-prompt-filters";
 import {
   buildPromptTableRows,
+  promptMentionedInstead,
   promptPresenceSortValue,
 } from "@/utils/geo-prompts";
 
-const PROMPT_NOUNS = { singular: "prompt", plural: "prompts" } as const;
-const PROMPT_ACTIONS_WIDTH = "6rem";
+const PROMPT_ACTIONS_WIDTH = "3.5rem";
 
 function PromptRowActions({
   row,
   isPending,
-  onToggle,
   onDelete,
 }: {
   row: GeoPromptTableRow;
   isPending: boolean;
-  onToggle: (enabled: boolean) => void;
   onDelete: () => void;
 }) {
-  const stop = (event: { stopPropagation: () => void }) =>
-    event.stopPropagation();
-  const pauseSwitch = (
-    <div onClick={stop} onPointerDown={stop}>
-      <Switch
-        aria-label={
-          row.enabled ? `Pause ${row.prompt}` : `Enable ${row.prompt}`
-        }
-        checked={row.enabled}
-        disabled={isPending}
-        onCheckedChange={(enabled) => {
-          if (typeof enabled === "boolean") {
-            onToggle(enabled);
-          }
-        }}
-        size="sm"
-      />
-    </div>
-  );
-
+  const tGeoShared = useTranslations("geo.shared");
   return (
-    <div className="flex items-center justify-end gap-1">
-      {pauseSwitch}
-      <Button
-        aria-label={`Remove ${row.prompt}`}
-        disabled={isPending}
-        onClick={(event) => {
-          event.stopPropagation();
-          onDelete();
-        }}
-        size="icon"
-        variant="ghost"
-      >
-        <HugeiconsIcon icon={Delete02Icon} size={14} />
-      </Button>
-    </div>
+    <Button
+      aria-label={tGeoShared("removePrompt", { prompt: row.prompt })}
+      disabled={isPending}
+      onClick={(event) => {
+        event.stopPropagation();
+        onDelete();
+      }}
+      size="icon-sm"
+      variant="ghost"
+    >
+      <HugeiconsIcon icon={Delete02Icon} size={14} />
+    </Button>
   );
 }
 
@@ -135,27 +116,29 @@ function PromptTableContextMenu({
   isPending,
   onOpenDetails,
   onEditTags,
-  onToggle,
+  onEnable,
   onDelete,
 }: {
   row: GeoPromptTableRow;
   isPending: boolean;
   onOpenDetails: () => void;
   onEditTags: () => void;
-  onToggle: () => void;
+  onEnable: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("geo.promptsTable");
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <>
       <ContextMenuItem onClick={onOpenDetails}>
         <HugeiconsIcon icon={ViewIcon} strokeWidth={2} />
-        Open details
+        {tGeoShared("openDetails")}
       </ContextMenuItem>
       <ContextMenuItem
-        onClick={() => copyTextToClipboard(row.prompt, "Copied prompt")}
+        onClick={() => copyTextToClipboard(row.prompt, t("copiedPrompt"))}
       >
         <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
-        Copy prompt
+        {tGeoShared("copyPrompt")}
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
@@ -163,15 +146,15 @@ function PromptTableContextMenu({
         onClick={onEditTags}
       >
         <HugeiconsIcon icon={Tag01Icon} strokeWidth={2} />
-        Edit tags
+        {tGeoShared("editTags")}
       </ContextMenuItem>
-      <ContextMenuItem disabled={isPending} onClick={onToggle}>
-        <HugeiconsIcon
-          icon={row.enabled ? PauseIcon : PlayIcon}
-          strokeWidth={2}
-        />
-        {row.enabled ? "Pause prompt" : "Enable prompt"}
-      </ContextMenuItem>
+      {/* Pausing is gone; prompts paused before that can still resume. */}
+      {row.enabled ? null : (
+        <ContextMenuItem disabled={isPending} onClick={onEnable}>
+          <HugeiconsIcon icon={PlayIcon} strokeWidth={2} />
+          {t("enablePrompt")}
+        </ContextMenuItem>
+      )}
       <ContextMenuSeparator />
       <ContextMenuItem
         disabled={isPending}
@@ -179,17 +162,10 @@ function PromptTableContextMenu({
         variant="destructive"
       >
         <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-        Remove prompt
+        {t("removePrompt")}
       </ContextMenuItem>
     </>
   );
-}
-
-function promptRemoveDescription(items: string[]): string {
-  if (items.length > 1) {
-    return "These questions will no longer be asked in GEO scans. Historical answers stay in your results.";
-  }
-  return `"${items[0]}" will no longer be asked in GEO scans. Historical answers stay in your results.`;
 }
 
 export function PromptsTable({
@@ -197,15 +173,30 @@ export function PromptsTable({
   prompts,
   results,
   isScanning = false,
+  onAddPrompt,
+  onImportCsv,
 }: PromptsTableProps) {
+  const t = useTranslations("geo.promptsTable");
+  const sourceLabels = useGeoPromptSourceLabels();
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon2 = useTranslations("common");
+  const intentLabel = useGeoPromptIntentLabel();
+  const tCommon = useTranslations("common.actions");
+  const tPages = useTranslations("geo.pages.shared");
+  const intentFilterLabel = (value: GeoPromptIntentFilter) =>
+    value === GEO_PROMPT_FILTER_ALL ? t("allIntents") : intentLabel(value);
+  const promptRemoveDescription = (items: string[]) =>
+    items.length > 1
+      ? t("removeDescriptionMany")
+      : t("removeDescriptionOne", { prompt: items[0] ?? "" });
   const {
+    isLoading: promptsLoading,
     pendingPromptIds,
     togglePrompt,
     removePrompts,
     setPromptTags,
     addTagsToPrompts,
   } = useGeoPromptsDb(organizationId);
-  const { views, saveView, removeView } = useGeoSavedViews(organizationId);
   const [search, setSearch] = useQueryState(
     "q",
     parseAsString.withDefault("").withOptions({ clearOnDefault: true })
@@ -235,6 +226,11 @@ export function PromptsTable({
     null
   );
   const [detail, setDetail] = useState<GeoPromptTableRow | null>(null);
+  // Deep link from the "View" action on the tracked-prompt toast.
+  const [linkedPromptId, setLinkedPromptId] = useQueryState(
+    GEO_PROMPT_DETAIL_QUERY_KEY,
+    parseAsString
+  );
 
   const filters = useMemo<GeoPromptTableFilters>(
     () => ({ q: search, intent, tag, source }),
@@ -249,6 +245,27 @@ export function PromptsTable({
     () => buildPromptTableRows(prompts, results, filters),
     [prompts, results, filters]
   );
+  const mentionedInstead = useMemo(
+    () =>
+      new Map(rows.map((row) => [row.id, promptMentionedInstead(row.results)])),
+    [rows]
+  );
+  const { competitors } = useGeoCompetitorsDb(organizationId);
+  const prefetchPromptAnswer = usePrefetchGeoPromptAnswer(organizationId);
+
+  // Looked up without filters so an active filter can't hide the linked prompt.
+  const linkedRow = useMemo(
+    () =>
+      linkedPromptId
+        ? (buildPromptTableRows(
+            prompts,
+            results,
+            GEO_PROMPT_DEFAULT_FILTERS
+          ).find((row) => row.id === linkedPromptId) ?? null)
+        : null,
+    [linkedPromptId, prompts, results]
+  );
+  const detailRow = detail ?? linkedRow;
 
   const selectedIdSet = new Set(selectedIds);
   const selectedRows = rows.filter((row) => selectedIdSet.has(row.id));
@@ -259,14 +276,6 @@ export function PromptsTable({
     }
     setPendingDelete(targets);
     setDeleteOpen(true);
-  };
-
-  const applyView = (view: GeoPromptSavedView) => {
-    setSearch(view.query.q);
-    setIntent(view.query.intent);
-    setTag(view.query.tag);
-    setSource(view.query.source);
-    toast.success(`${GEO_PROMPT_VIEWS_COPY.applied}: ${view.name}`);
   };
 
   const applyTags = (tags: string[]) => {
@@ -282,7 +291,7 @@ export function PromptsTable({
     }
     const custom = tagsTarget.rows.filter((row) => row.source === "custom");
     if (custom.length < tagsTarget.rows.length) {
-      toast.info(GEO_PROMPT_TAGS_CUSTOM_ONLY_TOAST);
+      toast.info(t("tagsCustomOnly"));
     }
     if (custom.length > 0 && tags.length > 0) {
       addTagsToPrompts(
@@ -292,12 +301,53 @@ export function PromptsTable({
     }
   };
 
+  const clearFilters = () => {
+    setSearch(GEO_PROMPT_DEFAULT_FILTERS.q);
+    setIntent(GEO_PROMPT_DEFAULT_FILTERS.intent);
+    setTag(GEO_PROMPT_DEFAULT_FILTERS.tag);
+    setSource(GEO_PROMPT_DEFAULT_FILTERS.source);
+  };
+
+  const noPromptsTracked = !promptsLoading && prompts.length === 0;
+  const staleFilters = noPromptsTracked && promptFiltersActive(filters);
+  // The empty state hides the filter bar, so filters left in the URL would
+  // silently hide the next prompt someone adds.
+  useEffect(() => {
+    if (!staleFilters) {
+      return;
+    }
+    void setSearch(GEO_PROMPT_DEFAULT_FILTERS.q);
+    void setIntent(GEO_PROMPT_DEFAULT_FILTERS.intent);
+    void setTag(GEO_PROMPT_DEFAULT_FILTERS.tag);
+    void setSource(GEO_PROMPT_DEFAULT_FILTERS.source);
+  }, [staleFilters, setSearch, setIntent, setTag, setSource]);
+
+  let emptyState: ReactNode = (
+    <Empty className="py-8 md:py-8">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <HugeiconsIcon icon={SearchIcon} />
+        </EmptyMedia>
+        <EmptyTitle>{t("noMatches")}</EmptyTitle>
+        <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button onClick={clearFilters} size="sm" variant="outline">
+          {t("clearFilters")}
+        </Button>
+      </EmptyContent>
+    </Empty>
+  );
+  if (prompts.length === 0) {
+    emptyState = tGeoShared("scanningEngines");
+  }
+
   const columns: TableColumn<GeoPromptTableRow>[] = [
     {
       key: "prompt",
       header: (
         <span className="inline-flex items-center gap-1.5">
-          Prompt
+          {tGeoShared("prompt")}
           <span className="text-muted-foreground font-normal tabular-nums">
             ({rows.length})
           </span>
@@ -308,9 +358,11 @@ export function PromptsTable({
       minWidth: "10rem",
       cell: (row) => (
         <button
-          aria-label={`Open details: ${row.prompt}`}
+          aria-label={tGeoShared("openDetailsPrompt", { prompt: row.prompt })}
           className="focus-visible:ring-ring flex min-h-8 w-full min-w-0 items-center rounded-sm text-left hover:underline focus-visible:ring-2"
           onClick={() => setDetail(row)}
+          onFocus={() => prefetchPromptAnswer(row)}
+          onPointerEnter={() => prefetchPromptAnswer(row)}
           type="button"
         >
           <TruncateWithTooltip className="font-medium">
@@ -320,38 +372,29 @@ export function PromptsTable({
       ),
     },
     {
-      key: "intent",
-      header: GEO_PROMPT_TAGS_COPY.intentColumn,
-      width: "8.5rem",
-      minWidth: "8.5rem",
+      key: "mentionedInstead",
+      header: t("columns.mentionedInstead"),
+      width: "16rem",
+      minWidth: "10rem",
       sortable: true,
-      cell: (row) => <PromptIntentBadge intent={row.intent} />,
-      sortValue: (row) => geoPromptIntentLabel(row.intent),
+      cell: (row) => (
+        <PromptMentionedInsteadCell
+          answers={row.total}
+          brands={mentionedInstead.get(row.id) ?? []}
+          competitors={competitors}
+        />
+      ),
+      // Groups prompts by the brand that wins them most.
+      sortValue: (row) => mentionedInstead.get(row.id)?.[0]?.name ?? "",
     },
     {
       key: "presence",
-      header: "Presence",
+      header: t("columns.presence"),
       width: "10rem",
       minWidth: "10rem",
       sortable: true,
       cell: (row) => <PromptPresenceBadge status={row.presence} />,
       sortValue: (row) => promptPresenceSortValue(row.presence),
-    },
-    {
-      key: "engines",
-      header: "Engines",
-      width: "5.5rem",
-      minWidth: "5.5rem",
-      sortable: true,
-      cell: (row) =>
-        row.total === 0 ? (
-          <span className="text-muted-foreground">-</span>
-        ) : (
-          <span className="text-muted-foreground tabular-nums">
-            {row.mentioned}/{row.total}
-          </span>
-        ),
-      sortValue: (row) => (row.total === 0 ? -1 : row.mentioned / row.total),
     },
     {
       key: "actions",
@@ -367,13 +410,39 @@ export function PromptsTable({
           <PromptRowActions
             isPending={pendingPromptIds.has(row.id)}
             onDelete={() => requestDelete([row])}
-            onToggle={(enabled) => togglePrompt(row.id, enabled)}
             row={row}
           />
         </div>
       ),
     },
   ];
+
+  // Nothing tracked yet: filters and an empty table would only add noise.
+  if (noPromptsTracked && !isScanning) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon icon={BubbleChatQuestionIcon} />
+          </EmptyMedia>
+          <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+          <EmptyDescription>{t("emptyIdle")}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button onClick={onAddPrompt} size="sm">
+              <HugeiconsIcon icon={PlusSignIcon} size={14} />
+              {tGeoShared("addPrompt")}
+            </Button>
+            <Button onClick={onImportCsv} size="sm" variant="outline">
+              <HugeiconsIcon icon={Upload01Icon} size={14} />
+              {tPages("importCsv")}
+            </Button>
+          </div>
+        </EmptyContent>
+      </Empty>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -385,10 +454,10 @@ export function PromptsTable({
             size={15}
           />
           <Input
-            aria-label="Filter prompts"
+            aria-label={t("filterAria")}
             className="pl-9"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Filter prompts..."
+            placeholder={t("filterPlaceholder")}
             value={search}
           />
         </div>
@@ -403,19 +472,15 @@ export function PromptsTable({
             value={intent}
           >
             <SelectTrigger
-              aria-label="Filter by intent"
+              aria-label={t("filterByIntent")}
               className={GEO_PROMPT_FILTER_SELECT_CLASS}
             >
-              <SelectValue>
-                {GEO_PROMPT_INTENT_FILTER_OPTIONS.find(
-                  (option) => option.value === intent
-                )?.label ?? GEO_PROMPT_INTENT_FILTER_OPTIONS[0]?.label}
-              </SelectValue>
+              <SelectValue>{intentFilterLabel(intent)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {GEO_PROMPT_INTENT_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {GEO_PROMPT_INTENT_FILTER_VALUES.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {intentFilterLabel(option)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -426,18 +491,16 @@ export function PromptsTable({
               value={tag}
             >
               <SelectTrigger
-                aria-label="Filter by tag"
+                aria-label={t("filterByTag")}
                 className={GEO_PROMPT_FILTER_SELECT_CLASS}
               >
                 <SelectValue>
-                  {tag === GEO_PROMPT_FILTER_ALL
-                    ? GEO_PROMPT_TAG_FILTER_ALL_LABEL
-                    : tag}
+                  {tag === GEO_PROMPT_FILTER_ALL ? t("allTags") : tag}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={GEO_PROMPT_FILTER_ALL}>
-                  {GEO_PROMPT_TAG_FILTER_ALL_LABEL}
+                  {t("allTags")}
                 </SelectItem>
                 {tagOptions.map((option) => (
                   <SelectItem key={option} value={option}>
@@ -457,48 +520,22 @@ export function PromptsTable({
             value={source}
           >
             <SelectTrigger
-              aria-label="Filter by source"
+              aria-label={tCommon2("labels.filterBySource")}
               className={GEO_PROMPT_FILTER_SELECT_CLASS}
             >
-              <SelectValue>
-                {GEO_PROMPT_SOURCE_FILTER_OPTIONS.find(
-                  (option) => option.value === source
-                )?.label ?? GEO_PROMPT_SOURCE_FILTER_OPTIONS[0]?.label}
-              </SelectValue>
+              <SelectValue>{sourceLabels[source]}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {GEO_PROMPT_SOURCE_FILTER_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {GEO_PROMPT_SOURCE_FILTER_VALUES.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {sourceLabels[option]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <PromptSavedViewsMenu
-            filters={filters}
-            onApply={applyView}
-            onRemove={(viewId) => {
-              removeView(viewId);
-              toast.success(GEO_PROMPT_VIEWS_COPY.removedToast);
-            }}
-            onSave={(name) => {
-              saveView(name, filters);
-              toast.success(GEO_PROMPT_VIEWS_COPY.savedToast);
-            }}
-            views={views}
-          />
           {promptFiltersActive(filters) ? (
-            <Button
-              onClick={() => {
-                setSearch(GEO_PROMPT_DEFAULT_FILTERS.q);
-                setIntent(GEO_PROMPT_DEFAULT_FILTERS.intent);
-                setTag(GEO_PROMPT_DEFAULT_FILTERS.tag);
-                setSource(GEO_PROMPT_DEFAULT_FILTERS.source);
-              }}
-              size="sm"
-              variant="ghost"
-            >
-              Clear
+            <Button onClick={clearFilters} size="sm" variant="ghost">
+              {tCommon("clear")}
             </Button>
           ) : null}
           {selectedRows.length > 0 && (
@@ -510,7 +547,7 @@ export function PromptsTable({
               variant="outline"
             >
               <HugeiconsIcon icon={Tag01Icon} size={14} />
-              {GEO_PROMPT_TAGS_COPY.bulk} ({selectedRows.length})
+              {t("addTagCount", { count: selectedRows.length })}
             </Button>
           )}
           {selectedRows.length > 0 && (
@@ -520,24 +557,16 @@ export function PromptsTable({
               variant="outline"
             >
               <HugeiconsIcon icon={Delete02Icon} size={14} />
-              Remove ({selectedRows.length})
+              {tGeoShared("removeCount", { count: selectedRows.length })}
             </Button>
           )}
         </div>
       </div>
 
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={rows}
-        emptyState={
-          prompts.length === 0
-            ? geoScanEmptyMessage(
-                isScanning,
-                "Add a prompt to start tracking how AI engines answer"
-              )
-            : "No prompts match these filters"
-        }
+        emptyState={emptyState}
         getRowId={(row) => row.id}
         height={PROMPTS_TABLE_HEIGHT}
         onRowClick={setDetail}
@@ -548,7 +577,7 @@ export function PromptsTable({
             onDelete={() => requestDelete([row])}
             onEditTags={() => setTagsTarget({ mode: "edit", rows: [row] })}
             onOpenDetails={() => setDetail(row)}
-            onToggle={() => togglePrompt(row.id, !row.enabled)}
+            onEnable={() => togglePrompt(row.id, true)}
             row={row}
           />
         )}
@@ -562,7 +591,9 @@ export function PromptsTable({
         description={promptRemoveDescription}
         isPending={false}
         items={pendingDelete.map((row) => row.prompt)}
-        nouns={PROMPT_NOUNS}
+        nouns={{ singular: t("nounSingular"), plural: t("nounPlural") }}
+        title={t("removeTitle", { count: pendingDelete.length })}
+        actionLabel={t("removeAction", { count: pendingDelete.length })}
         onConfirm={() => {
           removePrompts(pendingDelete.map((row) => row.id));
           setSelectedIds([]);
@@ -587,11 +618,12 @@ export function PromptsTable({
         onOpenChange={(openDialog) => {
           if (!openDialog) {
             setDetail(null);
+            void setLinkedPromptId(null);
           }
         }}
-        open={detail !== null}
+        open={detailRow !== null}
         organizationId={organizationId}
-        row={detail}
+        row={detailRow}
         surface={GEO_PROMPT_DETAIL_SURFACES.PROMPTS_TABLE}
       />
     </div>

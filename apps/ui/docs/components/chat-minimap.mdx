@@ -1,0 +1,63 @@
+---
+title: Chat Minimap
+description: A rail of lines that maps a conversation, one line per turn.
+---
+
+<Component path="chat-minimap/examples/chat-minimap" />
+
+<RegistryInstall name="chat-minimap" />
+
+Each line is a shadcn `Button` holding an SVG. The lines share one length at rest. The hovered line grows the most and its neighbours grow less the further away they are. Hovering a line opens a shadcn `HoverCard` with a `Card` inside. The up and down buttons stay hidden until they are hovered or focused, show all the time on touch screens, and use a shadcn `Tooltip`.
+
+```tsx
+<ChatMinimap side="right">
+  <ChatMinimapNavButton direction="previous" onClick={previous} />
+  {turns.map((turn, index) => (
+    <ChatMinimapItem
+      active={index === activeIndex}
+      description={turn.preview}
+      key={turn.id}
+      onClick={() => scrollToTurn(index)}
+      title={turn.title}
+    />
+  ))}
+  <ChatMinimapNavButton direction="next" onClick={next} />
+</ChatMinimap>
+```
+
+| Component | Prop | Default | Description |
+| --- | --- | --- | --- |
+| `ChatMinimap` | `side` | `"right"` | Side the preview card opens on. `"left"` also aligns the lines to the right. |
+| `ChatMinimapItem` | `title` | | Card title and the line's accessible name. |
+| `ChatMinimapItem` | `description` | | Card text, clamped to two lines. |
+| `ChatMinimapItem` | `active` | `false` | Highlights the line and sets `data-active`. |
+| `ChatMinimapNavButton` | `direction` | | `"previous"` or `"next"`. |
+| `ChatMinimapNavButton` | `label` | `"Previous turn"` or `"Next turn"` | Tooltip text and `aria-label`. |
+
+## Left side
+
+Set `side="left"` to put the rail on the right edge of a thread. The lines line up on the right and the card opens to the left.
+
+<Component path="chat-minimap/examples/chat-minimap-left" />
+
+## Long threads
+
+The rail stays compact on long conversations. This one has 50 turns.
+
+<Component path="chat-minimap/examples/chat-minimap-long" />
+
+## Scroll spy
+
+Lines light up for every turn in view as the thread scrolls. `useChatMinimapScrollSpy` watches the turns with an `IntersectionObserver` and returns the visible indexes:
+
+```tsx
+const { rootRef, scrollToTurn, turnRef, visible } = useChatMinimapScrollSpy(turns.length);
+
+<div className="overflow-y-auto" ref={rootRef}>
+  {turns.map((turn, index) => (
+    <section key={turn.id} ref={turnRef(index)}>…</section>
+  ))}
+</div>
+
+<ChatMinimapItem active={visible.has(index)} onClick={() => scrollToTurn(index)} … />
+```

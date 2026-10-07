@@ -1,13 +1,13 @@
 "use client";
 
-import { RefreshIcon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Refresh03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateGuidelinesPreview } from "@/components/empty-state-preview";
 import { GUIDELINES_SKELETON_KEYS } from "@/constants/brand-guideline-ui";
@@ -16,11 +16,12 @@ import {
   useRefreshBrandGuidelinesAction,
 } from "@/lib/hooks/use-brand-guidelines";
 import type { GuidelinesPanelProps } from "@/types/brand-identity";
-import { formatRelativeTime } from "@/utils/format";
 
+import { GuidelinesActionButton } from "./guidelines-action-button";
 import { GuidelinesAssetsSection } from "./guidelines-assets-section";
 import { GuidelinesColorsSection } from "./guidelines-colors-section";
 import { GuidelinesScreenshotsSection } from "./guidelines-screenshots-section";
+import { GuidelinesStatusLine } from "./guidelines-status-line";
 import { GuidelinesTokensSection } from "./guidelines-tokens-section";
 import { GuidelinesTypographySection } from "./guidelines-typography-section";
 
@@ -28,6 +29,9 @@ export function GuidelinesPanel({
   organizationId,
   voiceId,
 }: GuidelinesPanelProps) {
+  const t = useTranslations("brand.guidelines.panel");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon = useTranslations("common.actions");
   const { data, isError, isPending, refetch } = useBrandGuidelines(
     organizationId,
     voiceId
@@ -46,12 +50,11 @@ export function GuidelinesPanel({
       return;
     }
 
-    toast.error("Guideline generation failed", {
-      description:
-        generationError ?? "Something went wrong while generating guidelines.",
+    toast.error(t("generationFailed"), {
+      description: generationError ?? t("generationFailedDescription"),
       id: "brand-guideline-generation-failed",
     });
-  }, [isFailed, generationError]);
+  }, [isFailed, generationError, t]);
 
   if (isPending) {
     return (
@@ -72,11 +75,11 @@ export function GuidelinesPanel({
   if (isError) {
     return (
       <EmptyState
-        actionIcon={<HugeiconsIcon className="size-4" icon={RefreshIcon} />}
-        actionLabel="Retry"
-        description="We couldn't load this brand identity's guidelines."
+        actionIcon={<HugeiconsIcon className="size-4" icon={Refresh03Icon} />}
+        actionLabel={tCommon("retry")}
+        description={t("loadErrorDescription")}
         onActionClick={() => refetch()}
-        title="Guidelines unavailable"
+        title={t("loadErrorTitle")}
       />
     );
   }
@@ -87,18 +90,16 @@ export function GuidelinesPanel({
     return (
       <EmptyState
         action={
-          <Button disabled={isRefreshBusy} onClick={refresh.refreshGuidelines}>
-            {isRefreshBusy ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <HugeiconsIcon className="size-4" icon={SparklesIcon} />
-            )}
-            {isRefreshBusy ? "Generating…" : "Generate Guidelines"}
-          </Button>
+          <GuidelinesActionButton
+            busy={isRefreshBusy}
+            icon={SparklesIcon}
+            label={t("generate")}
+            onClick={refresh.refreshGuidelines}
+          />
         }
-        description="Brand guidelines have not been generated yet. Generate them to pull logos, colors, typography, and landing page screenshots from your website."
+        description={t("emptyDescription")}
         preview={<EmptyStateGuidelinesPreview />}
-        title="No guidelines yet"
+        title={t("emptyTitle")}
       />
     );
   }
@@ -115,8 +116,8 @@ export function GuidelinesPanel({
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Loader2Icon className="size-4 animate-spin" />
-            Generating guidelines…
+            <Spinner />
+            {t("generatingGuidelines")}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -130,18 +131,10 @@ export function GuidelinesPanel({
 
   return (
     <div className="space-y-6">
-      {isGenerating ? (
-        <p className="text-muted-foreground flex items-center justify-end gap-2 text-xs">
-          <Loader2Icon className="size-3 animate-spin" />
-          Updating guidelines…
-        </p>
-      ) : null}
-
-      {guideline.lastGeneratedAt && !isGenerating ? (
-        <p className="text-muted-foreground text-right text-xs">
-          Updated {formatRelativeTime(new Date(guideline.lastGeneratedAt))}
-        </p>
-      ) : null}
+      <GuidelinesStatusLine
+        generating={isGenerating}
+        lastGeneratedAt={guideline.lastGeneratedAt}
+      />
 
       {hasData ? (
         <>
@@ -176,21 +169,16 @@ export function GuidelinesPanel({
       {hasData ? null : (
         <EmptyState
           action={
-            <Button
-              disabled={isRefreshBusy}
+            <GuidelinesActionButton
+              busy={isRefreshBusy}
+              icon={Refresh03Icon}
+              label={tBrandShared("refreshGuidelines")}
               onClick={refresh.refreshGuidelines}
-            >
-              {isRefreshBusy ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : (
-                <HugeiconsIcon className="size-4" icon={RefreshIcon} />
-              )}
-              {isRefreshBusy ? "Refreshing…" : "Refresh Guidelines"}
-            </Button>
+            />
           }
-          description="No brand assets were detected for this identity yet. Refresh to pull the latest logos, colors, and screenshots."
+          description={t("noAssetsDescription")}
           preview={<EmptyStateGuidelinesPreview />}
-          title="Guidelines are empty"
+          title={t("noAssetsTitle")}
         />
       )}
     </div>

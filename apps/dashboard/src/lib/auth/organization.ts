@@ -3,9 +3,9 @@ import { members } from "@notra/db/schema";
 import { organizationIdSchema } from "@notra/schemas/dashboard/auth/organization";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
 
 import { retryTransientDbError } from "@/lib/db/retry";
+import { getTranslations } from "@/lib/i18n/server";
 import { getORPCRequestMemo } from "@/lib/orpc/context";
 import type {
   AuthenticatedUser,
@@ -55,8 +55,9 @@ export async function assertAuthenticatedWithDeps(
   const { session, user } = (await lookup) as AuthSession;
 
   if (!(session && user)) {
+    const tErrors = await getTranslations("errors.actions.organizations");
     throw new ORPCError("UNAUTHORIZED", {
-      message: "Unauthorized",
+      message: tErrors("signedOut"),
     });
   }
 
@@ -104,8 +105,9 @@ export async function assertOrganizationAccessWithDeps(
   deps: OrganizationAuthDependencies = organizationAuthDependencies
 ) {
   if (!deps.hasDatabaseUrl()) {
+    const tErrors = await getTranslations("common.errors");
     throw new ORPCError("SERVICE_UNAVAILABLE", {
-      message: "Database unavailable",
+      message: tErrors("generic"),
     });
   }
 
@@ -115,7 +117,7 @@ export async function assertOrganizationAccessWithDeps(
       data: {
         issues: safeOrganizationId.error.issues,
       },
-      message: "Invalid organization ID",
+      message: (await getTranslations("errors.actions"))("invalidInput"),
     });
   }
 
@@ -128,8 +130,9 @@ export async function assertOrganizationAccessWithDeps(
   });
 
   if (!membership) {
+    const tErrors = await getTranslations("errors.user");
     throw new ORPCError("FORBIDDEN", {
-      message: "You do not have access to this organization",
+      message: tErrors("notMember"),
     });
   }
 
@@ -157,7 +160,7 @@ export async function assertOrganizationAccess({
 }
 
 export async function withOrganizationAuth(
-  request: NextRequest,
+  request: Request,
   organizationId: string
 ): Promise<OrganizationAuth> {
   try {
@@ -174,7 +177,7 @@ export async function withOrganizationAuth(
     if (error instanceof ORPCError) {
       return {
         success: false,
-        response: NextResponse.json(
+        response: Response.json(
           {
             error: error.message,
             ...(error.data ? { details: error.data } : {}),

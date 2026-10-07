@@ -1,6 +1,5 @@
 import { ArrowRight01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_TAB_BREADCRUMB_LABELS } from "@notra/geo-core/constants/geo";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -21,10 +20,9 @@ import { Separator } from "@notra/ui/components/ui/separator";
 import { useIsApplePlatform } from "@notra/ui/hooks/use-is-apple-platform";
 import { cn } from "@notra/ui/lib/utils";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { useCommandPalette } from "@/components/command-palette/command-palette-context";
 import { BrandTopbarIdentitySelector } from "@/components/dashboard/brand-topbar-identity-selector";
@@ -35,26 +33,31 @@ import { useFeedback } from "@/components/dashboard/feedback-context";
 import { FeedbackForm } from "@/components/dashboard/feedback-popover";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { SidebarToggle } from "@/components/dashboard/sidebar-toggle";
+import Link from "@/components/framework/link";
+import { useBreadcrumbLabels } from "@/lib/hooks/use-breadcrumb-labels";
 import { useGeoProjectQueryState } from "@/lib/hooks/use-geo-project-query";
 import { useSettingsModal } from "@/lib/hooks/use-settings-modal";
+import { usePathname } from "@/lib/navigation";
+import type { BreadcrumbLabels } from "@/types/dashboard/breadcrumbs";
+import {
+  fallbackSegmentLabel,
+  isBreadcrumbSegment,
+  isGeoBreadcrumbSegment,
+} from "@/utils/dashboard-breadcrumbs";
 import { withGeoProject } from "@/utils/geo-paths";
 import { toGeoTab } from "@/utils/geo-tabs";
 import { scheduleDemo } from "@/utils/schedule-demo";
 
 const NON_ORG_PATHS: string[] = [];
 
-const SEGMENT_CONFIG: Record<string, { label?: string; href?: null }> = {
-  collection: { label: "Collections" },
-  billing: { label: "Billing" },
-  usage: { label: "Usage" },
-  automation: { href: null },
-  brand: { href: null },
-  "api-keys": { label: "API Keys" },
-  identity: { label: "Brand Identity" },
-  schedules: { label: "Schedules" },
-};
+const NON_CLICKABLE_SEGMENTS: ReadonlySet<string> = new Set([
+  "automation",
+  "brand",
+]);
 
 export function SiteHeader() {
+  const t = useTranslations("dashboard.header");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const slug = segments[0];
@@ -94,8 +97,8 @@ export function SiteHeader() {
   });
 
   return (
-    <header className="relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-2 lg:px-6">
+    <header className="@container/topbar relative flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div className="grid h-full w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 px-4 lg:gap-2 lg:px-6 @4xl/topbar:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="flex min-w-0 items-center gap-1 overflow-hidden lg:gap-2">
           <SidebarToggle className="-ml-1" />
           <Separator
@@ -105,21 +108,32 @@ export function SiteHeader() {
           <DashboardHeaderBreadcrumbs />
         </div>
         <button
-          aria-label="Search"
-          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors md:flex lg:w-64 xl:w-80 @[8rem]/search:justify-start @[8rem]/search:px-3"
+          aria-label={tCommon("actions.search")}
+          className="text-muted-foreground hover:bg-muted/50 @container/search hidden h-8 w-48 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-transparent px-2 text-sm transition-colors @[8rem]/search:justify-start @[8rem]/search:px-3 @4xl/topbar:flex @5xl/topbar:w-64 @6xl/topbar:w-80"
           onClick={() => setCommandPaletteOpen(true)}
           type="button"
         >
           <HugeiconsIcon className="shrink-0" icon={SearchIcon} size={16} />
           <span className="hidden min-w-0 flex-1 truncate text-left @[8rem]/search:block">
-            Search
+            {tCommon("actions.search")}
           </span>
           <KbdGroup className="hidden shrink-0 @[14rem]/search:flex">
             <Kbd>{isApplePlatform ? "⌘" : "Ctrl"}</Kbd>
             <Kbd>K</Kbd>
           </KbdGroup>
         </button>
-        <div className="flex h-full min-w-0 items-center justify-end gap-2">
+        <div className="flex h-full min-w-0 items-center justify-end gap-1 sm:gap-2">
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              aria-label={tCommon("actions.search")}
+              className="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-7 items-center justify-center rounded-lg @4xl/topbar:hidden"
+              onClick={() => setCommandPaletteOpen(true)}
+              type="button"
+            >
+              <HugeiconsIcon icon={SearchIcon} size={14} strokeWidth={1.8} />
+            </button>
+            <DashboardAgentButton />
+          </div>
           <button
             aria-hidden
             className="hidden"
@@ -129,7 +143,6 @@ export function SiteHeader() {
             tabIndex={-1}
             type="button"
           />
-          <DashboardAgentButton />
           <NavUser />
           <ResponsiveDialog onOpenChange={setFeedbackOpen} open={feedbackOpen}>
             <ResponsiveDialogContent
@@ -137,9 +150,11 @@ export function SiteHeader() {
               showCloseButton={false}
             >
               <ResponsiveDialogHeader className="sr-only">
-                <ResponsiveDialogTitle>Send feedback</ResponsiveDialogTitle>
+                <ResponsiveDialogTitle>
+                  {tCommon("labels.sendFeedback")}
+                </ResponsiveDialogTitle>
                 <ResponsiveDialogDescription>
-                  Share your thoughts with us.
+                  {t("feedbackDescription")}
                 </ResponsiveDialogDescription>
               </ResponsiveDialogHeader>
               {feedbackOpen ? (
@@ -161,11 +176,19 @@ function DashboardHeaderBreadcrumbs() {
   const [geoTabParam] = useQueryState("tab", parseAsString);
   const [geoProjectParam] = useGeoProjectQueryState();
   const id = useId();
+  const labels = useBreadcrumbLabels();
+  const tUi = useTranslations("ui");
 
   return (
-    <Breadcrumb className="min-w-0">
+    <Breadcrumb aria-label={tUi("breadcrumb")} className="min-w-0">
       <BreadcrumbList className="text-foreground min-w-0 flex-nowrap gap-2 text-sm font-medium">
-        {headerBreadcrumbItems(pathname, geoTabParam, geoProjectParam, id)}
+        {headerBreadcrumbItems(
+          pathname,
+          geoTabParam,
+          geoProjectParam,
+          id,
+          labels
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );
@@ -175,7 +198,8 @@ function headerBreadcrumbItems(
   pathname: string,
   geoTabParam: string | null,
   geoProjectParam: string | null,
-  id: string
+  id: string,
+  labels: BreadcrumbLabels
 ) {
   const segments = pathname.split("/").filter(Boolean);
   const slug = segments[0];
@@ -204,7 +228,7 @@ function headerBreadcrumbItems(
   const isGeo = !isNonOrgPath && breadcrumbSegments[0] === "geo";
 
   if (isBrandIdentity) {
-    return brandIdentityHeaderBreadcrumbs(id, slug);
+    return brandIdentityHeaderBreadcrumbs(id, slug, labels);
   }
   if (isGeo) {
     return geoHeaderBreadcrumbs({
@@ -214,6 +238,7 @@ function headerBreadcrumbItems(
       id,
       segments,
       slug,
+      labels,
     });
   }
   return genericHeaderBreadcrumbs({
@@ -227,17 +252,26 @@ function headerBreadcrumbItems(
     isNonOrgPath,
     segments,
     slug,
+    labels,
   });
 }
 
-function brandIdentityHeaderBreadcrumbs(id: string, slug: string | undefined) {
+function brandIdentityHeaderBreadcrumbs(
+  id: string,
+  slug: string | undefined,
+  labels: BreadcrumbLabels
+) {
   return [
     <BreadcrumbItem
       className="shrink-0 whitespace-nowrap hover:underline"
       key={`${id}-brand-identity-link`}
     >
       <BreadcrumbLink
-        render={<Link href={`/${slug}/brand/identity`}>Brand Identity</Link>}
+        render={
+          <Link href={`/${slug}/brand/identity`}>
+            {labels.segments.identity}
+          </Link>
+        }
       />
     </BreadcrumbItem>,
     <BreadcrumbSeparator key={`${id}-brand-identity-sep`}>
@@ -260,6 +294,7 @@ function genericHeaderBreadcrumbs({
   isNonOrgPath,
   segments,
   slug,
+  labels,
 }: {
   breadcrumbSegments: string[];
   chatDetailId: string | null;
@@ -271,6 +306,7 @@ function genericHeaderBreadcrumbs({
   isNonOrgPath: boolean;
   segments: string[];
   slug: string | undefined;
+  labels: BreadcrumbLabels;
 }) {
   const displayBreadcrumbSegments = isCollectionDetail
     ? ["content", "collection"]
@@ -289,11 +325,10 @@ function genericHeaderBreadcrumbs({
         : `/${segments.slice(0, index + 2).join("/")}`;
     })();
     const isLast = index === displayBreadcrumbSegments.length - 1;
-    const config = SEGMENT_CONFIG[segment];
-    const label =
-      config?.label ??
-      segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
-    const isClickable = config?.href !== null;
+    const label = isBreadcrumbSegment(segment)
+      ? labels.segments[segment]
+      : fallbackSegmentLabel(segment);
+    const isClickable = !NON_CLICKABLE_SEGMENTS.has(segment);
     const isChatDetailLast = isChatDetail && isLast && chatDetailId;
     const isContentDetailLast = isContentDetail && isLast && contentDetailId;
     const content = (() => {
@@ -354,6 +389,7 @@ function geoHeaderBreadcrumbs({
   id,
   segments,
   slug,
+  labels,
 }: {
   breadcrumbSegments: string[];
   geoProjectId: string | undefined;
@@ -361,9 +397,10 @@ function geoHeaderBreadcrumbs({
   id: string;
   segments: string[];
   slug: string | undefined;
+  labels: BreadcrumbLabels;
 }) {
   const geoSectionSegments = breadcrumbSegments.slice(1);
-  const geoTabLabel = GEO_TAB_BREADCRUMB_LABELS[toGeoTab(geoTabParam)];
+  const geoTabLabel = labels.geoTabs[toGeoTab(geoTabParam)];
 
   const geoSectionBreadcrumbs =
     geoSectionSegments.length > 0
@@ -373,11 +410,9 @@ function geoHeaderBreadcrumbs({
             `/${segments.slice(0, index + 3).join("/")}`,
             geoProjectId
           );
-          const label =
-            segment === "settings"
-              ? "GEO Settings"
-              : segment.charAt(0).toUpperCase() +
-                segment.slice(1).replace(/-/g, " ");
+          const label = isGeoBreadcrumbSegment(segment)
+            ? labels.geoSegments[segment]
+            : fallbackSegmentLabel(segment);
           return [
             <BreadcrumbSeparator key={`${id}-geo-sep-${segment}`}>
               <HugeiconsIcon icon={ArrowRight01Icon} />
@@ -411,7 +446,9 @@ function geoHeaderBreadcrumbs({
     <BreadcrumbItem className="hover:underline" key={`${id}-geo-link`}>
       <BreadcrumbLink
         render={
-          <Link href={withGeoProject(`/${slug}/geo`, geoProjectId)}>Geo</Link>
+          <Link href={withGeoProject(`/${slug}/geo`, geoProjectId)}>
+            {labels.geo}
+          </Link>
         }
       />
     </BreadcrumbItem>,

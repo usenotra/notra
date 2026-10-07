@@ -1,5 +1,3 @@
-"use client";
-
 import {
   closestCenter,
   DndContext,
@@ -205,7 +203,7 @@ export default function ThreadBuilder() {
       />
 
       <p className="text-muted-foreground mb-5 text-center font-sans text-xs leading-5 font-normal">
-        Click the name, handle, or avatar to customize the author.
+        Click the name, handle or avatar to customize the author.
       </p>
 
       <DndContext

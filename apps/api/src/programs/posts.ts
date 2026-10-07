@@ -500,30 +500,34 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
 
   const patchResult = yield* Effect.tryPromise({
     try: () =>
-      input.db
-        .update(posts)
-        .set(updateData)
-        .where(
-          and(
-            eq(posts.id, input.postId),
-            eq(posts.organizationId, input.organizationId),
-            matchesPostUpdatedAt(input.prepared.expectedUpdatedAt)
+      input.db.transaction(async (tx) => {
+        const rows = await tx
+          .update(posts)
+          .set(updateData)
+          .where(
+            and(
+              eq(posts.id, input.postId),
+              eq(posts.organizationId, input.organizationId),
+              matchesPostUpdatedAt(input.prepared.expectedUpdatedAt)
+            )
           )
-        )
-        .returning({
-          id: posts.id,
-          title: posts.title,
-          slug: posts.slug,
-          content: posts.content,
-          htmlUrl: posts.htmlUrl,
-          markdown: posts.markdown,
-          recommendations: posts.recommendations,
-          contentType: posts.contentType,
-          sourceMetadata: posts.sourceMetadata,
-          status: posts.status,
-          createdAt: posts.createdAt,
-          updatedAt: posts.updatedAt,
-        }),
+          .returning({
+            id: posts.id,
+            title: posts.title,
+            slug: posts.slug,
+            content: posts.content,
+            htmlUrl: posts.htmlUrl,
+            markdown: posts.markdown,
+            recommendations: posts.recommendations,
+            contentType: posts.contentType,
+            sourceMetadata: posts.sourceMetadata,
+            status: posts.status,
+            githubPublish: posts.githubPublish,
+            createdAt: posts.createdAt,
+            updatedAt: posts.updatedAt,
+          });
+        return rows;
+      }),
     catch: (cause) => {
       if (
         isPgUniqueViolation(cause) &&

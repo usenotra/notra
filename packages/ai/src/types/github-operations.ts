@@ -22,6 +22,15 @@ export interface GitHubInstallationReference {
   installationId: string;
 }
 
+export interface GitHubAppPublishAccess {
+  contents?: string;
+  issues?: string;
+  pullRequests?: string;
+  checks?: string;
+  /** The installation's settings page on GitHub. */
+  settingsUrl?: string;
+}
+
 export interface SelectGitHubRepositoriesParams {
   preserveExisting?: boolean;
   organizationId: string;
@@ -131,4 +140,20 @@ export interface GitHubCredentialDependencies {
     encryptedToken: string,
     integrationId: string
   ) => Effect.Effect<string, GitHubCredentialDecryptionError>;
+}
+
+/** Narrows a minted installation token below the app's full permissions. */
+export interface GitHubInstallationTokenScope {
+  repositories?: string[];
+  permissions?: Partial<
+    Record<
+      | "contents"
+      | "metadata"
+      | "pull_requests"
+      | "issues"
+      | "checks"
+      | "statuses",
+      "read" | "write"
+    >
+  >;
 }

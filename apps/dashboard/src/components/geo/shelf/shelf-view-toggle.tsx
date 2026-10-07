@@ -11,8 +11,9 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { startTransition, useId, useOptimistic } from "react";
+import { useTranslations } from "use-intl";
 
-import { GEO_SHELF_VIEW_LABELS, GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
+import { GEO_SHELF_VIEWS } from "@/constants/geo-shelf";
 import { cn } from "@/lib/utils";
 import type { GeoShelfViewToggleProps } from "@/types/geo-shelf";
 
@@ -27,6 +28,8 @@ export function ShelfViewToggle({
   view,
   onViewChange,
 }: GeoShelfViewToggleProps) {
+  const t = useTranslations("geo.shelf.shelfViewToggle");
+  const tLabels = useTranslations("common.labels");
   const layoutId = useId();
   const reduceMotion = useReducedMotion();
   const pillTransition = reduceMotion ? INSTANT : SPRING.indicatorFlat;
@@ -36,7 +39,7 @@ export function ShelfViewToggle({
     <LazyMotion features={domMax} strict>
       <LayoutGroup id={layoutId}>
         <div
-          aria-label="Shelf view"
+          aria-label={t("ariaLabel")}
           className="bg-muted inline-flex items-center rounded-lg p-0.5"
           role="group"
         >
@@ -46,7 +49,7 @@ export function ShelfViewToggle({
               <button
                 aria-pressed={selected}
                 className={cn(
-                  "relative inline-flex h-7 items-center gap-1 rounded-md px-2 text-[0.8rem] font-medium",
+                  "relative inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium",
                   "duration-fast transition-colors ease-out",
                   "focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none",
                   selected
@@ -74,7 +77,7 @@ export function ShelfViewToggle({
                 ) : null}
                 <span className="relative z-10 inline-flex items-center gap-1">
                   <HugeiconsIcon className="size-3.5" icon={VIEW_ICONS[id]} />
-                  {GEO_SHELF_VIEW_LABELS[id]}
+                  {id === "table" ? tLabels("table") : t(`views.${id}`)}
                 </span>
               </button>
             );

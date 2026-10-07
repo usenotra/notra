@@ -10,8 +10,8 @@ import {
   identifyServerGroup,
   setServerPersonProperties,
 } from "@notra/posthog/server";
-import { after } from "next/server";
 
+import { runAfterResponse } from "@/lib/after-response";
 import type {
   IdentifyOrganizationGroupInput,
   IdentifyProjectGroupInput,
@@ -20,25 +20,28 @@ import type {
   TrackServerExceptionInput,
 } from "@/types/analytics/posthog";
 
-function scheduleFlush(): void {
-  try {
-    after(() => flushPostHogServer());
-  } catch {
-    void flushPostHogServer();
-  }
+function scheduleCapture(capture: () => void): void {
+  // Capture itself can start network work, so both capture and delivery run
+  // after the response (outside a request they run right away). Workflows use
+  // trackServerEventAndFlush instead of relying on a request context.
+  runAfterResponse("[posthog] capture delivery failed", async () => {
+    capture();
+    await flushPostHogServer();
+  });
 }
 
 export function trackServerEvent(input: TrackServerEventInput): void {
   const requestContext = getPostHogRequestContext(input.headers);
-  captureServerEvent({
-    event: input.event,
-    distinctId: resolvePostHogDistinctId(requestContext, input.userId),
-    sessionId: requestContext.sessionId,
-    organizationId: input.organizationId,
-    projectId: input.projectId,
-    properties: input.properties,
-  });
-  scheduleFlush();
+  scheduleCapture(() =>
+    captureServerEvent({
+      event: input.event,
+      distinctId: resolvePostHogDistinctId(requestContext, input.userId),
+      sessionId: requestContext.sessionId,
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      properties: input.properties,
+    })
+  );
 }
 
 export async function trackServerEventAndFlush(
@@ -58,46 +61,50 @@ export async function trackServerEventAndFlush(
 
 export function trackServerException(input: TrackServerExceptionInput): void {
   const requestContext = getPostHogRequestContext(input.headers);
-  captureServerException({
-    error: input.error,
-    distinctId: resolvePostHogDistinctId(requestContext, input.userId),
-    sessionId: requestContext.sessionId,
-    organizationId: input.organizationId,
-    properties: input.properties,
-  });
-  scheduleFlush();
+  scheduleCapture(() =>
+    captureServerException({
+      error: input.error,
+      distinctId: resolvePostHogDistinctId(requestContext, input.userId),
+      sessionId: requestContext.sessionId,
+      organizationId: input.organizationId,
+      properties: input.properties,
+    })
+  );
 }
 
 export function identifyOrganizationGroup(
   input: IdentifyOrganizationGroupInput
 ): void {
-  identifyServerGroup({
-    groupType: POSTHOG_GROUP_TYPES.ORGANIZATION,
-    groupKey: input.organizationId,
-    properties: input.properties,
-    distinctId: input.userId,
-  });
-  scheduleFlush();
+  scheduleCapture(() =>
+    identifyServerGroup({
+      groupType: POSTHOG_GROUP_TYPES.ORGANIZATION,
+      groupKey: input.organizationId,
+      properties: input.properties,
+      distinctId: input.userId,
+    })
+  );
 }
 
 export function identifyProjectGroup(input: IdentifyProjectGroupInput): void {
-  identifyServerGroup({
-    groupType: POSTHOG_GROUP_TYPES.PROJECT,
-    groupKey: input.projectId,
-    properties: {
-      ...input.properties,
-      organization_id: input.organizationId,
-    },
-    distinctId: input.userId,
-  });
-  scheduleFlush();
+  scheduleCapture(() =>
+    identifyServerGroup({
+      groupType: POSTHOG_GROUP_TYPES.PROJECT,
+      groupKey: input.projectId,
+      properties: {
+        ...input.properties,
+        organization_id: input.organizationId,
+      },
+      distinctId: input.userId,
+    })
+  );
 }
 
 export function setPersonProperties(input: SetPersonPropertiesInput): void {
-  setServerPersonProperties({
-    distinctId: input.userId,
-    set: input.set,
-    setOnce: input.setOnce,
-  });
-  scheduleFlush();
+  scheduleCapture(() =>
+    setServerPersonProperties({
+      distinctId: input.userId,
+      set: input.set,
+      setOnce: input.setOnce,
+    })
+  );
 }

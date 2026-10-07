@@ -7,6 +7,7 @@ import { log } from "@notra/ai/evlog";
 import { createOpenRouterAdapter } from "@notra/ai/router/adapters/openrouter";
 import { createVercelAdapter } from "@notra/ai/router/adapters/vercel";
 import { createModelRouter } from "@notra/ai/router/create-router";
+import { createDemoModelRouter } from "@notra/ai/router/demo-router";
 import type {
   GatewayArgs,
   GatewayModelOptions,
@@ -22,6 +23,8 @@ import type {
   RouterLogFields,
   RouterLogger,
 } from "@notra/ai/types/router";
+import { getOperationalContext } from "@notra/ai/utils/operational-context";
+import { isDemoMode } from "@notra/utils/demo-mode";
 
 const APP_URL = "https://www.usenotra.com";
 const APP_TITLE = "Notra";
@@ -38,13 +41,15 @@ const openRouterHeaders = {
 
 let router: ModelRouter | null = null;
 
+// requestId joins each ai.call.* event to the wide event of the request that
+// made the call.
 const routerLogger: RouterLogger = {
   info: (event: string, fields?: RouterLogFields) =>
-    log.info({ event, ...fields }),
+    log.info({ ...getOperationalContext(), event, ...fields }),
   warn: (event: string, fields?: RouterLogFields) =>
-    log.warn({ event, ...fields }),
+    log.warn({ ...getOperationalContext(), event, ...fields }),
   error: (event: string, fields?: RouterLogFields) =>
-    log.error({ event, ...fields }),
+    log.error({ ...getOperationalContext(), event, ...fields }),
 };
 
 function buildAdapters(): Partial<Record<GatewayId, GatewayAdapter>> {
@@ -78,6 +83,10 @@ export function isAiGatewayConfigured(): boolean {
 }
 
 function createRouter(): ModelRouter {
+  // The public demo has no provider keys; answer every call in-process.
+  if (isDemoMode()) {
+    return createDemoModelRouter();
+  }
   return createModelRouter({
     adapters: buildAdapters(),
     resolvePlan: resolveOrganizationPlan,

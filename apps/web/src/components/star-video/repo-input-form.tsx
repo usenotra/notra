@@ -1,6 +1,4 @@
-"use client";
-
-import Image from "next/image";
+import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { useQueryState } from "nuqs";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
@@ -58,18 +56,21 @@ export function RepoInputForm() {
             value={value}
           />
         </div>
-        <button
-          className="cta-gradient-primary-flat flex shrink-0 cursor-pointer items-center justify-center rounded-full px-5 py-3 font-sans text-[0.9375rem] leading-[1.29] font-semibold text-white sm:px-4.5 sm:py-2 sm:text-[0.875rem]"
+        <CtaButton
+          className="h-auto px-5 py-3 font-sans text-[0.9375rem] leading-[1.29] font-semibold sm:px-4.5 sm:py-2 sm:text-[0.875rem]"
           type="submit"
+          variant="flat"
         >
           {githubConnected ? "Generate video" : "Connect GitHub"}
-        </button>
+        </CtaButton>
       </form>
       <p className="font-sans text-sm text-[#1E1E1E99] dark:text-white/60">
         {githubLogin ? (
           <span className="inline-flex items-center gap-1.5">
             Connected as
-            <Image
+            <img
+              decoding="async"
+              loading="lazy"
               alt=""
               className="size-4 rounded-full"
               height={AVATAR_SIZE_PX}

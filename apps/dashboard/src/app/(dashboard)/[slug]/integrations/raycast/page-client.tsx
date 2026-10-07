@@ -1,38 +1,23 @@
 "use client";
 
+import { LinkSquare02Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Raycast } from "@notra/ui/components/ui/svgs/raycast";
-import { CheckIcon, ExternalLinkIcon } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
 
 const STEPS = [
   {
-    title: "Install the Notra extension",
-    description:
-      "Open the Raycast Store, search for 'Notra', and install the extension.",
-    link: {
-      label: "View on Raycast Store",
-      href: "https://www.raycast.com/dominikdev/notra",
-    },
+    key: "install",
+    link: { href: "https://www.raycast.com/dominikdev/notra" },
   },
-  {
-    title: "Create a read and write API key",
-    description:
-      "Head to API Keys, create a new key with read and write permissions, and copy it.",
-    internalLink: true,
-  },
-  {
-    title: "Configure the extension",
-    description:
-      "Open Raycast, run any Notra command, and paste your API key when prompted.",
-  },
-  {
-    title: "Start using Notra in Raycast",
-    description:
-      "Search and browse your posts, copy content, and manage workflows — all from Raycast.",
-  },
+  { key: "apiKey", internalLink: true },
+  { key: "configure" },
+  { key: "use" },
 ] as const;
 
 interface PageClientProps {
@@ -40,6 +25,8 @@ interface PageClientProps {
 }
 
 export default function PageClient({ organizationSlug }: PageClientProps) {
+  const t = useTranslations("integrations.raycast");
+  const tGuide = useTranslations("integrations.setupGuide");
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
   function toggleStep(index: number) {
@@ -57,19 +44,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Raycast className="h-8 w-8" />
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Raycast setup
-              </h1>
-              <p className="text-muted-foreground">
-                Access your Notra content from Raycast
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeading
+          description={t("description")}
+          icon={<Raycast className="h-8 w-8 shrink-0" />}
+          title={t("title")}
+        />
 
         <div className="max-w-xl space-y-1">
           {STEPS.map((step, index) => {
@@ -78,7 +57,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             return (
               <button
                 className="group hover:bg-muted/60 flex w-full gap-3 rounded-lg p-3 text-left transition-colors"
-                key={step.title}
+                key={step.key}
                 onClick={() => toggleStep(index)}
                 type="button"
               >
@@ -90,7 +69,7 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   }`}
                 >
                   {isCompleted ? (
-                    <CheckIcon className="h-3.5 w-3.5" />
+                    <HugeiconsIcon icon={Tick02Icon} className="h-3.5 w-3.5" />
                   ) : (
                     index + 1
                   )}
@@ -99,10 +78,10 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                   <p
                     className={`text-sm font-medium ${isCompleted ? "text-muted-foreground" : "text-foreground"}`}
                   >
-                    {step.title}
+                    {t(`steps.${step.key}.title`)}
                   </p>
                   <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-                    {step.description}
+                    {t(`steps.${step.key}.description`)}
                   </p>
                   {"link" in step && step.link ? (
                     <a
@@ -112,8 +91,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       rel="noopener noreferrer"
                       target="_blank"
                     >
-                      {step.link.label}
-                      <ExternalLinkIcon className="h-3 w-3" />
+                      {t("linkLabel")}
+                      <HugeiconsIcon
+                        icon={LinkSquare02Icon}
+                        className="h-3 w-3"
+                      />
                     </a>
                   ) : null}
                   {"internalLink" in step && step.internalLink ? (
@@ -122,8 +104,11 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
                       href={`/${organizationSlug}/api-keys`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Go to API Keys
-                      <ExternalLinkIcon className="h-3 w-3" />
+                      {tGuide("goToApiKeys")}
+                      <HugeiconsIcon
+                        icon={LinkSquare02Icon}
+                        className="h-3 w-3"
+                      />
                     </Link>
                   ) : null}
                 </div>

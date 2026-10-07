@@ -3,12 +3,14 @@
 @import "shadcn/tailwind.css";
 @import "./cta-button.css";
 @import "./motion.css";
+@import "./message-code.css";
 @import "./opencode.css";
 @import "./skeleton-shimmer.css";
 @import "./status.css";
 @import "./text-shimmer.css";
+@import "streamdown/styles.css";
 
-@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/streamdown/dist";
 
 @plugin "@toolwind/corner-shape";
 @plugin "@tailwindcss/typography";
@@ -27,13 +29,17 @@
   --secondary: hsl(0 0% 96.1%);
   --secondary-foreground: hsl(0 0% 9%);
   --muted: hsl(0 0% 96.1%);
-  --muted-foreground: hsl(0 0% 45.1%);
+  --muted-foreground: hsl(240 4% 40%);
   --accent: hsl(0 0% 96.1%);
   --accent-foreground: hsl(0 0% 9%);
   --destructive: hsl(0 84.2% 60.2%);
   --destructive-foreground: hsl(0 0% 98%);
   --border: hsl(0 0% 89.8%);
   --input: hsl(0 0% 89.8%);
+  --shell: hsl(240 6% 94.5%);
+  --shell-border: hsl(240 5% 87%);
+  --surface-lift:
+    0 1px 2px hsl(240 10% 10% / 0.06), 0 2px 8px -2px hsl(240 10% 10% / 0.06);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.709 0.1592 293.5412);
   --chart-2: oklch(0.8112 0.1013 293.5712);
@@ -104,7 +110,11 @@
   --destructive: hsl(358 100% 50%);
   --destructive-foreground: hsl(0 0% 99%);
   --border: hsl(0 1% 17%);
-  --input: hsl(0 0% 14.9%);
+  --input: hsl(240 4% 20%);
+  --shell: hsl(240 5% 14.5%);
+  --shell-border: hsl(240 4% 20%);
+  --surface-lift:
+    inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(0 0% 0% / 0.4);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.709 0.1592 293.5412);
   --chart-2: oklch(0.8112 0.1013 293.5712);
@@ -172,6 +182,9 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-shell: var(--shell);
+  --color-shell-border: var(--shell-border);
+  --shadow-lift: var(--surface-lift);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);

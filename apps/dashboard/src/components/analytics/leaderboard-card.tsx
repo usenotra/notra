@@ -3,30 +3,33 @@
 import { Cancel01Icon, SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  InstrumentEmpty,
+  InstrumentSection,
+} from "@notra/ui/components/instrument/instrument-module";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
 import { Button } from "@notra/ui/components/ui/button";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { Input } from "@notra/ui/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { useRouter } from "next/navigation";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { PlatformTabs } from "@/components/analytics/platform-tabs";
 import { ProviderIcon } from "@/components/analytics/provider-icon";
 import { AnalyticsRangePicker } from "@/components/analytics/range-picker";
 import { XVerificationBadge } from "@/components/icons/x-verification-badge";
-import {
-  InstrumentEmpty,
-  InstrumentSection,
-} from "@/components/instrument/instrument-module";
-import { Table, type TableColumn } from "@/components/motion/table";
 import {
   ANALYTICS_PROVIDER_FILTER_VALUES,
   ANALYTICS_PROVIDER_FILTERS,
@@ -35,17 +38,18 @@ import {
 } from "@/constants/analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useAnalyticsRange } from "@/lib/hooks/use-analytics-range";
+import { useFormatMetric } from "@/lib/hooks/use-format-metric";
 import {
   useLeaderboardRange,
   useUntrackAccount,
 } from "@/lib/hooks/use-social-analytics";
+import { useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { LeaderboardCardProps, LeaderboardEntry } from "@/types/analytics";
 import {
   filterLeaderboardEntries,
   toProviderFilter,
 } from "@/utils/analytics-accounts";
-import { formatMetric } from "@/utils/analytics-charts";
 import { tableHeightFor } from "@/utils/table";
 import { isSquareTwitterAvatar } from "@/utils/twitter";
 
@@ -54,10 +58,17 @@ export function LeaderboardCard({
   organizationSlug,
   variant = "module",
 }: LeaderboardCardProps) {
+  const t = useTranslations("analytics.leaderboard");
+  const tCommon = useTranslations("common");
+  const tAnalyticsShared = useTranslations("analytics.shared");
+  const formatMetric = useFormatMetric();
   const router = useRouter();
   const range = useAnalyticsRange("leaderboardRange", "7d");
   const untrack = useUntrackAccount(organizationId);
-  const { data } = useLeaderboardRange(organizationId, range.range);
+  const { data, isPending, isPlaceholderData } = useLeaderboardRange(
+    organizationId,
+    range.range
+  );
 
   const [search, setSearch] = useQueryState(
     "account",
@@ -104,7 +115,7 @@ export function LeaderboardCard({
     () => [
       {
         key: "rank",
-        header: "Rank",
+        header: tCommon("labels.rank"),
         width: "5.75rem",
         sortable: true,
         cell: (row) => (
@@ -115,7 +126,7 @@ export function LeaderboardCard({
         key: "username",
         header: (
           <span className="inline-flex items-center gap-1.5">
-            Accounts
+            {tCommon("labels.accounts")}
             <span className="text-muted-foreground font-normal tabular-nums">
               ({rows.length})
             </span>
@@ -174,7 +185,7 @@ export function LeaderboardCard({
       },
       {
         key: "interactions",
-        header: "Interactions",
+        header: tAnalyticsShared("interactions"),
         width: "8.75rem",
         align: "right",
         sortable: true,
@@ -186,7 +197,7 @@ export function LeaderboardCard({
       },
       {
         key: "impressions",
-        header: "Impressions",
+        header: tCommon("labels.impressions"),
         width: "8.75rem",
         align: "right",
         sortable: true,
@@ -199,7 +210,7 @@ export function LeaderboardCard({
       },
       {
         key: "posts",
-        header: "Posts",
+        header: tCommon("labels.posts"),
         width: "5.625rem",
         align: "right",
         sortable: true,
@@ -217,7 +228,7 @@ export function LeaderboardCard({
         cell: (row) =>
           row.trackedAccountId ? (
             <Button
-              aria-label={`Stop tracking @${row.username}`}
+              aria-label={t("stopTrackingAccount", { handle: row.username })}
               disabled={untrack.isPending}
               onClick={(event) => {
                 event.stopPropagation();
@@ -233,18 +244,18 @@ export function LeaderboardCard({
           ) : null,
       },
     ],
-    [untrack, rows.length]
+    [untrack, rows.length, t, formatMetric]
   );
 
   return (
     <InstrumentSection
       action={<AnalyticsRangePicker control={range} />}
-      eyebrow="Leaderboard"
+      eyebrow={tCommon("labels.leaderboard")}
     >
-      {entries.length === 0 ? (
+      {entries.length === 0 && !isPending ? (
         <InstrumentEmpty
           className="h-32"
-          message="No accounts yet"
+          message={t("empty")}
           seed="Leaderboard"
         />
       ) : (
@@ -257,24 +268,28 @@ export function LeaderboardCard({
                 size={15}
               />
               <Input
-                aria-label="Filter accounts by handle or name"
+                aria-label={t("filterLabel")}
                 className="pl-9"
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Filter by handle or name..."
+                placeholder={t("filterPlaceholder")}
                 value={search}
               />
             </div>
             <PlatformTabs
               items={ANALYTICS_PROVIDER_FILTERS.map((option) => ({
                 value: option.value,
-                label: option.value === "all" ? "All Platforms" : option.label,
-                collapsedLabel: option.value === "all" ? "All" : undefined,
+                label:
+                  option.value === "all"
+                    ? tCommon("labels.allPlatforms")
+                    : option.label,
+                collapsedLabel:
+                  option.value === "all" ? tCommon("labels.all") : undefined,
                 icon:
                   option.value === "all" ? undefined : (
                     <ProviderIcon provider={option.value} />
                   ),
               }))}
-              label="Filter by platform"
+              label={t("platformFilter")}
               onValueChange={(value) =>
                 setProviderFilter(toProviderFilter(value))
               }
@@ -293,18 +308,18 @@ export function LeaderboardCard({
                 variant="outline"
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={14} />
-                Stop tracking {selectedTrackedIds.length}
+                {t("stopTracking", { count: selectedTrackedIds.length })}
               </Button>
             )}
           </div>
-          <Table
-            className="rounded-2xl"
+          <DataTable
             columns={columns}
             data={rows}
             defaultSort={{ key: "rank", direction: "asc" }}
-            emptyState="No accounts match these filters"
+            emptyState={t("noMatches")}
             getRowId={(row) => row.key}
             height={tableHeight}
+            loading={isPending || isPlaceholderData}
             onRowClick={(row) =>
               router.push(
                 `/${organizationSlug}/analytics/accounts/${encodeURIComponent(row.username)}`

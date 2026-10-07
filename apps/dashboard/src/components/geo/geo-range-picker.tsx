@@ -4,6 +4,7 @@ import { ArrowDown01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   GEO_FILTER_TRIGGER_CLASS,
+  GEO_MAX_RANGE_DAYS,
   GEO_RANGE_PRESETS,
 } from "@notra/geo-core/constants/geo";
 import { Button } from "@notra/ui/components/ui/button";
@@ -16,12 +17,15 @@ import { TRANSITION } from "@notra/ui/lib/motion";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Calendar } from "@/components/calendar";
+import { GEO_RANGE_PRESET_LABEL_KEYS } from "@/constants/geo-analytics";
 import { useAnimatedSize } from "@/lib/hooks/use-animated-size";
 import type { GeoRangePickerProps } from "@/types/geo";
 import {
   geoCalendarDefaultMonth,
+  geoCustomRangeLabel,
   localDayString,
   parseLocalDay,
 } from "@/utils/geo-range";
@@ -30,6 +34,9 @@ const loadMotionFeatures = () =>
   import("@/lib/motion-features").then((mod) => mod.default);
 
 export function GeoRangePicker({ control }: GeoRangePickerProps) {
+  const t = useTranslations("geo.geoRangePicker");
+  const tLabels = useTranslations("common.labels");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>();
   const reduceMotion = useReducedMotion();
@@ -54,7 +61,7 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
   return (
     <Popover onOpenChange={handleOpenChange} open={open}>
       <PopoverTrigger
-        aria-label="Date range"
+        aria-label={t("label")}
         className={GEO_FILTER_TRIGGER_CLASS}
       >
         <HugeiconsIcon
@@ -62,7 +69,11 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
           icon={Calendar03Icon}
           size={12}
         />
-        <span className="tabular-nums">{control.label}</span>
+        <span className="tabular-nums">
+          {control.preset === "custom"
+            ? geoCustomRangeLabel(control.range, locale)
+            : tLabels(GEO_RANGE_PRESET_LABEL_KEYS[control.preset])}
+        </span>
         <HugeiconsIcon
           className="text-muted-foreground"
           icon={ArrowDown01Icon}
@@ -94,13 +105,14 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
                       control.preset === preset.value ? "secondary" : "ghost"
                     }
                   >
-                    {preset.label}
+                    {tLabels(GEO_RANGE_PRESET_LABEL_KEYS[preset.value])}
                   </Button>
                 ))}
               </div>
               <Calendar
                 defaultMonth={geoCalendarDefaultMonth(selected?.from)}
                 disabled={{ after: new Date() }}
+                max={GEO_MAX_RANGE_DAYS - 1}
                 mode="range"
                 numberOfMonths={2}
                 onSelect={(next) => {

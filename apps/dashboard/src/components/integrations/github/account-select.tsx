@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubAccountSelectProps } from "@/types/integrations/github";
@@ -25,6 +26,8 @@ export function GitHubAccountSelect({
   onAddAccount,
   disabled = false,
 }: GitHubAccountSelectProps) {
+  const t = useTranslations("integrations.github.accountSelect");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const selectedAccount = accounts.find(
     (account) => account.id === selectedAccountId
   );
@@ -43,7 +46,7 @@ export function GitHubAccountSelect({
         <span className="flex min-w-0 items-center gap-2">
           <Github className="size-4 shrink-0" />
           <span className="min-w-0 truncate">
-            {selectedAccount?.login ?? "Select account"}
+            {selectedAccount?.login ?? t("placeholder")}
           </span>
         </span>
         <HugeiconsIcon
@@ -72,7 +75,7 @@ export function GitHubAccountSelect({
           onClick={onAddAccount}
         >
           <HugeiconsIcon className="size-4 shrink-0" icon={Add01Icon} />
-          Add GitHub Account
+          {tIntegrationsShared("addGithubAccount")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

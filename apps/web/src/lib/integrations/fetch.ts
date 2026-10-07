@@ -8,13 +8,11 @@ import type { Integration } from "@/types/integrations";
 const CONSOLE_URL =
   process.env.NOTRA_CONSOLE_URL ?? "https://console.usenotra.com";
 
-const FETCH_REVALIDATE_SECONDS = 60;
 const FETCH_TIMEOUT_MS = 15_000;
 
 export async function fetchIntegrations(): Promise<Integration[]> {
   try {
     const response = await fetch(`${CONSOLE_URL}/api/store/integrations`, {
-      next: { revalidate: FETCH_REVALIDATE_SECONDS },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!response.ok) {
@@ -51,7 +49,6 @@ export async function fetchIntegration(
     const response = await fetch(
       `${CONSOLE_URL}/api/store/integrations/${encodeURIComponent(integrationId)}`,
       {
-        next: { revalidate: FETCH_REVALIDATE_SECONDS },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       }
     );

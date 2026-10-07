@@ -1,8 +1,10 @@
 export const PAYWALL_KINDS = {
   GEO_LOCKED: "geo_locked",
+  STUDIO_LOCKED: "studio_locked",
   TRIAL_EXPIRED: "trial_expired",
   UPGRADE_CARD: "upgrade_card",
   NAV_LOCK: "nav_lock",
+  ONBOARDING_PRICING: "onboarding_pricing",
 } as const;
 
 export const PLAN_SURFACES = {
@@ -11,6 +13,22 @@ export const PLAN_SURFACES = {
   SIDEBAR: "sidebar",
   SIDEBAR_TRIAL_EXPIRED: "sidebar_trial_expired",
   GEO_PAYWALL: "geo_paywall",
+  STUDIO_PAYWALL: "studio_paywall",
+} as const;
+
+export const UPGRADE_DIALOG_EVENTS = {
+  geo: {
+    kind: PAYWALL_KINDS.GEO_LOCKED,
+    surface: PLAN_SURFACES.GEO_PAYWALL,
+  },
+  sidebar: {
+    kind: PAYWALL_KINDS.UPGRADE_CARD,
+    surface: PLAN_SURFACES.SIDEBAR,
+  },
+  studio: {
+    kind: PAYWALL_KINDS.STUDIO_LOCKED,
+    surface: PLAN_SURFACES.STUDIO_PAYWALL,
+  },
 } as const;
 
 export const BILLING_INTERVALS = {
@@ -55,6 +73,8 @@ export const WORKOS_AUTH_METHOD_TO_ANALYTICS: Record<
 export const LOGIN_ERROR_CODES = {
   PASSWORD_REJECTED: "password_rejected",
   VERIFICATION_REJECTED: "verification_rejected",
+  MFA_REJECTED: "mfa_rejected",
+  BACKUP_CODE_REJECTED: "backup_code_rejected",
 } as const;
 
 export const PASSWORD_RESET_OUTCOMES = {

@@ -1,19 +1,18 @@
 import { calculateAiCreditCostCents } from "@notra/ai/billing/ai-credit-cost";
 import { autumn } from "@notra/ai/billing/autumn";
 import { FEATURES } from "@notra/ai/billing/features";
-import { startChatAbortPolling } from "@notra/ai/chat/abort-polling";
-import {
-  clearActiveChatStream,
-  clearChatAbortFlag,
-  replaceChatHistory,
-} from "@notra/ai/chat/history";
+import { replaceChatHistory } from "@notra/ai/chat/history";
+import { createChatStreamLifecycle } from "@notra/ai/chat/stream-lifecycle";
 import { getGitHubToolRepositoryContextByIntegrationId } from "@notra/ai/integrations/github";
 import { getLinearToolContextByIntegrationId } from "@notra/ai/integrations/linear";
 import { orchestrateStandaloneChat } from "@notra/ai/orchestration/orchestrate-standalone";
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
+import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
+import { withChatStreamCleanup } from "@notra/ai/utils/with-chat-stream-cleanup";
 import { createUIMessageStreamResponse, toUIMessageStream } from "ai";
 import { nanoid } from "nanoid";
 
@@ -44,34 +43,14 @@ export async function createDirectStandaloneChatResponse({
     throw new Error("Latest message must include an id");
   }
 
-  const redisAbortController = new AbortController();
-  const stopAbortPolling = startChatAbortPolling({
+  const lifecycle = await createChatStreamLifecycle({
     organizationId,
     chatId,
     streamId,
-    onAbort: () => redisAbortController.abort(),
+    abortSignal,
   });
-
-  const onRequestAbort = () => redisAbortController.abort();
-  abortSignal?.addEventListener("abort", onRequestAbort, { once: true });
-
-  const combinedAbortSignal = abortSignal
-    ? AbortSignal.any([abortSignal, redisAbortController.signal])
-    : redisAbortController.signal;
-
-  let cleanedUp = false;
-  const cleanup = async () => {
-    if (cleanedUp) {
-      return;
-    }
-    cleanedUp = true;
-    stopAbortPolling();
-    abortSignal?.removeEventListener("abort", onRequestAbort);
-    await Promise.allSettled([
-      clearChatAbortFlag(organizationId, chatId, streamId),
-      clearActiveChatStream(organizationId, chatId, streamId),
-    ]);
-  };
+  const combinedAbortSignal = lifecycle.signal;
+  const cleanup = lifecycle.close;
 
   const streamStartedAt = Date.now();
   let firstChunkAt: number | null = null;
@@ -81,6 +60,7 @@ export async function createDirectStandaloneChatResponse({
     const { stream, routingDecision } = await orchestrateStandaloneChat(
       {
         organizationId,
+        chatId,
         messages: messages as never,
         context,
         maxSteps: 50,
@@ -145,23 +125,29 @@ export async function createDirectStandaloneChatResponse({
               },
             });
           } catch (trackError) {
-            console.error("[Autumn] Track error after standalone chat:", {
-              requestId,
-              customerId: organizationId,
-              error: trackError,
-            });
+            logError(
+              "[Autumn] Track failed after standalone chat",
+              trackError,
+              {
+                chatRequestId: requestId,
+                organizationId,
+                chatId,
+              }
+            );
           }
         },
         log,
       }
     );
 
+    const activityTiming = createChatActivityTimingTracker(messages.at(-1));
     const uiStream = toUIMessageStream({
       stream: stream.stream,
       originalMessages: messages as never,
       generateMessageId: nanoid,
       sendReasoning: enableThinking !== false,
       messageMetadata: ({ part }) => {
+        const activityTimings = activityTiming.record(part);
         const effectiveThinkingLevel =
           enableThinking === false
             ? "off"
@@ -181,6 +167,7 @@ export async function createDirectStandaloneChatResponse({
 
         if (part.type === "finish") {
           return buildChatFinishMetadata({
+            activityTimings: activityTiming.timings,
             streamStartedAt,
             firstChunkAt,
             finishedAt: Date.now(),
@@ -193,37 +180,38 @@ export async function createDirectStandaloneChatResponse({
           });
         }
 
-        return;
+        return activityTimings ? { activityTimings } : undefined;
       },
       onEnd: async ({ messages: responseMessages }) => {
-        try {
-          const saved = await replaceChatHistory(
-            organizationId,
-            chatId,
-            responseMessages,
-            undefined,
-            streamId
+        const saved = await replaceChatHistory(
+          organizationId,
+          chatId,
+          responseMessages,
+          undefined,
+          streamId
+        );
+        if (!saved) {
+          logWarn(
+            "[Standalone Chat] Skipped saving response: chat was deleted",
+            {
+              chatRequestId: requestId,
+              organizationId,
+              chatId,
+            }
           );
-          if (!saved) {
-            console.warn(
-              "[Standalone Chat] Skipped saving response: chat was deleted",
-              { requestId, organizationId, chatId }
-            );
-          }
-        } finally {
-          await cleanup();
         }
       },
       onError: (error) => {
-        cleanup().catch(() => undefined);
-        console.error("[Standalone Chat] Direct stream error:", {
-          requestId,
-          error,
-        });
-        if (
+        const isAbort =
           combinedAbortSignal.aborted ||
-          (error instanceof Error && error.name === "AbortError")
-        ) {
+          (error instanceof Error && error.name === "AbortError");
+        logError("[Standalone Chat] Direct stream error", error, {
+          chatRequestId: requestId,
+          organizationId,
+          chatId,
+          aborted: isAbort,
+        });
+        if (isAbort) {
           return "Generation stopped.";
         }
         return "An error occurred while processing your request.";
@@ -232,7 +220,7 @@ export async function createDirectStandaloneChatResponse({
 
     return createUIMessageStreamResponse({
       headers: { "X-Chat-Id": chatId },
-      stream: uiStream,
+      stream: withChatStreamCleanup(uiStream, cleanup),
     });
   } catch (error) {
     await cleanup();

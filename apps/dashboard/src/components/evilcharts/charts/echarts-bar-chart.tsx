@@ -13,6 +13,7 @@ import {
 import type { ComposeOption, ImagePatternObject } from "echarts/core";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { useLocale } from "use-intl";
 import { motion, useReducedMotion } from "motion/react";
 import { tween } from "@notra/ui/lib/motion";
 import {
@@ -29,6 +30,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { withLocaleTooltip } from "@/utils/chart-locale";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import {
   Brush,
@@ -64,6 +66,7 @@ import {
   tooltipBaseOption,
   tooltipShell,
 } from "@/components/evilcharts/ui/echarts-tooltip";
+import { withTooltipSizeMotion } from "@/utils/chart-tooltip-size";
 import type {
   ChartConfig,
   ChartMarker,
@@ -1046,6 +1049,9 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
     const label = String(axisValue);
 
     const items: TooltipBodyItem[] = [];
+    // Zero rows are hidden so multi-series tooltips stay short, but a column
+    // that is zero everywhere still needs a body, not just its label.
+    const zeroItems: TooltipBodyItem[] = [];
     for (const param of rows) {
       const p = param as {
         seriesId?: string;
@@ -1069,14 +1075,14 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
             ? " opacity-30"
             : "";
       const numeric = echartsDatumValue(p.value);
-      if (numeric === null || numeric <= 0) {
+      if (numeric === null) {
         continue;
       }
       const formatted = formatTooltipValue(
         numeric,
         tooltipSlot.valueFormatter
       );
-      items.push({
+      (numeric > 0 ? items : zeroItems).push({
         key,
         colorsCount,
         labelText,
@@ -1090,7 +1096,7 @@ function createTooltipFormatter(ctx: OptionBuildContext) {
     return tooltipShell({
       label,
       body: composeTooltipBody(
-        items,
+        items.length > 0 ? items : zeroItems,
         tooltipSlot.layout,
         tooltipSlot.barMax
       ),
@@ -1118,7 +1124,7 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
       strokeWidth: STROKE_WIDTH,
       pointer: tooltipSlot.pointer,
     }),
-    formatter: createTooltipFormatter(ctx),
+    formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
 
@@ -1970,7 +1976,11 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
   const [hoveredDataKey, setHoveredDataKey] = useState<string | null>(null);
 
   // ── Declarative config, collected from children by reference ─────────────────
-  const collected = useMemo(() => collectConfig(children), [children]);
+  const locale = useLocale();
+  const collected = useMemo(
+    () => withLocaleTooltip(collectConfig(children), locale),
+    [children, locale]
+  );
   const {
     bars,
     xAxis: xAxisSlot,
@@ -1991,7 +2001,15 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
 
   // Category axis is x when vertical, y when horizontal; value axis the other.
   const categorySlot = isHorizontal ? yAxisSlot : xAxisSlot;
-  const valueSlot = isHorizontal ? xAxisSlot : yAxisSlot;
+  const valueSlot = useMemo(() => {
+    const slot = isHorizontal ? xAxisSlot : yAxisSlot;
+    return {
+      ...slot,
+      tickFormatter:
+        slot.tickFormatter ??
+        ((value: string) => Number(value).toLocaleString(locale)),
+    };
+  }, [isHorizontal, xAxisSlot, yAxisSlot, locale]);
 
   const seriesKeys = useMemo(() => bars.map((bar) => bar.dataKey), [bars]);
 

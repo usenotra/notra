@@ -5,6 +5,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
 import type { BrandIdentityWorkspaceProps } from "@/types/brand-identity";
@@ -43,6 +44,7 @@ export function BrandIdentityWorkspace({
   uiState,
   voices,
 }: BrandIdentityWorkspaceProps) {
+  const t = useTranslations("brand.identity.analysisAlert");
   const initialData = getBrandFormInitialData(selectedVoice);
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -101,17 +103,11 @@ export function BrandIdentityWorkspace({
         {isAnalyzing || progressError ? (
           <Alert variant={progressError ? "destructive" : "default"}>
             <AlertTitle>
-              {progressError
-                ? "Brand analysis failed"
-                : "Brand analysis is running"}
+              {progressError ? t("failedTitle") : t("runningTitle")}
             </AlertTitle>
             <AlertDescription>
               <div className="space-y-3">
-                <p>
-                  {progressError
-                    ? progressError
-                    : "We are extracting the website details now. The form updates automatically as soon as the analysis finishes."}
-                </p>
+                <p>{progressError ? progressError : t("runningDescription")}</p>
                 {isAnalyzing ? (
                   <AnalysisStepper progress={effectiveProgress} />
                 ) : null}

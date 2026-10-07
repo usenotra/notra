@@ -28,7 +28,7 @@ The **Improve** group of the GEO sidebar turns scan results into work. **Content
 
 ## Content gaps
 
-The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, switchable with the **Gap type** control, plus a text filter and an **All engines** filter.
+The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, switchable with the **Gap type** control, plus a text filter and an **All engines** filter. Results update after a GEO scan, a Search Console sync, or a change to a gap or tracked prompt. A background job also refreshes older results so answers outside the rolling 30-day window expire without recalculating on page load.
 
 ### Prompt gaps
 
@@ -43,7 +43,7 @@ The table columns are **Content** (the prompt, with its title when one exists), 
 
 ### Search gaps
 
-A search gap is a Google Search Console query suggestion that you have not turned into a tracked prompt yet. The table shows **Content** and **Impressions** (the sum of impressions across the queries behind the suggestion). Search gaps require the Search Console connection on the [Prompts page](/geo/prompts-and-competitors#search-console-suggestions); without it the page says **No search gaps** with "Connect Search Console on Prompts to pull queries you don't cover yet."
+A search gap comes from either a Google Search Console query suggestion or a web search an AI engine ran while answering a tracked prompt. Both appear in one Search Gaps table; matching queries share one row with both signals. Console suggestions show Google impressions and a suggested action; AI searches show the number of uncovered scan answers and the engines that searched. AI searches from answers that mention your brand or cite your own site are excluded. Connect Search Console on the [Prompts page](/geo/prompts-and-competitors#search-console-suggestions) to add its suggestions.
 
 ### Empty states
 
@@ -136,7 +136,7 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/briefs \
   Up to 8 ids; only the first is used and it overrides the project's brand identity.
 </ParamField>
 <ParamField body="competitorIds" type="string[]">
-  Up to 25 tracked competitor ids to position against.
+  Tracked competitor ids to position against. The brief uses at most 25 of them, preferring the ones named in the evidence and then the ones AI engines recommend most.
 </ParamField>
 <ParamField body="sitemapId" type="string">
   Sitemap whose pages the planner may link to.

@@ -1,7 +1,6 @@
 import {
   executeGeoAdhocScan,
   failStaleGeoAdhocScans,
-  interruptQueuedGeoAdhocScans,
 } from "@notra/geo-core/geo/adhoc-scan";
 import {
   describeGeoCause,
@@ -22,7 +21,7 @@ export class RunQueue extends Context.Service<
   {
     /** False when the backlog is full; the scan stays `queued` for a retry. */
     readonly offer: (scanId: string) => Effect.Effect<boolean>;
-    /** Stop offers, then fail scans still sitting in this process's backlog. */
+    /** Stop offers and clear the local backlog; shared queued rows remain retryable. */
     readonly drain: () => Effect.Effect<void>;
   }
 >()("geo-runner/RunQueue") {}
@@ -99,14 +98,8 @@ export const runQueueLive = Layer.effect(
           for (const scanId of remaining) {
             pending.delete(scanId);
           }
-          yield* interruptQueuedGeoAdhocScans(remaining).pipe(
-            Effect.catchCause((cause) =>
-              geoLogError({
-                event: "geo.runner.drain_failed",
-                ...describeGeoCause(cause),
-              }).pipe(Effect.andThen(flushGeoLogEffect))
-            )
-          );
+          // A retry may have queued the same row on another replica. Only an
+          // executing worker owns a claim; the local backlog owns no DB state.
         }),
     });
   })

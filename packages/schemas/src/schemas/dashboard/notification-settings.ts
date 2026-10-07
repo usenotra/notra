@@ -7,7 +7,6 @@ export const updateNotificationSettingsSchema = z.object({
   scheduledContentCreation: z.boolean().optional(),
   scheduledContentFailed: z.boolean().optional(),
   scheduledContentSkipped: z.boolean().optional(),
-  marketingEmails: z.boolean().optional(),
   dailySummary: z.boolean().optional(),
 });
 
@@ -21,4 +20,8 @@ export const updateNotificationSettingsInputSchema =
 export const onboardingNotificationPrefsSchema = z.object({
   dailySummary: z.boolean(),
   marketingEmails: z.boolean(),
+});
+
+export const updateMarketingEmailsInputSchema = z.object({
+  enabled: z.boolean(),
 });

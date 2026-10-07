@@ -3,15 +3,8 @@ import { describe, expect, mock, test } from "bun:test";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { Effect } from "effect";
 
-import {
-  FeedbackOrganizationNotFoundError,
-  FeedbackProjectNotFoundError,
-} from "../src/errors/feedback";
-import {
-  listFeedback,
-  resolveOrganizationIdBySlug,
-  submitFeedback,
-} from "../src/programs/feedback";
+import { FeedbackProjectNotFoundError } from "../src/errors/feedback";
+import { listFeedback, submitFeedback } from "../src/programs/feedback";
 import type { AgentFeedbackRow } from "../src/types/feedback";
 
 mock.module("@notra/ai/jobs/feedback-classifier", () => ({
@@ -53,38 +46,6 @@ function feedbackRow(
 }
 
 describe("feedback programs", () => {
-  test("resolveOrganizationIdBySlug returns id for a matching slug", async () => {
-    const db = {
-      query: {
-        organizations: {
-          findFirst: mock(async () => ({ id: "org_a" })),
-        },
-      },
-    };
-
-    const organizationId = await Effect.runPromise(
-      resolveOrganizationIdBySlug({ db, slug: "Acme" })
-    );
-
-    expect(organizationId).toBe("org_a");
-  });
-
-  test("resolveOrganizationIdBySlug fails when the organization is missing", async () => {
-    const db = {
-      query: {
-        organizations: {
-          findFirst: mock(async () => undefined),
-        },
-      },
-    };
-
-    const failure = await Effect.runPromise(
-      Effect.flip(resolveOrganizationIdBySlug({ db, slug: "missing-org" }))
-    );
-
-    expect(failure).toBeInstanceOf(FeedbackOrganizationNotFoundError);
-  });
-
   test("submitFeedback returns an existing row for a repeated idempotency key", async () => {
     const existing = feedbackRow();
     const db = {

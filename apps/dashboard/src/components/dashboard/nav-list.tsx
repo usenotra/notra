@@ -1,13 +1,13 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GEO_UPGRADE_TOOLTIP } from "@notra/geo-core/constants/geo";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@notra/ui/components/ui/sidebar";
+import { useTranslations } from "use-intl";
 
 import type { NavListProps } from "@/types/components/nav";
 import { geoNavHref, isGeoDashboardPath } from "@/utils/geo-paths";
@@ -25,6 +25,8 @@ export function NavList({
   geoLocked = false,
   visibility,
 }: NavListProps) {
+  const t = useTranslations("nav");
+  const tLabels = useTranslations("common.labels");
   const items = resolveNavItems(links, visibility);
 
   if (items.length === 0) {
@@ -35,6 +37,7 @@ export function NavList({
     <SidebarMenu>
       {items.map((item) => {
         const isGeoItem = isGeoDashboardPath(item.link);
+        const label = tLabels(item.labelKey);
         return (
           <SidebarMenuItem key={item.link}>
             <SidebarMenuButton
@@ -42,21 +45,21 @@ export function NavList({
               render={
                 <SidebarNavLink href={geoNavHref(slug, item.link, projectId)}>
                   <HugeiconsIcon icon={item.icon} />
-                  <SidebarLabel>{item.label}</SidebarLabel>
+                  <SidebarLabel>{label}</SidebarLabel>
                   {item.badge && (
                     <Badge
                       className="text-muted-foreground ml-auto h-[1.125rem] px-[0.375rem] text-[0.625rem] group-data-[collapsible=icon]:hidden"
                       variant="secondary"
                     >
-                      {item.badge}
+                      {t(`badges.${item.badge}`)}
                     </Badge>
                   )}
                   {geoLocked && isGeoItem && (
-                    <NavLockHint message={GEO_UPGRADE_TOOLTIP} />
+                    <NavLockHint message={t("geoUpgradeTooltip")} />
                   )}
                 </SidebarNavLink>
               }
-              tooltip={item.label}
+              tooltip={label}
             />
           </SidebarMenuItem>
         );

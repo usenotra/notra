@@ -1,6 +1,9 @@
 import { runGeoWriter } from "@notra/ai/agents/geo-writer";
+
+import "@/workflows/runtime";
 import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { GeoWriterResult } from "@notra/ai/types/geo-writer";
+import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   brandSettings,
@@ -12,8 +15,10 @@ import {
   GEO_WRITER_TRIGGER_ID,
   GEO_WRITER_TRIGGER_NAME,
 } from "@notra/geo-core/constants/geo";
+import { refreshGeoContentGaps } from "@notra/geo-core/geo/gaps";
 import { briefProvenanceMetadata } from "@notra/geo-core/geo/writer";
 import { and, eq } from "drizzle-orm";
+import { Effect } from "effect";
 
 import {
   trackGeoWriterCompleted,
@@ -171,6 +176,12 @@ export async function finishGeoWriter(input: {
     )
     .returning({ startedAt: geoContentBriefs.startedAt });
 
+  try {
+    await Effect.runPromise(refreshGeoContentGaps(input));
+  } catch (error) {
+    logError("[GEO] Could not refresh content gaps after writing", error);
+  }
+
   await completeActiveGeneration(input.organizationId, {
     runId: input.runId,
     triggerId: GEO_WRITER_TRIGGER_ID,
@@ -215,6 +226,12 @@ export async function failGeoWriter(input: {
       )
     )
     .returning({ startedAt: geoContentBriefs.startedAt });
+
+  try {
+    await Effect.runPromise(refreshGeoContentGaps(input));
+  } catch (error) {
+    logError("[GEO] Could not refresh content gaps after failure", error);
+  }
 
   await completeActiveGeneration(input.organizationId, {
     runId: input.runId,

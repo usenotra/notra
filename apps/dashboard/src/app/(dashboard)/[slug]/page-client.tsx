@@ -2,17 +2,20 @@
 
 import type { ContentType } from "@notra/ai/schemas/content";
 import type { PostStatus } from "@notra/schemas/dashboard/content";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import Link from "next/link";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ContentCard } from "@/components/content/content-card";
 import { ContentSkeletonCard } from "@/components/content/content-skeleton-card";
 import { LazyCreateContentDialog } from "@/components/content/lazy-create-content-dialog";
+import { HomeFeedbackSection } from "@/components/dashboard/home-feedback-section";
 import { LazyContentActivityCard } from "@/components/dashboard/lazy-content-activity-card";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateCardsPreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PageContainer } from "@/components/layout/container";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { EMPTY_STATE_CARD_COUNT } from "@/constants/empty-state";
@@ -26,6 +29,8 @@ export default function PageClient({
   greetingText,
   organizationSlug,
 }: DashboardHomePageClientProps) {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
   const organization =
@@ -104,10 +109,10 @@ export default function PageClient({
             nativeButton={false}
             render={<Link href={`/${organizationSlug}/content`} />}
           >
-            View content
+            {t("emptyAction")}
           </Button>
         }
-        description="You have no new posts today. Create one now or review your existing drafts on the content page."
+        description={t("emptyDescription")}
         preview={
           <EmptyStateCardsPreview
             columns={3}
@@ -115,7 +120,7 @@ export default function PageClient({
             variant="content"
           />
         }
-        title="No content created today"
+        title={t("emptyTitle")}
       />
     );
   })();
@@ -123,16 +128,14 @@ export default function PageClient({
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{greetingText}</h1>
-        </div>
+        <PageHeading title={greetingText} />
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Today&apos;s Content</h2>
+          <div className="flex flex-col items-start gap-3 @min-[40rem]/main:flex-row @min-[40rem]/main:items-center @min-[40rem]/main:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold">{t("todayTitle")}</h2>
               <p className="text-muted-foreground text-sm">
-                Latest items created today
+                {t("todayDescription")}
               </p>
             </div>
             <LazyCreateContentDialog
@@ -145,11 +148,19 @@ export default function PageClient({
           {todayContent}
         </section>
 
+        <HomeFeedbackSection
+          compact
+          organizationId={organizationId}
+          slug={organizationSlug}
+        />
+
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Content Activity</h2>
+            <h2 className="text-lg font-semibold">
+              {tCommon("labels.contentActivity")}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              Your content creation over the year
+              {t("activityDescription")}
             </p>
           </div>
 

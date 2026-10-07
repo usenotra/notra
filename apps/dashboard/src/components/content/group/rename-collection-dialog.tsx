@@ -8,14 +8,14 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@notra/ui/components/shared/responsive-dialog";
-import { Button } from "@notra/ui/components/ui/button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
+import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { RenameCollectionDialogProps } from "@/types/content/collection";
 
@@ -26,6 +26,10 @@ export function RenameCollectionDialog({
   open,
   onOpenChange,
 }: RenameCollectionDialogProps) {
+  const t = useTranslations("content.collections.renameDialog");
+  const tContentShared = useTranslations("content.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const inputId = useId();
   const queryClient = useQueryClient();
   const [name, setName] = useState(currentName);
@@ -58,11 +62,11 @@ export function RenameCollectionDialog({
           }),
         }),
       ]);
-      toast.success("Collection renamed");
+      toast.success(t("renamed"));
       onOpenChange(false);
     },
     onError: () => {
-      toast.error("Failed to rename collection");
+      toast.error(t("renameFailed"));
     },
   });
 
@@ -82,15 +86,16 @@ export function RenameCollectionDialog({
     <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Rename collection</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {tContentShared("renameCollection")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Give this collection a name that is easy to recognize. It will not
-            be overwritten by automatic naming.
+            {t("description")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
         <div className="space-y-2 py-4">
-          <Label htmlFor={inputId}>Name</Label>
+          <Label htmlFor={inputId}>{tCommon2("labels.name")}</Label>
           <Input
             id={inputId}
             onChange={(event) => setName(event.target.value)}
@@ -110,17 +115,14 @@ export function RenameCollectionDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
-          <Button disabled={!canSubmit} onClick={handleSubmit}>
-            {rename.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
+          <Button
+            disabled={!canSubmit}
+            loading={rename.isPending}
+            onClick={handleSubmit}
+          >
+            {tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

@@ -17,7 +17,7 @@ export class InternalDashboardService extends Context.Service<
   InternalDashboardOperations
 >()("api/InternalDashboard") {}
 
-export function internalDashboardLayer(deps: InternalDashboardDependencies) {
+function internalDashboardLayer(deps: InternalDashboardDependencies) {
   return Layer.succeed(
     InternalDashboardService,
     InternalDashboardService.of({
@@ -100,7 +100,7 @@ export function internalDashboardLayer(deps: InternalDashboardDependencies) {
 export const internalDashboardLive = internalDashboardLayer({
   request: (input, init) => fetch(input, init),
   credentials: Effect.gen(function* () {
-    const secret = yield* Config.redacted("INTERNAL_WORKFLOW_SECRET").pipe(
+    const secret = yield* Config.Redacted("INTERNAL_WORKFLOW_SECRET").pipe(
       Config.withDefault(Redacted.make("")),
       Effect.map(Redacted.value),
       Effect.mapError(

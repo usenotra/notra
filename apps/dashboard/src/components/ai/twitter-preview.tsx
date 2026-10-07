@@ -21,19 +21,20 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { Effect } from "effect";
-import { Loader2Icon } from "lucide-react";
 import { useEffect, useReducer } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { TwitterPost } from "@/components/twitter-post";
+import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { useSelectedSocialAccount } from "@/lib/hooks/use-selected-social-account";
 import type {
   PreviewEffectiveState,
   SocialPreviewProps,
 } from "@/types/content/ai-preview";
-import { getOutputTypeLabel, OutputTypeIcon } from "@/utils/output-types";
+import { OutputTypeIcon } from "@/utils/output-types";
 import { socialPreviewReducer } from "@/utils/social-preview-reducer";
 import { twitterAuthorFromAccount } from "@/utils/twitter";
 
@@ -50,6 +51,9 @@ export function TwitterPreview({
   onPublished,
   onRegenerate,
 }: SocialPreviewProps) {
+  const t = useTranslations("ai.preview");
+  const tCommon = useTranslations("common");
+  const outputTypeLabel = useOutputTypeLabel();
   const [
     {
       userAction,
@@ -78,7 +82,7 @@ export function TwitterPreview({
   const author = selectedAccount
     ? twitterAuthorFromAccount(selectedAccount)
     : {
-        name: organization?.name ?? "Your Name",
+        name: organization?.name ?? tCommon("labels.yourName"),
         avatar: organization?.logo ?? undefined,
         handle: (organization?.name ?? "yourname")
           .toLowerCase()
@@ -108,7 +112,7 @@ export function TwitterPreview({
   const handleApprove = () => {
     dispatch({ type: "userActionChanged", userAction: "saving" });
     dispatch({ type: "openChanged", open: false });
-    const toastId = toast.loading("Saving draft...");
+    const toastId = toast.loading(t("savingDraft"));
     const save = Effect.tryPromise({
       try: async () => {
         if (onPersist) {
@@ -121,19 +125,19 @@ export function TwitterPreview({
         onApprove?.();
       },
       catch: (cause) =>
-        cause instanceof Error ? cause : new Error("Failed to save draft"),
+        cause instanceof Error ? cause : new Error(t("saveDraftFailed")),
     });
     Effect.runFork(
       save.pipe(
         Effect.match({
           onSuccess: () => {
             dispatch({ type: "userActionChanged", userAction: "none" });
-            toast.success("Saved as draft", { id: toastId });
+            toast.success(t("savedAsDraft"), { id: toastId });
           },
           onFailure: (error) => {
             dispatch({ type: "userActionChanged", userAction: "save-failed" });
             dispatch({ type: "openChanged", open: true });
-            toast.error(error.message || "Failed to save draft", {
+            toast.error(error.message || t("saveDraftFailed"), {
               id: toastId,
             });
           },
@@ -144,7 +148,7 @@ export function TwitterPreview({
 
   const handleDeny = () => {
     onDeny?.();
-    toast("Canceled");
+    toast(tCommon("labels.canceled"));
   };
 
   const handleRegenerate = () => {
@@ -154,7 +158,7 @@ export function TwitterPreview({
       return;
     }
     dispatch({ type: "userActionChanged", userAction: "generating" });
-    toast("Generating post...");
+    toast(t("generatingPostToast"));
     onRegenerate?.(instructions, {
       title,
       markdown: draftMarkdown,
@@ -182,15 +186,15 @@ export function TwitterPreview({
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               {showStatusBadge && (
                 <Badge className="text-[0.625rem]" variant="outline">
-                  {persistedStatus}
+                  {t(`status.${persistedStatus}`)}
                 </Badge>
               )}
               <Badge
-                className="flex items-center gap-1 text-[0.625rem] capitalize"
+                className="flex items-center gap-1 text-[0.625rem]"
                 variant="secondary"
               >
                 <OutputTypeIcon className="size-3" outputType="twitter_post" />
-                {getOutputTypeLabel("twitter_post")}
+                {outputTypeLabel("twitter_post")}
               </Badge>
             </div>
           </CollapsibleTrigger>
@@ -215,7 +219,7 @@ export function TwitterPreview({
                             draftMarkdown: value,
                           })
                   }
-                  timestamp="Just now"
+                  timestamp={tCommon("labels.justNow")}
                 />
               </div>
               {regenerateOpen && !isFinished && (
@@ -233,7 +237,7 @@ export function TwitterPreview({
                       handleRegenerate();
                     }
                   }}
-                  placeholder="What should change?"
+                  placeholder={t("regeneratePlaceholder")}
                   value={regenerateInstructions}
                 />
               )}
@@ -244,7 +248,11 @@ export function TwitterPreview({
             <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
               {userAction === "generating" && (
                 <div className="text-muted-foreground mr-auto flex min-w-0 items-center gap-2 text-xs">
-                  <BrailleLoader className="text-xs" label="Generating post" />
+                  <BrailleLoader
+                    className="text-xs"
+                    ariaLabel={t("generatingPost")}
+                    label={t("generatingPost")}
+                  />
                 </div>
               )}
               {effectiveState === "draft" && (
@@ -253,7 +261,7 @@ export function TwitterPreview({
                     <TooltipTrigger
                       render={
                         <Button
-                          aria-label="Regenerate"
+                          aria-label={tCommon("labels.regenerate")}
                           onClick={() =>
                             dispatch({ type: "regenerateOpenToggled" })
                           }
@@ -267,35 +275,28 @@ export function TwitterPreview({
                         icon={ArrowReloadHorizontalIcon}
                       />
                     </TooltipTrigger>
-                    <TooltipContent>Regenerate</TooltipContent>
+                    <TooltipContent>
+                      {tCommon("labels.regenerate")}
+                    </TooltipContent>
                   </Tooltip>
                   <Button onClick={handleDeny} size="sm" variant="ghost">
                     <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-                    Discard
+                    {tCommon("labels.discard")}
                   </Button>
                 </div>
               )}
               <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <Button
-                  disabled={effectiveState === "loading"}
+                  loading={effectiveState === "loading"}
                   onClick={handleApprove}
                   size="sm"
                   variant="outline"
                 >
-                  {effectiveState === "loading" ? (
-                    <>
-                      <Loader2Icon className="size-4 animate-spin" />
-                      Saving
-                    </>
-                  ) : (
-                    <>
-                      <HugeiconsIcon
-                        className="size-4"
-                        icon={CheckmarkSquare01Icon}
-                      />
-                      Save as draft
-                    </>
-                  )}
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={CheckmarkSquare01Icon}
+                  />
+                  {t("saveAsDraft")}
                 </Button>
                 <PostSocialButton
                   className="max-w-full"

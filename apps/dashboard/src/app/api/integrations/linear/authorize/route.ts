@@ -1,14 +1,14 @@
 import { redis } from "@notra/ai/utils/redis";
+import { logError } from "@notra/ai/utils/server-log";
 import { linearAuthorizeQuerySchema } from "@notra/schemas/dashboard/linear";
 import { ORPCError } from "@orpc/server";
-import { type NextRequest, NextResponse } from "next/server";
 
 import { LINEAR_OAUTH_STATE_TTL_SECONDS } from "@/constants/linear";
+import { redirectResponse } from "@/lib/auth/http";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { linearOAuthErrorParam } from "@/lib/integrations/linear/oauth-errors";
 
-// react-doctor-disable-next-line nextjs-no-side-effect-in-get-handler
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   try {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       const errorParam = missingOrganization
         ? "missing_organization"
         : "invalid_request";
-      return NextResponse.redirect(`${baseUrl}/?error=${errorParam}`);
+      return redirectResponse(`${baseUrl}/?error=${errorParam}`);
     }
 
     const { organizationId, callbackPath } = parsed.data;
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       userId = access.user.id;
     } catch (error) {
       if (error instanceof ORPCError) {
-        return NextResponse.redirect(
+        return redirectResponse(
           `${baseUrl}/?error=${linearOAuthErrorParam(error.status)}`
         );
       }
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     const clientId = process.env.LINEAR_CLIENT_ID;
     if (!clientId || !redis) {
-      return NextResponse.redirect(`${baseUrl}/?error=linear_not_configured`);
+      return redirectResponse(`${baseUrl}/?error=linear_not_configured`);
     }
 
     const state = crypto.randomUUID();
@@ -72,9 +72,9 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("prompt", "consent");
 
-    return NextResponse.redirect(authUrl.toString());
+    return redirectResponse(authUrl.toString());
   } catch (error) {
-    console.error("Error initiating Linear OAuth:", error);
-    return NextResponse.redirect(`${baseUrl}/?error=linear_auth_failed`);
+    logError("Error initiating Linear OAuth", error);
+    return redirectResponse(`${baseUrl}/?error=linear_auth_failed`);
   }
 }

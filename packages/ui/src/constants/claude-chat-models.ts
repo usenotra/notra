@@ -5,12 +5,12 @@ import type {
   ClaudeChatModelOption,
 } from "../types/claude-chat";
 
-export const CLAUDE_CHAT_DEFAULT_MODEL: ClaudeChatModelId = "opus-5";
+export const CLAUDE_CHAT_DEFAULT_MODEL: ClaudeChatModelId = "opus-5.5";
 export const CLAUDE_CHAT_DEFAULT_EFFORT: ClaudeChatEffortId = "hoch";
 
-export const CLAUDE_CHAT_OPUS_5_MODEL: ClaudeChatModelOption = {
-  id: "opus-5",
-  label: "Opus 5",
+export const CLAUDE_CHAT_OPUS_5_5_MODEL: ClaudeChatModelOption = {
+  id: "opus-5.5",
+  label: "Opus 5.5",
   description: "Für komplexe Aufgaben",
   group: "latest",
 };
@@ -22,7 +22,13 @@ export const CLAUDE_CHAT_HOCH_EFFORT: ClaudeChatEffortOption = {
 };
 
 export const CLAUDE_CHAT_MODELS: readonly ClaudeChatModelOption[] = [
-  CLAUDE_CHAT_OPUS_5_MODEL,
+  CLAUDE_CHAT_OPUS_5_5_MODEL,
+  {
+    id: "opus-5",
+    label: "Opus 5",
+    description: "Vorherige Opus-Generation",
+    group: "previous",
+  },
   {
     id: "fable-5",
     label: "Fable 5",

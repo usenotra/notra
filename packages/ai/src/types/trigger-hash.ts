@@ -22,4 +22,6 @@ export interface TriggerHashInput extends TriggerConfigInput {
   lookbackWindow?: string;
   /** Per-schedule brief. Two otherwise identical schedules with different briefs are distinct. */
   instructions?: string;
+  /** Selected brand voice. Two otherwise identical schedules with different voices are distinct. */
+  brandVoiceId?: string;
 }

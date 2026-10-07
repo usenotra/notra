@@ -1,11 +1,12 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import { TestimonialCarousel } from "@/components/auth/testimonial-carousel";
 import { AUTH_SPLIT_PANEL_MIN_WIDTH } from "@/constants/auth-split-panel";
+import dynamic from "@/utils/lazy-component";
+import { supportsWebGL } from "@/utils/supports-webgl";
 
 // Shader background: client-only and skipped entirely for reduced motion, so the
 // WebGL bundle never reaches the auth forms' critical path.
@@ -18,6 +19,15 @@ const Dithering = dynamic(
 const DITHERING_SCALE = 0.74;
 const DITHERING_SIZE = 11;
 const DITHERING_SPEED = 0.5;
+
+let webGLSupport: boolean | undefined;
+
+// Only called once the panel mounts, which happens after the media query
+// effect, so it never runs on the server.
+function canRenderShader() {
+  webGLSupport ??= supportsWebGL(document.createElement("canvas"));
+  return webGLSupport;
+}
 
 export function AuthBrandPanel() {
   const shouldReduceMotion = useReducedMotion();
@@ -41,10 +51,10 @@ export function AuthBrandPanel() {
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[linear-gradient(200deg,#a78bfa_0%,#7c3aed_55%,#5b21b6_100%)] p-14">
-      {shouldReduceMotion ? null : (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {shouldReduceMotion || !canRenderShader() ? null : (
+        <div className="[container-type:size] pointer-events-none absolute inset-0 overflow-hidden">
           <Dithering
-            className="absolute top-[56.875rem] left-[calc(100%-38.75rem)] h-[49.0625rem] w-[56.625rem] origin-top-left rotate-[270deg] opacity-30"
+            className="absolute top-full left-0 h-[100cqw] w-[100cqh] origin-top-left rotate-[270deg] opacity-30"
             colorBack="#00000000"
             colorFront="#ffffff3d"
             scale={DITHERING_SCALE}

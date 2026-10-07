@@ -14,11 +14,8 @@ import type {
   GeoTrackedPrompt,
 } from "@notra/geo-core/types/geo";
 
-import type {
-  GeoOverviewPageReady,
-  GeoRangeControl,
-  ScanPreflightDialogProps,
-} from "@/types/geo";
+import type { GeoOverviewPageReady, GeoRangeControl } from "@/types/geo";
+import type { GeoScanModelMenuProps } from "@/types/geo-scan-activity";
 
 export function countEnabledGeoPrompts(
   prompts: readonly GeoTrackedPrompt[] | undefined
@@ -28,6 +25,40 @@ export function countEnabledGeoPrompts(
   }
 
   return prompts.filter((prompt) => prompt.enabled).length;
+}
+
+export function geoOverviewQueriesEnabled(
+  organizationId: string,
+  isSettingsPending: boolean,
+  hasSettings: boolean
+): boolean {
+  return Boolean(organizationId) && !isSettingsPending && hasSettings;
+}
+
+export function geoOverviewTabEnabled(
+  queriesEnabled: boolean,
+  activeTab: GeoTab,
+  tab: GeoTab
+): boolean {
+  return queriesEnabled && activeTab === tab;
+}
+
+export function geoJourneysTabLoading(input: {
+  activeTab: GeoTab;
+  isJourneysPending: boolean;
+  isJourneyStatsPending: boolean;
+  isJourneysPlaceholder: boolean;
+  isJourneyStatsPlaceholder: boolean;
+}): boolean {
+  if (input.activeTab !== "journeys") {
+    return false;
+  }
+  return (
+    input.isJourneysPending ||
+    input.isJourneyStatsPending ||
+    input.isJourneysPlaceholder ||
+    input.isJourneyStatsPlaceholder
+  );
 }
 
 export function toGeoOverviewReadyPage(input: {
@@ -48,15 +79,13 @@ export function toGeoOverviewReadyPage(input: {
   promptResults: GeoPromptResultSummary[] | undefined;
   promptCount: number | undefined;
   journeys: GeoJourney[] | undefined;
+  journeysFailed: boolean;
   journeyStats: GeoJourneyStatsResponse | undefined;
   journeyStatsFailed: boolean;
   journeysLoading: boolean;
   isScanning: boolean;
   revealActive: boolean;
-  scanPreflight: Omit<
-    ScanPreflightDialogProps,
-    "engines" | "languages" | "organizationId"
-  >;
+  scanMenu: GeoScanModelMenuProps;
 }): GeoOverviewPageReady {
   const engines = input.engines ?? [];
   const timeseriesPoints = input.timeseriesPoints ?? [];
@@ -76,7 +105,6 @@ export function toGeoOverviewReadyPage(input: {
     geoRange: input.geoRange,
     isScanning: input.isScanning,
     revealActive: input.revealActive,
-    onRunScan: () => input.scanPreflight.onOpenChange(true),
     tabs: {
       promptCount: input.promptCount ?? 0,
       activeTab: input.activeTab,
@@ -93,16 +121,12 @@ export function toGeoOverviewReadyPage(input: {
       promptResults,
       isScanning: input.isScanning,
       journeys,
+      journeysFailed: input.journeysFailed,
       journeyStats: input.journeyStats ?? null,
       journeyStatsFailed: input.journeyStatsFailed,
       journeysLoading: input.journeysLoading,
       organizationId: input.organizationId,
     },
-    scanPreflight: {
-      ...input.scanPreflight,
-      organizationId: input.organizationId,
-      engines: input.settings.engines,
-      languages: input.settings.languages,
-    },
+    scanMenu: input.scanMenu,
   };
 }

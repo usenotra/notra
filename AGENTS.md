@@ -40,7 +40,7 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   with 32+ chars), a base64-encoded **32-byte**
   `INTEGRATION_ENCRYPTION_KEY` (`openssl rand -base64 32`), and the
   `APP_URL` / `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` = `http://localhost:3000`.
-- Most third-party keys are optional and degrade gracefully (Autumn billing, Resend,
+- Most third-party keys are optional and degrade gracefully (Autumn billing, Brew email,
   Redis, R2, integrations). GEO scanning picks up extra engines when their keys are
   set: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PERPLEXITY_API_KEY`, and
   `CURSOR_API_KEY` (Cursor runs locally via `@cursor/sdk`, not through a gateway).
@@ -75,19 +75,21 @@ non-obvious, durable gotchas for working in the Cursor Cloud environment.
   ordering bug — that is expected and does not mean the schema is incomplete.
 
 ### Services (dev)
-- `apps/dashboard` — **core product**, `next dev` on **port 3000**; self-contained
-  (its own oRPC `/rpc`, Better Auth `/api/auth`, chat). Run with
+- `apps/dashboard` — **core product**, TanStack Start with Vite on **port 3000**;
+  self-contained (its own oRPC `/rpc`, WorkOS AuthKit, chat). Run with
   `bun run dev --filter=dashboard`. This is the app to exercise end-to-end.
-- `apps/web` (port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
-  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard),
-  `packages/email` preview (`bun run email:dev`, port 3002) — all optional for the
-  core flow.
+  Production builds use Nitro; `bun run start` in `apps/dashboard` serves
+  `.output/server/index.mjs`. Run type checking separately from `vite build`.
+  Existing `NEXT_PUBLIC_*` deployment variable names remain intentionally.
+- `apps/web` (TanStack Start, port 3001), `apps/docs` (Mintlify, port 3005), `apps/api` (Hono;
+  defaults to port 3000 so set `PORT` to avoid clashing with the dashboard) — all
+  optional for the core flow.
 
 ### Auth note
-- Email/password sign-up works without OAuth/email providers and does not require email
-  verification. The `haveIBeenPwned` plugin rejects breached passwords, so use a strong
-  unique password when signing up during tests.
+- Dashboard email/password and OAuth authentication use WorkOS AuthKit, not
+  Better Auth. Real login, signup, and verification flows require configured
+  WorkOS credentials; do not assume provider-free signup works.
 - Local-dev impersonation is opt-in: `DEV_AUTH_ENABLED=true` plus `DEV_AUTH_EMAIL`,
-  and only for loopback requests. `next dev` binds to `127.0.0.1` so a LAN
+  and only for loopback requests. The Vite dev server binds to `127.0.0.1` so a LAN
   client cannot spoof `Host: localhost`. A missing WorkOS key in development no
   longer auto-authenticates, and tunneled hosts never inherit a database user.

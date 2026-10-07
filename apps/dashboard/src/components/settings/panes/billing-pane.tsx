@@ -2,20 +2,14 @@
 
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useListPlans } from "autumn-js/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { InvoicesTable } from "@/components/billing/invoices-table";
 import { PlanCard } from "@/components/billing/plan-card";
@@ -25,7 +19,8 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import { SettingsPane } from "@/components/settings/settings-pane";
 import { PLAN_SURFACES } from "@/constants/analytics-events";
 import {
-  BILLING_INVOICE_SKELETON_KEYS,
+  BILLING_INVOICE_SKELETON_ROWS,
+  INVOICE_SKELETON_COLUMN_WIDTHS,
   BILLING_PLAN_FEATURE_SKELETON_KEYS,
   BILLING_PLAN_SKELETON_KEYS,
   FEATURED_PLAN_TIER,
@@ -49,6 +44,7 @@ import {
   isAnnualPlanId,
   isPlanInGroup,
   planGroupDescription,
+  planRenewalTerms,
   selectPlanVariant,
   zdrAddonToggle,
 } from "@/utils/billing-plans";
@@ -57,7 +53,7 @@ const noop = () => undefined;
 
 function BillingPlanCardSkeleton() {
   return (
-    <TitleCard heading={<Skeleton className="h-5 w-24" />}>
+    <TitleCard headingAs="div" heading={<Skeleton className="h-5 w-24" />}>
       <div className="space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-full" />
@@ -80,40 +76,19 @@ function BillingPlanCardSkeleton() {
 
 function InvoiceTableSkeleton() {
   return (
-    <div className="border-border/80 border-b-border/40 bg-muted/80 overflow-hidden rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[140px]">Date</TableHead>
-            <TableHead className="w-[40%]">Description</TableHead>
-            <TableHead className="w-[120px]">Amount</TableHead>
-            <TableHead className="w-[120px]">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {BILLING_INVOICE_SKELETON_KEYS.map((key) => (
-            <TableRow key={key}>
-              <TableCell className="w-[140px]">
-                <Skeleton className="h-4 w-20" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-40" />
-              </TableCell>
-              <TableCell className="w-[120px]">
-                <Skeleton className="h-4 w-14" />
-              </TableCell>
-              <TableCell className="w-[120px]">
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTableSkeleton
+      columnWidths={INVOICE_SKELETON_COLUMN_WIDTHS}
+      rows={BILLING_INVOICE_SKELETON_ROWS}
+    />
   );
 }
 
 export function BillingSettingsPane() {
+  const t = useTranslations("settings.panes.billing");
+  const tSettingsShared = useTranslations("settings.shared");
+  const tCommon = useTranslations("common");
+  const tBilling = useTranslations("billing");
+  const locale = useLocale();
   const { activeOrganization } = useOrganizationsContext();
   const { data: plans, isLoading: plansLoading } = useListPlans();
   const {
@@ -206,7 +181,7 @@ export function BillingSettingsPane() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not update billing. Please try again."
+          : tCommon("messages.couldNotUpdateBillingPlease")
       );
     }
     setLoading(null);
@@ -226,7 +201,7 @@ export function BillingSettingsPane() {
       toast.error(
         err instanceof Error
           ? err.message
-          : "Could not open billing portal. Please try again."
+          : tSettingsShared("couldNotOpenBillingPortal")
       );
     }
     setPortalLoading(false);
@@ -239,9 +214,11 @@ export function BillingSettingsPane() {
     .map((group) => group.monthly ?? group.annual)
     .find((plan) => plan?.freeTrial);
   const plansDescription = trialPlan
-    ? `Upgrade or change your plan. ${trialPlan.name} includes a free trial.`
-    : "Upgrade or change your plan.";
-  const intervalLabel = isYearly ? "year" : "month";
+    ? t("plansDescriptionTrial", { plan: trialPlan.name })
+    : t("plansDescription");
+  const intervalLabel = isYearly
+    ? tCommon("labels.year")
+    : tCommon("labels.month");
 
   function renderManageSubscription() {
     if (customerLoading) {
@@ -257,7 +234,7 @@ export function BillingSettingsPane() {
         size="sm"
         variant="outline"
       >
-        {portalLoading ? "Loading..." : "Manage Subscription"}
+        {portalLoading ? tCommon("states.loading") : t("manageSubscription")}
       </Button>
     );
   }
@@ -270,14 +247,17 @@ export function BillingSettingsPane() {
     }
     if (plan.id === activePlanId) {
       return {
-        label: isTrialing ? "Trial Active" : "Current Plan",
+        label: isTrialing ? t("trialActive") : t("currentPlan"),
         disabled: true,
         variant,
         onClick: noop,
       };
     }
     return {
-      label: loading === plan.id ? "Loading..." : getPricingButtonText(plan),
+      label:
+        loading === plan.id
+          ? tCommon("states.loading")
+          : getPricingButtonText(plan, tBilling),
       disabled: loading !== null,
       variant,
       onClick: () => handleCheckout(plan.id),
@@ -296,20 +276,29 @@ export function BillingSettingsPane() {
         action={
           isCurrent ? (
             <Badge variant={isTrialing ? "outline" : "default"}>
-              {isTrialing ? "Trial" : "Current"}
+              {isTrialing ? t("trial") : tCommon("labels.current")}
             </Badge>
           ) : undefined
         }
-        addon={zdrAddonToggle(addonPlan, includeZdr, handleIncludeZdrChange)}
+        addon={zdrAddonToggle(
+          addonPlan,
+          includeZdr,
+          handleIncludeZdrChange,
+          tBilling,
+          locale
+        )}
         button={planButton(group)}
-        description={planGroupDescription(group)}
+        description={planGroupDescription(group, tBilling)}
         featured={group.id === FEATURED_PLAN_TIER}
-        features={getProductFeatures(plan)}
+        features={getProductFeatures(plan, tBilling, locale)}
         highlighted={isCurrent}
         intervalLabel={intervalLabel}
         key={group.id}
         name={group.name}
         price={getProductPrice(plan).amount}
+        renewalTerms={
+          plan.id === activePlanId ? undefined : planRenewalTerms(plan)
+        }
       />
     );
   }
@@ -323,24 +312,24 @@ export function BillingSettingsPane() {
               className="scroll-mt-24 text-lg font-semibold"
               id={PLANS_ANCHOR}
             >
-              Plans
+              {t("plans")}
             </h2>
             <p className="text-muted-foreground text-sm">
-              {isBillingLoading
-                ? "Upgrade or change your plan."
-                : plansDescription}
+              {isBillingLoading ? t("plansDescription") : plansDescription}
             </p>
           </div>
           <Tabs
             onValueChange={handleIntervalChange}
             value={isYearly ? "yearly" : "monthly"}
           >
-            <TabsList aria-label="Billing interval">
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsList aria-label={t("intervalLabel")}>
+              <TabsTrigger value="monthly">
+                {tCommon("labels.monthly")}
+              </TabsTrigger>
               <TabsTrigger className="flex items-center gap-1.5" value="yearly">
-                Yearly
+                {tCommon("labels.yearly")}
                 <Badge size="sm" variant="success">
-                  Save 20%
+                  {t("save")}
                 </Badge>
               </TabsTrigger>
             </TabsList>
@@ -357,12 +346,12 @@ export function BillingSettingsPane() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Add-ons</h2>
+        <h2 className="text-lg font-semibold">{t("addons")}</h2>
         <ZdrAddonCard />
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Invoices</h2>
+        <h2 className="text-lg font-semibold">{t("invoices")}</h2>
         {customerLoading ? (
           <InvoiceTableSkeleton />
         ) : (

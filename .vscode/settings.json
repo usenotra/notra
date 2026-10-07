@@ -24,7 +24,8 @@
   "[graphql]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/typescript",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "emmet.showExpandedAbbreviation": "never",

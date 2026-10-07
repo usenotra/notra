@@ -8,7 +8,7 @@ export const NOTRA_LOGO_PATH = "/notra-mark.svg";
 export const RSS_FEED_PATH = "/rss.xml";
 export const RSS_FEED_TITLE = "Notra Blog RSS Feed";
 export const RSS_FEED_DESCRIPTION =
-  "Insights, guides, and stories from the Notra team.";
+  "Insights, guides and stories from the Notra team.";
 export const RSS_FEED_LANGUAGE = "en-us";
 
 export const BLOG_INDEX_PATH = "/blog";

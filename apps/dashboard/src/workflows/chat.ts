@@ -43,7 +43,11 @@ export async function standaloneChatWorkflow(
     return { status: "duplicate_request" };
   }
 
-  const stream = await resolveChatStreamStep({ organizationId, chatId });
+  const stream = await resolveChatStreamStep({
+    organizationId,
+    chatId,
+    streamId: parseResult.data.streamId,
+  });
   if (stream.status !== "ready") {
     return { status: stream.status };
   }

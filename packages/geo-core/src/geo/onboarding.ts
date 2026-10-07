@@ -19,6 +19,7 @@ import type {
 } from "../types/geo";
 import { resolveTrackedEngines } from "../utils/geo-engines";
 import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import { logGeoFailure } from "../utils/geo-log";
 import { geoEnginesForAudience } from "../utils/geo-model-catalog";
 import { normalizeWebsiteUrl } from "../utils/geo-website";
 import { readGeoCache, writeGeoCache } from "./cache";
@@ -41,6 +42,7 @@ export const saveGeoOnboardingBrand = Effect.fn("geo.onboardingBrand")(
       aliases: input.aliases,
       competitors: [],
       languages: trackedGeoLanguages(input.languages ?? []),
+      promptLanguage: input.promptLanguage,
       engines: resolveTrackedEngines(
         catalog,
         input.engines ?? geoEnginesForAudience(catalog, input.audienceType)
@@ -140,13 +142,18 @@ export const suggestGeoCompetitors = Effect.fn("geo.competitorSuggestions")(
 
 export async function warmGeoOnboardingCache(
   organizationId: string,
-  websiteUrl: string
+  websiteUrl: string,
+  language?: string
 ): Promise<void> {
   const url = normalizeWebsiteUrl(websiteUrl);
   const domain = normalizeCompetitorDomain(websiteUrl);
   const tasks: Promise<unknown>[] = [];
   if (url) {
-    tasks.push(Effect.runPromise(discoverGeoWebsite(organizationId, url)));
+    tasks.push(
+      Effect.runPromise(
+        discoverGeoWebsite(organizationId, url, false, language)
+      )
+    );
   }
   if (domain) {
     tasks.push(
@@ -156,7 +163,12 @@ export async function warmGeoOnboardingCache(
   const results = await Promise.allSettled(tasks);
   for (const result of results) {
     if (result.status === "rejected") {
-      console.error("[GEO] Onboarding cache warm-up failed:", result.reason);
+      logGeoFailure(
+        "geo.onboarding.warmup_failed",
+        "Onboarding cache warm-up failed",
+        result.reason,
+        { organizationId }
+      );
     }
   }
 }

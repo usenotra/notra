@@ -1,25 +1,39 @@
-import type { CodexExecStatus } from "@notra/ui/components/brainless/codex/codex-exec";
-
-export interface CodexStoryHeader {
-  version: string;
-  model: string;
-  cwd: string;
-}
+import type {
+  CodexExecStatus,
+  CodexExploredItem,
+} from "@notra/ui/types/codex-skin";
 
 export interface CodexStoryExec {
   id: string;
   command: string;
   output?: string;
   status?: CodexExecStatus;
+  moreLines?: number;
+}
+
+export interface CodexStoryHighlight {
+  id: string;
+  label: string;
+  text: string;
 }
 
 export interface CodexStorySession {
-  title: string;
-  header: CodexStoryHeader;
+  header: { version: string; cwd: string };
   userMessage: string;
-  assistantMessage: string;
-  execs: CodexStoryExec[];
-  resultMessage: string;
-  promptPlaceholder: string;
-  context: string;
+  intro: string;
+  exec: CodexStoryExec;
+  explored: CodexExploredItem[];
+  elapsed: string;
+  summary: string;
+  highlights: CodexStoryHighlight[];
+  tableIntro: string;
+  table: { headers: string[]; rows: string[][] };
+  followUp: string;
+  composer: {
+    model: string;
+    effort: string;
+    task: string;
+    warnings: number;
+    placeholder: string;
+  };
 }

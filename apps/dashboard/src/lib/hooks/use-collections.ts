@@ -5,36 +5,53 @@ import type {
   PostCollectionListResponse,
 } from "@notra/schemas/dashboard/content";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "../orpc/query";
 import { useActiveProject } from "./use-active-project";
+import { useScopedPreviousData } from "./use-scoped-previous-data";
 
-const DEFAULT_PAGE_SIZE = 20;
 const GENERATING_POLL_INTERVAL = 4000;
 
-export function useCollections(organizationId: string, page: number) {
+export function useCollections(
+  organizationId: string,
+  page: number,
+  pageSize: number,
+  initialProjectId: string | null
+) {
+  const tToast = useTranslations("content.toasts");
   const { projectId, isResolved } = useActiveProject();
+  // The server already resolved the same project the switcher will settle on.
+  // Waiting for the projects collection first made the list a second round trip.
+  const scopedProjectId = isResolved
+    ? (projectId ?? undefined)
+    : (initialProjectId ?? undefined);
+  const placeholderData = useScopedPreviousData<PostCollectionListResponse>(
+    `${organizationId}:${scopedProjectId ?? ""}`
+  );
   return useQuery<PostCollectionListResponse>({
     ...dashboardOrpc.content.collections.list.queryOptions({
       input: {
         organizationId,
-        projectId: projectId ?? undefined,
+        projectId: scopedProjectId,
         page,
-        pageSize: DEFAULT_PAGE_SIZE,
+        pageSize,
       },
     }),
-    enabled: !!organizationId && isResolved,
+    enabled: !!organizationId && (isResolved || initialProjectId !== undefined),
+    placeholderData,
     refetchInterval: (query) =>
       query.state.data?.collections.some(
         (collection) => collection.isGenerating
       )
         ? GENERATING_POLL_INTERVAL
         : false,
-    meta: { errorMessage: "Failed to load collections" },
+    meta: { errorMessage: tToast("loadCollectionsFailed") },
   });
 }
 
 export function useCollection(organizationId: string, collectionId: string) {
+  const tToast = useTranslations("content.toasts");
   return useQuery<{ collection: PostCollectionDetail }>({
     ...dashboardOrpc.content.collections.get.queryOptions({
       input: { organizationId, collectionId },
@@ -44,6 +61,6 @@ export function useCollection(organizationId: string, collectionId: string) {
       query.state.data?.collection.isGenerating
         ? GENERATING_POLL_INTERVAL
         : false,
-    meta: { errorMessage: "Failed to load collection" },
+    meta: { errorMessage: tToast("loadCollectionFailed") },
   });
 }

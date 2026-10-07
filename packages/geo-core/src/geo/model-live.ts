@@ -1,5 +1,7 @@
 import { getEvaluationClient } from "@notra/ai/evaluation/client";
 import { gateway, getRouteMetadata } from "@notra/ai/gateway";
+import type { RouteMetadata } from "@notra/ai/types/router";
+import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { generateText, isStepCount, Output } from "ai";
 import { Effect, Layer } from "effect";
 
@@ -9,6 +11,7 @@ import {
   GEO_ANSWER_TIMEOUT_MS,
   GEO_DIRECT_GROUNDED_PROVIDERS,
   GEO_DISCOVERY_SYSTEM_PROMPT,
+  GEO_FLEX_MODELS,
   GEO_GROUNDED_ANSWER_MAX_TOKENS,
   GEO_JUDGE_MAX_TOKENS,
   GEO_JUDGE_MODEL,
@@ -34,6 +37,7 @@ import {
   MENTION_EVALUATION_QUESTIONS,
   toMentionEvaluation,
 } from "../utils/geo-check-evaluation";
+import { engineModelOf } from "../utils/geo-engine-family";
 import { addLanguageModelTokenUsage } from "../utils/token-usage";
 import { buildGroundedInvocation } from "./engines";
 import { GeoJudgeError, GeoScanError, GeoTranslationError } from "./errors";
@@ -42,9 +46,16 @@ import { buildGscSuggestionPrompt } from "./suggestion-prompt";
 
 function usageWithModel(
   usage: GeoModelTokenUsage,
-  modelId: string
+  modelId: string,
+  route?: RouteMetadata,
+  totalUsd?: number
 ): GeoModelTokenUsage {
-  return { ...usage, modelId: usage.modelId ?? modelId };
+  return {
+    ...usage,
+    modelId: usage.modelId ?? modelId,
+    route,
+    ...(totalUsd === undefined ? {} : { totalUsd }),
+  };
 }
 
 /** Retains SDK default retries; no additional Effect retry policy. */
@@ -64,9 +75,11 @@ export const geoModelLive = Layer.succeed(
             instructions: GEO_ANSWER_SYSTEM_PROMPT,
             maxOutputTokens: GEO_ANSWER_MAX_TOKENS,
             abortSignal: signal,
+            providerOptions: { gateway: { tags: ["geo-scan-plain"] } },
           };
           let result = await generateText({ model, ...options });
           let usage = result.usage;
+          const steps = [...result.steps];
           // Reasoning engines can spend the entire output budget on thought
           // and return no text at all; retry once at low effort.
           if (result.finishReason === "length" && !result.text.trim()) {
@@ -75,18 +88,19 @@ export const geoModelLive = Layer.succeed(
               ...options,
               reasoning: "low",
             });
+            steps.push(...retry.steps);
             usage = addLanguageModelTokenUsage(usage, retry.usage);
             result = retry;
           }
+          const route = getRouteMetadata(result.finalStep.providerMetadata);
           return {
+            steps,
             text: result.text,
             grounding: extractGrounding(result),
             sources: collectSources(result.sources),
             finishReason: result.finishReason,
-            usage: usageWithModel(usage, input.engine),
-            zdrEnforced:
-              getRouteMetadata(result.finalStep.providerMetadata)
-                ?.zdrEnforced ?? null,
+            usage: usageWithModel(usage, input.engine, route),
+            zdrEnforced: route?.zdrEnforced ?? null,
           };
         },
         catch: (cause) =>
@@ -104,7 +118,21 @@ export const geoModelLive = Layer.succeed(
                 timedOut: true,
               })
             ),
-        })
+        }),
+        Effect.flatMap(({ steps, ...answer }) =>
+          Effect.promise(async () => {
+            const routeUsage = await summarizeRouteUsage(steps, input.engine);
+            return {
+              ...answer,
+              usage: usageWithModel(
+                answer.usage,
+                input.engine,
+                routeUsage.route ?? answer.usage.route,
+                routeUsage.tokenCostUsd
+              ),
+            };
+          })
+        )
       )
     ),
     groundedAnswer: Effect.fn("GeoModel.groundedAnswer")((input) =>
@@ -122,23 +150,30 @@ export const geoModelLive = Layer.succeed(
             instructions: GEO_ANSWER_SYSTEM_PROMPT,
             maxOutputTokens: GEO_GROUNDED_ANSWER_MAX_TOKENS,
             abortSignal: signal,
+            providerOptions: {
+              gateway: {
+                tags: ["geo-scan-grounded"],
+                ...(input.engine.provider === "gateway-openai" &&
+                GEO_FLEX_MODELS.has(input.engine.model)
+                  ? { serviceTier: "flex" }
+                  : {}),
+              },
+            },
           });
-          const grounding = extractGrounding(result);
-          const sources = collectSources(result.sources);
+          const modelId = engineModelOf(input.engine.key);
+          const route = getRouteMetadata(result.finalStep.providerMetadata);
           return {
+            steps: result.steps,
             text: result.text,
-            grounding,
+            grounding: extractGrounding(result),
             finishReason: result.finishReason,
-            sources: sources.length
-              ? sources
-              : grounding.sources.map(({ title, url }) => ({ title, url })),
-            usage: usageWithModel(result.usage, input.engine.key),
+            sources: collectSources(result.sources),
+            usage: usageWithModel(result.usage, modelId, route),
             zdrEnforced: GEO_DIRECT_GROUNDED_PROVIDERS.has(
               input.engine.provider
             )
               ? false
-              : (getRouteMetadata(result.finalStep.providerMetadata)
-                  ?.zdrEnforced ?? null),
+              : (route?.zdrEnforced ?? null),
           };
         },
         catch: (cause) =>
@@ -156,7 +191,22 @@ export const geoModelLive = Layer.succeed(
                 timedOut: true,
               })
             ),
-        })
+        }),
+        Effect.flatMap(({ steps, ...answer }) =>
+          Effect.promise(async () => {
+            const modelId = engineModelOf(input.engine.key);
+            const routeUsage = await summarizeRouteUsage(steps, modelId);
+            return {
+              ...answer,
+              usage: usageWithModel(
+                answer.usage,
+                modelId,
+                routeUsage.route ?? answer.usage.route,
+                routeUsage.tokenCostUsd
+              ),
+            };
+          })
+        )
       )
     ),
     judge: Effect.fn("GeoModel.judge")((input) =>
@@ -172,10 +222,17 @@ export const geoModelLive = Layer.succeed(
               "You analyze AI assistant answers for brand mentions. Respond only with the requested structured data.",
             maxOutputTokens: GEO_JUDGE_MAX_TOKENS,
             abortSignal: signal,
+            providerOptions: {
+              gateway: { tags: ["geo-scan-judge"], serviceTier: "flex" },
+            },
           });
           return {
             ...result.output,
-            usage: usageWithModel(result.usage, GEO_JUDGE_MODEL),
+            usage: usageWithModel(
+              result.usage,
+              GEO_JUDGE_MODEL,
+              getRouteMetadata(result.providerMetadata)
+            ),
           };
         },
         catch: (cause) =>
@@ -220,10 +277,15 @@ export const geoModelLive = Layer.succeed(
               "You translate user prompts faithfully, preserving intent and named entities. Respond only with the requested structured data.",
             maxOutputTokens: GEO_TRANSLATION_MAX_TOKENS,
             abortSignal: signal,
+            providerOptions: { gateway: { tags: ["geo-scan-translation"] } },
           });
           return {
             translations: result.output.translations,
-            usage: usageWithModel(result.usage, GEO_JUDGE_MODEL),
+            usage: usageWithModel(
+              result.usage,
+              GEO_JUDGE_MODEL,
+              getRouteMetadata(result.providerMetadata)
+            ),
           };
         },
         catch: (cause) =>
@@ -257,10 +319,15 @@ export const geoModelLive = Layer.succeed(
             prompt: buildGscSuggestionPrompt(input),
             maxOutputTokens: GSC_SUGGESTION_MAX_TOKENS,
             abortSignal: signal,
+            providerOptions: { gateway: { tags: ["geo-discovery"] } },
           });
           return {
             prompts: result.output.prompts,
-            usage: usageWithModel(result.usage, GSC_SUGGESTION_MODEL),
+            usage: usageWithModel(
+              result.usage,
+              GSC_SUGGESTION_MODEL,
+              getRouteMetadata(result.providerMetadata)
+            ),
           };
         },
         catch: (cause) => new GeoModelError({ operation: "suggest", cause }),

@@ -44,6 +44,7 @@ import {
   runGeoScanTaskBatchStep,
   trackGeoScanRetryScheduledStep,
 } from "./steps/geo-scan-steps";
+import { refreshGeoContentGapsStep } from "./steps/refresh-geo-content-gaps";
 import { syncGeoShelfCitationsStep } from "./steps/sync-geo-shelf-citations";
 
 interface GeoScanProjectOutcome {
@@ -66,9 +67,17 @@ function addBatchOutcome(
   totals.dropped += outcome.dropped;
   const engine = outcome.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE;
   const judge = outcome.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE;
+  const batchEngineUsage =
+    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage;
   totals.engineUsage = addAgentTokenUsage(
     totals.engineUsage ?? EMPTY_AGENT_TOKEN_USAGE,
-    outcome.engineUsage || outcome.judgeUsage ? engine : outcome.usage
+    batchEngineUsage
+  );
+  totals.billedChecks =
+    (totals.billedChecks ?? 0) + (outcome.billedChecks ?? outcome.checks);
+  totals.billedUsage = addAgentTokenUsage(
+    totals.billedUsage ?? EMPTY_AGENT_TOKEN_USAGE,
+    outcome.billedUsage ?? outcome.usage
   );
   totals.judgeUsage = addAgentTokenUsage(
     totals.judgeUsage ?? EMPTY_AGENT_TOKEN_USAGE,
@@ -181,6 +190,27 @@ async function finalizeProjectRun(
     ...(options.failure ? { failure: options.failure } : {}),
   });
   const { context } = plan;
+  if (totals.checks > 0) {
+    try {
+      await refreshGeoContentGapsStep({
+        organizationId: context.organizationId,
+        projectId: context.projectId,
+      });
+    } catch (error) {
+      await appendAutomationLogBestEffort({
+        organizationId: context.organizationId,
+        integrationId: context.projectId,
+        integrationType: "geo",
+        title: `Content gaps could not refresh for ${context.companyName}`,
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        referenceId: context.runId,
+        ...(options.retentionDays
+          ? { retentionDays: options.retentionDays }
+          : {}),
+      });
+    }
+  }
   if (status === "completed" && totals.checks > 0) {
     // Shelf space reads the synced citations instead of folding the whole
     // mention-check history on every page view.
@@ -302,6 +332,8 @@ async function runGeoScanProjectRun(
       usage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
       engineUsage: EMPTY_AGENT_TOKEN_USAGE,
       judgeUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
+      billedChecks: 0,
+      billedUsage: plan.usage ?? EMPTY_AGENT_TOKEN_USAGE,
     } satisfies GeoScanProjectTotals,
   };
   const { totals } = state;

@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { DEFAULT_CONVERSATION_ROW_LABELS } from "@notra/ui/constants/geo";
 import type { ConversationRowProps } from "@notra/ui/types/geo";
 
 export function ConversationRow({
@@ -20,7 +21,9 @@ export function ConversationRow({
   onEdit,
   onToggle,
   onDelete,
+  labels,
 }: ConversationRowProps) {
+  const resolvedLabels = { ...DEFAULT_CONVERSATION_ROW_LABELS, ...labels };
   return (
     <div className="flex items-center gap-3 px-4 py-2.5">
       <button
@@ -30,18 +33,22 @@ export function ConversationRow({
       >
         <p className="truncate font-medium text-sm">{name}</p>
         <p className="truncate text-muted-foreground text-xs">
-          {steps.length} {steps.length === 1 ? "turn" : "turns"} · {steps[0]}
+          {resolvedLabels.turns(steps.length)} · {steps[0]}
         </p>
       </button>
       <div className="flex shrink-0 items-center gap-2">
         <Button onClick={onEdit} size="sm" variant="ghost">
-          Edit
+          {resolvedLabels.edit}
         </Button>
         <Tooltip>
           <TooltipTrigger
             render={
               <Switch
-                aria-label={enabled ? `Pause ${name}` : `Enable ${name}`}
+                aria-label={
+                  enabled
+                    ? resolvedLabels.pause(name)
+                    : resolvedLabels.enable(name)
+                }
                 checked={enabled}
                 disabled={pending}
                 onCheckedChange={(next) => onToggle?.(next)}
@@ -50,14 +57,16 @@ export function ConversationRow({
             }
           />
           <TooltipContent>
-            {enabled ? "Included in scans" : "Paused — skipped in scans"}
+            {enabled
+              ? resolvedLabels.includedInScans
+              : resolvedLabels.pausedInScans}
           </TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
-                aria-label={`Delete ${name}`}
+                aria-label={resolvedLabels.deleteItem(name)}
                 disabled={pending}
                 onClick={onDelete}
                 size="icon"
@@ -67,7 +76,7 @@ export function ConversationRow({
           >
             <HugeiconsIcon icon={Delete02Icon} size={14} />
           </TooltipTrigger>
-          <TooltipContent>Delete</TooltipContent>
+          <TooltipContent>{resolvedLabels.delete}</TooltipContent>
         </Tooltip>
       </div>
     </div>

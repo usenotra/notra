@@ -1,9 +1,12 @@
 "use client";
 
-import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+import {
+  ArrowRight02Icon,
+  MoreHorizontalIcon,
+  SearchIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GSC_OAUTH_AUTHORIZE_PATH } from "@notra/geo-core/constants/google-search-console";
-import type { GeoSearchConsoleStatus } from "@notra/geo-core/types/google-search-console";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import {
   ResponsiveDialog,
@@ -11,7 +14,6 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-  ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
@@ -20,6 +22,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { Label } from "@notra/ui/components/ui/label";
 import {
   Select,
@@ -28,15 +38,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Google } from "@notra/ui/components/ui/svgs/google";
 import { type MouseEvent, type ReactNode, useId, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ProjectLogo } from "@/components/geo/project-logo";
-import { StatusSpinner } from "@/components/geo/status-spinner";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
+import { GSC_SETUP_EXAMPLES } from "@/constants/geo-prompts";
 import { flushTrackEvent } from "@/lib/analytics/posthog-client";
 import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
+import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import {
   useGscDisconnect,
   useGscSelectSite,
@@ -46,18 +60,18 @@ import {
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
 import { cn } from "@/lib/utils";
 import type {
-  SearchConsoleConnectActionProps,
   SearchConsoleConnectedStateProps,
-  SearchConsoleHeaderRowProps,
   SearchConsolePropertyPickerProps,
-  SearchConsoleSelectSiteStateProps,
+  SearchConsoleReconnectButtonProps,
+  SearchConsoleSetupStateProps,
   SearchConsoleToolbarProps,
 } from "@/types/components/geo";
-import { formatRelative } from "@/utils/format-relative";
+import { formatCount } from "@/utils/format";
 import {
   findMatchingGscSiteUrl,
   formatGscSiteUrl,
   getGscSiteDomain,
+  isSearchConsoleSynced,
 } from "@/utils/gsc-site-url";
 import { handleTrackedAnchorClick } from "@/utils/tracked-anchor-click";
 
@@ -77,97 +91,14 @@ function onConnectClick(
   );
 }
 
-/** Google logo centered against the title and description lines. */
-function GoogleMark() {
-  return <Google className="size-6 shrink-0" />;
-}
-
-function HeaderRow({
-  action,
-  titleId,
-  onDismiss,
-}: SearchConsoleHeaderRowProps) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <GoogleMark />
-        <div className="min-w-0 space-y-1">
-          <h2
-            className="flex items-center gap-2 text-sm font-semibold"
-            id={titleId}
-          >
-            Suggested prompts
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Prompt ideas from the queries you rank for in Google Search Console
-          </p>
-        </div>
-      </div>
-      {action || onDismiss ? (
-        <div className="flex shrink-0 items-center gap-1">
-          {action}
-          {onDismiss ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    aria-label="Search Console card options"
-                    className="text-muted-foreground"
-                    size="icon-sm"
-                    variant="ghost"
-                  >
-                    <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={onDismiss}>
-                  Hide card
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function ConnectAction({
-  organizationId,
-  callbackPath,
-  configured,
-  reauth,
-}: SearchConsoleConnectActionProps) {
-  // Without OAuth credentials there is nothing to connect; keep the header quiet.
-  if (!configured) {
-    return null;
-  }
-
-  return (
-    <Button
-      className="shrink-0"
-      nativeButton={false}
-      render={
-        <a
-          href={buildAuthorizeUrl(organizationId, callbackPath)}
-          onClick={(event) => onConnectClick(event, reauth)}
-        >
-          {reauth ? "Reconnect Google" : "Connect Search Console"}
-        </a>
-      }
-      size="sm"
-      variant={reauth ? "default" : "outline"}
-    />
-  );
-}
-
-function PropertyPicker({
+export function SearchConsolePropertyPicker({
   organizationId,
   sites,
   websiteUrl,
   onSelected,
 }: SearchConsolePropertyPickerProps) {
+  const t = useTranslations("geo.searchConsoleCard");
+  const tCommon = useTranslations("common");
   const id = useId();
   const [selectedSiteUrl, setSelectedSiteUrl] = useState<string | null>(null);
   const selectSite = useGscSelectSite(organizationId);
@@ -177,16 +108,16 @@ function PropertyPicker({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor={`${id}-site`}>Property</Label>
+        <Label htmlFor={`${id}-site`}>{t("property")}</Label>
         <Select
           onValueChange={(value) => setSelectedSiteUrl(value ?? "")}
           value={siteUrl}
         >
           <SelectTrigger className="w-full" id={`${id}-site`}>
-            <SelectValue placeholder="Select a property">
+            <SelectValue placeholder={t("selectProperty")}>
               {(value: string | null) => {
                 if (!value) {
-                  return "Select a property";
+                  return t("selectProperty");
                 }
                 const label = formatGscSiteUrl(value);
                 return (
@@ -232,223 +163,18 @@ function PropertyPicker({
         className={cn("w-full", selectSite.isPending && "disabled:opacity-100")}
         disabled={siteUrl.length === 0 || selectSite.isPending}
         onClick={() => {
-          void selectSite
-            .mutateAsync({ siteUrl })
-            .then(() => onSelected?.())
-            .catch(() => undefined);
+          // Progress and the result are reported by toasts, so the caller can
+          // close its dialog instead of blocking on the first sync.
+          selectSite.mutate({ siteUrl });
+          onSelected?.();
         }}
       >
-        {selectSite.isPending ? <StatusSpinner /> : null}
-        {selectSite.isPending ? "Connecting…" : "Connect property"}
+        {selectSite.isPending ? <Spinner className="size-3.5" /> : null}
+        {selectSite.isPending
+          ? tCommon("labels.connecting")
+          : t("connectProperty")}
       </Button>
     </div>
-  );
-}
-
-function SelectSiteState({
-  organizationId,
-  callbackPath,
-  onOpenChange,
-  open,
-  status,
-  websiteUrl,
-}: SearchConsoleSelectSiteStateProps) {
-  return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogTrigger
-        className="shrink-0"
-        render={<Button size="sm" variant="outline" />}
-      >
-        Choose property
-      </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="sm:max-w-md">
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>
-            Choose a Search Console property
-          </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription>
-            Select the domain whose search queries Notra should use for prompt
-            suggestions.
-          </ResponsiveDialogDescription>
-        </ResponsiveDialogHeader>
-        {status.sites.length > 0 ? (
-          <div className="px-4 md:px-0">
-            <PropertyPicker
-              onSelected={() => onOpenChange(false)}
-              organizationId={organizationId}
-              sites={status.sites}
-              websiteUrl={websiteUrl}
-            />
-          </div>
-        ) : (
-          <div className="space-y-4 px-4 md:px-0">
-            <p className="text-muted-foreground text-sm">
-              {status.lastError ??
-                "No properties were found for this Google account. Add or verify a property in Search Console, then reconnect."}
-            </p>
-            <Button
-              className="w-full"
-              nativeButton={false}
-              render={
-                <a
-                  href={buildAuthorizeUrl(organizationId, callbackPath)}
-                  onClick={(event) => onConnectClick(event, true)}
-                >
-                  Reconnect Google
-                </a>
-              }
-              variant="outline"
-            />
-          </div>
-        )}
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
-  );
-}
-
-function connectedMeta(status: GeoSearchConsoleStatus): string {
-  const parts: string[] = [];
-  if (status.email) {
-    parts.push(status.email);
-  }
-  parts.push(
-    status.lastSyncedAt
-      ? `Last synced ${formatRelative(status.lastSyncedAt)}`
-      : "Not synced yet"
-  );
-  return parts.join(" · ");
-}
-
-function searchConsoleMode(
-  isPending: boolean,
-  status: GeoSearchConsoleStatus | undefined
-) {
-  if (isPending || !status) {
-    return "loading" as const;
-  }
-  if (status.connected && status.status === "active" && status.siteUrl) {
-    return "connected" as const;
-  }
-  if (!status.connected || status.status === "reauth_required") {
-    return "connect" as const;
-  }
-  return "select" as const;
-}
-
-function ToolbarFrame({
-  action,
-  body,
-  headingId,
-  isPending,
-  onDismiss,
-}: {
-  action?: ReactNode;
-  body: ReactNode;
-  headingId: string;
-  isPending: boolean;
-  onDismiss?: () => void;
-}) {
-  return (
-    <div aria-busy={isPending} aria-labelledby={headingId} role="region">
-      <HeaderRow action={action} onDismiss={onDismiss} titleId={headingId} />
-      {body}
-    </div>
-  );
-}
-
-function ConnectToolbar({
-  action,
-  callbackPath,
-  headingId,
-  onDismiss,
-  organizationId,
-  status,
-}: SearchConsoleToolbarProps & {
-  headingId: string;
-  status: GeoSearchConsoleStatus;
-}) {
-  const connectAction = (
-    <ConnectAction
-      callbackPath={callbackPath}
-      configured={status.configured}
-      organizationId={organizationId}
-      reauth={status.status === "reauth_required"}
-    />
-  );
-  const headerAction = action ? (
-    <div className="flex items-center gap-2">
-      {connectAction}
-      {action}
-    </div>
-  ) : (
-    connectAction
-  );
-  const body =
-    status.status === "reauth_required" ? (
-      <p className="text-muted-foreground pt-3 text-sm">
-        Google access expired. Reconnect to keep syncing keyword suggestions.
-      </p>
-    ) : null;
-
-  return (
-    <ToolbarFrame
-      action={headerAction}
-      body={body}
-      headingId={headingId}
-      isPending={false}
-      onDismiss={onDismiss}
-    />
-  );
-}
-
-function SelectPropertyToolbar({
-  action,
-  callbackPath,
-  headingId,
-  onDismiss,
-  onPropertyPickerOpenChange,
-  organizationId,
-  propertyPickerOpen,
-  status,
-  websiteUrl,
-}: SearchConsoleToolbarProps & {
-  headingId: string;
-  status: GeoSearchConsoleStatus;
-  websiteUrl: string | null;
-}) {
-  const headerAction = (
-    <div className="flex flex-wrap items-center gap-2">
-      <SelectSiteState
-        callbackPath={callbackPath}
-        onOpenChange={onPropertyPickerOpenChange}
-        open={propertyPickerOpen}
-        organizationId={organizationId}
-        status={status}
-        websiteUrl={websiteUrl}
-      />
-      {action}
-    </div>
-  );
-  const body = (
-    <p
-      className={cn(
-        "pt-3 text-sm",
-        status.lastError ? "text-destructive" : "text-muted-foreground"
-      )}
-    >
-      {status.lastError ??
-        "Choose which Search Console property Notra should analyze."}
-    </p>
-  );
-
-  return (
-    <ToolbarFrame
-      action={headerAction}
-      body={body}
-      headingId={headingId}
-      isPending={false}
-      onDismiss={onDismiss}
-    />
   );
 }
 
@@ -461,6 +187,15 @@ function ConnectedState({
   status,
   websiteUrl,
 }: SearchConsoleConnectedStateProps) {
+  const t = useTranslations("geo.searchConsoleCard");
+  const tCommon = useTranslations("common");
+  const formatRelative = useFormatRelative();
+  const syncedLabel = status.lastSyncedAt
+    ? t("lastSynced", { when: formatRelative(status.lastSyncedAt) })
+    : t("notSynced");
+  const connectedMeta = status.email
+    ? `${status.email} · ${syncedLabel}`
+    : syncedLabel;
   const sync = useGscSync(organizationId);
   const sites = useGscSites(organizationId, propertyPickerOpen);
   const disconnect = useGscDisconnect(organizationId);
@@ -470,14 +205,14 @@ function ConnectedState({
   if (sites.isPending) {
     changeDialogBody = (
       <div className="text-muted-foreground flex items-center gap-2 px-4 py-3 text-sm md:px-0">
-        <StatusSpinner />
-        Loading properties…
+        <Spinner className="size-3.5" />
+        {tCommon("labels.loadingProperties")}
       </div>
     );
   } else if (sites.data?.sites.length) {
     changeDialogBody = (
       <div className="px-4 md:px-0">
-        <PropertyPicker
+        <SearchConsolePropertyPicker
           onSelected={() => onPropertyPickerOpenChange(false)}
           organizationId={organizationId}
           sites={sites.data.sites}
@@ -490,8 +225,8 @@ function ConnectedState({
       <div className="space-y-4 px-4 md:px-0">
         <p className="text-muted-foreground text-sm">
           {sites.isError
-            ? "Search Console properties could not be loaded. Reconnect Google and try again."
-            : "No properties were found for this Google account."}
+            ? tCommon("messages.searchConsolePropertiesCouldNot")
+            : tCommon("messages.noPropertiesWereFoundFor")}
         </p>
         <Button
           className="w-full"
@@ -501,7 +236,7 @@ function ConnectedState({
               href={buildAuthorizeUrl(organizationId, callbackPath)}
               onClick={(event) => onConnectClick(event, true)}
             >
-              Reconnect Google
+              {tCommon("labels.reconnectGoogle")}
             </a>
           }
           variant="outline"
@@ -514,36 +249,55 @@ function ConnectedState({
     <>
       <div
         aria-label="Google Search Console"
-        className="flex flex-wrap items-start justify-between gap-3"
+        className="flex flex-wrap items-center justify-between gap-3"
         role="region"
       >
         <div className="flex min-w-0 items-center gap-3">
-          <GoogleMark />
-          <div className="min-w-0 space-y-1">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              Suggested prompts
+          <span
+            aria-hidden="true"
+            className="bg-background flex size-9 shrink-0 items-center justify-center rounded-lg border shadow-2xs"
+          >
+            <Google className="size-4.5" />
+          </span>
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <span className="truncate">
+                {formatGscSiteUrl(status.siteUrl ?? "")}
+              </span>
               {status.weeklySyncScheduled ? (
                 <Badge className="font-normal" variant="secondary">
-                  Weekly sync
+                  {t("weeklySync")}
                 </Badge>
               ) : null}
-            </h2>
-            <p className="text-muted-foreground truncate text-sm">
-              {formatGscSiteUrl(status.siteUrl ?? "")} · {connectedMeta(status)}
+            </p>
+            <p className="text-muted-foreground truncate text-xs">
+              {connectedMeta}
             </p>
             {status.lastError ? (
-              <p className="text-destructive text-sm text-pretty">
+              <p className="text-destructive text-xs text-pretty">
                 {status.lastError}
               </p>
             ) : null}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1.5">
+          {action}
+          <Button
+            disabled={busy}
+            onClick={() => sync.mutate()}
+            size="sm"
+            variant="outline"
+          >
+            {sync.isPending ? <Spinner className="size-3.5" /> : null}
+            {sync.isPending
+              ? tCommon("labels.syncing")
+              : tCommon("labels.syncNow")}
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
                 <Button
-                  aria-label="Search Console actions"
+                  aria-label={t("actions")}
                   disabled={busy}
                   size="icon-sm"
                   variant="ghost"
@@ -557,27 +311,17 @@ function ConnectedState({
                 disabled={busy}
                 onClick={() => onPropertyPickerOpenChange(true)}
               >
-                Change property
+                {tCommon("labels.changeProperty")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={busy}
                 onClick={() => disconnect.mutate()}
                 variant="destructive"
               >
-                Disconnect
+                {tCommon("actions.disconnect")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            disabled={busy}
-            onClick={() => sync.mutate()}
-            size="sm"
-            variant="outline"
-          >
-            {sync.isPending ? <StatusSpinner /> : null}
-            {sync.isPending ? "Syncing…" : "Sync now"}
-          </Button>
-          {action}
         </div>
       </div>
       <ResponsiveDialog
@@ -587,10 +331,10 @@ function ConnectedState({
         <ResponsiveDialogContent className="sm:max-w-md">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>
-              Change Search Console property
+              {tCommon("labels.changeSearchConsoleProperty")}
             </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Your current property stays connected until you confirm a new one.
+              {tCommon("messages.yourCurrentPropertyStaysConnected")}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           {changeDialogBody}
@@ -600,17 +344,159 @@ function ConnectedState({
   );
 }
 
+function SetupExamplesPreview() {
+  const t = useTranslations("geo.searchConsoleCard.examples");
+  const locale = useLocale();
+  return (
+    <ul className="bg-card divide-border/60 mx-auto w-full max-w-2xl divide-y overflow-hidden rounded-xl border text-left shadow-2xs">
+      {GSC_SETUP_EXAMPLES.map((example) => (
+        <li
+          className="grid grid-cols-[minmax(0,11rem)_auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3"
+          key={example.key}
+        >
+          <span className="text-muted-foreground bg-muted/60 inline-flex max-w-full min-w-0 items-center gap-1.5 justify-self-start rounded-md px-2 py-1 text-xs">
+            <HugeiconsIcon className="shrink-0" icon={SearchIcon} size={12} />
+            <span className="truncate">{t(`${example.key}.query`)}</span>
+          </span>
+          <HugeiconsIcon
+            className="text-muted-foreground/60"
+            icon={ArrowRight02Icon}
+            size={14}
+          />
+          <span className="truncate text-sm font-medium">
+            {t(`${example.key}.prompt`)}
+          </span>
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {formatCount(example.impressions, locale)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ReconnectButton({
+  organizationId,
+  callbackPath,
+  label,
+  variant = "outline",
+}: SearchConsoleReconnectButtonProps) {
+  return (
+    <Button
+      nativeButton={false}
+      render={
+        <a
+          href={buildAuthorizeUrl(organizationId, callbackPath)}
+          onClick={(event) => onConnectClick(event, true)}
+        >
+          <Google className="size-4" />
+          {label}
+        </a>
+      }
+      variant={variant}
+    />
+  );
+}
+
+/** Empty state for every Search Console step before a property is synced. */
+function SetupState({
+  organizationId,
+  callbackPath,
+  status,
+  websiteUrl,
+}: SearchConsoleSetupStateProps) {
+  const t = useTranslations("geo.searchConsoleCard");
+  const tCommon = useTranslations("common");
+  const tIntegrations = useTranslations("integrations.shared");
+  const reauth = status.status === "reauth_required";
+  const connected = status.connected && !reauth;
+
+  let title = t("setupTitle");
+  let description: ReactNode = t("setupDescription");
+  let action: ReactNode = null;
+
+  if (!status.configured) {
+    description = tIntegrations("googleSearchConsoleIsNot");
+  } else if (reauth) {
+    title = t("reauthTitle");
+    description = t("reauthRequired");
+    action = (
+      <ReconnectButton
+        callbackPath={callbackPath}
+        label={tCommon("labels.reconnectGoogle")}
+        organizationId={organizationId}
+        variant="default"
+      />
+    );
+  } else if (!connected) {
+    action = (
+      <Button
+        nativeButton={false}
+        render={
+          <a
+            href={buildAuthorizeUrl(organizationId, callbackPath)}
+            onClick={(event) => onConnectClick(event, false)}
+          >
+            <Google className="size-4" />
+            {tCommon("labels.connectSearchConsole")}
+          </a>
+        }
+      />
+    );
+  } else if (status.sites.length > 0) {
+    title = t("choosePropertyTitle");
+    description = status.lastError ? (
+      <span className="text-destructive">{status.lastError}</span>
+    ) : (
+      t("choosePropertyDescription")
+    );
+    action = (
+      <div className="bg-card w-full max-w-sm rounded-xl border p-4 text-left shadow-2xs">
+        <SearchConsolePropertyPicker
+          organizationId={organizationId}
+          sites={status.sites}
+          websiteUrl={websiteUrl}
+        />
+      </div>
+    );
+  } else {
+    title = t("choosePropertyTitle");
+    description = status.lastError ?? t("noPropertiesReconnect");
+    action = (
+      <ReconnectButton
+        callbackPath={callbackPath}
+        label={tCommon("labels.reconnectGoogle")}
+        organizationId={organizationId}
+      />
+    );
+  }
+
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Google className="size-5" />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {action ? (
+        <EmptyContent className="max-w-md">{action}</EmptyContent>
+      ) : null}
+      {status.connected ? null : <SetupExamplesPreview />}
+    </Empty>
+  );
+}
+
 export function SearchConsoleToolbar({
   action,
   organizationId,
   callbackPath,
   isPending,
-  onDismiss,
   onPropertyPickerOpenChange,
   propertyPickerOpen,
   status,
 }: SearchConsoleToolbarProps) {
-  const headingId = useId();
   const { projectId } = useGeoProjectScope();
   const { projects } = useGeoProjectsDb(organizationId);
   const { data: brandData } = useBrandSettings(organizationId);
@@ -622,26 +508,20 @@ export function SearchConsoleToolbar({
     brandData?.voices.find(
       (voice) => voice.id === activeProject?.brandSettingsId
     )?.websiteUrl ?? null;
-  const mode = searchConsoleMode(isPending, status);
 
-  if (mode === "loading" || !status) {
+  if (isPending || !status) {
     return (
-      <ToolbarFrame
-        action={action}
-        body={
-          <div className="text-muted-foreground flex items-center gap-2 pt-3 text-sm">
-            <StatusSpinner />
-            Loading…
-          </div>
-        }
-        headingId={headingId}
-        isPending
-        onDismiss={onDismiss}
-      />
+      <div aria-busy="true" className="flex items-center gap-3">
+        <Skeleton className="size-9 rounded-lg" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-56" />
+        </div>
+      </div>
     );
   }
 
-  if (mode === "connected") {
+  if (isSearchConsoleSynced(status)) {
     return (
       <ConnectedState
         action={action}
@@ -655,34 +535,22 @@ export function SearchConsoleToolbar({
     );
   }
 
-  if (mode === "connect") {
-    return (
-      <ConnectToolbar
-        action={action}
-        callbackPath={callbackPath}
-        headingId={headingId}
-        isPending={false}
-        onDismiss={onDismiss}
-        onPropertyPickerOpenChange={onPropertyPickerOpenChange}
-        organizationId={organizationId}
-        propertyPickerOpen={propertyPickerOpen}
-        status={status}
-      />
-    );
-  }
-
-  return (
-    <SelectPropertyToolbar
-      action={action}
+  const setup = (
+    <SetupState
       callbackPath={callbackPath}
-      headingId={headingId}
-      isPending={false}
-      onDismiss={onDismiss}
-      onPropertyPickerOpenChange={onPropertyPickerOpenChange}
       organizationId={organizationId}
-      propertyPickerOpen={propertyPickerOpen}
       status={status}
       websiteUrl={websiteUrl}
     />
+  );
+  // Suggestions from an earlier sync stay actionable while Google is disconnected.
+  if (!action) {
+    return setup;
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">{action}</div>
+      {setup}
+    </div>
   );
 }

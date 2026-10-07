@@ -9,7 +9,6 @@ import { useMemo } from "react";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import type { GeoDateRange, GeoRangeControl } from "@/types/geo";
 import {
-  geoRangeLabel,
   geoRangeSpanDays,
   parseGeoRangeParam,
   serializeGeoCustomRange,
@@ -26,7 +25,6 @@ export function useGeoRange(): GeoRangeControl {
     const state = parseGeoRangeParam(raw);
     return {
       ...state,
-      label: geoRangeLabel(state),
       days: geoRangeSpanDays(state.range),
       query: { from: state.range.dateFrom, to: state.range.dateTo },
       param: serializeGeoRangeState(state),

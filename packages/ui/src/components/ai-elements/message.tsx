@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  ArrowExpandDiagonal02Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   AttachmentIcon,
   Cancel01Icon,
   Copy01Icon,
+  Download01Icon,
   Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -47,15 +49,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
-import { TABLE_CHROME_CLASS } from "@notra/ui/constants/table";
-import { DownloadIcon, Maximize2Icon } from "lucide-react";
+import {
+  TABLE_CARD_CELLS_CLASS,
+  TABLE_FRAME_CLASS,
+  TABLE_INNER_RADIUS_CLASS,
+} from "@notra/ui/constants/table";
+
 import type { FileUIPart, UIMessage } from "ai";
-import Image from "next/image";
-import type {
-  ComponentProps,
-  HTMLAttributes,
-  ReactElement,
-} from "react";
+import { Image } from "@notra/ui/components/framework-provider";
+import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import {
   createContext,
   memo,
@@ -64,7 +66,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { Streamdown } from "streamdown";
+import { defaultRehypePlugins, Streamdown } from "streamdown";
+import { MESSAGE_CODE_PLUGINS } from "@notra/ui/constants/message-code";
+import { MESSAGE_TEXT_ANIMATION } from "@notra/ui/constants/message-animation";
 import {
   MESSAGE_TABLE_COPY_FORMATS,
   MESSAGE_TABLE_COPY_RESET_MS,
@@ -78,6 +82,7 @@ import type {
   MessageTableCopyFormat,
   MessageTableData,
 } from "@notra/ui/types/message-table";
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { cn } from "@notra/ui/lib/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -89,7 +94,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
     className={cn(
       "group flex w-full max-w-[95%] min-w-0 flex-col gap-2",
       from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
-      className
+      className,
     )}
     {...props}
   />
@@ -107,7 +112,7 @@ export const MessageContent = ({
       "is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
       "group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
       "group-[.is-assistant]:w-full group-[.is-assistant]:text-foreground",
-      className
+      className,
     )}
     {...props}
   >
@@ -122,9 +127,11 @@ export const MessageActions = ({
   children,
   ...props
 }: MessageActionsProps) => (
-  <div className={cn("flex items-center gap-1", className)} {...props}>
-    {children}
-  </div>
+  <TooltipProvider>
+    <div className={cn("flex items-center gap-1", className)} {...props}>
+      {children}
+    </div>
+  </TooltipProvider>
 );
 
 export type MessageActionProps = ComponentProps<typeof Button> & {
@@ -149,14 +156,12 @@ export const MessageAction = ({
 
   if (tooltip) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>{button}</TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger render={button} />
+        <TooltipContent>
+          <p>{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 
@@ -173,7 +178,7 @@ interface MessageBranchContextType {
 }
 
 const MessageBranchContext = createContext<MessageBranchContextType | null>(
-  null
+  null,
 );
 
 const useMessageBranch = () => {
@@ -181,7 +186,7 @@ const useMessageBranch = () => {
 
   if (!context) {
     throw new Error(
-      "MessageBranch components must be used within MessageBranch"
+      "MessageBranch components must be used within MessageBranch",
     );
   }
 
@@ -258,7 +263,7 @@ export const MessageBranchContent = ({
     <div
       className={cn(
         "grid gap-2 overflow-hidden [&>div]:pb-0",
-        index === currentBranch ? "block" : "hidden"
+        index === currentBranch ? "block" : "hidden",
       )}
       key={branch.key}
       {...props}
@@ -298,10 +303,11 @@ export const MessageBranchPrevious = ({
   ...props
 }: MessageBranchPreviousProps) => {
   const { goToPrevious, totalBranches } = useMessageBranch();
+  const labels = useUiLabels();
 
   return (
     <Button
-      aria-label="Previous branch"
+      aria-label={labels.previousBranch}
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
       size="icon-sm"
@@ -320,10 +326,11 @@ export const MessageBranchNext = ({
   ...props
 }: MessageBranchNextProps) => {
   const { goToNext, totalBranches } = useMessageBranch();
+  const labels = useUiLabels();
 
   return (
     <Button
-      aria-label="Next branch"
+      aria-label={labels.nextBranch}
       disabled={totalBranches <= 1}
       onClick={goToNext}
       size="icon-sm"
@@ -347,7 +354,7 @@ export const MessageBranchPage = ({
     <ButtonGroupText
       className={cn(
         "border-none bg-transparent text-muted-foreground shadow-none",
-        className
+        className,
       )}
       {...props}
     >
@@ -356,15 +363,18 @@ export const MessageBranchPage = ({
   );
 };
 
-export type MessageResponseProps = ComponentProps<typeof Streamdown>;
+export type MessageResponseProps = Omit<
+  ComponentProps<typeof Streamdown>,
+  "animated"
+>;
 
 type MarkdownTableProps = ComponentProps<"table"> & {
   node?: unknown;
 };
 
 function readTableData(table: HTMLTableElement): MessageTableData {
-  const headers = Array.from(table.querySelectorAll("thead th")).map((cell) =>
-    cell.textContent?.trim() ?? ""
+  const headers = Array.from(table.querySelectorAll("thead th")).map(
+    (cell) => cell.textContent?.trim() ?? "",
   );
   const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
   const fallbackRows =
@@ -372,8 +382,8 @@ function readTableData(table: HTMLTableElement): MessageTableData {
   const rows = fallbackRows
     .map((row) =>
       Array.from(row.querySelectorAll("td")).map(
-        (cell) => cell.textContent?.trim() ?? ""
-      )
+        (cell) => cell.textContent?.trim() ?? "",
+      ),
     )
     .filter((row) => row.length > 0);
 
@@ -413,6 +423,12 @@ function MessageMarkdownTable({
   node: _node,
   ...props
 }: MarkdownTableProps) {
+  const labels = useUiLabels();
+  const formatLabels: Record<MessageTableCopyFormat, string> = {
+    csv: labels.tableFormatCsv,
+    markdown: labels.tableFormatMarkdown,
+    plain: labels.tableFormatPlain,
+  };
   const tableRef = useRef<HTMLTableElement>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
@@ -426,7 +442,7 @@ function MessageMarkdownTable({
         clearTimeout(copyTimeoutRef.current);
       }
     },
-    []
+    [],
   );
 
   const getData = () => {
@@ -443,7 +459,7 @@ function MessageMarkdownTable({
     }
     copyTimeoutRef.current = setTimeout(
       () => setCopied(false),
-      MESSAGE_TABLE_COPY_RESET_MS
+      MESSAGE_TABLE_COPY_RESET_MS,
     );
   };
 
@@ -461,19 +477,16 @@ function MessageMarkdownTable({
   };
 
   const downloadMarkdown = () => {
-    downloadText(
-      "table.md",
-      tableDataToMarkdown(getData()),
-      "text/markdown"
-    );
+    downloadText("table.md", tableDataToMarkdown(getData()), "text/markdown");
   };
 
   const renderTable = () => (
-    <div className="max-w-full overflow-x-auto">
+    <div className={cn("max-w-full overflow-x-auto", TABLE_INNER_RADIUS_CLASS)}>
       <table
         className={cn(
           "w-full min-w-max caption-bottom border-separate border-spacing-0 text-sm [&_thead_th:last-child]:pr-24",
-          className
+          TABLE_CARD_CELLS_CLASS,
+          className,
         )}
         ref={tableRef}
         {...props}
@@ -487,15 +500,16 @@ function MessageMarkdownTable({
     <div
       className={cn(
         "group/table relative max-w-full",
-        TABLE_CHROME_CLASS,
-        toolbarOpen && "is-menu-open"
+        TABLE_FRAME_CLASS,
+        toolbarOpen && "is-menu-open",
       )}
     >
+      <TooltipProvider>
       <div className="absolute top-1 right-1.5 z-10">
         <div
           className={cn(
             "flex items-center gap-1 rounded-md border bg-background/90 p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within/table:opacity-100 group-hover/table:opacity-100 supports-[backdrop-filter]:bg-background/75 supports-[backdrop-filter]:backdrop-blur",
-            toolbarOpen && "opacity-100"
+            toolbarOpen && "opacity-100",
           )}
         >
           <ContextMenu onOpenChange={setCopyMenuOpen}>
@@ -519,11 +533,11 @@ function MessageMarkdownTable({
                   className="size-3.5"
                   icon={copied ? Tick01Icon : Copy01Icon}
                 />
-                <span className="sr-only">Copy table as Markdown</span>
+                <span className="sr-only">{labels.copyTableAsMarkdown}</span>
               </ContextMenuTrigger>
               {copyMenuOpen ? null : (
                 <TooltipContent>
-                  {copied ? "Copied" : "Copy table as Markdown"}
+                  {copied ? labels.copied : labels.copyTableAsMarkdown}
                 </TooltipContent>
               )}
             </Tooltip>
@@ -541,7 +555,7 @@ function MessageMarkdownTable({
                     icon={format.icon}
                     strokeWidth={2}
                   />
-                  {format.label}
+                  {formatLabels[format.id]}
                 </ContextMenuItem>
               ))}
             </ContextMenuContent>
@@ -558,26 +572,23 @@ function MessageMarkdownTable({
                   />
                 }
               >
-                <DownloadIcon className="size-3.5" />
-                <span className="sr-only">Download table</span>
+                <HugeiconsIcon icon={Download01Icon} className="size-3.5" />
+                <span className="sr-only">{labels.downloadTable}</span>
               </TooltipTrigger>
-              <TooltipContent>Download table</TooltipContent>
+              <TooltipContent>{labels.downloadTable}</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent
-              align="end"
-              className="w-44 min-w-44"
-            >
+            <DropdownMenuContent align="end" className="w-44 min-w-44">
               <DropdownMenuItem
                 className="whitespace-nowrap"
                 onClick={downloadCsv}
               >
-                CSV
+                {labels.tableFormatCsv}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="whitespace-nowrap"
                 onClick={downloadMarkdown}
               >
-                Markdown
+                {labels.tableFormatMarkdown}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -590,10 +601,13 @@ function MessageMarkdownTable({
                   />
                 }
               >
-                <Maximize2Icon className="size-3.5" />
-                <span className="sr-only">View table fullscreen</span>
+                <HugeiconsIcon
+                  icon={ArrowExpandDiagonal02Icon}
+                  className="size-3.5"
+                />
+                <span className="sr-only">{labels.viewTableFullscreen}</span>
               </TooltipTrigger>
-              <TooltipContent>View table fullscreen</TooltipContent>
+              <TooltipContent>{labels.viewTableFullscreen}</TooltipContent>
             </Tooltip>
             <ResponsiveDialogContent
               className="flex h-[min(calc(100vh-2rem),900px)] max-h-[calc(100vh-2rem)] max-w-[min(calc(100vw-2rem),1200px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(calc(100vw-2rem),1200px)]"
@@ -601,21 +615,22 @@ function MessageMarkdownTable({
               showCloseButton={false}
             >
               <ResponsiveDialogHeader className="flex shrink-0 flex-row items-center justify-between border-b px-4 py-2">
-                <ResponsiveDialogTitle>Table</ResponsiveDialogTitle>
+                <ResponsiveDialogTitle>{labels.table}</ResponsiveDialogTitle>
                 <ResponsiveDialogClose
                   render={<Button size="icon-sm" variant="ghost" />}
                 >
                   <HugeiconsIcon className="size-4" icon={Cancel01Icon} />
-                  <span className="sr-only">Close</span>
+                  <span className="sr-only">{labels.close}</span>
                 </ResponsiveDialogClose>
               </ResponsiveDialogHeader>
               <div className="min-h-0 flex-1 overflow-auto p-4">
-                <div className={TABLE_CHROME_CLASS}>{renderTable()}</div>
+                <div className={TABLE_FRAME_CLASS}>{renderTable()}</div>
               </div>
             </ResponsiveDialogContent>
           </ResponsiveDialog>
         </div>
       </div>
+      </TooltipProvider>
       {renderTable()}
     </div>
   );
@@ -628,7 +643,10 @@ function MessageTableHead({
   ...props
 }: ComponentProps<"thead"> & { node?: unknown }) {
   return (
-    <TableHeader className={cn("[&_tr]:hover:bg-transparent", className)} {...props}>
+    <TableHeader
+      className={cn("[&_tr]:hover:bg-transparent", className)}
+      {...props}
+    >
       {children}
     </TableHeader>
   );
@@ -701,7 +719,7 @@ function MessageLink({
     <a
       className={cn(
         "font-medium text-foreground underline underline-offset-3 transition-colors hover:text-foreground/80",
-        className
+        className,
       )}
       href={href}
       rel={rel ?? (isExternal ? "noopener noreferrer" : undefined)}
@@ -723,19 +741,33 @@ const messageResponseComponents = {
   td: MessageTableCell,
 };
 
+const DEFAULT_REHYPE_PLUGINS = Object.values(defaultRehypePlugins);
+
 export const MessageResponse = memo(
-  ({ className, components, ...props }: MessageResponseProps) => (
+  ({ className, components, rehypePlugins, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
+        "message-response wrap-anywhere size-full min-w-0 max-w-full overflow-hidden break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto",
         className
       )}
       components={{ ...messageResponseComponents, ...components }}
+      plugins={MESSAGE_CODE_PLUGINS}
+      lineNumbers={false}
       {...props}
+      // Extra plugins run after Streamdown's defaults instead of replacing
+      // them, so link/image hardening and raw-HTML handling always apply.
+      rehypePlugins={
+        rehypePlugins
+          ? [...DEFAULT_REHYPE_PLUGINS, ...rehypePlugins]
+          : DEFAULT_REHYPE_PLUGINS
+      }
+      animated={props.isAnimating ? MESSAGE_TEXT_ANIMATION : false}
     />
   ),
   (prevProps, nextProps) =>
-    prevProps.children === nextProps.children && prevProps.mode === nextProps.mode
+    prevProps.children === nextProps.children &&
+    prevProps.mode === nextProps.mode &&
+    prevProps.isAnimating === nextProps.isAnimating
 );
 
 MessageResponse.displayName = "MessageResponse";
@@ -756,20 +788,22 @@ export function MessageAttachment({
   const mediaType =
     data.mediaType?.startsWith("image/") && data.url ? "image" : "file";
   const isImage = mediaType === "image";
-  const attachmentLabel = filename || (isImage ? "Image" : "Attachment");
+  const labels = useUiLabels();
+  const attachmentLabel =
+    filename || (isImage ? labels.image : labels.attachment);
 
   return (
     <div
       className={cn(
         "group relative size-24 overflow-hidden rounded-lg",
-        className
+        className,
       )}
       {...props}
     >
       {isImage ? (
         <>
           <Image
-            alt={filename || "attachment"}
+            alt={filename || labels.attachment}
             className="size-full object-cover"
             height={100}
             src={data.url}
@@ -777,7 +811,7 @@ export function MessageAttachment({
           />
           {onRemove && (
             <Button
-              aria-label="Remove attachment"
+              aria-label={labels.removeAttachment}
               className="absolute top-2 right-2 size-6 rounded-full bg-background/80 p-0 opacity-0 backdrop-blur-sm transition-opacity hover:bg-background group-hover:opacity-100 [&>svg]:size-3"
               onClick={(e) => {
                 e.stopPropagation();
@@ -786,7 +820,7 @@ export function MessageAttachment({
               variant="ghost"
             >
               <HugeiconsIcon icon={Cancel01Icon} />
-              <span className="sr-only">Remove</span>
+              <span className="sr-only">{labels.remove}</span>
             </Button>
           )}
         </>
@@ -806,7 +840,7 @@ export function MessageAttachment({
           </Tooltip>
           {onRemove && (
             <Button
-              aria-label="Remove attachment"
+              aria-label={labels.removeAttachment}
               className="size-6 shrink-0 rounded-full p-0 opacity-0 transition-opacity hover:bg-accent group-hover:opacity-100 [&>svg]:size-3"
               onClick={(e) => {
                 e.stopPropagation();
@@ -815,7 +849,7 @@ export function MessageAttachment({
               variant="ghost"
             >
               <HugeiconsIcon icon={Cancel01Icon} />
-              <span className="sr-only">Remove</span>
+              <span className="sr-only">{labels.remove}</span>
             </Button>
           )}
         </>
@@ -839,7 +873,7 @@ export function MessageAttachments({
     <div
       className={cn(
         "ml-auto flex w-fit flex-wrap items-start gap-2",
-        className
+        className,
       )}
       {...props}
     >
@@ -858,7 +892,7 @@ export const MessageToolbar = ({
   <div
     className={cn(
       "mt-4 flex w-full items-center justify-between gap-4",
-      className
+      className,
     )}
     {...props}
   >

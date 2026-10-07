@@ -1,5 +1,6 @@
 import { cancelPendingOutboxForOrganization } from "@notra/ai/autonomy/outbox";
 import { IRIS_MANDATE_NAME } from "@notra/ai/constants/autonomy";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import {
   autonomyActions,
@@ -29,6 +30,7 @@ import {
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
+import { getTranslations } from "@/lib/i18n/server";
 import { assertIrisEnabled } from "@/lib/iris/access";
 import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
 import { hasOpenRun } from "@/lib/iris/history";
@@ -56,7 +58,6 @@ import type {
   IrisOverview,
   IrisSignalView,
 } from "@/types/iris";
-import { describeIrisError } from "@/utils/iris-error";
 
 async function loadMandateRow(
   organizationId: string,
@@ -88,10 +89,9 @@ async function ensureWakeSchedule(mandate: IrisMandateRow): Promise<void> {
       createIrisWakeSchedule(mandate.organizationId, mandate.id)
     );
   } catch (error) {
-    console.error("[Iris] Failed to create the wake schedule", {
+    logError("[Iris] Failed to create the wake schedule", error, {
       organizationId: mandate.organizationId,
       mandateId: mandate.id,
-      error: describeIrisError(error),
     });
   }
 }
@@ -105,10 +105,7 @@ async function kickManualRun(organizationId: string): Promise<string | null> {
     });
     return runId;
   } catch (error) {
-    console.error("[Iris] Failed to start a manual run", {
-      organizationId,
-      error: describeIrisError(error),
-    });
+    logError("[Iris] Failed to start a manual run", error, { organizationId });
     return null;
   }
 }
@@ -301,15 +298,14 @@ export const irisRouter = {
           deleteIrisWakeSchedule(mandate)
         );
         if (!removed) {
-          console.warn("[Iris] The wake schedule was kept for a later retry", {
+          logWarn("[Iris] The wake schedule was kept for a later retry", {
             mandateId: mandate.id,
             scheduleId: mandate.qstashScheduleId,
           });
         }
       } catch (error) {
-        console.error("[Iris] Failed to delete the wake schedule", {
+        logError("[Iris] Failed to delete the wake schedule", error, {
           mandateId: mandate.id,
-          error: describeIrisError(error),
         });
       }
 
@@ -318,9 +314,8 @@ export const irisRouter = {
           cancelPendingOutboxForOrganization(input.organizationId)
         );
       } catch (error) {
-        console.error("[Iris] Failed to cancel pending messages", {
+        logError("[Iris] Failed to cancel pending messages", error, {
           organizationId: input.organizationId,
-          error: describeIrisError(error),
         });
       }
 
@@ -390,7 +385,8 @@ export const irisRouter = {
 
       const busy = await Effect.runPromise(hasOpenRun(input.organizationId));
       if (busy) {
-        throw conflict("Iris is already working on a run");
+        const tErrors = await getTranslations("errors.iris");
+        throw conflict(tErrors("runInProgress"));
       }
 
       const { runId } = await startIrisRun({
@@ -399,7 +395,8 @@ export const irisRouter = {
         executionId: `iris-manual-${crypto.randomUUID()}`,
       });
       if (!runId) {
-        throw conflict("Iris is already working on a run");
+        const tErrors = await getTranslations("errors.iris");
+        throw conflict(tErrors("runInProgress"));
       }
 
       trackServerEvent({

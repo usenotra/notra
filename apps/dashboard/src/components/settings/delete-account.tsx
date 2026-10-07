@@ -1,26 +1,30 @@
 "use client";
 
 import { TitleCard } from "@notra/ui/components/ui/title-card";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { DeleteAccountDialog } from "@/components/settings/delete-account-dialog";
 
 export function DeleteAccountSection() {
+  const t = useTranslations("settings.deleteAccount");
+  const tCommon = useTranslations("common");
+
   return (
     <TitleCard
       className="border-destructive/50 bg-destructive/5 lg:col-span-2"
-      heading="Delete Account"
+      heading={tCommon("labels.deleteAccount")}
     >
       <div className="space-y-4">
         <p className="text-muted-foreground text-sm">
-          Permanently remove your Personal Account and all of its contents from
-          the Notra platform. This action is not reversible, so please continue
-          with caution.
+          {t("sectionDescription")}
         </p>
-        <div className="flex justify-end">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
           <DeleteAccountDialog
             trigger={
-              <Button variant="destructive">Delete Personal Account</Button>
+              <Button className="w-full sm:w-auto" variant="destructive">
+                {t("deletePersonalAccount")}
+              </Button>
             }
           />
         </div>

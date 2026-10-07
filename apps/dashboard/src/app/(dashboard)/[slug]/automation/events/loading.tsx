@@ -1,29 +1,29 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { useTranslations } from "use-intl";
 
 import { EventsPageSkeleton } from "@/components/automation/events-skeleton";
 import { Button } from "@/components/button";
 import { PageContainer } from "@/components/layout/container";
 
 export default function Loading() {
+  const t = useTranslations("automation.events.page");
+  const tCommon = useTranslations("common");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-            <p className="text-muted-foreground">
-              React to GitHub activity and trigger content generation
-              automatically
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.events")}
+        >
           <Button className="gap-1.5">
             <HugeiconsIcon className="size-4" icon={Add01Icon} />
-            Create Trigger
+            {t("create")}
             <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
           </Button>
-        </div>
+        </PageHeading>
         <EventsPageSkeleton />
       </div>
     </PageContainer>

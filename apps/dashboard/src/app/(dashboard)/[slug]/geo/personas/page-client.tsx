@@ -2,17 +2,28 @@
 
 import { Loading03Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import Counter from "@notra/ui/components/shared/counter";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@notra/ui/components/ui/empty";
 import { useReducedMotion } from "motion/react";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateTablePreview } from "@/components/empty-state-preview";
+import Link from "@/components/framework/link";
 import { PersonaActivityCard } from "@/components/geo/persona-activity-card";
 import { PersonaAddDialog } from "@/components/geo/persona-add-dialog";
 import { PersonasTable } from "@/components/geo/personas-table";
-import { GeoTableSkeleton } from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 import { useGeoProjectScope } from "@/components/providers/geo-project-provider";
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
@@ -20,39 +31,18 @@ import {
   EMPTY_STATE_TABLE_COLUMNS,
   EMPTY_STATE_TABLE_ROWS,
 } from "@/constants/empty-state";
-import {
-  GEO_PERSONA_SKELETON_ROW_COUNT,
-  GEO_PERSONAS_EMPTY_DESCRIPTION,
-  GEO_PERSONAS_EMPTY_TITLE,
-  GEO_PERSONAS_PAGE_DESCRIPTION,
-  GEO_PERSONAS_PAGE_TITLE,
-} from "@/constants/geo-personas";
+import { GEO_PERSONA_SKELETON_ROW_COUNT } from "@/constants/geo-personas";
 import { useGeoSettings } from "@/lib/hooks/use-geo";
 import { useGeoPersonas } from "@/lib/hooks/use-geo-personas";
 import { usePersonaAddFlow } from "@/lib/hooks/use-persona-add-flow";
 import type { GeoPageClientProps } from "@/types/geo";
 import type {
   GeneratePersonasButtonProps,
-  GeoPersonasPageHeaderProps,
   PersonaGenerationCounterProps,
 } from "@/types/geo-personas-ui";
 import { withGeoProject } from "@/utils/geo-paths";
 
 import { GeoPersonasSkeleton } from "./skeleton";
-
-function PageHeader({ action }: GeoPersonasPageHeaderProps) {
-  return (
-    <header className="flex flex-wrap items-center justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {GEO_PERSONAS_PAGE_TITLE}
-        </h1>
-        <p className="text-muted-foreground">{GEO_PERSONAS_PAGE_DESCRIPTION}</p>
-      </div>
-      {action}
-    </header>
-  );
-}
 
 function GenerationCounter({ progress }: PersonaGenerationCounterProps) {
   const reducedMotion = useReducedMotion();
@@ -83,21 +73,24 @@ function GeneratePersonasButton({
   progress,
   onClick,
 }: GeneratePersonasButtonProps) {
-  const label = hasPersonas ? "Add personas" : "Generate personas";
+  const t = useTranslations("geo.pages.personas");
+  const label = hasPersonas ? t("addPersonas") : t("generatePersonas");
+  const stepLabel = progress ? t(`generationSteps.${progress.stepKey}`) : "";
+  const progressLabel = progress
+    ? t("progress", {
+        label: stepLabel,
+        step: progress.step,
+        total: progress.total,
+      })
+    : "";
   const isGenerating = progress !== null;
   return (
     <div className="flex flex-col items-start gap-2 sm:items-end">
       <span aria-live="polite" aria-atomic="true" className="sr-only">
-        {progress
-          ? `${progress.label}, step ${progress.step} of ${progress.total}`
-          : ""}
+        {progressLabel}
       </span>
       <Button
-        aria-label={
-          progress
-            ? `${progress.label}, step ${progress.step} of ${progress.total}`
-            : label
-        }
+        aria-label={progress ? progressLabel : label}
         className="h-9 gap-2 px-3"
         disabled={isGenerating}
         onClick={onClick}
@@ -109,7 +102,12 @@ function GeneratePersonasButton({
         />
         {progress ? (
           <span className="inline-flex items-center gap-1.5 leading-none">
-            <span>{progress.label}</span>
+            <Shimmer
+              as="span"
+              className="text-primary-foreground/70 [--foreground:var(--primary-foreground)]"
+            >
+              {stepLabel}
+            </Shimmer>
             <GenerationCounter progress={progress} />
           </span>
         ) : (
@@ -125,6 +123,10 @@ export default function PageClient({ organizationSlug }: GeoPageClientProps) {
 }
 
 function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
+  const t = useTranslations("geo.pages.personas");
+  const tShared = useTranslations("geo.pages.shared");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
   const { projectId } = useGeoProjectScope();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const orgFromList = getOrganization(organizationSlug);
@@ -164,7 +166,10 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
     return (
       <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="w-full space-y-6 px-4 lg:px-6">
-          <PageHeader />
+          <PageHeading
+            description={t("description")}
+            title={tCommon("labels.personas")}
+          />
           <EmptyState
             action={
               <Button
@@ -175,17 +180,17 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
                   />
                 }
               >
-                Set up GEO tracking
+                {tGeoShared("setUpGeoTracking")}
               </Button>
             }
-            description="Set up GEO tracking first, then generate a persona set."
+            description={t("setupDescription")}
             preview={
               <EmptyStateTablePreview
                 columns={EMPTY_STATE_TABLE_COLUMNS.personas}
                 rows={EMPTY_STATE_TABLE_ROWS}
               />
             }
-            title="Not set up yet"
+            title={tShared("notSetUpTitle")}
           />
         </div>
       </PageContainer>
@@ -207,10 +212,15 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <PageHeader action={headerAction} />
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.personas")}
+        >
+          {headerAction}
+        </PageHeading>
 
         {isLoadingPersonas ? (
-          <GeoTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
+          <DataTableSkeleton rows={GEO_PERSONA_SKELETON_ROW_COUNT} />
         ) : null}
 
         {hasPersonas ? (
@@ -230,23 +240,22 @@ function GeoPersonasPageContent({ organizationSlug }: GeoPageClientProps) {
         ) : null}
 
         {showEmptyState ? (
-          <EmptyState
-            action={
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <HugeiconsIcon icon={UserGroupIcon} />
+              </EmptyMedia>
+              <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+              <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
               <GeneratePersonasButton
                 hasPersonas={false}
                 onClick={onGenerateClick}
                 progress={progress}
               />
-            }
-            description={GEO_PERSONAS_EMPTY_DESCRIPTION}
-            preview={
-              <EmptyStateTablePreview
-                columns={EMPTY_STATE_TABLE_COLUMNS.personas}
-                rows={EMPTY_STATE_TABLE_ROWS}
-              />
-            }
-            title={GEO_PERSONAS_EMPTY_TITLE}
-          />
+            </EmptyContent>
+          </Empty>
         ) : null}
       </div>
       <PersonaAddDialog

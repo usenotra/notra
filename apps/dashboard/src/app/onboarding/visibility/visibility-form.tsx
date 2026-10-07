@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import { promptKey } from "@notra/geo-core/geo/prompt-key";
 import { buildBrandTerms } from "@notra/geo-core/geo/suggestion-keywords";
 import { normalizeWebsiteUrl } from "@notra/geo-core/utils/geo-website";
@@ -8,12 +9,13 @@ import { AuthFormHeader } from "@notra/ui/components/shared/auth/auth-form-heade
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import { Loader2Icon } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
+import { GeoLanguagePicker } from "@/components/geo/geo-language-picker";
 import { BrandReviewSkeleton } from "@/components/onboarding/brand-review-skeleton";
 import { OnboardingProgress } from "@/components/onboarding/progress";
 import { PromptChoiceRow } from "@/components/onboarding/prompt-choice-row";
@@ -29,6 +31,8 @@ import {
   useGeoDiscoverWebsite,
   useGeoOnboardingBrand,
 } from "@/lib/hooks/use-geo";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
+import { useRouter } from "@/lib/navigation";
 import type {
   VisibilityFormProps,
   VisibilityReviewProps,
@@ -45,14 +49,19 @@ function VisibilityReview({
   websiteUrl,
   discovery,
   fallbackCompanyName,
+  languages,
   nextHref,
   skipHref,
 }: VisibilityReviewProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tCommon = useTranslations("common");
   const id = useId();
   const router = useRouter();
   const [companyName, setCompanyName] = useState(
     () => discovery?.companyName ?? fallbackCompanyName
   );
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const companyInputRef = useRef<HTMLInputElement>(null);
   const [droppedKeys, setDroppedKeys] = useState(() => new Set<string>());
   const save = useGeoOnboardingBrand(organizationId);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -65,7 +74,7 @@ function VisibilityReview({
     })
   );
   const selectedPrompts = selectedVisibilityPrompts(prompts, droppedKeys);
-  const canSubmit = companyName.trim().length > 0 && !busy;
+  const companyNameMissing = companyName.trim().length === 0;
   const websiteHost = stripWebsitePrefix(websiteUrl);
 
   const togglePrompt = (key: string) => {
@@ -81,7 +90,12 @@ function VisibilityReview({
   };
 
   const handleSubmit = () => {
-    if (!canSubmit) {
+    if (busy) {
+      return;
+    }
+    if (companyNameMissing) {
+      setAttemptedSubmit(true);
+      requestAnimationFrame(() => companyInputRef.current?.focus());
       return;
     }
     const brandInput = toVisibilityBrandInput({
@@ -89,6 +103,7 @@ function VisibilityReview({
       aliases: discovery?.aliases ?? [],
       audienceType: discovery?.audienceType,
       prompts: selectedPrompts,
+      languages,
     });
     save.mutate(brandInput, {
       onSuccess: () => {
@@ -96,6 +111,7 @@ function VisibilityReview({
           alias_count: brandInput.aliases.length,
           audience_type: brandInput.audienceType ?? null,
           prompt_count: brandInput.prompts.length,
+          languages: brandInput.languages ?? [],
         });
         setIsLeaving(true);
         router.push(nextHref);
@@ -113,25 +129,42 @@ function VisibilityReview({
       }}
     >
       <div className="grid gap-2">
-        <Label htmlFor={`${id}-company`}>Brand name</Label>
+        <Label htmlFor={`${id}-company`}>{t("brandName")}</Label>
         <Input
-          aria-invalid={companyName.trim().length === 0}
+          aria-describedby={
+            attemptedSubmit && companyNameMissing
+              ? `${id}-company-error`
+              : undefined
+          }
+          aria-invalid={attemptedSubmit && companyNameMissing}
           className={ONBOARDING_FIELD_CLASS}
           disabled={busy}
           id={`${id}-company`}
           onChange={(event) => setCompanyName(event.target.value)}
-          placeholder="Acme"
+          placeholder={t("brandNamePlaceholder")}
+          ref={companyInputRef}
           value={companyName}
         />
+        {attemptedSubmit && companyNameMissing ? (
+          <p className="text-destructive text-sm" id={`${id}-company-error`}>
+            {t("brandNameRequired")}
+          </p>
+        ) : null}
       </div>
 
       {prompts.length > 0 ? (
         <div className="grid gap-2">
           <p className="text-sm font-medium">
-            {websiteHost ? `Questions from ${websiteHost}` : "Questions"}{" "}
-            <span className="text-muted-foreground text-xs font-normal">
-              ({selectedPrompts.length} of {prompts.length})
-            </span>
+            {t.rich(websiteHost ? "questionsFrom" : "questions", {
+              host: websiteHost,
+              selected: selectedPrompts.length,
+              total: prompts.length,
+              muted: (chunks) => (
+                <span className="text-muted-foreground text-xs font-normal">
+                  {chunks}
+                </span>
+              ),
+            })}
           </p>
           <ul className="w-full max-w-full min-w-0 space-y-1.5 overflow-hidden">
             {prompts.map((entry) => {
@@ -150,15 +183,8 @@ function VisibilityReview({
         </div>
       ) : null}
 
-      <CtaButton className="w-full" disabled={!canSubmit} type="submit">
-        {busy ? (
-          <>
-            <Loader2Icon className="size-4 animate-spin" />
-            Saving
-          </>
-        ) : (
-          "Continue"
-        )}
+      <CtaButton className="w-full" loading={busy} type="submit">
+        {tCommon("actions.continue")}
       </CtaButton>
 
       <div className="text-center">
@@ -175,7 +201,7 @@ function VisibilityReview({
           size="sm"
           variant="link"
         >
-          Skip for now
+          {t("skipStep")}
         </Button>
       </div>
     </form>
@@ -187,11 +213,16 @@ export function VisibilityForm({
   projectId,
   websiteUrl,
   companyName,
+  initialLanguages,
+  lockedLanguage,
   nextHref,
   skipHref,
   inOnboardingFlow,
   progressHrefs,
 }: VisibilityFormProps) {
+  const t = useTranslations("onboarding.visibility");
+  const tCommon2 = useTranslations("common");
+  const languageLabel = useLanguageLabel();
   const id = useId();
   const [websiteInput, setWebsiteInput] = useState(() =>
     stripWebsitePrefix(websiteUrl)
@@ -199,7 +230,13 @@ export function VisibilityForm({
   const [analyzedUrl, setAnalyzedUrl] = useState(
     () => normalizeWebsiteUrl(websiteUrl) ?? null
   );
-  const discover = useGeoDiscoverWebsite(organizationId, analyzedUrl);
+  const [languages, setLanguages] = useState(initialLanguages);
+  const promptLanguage = languages[0] ?? DEFAULT_LANGUAGE;
+  const discover = useGeoDiscoverWebsite(
+    organizationId,
+    analyzedUrl,
+    promptLanguage
+  );
   const isAnalyzing = analyzedUrl !== null && discover.isPending;
   const analyzedHost = analyzedUrl ? stripWebsitePrefix(analyzedUrl) : "";
   const discoveryStartedAtRef = useRef<number | null>(null);
@@ -260,14 +297,13 @@ export function VisibilityForm({
           />
         </div>
 
-        <AuthFormHeader
-          description="We ask ChatGPT, Claude, Gemini and Perplexity what your buyers ask them, then check if you come up."
-          title="See what AI says about you"
-        />
+        <AuthFormHeader description={t("description")} title={t("title")} />
 
         <div className="mt-2 space-y-5">
           <div className="grid gap-2">
-            <Label htmlFor={`${id}-website`}>Website</Label>
+            <Label htmlFor={`${id}-website`}>
+              {tCommon2("labels.website")}
+            </Label>
             <div className="border-input focus-within:border-ring focus-within:ring-ring/50 flex h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px]">
               <label
                 className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -293,21 +329,42 @@ export function VisibilityForm({
               />
               {isAnalyzing ? (
                 <span className="text-muted-foreground flex h-full items-center px-3.5">
-                  <Loader2Icon className="size-4 animate-spin" />
+                  <Spinner />
                 </span>
               ) : null}
             </div>
             {isAnalyzing ? (
-              <p className="text-muted-foreground text-xs">
-                Reading {analyzedHost}. Takes about 20 seconds.
+              <p className="text-muted-foreground text-xs wrap-anywhere">
+                {t("reading", { host: analyzedHost })}
               </p>
             ) : null}
             {discover.isError ? (
-              <p className="text-destructive text-sm">
-                Could not read {analyzedHost}. Check the address, or just type
-                your brand name below.
+              <p className="text-destructive text-sm wrap-anywhere">
+                {t("readFailed", { host: analyzedHost })}
               </p>
             ) : null}
+          </div>
+
+          <div className="grid gap-2">
+            <div className="space-y-1">
+              <Label htmlFor={`${id}-languages`}>
+                {tCommon2("labels.languages")}
+              </Label>
+              <p className="text-muted-foreground text-xs">
+                {t("languagesHint", {
+                  language: languageLabel(promptLanguage),
+                })}
+              </p>
+            </div>
+            <GeoLanguagePicker
+              disabled={isAnalyzing}
+              inputClassName="h-11 rounded-xl"
+              inputId={`${id}-languages`}
+              labeled={false}
+              lockedLanguage={lockedLanguage}
+              onChange={setLanguages}
+              selected={languages}
+            />
           </div>
 
           {isAnalyzing ? (
@@ -316,7 +373,8 @@ export function VisibilityForm({
             <VisibilityReview
               discovery={discover.data?.discovery ?? null}
               fallbackCompanyName={companyName ?? ""}
-              key={`${analyzedUrl ?? ""}:${discover.status}`}
+              key={`${analyzedUrl ?? ""}:${promptLanguage}:${discover.status}`}
+              languages={languages}
               nextHref={nextHref}
               organizationId={organizationId}
               skipHref={skipHref}

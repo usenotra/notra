@@ -19,8 +19,8 @@ import { ORPCError } from "@orpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 import { COMPANY_LOGO_LOOKUP_TIMEOUT_MS } from "@/constants/company-logo";
-import { SELF_SERVE_AGENT_ERROR_MESSAGES } from "@/constants/onboarding-agent";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import {
   getOnboardingAgentState,
   startSelfServeOnboardingAgent,
@@ -49,19 +49,19 @@ export const onboardingRouter = {
         searchByName: input.searchByName,
       };
 
-      // Ahead of the rate limiter: a cached logo costs nothing upstream, and
-      // repeat navigation used to burn the per-query budget on every page view.
+      // Cached logos cost nothing upstream and do not consume the user's budget.
       const cached = await readCachedCompanyLogo(cacheKeyInput);
       if (cached) {
         return cached;
       }
 
-      const { success: withinLimit } = await ratelimit.companyLogo.limit(
-        `${context.user.id}:${input.query.toLowerCase()}`
-      );
-      if (!withinLimit) {
+      const { success: withinLimit, reason } =
+        await ratelimit.companyLogo.limit(context.user.id);
+      // Upstash returns success on timeout; paid lookups must fail closed.
+      if (!withinLimit || reason === "timeout") {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message: "Too many logo lookups. Please try again shortly.",
+          message: tErrors("tooManyLogoLookups"),
         });
       }
 
@@ -196,9 +196,9 @@ export const onboardingRouter = {
         input.organizationId
       );
       if (!withinLimit) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("TOO_MANY_REQUESTS", {
-          message:
-            "Too many onboarding agent requests. Please try again shortly.",
+          message: tErrors("tooManyAgentRequests"),
         });
       }
 
@@ -212,8 +212,9 @@ export const onboardingRouter = {
         (result.reason === "no-company-domain" ||
           result.reason === "website-unreachable")
       ) {
+        const tErrors = await getTranslations("errors.onboarding");
         throw new ORPCError("BAD_REQUEST", {
-          message: SELF_SERVE_AGENT_ERROR_MESSAGES[result.reason],
+          message: tErrors(`selfServeAgent.${result.reason}`),
         });
       }
 

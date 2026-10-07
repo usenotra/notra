@@ -1,0 +1,27 @@
+---
+title: Composer
+description: The claude.ai reply box with the plus menu, model picker, mode and context ring below it.
+---
+
+<Component path="claude/examples/claude-composer" />
+
+<RegistryInstall name="claude-composer" />
+
+`ClaudeComposer` is a form around a shadcn `InputGroup`: an auto-growing `InputGroupTextarea` with a return-arrow `InputGroupButton` at the end, which turns into a stop square while `busy`. Enter sends, Shift+Enter adds a line.
+
+The row under the box holds the [Plus Menu](/components/claude/plus-menu) and a dictation `Button` on the left, and the [Model Selector](/components/claude/model-selector), the mode `Button` and a context ring on the right. An optional `disclaimer` renders centered between them, and wraps below the row on narrow widths (a container query, not a viewport breakpoint). The ring is `ClaudeUsageRing`, an SVG ring with `role="progressbar"` and a `Tooltip`.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `onSend` | | Called with the trimmed text. The box clears only when this is set. |
+| `onStop` | | Called when the stop button is pressed while `busy`. |
+| `busy` | `false` | Shows the stop button and blocks sending. |
+| `placeholder` | `Reply` | The textarea placeholder. |
+| `model`, `defaultModel`, `onModelChange` | `sonnet-5.5` | The selected model, controlled or uncontrolled. |
+| `effort`, `defaultEffort`, `onEffortChange` | `medium` | The thinking effort, controlled or uncontrolled. |
+| `mode`, `onModeClick` | `Manual` | The mode button label and click handler. Pass `null` to hide it. |
+| `contextUsage` | `85` | Percent shown by the context ring. |
+| `onPlusSelect` | | Called with the id of the Plus Menu item picked. |
+| `disclaimer` | | Optional centered text in the row under the box. Nothing is shown by default. |
+
+<include>./_used-in.mdx</include>

@@ -15,12 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@notra/ui/components/ui/select";
+import { Spinner } from "@notra/ui/components/ui/spinner";
 import { Textarea } from "@notra/ui/components/ui/textarea";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { useDebouncedValue } from "@tanstack/react-pacer";
-import { Loader2Icon } from "lucide-react";
-import { useState } from "react";
+import { CheckIcon, XIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { OnboardingEmailPrefs } from "@/components/onboarding/email-prefs";
 import { OrgLogoField } from "@/components/onboarding/org-logo-field";
@@ -32,45 +34,89 @@ import {
   ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS,
   ONBOARDING_STEP_WORKSPACE,
 } from "@/constants/onboarding";
+import { useHeardAboutLabels } from "@/lib/hooks/use-heard-about-labels";
 import { extractDomain } from "@/lib/onboarding/company-logo";
+import { continueAfterWorkspace } from "@/lib/onboarding/continue-after-workspace";
 import {
+  MAX_LOGO_FILE_SIZE_MB,
   readFileAsDataUrl,
   validateLogoFile,
 } from "@/lib/onboarding/logo-file";
 import { submitWorkspaceForm } from "@/lib/onboarding/submit-workspace-form";
-import type { WorkspaceFormProps } from "@/types/onboarding";
+import type {
+  OnboardingExistingOrg,
+  WorkspaceFormField,
+  WorkspaceFormProps,
+  WorkspaceSlugCheck,
+} from "@/types/onboarding";
 import { getGoogleFaviconUrl } from "@/utils/brand";
 import {
-  getHeardAboutNotraLabel,
   isHeardAboutNotraSource,
   slugify,
   slugifyWhileTyping,
 } from "@/utils/onboarding";
 
+import { isWorkspaceSlugAvailable } from "./actions";
+
 const WEBSITE_PREFIX_REGEX = /^https?:\/\//i;
-
-function getValidationMessage(error: unknown) {
-  if (typeof error === "string") {
-    return error;
-  }
-
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message);
-  }
-
-  return "Please check this field";
-}
 
 export function WorkspaceForm({
   existingOrg,
   progressHrefs,
 }: WorkspaceFormProps) {
+  const t = useTranslations("onboarding.workspace");
+  const tCommon = useTranslations("common");
+  const heardAboutLabels = useHeardAboutLabels();
+  const getHeardAboutLabel = (value: string | null | undefined) => {
+    if (!value) {
+      return null;
+    }
+    return isHeardAboutNotraSource(value) ? heardAboutLabels[value] : value;
+  };
+  const getValidationMessage = (field: WorkspaceFormField, error: unknown) => {
+    if (typeof error === "string") {
+      return error;
+    }
+    if (!(error && typeof error === "object")) {
+      return t("validation.checkField");
+    }
+    const code = "code" in error ? error.code : undefined;
+    if (field === "name" && code === "too_small") {
+      return tCommon("messages.organizationNameTooShort");
+    }
+    if (field === "name" && code === "too_big") {
+      return tCommon("messages.organizationNameTooLong");
+    }
+    if (field === "slug" && code === "too_small") {
+      return tCommon("messages.organizationSlugTooShort");
+    }
+    if (field === "slug" && code === "too_big") {
+      return tCommon("messages.organizationSlugTooLong");
+    }
+    if (field === "slug" && code === "custom") {
+      return tCommon("messages.thisSlugIsReservedAnd");
+    }
+    if (field === "websiteUrl") {
+      return t("validation.websiteInvalid");
+    }
+    if (field === "heardAboutNotraOther" && code === "custom") {
+      return t("validation.heardAboutOtherRequired");
+    }
+    if ("message" in error) {
+      return String(error.message);
+    }
+    return t("validation.checkField");
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrg, setCreatedOrg] = useState<OnboardingExistingOrg>();
+  const currentOrg = existingOrg ?? createdOrg;
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
     existingOrg?.logo ?? null
   );
-  const [websiteValue, setWebsiteValue] = useState("");
+  const [websiteValue, setWebsiteValue] = useState(
+    existingOrg?.websiteUrl ?? ""
+  );
   const [debouncedWebsite] = useDebouncedValue(websiteValue, {
     wait: COMPANY_LOGO_DEBOUNCE_MS,
   });
@@ -78,12 +124,16 @@ export function WorkspaceForm({
   const fetchedLogoUrl = logoFile
     ? null
     : (getGoogleFaviconUrl(companyDomain) ?? null);
-  const isResuming = !!existingOrg;
+  const isResuming = !!currentOrg;
 
   const handleLogoSelect = async (file: File) => {
     const validationError = validateLogoFile(file);
     if (validationError) {
-      toast.error(validationError);
+      toast.error(
+        validationError === "tooLarge"
+          ? t("logoTooLarge", { size: MAX_LOGO_FILE_SIZE_MB })
+          : t("logoInvalidType")
+      );
       return;
     }
 
@@ -91,12 +141,8 @@ export function WorkspaceForm({
       const dataUrl = await readFileAsDataUrl(file);
       setLogoFile(file);
       setLogoPreviewUrl(dataUrl);
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not read the selected image."
-      );
+    } catch {
+      toast.error(t("logoReadFailed"));
     }
   };
   const existingSource = existingOrg?.heardAboutNotraSource;
@@ -113,9 +159,9 @@ export function WorkspaceForm({
       heardAboutNotraSource: initialSource,
       name: existingOrg?.name ?? "",
       slug: existingOrg?.slug ?? "",
-      websiteUrl: "",
+      websiteUrl: existingOrg?.websiteUrl ?? "",
       dailySummary: existingOrg?.dailySummary ?? true,
-      marketingEmails: existingOrg?.marketingEmails ?? true,
+      marketingEmails: existingOrg?.marketingEmails ?? false,
     },
     validators: {
       onSubmit: onboardingWorkspaceFormSchema,
@@ -125,20 +171,84 @@ export function WorkspaceForm({
 
       try {
         await submitWorkspaceForm({
-          existingOrg,
+          existingOrg: currentOrg,
+          onOrganizationCreated: setCreatedOrg,
           logoFile,
           logoSourceUrl: null,
           value,
         });
-        window.location.assign("/onboarding/visibility");
+        await continueAfterWorkspace(currentOrg, value);
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to create workspace"
+          err instanceof Error && err.message ? err.message : t("createFailed")
         );
         setIsSubmitting(false);
       }
     },
+    onSubmitInvalid: ({ formApi }) => {
+      const fields = [
+        ["name", "name"],
+        ["slug", "slug"],
+        ["websiteUrl", "website"],
+        ["heardAboutNotraSource", "heard-about-notra"],
+        ["heardAboutNotraOther", "heard-about-notra-other"],
+      ] as const;
+      for (const [field, id] of fields) {
+        if (formApi.state.fieldMeta[field]?.errors.length) {
+          const input = document.getElementById(id);
+          if (input instanceof HTMLElement && !input.hasAttribute("disabled")) {
+            requestAnimationFrame(() => input.focus());
+            break;
+          }
+        }
+      }
+    },
   });
+
+  const slug = useStore(form.store, (state) => state.values.slug);
+  const [slugCheck, setSlugCheck] = useState<WorkspaceSlugCheck | null>(null);
+  const validSlug =
+    !isResuming &&
+    onboardingWorkspaceFormFieldsSchema.shape.slug.safeParse(slug).success;
+  let slugStatus: WorkspaceSlugCheck["status"] | null = null;
+  if (validSlug) {
+    slugStatus = slugCheck?.slug === slug ? slugCheck.status : "checking";
+  }
+
+  useEffect(() => {
+    if (!validSlug) {
+      return;
+    }
+
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+    const check = async (attempt: number) => {
+      try {
+        const available = await isWorkspaceSlugAvailable(slug);
+        if (!cancelled) {
+          setSlugCheck({
+            slug,
+            status: available ? "available" : "unavailable",
+          });
+        }
+      } catch {
+        if (cancelled) {
+          return;
+        }
+        if (attempt < 2) {
+          timeout = setTimeout(() => check(attempt + 1), 400 * 2 ** attempt);
+        } else {
+          setSlugCheck({ slug, status: "error" });
+        }
+      }
+    };
+
+    timeout = setTimeout(() => check(0), 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [slug, validSlug]);
 
   return (
     <div className="flex w-full flex-col gap-5">
@@ -154,16 +264,8 @@ export function WorkspaceForm({
       </div>
 
       <AuthFormHeader
-        description={
-          isResuming
-            ? "Your workspace is ready. Add your website and we'll pick up your brand voice."
-            : "Add your website and we'll pick up your brand voice from it."
-        }
-        title={
-          isResuming
-            ? "Finish setting up your workspace"
-            : "Set up your workspace"
-        }
+        description={isResuming ? t("resumeDescription") : t("description")}
+        title={isResuming ? t("resumeTitle") : t("title")}
       />
 
       <form
@@ -182,7 +284,7 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{tCommon("labels.name")}</Label>
               <div className="flex items-center gap-2">
                 <OrgLogoField
                   disabled={isSubmitting}
@@ -190,6 +292,11 @@ export function WorkspaceForm({
                   previewUrl={logoPreviewUrl ?? fetchedLogoUrl}
                 />
                 <Input
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "name-error"
+                      : undefined
+                  }
                   aria-invalid={field.state.meta.errors.length > 0}
                   autoFocus={!isResuming}
                   className="h-11 rounded-xl px-3.5"
@@ -206,14 +313,14 @@ export function WorkspaceForm({
                       form.setFieldValue("slug", slugify(e.target.value));
                     }
                   }}
-                  placeholder="Acme Inc"
+                  placeholder={tCommon("labels.acmeInc")}
                   type="text"
                   value={field.state.value}
                 />
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                <p className="text-destructive text-sm" id="name-error">
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -228,9 +335,9 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="slug">Slug</Label>
+              <Label htmlFor="slug">{tCommon("labels.slug")}</Label>
               <div
-                className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
+                className={`focus-within:border-ring focus-within:ring-ring/50 relative flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
                 <label
                   className="border-input bg-muted/30 text-muted-foreground flex h-full items-center border-r px-3.5 text-sm"
@@ -242,7 +349,13 @@ export function WorkspaceForm({
                   autoCapitalize="none"
                   autoComplete="off"
                   autoCorrect="off"
-                  className="h-full min-w-0 flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "slug-error"
+                      : undefined
+                  }
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  className="h-full min-w-0 flex-1 bg-transparent py-0 pr-11 pl-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isSubmitting || isResuming}
                   id="slug"
                   onBlur={() => {
@@ -252,15 +365,42 @@ export function WorkspaceForm({
                   onChange={(e) =>
                     field.handleChange(slugifyWhileTyping(e.target.value))
                   }
-                  placeholder="acme-inc"
+                  placeholder={tCommon("labels.acmeIncSlug")}
                   spellCheck={false}
                   type="text"
                   value={field.state.value}
                 />
+                <span
+                  aria-hidden={!slugStatus}
+                  aria-label={
+                    slugStatus ? t(`slugStatus.${slugStatus}`) : undefined
+                  }
+                  className="pointer-events-none absolute right-3.5 flex size-6 items-center justify-center"
+                  role="status"
+                >
+                  <span
+                    className={`text-muted-foreground duration-fast absolute transition-opacity motion-reduce:transition-none ${slugStatus === "checking" ? "opacity-100" : "opacity-0"}`}
+                  >
+                    <Spinner />
+                  </span>
+                  <span
+                    className={`bg-success/15 text-success duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "available" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
+                  >
+                    <CheckIcon className="size-4" />
+                  </span>
+                  <span
+                    className={`bg-destructive/10 text-destructive duration-fast absolute flex size-6 items-center justify-center rounded-full transition-[opacity,transform] motion-reduce:transition-none ${slugStatus === "unavailable" ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}
+                  >
+                    <XIcon className="size-4" />
+                  </span>
+                  <XIcon
+                    className={`text-muted-foreground duration-fast absolute size-4 transition-opacity motion-reduce:transition-none ${slugStatus === "error" ? "opacity-100" : "opacity-0"}`}
+                  />
+                </span>
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                <p className="text-destructive text-sm" id="slug-error">
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -275,7 +415,7 @@ export function WorkspaceForm({
         >
           {(field) => (
             <div className="grid gap-2">
-              <Label htmlFor="website">Website</Label>
+              <Label htmlFor="website">{tCommon("labels.website")}</Label>
               <div
                 className={`focus-within:border-ring focus-within:ring-ring/50 flex h-11 min-h-11 w-full flex-row items-center overflow-hidden rounded-xl border transition-colors focus-within:ring-[3px] ${field.state.meta.errors.length > 0 ? "border-destructive" : "border-input"}`}
               >
@@ -286,9 +426,15 @@ export function WorkspaceForm({
                   https://
                 </label>
                 <input
-                  autoFocus={isResuming}
+                  aria-describedby={
+                    field.state.meta.errors.length > 0
+                      ? "website-error"
+                      : undefined
+                  }
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  autoFocus={isResuming && !existingOrg?.hasBrand}
                   className="h-full flex-1 bg-transparent px-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || Boolean(existingOrg?.hasBrand)}
                   id="website"
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -301,8 +447,8 @@ export function WorkspaceForm({
                 />
               </div>
               {field.state.meta.errors.length > 0 ? (
-                <p className="text-destructive text-sm">
-                  {getValidationMessage(field.state.meta.errors[0])}
+                <p className="text-destructive text-sm" id="website-error">
+                  {getValidationMessage(field.name, field.state.meta.errors[0])}
                 </p>
               ) : null}
             </div>
@@ -321,10 +467,10 @@ export function WorkspaceForm({
               <div>
                 <div className="grid gap-2">
                   <Label htmlFor="heard-about-notra">
-                    Where did you hear about Notra?{" "}
+                    {t("heardAbout")}{" "}
                     {field.state.value !== "other" ? (
                       <span className="text-muted-foreground text-xs">
-                        (optional)
+                        {tCommon("labels.optional")}
                       </span>
                     ) : null}
                   </Label>
@@ -342,28 +488,39 @@ export function WorkspaceForm({
                     value={field.state.value}
                   >
                     <SelectTrigger
+                      aria-describedby={
+                        field.state.meta.errors.length > 0
+                          ? "heard-about-notra-error"
+                          : undefined
+                      }
                       aria-invalid={field.state.meta.errors.length > 0}
                       className="w-full rounded-xl px-3.5 data-[size=default]:h-11"
                       disabled={isSubmitting}
                       id="heard-about-notra"
                     >
-                      <SelectValue placeholder="Select an option">
+                      <SelectValue placeholder={t("selectOption")}>
                         {(value) =>
-                          getHeardAboutNotraLabel(value) ?? "Select an option"
+                          getHeardAboutLabel(value) ?? t("selectOption")
                         }
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {ONBOARDING_HEARD_ABOUT_NOTRA_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {heardAboutLabels[option.value]}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {field.state.meta.errors.length > 0 ? (
-                    <p className="text-destructive text-sm">
-                      {getValidationMessage(field.state.meta.errors[0])}
+                    <p
+                      className="text-destructive text-sm"
+                      id="heard-about-notra-error"
+                    >
+                      {getValidationMessage(
+                        field.name,
+                        field.state.meta.errors[0]
+                      )}
                     </p>
                   ) : null}
                 </div>
@@ -384,9 +541,14 @@ export function WorkspaceForm({
                       {(otherField) => (
                         <div className="grid gap-2 pt-5">
                           <Label htmlFor="heard-about-notra-other">
-                            Tell us where
+                            {t("tellUsWhere")}
                           </Label>
                           <Textarea
+                            aria-describedby={
+                              otherField.state.meta.errors.length > 0
+                                ? "heard-about-notra-other-error"
+                                : undefined
+                            }
                             aria-invalid={
                               otherField.state.meta.errors.length > 0
                             }
@@ -399,13 +561,17 @@ export function WorkspaceForm({
                             onChange={(e) =>
                               otherField.handleChange(e.target.value)
                             }
-                            placeholder="Podcast, community, friend, etc."
+                            placeholder={t("tellUsWherePlaceholder")}
                             rows={3}
                             value={otherField.state.value}
                           />
                           {otherField.state.meta.errors.length > 0 ? (
-                            <p className="text-destructive text-sm">
+                            <p
+                              className="text-destructive text-sm"
+                              id="heard-about-notra-other-error"
+                            >
                               {getValidationMessage(
+                                otherField.name,
                                 otherField.state.meta.errors[0]
                               )}
                             </p>
@@ -436,24 +602,9 @@ export function WorkspaceForm({
           )}
         </form.Field>
 
-        <form.Subscribe selector={(state) => [state.canSubmit]}>
-          {([canSubmit]) => (
-            <CtaButton
-              className="w-full"
-              disabled={!canSubmit || isSubmitting}
-              type="submit"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2Icon className="size-4 animate-spin" />
-                  Setting up...
-                </>
-              ) : (
-                "Continue"
-              )}
-            </CtaButton>
-          )}
-        </form.Subscribe>
+        <CtaButton className="w-full" loading={isSubmitting} type="submit">
+          {tCommon("actions.continue")}
+        </CtaButton>
       </form>
     </div>
   );

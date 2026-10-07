@@ -1,11 +1,41 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import type { CollectionEntry } from "@dualmark/converters";
-import type { CollectionConfig, StaticPageConfig } from "@dualmark/nextjs";
+import type {
+  CollectionConfig,
+  ParameterizedRouteConfig,
+  StaticPageConfig,
+} from "@dualmark/nextjs";
 
 import { changelog } from "@/../.source/server";
+import { FEATURE_DETAIL_SLUGS } from "@/constants/feature-pages/paths";
+import { buildAgentPageMarkdown } from "@/lib/agent/markdown";
+import {
+  buildBlogAuthorMarkdown,
+  listBlogAuthorMarkdownPages,
+} from "@/lib/blog/author-markdown";
+import {
+  buildCompareIndexMarkdown,
+  buildCompareMarkdown,
+  listCompareMarkdownPages,
+} from "@/lib/compare/markdown";
+import { buildContributorsMarkdown } from "@/lib/contributors/markdown";
 import { buildFeedbackMdPageMarkdown } from "@/lib/feedback-md/markdown";
+import {
+  buildIntegrationMarkdown,
+  buildIntegrationsMarkdown,
+  buildGithubIntegrationMarkdown,
+  buildGranolaIntegrationMarkdown,
+  buildLinearIntegrationMarkdown,
+  buildSlackIntegrationMarkdown,
+  listIntegrationMarkdownEntries,
+} from "@/lib/integrations/markdown";
+import { buildMarketingAssetsMarkdown } from "@/lib/marketing-assets/markdown";
+import {
+  buildMcpMarkdown,
+  buildMcpUseCaseMarkdown,
+  buildMcpUseCasesMarkdown,
+  listMcpUseCaseMarkdownEntries,
+} from "@/lib/mcp/markdown";
+import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
   getChangelogPostHref,
@@ -13,6 +43,8 @@ import {
 } from "@/utils/changelog";
 import { buildCtaBannerMarkdown } from "@/utils/cta-banner-markdown";
 import { stripFrontmatter } from "@/utils/markdown";
+import { readAppMarkdownSource } from "@/utils/markdown-source";
+import { MarkdownNotFoundError } from "@/utils/not-found";
 import {
   getShowcaseCompany,
   getShowcaseEntrySlug,
@@ -53,6 +85,17 @@ const LEGAL_PAGES = [
   },
 ] as const;
 
+const STATIC_MARKDOWN_PAGES = [
+  "about",
+  "contact",
+  "free-hat",
+  "html-to-figma",
+  "html-to-paper",
+  "oss-program",
+  "repo-star-video",
+  "twitter-thread-creator",
+] as const;
+
 function absoluteUrl(pathname: string) {
   return `${SITE_URL}${pathname}`;
 }
@@ -65,40 +108,6 @@ function markdownFromTitleAndBody(title: string, body: string) {
   const content = stripFrontmatter(body).trim();
 
   return withTrailingNewline([`# ${title}`, "", content].join("\n"));
-}
-
-async function readAppMarkdownSource(...segments: string[]) {
-  const candidatePaths = [
-    path.join(process.cwd(), "src", "content", ...segments),
-    path.join(process.cwd(), "apps", "web", "src", "content", ...segments),
-  ];
-
-  for (const filePath of candidatePaths) {
-    try {
-      return await readFile(filePath, "utf8");
-    } catch {
-      // Try the next candidate path.
-    }
-  }
-
-  throw new Error(`Unable to load markdown source: ${segments.join("/")}`);
-}
-
-async function getShowcaseEntryMarkdown(
-  name: string,
-  slug: string,
-  entry: (typeof changelog)[number]
-) {
-  try {
-    return stripFrontmatter(await entry.getText("raw"));
-  } catch {
-    const source = await readAppMarkdownSource(
-      "changelog",
-      name,
-      `${slug}.mdx`
-    );
-    return stripFrontmatter(source);
-  }
 }
 
 function renderDatedEntry(entry: MarkdownTwinEntry) {
@@ -163,9 +172,38 @@ async function getShowcaseEntries(name: string): Promise<MarkdownTwinEntry[]> {
           dateLabel: entry.date,
           publishedDate: new Date(entry.date),
         },
-        body: await getShowcaseEntryMarkdown(name, slug, entry),
+        body: stripFrontmatter(
+          readAppMarkdownSource("changelog", entry.info.path)
+        ),
       };
     })
+  );
+}
+
+function toMarkdownEntries(
+  pages: BlogAuthorMarkdownPage[],
+  bodies: (string | null)[]
+): MarkdownTwinEntry[] {
+  return pages.map((page, index) => ({
+    id: page.slug,
+    data: { title: page.title, description: page.description },
+    body: bodies[index] ?? "",
+  }));
+}
+
+async function getBlogAuthorEntries() {
+  const pages = await listBlogAuthorMarkdownPages();
+  const bodies = await Promise.all(
+    pages.map((page) => buildBlogAuthorMarkdown(page.slug))
+  );
+  return toMarkdownEntries(pages, bodies);
+}
+
+function getMcpUseCaseEntries() {
+  const pages = listMcpUseCaseMarkdownEntries();
+  return toMarkdownEntries(
+    pages,
+    pages.map((page) => buildMcpUseCaseMarkdown(page.slug))
   );
 }
 
@@ -181,7 +219,7 @@ async function buildBlogIndexMarkdown() {
   return [
     "# Notra Blog",
     "",
-    "Insights, guides, and stories from the Notra team.",
+    "Insights, guides and stories from the Notra team.",
     "",
     "## Posts",
     "",
@@ -202,7 +240,7 @@ async function buildNotraChangelogIndexMarkdown() {
   return [
     "# Notra Changelog",
     "",
-    "The latest product updates, release notes, and improvements from the Notra team.",
+    "The latest product updates, release notes and improvements from the Notra team.",
     "",
     "## Entries",
     "",
@@ -277,6 +315,36 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
     { pattern: "/pricing", render: () => buildPricingMarkdown() },
     { pattern: "/brand", render: () => buildBrandMarkdown() },
     { pattern: "/feedback-md", render: () => buildFeedbackMdPageMarkdown() },
+    { pattern: "/agent", render: () => buildAgentPageMarkdown() },
+    { pattern: "/mcp", render: () => buildMcpMarkdown() },
+    { pattern: "/mcp/use-cases", render: () => buildMcpUseCasesMarkdown() },
+    { pattern: "/compare", render: () => buildCompareIndexMarkdown() },
+    ...listCompareMarkdownPages().map((page) => ({
+      pattern: page.pattern,
+      render: () => buildCompareMarkdown(page.slug) ?? "",
+    })),
+    { pattern: "/contributors", render: () => buildContributorsMarkdown() },
+    { pattern: "/integrations", render: () => buildIntegrationsMarkdown() },
+    {
+      pattern: "/integrations/slack",
+      render: () => buildSlackIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/github",
+      render: () => buildGithubIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/linear",
+      render: () => buildLinearIntegrationMarkdown(),
+    },
+    {
+      pattern: "/integrations/granola",
+      render: () => buildGranolaIntegrationMarkdown(),
+    },
+    {
+      pattern: "/features/marketing/assets",
+      render: () => buildMarketingAssetsMarkdown(),
+    },
     { pattern: "/blog", render: () => buildBlogIndexMarkdown() },
     { pattern: "/changelog", render: () => buildChangelogHubMarkdown() },
     {
@@ -287,6 +355,14 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
       pattern: `/changelog/${company.slug}`,
       render: () => buildShowcaseCompanyMarkdown(company.slug),
     })),
+    ...FEATURE_DETAIL_SLUGS.map((slug) => ({
+      pattern: `/features/${slug}`,
+      render: () => readAppMarkdownSource("pages", "features", `${slug}.md`),
+    })),
+    ...STATIC_MARKDOWN_PAGES.map((page) => ({
+      pattern: `/${page}`,
+      render: () => readAppMarkdownSource("pages", `${page}.md`),
+    })),
     ...LEGAL_PAGES.map((page) => ({
       pattern: page.pattern,
       render: () => buildLegalMarkdown(page.title, page.filename),
@@ -296,6 +372,18 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
 
 export function buildDualmarkCollections() {
   const collections: Record<string, CollectionConfig> = {
+    blogAuthors: {
+      route: "blog/author",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getBlogAuthorEntries,
+    },
+    mcpUseCases: {
+      route: "mcp/use-cases",
+      emitListing: false,
+      converter: (entry) => withTrailingNewline(entry.body ?? ""),
+      getEntries: getMcpUseCaseEntries,
+    },
     blog: {
       route: "blog",
       emitListing: false,
@@ -320,4 +408,26 @@ export function buildDualmarkCollections() {
   }
 
   return collections;
+}
+
+export function buildDualmarkParameterizedRoutes(): ParameterizedRouteConfig[] {
+  return [
+    {
+      pattern: "/integrations/[id]",
+      getStaticPaths: async () =>
+        (await listIntegrationMarkdownEntries()).map((entry) => ({
+          params: { id: entry.id },
+        })),
+      render: async ({ params }) => {
+        const id = params.id ?? "";
+        const markdown = await buildIntegrationMarkdown(id);
+
+        if (!markdown) {
+          throw new MarkdownNotFoundError(`/integrations/${id}`);
+        }
+
+        return withTrailingNewline(markdown);
+      },
+    },
+  ];
 }

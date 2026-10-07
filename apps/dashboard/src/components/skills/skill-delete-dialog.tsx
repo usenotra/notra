@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
+import { useTranslations } from "use-intl";
 
 import type { SkillDeleteDialogProps } from "@/types/skills/page";
 
@@ -20,30 +12,17 @@ export function SkillDeleteDialog({
   onOpenChange,
   onConfirm,
 }: SkillDeleteDialogProps) {
+  const t = useTranslations("skills.delete");
   return (
-    <ResponsiveAlertDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveAlertDialogContent>
-        <ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogTitle>Delete skill?</ResponsiveAlertDialogTitle>
-          <ResponsiveAlertDialogDescription>
-            This will permanently delete the skill "{name}". Schedules that
-            reference it will still run, but without its guidance their output
-            may be lower quality.
-          </ResponsiveAlertDialogDescription>
-        </ResponsiveAlertDialogHeader>
-        <ResponsiveAlertDialogFooter>
-          <ResponsiveAlertDialogCancel disabled={pending}>
-            Cancel
-          </ResponsiveAlertDialogCancel>
-          <ResponsiveAlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={pending}
-            onClick={onConfirm}
-          >
-            {pending ? "Deleting…" : "Delete skill"}
-          </ResponsiveAlertDialogAction>
-        </ResponsiveAlertDialogFooter>
-      </ResponsiveAlertDialogContent>
-    </ResponsiveAlertDialog>
+    <ConfirmDialog
+      confirmLabel={t("confirm")}
+      description={t("description", { name })}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+      open={open}
+      pending={pending}
+      title={t("title")}
+      variant="destructive"
+    />
   );
 }

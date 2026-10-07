@@ -1,6 +1,5 @@
-"use client";
-
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ctaButtonVariants } from "@notra/ui/components/shared/cta-button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -8,13 +7,13 @@ import {
 } from "@notra/ui/components/ui/collapsible";
 import { TRANSITION, tween } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import {
   AnimatePresence,
   m,
   type Variants,
   useReducedMotion,
 } from "motion/react";
-import Link from "next/link";
 import { useState } from "react";
 
 import { AUTH_DASHBOARD_URL, AUTH_SIGNIN_URL } from "@/constants/auth";
@@ -51,6 +50,10 @@ const PANEL_CLASSNAME = "overflow-hidden";
 
 const MENU_FOOTER_BUTTON_CLASSNAME =
   "font-display flex h-12 items-center justify-center rounded-full text-base tracking-[-0.015em]";
+const MENU_FOOTER_CTA_CLASSNAME = cn(
+  ctaButtonVariants({ size: "lg" }),
+  "font-display flex w-full text-base"
+);
 
 const STAGGER_IN = 0.028;
 const STAGGER_OUT = 0.018;
@@ -196,7 +199,7 @@ function MobileNavOverlay({
               <m.div key={entry.href} variants={item}>
                 <Link
                   className={TRIGGER_CLASSNAME}
-                  href={entry.href}
+                  to={entry.href}
                   onClick={onNavigate}
                 >
                   {entry.label}
@@ -377,13 +380,13 @@ function MobileAuthActions({
   if (isAuthenticated) {
     return (
       <m.div variants={item}>
-        <Link
-          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
+        <a
+          className={MENU_FOOTER_CTA_CLASSNAME}
           href={AUTH_DASHBOARD_URL}
           onClick={onNavigate}
         >
           Dashboard
-        </Link>
+        </a>
       </m.div>
     );
   }
@@ -391,17 +394,17 @@ function MobileAuthActions({
   return (
     <>
       <m.div variants={item}>
-        <Link
+        <a
           className={`${MENU_FOOTER_BUTTON_CLASSNAME} border border-[#1E1E1E26] text-[#1E1E1E] dark:border-white/15 dark:text-white`}
           href={AUTH_SIGNIN_URL}
           onClick={onNavigate}
         >
           Sign In
-        </Link>
+        </a>
       </m.div>
       <m.div variants={item}>
         <TrackedSignupLink
-          className={`cta-gradient-primary ${MENU_FOOTER_BUTTON_CLASSNAME} font-medium text-white`}
+          className={MENU_FOOTER_CTA_CLASSNAME}
           onClick={onNavigate}
           source={NAVBAR_MOBILE_SIGNUP_SOURCE}
         >

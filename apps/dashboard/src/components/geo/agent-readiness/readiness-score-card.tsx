@@ -4,23 +4,18 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   LinkSquare02Icon,
-  Refresh01Icon,
+  Refresh03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AGENT_READINESS_MAX_SCORE,
-  AGENT_READINESS_MUST_DO_LABEL,
-  AGENT_READINESS_SHOULD_DO_LABEL,
-} from "@notra/geo-core/constants/agent-readiness";
-import {
-  formatAgentReadinessDate,
-  getAgentReadinessScoreBand,
-} from "@notra/geo-core/utils/agent-readiness";
+import { AGENT_READINESS_MAX_SCORE } from "@notra/geo-core/constants/agent-readiness";
+import { getAgentReadinessScoreBand } from "@notra/geo-core/utils/agent-readiness";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { InstrumentModule } from "@notra/ui/components/instrument/instrument-module";
+import type { CSSProperties } from "react";
+import { useFormatter, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { AgentReadinessScoreGauge } from "@/components/geo/agent-readiness/readiness-score-gauge";
-import { InstrumentModule } from "@/components/instrument/instrument-module";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import { cn } from "@/lib/utils";
 import type {
@@ -30,6 +25,8 @@ import type {
 } from "@/types/agent-readiness";
 
 function ScoreDelta({ score, previousScore }: AgentReadinessScoreDeltaProps) {
+  const t = useTranslations("geo.agentReadiness.scoreCard");
+
   if (previousScore === null || previousScore === score) {
     return null;
   }
@@ -49,8 +46,7 @@ function ScoreDelta({ score, previousScore }: AgentReadinessScoreDeltaProps) {
         icon={improved ? ArrowUp01Icon : ArrowDown01Icon}
         size={12}
       />
-      {improved ? "+" : ""}
-      {delta} since last scan
+      {t("sinceLastScan", { delta: `${improved ? "+" : ""}${delta}` })}
     </span>
   );
 }
@@ -69,6 +65,7 @@ function BreakdownTile({
   passing,
   total,
 }: AgentReadinessBreakdownTileProps) {
+  const t = useTranslations("geo.agentReadiness.scoreCard");
   const showBar = passing !== undefined && total !== undefined && total > 0;
 
   return (
@@ -79,7 +76,7 @@ function BreakdownTile({
       </span>
       {showBar ? (
         <div
-          aria-label={`${passing} of ${total} ${label} checks passing`}
+          aria-label={t("checksPassingAria", { passing, total, label })}
           aria-valuemax={total}
           aria-valuemin={0}
           aria-valuenow={passing}
@@ -87,8 +84,12 @@ function BreakdownTile({
           role="progressbar"
         >
           <div
-            className="bg-foreground/70 duration-slower h-full rounded-full transition-[width] ease-out"
-            style={{ width: `${passingPercent(passing, total)}%` }}
+            className="bg-foreground/70 duration-slower transition-width h-full w-(--passing) rounded-full ease-out"
+            style={
+              {
+                "--passing": `${passingPercent(passing, total)}%`,
+              } as CSSProperties
+            }
           />
         </div>
       ) : null}
@@ -103,6 +104,9 @@ export function AgentReadinessScoreCard({
   isScanning,
   onRescan,
 }: AgentReadinessScoreCardProps) {
+  const t = useTranslations("geo.agentReadiness");
+  const tGeoShared = useTranslations("geo.shared");
+  const format = useFormatter();
   const breakdown = report.scoreBreakdown;
   const score = report.score;
   const band = score !== null ? getAgentReadinessScoreBand(score) : null;
@@ -116,12 +120,12 @@ export function AgentReadinessScoreCard({
           size="sm"
           variant="outline"
         >
-          <HugeiconsIcon icon={Refresh01Icon} size={16} />
-          {isScanning ? "Scanning…" : "Rescan"}
+          <HugeiconsIcon icon={Refresh03Icon} size={16} />
+          {isScanning ? tGeoShared("scanning") : tGeoShared("rescan")}
         </Button>
       }
       bodyClassName="gap-6 p-6"
-      eyebrow="Readiness score"
+      eyebrow={t("scoreCard.eyebrow")}
       variant="table"
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-8">
@@ -131,7 +135,7 @@ export function AgentReadinessScoreCard({
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-semibold tracking-tight">
-                {band?.label ?? "No score yet"}
+                {band ? t(`band.${band.key}`) : t("scoreCard.noScore")}
               </h2>
               {score !== null ? (
                 <ScoreDelta previousScore={previousScore} score={score} />
@@ -151,22 +155,24 @@ export function AgentReadinessScoreCard({
         {breakdown ? (
           <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-3">
             <BreakdownTile
-              hint="checks passing"
-              label={AGENT_READINESS_MUST_DO_LABEL}
+              hint={t("scoreCard.checksPassing")}
+              label={t("groups.mustDoLabel")}
               passing={breakdown.essential.passing}
               total={breakdown.essential.total}
               value={`${breakdown.essential.passing} / ${breakdown.essential.total}`}
             />
             <BreakdownTile
-              hint="checks passing"
-              label={AGENT_READINESS_SHOULD_DO_LABEL}
+              hint={t("scoreCard.checksPassing")}
+              label={t("groups.shouldDoLabel")}
               passing={breakdown.recommended.passing}
               total={breakdown.recommended.total}
               value={`${breakdown.recommended.passing} / ${breakdown.recommended.total}`}
             />
             <BreakdownTile
-              hint={`${breakdown.bonus.positiveSignals} extra signals`}
-              label="Bonus"
+              hint={t("scoreCard.extraSignals", {
+                count: breakdown.bonus.positiveSignals,
+              })}
+              label={t("scoreCard.bonus")}
               value={`+${breakdown.bonus.points}`}
             />
           </div>
@@ -175,10 +181,22 @@ export function AgentReadinessScoreCard({
 
       <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-4 text-sm">
         {report.scannedAt ? (
-          <span>Scanned {formatAgentReadinessDate(report.scannedAt)}</span>
+          <span>
+            {t("scoreCard.scanned", {
+              date: format.dateTime(new Date(report.scannedAt), {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              }),
+            })}
+          </span>
         ) : null}
         {report.eligibleChecks !== null ? (
-          <span>{report.eligibleChecks} eligible checks</span>
+          <span>
+            {t("scoreCard.eligibleChecks", { count: report.eligibleChecks })}
+          </span>
         ) : null}
         {report.reportUrl ? (
           <a
@@ -193,7 +211,7 @@ export function AgentReadinessScoreCard({
             rel="noopener noreferrer"
             target="_blank"
           >
-            Full report on is-agentic.com
+            {t("scoreCard.fullReport")}
             <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
           </a>
         ) : null}

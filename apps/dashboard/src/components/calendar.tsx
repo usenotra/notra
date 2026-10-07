@@ -14,7 +14,9 @@ import {
   DayPicker,
   getDefaultClassNames,
 } from "react-day-picker";
+import { useLocale, useTranslations } from "use-intl";
 
+import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { cn } from "@/lib/utils";
 
 function Calendar({
@@ -25,11 +27,15 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  labels,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames();
+  const t = useTranslations("shared.calendar");
+  const locale = useLocale();
+  const dateFnsLocale = useDateFnsLocale();
 
   return (
     <DayPicker
@@ -175,9 +181,32 @@ function Calendar({
       }}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          date.toLocaleString(locale, { month: "short" }),
         ...formatters,
       }}
+      labels={{
+        labelNext: () => t("nextMonth"),
+        labelPrevious: () => t("previousMonth"),
+        labelMonthDropdown: () => t("chooseMonth"),
+        labelYearDropdown: () => t("chooseYear"),
+        labelNav: () => t("navigation"),
+        labelWeekNumberHeader: () => t("weekNumberHeader"),
+        labelWeekNumber: (weekNumber) => t("weekNumber", { weekNumber }),
+        labelDayButton: (date, modifiers) =>
+          t("dayButton", {
+            date: date.toLocaleDateString(locale, { dateStyle: "full" }),
+            today: String(Boolean(modifiers.today)),
+            selected: String(Boolean(modifiers.selected)),
+          }),
+        labelGridcell: (date, modifiers) =>
+          t("dayButton", {
+            date: date.toLocaleDateString(locale, { dateStyle: "full" }),
+            today: String(Boolean(modifiers?.today)),
+            selected: "false",
+          }),
+        ...labels,
+      }}
+      locale={dateFnsLocale}
       showOutsideDays={showOutsideDays}
       {...props}
     />

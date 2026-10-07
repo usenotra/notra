@@ -8,6 +8,7 @@ import type {
   GeoZdrMode,
   GeoZdrPolicy,
 } from "../types/geo";
+import { engineModelOf } from "./geo-engine-family";
 import {
   geoDefaultEngines,
   getGeoModelCatalogEntry,
@@ -54,6 +55,21 @@ export function scopeGeoScanEngines(
     return [...tracked];
   }
   return sortKnownEngines(catalog, remapRetiredGeoEngineIds(requested));
+}
+
+/**
+ * Whether a run's engine selection leaves out a tracked engine. Such a run
+ * must not cover a scheduled project scan, or the skipped engines would go a
+ * whole interval without data.
+ */
+export function isPartialGeoScanEngineScope(
+  tracked: readonly string[],
+  scanEngines: readonly string[]
+): boolean {
+  const scanned = new Set(scanEngines);
+  return remapRetiredGeoEngineIds(tracked).some(
+    (engine) => !scanned.has(engine)
+  );
 }
 
 /**
@@ -147,7 +163,9 @@ export function resolveGeoGroundedZdrMode(
   if (coverage !== "none") {
     return "required";
   }
-  return policy.nonZdrApprovedEngines.includes(engine.key) ? "preferred" : null;
+  return policy.nonZdrApprovedEngines.includes(engineModelOf(engine.key))
+    ? "preferred"
+    : null;
 }
 
 /** Gateway pin for models that only one gateway serves, else undefined. */

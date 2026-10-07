@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  Delete02Icon,
+  LayoutThreeColumnIcon,
+  LayoutThreeRowIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $deleteTableColumnAtSelection,
@@ -16,17 +26,9 @@ import {
   COMMAND_PRIORITY_LOW,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  Columns3,
-  Rows3,
-  Trash2,
-} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 interface TableActionMenuProps {
   editor: ReturnType<typeof useLexicalComposerContext>[0];
@@ -39,6 +41,8 @@ function TableActionMenu({
   anchorElem,
   cellDOMNode,
 }: TableActionMenuProps) {
+  const t = useTranslations("content.editor.table");
+  const tCommon = useTranslations("common");
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   const updatePosition = useCallback(() => {
@@ -159,68 +163,68 @@ function TableActionMenu({
       style={{ pointerEvents: "auto" }}
     >
       <button
-        aria-label="Insert row above"
+        aria-label={t("insertRowAbove")}
         className={buttonClass}
         onClick={insertRowAbove}
-        title="Insert row above"
+        title={t("insertRowAbove")}
         type="button"
       >
-        <ArrowUp className="size-4" />
+        <HugeiconsIcon icon={ArrowUp01Icon} className="size-4" />
       </button>
       <button
-        aria-label="Insert row below"
+        aria-label={t("insertRowBelow")}
         className={buttonClass}
         onClick={insertRowBelow}
-        title="Insert row below"
+        title={t("insertRowBelow")}
         type="button"
       >
-        <ArrowDown className="size-4" />
+        <HugeiconsIcon icon={ArrowDown01Icon} className="size-4" />
       </button>
       <button
-        aria-label="Insert column before"
+        aria-label={t("insertColumnBefore")}
         className={buttonClass}
         onClick={insertColumnBefore}
-        title="Insert column before"
+        title={t("insertColumnBefore")}
         type="button"
       >
-        <ArrowLeft className="size-4" />
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
       </button>
       <button
-        aria-label="Insert column after"
+        aria-label={t("insertColumnAfter")}
         className={buttonClass}
         onClick={insertColumnAfter}
-        title="Insert column after"
+        title={t("insertColumnAfter")}
         type="button"
       >
-        <ArrowRight className="size-4" />
+        <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
       </button>
       <div className="bg-border mx-0.5 h-4 w-px" />
       <button
-        aria-label="Delete row"
+        aria-label={tCommon("labels.deleteRow")}
         className={buttonClass}
         onClick={deleteRow}
-        title="Delete row"
+        title={tCommon("labels.deleteRow")}
         type="button"
       >
-        <Rows3 className="size-4" />
+        <HugeiconsIcon icon={LayoutThreeRowIcon} className="size-4" />
       </button>
       <button
-        aria-label="Delete column"
+        aria-label={tCommon("labels.deleteColumn")}
         className={buttonClass}
         onClick={deleteColumn}
-        title="Delete column"
+        title={tCommon("labels.deleteColumn")}
         type="button"
       >
-        <Columns3 className="size-4" />
+        <HugeiconsIcon icon={LayoutThreeColumnIcon} className="size-4" />
       </button>
       <button
-        aria-label="Delete table"
+        aria-label={t("deleteTable")}
         className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-1.5 transition-colors"
         onClick={deleteTable}
-        title="Delete table"
+        title={t("deleteTable")}
         type="button"
       >
-        <Trash2 className="size-4" />
+        <HugeiconsIcon icon={Delete02Icon} className="size-4" />
       </button>
     </div>
   );

@@ -1,19 +1,13 @@
 "use client";
 
+import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import {
-  GEO_CONVERSION_PATHS_DESCRIPTION,
-  GEO_CONVERSION_PATHS_LABEL,
   GEO_CONVERSION_PATHS_PLACEHOLDER,
   GEO_MAX_ALIASES,
   GEO_MAX_CONVERSION_PATHS,
   GEO_MAX_DOMAINS,
-  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT,
-  GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL,
-  GEO_PROJECT_DOMAINS_DESCRIPTION,
-  GEO_PROJECT_DOMAINS_LABEL,
   GEO_PROJECT_DOMAINS_PLACEHOLDER,
   GEO_SCAN_DEFAULT_INTERVAL_HOURS,
-  GEO_SCAN_SIZE_MESSAGES,
   GEO_SETTINGS_AUTO_SAVE_MS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoSettingsUpsertInput } from "@notra/geo-core/types/geo";
@@ -21,12 +15,14 @@ import { normalizeConversionPaths } from "@notra/geo-core/utils/geo-conversion-p
 import { resolveTrackedEngines } from "@notra/geo-core/utils/geo-engines";
 import { trackedGeoLanguages } from "@notra/geo-core/utils/geo-language-rows";
 import { extraProjectDomains } from "@notra/geo-core/utils/geo-project-domains";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { GeoEnginePicker } from "@/components/geo/geo-engine-picker";
 import { GeoLanguagePicker } from "@/components/geo/geo-language-picker";
@@ -35,11 +31,12 @@ import {
   GeoScanSchedule,
 } from "@/components/geo/geo-scan-schedule";
 import { GeoTagList } from "@/components/geo/geo-tag-list";
+import { GeoProjectBrandSection } from "@/components/geo/project-brand-section";
 import { useGeoSettingsUpsert } from "@/lib/hooks/use-geo";
 import { useGeoActiveProject } from "@/lib/hooks/use-geo-active-project";
 import { useGeoScanEstimate } from "@/lib/hooks/use-geo-scan-estimate";
+import { useLanguageLabel } from "@/lib/hooks/use-language-label";
 import { useHasZdrEntitlement } from "@/lib/hooks/use-plan";
-import { cn } from "@/lib/utils";
 import type {
   GeoBrandSectionProps,
   GeoLanguagesSectionProps,
@@ -56,6 +53,8 @@ export function GeoSettingsForm({
   hideHeader = false,
   section,
 }: GeoSettingsFormProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   const id = useId();
   const [companyName, setCompanyName] = useState(
     () => settings?.companyName ?? ""
@@ -64,7 +63,7 @@ export function GeoSettingsForm({
   const [conversionPaths, setConversionPaths] = useState(() =>
     normalizeConversionPaths(settings?.conversionPaths ?? [])
   );
-  const { domain: brandDomain } = useGeoActiveProject(organizationId);
+  const { project, domain: brandDomain } = useGeoActiveProject(organizationId);
   const [domains, setDomains] = useState(() =>
     extraProjectDomains(settings?.domains ?? [], brandDomain)
   );
@@ -109,7 +108,7 @@ export function GeoSettingsForm({
     settings,
   });
 
-  const { scanSize, warningSeverity } = useGeoScanEstimate({
+  const { scanSize } = useGeoScanEstimate({
     organizationId,
     promptCount,
     engines,
@@ -119,12 +118,8 @@ export function GeoSettingsForm({
     scanSize === null
       ? null
       : {
-          className: cn("text-xs tabular-nums", {
-            "text-muted-foreground": warningSeverity === null,
-            "text-warning": warningSeverity === "warn",
-            "text-destructive": warningSeverity === "danger",
-          }),
-          text: `About ${scanSize.toLocaleString()} checks per scan, including web-search checks and conversation turns.${warningSeverity ? ` ${GEO_SCAN_SIZE_MESSAGES[warningSeverity]}` : ""}`,
+          className: "text-muted-foreground text-xs tabular-nums",
+          text: t("scanSize", { count: scanSize }),
         };
 
   const showBrand = section === undefined || section === "brand";
@@ -134,16 +129,19 @@ export function GeoSettingsForm({
   return (
     <div className="w-full space-y-6">
       {hideHeader ? null : (
-        <header className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">GEO Settings</h1>
-            <p className="text-muted-foreground">
-              How your brand is identified and where prompts are scanned.
-            </p>
-          </div>
-        </header>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.geoSettings")}
+        />
       )}
       <div className="space-y-6">
+        {showBrand && project ? (
+          <GeoProjectBrandSection
+            key={project.id}
+            organizationId={organizationId}
+            project={project}
+          />
+        ) : null}
         {showBrand ? (
           <GeoBrandSection
             aliases={aliases}
@@ -168,6 +166,7 @@ export function GeoSettingsForm({
           <GeoLanguagesSection
             languages={languages}
             onLanguagesChange={setLanguages}
+            promptLanguage={settings?.promptLanguage}
           />
         ) : null}
         {showModels ? (
@@ -376,14 +375,18 @@ function GeoBrandSection({
   onDomainsChange,
   savedAt,
 }: GeoBrandSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   return (
     <>
-      <TitleCard as="section" heading="Brand" headingAs="h2">
+      <TitleCard as="section" heading={tCommon("labels.brand")} headingAs="h2">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor={`${id}-name`}>Company name</Label>
+            <Label htmlFor={`${id}-name`}>
+              {tCommon("labels.companyName")}
+            </Label>
             <p className="text-muted-foreground text-xs">
-              The primary name we match in answers.
+              {t("brand.companyNameHint")}
             </p>
             <Input
               aria-invalid={nameMissing && savedAt !== null}
@@ -394,9 +397,9 @@ function GeoBrandSection({
             />
           </div>
           <GeoTagList
-            description="Other spellings, product names, or the bare domain."
+            description={t("brand.aliasesHint")}
             id={`${id}-aliases`}
-            label="Aliases"
+            label={t("brand.aliases")}
             max={GEO_MAX_ALIASES}
             onChange={onAliasesChange}
             placeholder="usenotra"
@@ -405,27 +408,28 @@ function GeoBrandSection({
         </div>
       </TitleCard>
       <SettingsSection
-        description={GEO_PROJECT_DOMAINS_DESCRIPTION}
-        title={GEO_PROJECT_DOMAINS_LABEL}
+        description={t("domains.description")}
+        title={t("domains.title")}
       >
         {brandDomain ? (
           <div className="flex flex-wrap items-center gap-2">
             <Badge
-              aria-label={`${GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}: ${brandDomain}`}
+              aria-label={t("domains.brandWebsiteLabel", {
+                domain: brandDomain,
+              })}
               className="h-7 max-w-full text-xs"
               variant="secondary"
             >
               <span className="truncate">{brandDomain}</span>
             </Badge>
             <p className="text-muted-foreground text-xs">
-              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_LABEL}.{" "}
-              {GEO_PROJECT_DOMAINS_BRAND_WEBSITE_HINT}
+              {t("domains.brandWebsiteHint")}
             </p>
           </div>
         ) : null}
         <GeoTagList
           id={`${id}-domains`}
-          label={GEO_PROJECT_DOMAINS_LABEL}
+          label={t("domains.title")}
           labeled={false}
           max={GEO_MAX_DOMAINS}
           onChange={onDomainsChange}
@@ -434,12 +438,12 @@ function GeoBrandSection({
         />
       </SettingsSection>
       <SettingsSection
-        description={GEO_CONVERSION_PATHS_DESCRIPTION}
-        title={GEO_CONVERSION_PATHS_LABEL}
+        description={t("conversionPaths.description")}
+        title={t("conversionPaths.title")}
       >
         <GeoTagList
           id={`${id}-conversion-paths`}
-          label={GEO_CONVERSION_PATHS_LABEL}
+          label={t("conversionPaths.title")}
           labeled={false}
           max={GEO_MAX_CONVERSION_PATHS}
           onChange={onConversionPathsChange}
@@ -454,14 +458,21 @@ function GeoBrandSection({
 function GeoLanguagesSection({
   languages,
   onLanguagesChange,
+  promptLanguage,
 }: GeoLanguagesSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
+  const languageLabel = useLanguageLabel();
   return (
     <SettingsSection
-      description="Languages your prompts are scanned in. English is on by default."
-      title="Languages"
+      description={t("languages.description", {
+        language: languageLabel(promptLanguage ?? DEFAULT_LANGUAGE),
+      })}
+      title={tCommon("labels.languages")}
     >
       <GeoLanguagePicker
         labeled={false}
+        lockedLanguage={promptLanguage}
         onChange={onLanguagesChange}
         selected={languages}
       />
@@ -486,6 +497,8 @@ function GeoModelsSection({
   scanIntervalHours,
   scanSizeNote,
 }: GeoModelsSectionProps) {
+  const t = useTranslations("geo.geoSettingsForm");
+  const tCommon = useTranslations("common");
   return (
     <TitleCard
       action={
@@ -496,14 +509,13 @@ function GeoModelsSection({
         />
       }
       as="section"
-      heading="Models"
+      heading={tCommon("labels.models")}
       headingAs="h2"
     >
       <div className="space-y-4">
         <div className="space-y-1">
           <p className="text-muted-foreground text-sm text-pretty">
-            Each enabled provider runs on every prompt, on the frequency you set
-            here.
+            {t("models.description")}
           </p>
           {scanSizeNote ? (
             <p className={scanSizeNote.className} role="note">

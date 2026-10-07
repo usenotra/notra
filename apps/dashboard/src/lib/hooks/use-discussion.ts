@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "@upstash/realtime/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { COMMENT_REACTIONS } from "@/constants/comments";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -14,6 +15,7 @@ import { commentChannel } from "@/utils/comment-channel";
 import { commentSubmitId } from "@/utils/comment-submit-id";
 
 export function useDiscussion(target: CommentTarget) {
+  const t = useTranslations("comments");
   const client = useQueryClient();
   const { organizationId, targetId, targetType } = target;
   const options = useMemo(
@@ -119,9 +121,7 @@ export function useDiscussion(target: CommentTarget) {
       })
       .catch((error: unknown) => {
         client.setQueryData(options.queryKey, previous);
-        toast.error(
-          error instanceof Error ? error.message : "Could not save comment"
-        );
+        toast.error(error instanceof Error ? error.message : t("saveFailed"));
         return false;
       })
       .finally(() => {

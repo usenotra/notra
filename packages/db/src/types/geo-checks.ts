@@ -6,8 +6,10 @@ export interface GeoCheckScope {
 }
 
 export interface GeoCheckFilterOptions {
-  sequences?: "single";
-  englishOnly?: boolean;
+  /** Drop persona and multi-turn rows, keeping only single tracked prompts. */
+  trackedPromptsOnly?: boolean;
+  /** Keep only rows in the project's prompt language, not its translations. */
+  promptLanguageOnly?: boolean;
 }
 
 export interface GeoCheckSourceItem {
@@ -152,16 +154,27 @@ export interface GeoCheckCompetitorShareRow {
   mentions: number;
 }
 
-export interface GeoCheckCompetitorShareTimeseriesRow {
+export interface GeoCheckBrandKey {
+  key: string;
+  name: string;
+}
+
+export interface GeoCheckEngineBrandRow {
+  engine: string;
   brand: string;
-  day: string;
   mentions: number;
 }
 
-export interface GeoCheckCompetitorShareTrendRow {
-  day: string;
+export interface GeoCheckEngineTotalRow {
+  engine: string;
+  checks: number;
+  mentions: number;
+}
+
+export interface GeoCheckCompetitorShareAggregateRow {
   brand: string;
-  share: number;
+  day: string | null;
+  mentions: number;
 }
 
 export interface GeoCheckCompetitorTimeseriesRow {

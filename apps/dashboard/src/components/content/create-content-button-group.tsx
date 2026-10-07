@@ -3,6 +3,7 @@
 import { AiMagicIcon, NoteAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Kbd } from "@notra/ui/components/ui/kbd";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { CreateContentButtonGroupProps } from "@/types/content/create-post";
@@ -14,6 +15,8 @@ export function CreateContentButtonGroup({
   onPrefetchCreateContent,
   onPrefetchCreatePost,
 }: CreateContentButtonGroupProps) {
+  const t = useTranslations("content.create.buttons");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -28,7 +31,7 @@ export function CreateContentButtonGroup({
           className="size-4"
           icon={NoteAddIcon}
         />
-        New post
+        {tCommon("labels.newPost")}
       </Button>
       <Button
         disabled={disabled}
@@ -41,7 +44,7 @@ export function CreateContentButtonGroup({
           className="size-4"
           icon={AiMagicIcon}
         />
-        Generate content
+        {t("generateContent")}
         <Kbd className="hidden sm:inline-flex">C</Kbd>
       </Button>
     </div>

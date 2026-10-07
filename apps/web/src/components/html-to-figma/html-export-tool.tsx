@@ -1,5 +1,3 @@
-"use client";
-
 import { EyeIcon, SourceCodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
@@ -60,7 +58,7 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
     const result =
       copyTarget === "figma"
         ? await copyHtmlAsFigma(html, HTML_EXPORT_LABEL)
-        : await copyHtmlAsPaper(html, HTML_EXPORT_LABEL);
+        : await copyHtmlAsPaper(html);
 
     setPendingTarget(null);
 
@@ -130,8 +128,8 @@ export default function HtmlExportTool({ target }: HtmlExportToolProps) {
       )}
 
       <p className="text-muted-foreground font-mono text-xs">
-        Runs in your browser. Nothing is uploaded. Not affiliated with{" "}
-        {copy.productName}.
+        Conversion runs in your browser, so nothing is uploaded. Not affiliated
+        with {copy.productName}.
       </p>
     </div>
   );

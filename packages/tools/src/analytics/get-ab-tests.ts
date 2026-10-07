@@ -1,3 +1,4 @@
+import { logError } from "@notra/ai/utils/server-log";
 import {
   isTinybirdConfigured,
   queryPostMetricsLookup,
@@ -102,7 +103,7 @@ export function createGetAbTestsTool() {
           })),
         };
       } catch (error) {
-        console.error("[Tools] get A/B tests failed:", error);
+        logError("Get A/B tests tool failed", error, { organizationId });
         return ANALYTICS_QUERY_FAILED_MESSAGE;
       }
     },

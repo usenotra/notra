@@ -1,0 +1,21 @@
+---
+title: Model Selector
+description: A chip with the current thinking effort that expands into a slider and a list of models.
+---
+
+<Component path="chatgpt/examples/chatgpt-model-selector" />
+
+<RegistryInstall name="chatgpt-model-selector" />
+
+The chip is a shadcn `Popover`. Its content is a shadcn `Slider` with one stop per effort: Instant, Medium, High, Extra High and Pro. The thumb snaps to the stops, and the fill turns into the purple Pro gradient at the last one. The current effort sits above the slider. Click it to switch to the list of models, and picking one goes back to the slider.
+
+While the popover is open the chip reads "Thinking effort". Closed, it shows the current effort, like `Medium`. With Pro selected it shows `Pro`, or the model prefix with it, like `5.6 Pro`, when a model other than Latest is picked. The popover grows out of the chip from its corner and respects reduced motion.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `model`, `onModelChange` | | The selected model. |
+| `effort`, `onEffortChange` | | The selected effort. |
+| `models` | `CHATGPT_MODELS` | The model list. A model can have a `description`, like "Leaving on October 14", and a `shortLabel` for the chip. |
+| `efforts` | `CHATGPT_EFFORTS` | The slider stops, from left to right. The `pro` id gets the gradient. |
+
+<include>./_used-in.mdx</include>

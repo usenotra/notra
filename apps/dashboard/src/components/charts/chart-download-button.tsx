@@ -10,6 +10,7 @@ import {
 import type { MouseEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
@@ -27,6 +28,8 @@ function chartRoot(start: EventTarget | null): HTMLElement | null {
 }
 
 export function ChartDownloadButton({ className }: { className?: string }) {
+  const t = useTranslations("charts.download");
+  const tCommon = useTranslations("common");
   const [isDownloading, setIsDownloading] = useState(false);
 
   function handleDownload(event: MouseEvent<HTMLButtonElement>) {
@@ -40,11 +43,11 @@ export function ChartDownloadButton({ className }: { className?: string }) {
     void downloadChartPng(source, title, buildChartDownloadFilename(title))
       .then(
         () => {
-          toast.success("Downloaded chart");
+          toast.success(t("success"));
         },
         (error: unknown) => {
           console.error("Failed to download chart", error);
-          toast.error("Failed to download chart");
+          toast.error(t("failed"));
         }
       )
       .finally(() => {
@@ -57,7 +60,7 @@ export function ChartDownloadButton({ className }: { className?: string }) {
       <TooltipTrigger
         render={
           <Button
-            aria-label="Export"
+            aria-label={tCommon("actions.export")}
             className={className}
             disabled={isDownloading}
             onClick={handleDownload}
@@ -73,7 +76,7 @@ export function ChartDownloadButton({ className }: { className?: string }) {
           size={14}
         />
       </TooltipTrigger>
-      <TooltipContent side="left">Export</TooltipContent>
+      <TooltipContent side="left">{tCommon("actions.export")}</TooltipContent>
     </Tooltip>
   );
 }

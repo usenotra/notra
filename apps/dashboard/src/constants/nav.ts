@@ -36,7 +36,6 @@ import { DURATION } from "@notra/ui/lib/motion";
 import { AGENT_FEEDBACK_NAV_LINK } from "@/constants/agent-feedback";
 import { IRIS_NAV_LINK } from "@/constants/iris";
 import type {
-  NavGroupKey,
   NavMainItem,
   NavPrimaryActionConfig,
   NavVisibility,
@@ -71,13 +70,13 @@ export const SIDEBAR_MODES: SidebarModeOption[] = [
   {
     id: "geo",
     label: "GEO",
-    description: "Measure visibility",
+    descriptionKey: "measureVisibility",
     icon: AiBrowserIcon,
   },
   {
     id: "studio",
     label: "Studio",
-    description: "Create content",
+    descriptionKey: "createContent",
     icon: NoteIcon,
   },
 ];
@@ -87,10 +86,7 @@ export const SIDEBAR_MODE_HOME_LINKS: Record<SidebarMode, string> = {
   studio: HOME_NAV_LINK,
 };
 
-export const GEO_ROUTE_SECTIONS: ReadonlySet<string> = new Set([
-  "geo",
-  "feedback",
-]);
+export const GEO_ROUTE_SECTIONS: ReadonlySet<string> = new Set(["geo"]);
 
 export const SHARED_ROUTE_PREFIXES: readonly string[] = [
   "content",
@@ -103,61 +99,63 @@ export const STUDIO_ROUTE_SECTIONS: ReadonlySet<string> = new Set([
   "analytics",
   "brand",
   "automation",
+  "feedback",
   "iris",
 ]);
 
-export const NAV_CATEGORY_LABELS: Record<NavGroupKey, string> = {
-  visibility: "Visibility",
-  improve: "Improve",
-  automation: "Automation",
-  utility: "Utility",
-};
-
 export const NAV_MAIN_ITEMS: NavMainItem[] = [
-  { link: HOME_NAV_LINK, icon: Home01Icon, label: "Home" },
-  { link: CHAT_NAV_LINK, icon: Message01Icon, label: "Chat", badge: "Beta" },
-  { link: CONTENT_NAV_LINK, icon: NoteIcon, label: "Content" },
-  { link: ANALYTICS_NAV_LINK, icon: Analytics01Icon, label: "Analytics" },
+  { link: HOME_NAV_LINK, icon: Home01Icon, labelKey: "home" },
+  { link: CHAT_NAV_LINK, icon: Message01Icon, labelKey: "chat", badge: "beta" },
+  { link: CONTENT_NAV_LINK, icon: NoteIcon, labelKey: "content" },
+  { link: ANALYTICS_NAV_LINK, icon: Analytics01Icon, labelKey: "analytics" },
   {
     link: AGENT_FEEDBACK_NAV_LINK,
     icon: Comment01Icon,
-    label: "Feedback",
-    badge: "Beta",
+    labelKey: "feedback",
+    badge: "beta",
   },
   {
     link: BRAND_IDENTITY_NAV_LINK,
     icon: PaintBoardIcon,
-    label: "Brand Identity",
+    labelKey: "brandIdentityTitle",
   },
-  { link: IRIS_NAV_LINK, icon: RainbowIcon, label: "Iris" },
-  { link: SCHEDULES_NAV_LINK, icon: Calendar03Icon, label: "Schedules" },
-  { link: EVENTS_NAV_LINK, icon: Notification03Icon, label: "Events" },
-  { link: INTEGRATIONS_NAV_LINK, icon: PlugIcon, label: "Integrations" },
-  { link: GEO_OVERVIEW_NAV_LINK, icon: AiBrowserIcon, label: "Overview" },
-  { link: GEO_TRAFFIC_NAV_LINK, icon: Activity01Icon, label: "Traffic" },
-  { link: GEO_PROMPTS_NAV_LINK, icon: AiChat01Icon, label: "Prompts" },
-  { link: GEO_GAPS_NAV_LINK, icon: SearchList01Icon, label: "Content Gaps" },
-  { link: GEO_SHELF_SPACE_NAV_LINK, icon: Layers01Icon, label: "Shelf Space" },
+  { link: IRIS_NAV_LINK, icon: RainbowIcon, labelKey: "iris" },
+  { link: SCHEDULES_NAV_LINK, icon: Calendar03Icon, labelKey: "schedules" },
+  { link: EVENTS_NAV_LINK, icon: Notification03Icon, labelKey: "events" },
+  { link: INTEGRATIONS_NAV_LINK, icon: PlugIcon, labelKey: "integrations" },
+  { link: GEO_OVERVIEW_NAV_LINK, icon: AiBrowserIcon, labelKey: "overview" },
+  { link: GEO_TRAFFIC_NAV_LINK, icon: Activity01Icon, labelKey: "traffic" },
+  { link: GEO_PROMPTS_NAV_LINK, icon: AiChat01Icon, labelKey: "prompts" },
+  { link: GEO_GAPS_NAV_LINK, icon: SearchList01Icon, labelKey: "contentGaps" },
+  {
+    link: GEO_SHELF_SPACE_NAV_LINK,
+    icon: Layers01Icon,
+    labelKey: "shelfSpace",
+  },
   {
     link: GEO_AGENT_READINESS_NAV_LINK,
     icon: Robot01Icon,
-    label: "Agent Readiness",
+    labelKey: "agentReadiness",
   },
   {
     link: GEO_COMPETITORS_NAV_LINK,
     icon: ChartAnalysisIcon,
-    label: "Competitors",
+    labelKey: "competitors",
   },
   {
     link: GEO_PERSONAS_NAV_LINK,
     icon: UserGroupIcon,
-    label: "Personas",
-    badge: "Beta",
+    labelKey: "personas",
+    badge: "beta",
   },
-  { link: GEO_WRITER_NAV_LINK, icon: PencilEdit01Icon, label: "Write" },
-  { link: GEO_SETTINGS_NAV_LINK, icon: Settings01Icon, label: "GEO Settings" },
-  { link: SKILLS_NAV_LINK, icon: MagicWand01Icon, label: "Skills" },
-  { link: API_KEYS_NAV_LINK, icon: Key01Icon, label: "API Keys" },
+  { link: GEO_WRITER_NAV_LINK, icon: PencilEdit01Icon, labelKey: "write" },
+  {
+    link: GEO_SETTINGS_NAV_LINK,
+    icon: Settings01Icon,
+    labelKey: "geoSettings",
+  },
+  { link: SKILLS_NAV_LINK, icon: MagicWand01Icon, labelKey: "skills" },
+  { link: API_KEYS_NAV_LINK, icon: Key01Icon, labelKey: "apiKeys" },
 ];
 
 export const NAV_GEO_VISIBILITY_LINKS: readonly string[] = [
@@ -166,7 +164,6 @@ export const NAV_GEO_VISIBILITY_LINKS: readonly string[] = [
   GEO_PROMPTS_NAV_LINK,
   GEO_COMPETITORS_NAV_LINK,
   GEO_PERSONAS_NAV_LINK,
-  AGENT_FEEDBACK_NAV_LINK,
 ];
 
 export const NAV_GEO_IMPROVE_LINKS: readonly string[] = [
@@ -188,6 +185,7 @@ export const NAV_STUDIO_LINKS: readonly string[] = [
   CHAT_NAV_LINK,
   CONTENT_NAV_LINK,
   ANALYTICS_NAV_LINK,
+  AGENT_FEEDBACK_NAV_LINK,
   BRAND_IDENTITY_NAV_LINK,
 ];
 
@@ -215,8 +213,8 @@ export const DEFAULT_NAV_VISIBILITY: NavVisibility = {
 
 export const NAV_PRIMARY_ACTIONS: Record<SidebarMode, NavPrimaryActionConfig> =
   {
-    geo: { label: "New content", icon: PencilEdit01Icon },
-    studio: { label: "New post", icon: PlusSignIcon },
+    geo: { icon: PencilEdit01Icon },
+    studio: { icon: PlusSignIcon },
   };
 
 // Shared sidebar panel swap (GEO <-> Studio, main <-> chat/brand).
@@ -268,17 +266,9 @@ export const SIDEBAR_MODE_PANEL_CLASS = `flex min-h-0 w-full flex-col ${SIDEBAR_
 /** Collapses the primary-action row when the active mode has no action to offer. */
 export const SIDEBAR_MODE_SLOT_CLASS = `grid transition-[grid-template-rows,opacity] duration-slow ${SIDEBAR_MODE_SWOOSH_IN} motion-reduce:transition-none`;
 
-export const NAV_RECENT_LABEL = "Recent";
 export const NAV_RECENT_LIMIT = 3;
 export const NAV_RECENT_SKELETON_IDS = ["first", "second", "third"] as const;
 export const NAV_RECENT_TITLE_CLASS = "min-w-0 max-w-[8.5rem] flex-1 truncate";
-export const NAV_PROJECTS_MENU_LABEL = "Projects";
-export const NAV_NEW_PROJECT_LABEL = "New project";
-
-export const POST_STATUS_LABELS: Record<PostStatus, string> = {
-  draft: "Draft",
-  published: "Published",
-};
 
 export const POST_STATUS_DOT_CLASS: Record<PostStatus, string> = {
   draft: "bg-muted-foreground/50",

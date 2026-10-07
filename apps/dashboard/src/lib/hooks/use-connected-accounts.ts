@@ -6,6 +6,7 @@ import type {
 } from "@notra/schemas/dashboard/social-accounts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { SOCIAL_PLATFORM_LABELS } from "@/constants/social-connect";
 import type { ConnectedAccount } from "@/types/hooks/connected-accounts";
@@ -33,6 +34,7 @@ export function useSocialAccounts(
 }
 
 export function useRefreshConnectedAccount(organizationId: string) {
+  const t = useTranslations("integrations.socialConnect");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (accountId: string) =>
@@ -48,16 +50,16 @@ export function useRefreshConnectedAccount(organizationId: string) {
         return;
       }
       if (account.status === "missing") {
-        toast.warning(`@${account.username} needs reconnecting`);
+        toast.warning(t("needsReconnecting", { username: account.username }));
         return;
       }
-      toast.success(`@${account.username} is up to date`);
+      toast.success(t("upToDate", { username: account.username }));
     },
     onError: (error) => {
       toast.error(
         error instanceof Error && error.message
           ? error.message
-          : "Failed to refresh account"
+          : t("refreshFailed")
       );
     },
   });
@@ -67,6 +69,8 @@ export function usePublishSocialPost(
   organizationId: string,
   platform: SocialConnectPlatform
 ) {
+  const t = useTranslations("integrations.socialConnect");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
@@ -87,14 +91,17 @@ export function usePublishSocialPost(
         }),
       });
       toast.success(
-        `🎉 Posted to ${SOCIAL_PLATFORM_LABELS[platform]} as @${result.username}`
+        t("posted", {
+          platform: SOCIAL_PLATFORM_LABELS[platform],
+          username: result.username,
+        })
       );
     },
     onError: (error) => {
       toast.error(
         error instanceof Error && error.message
           ? error.message
-          : "Failed to publish post"
+          : tCommon("labels.failedToPublishPost")
       );
     },
   });
@@ -127,6 +134,7 @@ export function useHandleConnectSocialAccount(
   organizationId: string,
   platform: SocialConnectPlatform
 ) {
+  const t = useTranslations("integrations.socialConnect");
   const connectAccount = useConnectSocialAccount(organizationId, platform);
 
   const handleConnect = async () => {
@@ -139,7 +147,9 @@ export function useHandleConnectSocialAccount(
       toast.error(
         error instanceof Error
           ? error.message
-          : `Failed to connect ${SOCIAL_PLATFORM_LABELS[platform]} account`
+          : t("connectPlatformFailed", {
+              platform: SOCIAL_PLATFORM_LABELS[platform],
+            })
       );
     }
   };

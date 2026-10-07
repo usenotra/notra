@@ -1,3 +1,5 @@
+import { checkContentBilling } from "@notra/ai/billing/content-billing";
+import { FEATURES } from "@notra/ai/billing/features";
 import {
   GEO_CURSOR_FLAG_KEY,
   GEO_OPENCODE_FLAG_KEY,
@@ -9,15 +11,17 @@ import {
   GeoGenerationService,
   GeoWorkflowService,
 } from "@notra/geo-core/deps";
-import { agentReadinessNetworkLive } from "@notra/geo-core/geo/agent-readiness-live";
 import { GeoFlagEvaluationError } from "@notra/geo-core/geo/errors";
-import { geoModelLive } from "@notra/geo-core/geo/model-live";
+import {
+  agentReadinessNetworkLayer,
+  geoModelLayer,
+} from "@notra/geo-core/geo/host-layers";
 import { geoSearchConsoleLive } from "@notra/geo-core/geo/search-console-live";
 import { Effect, Layer } from "effect";
 
-import { resolveZdrEntitlement } from "@/lib/billing/subscription";
 import { addActiveGeneration, generateRunId } from "@/lib/generations/tracking";
 import { resolveGeoFlagState } from "@/lib/geo/flag";
+import { resolveZdrEntitlement } from "@/utils/resolve-zdr-entitlement";
 
 const workflowLayer = Layer.succeed(GeoWorkflowService, {
   // Lazy imports keep the workflow modules from closing a module cycle through
@@ -75,6 +79,18 @@ const entitlementLayer = Layer.succeed(GeoEntitlementService, {
     (organizationId) =>
       Effect.promise(() => resolveZdrEntitlement(organizationId))
   ),
+  checkScanBilling: Effect.fn("GeoDashboardEntitlement.checkScanBilling")(
+    (organizationId) =>
+      Effect.tryPromise({
+        try: () =>
+          checkContentBilling({
+            organizationId,
+            outputType: null,
+            quotaFeatureId: FEATURES.AI_ANSWERS,
+          }),
+        catch: (cause) => cause,
+      })
+  ),
 });
 
 function geoEngineFlagEnabled(
@@ -124,8 +140,8 @@ const generationLayer = Layer.succeed(GeoGenerationService, {
 
 /** Complete dashboard runtime for GEO programs. */
 export const geoCoreDashboardLayer = Layer.mergeAll(
-  agentReadinessNetworkLive,
-  geoModelLive,
+  agentReadinessNetworkLayer,
+  geoModelLayer,
   geoSearchConsoleLive,
   workflowLayer,
   billingLayer,

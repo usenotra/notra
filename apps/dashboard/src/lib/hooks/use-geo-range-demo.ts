@@ -7,7 +7,6 @@ import { useState } from "react";
 import type { GeoDateRange, GeoRangeControl, GeoRangeState } from "@/types/geo";
 import {
   geoPresetRange,
-  geoRangeLabel,
   geoRangeSpanDays,
   serializeGeoRangeState,
 } from "@/utils/geo-range";
@@ -20,7 +19,6 @@ export function useGeoRangeDemo(): GeoRangeControl {
 
   return {
     ...state,
-    label: geoRangeLabel(state),
     days: geoRangeSpanDays(state.range),
     query: { from: state.range.dateFrom, to: state.range.dateTo },
     param: serializeGeoRangeState(state),

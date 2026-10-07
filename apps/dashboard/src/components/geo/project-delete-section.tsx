@@ -2,18 +2,10 @@
 
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { useGeoProjectsDb } from "@/lib/hooks/use-geo-db";
@@ -25,6 +17,8 @@ export function GeoProjectDeleteSection({
   replacementProjectId,
   onDeleted,
 }: GeoProjectDeleteSectionProps) {
+  const t = useTranslations("geo.projectDeleteSection");
+  const tGeoShared = useTranslations("geo.shared");
   const [open, setOpen] = useState(false);
   const { deleteProject, isDeleting } = useGeoProjectsDb(organizationId);
   const isLastProject = replacementProjectId === undefined;
@@ -47,61 +41,35 @@ export function GeoProjectDeleteSection({
     <TitleCard
       as="section"
       className="border-destructive/50 bg-destructive/5"
-      heading="Delete project"
+      heading={tGeoShared("deleteProject")}
       headingAs="h2"
     >
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <p className="text-muted-foreground text-sm text-pretty">
-          {isLastProject
-            ? "This is your only project. Create another project before deleting it."
-            : "Permanently delete this project and all of its tracking data."}
+          {isLastProject ? t("onlyProject") : t("description")}
         </p>
         <Button
+          className="self-end"
           disabled={isLastProject}
           onClick={() => setOpen(true)}
           type="button"
           variant="destructive"
         >
           <HugeiconsIcon className="size-4" icon={Delete02Icon} />
-          Delete project
+          {tGeoShared("deleteProject")}
         </Button>
       </div>
 
-      <ResponsiveAlertDialog
-        onOpenChange={(nextOpen) => {
-          if (!isDeleting) {
-            setOpen(nextOpen);
-          }
-        }}
+      <ConfirmDialog
+        confirmLabel={tGeoShared("deleteProject")}
+        description={t("confirmDescription")}
+        onConfirm={handleDelete}
+        onOpenChange={setOpen}
         open={open}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete “{project.name}”?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This permanently deletes its settings, prompts, competitors,
-              scans, and reports. This action cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={isDeleting}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {isDeleting ? "Deleting..." : "Delete project"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={isDeleting}
+        title={t("confirmTitle", { name: project.name })}
+        variant="destructive"
+      />
     </TitleCard>
   );
 }

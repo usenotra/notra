@@ -1,0 +1,46 @@
+import type {
+  CommandRouteId,
+  CommandSection,
+} from "@/types/components/command-palette";
+
+export const COMMAND_ROUTE_LABEL_KEYS = {
+  home: "home",
+  chat: "chat",
+  analytics: "analytics",
+  geo: "overview",
+  "geo-traffic": "traffic",
+  "geo-prompts": "prompts",
+  "geo-personas": "personas",
+  "geo-gaps": "contentGaps",
+  "geo-shelf-space": "shelfSpace",
+  "geo-competitors": "competitors",
+  "geo-write": "write",
+  "geo-settings-brand": "brand",
+  "geo-settings-languages": "languages",
+  "geo-settings-models": "models",
+  content: "content",
+  "brand-company-info": "companyInfo",
+  "brand-references": "references",
+  "automation-schedules": "schedules",
+  "automation-events": "events",
+  "api-keys": "apiKeys",
+  integrations: "integrations",
+  "github-integration": "github",
+  logs: "logs",
+  "settings-account": "account",
+  "settings-general": "generalSettings",
+  "settings-members": "members",
+  "settings-notifications": "notifications",
+  "settings-billing": "billing",
+  "settings-usage": "usage",
+  "settings-credits": "credits",
+} as const satisfies Record<CommandRouteId, string>;
+
+export const COMMAND_SECTION_LABEL_KEYS = {
+  Navigation: "labels.navigation",
+  GEO: "labels.geo",
+  Workspace: "labels.workspace",
+  Automation: "labels.automation",
+  Manage: "actions.manage",
+  Settings: "actions.settings",
+} as const satisfies Record<CommandSection, string>;

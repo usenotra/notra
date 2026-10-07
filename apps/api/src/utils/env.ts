@@ -1,3 +1,5 @@
+import { shouldBypassAutumnInDevelopment } from "@notra/ai/utils/autumn-development";
+
 const REQUIRED_ENV_VARS = [
   "UNKEY_ROOT_KEY",
   "DATABASE_URL",
@@ -9,10 +11,12 @@ const REQUIRED_ENV_VARS = [
 ] as const;
 
 export function assertRequiredEnv() {
-  const required =
-    process.env.NODE_ENV === "development"
-      ? REQUIRED_ENV_VARS
-      : [...REQUIRED_ENV_VARS, "AUTUMN_SECRET_KEY"];
+  const required = shouldBypassAutumnInDevelopment(
+    process.env.NODE_ENV,
+    process.env.AUTUMN_SECRET_KEY
+  )
+    ? REQUIRED_ENV_VARS
+    : [...REQUIRED_ENV_VARS, "AUTUMN_SECRET_KEY"];
   const missing = required.filter((name) => !process.env[name]);
   if (missing.length > 0) {
     throw new Error(

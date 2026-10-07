@@ -26,6 +26,7 @@ import type {
   GeoShelfOpportunityPatch,
   GeoShelfOpportunityWrite,
   GeoShelfPlacement,
+  GeoShelfPlacementBrand,
   GeoShelfPlacementWrite,
   GeoShelfRow,
   GeoShelfSource,
@@ -292,12 +293,84 @@ export function applyShelfOpportunityChanges(
   };
 }
 
+/**
+ * Sources only store competitors with a known status. Those come first, then
+ * every other tracked competitor as "unknown" so it can still be set by hand.
+ */
+export function withUncheckedCompetitors(
+  placements: readonly GeoShelfPlacement[],
+  competitors: readonly GeoCompetitor[]
+): GeoShelfPlacement[] {
+  const stored = placements.filter(
+    (placement) => placement.competitorId !== null
+  );
+  const storedIds = new Set(stored.map((placement) => placement.competitorId));
+  const unchecked = competitors.flatMap<GeoShelfPlacement>((competitor) =>
+    storedIds.has(competitor.id)
+      ? []
+      : [
+          {
+            competitorId: competitor.id,
+            brandName: competitor.name,
+            brandDomain: competitor.domain,
+            status: "unknown",
+            position: null,
+            hasLink: false,
+            evidence: "manual",
+            excerpt: null,
+            checkedAt: "",
+          },
+        ]
+  );
+  return [...stored, ...unchecked];
+}
+
 export function applyShelfPlacementStatus(
   source: GeoShelfSource,
   competitorId: string | null,
   status: GeoShelfPlacement["status"],
-  nowIso: string
+  nowIso: string,
+  brand?: GeoShelfPlacementBrand
 ): GeoShelfSource {
+  const isStored = source.placements.some(
+    (placement) => placement.competitorId === competitorId
+  );
+  // Mirrors the server: a cleared competitor is dropped, not stored.
+  if (competitorId !== null && status === "unknown") {
+    return isStored
+      ? {
+          ...source,
+          placements: source.placements.filter(
+            (placement) => placement.competitorId !== competitorId
+          ),
+          updatedAt: nowIso,
+        }
+      : source;
+  }
+  // Competitors nobody has checked yet are not stored on the source.
+  if (!isStored) {
+    if (!brand) {
+      return source;
+    }
+    return {
+      ...source,
+      placements: [
+        ...source.placements,
+        {
+          competitorId,
+          brandName: brand.name,
+          brandDomain: brand.domain,
+          status,
+          position: null,
+          hasLink: false,
+          evidence: "manual",
+          excerpt: null,
+          checkedAt: nowIso,
+        },
+      ],
+      updatedAt: nowIso,
+    };
+  }
   return {
     ...source,
     placements: source.placements.map((placement) => {
@@ -371,17 +444,24 @@ export function buildOptimisticShelfSource(
       excerpt: null,
       checkedAt: nowIso,
     },
-    ...context.competitors.map<GeoShelfPlacement>((competitor) => ({
-      competitorId: competitor.id,
-      brandName: competitor.name,
-      brandDomain: competitor.domain,
-      status: presentIds.has(competitor.id) ? "present" : "unknown",
-      position: null,
-      hasLink: false,
-      evidence: "manual",
-      excerpt: null,
-      checkedAt: nowIso,
-    })),
+    // Like the server, only competitors with a known status are stored.
+    ...context.competitors.flatMap<GeoShelfPlacement>((competitor) =>
+      presentIds.has(competitor.id)
+        ? [
+            {
+              competitorId: competitor.id,
+              brandName: competitor.name,
+              brandDomain: competitor.domain,
+              status: "present",
+              position: null,
+              hasLink: false,
+              evidence: "manual",
+              excerpt: null,
+              checkedAt: nowIso,
+            },
+          ]
+        : []
+    ),
   ];
   const title = draft.title.trim();
   return {
@@ -407,26 +487,22 @@ export function shelfMemberInitial(member: GeoShelfMember): string {
   return (member.name || member.email).charAt(0).toUpperCase();
 }
 
-const shelfDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-});
-
-const shelfDueDateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-export function formatShelfDate(iso: string | null): string {
+export function formatShelfDate(iso: string | null, locale: string): string {
   if (!iso) {
     return "-";
   }
-  return shelfDateFormatter.format(new Date(iso));
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(iso));
 }
 
-export function formatShelfDueDate(iso: string): string {
-  return shelfDueDateFormatter.format(new Date(iso));
+export function formatShelfDueDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(iso));
 }
 
 export function shelfDueDateToIso(date: Date): string {

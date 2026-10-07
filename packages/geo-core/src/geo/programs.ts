@@ -1,3 +1,4 @@
+import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,
@@ -21,9 +22,10 @@ import {
   queryGeoCheckCompetitorPrompts,
   queryGeoCheckCompetitorPromptSummary,
   queryGeoCheckCompetitorShare,
-  queryGeoCheckCompetitorShareTimeseries,
-  queryGeoCheckCompetitorShareTrends,
+  queryGeoCheckCompetitorShareAggregate,
   queryGeoCheckCompetitorTimeseries,
+  queryGeoCheckEngineBrandMentions,
+  queryGeoCheckEngineTotals,
   queryGeoCheckLanguageShare,
   queryGeoCheckLanguageShareTrends,
   queryGeoCheckOverview,
@@ -64,6 +66,7 @@ import type {
   GeoCompetitorMerge,
   GeoCompetitorReconcileOutcome,
   GeoCompetitorSeed,
+  GeoCompetitorEngineMatrixResponse,
   GeoCompetitorShareResponse,
   GeoCompetitorsResponse,
   GeoCompetitorUpsertInput,
@@ -107,13 +110,18 @@ import {
   summarizeGeoChanges,
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
+import { competitorCanonicalMap } from "../utils/geo-competitor-names";
+import { summarizeGeoCompetitorShare } from "../utils/geo-competitor-share";
 import {
   normalizeConversionPaths,
   sumConversionVisits,
 } from "../utils/geo-conversion-paths";
 import { engineFamilyOf } from "../utils/geo-engine-family";
 import { scopeGeoScanEngines } from "../utils/geo-engines";
-import { trackedGeoLanguages } from "../utils/geo-language-rows";
+import {
+  trackedGeoLanguages,
+  withPromptLanguage,
+} from "../utils/geo-language-rows";
 import {
   geoDefaultEngines,
   getGeoModelCatalogEntry,
@@ -126,8 +134,9 @@ import {
 import { toGeoPromptResult } from "../utils/geo-prompt-results";
 import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
+import { memoizeGeoRequest } from "../utils/request-memo";
 import { competitorKey } from "./domain";
-import { geoDb, geoQuery } from "./effect";
+import { geoDb, geoQuery, geoSkip } from "./effect";
 import {
   GeoCompetitorLimitError,
   GeoPromptDuplicateError,
@@ -137,6 +146,7 @@ import {
   GeoSettingsDisabledError,
   GeoSettingsMissingError,
   GeoSettingsTrackingError,
+  GeoWriterCreditsExhaustedError,
 } from "./errors";
 import { geoHiddenSourceParams } from "./hidden-sources";
 import { invalidateGeoIngestHostsCache } from "./ingest";
@@ -158,6 +168,10 @@ import {
 } from "./projects";
 import { promptKey } from "./prompt-key";
 import {
+  deleteGeoPromptTranslations,
+  pickNewGeoPrompts,
+} from "./prompt-translations";
+import {
   applyAutoPromptChange,
   buildGeoPrompts,
   customPromptScanId,
@@ -165,7 +179,10 @@ import {
   isGeoAutoPromptId,
   toAutoTrackedPrompts,
 } from "./prompts";
-import { startClaimedGeoScanRun } from "./scan-handoff";
+import {
+  findGeoScanBillingDenial,
+  startClaimedGeoScanRun,
+} from "./scan-handoff";
 import { rearmedGeoScanAt } from "./scan-schedule";
 import { claimGeoScanRun, sweepStaleGeoScanRows } from "./scan-status";
 import { geoTrafficWindowParams } from "./window";
@@ -196,15 +213,26 @@ function mergeLegacyCompetitors(
   return merged;
 }
 
+/**
+ * One settings read per request: a GEO batch (overview, prompts, competitors,
+ * traffic) otherwise reads the same row once per procedure. Outside a request
+ * memo (workflows, mutations) it reads straight through.
+ */
+function findGeoSettingsRow(projectId: string) {
+  return memoizeGeoRequest(`settings:${projectId}`, () =>
+    db.query.geoSettings.findFirst({
+      where: eq(geoSettings.projectId, projectId),
+    })
+  );
+}
+
 export const loadGeoSettings = Effect.fn("geo.settings")(function* (
   input: GeoScopeInput
 ) {
   const scope = yield* resolveGeoScope(input);
   const row = scope.projectId
     ? yield* geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, scope.projectId ?? ""),
-        })
+        findGeoSettingsRow(scope.projectId ?? "")
       )
     : null;
 
@@ -376,12 +404,7 @@ const loadCompetitorsByProject = Effect.fn("geo.competitorsByProject")(
             orderBy: [asc(geoCompetitors.createdAt)],
           })
         ),
-        geoDb("settings lookup failed", () =>
-          db.query.geoSettings.findFirst({
-            columns: { competitors: true },
-            where: eq(geoSettings.projectId, projectId),
-          })
-        ),
+        geoDb("settings lookup failed", () => findGeoSettingsRow(projectId)),
       ],
       { concurrency: "unbounded" }
     );
@@ -413,34 +436,38 @@ export const upsertGeoCompetitor = Effect.fn("geo.competitorUpsert")(function* (
   input: GeoCompetitorUpsertInput
 ) {
   const key = competitorKey(input.previousName ?? input.name);
-  const competitors = yield* reconcileGeoCompetitors(scopeInput, (current) => {
-    const entries: GeoCompetitorSeed[] = current.map((competitor) =>
-      competitorKey(competitor.name) === key
-        ? {
-            name: input.name.trim(),
-            domain: input.domain,
-            synonyms: input.synonyms ?? competitor.synonyms,
-            kind: input.kind ?? competitor.kind,
-            color: input.color ?? competitor.color,
-          }
-        : competitor
-    );
+  const competitors = yield* reconcileGeoCompetitors(
+    scopeInput,
+    (current) => {
+      const entries: GeoCompetitorSeed[] = current.map((competitor) =>
+        competitorKey(competitor.name) === key
+          ? {
+              name: input.name.trim(),
+              domain: input.domain,
+              synonyms: input.synonyms ?? competitor.synonyms,
+              kind: input.kind ?? competitor.kind,
+              color: input.color ?? competitor.color,
+            }
+          : competitor
+      );
 
-    if (
-      !entries.some(
-        (entry) => competitorKey(entry.name) === competitorKey(input.name)
-      )
-    ) {
-      entries.push({
-        name: input.name.trim(),
-        domain: input.domain,
-        synonyms: input.synonyms ?? [],
-        kind: input.kind ?? "direct",
-        color: input.color ?? null,
-      });
-    }
-    return entries;
-  });
+      if (
+        !entries.some(
+          (entry) => competitorKey(entry.name) === competitorKey(input.name)
+        )
+      ) {
+        entries.push({
+          name: input.name.trim(),
+          domain: input.domain,
+          synonyms: input.synonyms ?? [],
+          kind: input.kind ?? "direct",
+          color: input.color ?? null,
+        });
+      }
+      return entries;
+    },
+    GEO_MAX_COMPETITORS
+  );
   const response: GeoCompetitorsResponse = { competitors };
   return response;
 });
@@ -675,6 +702,7 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         nextScanAt: true,
         lastScanAt: true,
         scanIntervalHours: true,
+        promptLanguage: true,
       },
       where: eq(geoSettings.projectId, projectId),
     })
@@ -691,6 +719,18 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const domains = normalizeProjectDomains(
     input.domains ?? existingSettings?.domains ?? []
   );
+  // Stored prompts are written in the prompt language, so it is fixed once set
+  // and always stays tracked; otherwise scans would only run translations.
+  const promptLanguage =
+    existingSettings?.promptLanguage ?? input.promptLanguage ?? null;
+  const languages = withPromptLanguage(input.languages, promptLanguage);
+  if (!languages) {
+    return yield* Effect.fail(
+      new GeoSettingsTrackingError({
+        message: `${promptLanguage} is the prompt language and stays tracked, so choose at most ${GEO_MAX_LANGUAGES - 1} other languages`,
+      })
+    );
+  }
   const preservedEngines = (existingSettings?.engines ?? []).filter(
     (engine) =>
       unavailableStaticEngines.size > 0 && unavailableStaticEngines.has(engine)
@@ -729,7 +769,9 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   // A re-armed or cleared schedule must not stay leased by the sweep that was
   // mid-tick, or the new stamp would be ignored until the lease expires. An
   // untouched schedule keeps whatever lease that sweep holds.
-  const clearedLease = keepNextScanAt ? {} : { scanLeaseUntil: null };
+  const clearedLease = keepNextScanAt
+    ? {}
+    : { scanLeaseUntil: null, scanFirstFailedAt: null };
 
   yield* geoDb("settings upsert failed", () =>
     db
@@ -743,7 +785,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
         competitors: [],
         conversionPaths,
         domains,
-        languages: input.languages,
+        languages,
+        promptLanguage,
         engines,
         enforceZdr,
         nonZdrApprovedEngines,
@@ -761,7 +804,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
           aliases: input.aliases,
           conversionPaths,
           domains,
-          languages: input.languages,
+          languages,
+          promptLanguage,
           engines,
           enforceZdr,
           nonZdrApprovedEngines,
@@ -989,8 +1033,6 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     const checkWindow = toGeoCheckWindow(window);
 
     if (summaryOnly) {
-      // Callers that only render aggregate shares skip the two additional
-      // full-range scans used for sparklines, charts and change indicators.
       const rows = yield* geoDb("competitor share query failed", () =>
         queryGeoCheckCompetitorShare(
           checkScope,
@@ -1009,50 +1051,73 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
       return response;
     }
 
-    const [rows, timeseries, trendRows] = yield* Effect.all(
-      [
-        geoDb("competitor share query failed", () =>
-          queryGeoCheckCompetitorShare(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-        geoDb("competitor share timeseries query failed", () =>
-          queryGeoCheckCompetitorShareTimeseries(checkScope, checkWindow)
-        ),
-        geoDb("competitor share trends query failed", () =>
-          queryGeoCheckCompetitorShareTrends(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-      ],
-      { concurrency: "unbounded" }
-    );
-    const trendsByBrand = groupGeoSparklinePoints(
-      trendRows,
-      (point) => point.brand,
-      (point) => ({ day: point.day, value: point.share })
+    const aggregates = yield* geoDb(
+      "competitor share aggregate query failed",
+      () => queryGeoCheckCompetitorShareAggregate(checkScope, checkWindow)
     );
 
     const response: GeoCompetitorShareResponse = {
       configured: true,
-      points: rows.map((row) => ({
-        brand: row.brand,
-        mentions: row.mentions,
-        trend: trendsByBrand.get(row.brand) ?? [],
-      })),
-      timeseries: timeseries.map((row) => ({
-        brand: row.brand,
-        day: row.day,
-        mentions: row.mentions,
-      })),
+      ...summarizeGeoCompetitorShare(aggregates, GEO_COMPETITOR_SHARE_LIMIT),
     };
     return response;
   }
 );
+
+export const loadGeoCompetitorEngineMatrix = Effect.fn(
+  "geo.competitorEngineMatrix"
+)(function* (input: GeoScopeInput, window: GeoWindowInput) {
+  const scope = yield* resolveGeoScope(input);
+  const checkScope = geoCheckScope(scope);
+  const checkWindow = toGeoCheckWindow(window);
+
+  const [engines, competitors] = yield* Effect.all(
+    [
+      geoDb("engine totals query failed", () =>
+        queryGeoCheckEngineTotals(checkScope, checkWindow)
+      ),
+      scope.projectId
+        ? loadCompetitorsByProject(scope.projectId)
+        : Effect.succeed<GeoCompetitor[]>([]),
+    ],
+    { concurrency: "unbounded" }
+  );
+  // Tracked competitors are matched by name and synonyms regardless of rank,
+  // so one outside the top brands still gets its row. Untracked brands only
+  // stand in while nothing is tracked.
+  // Same mapping as the client, so an exact tracked name wins over another
+  // competitor's synonym.
+  const brands = competitorCanonicalMap(competitors);
+  if (brands.size === 0) {
+    const topBrands = yield* geoDb("competitor share query failed", () =>
+      queryGeoCheckCompetitorShare(
+        checkScope,
+        checkWindow,
+        GEO_COMPETITOR_SHARE_LIMIT
+      )
+    );
+    for (const row of topBrands) {
+      const key = competitorKey(row.brand);
+      if (key.length > 0 && !brands.has(key)) {
+        brands.set(key, row.brand);
+      }
+    }
+  }
+  const cells = yield* geoDb("engine brand mentions query failed", () =>
+    queryGeoCheckEngineBrandMentions(
+      checkScope,
+      checkWindow,
+      Array.from(brands, ([key, name]) => ({ key, name }))
+    )
+  );
+
+  const response: GeoCompetitorEngineMatrixResponse = {
+    configured: true,
+    engines,
+    cells,
+  };
+  return response;
+});
 
 export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
   function* (
@@ -1125,10 +1190,7 @@ export const loadAiTraffic = Effect.fn("geo.aiTraffic")(function* (
   const windowParams = geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS);
   const settingsRow = scope.projectId
     ? yield* geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          columns: { conversionPaths: true },
-          where: eq(geoSettings.projectId, scope.projectId ?? ""),
-        })
+        findGeoSettingsRow(scope.projectId ?? "")
       )
     : null;
   const conversionPaths = settingsRow?.conversionPaths ?? [];
@@ -1434,11 +1496,7 @@ export const listGeoPrompts = Effect.fn("geo.promptsList")(function* (
           orderBy: [desc(geoPrompts.createdAt)],
         })
       ),
-      geoDb("settings lookup failed", () =>
-        db.query.geoSettings.findFirst({
-          where: eq(geoSettings.projectId, projectId),
-        })
-      ),
+      geoDb("settings lookup failed", () => findGeoSettingsRow(projectId)),
       loadGeoProjectBrand({ organizationId: scope.organizationId, projectId }),
     ],
     { concurrency: "unbounded" }
@@ -1539,6 +1597,9 @@ export const createGeoPrompt = Effect.fn("geo.promptsCreate")(function* (
     return yield* Effect.fail(new GeoPromptDuplicateError({ prompt }));
   }
 
+  yield* pickNewGeoPrompts(input, [customPromptScanId(row.id)]).pipe(
+    geoSkip("prompt translation pick failed")
+  );
   return toTrackedPrompt(row);
 });
 
@@ -1615,6 +1676,10 @@ export const importGeoPrompts = Effect.fn("geo.promptsImport")(function* (
   rows: readonly GeoPromptImportRow[]
 ) {
   const inserted = yield* insertGeoPrompts(input, rows);
+  yield* pickNewGeoPrompts(
+    input,
+    inserted.map((row) => customPromptScanId(row.id))
+  ).pipe(geoSkip("prompt translation pick failed"));
 
   const result: GeoImportResult = {
     imported: inserted.length,
@@ -1662,6 +1727,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
         columns: {
           companyName: true,
           aliases: true,
+          promptLanguage: true,
           pausedAutoPromptIds: true,
           removedAutoPromptIds: true,
         },
@@ -1689,6 +1755,7 @@ const patchAutoPromptInTransaction = Effect.fn("geo.promptsPatchAutoTx")(
       {
         companyName: settingsRow.companyName,
         aliases: settingsRow.aliases,
+        promptLanguage: settingsRow.promptLanguage ?? undefined,
       },
       brand
         ? {
@@ -1770,6 +1837,10 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
   );
 
   if (rows.at(0)) {
+    yield* deleteGeoPromptTranslations(
+      scope.projectId,
+      customPromptScanId(promptId)
+    );
     return { success: true };
   }
   if (!isGeoAutoPromptId(promptId)) {
@@ -1782,6 +1853,7 @@ export const deleteGeoPrompt = Effect.fn("geo.promptsDelete")(function* (
     promptId,
     "remove"
   );
+  yield* deleteGeoPromptTranslations(scope.projectId, promptId);
   return { success: true };
 });
 
@@ -1918,6 +1990,20 @@ export const startGeoScanScoped = Effect.fn("geo.startScanScoped")(function* (
     if (scopeGeoScanEngines(catalog, tracked, engines).length === 0) {
       return yield* Effect.fail(new GeoScanEnginesEmptyError({ projectId }));
     }
+  }
+
+  // Refuse before claiming, so an organization out of credits gets a 402 now
+  // instead of a scan id whose run fails at its billing gate.
+  const denial = yield* findGeoScanBillingDenial(
+    scope.organizationId,
+    projectId
+  );
+  if (denial) {
+    return yield* Effect.fail(
+      new GeoWriterCreditsExhaustedError({
+        message: describeContentBillingDenial(denial),
+      })
+    );
   }
 
   // Claim the scan slot atomically *before* handing off. Reading the settings

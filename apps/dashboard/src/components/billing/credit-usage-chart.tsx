@@ -5,22 +5,40 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  type ChartConfig,
 } from "@notra/ui/components/ui/chart";
 import { Tabs, TabsList, TabsTrigger } from "@notra/ui/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { useFormatter, useLocale, useTranslations } from "use-intl";
 
-import { CREDIT_USAGE_CHART_CONFIG } from "@/constants/billing-credits";
+import { CREDIT_USAGE_CHART_COLOR } from "@/constants/billing-credits";
 import {
   CREDIT_RANGES,
   type CreditUsageChartProps,
 } from "@/types/billing/credits";
-import { formatDollars, formatShortDate, isCreditRange } from "@/utils/format";
+import { formatDollars, isCreditRange } from "@/utils/format";
 
 export function CreditUsageChart({
   data,
   range,
   onRangeChange,
 }: CreditUsageChartProps) {
+  const t = useTranslations("billing.creditUsage");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const format = useFormatter();
+  const chartConfig = {
+    ai_credits: {
+      label: t("creditsUsed"),
+      color: CREDIT_USAGE_CHART_COLOR,
+    },
+  } satisfies ChartConfig;
+  const formatShortDate = (timestamp: number) =>
+    format.dateTime(new Date(timestamp), {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
   const chartData =
     data?.map((row) => {
       const value = row.values?.[FEATURES.AI_CREDITS];
@@ -33,7 +51,7 @@ export function CreditUsageChart({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">Usage</h2>
+        <h2 className="text-lg font-semibold">{tCommon("labels.usage")}</h2>
         <Tabs
           onValueChange={(value) => {
             if (isCreditRange(value, CREDIT_RANGES)) {
@@ -55,7 +73,7 @@ export function CreditUsageChart({
         {chartData.length > 0 ? (
           <ChartContainer
             className="aspect-auto h-[240px] w-full"
-            config={CREDIT_USAGE_CHART_CONFIG}
+            config={chartConfig}
           >
             <BarChart
               accessibilityLayer
@@ -79,7 +97,7 @@ export function CreditUsageChart({
               <YAxis
                 axisLine={false}
                 className="text-muted-foreground/60 text-xs"
-                tickFormatter={(value: number) => formatDollars(value)}
+                tickFormatter={(value: number) => formatDollars(value, locale)}
                 tickLine={false}
                 tickMargin={8}
                 width={48}
@@ -87,7 +105,7 @@ export function CreditUsageChart({
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatDollars(Number(value))}
+                    formatter={(value) => formatDollars(Number(value), locale)}
                     labelFormatter={(_, payload) => {
                       const item = payload?.[0]?.payload;
                       return item?.date ? formatShortDate(item.date) : "";
@@ -106,7 +124,7 @@ export function CreditUsageChart({
           </ChartContainer>
         ) : (
           <div className="text-muted-foreground flex h-[240px] items-center justify-center text-sm">
-            No usage data for this period
+            {t("empty")}
           </div>
         )}
       </div>

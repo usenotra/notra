@@ -25,10 +25,10 @@ import {
 import type { ChangeEvent, DragEvent, RefObject } from "react";
 import { useEffect, useReducer, useRef } from "react";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import {
-  ACCEPTED_BRAND_ASSET_TYPES_LABEL,
   ASSET_KIND_OPTIONS,
   ASSET_VARIANT_OPTIONS,
 } from "@/constants/brand-guideline-ui";
@@ -44,11 +44,11 @@ import type {
   BrandGuidelineAssetVariant,
 } from "@/types/hooks/brand-guidelines";
 import {
-  formatBrandGuidelineAssetFileSize,
   getBrandGuidelineAssetFormat,
   getBrandGuidelineAssetTypeLabel,
   getBrandGuidelineImageDimensions,
 } from "@/utils/brand-guideline-assets";
+import { formatBytes } from "@/utils/format";
 
 interface AssetDialogState {
   dragging: boolean;
@@ -110,9 +110,12 @@ function AssetFileField({
   onInputChange,
   previewUrl,
 }: AssetFileFieldProps) {
+  const t = useTranslations("brand.guidelines.assetDialog");
+  const tCommon2 = useTranslations("common");
+  const locale = useLocale();
   return (
     <div className="space-y-2">
-      <Label>Asset file</Label>
+      <Label>{t("fileLabel")}</Label>
       <button
         className={cn(
           "flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center transition-colors",
@@ -143,18 +146,22 @@ function AssetFileField({
         )}
         <span className="text-sm font-medium">
           {file
-            ? `Selected ${getBrandGuidelineAssetTypeLabel(file)}`
-            : "Drag and drop or click to upload"}
+            ? t("selectedFile", {
+                type:
+                  getBrandGuidelineAssetTypeLabel(file) ??
+                  tCommon2("labels.image"),
+              })
+            : t("dropzone")}
         </span>
         <span className="text-muted-foreground text-xs">
           {file
-            ? `${getBrandGuidelineAssetTypeLabel(file)} · ${formatBrandGuidelineAssetFileSize(file.size)}`
-            : `${ACCEPTED_BRAND_ASSET_TYPES_LABEL}, max 5MB`}
+            ? `${getBrandGuidelineAssetTypeLabel(file) ?? tCommon2("labels.image")} · ${formatBytes(file.size, locale)}`
+            : t("acceptedTypesWithLimit")}
         </span>
       </button>
       <input
         accept={ALLOWED_MIME_TYPES.join(",")}
-        aria-label="Upload asset file"
+        aria-label={t("uploadFile")}
         className="sr-only"
         onChange={onInputChange}
         ref={fileInputRef}
@@ -176,6 +183,10 @@ export function GuidelinesAssetEditDialog({
   open,
   onOpenChange,
 }: GuidelinesAssetEditDialogProps) {
+  const t = useTranslations("brand.guidelines");
+  const tBrandShared = useTranslations("brand.shared");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const update = useUpdateGuidelineAsset(organizationId, voiceId);
   const create = useCreateGuidelineAsset(organizationId, voiceId);
   const isCreate = asset === null;
@@ -213,7 +224,7 @@ export function GuidelinesAssetEditDialog({
     if (!ALLOWED_MIME_TYPES.some((mimeType) => mimeType === nextFile.type)) {
       setState({
         file: null,
-        fileError: `Use ${ACCEPTED_BRAND_ASSET_TYPES_LABEL}.`,
+        fileError: t("assetDialog.invalidType"),
         previewUrl: null,
       });
       return;
@@ -222,7 +233,7 @@ export function GuidelinesAssetEditDialog({
     if (nextFile.size > MAX_BRAND_ASSET_FILE_SIZE) {
       setState({
         file: null,
-        fileError: "Brand assets must be 5MB or smaller.",
+        fileError: t("assetDialog.tooLarge"),
         previewUrl: null,
       });
       return;
@@ -248,13 +259,15 @@ export function GuidelinesAssetEditDialog({
 
   const handleSave = async () => {
     if (isCreate && !file) {
-      setState({ fileError: "Upload a file to add this asset." });
+      setState({ fileError: t("assetDialog.fileRequired") });
       return;
     }
 
     setState({ saving: true });
 
-    const successMessage = isCreate ? "Asset added" : "Asset updated";
+    const successMessage = isCreate
+      ? t("assetDialog.added")
+      : t("assetDialog.updated");
 
     try {
       let upload: AssetUpload | undefined;
@@ -300,7 +313,7 @@ export function GuidelinesAssetEditDialog({
     } catch (error) {
       setState({ saving: false });
       toast.error(
-        error instanceof Error ? error.message : "Failed to save asset"
+        error instanceof Error ? error.message : t("assetDialog.saveFailed")
       );
     }
   };
@@ -310,12 +323,12 @@ export function GuidelinesAssetEditDialog({
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>
-            {isCreate ? "Add asset" : "Edit asset"}
+            {isCreate ? tBrandShared("addAsset") : t("assetDialog.editTitle")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             {isCreate
-              ? "Upload a file and set its classification."
-              : "Replace the file or update the classification for this logo asset."}
+              ? t("assetDialog.addDescription")
+              : t("assetDialog.editDescription")}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -335,7 +348,7 @@ export function GuidelinesAssetEditDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Kind</Label>
+              <Label>{tCommon2("labels.kind")}</Label>
               <Select
                 onValueChange={(next) => {
                   const option = ASSET_KIND_OPTIONS.find(
@@ -349,16 +362,24 @@ export function GuidelinesAssetEditDialog({
               >
                 <SelectTrigger className="w-full">
                   <SelectValue>
-                    {(value) =>
-                      ASSET_KIND_OPTIONS.find((o) => o.value === value)
-                        ?.label ?? ""
-                    }
+                    {(value) => {
+                      const option = ASSET_KIND_OPTIONS.find(
+                        (o) => o.value === value
+                      );
+                      return option
+                        ? option.value === "logo"
+                          ? tCommon2("labels.logo")
+                          : t(`assetKinds.${option.value}`)
+                        : "";
+                    }}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {ASSET_KIND_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {option.value === "logo"
+                        ? tCommon2("labels.logo")
+                        : t(`assetKinds.${option.value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -366,8 +387,14 @@ export function GuidelinesAssetEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Variant</Label>
+              <Label>{t("assetDialog.variant")}</Label>
               <Select
+                items={Object.fromEntries(
+                  ASSET_VARIANT_OPTIONS.map((option) => [
+                    option.value,
+                    tCommon2(`labels.${option.value}`),
+                  ])
+                )}
                 onValueChange={(next) => {
                   const option = ASSET_VARIANT_OPTIONS.find(
                     (o) => o.value === next
@@ -379,12 +406,12 @@ export function GuidelinesAssetEditDialog({
                 value={variant}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue className="capitalize" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {ASSET_VARIANT_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {tCommon2(`labels.${option.value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -399,10 +426,10 @@ export function GuidelinesAssetEditDialog({
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button disabled={saving} onClick={handleSave}>
-            {saving ? "Saving..." : "Save"}
+            {saving ? tCommon("saving") : tCommon("save")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

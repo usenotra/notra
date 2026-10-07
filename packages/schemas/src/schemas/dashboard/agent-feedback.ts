@@ -12,6 +12,26 @@ export const agentFeedbackOrganizationInputSchema = z.object({
   organizationId: organizationIdSchema,
 });
 
+/** Longest window the activity chart may request, in days. */
+export const AGENT_FEEDBACK_ACTIVITY_MAX_DAYS = 366;
+const DAY_MS = 86_400_000;
+
+export const agentFeedbackActivityInputSchema = z
+  .object({
+    organizationId: organizationIdSchema,
+    from: z.iso.date(),
+    to: z.iso.date(),
+  })
+  .refine(({ from, to }) => from <= to, {
+    message: "from must not be after to",
+  })
+  .refine(
+    ({ from, to }) =>
+      (Date.parse(to) - Date.parse(from)) / DAY_MS <
+      AGENT_FEEDBACK_ACTIVITY_MAX_DAYS,
+    { message: "Range is too long" }
+  );
+
 export const agentFeedbackItemInputSchema = z.object({
   organizationId: organizationIdSchema,
   feedbackId: z.string().min(1),
@@ -19,7 +39,11 @@ export const agentFeedbackItemInputSchema = z.object({
 
 export const agentFeedbackListInputSchema = z.object({
   organizationId: organizationIdSchema,
-  status: z.enum(AGENT_FEEDBACK_STATUSES).optional(),
+  statuses: z
+    .array(z.enum(AGENT_FEEDBACK_STATUSES))
+    .min(1)
+    .max(AGENT_FEEDBACK_STATUSES.length)
+    .optional(),
   kind: z.enum(AGENT_FEEDBACK_KINDS).optional(),
   cursor: z.string().min(1).optional(),
   limit: z.number().int().min(1).max(100).default(AGENT_FEEDBACK_PAGE_SIZE),

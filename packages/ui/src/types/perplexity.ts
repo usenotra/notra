@@ -1,3 +1,8 @@
+export interface PerplexitySearchLabels {
+  showLess: string;
+  more: (count: number) => string;
+}
+
 export type PerplexityModelId = "sonar" | "sonar-pro" | "reasoning";
 
 export type PerplexityModelGroup = "search" | "reason";

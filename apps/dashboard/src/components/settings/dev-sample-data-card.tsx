@@ -1,21 +1,12 @@
 "use client";
 
 import { GEO_SAMPLE_DATA_ENABLED } from "@notra/geo-core/constants/geo";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-  ResponsiveAlertDialogTrigger,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2Icon } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -23,7 +14,9 @@ import { errorMessageOr } from "@/lib/utils";
 import type { DevSampleDataCardProps } from "@/types/settings/general";
 
 export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
+  const t = useTranslations("settings.devSampleData");
   const queryClient = useQueryClient();
+  const [clearOpen, setClearOpen] = useState(false);
   const reset = useMutation({
     mutationFn: () => dashboardOrpc.geo.sampleData.call({ organizationId }),
     onSuccess: async (result) => {
@@ -31,20 +24,25 @@ export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
         queryKey: dashboardOrpc.geo.key(),
       });
       if (!result.analyticsIngested) {
-        toast.success("GEO sample data reset", {
-          description: `${result.mentionChecks} mention checks added. Tinybird is not configured, so AI traffic stays empty until TINYBIRD_TOKEN is set.`,
+        toast.success(t("resetSuccess"), {
+          description: t("resetDescriptionNoTinybird", {
+            mentionChecks: result.mentionChecks,
+          }),
         });
         return;
       }
-      toast.success("GEO sample data reset", {
-        description: `${result.mentionChecks} mention checks and ${result.trafficEvents} traffic events added.`,
+      toast.success(t("resetSuccess"), {
+        description: t("resetDescription", {
+          mentionChecks: result.mentionChecks,
+          trafficEvents: result.trafficEvents,
+        }),
       });
     },
     onError: (error) => {
       toast.error(
         errorMessageOr(
           error instanceof Error ? error.message : undefined,
-          "Unable to reset GEO sample data"
+          t("resetFailed")
         )
       );
     },
@@ -56,15 +54,13 @@ export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
       await queryClient.invalidateQueries({
         queryKey: dashboardOrpc.geo.key(),
       });
-      toast.success(
-        result.cleared ? "GEO sample data cleared" : "No sample data to clear"
-      );
+      toast.success(result.cleared ? t("cleared") : t("nothingToClear"));
     },
     onError: (error) => {
       toast.error(
         errorMessageOr(
           error instanceof Error ? error.message : undefined,
-          "Unable to clear GEO sample data"
+          t("clearFailed")
         )
       );
     },
@@ -76,57 +72,39 @@ export function DevSampleDataCard({ organizationId }: DevSampleDataCardProps) {
   }
 
   return (
-    <TitleCard heading="Developer">
+    <TitleCard heading={t("heading")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium">GEO sample data</p>
-          <p className="text-muted-foreground text-xs">
-            Reset replaces the complete demo project with 30 days of prompts,
-            conversations, competitors, scans, and traffic. Clear removes only
-            the marked demo project and keeps your own data.
-          </p>
+          <p className="text-sm font-medium">{t("title")}</p>
+          <p className="text-muted-foreground text-xs">{t("description")}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <ResponsiveAlertDialog>
-            <ResponsiveAlertDialogTrigger
-              render={
-                <Button disabled={isPending} size="sm" variant="outline">
-                  Clear sample data
-                </Button>
-              }
-            />
-            <ResponsiveAlertDialogContent>
-              <ResponsiveAlertDialogHeader>
-                <ResponsiveAlertDialogTitle>
-                  Clear GEO sample data?
-                </ResponsiveAlertDialogTitle>
-                <ResponsiveAlertDialogDescription>
-                  This removes the marked demo project and its analytics. Your
-                  own projects and data remain unchanged.
-                </ResponsiveAlertDialogDescription>
-              </ResponsiveAlertDialogHeader>
-              <ResponsiveAlertDialogFooter>
-                <ResponsiveAlertDialogCancel>
-                  Cancel
-                </ResponsiveAlertDialogCancel>
-                <ResponsiveAlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => clear.mutate()}
-                >
-                  Clear sample data
-                </ResponsiveAlertDialogAction>
-              </ResponsiveAlertDialogFooter>
-            </ResponsiveAlertDialogContent>
-          </ResponsiveAlertDialog>
-          <Button disabled={isPending} onClick={() => reset.mutate()} size="sm">
-            {reset.isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Resetting…
-              </>
-            ) : (
-              "Reset sample data"
-            )}
+          <ConfirmDialog
+            confirmLabel={t("clear")}
+            description={t("clearDescription")}
+            onConfirm={() =>
+              clear.mutate(undefined, {
+                onSuccess: () => setClearOpen(false),
+              })
+            }
+            onOpenChange={setClearOpen}
+            open={clearOpen}
+            pending={clear.isPending}
+            title={t("clearTitle")}
+            trigger={
+              <Button disabled={isPending} size="sm" variant="outline">
+                {t("clear")}
+              </Button>
+            }
+            variant="destructive"
+          />
+          <Button
+            disabled={clear.isPending}
+            loading={reset.isPending}
+            onClick={() => reset.mutate()}
+            size="sm"
+          >
+            {t("reset")}
           </Button>
         </div>
       </div>

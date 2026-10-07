@@ -71,12 +71,39 @@ export function createVercelAdapter(
       return generationId ? { generationId } : {};
     },
     async lookupRouteMetadata(generationId) {
-      const generation = await getClient().getGenerationInfo({
-        id: generationId,
-      });
+      const generation = await createGateway({
+        apiKey: config.apiKey,
+        headers: config.headers,
+        baseURL: config.baseURL,
+        fetch: Object.assign(
+          (
+            input: Parameters<typeof fetch>[0],
+            init: Parameters<typeof fetch>[1]
+          ) =>
+            (config.fetch ?? fetch)(input, {
+              ...init,
+              signal: AbortSignal.any([
+                AbortSignal.timeout(3000),
+                ...(init?.signal ? [init.signal] : []),
+              ]),
+            }),
+          config.fetch ?? fetch
+        ),
+      }).getGenerationInfo({ id: generationId });
+      const costUsd =
+        generation.totalCost +
+        (generation.isByok ? generation.upstreamInferenceCost : 0);
       return {
         model: generation.model,
         upstreamProvider: generation.providerName,
+        ...(Number.isFinite(generation.totalCost) &&
+        generation.totalCost >= 0 &&
+        (!generation.isByok ||
+          (Number.isFinite(generation.upstreamInferenceCost) &&
+            generation.upstreamInferenceCost >= 0)) &&
+        Number.isFinite(costUsd)
+          ? { costUsd }
+          : {}),
       };
     },
   };

@@ -16,14 +16,17 @@ import { Playwright } from "@notra/ui/components/ui/svgs/playwright";
 import { Vercel } from "@notra/ui/components/ui/svgs/vercel";
 import { Windsurf } from "@notra/ui/components/ui/svgs/windsurf";
 import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "use-intl";
 
-import { AGENT_FEEDBACK_UNSPECIFIED_LABEL } from "@/constants/agent-feedback";
 import type {
   AgentFeedbackAgentIconProps,
   AgentFeedbackAgentProps,
   AgentFeedbackClientBrand,
 } from "@/types/agent-feedback";
-import { resolveAgentFeedbackClientBrand } from "@/utils/agent-feedback-client";
+import {
+  formatAgentFeedbackClient,
+  resolveAgentFeedbackClientBrand,
+} from "@/utils/agent-feedback-client";
 
 const ICON_CLASS = "size-4 shrink-0";
 
@@ -61,7 +64,11 @@ function AgentBrandMark({
     return <Playwright className={className} />;
   }
   if (brand === "notra") {
-    return <Notra className={className} />;
+    return (
+      <span className="flex shrink-0 items-center justify-center rounded-sm dark:bg-[#F6F3F1] dark:ring-1 dark:ring-white/10">
+        <Notra className={className} />
+      </span>
+    );
   }
   if (brand === "cline") {
     return <Cline className={className} />;
@@ -99,12 +106,20 @@ export function AgentFeedbackAgent({
   client,
   className,
 }: AgentFeedbackAgentProps) {
-  const label = client ?? AGENT_FEEDBACK_UNSPECIFIED_LABEL;
+  const t = useTranslations("feedback");
+  const label = client ? formatAgentFeedbackClient(client) : t("unspecified");
 
   return (
-    <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
+    <span
+      className={cn(
+        "inline-flex max-w-full min-w-0 items-center gap-2",
+        className
+      )}
+    >
       <AgentFeedbackAgentIcon client={client} />
-      <span className="truncate">{label}</span>
+      <span className="truncate" title={client ?? label}>
+        {label}
+      </span>
     </span>
   );
 }

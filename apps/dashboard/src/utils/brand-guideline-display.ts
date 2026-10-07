@@ -6,7 +6,6 @@ import type {
 } from "@/types/hooks/brand-guidelines";
 
 const HTTP_URL_REGEX = /^https?:\/\//i;
-const SPACE_ENCODED_REGEX = /%20/g;
 const HEX6_REGEX = /^#[0-9a-f]{6}$/i;
 const HEX3_REGEX = /^#[0-9a-f]{3}$/i;
 
@@ -55,8 +54,7 @@ export function cssFontFamily(family: string): string {
 }
 
 export function googleFontHref(family: string): string {
-  const encoded = encodeURIComponent(family).replace(SPACE_ENCODED_REGEX, "+");
-  return `https://fonts.googleapis.com/css2?family=${encoded}&display=swap`;
+  return `/api/brand-font/css?family=${encodeURIComponent(family)}`;
 }
 
 export function groupTokensByType(

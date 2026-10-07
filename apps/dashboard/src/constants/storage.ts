@@ -16,13 +16,11 @@ export const localStorageKeys = {
     `notra:brand-identity:v1:${organizationId}`,
   onboardingAgentBannerDismissed: (organizationId: string) =>
     `notra:eve-banner-dismissed:${organizationId}`,
-  gscCardDismissed: (organizationId: string) =>
-    `notra:gsc-card-dismissed:${organizationId}`,
+  geoUpgradeDismissed: (organizationId: string) =>
+    `notra:geo-upgrade-dismissed:${organizationId}`,
   chatSuggestionsDismissed: "notra:chat-suggestions-dismissed:v1",
   dashboardAgentSuggestionsDismissed:
     "notra:dashboard-agent-suggestions-dismissed:v2",
-  geoPromptViews: (organizationId: string, projectId: string | undefined) =>
-    `notra:geo-prompt-views:v1:${organizationId}:${projectId ?? "all"}`,
   githubPublishRepository: (organizationId: string) =>
     `notra:github-publish-repository:v1:${organizationId}`,
 } as const;

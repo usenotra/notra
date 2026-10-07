@@ -14,7 +14,7 @@ node_modules
 
 # Build outputs
 dist
-**/.next
+**/dist
 **/.vercel
 **/.wrangler
 
@@ -52,6 +52,7 @@ Thumbs.db
 logs/
 
 # Apps not copied as source — keep package.json for bun workspaces
+# ai-traffic-ingest stays included for its Dockerfile, which shares this context.
 apps/agent/**
 !apps/agent/package.json
 apps/dashboard/**

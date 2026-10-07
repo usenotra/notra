@@ -5,6 +5,7 @@ import { useForm } from "@tanstack/react-form";
 import { useAsyncDebouncer } from "@tanstack/react-pacer";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { AUTO_SAVE_DELAY } from "@/constants/brand-identity";
 import type { BrandFormProps } from "@/types/brand-identity";
@@ -17,6 +18,7 @@ export function useBrandForm({
   initialData,
   onSavingChange,
 }: BrandFormProps) {
+  const tToast = useTranslations("brand.toasts");
   const updateMutation = useUpdateBrandSettings(organizationId);
   const lastSavedData = useRef<string | null>(null);
   if (lastSavedData.current === null) {
@@ -43,7 +45,7 @@ export function useBrandForm({
       onError: (error) => {
         onSavingChange?.(false);
         toast.error(
-          error instanceof Error ? error.message : "Failed to save changes"
+          error instanceof Error ? error.message : tToast("saveChangesFailed")
         );
       },
     }

@@ -1,6 +1,17 @@
 import { unavailableImageRevisionToolInputSchema } from "@notra/ai/schemas/repo-image";
+import {
+  createGetBrandReferencesTool,
+  createSearchBrandReferencesTool,
+} from "@notra/ai/tools/brand-references";
 import { createMarkdownTools } from "@notra/ai/tools/edit-markdown";
 import { exampleTool } from "@notra/ai/tools/example";
+import {
+  createGetGeoCompetitorShareTool,
+  createGetGeoOverviewTool,
+  createGetGeoProjectContextTool,
+  createGetGeoPromptResultsTool,
+  createListGeoProjectsTool,
+} from "@notra/ai/tools/geo";
 import {
   createGetCommitsByTimeframeTool,
   createGetPullRequestsTool,
@@ -12,7 +23,14 @@ import {
   createGetLinearIssuesTool,
   createGetLinearProjectsTool,
 } from "@notra/ai/tools/linear";
+import {
+  createGetBrandIdentityTool,
+  createListBrandIdentitiesTool,
+} from "@notra/ai/tools/organization";
+import { registerSitemapTools } from "@notra/ai/tools/sitemap";
 import { getSkillByName, listAvailableSkills } from "@notra/ai/tools/skills";
+import { registerWebSearchTools } from "@notra/ai/tools/web-search";
+import type { AgentType } from "@notra/ai/types/brand-references";
 import type {
   BuildToolSetDeps,
   BuildToolSetParams,
@@ -21,6 +39,7 @@ import type {
   ToolSet,
   ValidatedIntegration,
 } from "@notra/ai/types/orchestration";
+import { logWarn } from "@notra/ai/utils/server-log";
 import { type Tool, tool } from "ai";
 
 export function buildToolSet(
@@ -53,8 +72,12 @@ export function buildToolSet(
   };
 
   const descriptions: string[] = [
-    "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName",
+    "**Skills**: Access knowledge and writing guidelines using listAvailableSkills and getSkillByName. If the user writes /skill-name, load that skill with getSkillByName before responding.",
   ];
+
+  registerWebSearchTools(tools, descriptions);
+  registerSitemapTools(tools, descriptions, { organizationId });
+  registerBrandAndGeoTools(tools, descriptions, organizationId, contentType);
 
   if (isImageContent) {
     if (currentPostId && userId && imageDefaults) {
@@ -83,7 +106,7 @@ export function buildToolSet(
       onUpdate:
         onMarkdownUpdate ??
         (() => {
-          console.log("onMarkdownUpdate is not set");
+          logWarn("[Tool Registry] onMarkdownUpdate is not set");
         }),
     });
 
@@ -173,6 +196,64 @@ export function buildToolSet(
   }
 
   return { tools, descriptions };
+}
+
+function registerBrandAndGeoTools(
+  tools: Record<string, Tool>,
+  descriptions: string[],
+  organizationId: string,
+  contentType?: string
+) {
+  const agentType = brandAgentTypeFromContent(contentType);
+
+  tools.listBrandIdentities = createListBrandIdentitiesTool({
+    organizationId,
+  });
+  tools.getBrandIdentity = createGetBrandIdentityTool({ organizationId });
+  tools.getBrandReferences = createGetBrandReferencesTool({
+    organizationId,
+    agentType,
+  });
+  tools.searchBrandReferences = createSearchBrandReferencesTool({
+    organizationId,
+    agentType,
+  });
+  tools.listGeoProjects = createListGeoProjectsTool({ organizationId });
+  tools.getGeoOverview = createGetGeoOverviewTool({ organizationId });
+  tools.getGeoPromptResults = createGetGeoPromptResultsTool({
+    organizationId,
+  });
+  tools.getGeoCompetitorShare = createGetGeoCompetitorShareTool({
+    organizationId,
+  });
+  tools.getGeoProjectContext = createGetGeoProjectContextTool({
+    organizationId,
+  });
+
+  descriptions.push(
+    "**Brand**: Load company and voice details with listBrandIdentities and getBrandIdentity. Match writing style with getBrandReferences or searchBrandReferences before drafting. Pass the same brandIdentityId to sitemap and brand-reference tools when writing for a non-default brand."
+  );
+  descriptions.push(
+    "**GEO Analytics**: List GEO projects, then inspect AI visibility, prompt wins/losses, competitor share, and project context with listGeoProjects, getGeoOverview, getGeoPromptResults, getGeoCompetitorShare, and getGeoProjectContext."
+  );
+}
+
+function brandAgentTypeFromContent(
+  contentType?: string
+): AgentType | undefined {
+  if (contentType === "blog_post") {
+    return "blog";
+  }
+  if (contentType === "twitter_post") {
+    return "twitter";
+  }
+  if (contentType === "linkedin_post") {
+    return "linkedin";
+  }
+  if (contentType === "changelog") {
+    return "changelog";
+  }
+  return undefined;
 }
 
 function createUnavailableImageRevisionTool(): Tool {

@@ -1,7 +1,5 @@
 "use client";
 
-import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -12,50 +10,36 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@notra/ui/components/shared/responsive-dialog";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Input } from "@notra/ui/components/ui/input";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type React from "react";
 import { isValidElement, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { WebhookSetupDialogProps } from "@/types/integrations";
 import type { WebhookConfig } from "@/types/services/integrations";
+import { toastCopyError } from "@/utils/copy-to-clipboard";
+import { isNotFoundError } from "@/utils/orpc-errors";
 
-function CopyButton({ value, label }: { value: string; label: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (!navigator.clipboard) {
-      toast.error("Clipboard not supported");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success(`${label} copied to clipboard`);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Failed to copy to clipboard");
-    }
-  };
+function WebhookCopyButton({ value, label }: { value: string; label: string }) {
+  const t = useTranslations("integrations.webhookSetup");
+  const tCommon = useTranslations("common");
 
   return (
-    <Button
-      className="shrink-0"
-      onClick={handleCopy}
+    <CopyButton
+      aria-label={tCommon("labels.copyLabel", { label })}
+      copiedAriaLabel={tCommon("labels.labelCopied", { label })}
+      onCopy={() => toast.success(t("copied", { label }))}
+      onCopyError={toastCopyError}
       size="icon"
-      type="button"
+      value={value}
       variant="outline"
-    >
-      {copied ? (
-        <HugeiconsIcon className="size-4" icon={Tick02Icon} />
-      ) : (
-        <HugeiconsIcon className="size-4" icon={Copy01Icon} />
-      )}
-    </Button>
+    />
   );
 }
 
@@ -68,6 +52,9 @@ export function WebhookSetupDialog({
   onOpenChange: controlledOnOpenChange,
   trigger,
 }: WebhookSetupDialogProps) {
+  const t = useTranslations("integrations.webhookSetup");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = useState(false);
   const [secretRevealed, setSecretRevealed] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -89,10 +76,7 @@ export function WebhookSetupDialog({
           repositoryId,
         });
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message === "Webhook not configured"
-        ) {
+        if (isNotFoundError(error)) {
           return null;
         }
         throw error;
@@ -149,7 +133,7 @@ export function WebhookSetupDialog({
     triggerElement = (
       <ResponsiveDialogTrigger>
         <Button size="sm" variant="outline">
-          Setup Webhook
+          {t("title")}
         </Button>
       </ResponsiveDialogTrigger>
     );
@@ -161,19 +145,21 @@ export function WebhookSetupDialog({
       <ResponsiveDialogContent className="overflow-hidden sm:max-w-md">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className="text-2xl">
-            Setup Webhook
+            {t("title")}
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            Add these values in your{" "}
-            <a
-              className="text-primary hover:underline"
-              href={githubWebhooksUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              GitHub Webhook Settings
-            </a>
-            , then confirm once saved.
+            {t.rich("description", {
+              link: (chunks) => (
+                <a
+                  className="text-primary hover:underline"
+                  href={githubWebhooksUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -193,24 +179,33 @@ export function WebhookSetupDialog({
           {!(loadingConfig || isPending) && webhookConfig ? (
             <>
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Payload URL</p>
+                <p className="text-sm font-medium">
+                  {tIntegrationsShared("payloadUrl")}
+                </p>
                 <div className="flex gap-2">
                   <Input
                     className="font-mono text-xs"
                     readOnly
                     value={webhookConfig.webhookUrl}
                   />
-                  <CopyButton label="URL" value={webhookConfig.webhookUrl} />
+                  <WebhookCopyButton
+                    label={tCommon("labels.url")}
+                    value={webhookConfig.webhookUrl}
+                  />
                 </div>
               </fieldset>
 
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Content type</p>
+                <p className="text-sm font-medium">
+                  {tCommon("labels.contentType")}
+                </p>
                 <Input className="text-xs" disabled value="application/json" />
               </fieldset>
 
               <fieldset className="space-y-1.5">
-                <p className="text-sm font-medium">Secret</p>
+                <p className="text-sm font-medium">
+                  {tIntegrationsShared("secret")}
+                </p>
                 <div className="flex gap-2">
                   <Input
                     className="font-mono text-xs"
@@ -220,8 +215,8 @@ export function WebhookSetupDialog({
                     type={secretRevealed ? "text" : "password"}
                     value={webhookConfig.webhookSecret}
                   />
-                  <CopyButton
-                    label="Secret"
+                  <WebhookCopyButton
+                    label={tIntegrationsShared("secret")}
                     value={webhookConfig.webhookSecret}
                   />
                 </div>
@@ -232,7 +227,7 @@ export function WebhookSetupDialog({
             <div className="space-y-4">
               <div className="border-destructive/50 bg-destructive/10 rounded-md border p-4 text-center">
                 <p className="text-destructive text-sm font-medium">
-                  Failed to load webhook configuration
+                  {t("loadFailed")}
                 </p>
                 {generateMutation.error ? (
                   <p className="text-muted-foreground mt-1 text-xs">
@@ -247,7 +242,7 @@ export function WebhookSetupDialog({
                 type="button"
                 variant="outline"
               >
-                Retry
+                {tCommon("actions.retry")}
               </Button>
             </div>
           ) : null}
@@ -255,14 +250,14 @@ export function WebhookSetupDialog({
 
         <ResponsiveDialogFooter className="gap-2">
           <ResponsiveDialogClose render={<Button variant="outline" />}>
-            Skip for now
+            {t("skip")}
           </ResponsiveDialogClose>
           <Button
             disabled={!webhookConfig}
             onClick={() => setOpen(false)}
             type="button"
           >
-            I've added the webhook
+            {t("confirm")}
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

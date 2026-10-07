@@ -3,14 +3,16 @@
 import { Robot01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@notra/ui/components/ui/button";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "use-intl";
 
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
-import { DASHBOARD_AGENT_TITLE } from "@/constants/dashboard-agent";
+import { usePathname } from "@/lib/navigation";
 import type { RightPanelId } from "@/types/components/right-panel";
 import { isContentDetailPathname } from "@/utils/dashboard-paths";
 
 export function DashboardAgentButton() {
+  const t = useTranslations("dashboard.agent");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const { active, togglePanel } = useRightPanel();
   const panelId: RightPanelId = isContentDetailPathname(pathname)
@@ -20,16 +22,16 @@ export function DashboardAgentButton() {
 
   return (
     <Button
-      aria-label={`${open ? "Close" : "Open"} ${DASHBOARD_AGENT_TITLE}`}
+      aria-label={open ? t("closeLabel") : t("openLabel")}
       aria-pressed={open}
       className="hover:bg-background size-7 px-0 lg:w-auto lg:px-2.5"
       onClick={() => togglePanel(panelId)}
       size="sm"
-      title={DASHBOARD_AGENT_TITLE}
+      title={tCommon("labels.agent")}
       variant={open ? "secondary" : "ghost"}
     >
       <HugeiconsIcon icon={Robot01Icon} strokeWidth={1.8} />
-      <span className="hidden lg:inline">{DASHBOARD_AGENT_TITLE}</span>
+      <span className="hidden lg:inline">{tCommon("labels.agent")}</span>
     </Button>
   );
 }

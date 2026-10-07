@@ -1,10 +1,8 @@
-"use client";
-
 import { cn } from "@notra/ui/lib/utils";
 import { useState } from "react";
 
 import { FAQ_CONTENT } from "@/constants/landing/faq";
-import type { FaqItem } from "@/types/landing/faq";
+import type { FaqItem, FaqSectionProps } from "@/types/landing/faq";
 
 function FaqToggleIcon({ open }: { open: boolean }) {
   return (
@@ -90,8 +88,8 @@ function getInitialOpenId(items: FaqItem[]) {
   return defaultItem ? defaultItem.id : null;
 }
 
-export function FaqSection() {
-  const { heading, subcopy, items } = FAQ_CONTENT;
+export function FaqSection({ content = FAQ_CONTENT }: FaqSectionProps) {
+  const { heading, subcopy, items } = content;
   const [openId, setOpenId] = useState<string | null>(() =>
     getInitialOpenId(items)
   );

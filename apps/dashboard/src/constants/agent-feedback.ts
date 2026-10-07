@@ -22,38 +22,25 @@ import type {
 
 export const AGENT_FEEDBACK_NAV_LINK = "/feedback";
 export const AGENT_FEEDBACK_DOCS_URL =
-  "https://docs.usenotra.com/api/agent-feedback";
+  "https://www.usenotra.com/docs/api/agent-feedback";
 export const AGENT_FEEDBACK_API_BASE_URL = "https://api.usenotra.com";
 export const AGENT_FEEDBACK_API_PATH = "/v1/feedback";
 export const AGENT_FEEDBACK_API_URL_ENV = "FEEDBACK_API_URL";
 export const AGENT_FEEDBACK_PACKAGE = "@usenotra/geo";
 export const AGENT_FEEDBACK_PACKAGE_ENTRY = `${AGENT_FEEDBACK_PACKAGE}/feedback`;
+export const AGENT_FEEDBACK_DEFAULT_STATUS_FILTER: AgentFeedbackStatusFilter =
+  "open";
+
+/** Tab order on the feedback page. `statuses` is undefined for "all". */
 export const AGENT_FEEDBACK_STATUS_FILTERS: {
   value: AgentFeedbackStatusFilter;
-  label: string;
+  statuses?: readonly AgentFeedbackStatus[];
 }[] = [
-  { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "triaged", label: "Triaged" },
-  { value: "resolved", label: "Resolved" },
-  { value: "archived", label: "Archived" },
+  { value: "open", statuses: ["new", "triaged"] },
+  { value: "resolved", statuses: ["resolved"] },
+  { value: "archived", statuses: ["archived"] },
+  { value: "all" },
 ];
-
-export const AGENT_FEEDBACK_STATUS_LABELS: Record<AgentFeedbackStatus, string> =
-  {
-    new: "New",
-    triaged: "Triaged",
-    resolved: "Resolved",
-    archived: "Archived",
-  };
-
-export const AGENT_FEEDBACK_KIND_LABELS: Record<AgentFeedbackKind, string> = {
-  bug: "Bug",
-  feature: "Feature",
-  praise: "Praise",
-  question: "Question",
-  other: "Other",
-};
 
 export const AGENT_FEEDBACK_KIND_ICONS: Record<
   AgentFeedbackKind,
@@ -64,15 +51,6 @@ export const AGENT_FEEDBACK_KIND_ICONS: Record<
   praise: ThumbsUpIcon,
   question: HelpCircleIcon,
   other: MoreHorizontalCircle01Icon,
-};
-
-export const AGENT_FEEDBACK_SENTIMENT_LABELS: Record<
-  AgentFeedbackSentiment,
-  string
-> = {
-  negative: "Negative",
-  neutral: "Neutral",
-  positive: "Positive",
 };
 
 export const AGENT_FEEDBACK_SENTIMENT_ICONS: Record<
@@ -89,12 +67,11 @@ export const AGENT_FEEDBACK_DEFAULT_SNIPPET_TAB: AgentFeedbackSnippetKey =
 
 export const AGENT_FEEDBACK_SNIPPET_TABS: {
   value: AgentFeedbackSnippetKey;
-  label: string;
   filename: string;
 }[] = [
-  { value: "mcp", label: "SDK", filename: "server.ts" },
-  { value: "fetch", label: "No SDK", filename: "server.ts" },
-  { value: "curl", label: "curl", filename: "terminal" },
+  { value: "mcp", filename: "server.ts" },
+  { value: "fetch", filename: "server.ts" },
+  { value: "curl", filename: "terminal" },
 ];
 
 export const AGENT_FEEDBACK_SNIPPET_FILENAMES: Record<
@@ -154,3 +131,18 @@ export const AGENT_FEEDBACK_CLIENT_BRAND_RULES: readonly AgentFeedbackClientBran
     { brand: "copilot", aliases: ["copilot"] },
     { brand: "gemini", aliases: ["gemini"] },
   ];
+
+/** Words that don't title-case cleanly when formatting slug client names. */
+export const AGENT_FEEDBACK_CLIENT_WORD_LABELS: Record<string, string> = {
+  ai: "AI",
+  api: "API",
+  chatgpt: "ChatGPT",
+  cli: "CLI",
+  github: "GitHub",
+  gpt: "GPT",
+  ide: "IDE",
+  mcp: "MCP",
+  openai: "OpenAI",
+  sdk: "SDK",
+  vscode: "VS Code",
+};

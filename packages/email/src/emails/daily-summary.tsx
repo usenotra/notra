@@ -6,7 +6,6 @@ import {
   Heading,
   Html,
   Img,
-  Link,
   Preview,
   Row,
   Section,
@@ -16,7 +15,9 @@ import {
 
 import { EmailCtaButton } from "../components/cta-button";
 import { EmailFooter } from "../components/footer";
+import { EmailLayout } from "../components/layout";
 import { EmailLogo } from "../components/logo";
+import { EmailNotificationSettingsNote } from "../components/notification-settings-note";
 import { EmailTitleCard } from "../components/title-card";
 import { EMAIL_THEME } from "../constants/theme";
 import type {
@@ -32,15 +33,15 @@ const PILL: Record<
 > = {
   up: {
     backgroundColor: EMAIL_THEME.geoUpWash,
-    color: EMAIL_THEME.geoUp,
+    color: EMAIL_THEME.geoUpText,
   },
   down: {
     backgroundColor: EMAIL_THEME.geoDownWash,
-    color: EMAIL_THEME.geoDown,
+    color: EMAIL_THEME.geoDownText,
   },
   neutral: {
     backgroundColor: EMAIL_THEME.muted,
-    color: EMAIL_THEME.mutedForeground,
+    color: EMAIL_THEME.subtleForeground,
   },
 };
 
@@ -59,7 +60,7 @@ function toneMark(tone: DailySummaryChangeTone): string {
     return "+";
   }
   if (tone === "down") {
-    return "-";
+    return "\u2212";
   }
   return "0";
 }
@@ -80,136 +81,122 @@ export const DailySummaryEmail = ({
   organizationName = "Acme Inc",
   organizationSlug = "acme",
   dateLabel = "September 4, 2026",
-  headline = "You gained 8 prompts but lost 1 yesterday.",
+  headline = "You showed up in 2 new AI answers but dropped out of 1.",
   mentionRateLabel = "42%",
   mentionRateDeltaLabel = "+3 pts",
   scansCompleted = 1,
-  gained = 8,
+  gained = 2,
   lost = 1,
   items = [
     {
       id: "prompt-1:openai",
       title: "What is the best changelog tool for startups?",
-      changes: [{ id: "gained_mention", detail: "Gained mention", tone: "up" }],
+      changes: [
+        { id: "gained_mention", detail: "Now mentioned at #2", tone: "up" },
+      ],
       engineLabel: "ChatGPT",
       engineIconSrc: engineEmailLogoSrc("openai"),
     },
     {
       id: "prompt-2:perplexity",
       title: "How should small SaaS teams write release notes?",
-      changes: [{ id: "lost_mention", detail: "Lost mention", tone: "down" }],
+      changes: [
+        {
+          id: "competitor_displaced",
+          detail: "Replaced by Rival",
+          tone: "down",
+        },
+      ],
       engineLabel: "Perplexity",
       engineIconSrc: engineEmailLogoSrc("perplexity"),
     },
     {
       id: "prompt-3:gemini",
       title: "Which AI tools generate changelogs from GitHub?",
-      changes: [{ id: "position_improved", detail: "Position up", tone: "up" }],
+      changes: [
+        {
+          id: "position_improved",
+          detail: "Moved up from #4 to #2",
+          tone: "up",
+        },
+      ],
       engineLabel: "Gemini",
       engineIconSrc: engineEmailLogoSrc("gemini"),
     },
   ],
-  remainingCount = 2,
+  remainingCount = 0,
   dashboardLink = `${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/geo`,
 }: DailySummaryEmailProps) => {
   const rateTone = toneFromDelta(mentionRateDeltaLabel);
-  const promptChangesLabel = `+${gained}/-${lost}`;
+  const mentionChangesLabel = `+${gained} / −${lost}`;
+  const ratePill =
+    mentionRateDeltaLabel === "—" ? undefined : mentionRateDeltaLabel;
   const subtext = dailySummarySubtext(organizationName, scansCompleted);
 
   return (
-    <Html>
-      <Head />
-      <Preview>{headline}</Preview>
-      <Tailwind>
-        <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto mt-[16px] mb-[40px] max-w-[465px] rounded px-[20px] pt-0 pb-[20px]">
-            <EmailLogo className="mt-0 text-center" variant="wordmark" />
-
-            <Heading className="mt-5 mb-3 text-center text-2xl font-medium text-black">
-              {headline}
-            </Heading>
-            <Text className="mt-0 mb-8 text-center text-base leading-relaxed text-[#737373]">
-              {subtext}
+    <EmailLayout heading={headline} preview={headline} subtext={subtext}>
+      <Section>
+        <EmailTitleCard
+          action={
+            <Text
+              style={{
+                color: EMAIL_THEME.subtleForeground,
+                fontSize: "12px",
+                margin: 0,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {dateLabel}
             </Text>
+          }
+          heading="GEO"
+        >
+          <Row>
+            <MetricCell
+              label="Visibility"
+              pill={ratePill}
+              tone={rateTone}
+              value={mentionRateLabel}
+            />
+            <MetricCell last label="Mentions" value={mentionChangesLabel} />
+          </Row>
+        </EmailTitleCard>
+      </Section>
 
-            <Section>
-              <EmailTitleCard
-                action={
-                  <Text
-                    style={{
-                      color: EMAIL_THEME.mutedForeground,
-                      fontSize: "12px",
-                      margin: 0,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {dateLabel}
-                  </Text>
-                }
-                heading="GEO"
+      {items.length > 0 ? (
+        <Section className="mt-4">
+          <EmailTitleCard heading="What changed">
+            {items.map((item, index) => (
+              <ChangeRow
+                first={index === 0}
+                item={item}
+                key={item.id}
+                last={index === items.length - 1}
+              />
+            ))}
+            {remainingCount > 0 ? (
+              <Text
+                style={{
+                  color: EMAIL_THEME.subtleForeground,
+                  fontSize: "13px",
+                  margin: "12px 0 0",
+                  textAlign: "center",
+                }}
               >
-                <Row>
-                  <MetricCell
-                    label="Mention rate"
-                    pill={mentionRateDeltaLabel}
-                    tone={rateTone}
-                    value={mentionRateLabel}
-                  />
-                  <MetricCell last label="Prompts" value={promptChangesLabel} />
-                </Row>
-              </EmailTitleCard>
-            </Section>
-
-            {items.length > 0 ? (
-              <Section className="mt-4">
-                <EmailTitleCard heading="What changed">
-                  {items.map((item, index) => (
-                    <ChangeRow
-                      first={index === 0}
-                      item={item}
-                      key={item.id}
-                      last={index === items.length - 1}
-                    />
-                  ))}
-                  {remainingCount > 0 ? (
-                    <Text
-                      style={{
-                        color: EMAIL_THEME.mutedForeground,
-                        fontSize: "13px",
-                        margin: "12px 0 0",
-                        textAlign: "center",
-                      }}
-                    >
-                      And {remainingCount} more in GEO...
-                    </Text>
-                  ) : null}
-                </EmailTitleCard>
-              </Section>
-            ) : null}
-
-            <Section className="my-8 text-center">
-              <EmailCtaButton href={dashboardLink}>
-                Open in Notra
-              </EmailCtaButton>
-            </Section>
-
-            <Section className="mt-8">
-              <Text className="m-0 text-center text-[12px] text-[#666666] uppercase">
-                If you don't want to receive these emails, you can click{" "}
-                <Link
-                  href={`${EMAIL_CONFIG.getAppUrl()}/${organizationSlug}/settings/notifications`}
-                >
-                  here
-                </Link>{" "}
-                to update your notification settings.
+                And {remainingCount} more in Notra
               </Text>
-            </Section>
+            ) : null}
+          </EmailTitleCard>
+        </Section>
+      ) : null}
 
-            <EmailFooter showPhysicalAddress />
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+      <EmailCtaButton href={dashboardLink}>Open in Notra</EmailCtaButton>
+
+      <EmailNotificationSettingsNote
+        organizationName={organizationName}
+        organizationSlug={organizationSlug}
+      />
+    </EmailLayout>
   );
 };
 
@@ -238,7 +225,7 @@ function MetricCell({
     >
       <Text
         style={{
-          color: EMAIL_THEME.mutedForeground,
+          color: EMAIL_THEME.subtleForeground,
           fontSize: "12px",
           margin: 0,
         }}
@@ -298,25 +285,25 @@ function ChangeRow({
       </Text>
       <Row>
         <Column style={{ paddingTop: "6px" }}>
+          {/* Spacing via text: Outlook ignores margins on inline elements. */}
           {item.changes.map((change) => (
             <span
               key={change.id}
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
-                marginRight: "8px",
                 verticalAlign: "middle",
               }}
             >
               <GeoToneMark tone={change.tone} />
-              {change.detail}
+              {`\u00a0${change.detail}\u00a0\u00a0\u00a0`}
             </span>
           ))}
           {item.engineLabel ? (
             <span
               style={{
-                color: EMAIL_THEME.mutedForeground,
+                color: EMAIL_THEME.subtleForeground,
                 display: "inline-block",
                 fontSize: "12px",
                 verticalAlign: "middle",
@@ -346,33 +333,26 @@ function ChangeRow({
 
 function GeoToneMark({ tone }: { tone: DailySummaryChangeTone }) {
   const colors = PILL[tone];
-  const isMinus = tone === "down";
 
+  // Plain glyphs: Outlook drops background-image, so no drawn minus bar.
   return (
     <span
       style={{
         backgroundColor: colors.backgroundColor,
-        backgroundImage: isMinus
-          ? `linear-gradient(${colors.color}, ${colors.color})`
-          : undefined,
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "8px 2px",
         borderRadius: "9999px",
         color: colors.color,
         display: "inline-block",
         fontFamily: "Arial, Helvetica, sans-serif",
-        fontSize: isMinus ? 0 : "12px",
+        fontSize: "12px",
         fontWeight: 600,
         height: "16px",
         lineHeight: "16px",
-        marginRight: "6px",
         textAlign: "center",
         verticalAlign: "middle",
         width: "16px",
       }}
     >
-      {isMinus ? "\u00a0" : toneMark(tone)}
+      {toneMark(tone)}
     </span>
   );
 }
@@ -407,11 +387,11 @@ DailySummaryEmail.PreviewProps = {
   organizationName: "Acme Inc",
   organizationSlug: "acme",
   dateLabel: "September 4, 2026",
-  headline: "You gained 8 prompts but lost 1 yesterday.",
+  headline: "You showed up in 3 new AI answers but dropped out of 1.",
   mentionRateLabel: "42%",
   mentionRateDeltaLabel: "+3 pts",
   scansCompleted: 1,
-  gained: 8,
+  gained: 3,
   lost: 1,
   items: [
     {
@@ -419,44 +399,42 @@ DailySummaryEmail.PreviewProps = {
       title:
         "can you recommend something for ai-powered desktop transcription application",
       changes: [
-        {
-          id: "citation_added",
-          detail: "12 citations added",
-          tone: "up",
-        },
-        {
-          id: "citation_removed",
-          detail: "7 citations removed",
-          tone: "down",
-        },
+        { id: "gained_mention", detail: "Now mentioned at #3", tone: "up" },
+        { id: "citation_added", detail: "Your site is now cited", tone: "up" },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
     {
-      id: "prompt-2:anthropic",
+      id: "prompt-2:openai",
       title:
         "how do i get started with ai-powered desktop transcription application",
       changes: [
-        { id: "citation_added", detail: "Citation added", tone: "up" },
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        {
+          id: "lost_mention",
+          detail: "No longer mentioned (was #2)",
+          tone: "down",
+        },
       ],
-      engineLabel: "Claude",
-      engineIconSrc: engineEmailLogoSrc("anthropic"),
+      engineLabel: "ChatGPT",
+      engineIconSrc: engineEmailLogoSrc("openai"),
     },
     {
       id: "prompt-3:anthropic",
       title:
         "looking for an alternative for ai-powered desktop transcription application, what should i try?",
       changes: [
-        { id: "citation_added", detail: "Citation added", tone: "up" },
-        { id: "citation_removed", detail: "Citation removed", tone: "down" },
+        {
+          id: "position_dropped",
+          detail: "Moved down from #1 to #3 (new: Otter, Rev)",
+          tone: "down",
+        },
       ],
       engineLabel: "Claude",
       engineIconSrc: engineEmailLogoSrc("anthropic"),
     },
   ],
-  remainingCount: 18,
+  remainingCount: 4,
   dashboardLink: "https://app.usenotra.com/acme/geo",
 } satisfies DailySummaryEmailProps;
 

@@ -60,7 +60,7 @@ import { createGeoMiddleware } from "@usenotra/geo/tanstack";
 
 const geo = createMiddleware().server(createGeoMiddleware({
   token: process.env.NOTRA_GEO_TOKEN!,
-  endpoint: "https://app.usenotra.com",
+  endpoint: "https://ingest.usenotra.com",
 }));
 
 export const startInstance = createStart(() => ({
@@ -78,7 +78,7 @@ import { createGeoMiddleware } from "@usenotra/geo/astro";
 
 export const onRequest = createGeoMiddleware({
   token: import.meta.env.NOTRA_GEO_TOKEN ?? "",
-  endpoint: "https://app.usenotra.com",
+  endpoint: "https://ingest.usenotra.com",
 });
 ```
 
@@ -93,7 +93,7 @@ import { createGeoHandle } from "@usenotra/geo/sveltekit";
 
 export const handle = createGeoHandle({
   token: env.NOTRA_GEO_TOKEN ?? "",
-  endpoint: "https://app.usenotra.com",
+  endpoint: "https://ingest.usenotra.com",
 });
 ```
 
@@ -122,11 +122,17 @@ send alive.
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `token` | required | Per organization ingest token |
-| `endpoint` | `https://app.usenotra.com` | Ingest origin, the SDK appends `/api/geo/ingest` |
+| `endpoint` | `https://ingest.usenotra.com` | Ingest origin, the SDK appends `/api/geo/ingest` |
 | `exclude` | `["/api"]` | Paths to skip. Pass `[]` to disable |
 | `sample` | `1` | Fraction of eligible requests to send, 0 to 1 |
-| `onError` | none | Called with anything that goes wrong. The SDK never throws |
+| `onError` | none | Called for network failures and non-success HTTP responses, including 401, 429 and 502. The SDK never throws |
 | `fetch` | global `fetch` | Injectable fetch, for tests |
+
+Requests go directly to `https://ingest.usenotra.com` when `endpoint` is omitted.
+The SDK does not automatically retry through the dashboard. To switch back to
+the dashboard ingestion route, set `endpoint: "https://app.usenotra.com"` and
+redeploy your site. Self-hosted installations must set `endpoint` to their own
+ingestion origin.
 
 ### What gets captured
 

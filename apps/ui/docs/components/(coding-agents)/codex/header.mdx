@@ -1,0 +1,18 @@
+---
+title: Header
+description: The OpenAI Codex banner with version, working directory and greeting.
+---
+
+<Component path="codex/examples/codex-header" />
+
+<RegistryInstall name="codex-header" />
+
+`CodexHeader` renders the session banner: a blue `>_`, the bold product name with its version, the working directory under it, and a blue greeting line.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `version` | `0.159.2` | Shown dimmed as `(v0.159.2)`. |
+| `cwd` | `~/acme/web` | The working directory under the name. |
+| `greeting` | `Anything interesting on the docket?` | Blue line below the banner. Pass `null` to hide it. |
+
+<include>./_used-in.mdx</include>

@@ -8,11 +8,11 @@ export type SettingsSectionId =
   | "members"
   | "notifications"
   | "attachments"
-  | "integrations"
   | "billing"
   | "usage"
   | "usage-alerts"
   | "credits"
+  | "webhooks"
   | "logs"
   | "dev"
   | "geo"
@@ -25,7 +25,23 @@ export type StandardSettingsSectionId = Exclude<
   "geo" | "geo-brand" | "geo-languages" | "geo-models"
 >;
 
-export type SettingsNavGroupId = "account" | "organization" | "geo" | "dev";
+export type SettingsNavGroupId =
+  | "account"
+  | "organization"
+  | "billing"
+  | "geo"
+  | "dev";
+
+export interface SettingsSectionLabels {
+  label: string;
+  description: string;
+  modalDescription: string;
+}
+
+export interface SettingsNavLabels {
+  groups: Record<SettingsNavGroupId, string>;
+  sections: Record<SettingsSectionId, SettingsSectionLabels>;
+}
 
 export interface SettingsNavItem {
   id: SettingsSectionId;
@@ -40,6 +56,16 @@ export interface SettingsNavGroup {
   id: SettingsNavGroupId;
   label: string;
   items: readonly SettingsNavItem[];
+}
+
+export type SettingsNavItemConfig = Omit<
+  SettingsNavItem,
+  "label" | "description"
+>;
+
+export interface SettingsNavGroupConfig {
+  id: SettingsNavGroupId;
+  items: readonly SettingsNavItemConfig[];
 }
 
 export interface SettingsModalNavProps {

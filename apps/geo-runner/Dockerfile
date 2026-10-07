@@ -11,6 +11,7 @@ WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 COPY patches ./patches
 COPY apps/agent/package.json ./apps/agent/package.json
+COPY apps/ai-traffic-ingest/package.json ./apps/ai-traffic-ingest/package.json
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/dashboard/package.json ./apps/dashboard/package.json
 COPY apps/docs/package.json ./apps/docs/package.json
@@ -32,9 +33,10 @@ COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/utils/package.json ./packages/utils/package.json
+COPY packages/webhooks/package.json ./packages/webhooks/package.json
 
 # Install all workspace deps. Root prepare scripts are local-dev only.
-RUN bun install --ignore-scripts
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # ─── Stage 2: build ──────────────────────────────────────────────────────────
 FROM deps AS builder
@@ -46,6 +48,7 @@ COPY packages/typescript-config ./packages/typescript-config
 COPY packages/db ./packages/db
 COPY packages/geo-core ./packages/geo-core
 COPY packages/posthog ./packages/posthog
+COPY packages/schemas ./packages/schemas
 COPY packages/utils ./packages/utils
 COPY apps/geo-runner ./apps/geo-runner
 

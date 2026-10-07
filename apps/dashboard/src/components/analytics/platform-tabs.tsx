@@ -8,6 +8,7 @@ import {
 import { SPRING } from "@notra/ui/lib/motion";
 import { AnimatePresence, domMax, LazyMotion, m } from "motion/react";
 import { useId } from "react";
+import { useTranslations } from "use-intl";
 
 import { cn } from "@/lib/utils";
 import type { PlatformTabItem, PlatformTabsProps } from "@/types/analytics";
@@ -94,15 +95,16 @@ export function PlatformTabs({
   items,
   value,
   onValueChange,
-  label = "Filter",
+  label,
   className,
 }: PlatformTabsProps) {
+  const tCommon = useTranslations("common");
   const layoutId = useId();
 
   return (
     <LazyMotion features={domMax}>
       <menu
-        aria-label={label}
+        aria-label={label ?? tCommon("labels.filter")}
         className={cn(
           "bg-muted/50 m-0 flex list-none items-center gap-1 rounded-2xl border p-1",
           className

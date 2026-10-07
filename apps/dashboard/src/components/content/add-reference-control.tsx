@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import { Loader2Icon } from "lucide-react";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
 import { cn } from "@/lib/utils";
@@ -21,10 +22,12 @@ export function AddReferenceControl({
   onAdd,
   onMissingVoice,
 }: AddReferenceControlProps) {
+  const t = useTranslations("content.postSocial");
+  const tCommon = useTranslations("common");
   if (voices.length === 0) {
     return (
       <Button onClick={onMissingVoice} variant="outline">
-        Add as reference
+        {t("addAsReference")}
       </Button>
     );
   }
@@ -37,8 +40,8 @@ export function AddReferenceControl({
         className={cn(buttonVariants({ variant: "outline" }))}
         disabled={isPending}
       >
-        {isPending ? <Loader2Icon className="size-4 animate-spin" /> : null}
-        Add as reference
+        {isPending ? <Spinner /> : null}
+        {t("addAsReference")}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {voices.map((voice) => {
@@ -49,9 +52,13 @@ export function AddReferenceControl({
               key={voice.id}
               onClick={() => onAdd(voice.id, voice.name)}
             >
-              {voice.name}
+              <span className="min-w-0 truncate" title={voice.name}>
+                {voice.name}
+              </span>
               {voice.isDefault && (
-                <span className="text-muted-foreground text-xs">Default</span>
+                <span className="text-muted-foreground shrink-0 text-xs">
+                  {tCommon("labels.default")}
+                </span>
               )}
               {alreadyAdded && (
                 <HugeiconsIcon className="ml-auto size-4" icon={Tick02Icon} />

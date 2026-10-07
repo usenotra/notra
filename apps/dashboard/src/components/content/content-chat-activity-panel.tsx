@@ -8,12 +8,11 @@ import {
   PlusSignIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { isTrustedChatFileUrl } from "@notra/ai/schemas/chat";
 import {
-  Message,
   MessageContent,
   MessageResponse,
 } from "@notra/ui/components/ai-elements/message";
-import { BrailleLoader } from "@notra/ui/components/shared/braille-loader";
 import { Button } from "@notra/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -32,24 +31,50 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@notra/ui/components/ui/message-scroller";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { getToolName, isToolUIPart } from "ai";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useState } from "react";
+import { useTranslations } from "use-intl";
 
+import { ChatActivityStatus } from "@/components/ai/chat-activity-status";
+import { ChatAssistantParts } from "@/components/ai/chat-assistant-parts";
 import { ChatEmptyDither } from "@/components/ai/chat-empty-dither";
-import { ChatReasoningBlock } from "@/components/ai/chat-reasoning-block";
+import { ChatSubagentToolPart } from "@/components/ai/chat-subagent-tool-part";
 import { ChatToolBlock } from "@/components/ai/chat-tool-block";
+import { isMcpToolName } from "@/components/ai/chat-tool-block/mcp/utils";
+import { AssistantMetadataHover } from "@/components/chat/assistant-metadata-hover";
+import { AttachmentPreviewDialog } from "@/components/chat/attachment-preview";
+import { ChatFileAttachment } from "@/components/chat/chat-file-attachment";
+import { ChatImageAttachment } from "@/components/chat/chat-image-attachment";
 import { ChatInputContextRow } from "@/components/chat/chat-input-context-row";
+import { ChatQuoteMessage as Message } from "@/components/chat/chat-quote";
+import { ChatScrollOnSend } from "@/components/chat/chat-scroll-on-send";
 import { useRightPanel } from "@/components/dashboard/right-panel-context";
+import { useChatActivityTimer } from "@/lib/hooks/use-chat-activity-timer";
+import { isImageMimeType } from "@/lib/upload/mime";
 import type {
   ContentChatActivityMessageProps,
   ContentChatActivityPanelProps,
+  ContentChatActivityHeaderProps,
+  ContentChatHistoryItemsProps,
 } from "@/types/components/content-chat-activity-panel";
+import { getChatActivity, hasVisibleChatContent } from "@/utils/chat-activity";
+import { displayChatTitle } from "@/utils/chat-history-groups";
+import { getChatFilePartFields } from "@/utils/chat-message-parts";
+import { isChatSubagentName } from "@/utils/chat-subagents";
 import { parseCreatedPostId } from "@/utils/chat-tool-draft";
 import {
   getContentChatAttachments,
   hasContentChatAttachments,
 } from "@/utils/content-chat-attachments";
 import { getContentChatHistoryGroups } from "@/utils/content-chat-history";
+import { isContentEditorStandaloneTool } from "@/utils/content-editor-standalone-tool";
+import { parseChatMessageMetadata } from "@/utils/parse-chat-message-metadata";
 
 const ACTIVITY_MESSAGE_CLASSNAME =
   "translate-y-0 opacity-100 transition-[opacity,translate] duration-fast ease-emphasized starting:translate-y-1 starting:opacity-0 motion-reduce:transition-none motion-reduce:starting:translate-y-0 motion-reduce:starting:opacity-100";
@@ -68,7 +93,7 @@ function ContentChatActivityFeed({
       <MessageScroller className="relative min-h-0 min-w-0 flex-1 overflow-x-clip">
         {showDither ? <ChatEmptyDither /> : null}
         <MessageScrollerViewport className="min-w-0 overflow-x-hidden">
-          <MessageScrollerContent className="min-w-0 gap-4 px-4 pt-4 pb-4">
+          <MessageScrollerContent className="min-w-0 gap-8 px-4 pt-4 pb-8">
             {children}
           </MessageScrollerContent>
         </MessageScrollerViewport>
@@ -78,25 +103,124 @@ function ContentChatActivityFeed({
   );
 }
 
+// Subagents get their own row with nested steps instead of hiding inside the
+// collapsed activity group.
+function isAgentPanelStandaloneTool(
+  part: Parameters<typeof isContentEditorStandaloneTool>[0]
+): boolean {
+  return (
+    isContentEditorStandaloneTool(part) ||
+    (isToolUIPart(part) && isChatSubagentName(getToolName(part)))
+  );
+}
+
+function renderContentChatToolPart({
+  part,
+  isActive,
+  organizationSlug,
+  onApproveTool,
+  onDenyTool,
+}: {
+  part: Parameters<typeof getToolName>[0];
+  isActive: boolean;
+  organizationSlug?: string;
+  onApproveTool?: (approvalId: string) => void;
+  onDenyTool?: (approvalId: string) => void;
+}) {
+  const approvalId =
+    part.state === "approval-requested" ? part.approval?.id : undefined;
+  const toolName = getToolName(part);
+  const output =
+    part.state === "output-error" ? { error: part.errorText } : part.output;
+  const postId = parseCreatedPostId(output);
+  return (
+    <ChatToolBlock
+      isActive={isActive}
+      editorHref={
+        organizationSlug && postId
+          ? `/${organizationSlug}/content/${postId}`
+          : undefined
+      }
+      input={part.input}
+      isMcp={isMcpToolName(toolName)}
+      key={part.toolCallId}
+      onApprove={
+        approvalId && onApproveTool
+          ? () => onApproveTool(approvalId)
+          : undefined
+      }
+      onDeny={
+        approvalId && onDenyTool ? () => onDenyTool(approvalId) : undefined
+      }
+      output={output}
+      state={part.state}
+      toolCallId={part.toolCallId}
+      toolMetadata={
+        part.type === "dynamic-tool" ? part.toolMetadata : undefined
+      }
+      toolName={toolName}
+    />
+  );
+}
+
 function ContentChatActivityMessage({
   message,
-  status,
+  isLoading,
+  elapsedSeconds,
   organizationSlug,
   onApproveTool,
   onDenyTool,
 }: ContentChatActivityMessageProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    url: string;
+    filename: string;
+    mediaType: string;
+  } | null>(null);
   const attachments =
     message.role === "user"
       ? getContentChatAttachments(message.metadata)
       : { selection: null, context: [] };
   const showAttachments = hasContentChatAttachments(attachments);
+  const assistantMetadata =
+    message.role === "assistant"
+      ? parseChatMessageMetadata(message.metadata)
+      : undefined;
+  const imageParts =
+    message.role === "user"
+      ? message.parts.filter(
+          (part) =>
+            part.type === "file" &&
+            typeof part.mediaType === "string" &&
+            isImageMimeType(part.mediaType)
+        )
+      : [];
+  const fileParts =
+    message.role === "user"
+      ? message.parts.filter(
+          (part) =>
+            part.type === "file" &&
+            (typeof part.mediaType !== "string" ||
+              !isImageMimeType(part.mediaType))
+        )
+      : [];
+  const hasBubbleContent = message.parts.some((part) => {
+    if (part.type === "reasoning") {
+      return true;
+    }
+    if (part.type === "text") {
+      return Boolean(part.text.trim());
+    }
+    return isToolUIPart(part);
+  });
 
   return (
     <div className={ACTIVITY_MESSAGE_CLASSNAME}>
-      <Message from={message.role}>
+      <Message className="group/message relative" from={message.role}>
         {showAttachments ? (
           <div
-            aria-label="Attached context"
+            aria-label={t("attachedContext")}
             className="ml-auto flex max-w-full flex-wrap justify-end gap-1.5"
           >
             <ChatInputContextRow
@@ -105,190 +229,259 @@ function ContentChatActivityMessage({
             />
           </div>
         ) : null}
-        <MessageContent>
-          {message.parts.map((part, index) => {
-            const key = `${message.id}-${index}`;
-
-            if (part.type === "text") {
-              if (!part.text.trim()) {
-                return null;
-              }
-              return <MessageResponse key={key}>{part.text}</MessageResponse>;
-            }
-
-            if (part.type === "reasoning") {
-              if (!part.text.trim()) {
+        {imageParts.length > 0 ? (
+          <div className="ml-auto flex max-w-full flex-col items-end gap-1.5">
+            {imageParts.map((part, index) => {
+              const { url, mediaType, filename } = getChatFilePartFields(part);
+              if (!isTrustedChatFileUrl(url)) {
                 return null;
               }
               return (
-                <ChatReasoningBlock
-                  isStreaming={
-                    status === "streaming" && part.state === "streaming"
+                <ChatImageAttachment
+                  filename={filename}
+                  key={`${message.id}-image-${index}`}
+                  mediaType={mediaType}
+                  onClick={() =>
+                    setPreviewAttachment({
+                      url,
+                      filename: filename ?? tCommon("labels.attachment"),
+                      mediaType,
+                    })
                   }
-                  key={key}
-                >
-                  {part.text}
-                </ChatReasoningBlock>
-              );
-            }
-
-            if (isToolUIPart(part)) {
-              const approvalId =
-                part.state === "approval-requested"
-                  ? part.approval?.id
-                  : undefined;
-              const postId = parseCreatedPostId(part.output);
-              return (
-                <ChatToolBlock
-                  editorHref={
-                    organizationSlug && postId
-                      ? `/${organizationSlug}/content/${postId}`
-                      : undefined
-                  }
-                  input={part.input}
-                  key={part.toolCallId}
-                  onApprove={
-                    approvalId && onApproveTool
-                      ? () => onApproveTool(approvalId)
-                      : undefined
-                  }
-                  onDeny={
-                    approvalId && onDenyTool
-                      ? () => onDenyTool(approvalId)
-                      : undefined
-                  }
-                  output={part.output}
-                  state={part.state}
-                  toolCallId={part.toolCallId}
-                  toolName={getToolName(part)}
+                  url={url}
                 />
               );
-            }
-
-            return null;
-          })}
-        </MessageContent>
+            })}
+          </div>
+        ) : null}
+        {fileParts.length > 0 ? (
+          <div className="ml-auto flex max-w-full flex-wrap justify-end gap-1.5">
+            {fileParts.map((part, index) => {
+              const { url, mediaType, filename } = getChatFilePartFields(part);
+              if (!isTrustedChatFileUrl(url)) {
+                return null;
+              }
+              return (
+                <div className="size-28" key={`${message.id}-file-${index}`}>
+                  <ChatFileAttachment
+                    filename={filename}
+                    mediaType={mediaType}
+                    url={url}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+        {hasBubbleContent ? (
+          <MessageContent>
+            {message.role === "assistant" ? (
+              <ChatAssistantParts
+                activityTimings={assistantMetadata?.activityTimings}
+                durationMs={assistantMetadata?.generationDurationMs}
+                elapsedSeconds={elapsedSeconds}
+                isLoading={isLoading}
+                isStandaloneTool={isAgentPanelStandaloneTool}
+                messageId={message.id}
+                parts={message.parts}
+                renderStandalone={(part, index) => {
+                  if (part.type !== "text" || !part.text.trim()) {
+                    return null;
+                  }
+                  return (
+                    <MessageResponse
+                      isAnimating={isLoading}
+                      key={`${message.id}-${index}`}
+                    >
+                      {part.text}
+                    </MessageResponse>
+                  );
+                }}
+                renderTool={(part) => {
+                  if (!isToolUIPart(part)) {
+                    return null;
+                  }
+                  if (isChatSubagentName(getToolName(part))) {
+                    return (
+                      <ChatSubagentToolPart
+                        isActive={isLoading}
+                        key={part.toolCallId}
+                        part={part}
+                      />
+                    );
+                  }
+                  return renderContentChatToolPart({
+                    part,
+                    isActive: isLoading,
+                    organizationSlug,
+                    onApproveTool,
+                    onDenyTool,
+                  });
+                }}
+              />
+            ) : (
+              <>
+                {message.parts.map((part, index) => {
+                  if (part.type !== "text" || !part.text.trim()) {
+                    return null;
+                  }
+                  return (
+                    <MessageResponse key={`${message.id}-${index}`}>
+                      {part.text}
+                    </MessageResponse>
+                  );
+                })}
+              </>
+            )}
+          </MessageContent>
+        ) : null}
+        {message.role === "assistant" && !isLoading ? (
+          <AssistantMetadataHover compact metadata={assistantMetadata} />
+        ) : null}
       </Message>
+      <AttachmentPreviewDialog
+        attachment={previewAttachment}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewAttachment(null);
+          }
+        }}
+        open={previewAttachment !== null}
+      />
     </div>
   );
 }
 
-export function ContentChatActivityPanel({
-  children,
-  messages,
+function ContentChatHistoryItems({
   sessions,
   activeChatId,
   isHistoryLoading,
   status,
-  organizationSlug,
+  onSelectChat,
+}: ContentChatHistoryItemsProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
+  if (isHistoryLoading) {
+    return (
+      <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+        {t("loadingChats")}
+      </p>
+    );
+  }
+  if (sessions.length === 0) {
+    return (
+      <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
+        {t("noPreviousChats")}
+      </p>
+    );
+  }
+  const isAgentBusy = status === "streaming" || status === "submitted";
+  return getContentChatHistoryGroups(sessions).map((group, groupIndex) => (
+    <Fragment key={group.key}>
+      {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
+      <DropdownMenuGroup>
+        <DropdownMenuLabel>
+          {group.key === "previousSevenDays"
+            ? t("historyGroups.previousSevenDays")
+            : tCommon(`labels.${group.key}`)}
+        </DropdownMenuLabel>
+        {group.sessions.map((session) => (
+          <DropdownMenuItem
+            className="data-[active=true]:bg-accent/70"
+            data-active={activeChatId === session.chatId}
+            disabled={isAgentBusy}
+            key={session.chatId}
+            onClick={() => onSelectChat(session.chatId)}
+            title={displayChatTitle(session.title, tCommon("labels.newChat"))}
+          >
+            <span className="min-w-0 flex-1 truncate">
+              {displayChatTitle(session.title, tCommon("labels.newChat"))}
+            </span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuGroup>
+    </Fragment>
+  ));
+}
+
+function ContentChatActivityHeader({
+  sessions,
+  activeChatId,
+  isHistoryLoading,
+  status,
   onNewChat,
   onSelectChat,
   onClose,
   onOpenChat,
   showHistory = true,
-  onApproveTool,
-  onDenyTool,
-  title = "Content Agent",
-}: ContentChatActivityPanelProps) {
+  title: titleProp,
+}: ContentChatActivityHeaderProps) {
+  const t = useTranslations("content.chatActivity");
+  const tCommon = useTranslations("common");
+  const title = titleProp ?? t("defaultTitle");
   const { expanded, toggleExpanded } = useRightPanel();
   const opensInChat = Boolean(onOpenChat);
-  const historyGroups = showHistory
-    ? getContentChatHistoryGroups(sessions)
-    : [];
   const isAgentBusy = status === "streaming" || status === "submitted";
-  const lastMessage = messages.at(-1);
-  const lastAssistantHasNoVisibleContent =
-    lastMessage?.role === "assistant" &&
-    !lastMessage.parts.some(
-      (part) =>
-        (part.type === "text" && Boolean(part.text.trim())) ||
-        (part.type === "reasoning" && Boolean(part.text.trim())) ||
-        isToolUIPart(part)
-    );
-  const showThinkingIndicator =
-    isAgentBusy &&
-    (lastMessage?.role === "user" || lastAssistantHasNoVisibleContent);
-  const visibleMessages =
-    showThinkingIndicator && lastAssistantHasNoVisibleContent
-      ? messages.slice(0, -1)
-      : messages;
-  const lastUserMessageId = [...visibleMessages]
-    .reverse()
-    .find((message) => message.role === "user")?.id;
-
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
-        <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-none">
-          {title}
-        </h2>
+    <header className="bg-muted flex h-12 shrink-0 items-center justify-between gap-2 rounded-t-[calc(0.75rem-1px)] px-4">
+      <h2 className="text-foreground flex h-full min-w-0 items-center truncate text-sm leading-5">
+        <span className="truncate">{title}</span>
+      </h2>
+      <TooltipProvider>
         <div className="-mr-1.5 flex h-full items-center gap-0.5">
-          <Button
-            disabled={isAgentBusy}
-            onClick={onNewChat}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">Start a new chat</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={PlusSignIcon}
-              strokeWidth={1.8}
-            />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  disabled={isAgentBusy}
+                  onClick={onNewChat}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            >
+              <span className="sr-only">{t("startNewChat")}</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={PlusSignIcon}
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{tCommon("labels.newChat")}</TooltipContent>
+          </Tooltip>
           {showHistory ? (
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="inline-flex"
-                disabled={isAgentBusy}
-                render={<Button size="icon-sm" variant="ghost" />}
-              >
-                <span className="sr-only">Open chat history</span>
-                <HugeiconsIcon
-                  className="size-4"
-                  icon={Clock01Icon}
-                  strokeWidth={1.8}
-                />
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DropdownMenuTrigger
+                      className="inline-flex"
+                      disabled={isAgentBusy}
+                      render={<Button size="icon-sm" variant="ghost" />}
+                    />
+                  }
+                >
+                  <span className="sr-only">{t("openHistory")}</span>
+                  <HugeiconsIcon
+                    className="size-4"
+                    icon={Clock01Icon}
+                    strokeWidth={1.8}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{t("history")}</TooltipContent>
+              </Tooltip>
               <DropdownMenuContent
                 align="end"
                 className="max-h-72 w-52"
                 sideOffset={6}
               >
-                {isHistoryLoading ? (
-                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                    Loading chats...
-                  </p>
-                ) : null}
-                {!isHistoryLoading && sessions.length === 0 ? (
-                  <p className="text-muted-foreground px-2 py-1.5 text-center text-xs">
-                    No previous chats
-                  </p>
-                ) : null}
-                {!isHistoryLoading && sessions.length > 0
-                  ? historyGroups.map((group, groupIndex) => (
-                      <Fragment key={group.label}>
-                        {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                          {group.sessions.map((session) => (
-                            <DropdownMenuItem
-                              className="data-[active=true]:bg-accent/70"
-                              data-active={activeChatId === session.chatId}
-                              disabled={isAgentBusy}
-                              key={session.chatId}
-                              onClick={() => onSelectChat(session.chatId)}
-                              title={session.title}
-                            >
-                              <span className="min-w-0 flex-1 truncate">
-                                {session.title}
-                              </span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuGroup>
-                      </Fragment>
-                    ))
-                  : null}
+                <ContentChatHistoryItems
+                  sessions={sessions}
+                  activeChatId={activeChatId}
+                  isHistoryLoading={isHistoryLoading}
+                  status={status}
+                  onSelectChat={onSelectChat}
+                />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="gap-2"
@@ -300,66 +493,131 @@ export function ContentChatActivityPanel({
                     icon={PlusSignIcon}
                     strokeWidth={1.8}
                   />
-                  <span>New chat</span>
+                  <span>{tCommon("labels.newChat")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
-          <Button
-            aria-pressed={opensInChat ? undefined : expanded}
-            className="cursor-pointer"
-            onClick={onOpenChat ?? toggleExpanded}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">
-              {opensInChat
-                ? "Open in Chat"
-                : expanded
-                  ? `Exit fullscreen ${title}`
-                  : `Open ${title} fullscreen`}
-            </span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={
-                opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-pressed={opensInChat ? undefined : expanded}
+                  className="cursor-pointer"
+                  onClick={onOpenChat ?? toggleExpanded}
+                  size="icon-sm"
+                  variant="ghost"
+                />
               }
-              strokeWidth={1.8}
-            />
-          </Button>
-          <Button
-            className="cursor-pointer"
-            onClick={onClose}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <span className="sr-only">Close {title}</span>
-            <HugeiconsIcon
-              className="size-4"
-              icon={Cancel01Icon}
-              strokeWidth={1.8}
-            />
-          </Button>
+            >
+              <span className="sr-only">
+                {opensInChat
+                  ? t("openInChat")
+                  : expanded
+                    ? t("exitFullscreenTitle", { title })
+                    : t("openFullscreenTitle", { title })}
+              </span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={
+                  opensInChat || !expanded ? FullScreenIcon : ArrowShrink01Icon
+                }
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              {opensInChat
+                ? t("openInChat")
+                : expanded
+                  ? t("exitFullscreen")
+                  : t("expandAgent")}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  className="cursor-pointer"
+                  onClick={onClose}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+              }
+            >
+              <span className="sr-only">{t("closeTitle", { title })}</span>
+              <HugeiconsIcon
+                className="size-4"
+                icon={Cancel01Icon}
+                strokeWidth={1.8}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{t("closeTitle", { title })}</TooltipContent>
+          </Tooltip>
         </div>
-      </header>
+      </TooltipProvider>
+    </header>
+  );
+}
+
+export function ContentChatActivityPanel(props: ContentChatActivityPanelProps) {
+  const {
+    children,
+    messages,
+    status,
+    activeChatId,
+    organizationSlug,
+    onApproveTool,
+    onDenyTool,
+  } = props;
+  const isAgentBusy = status === "streaming" || status === "submitted";
+  const lastMessage = messages.at(-1);
+  const activitySeconds = useChatActivityTimer(
+    isAgentBusy,
+    activeChatId ?? "",
+    lastMessage?.role === "assistant" ? lastMessage.id : undefined
+  );
+  const { showThinkingIndicator } = getChatActivity(messages, isAgentBusy, {
+    isStandaloneTool: isAgentPanelStandaloneTool,
+    includeFileParts: false,
+  });
+  const visibleMessages = messages.filter((message) =>
+    hasVisibleChatContent(message, false)
+  );
+  const lastVisibleMessage = visibleMessages.at(-1);
+  const lastAssistantMessageId =
+    lastVisibleMessage?.role === "assistant"
+      ? lastVisibleMessage.id
+      : undefined;
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <ContentChatActivityHeader {...props} />
       <div className="bg-muted flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-[calc(0.75rem-1px)]">
         <div className="bg-background flex min-h-0 flex-1 flex-col rounded-t-xl">
           <ContentChatActivityFeed
             scrollKey={activeChatId ?? ""}
             showDither={visibleMessages.length === 0 && !showThinkingIndicator}
           >
+            <ChatScrollOnSend
+              lastUserMessageId={
+                visibleMessages.findLast((message) => message.role === "user")
+                  ?.id
+              }
+            />
             {visibleMessages.map((message) => (
-              <MessageScrollerItem
-                key={message.id}
-                messageId={message.id}
-                scrollAnchor={message.id === lastUserMessageId}
-              >
+              <MessageScrollerItem key={message.id} messageId={message.id}>
                 <ContentChatActivityMessage
+                  isLoading={
+                    status === "streaming" &&
+                    message.id === lastAssistantMessageId
+                  }
+                  elapsedSeconds={
+                    message.id === lastMessage?.id ? activitySeconds : undefined
+                  }
                   message={message}
                   onApproveTool={onApproveTool}
                   onDenyTool={onDenyTool}
                   organizationSlug={organizationSlug}
-                  status={status}
                 />
               </MessageScrollerItem>
             ))}
@@ -369,10 +627,12 @@ export function ContentChatActivityPanel({
                 messageId="thinking"
                 style={{ contentVisibility: "visible" }}
               >
-                <BrailleLoader
-                  className="text-muted-foreground text-sm"
-                  label="Thinking"
-                />
+                <span
+                  className="text-muted-foreground flex items-center gap-2 text-sm leading-5"
+                  role="status"
+                >
+                  <ChatActivityStatus seconds={activitySeconds ?? 0} />
+                </span>
               </MessageScrollerItem>
             ) : null}
           </ContentChatActivityFeed>

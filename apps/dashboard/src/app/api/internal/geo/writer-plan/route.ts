@@ -1,4 +1,6 @@
+import { logError } from "@notra/ai/utils/server-log";
 import { toGeoFailureWire } from "@notra/geo-core/geo/failure-wire";
+import { refreshGeoContentGapsBestEffort } from "@notra/geo-core/geo/gaps";
 import { planGeoContentBrief } from "@notra/geo-core/geo/writer";
 import { geoWriterPlanInputSchema } from "@notra/geo-core/schemas/geo";
 import { Effect } from "effect";
@@ -64,12 +66,13 @@ export async function POST(request: Request) {
   );
 
   if (outcome._tag === "Failure") {
-    console.error("[GEO] Internal writer plan failed:", outcome.failure);
+    logError("[GEO] Internal writer plan failed", outcome.failure);
     return Response.json(
       { failure: toGeoFailureWire(outcome.failure) },
       { status: GEO_FAILURE_STATUS }
     );
   }
 
+  await Effect.runPromise(refreshGeoContentGapsBestEffort(parsed.data));
   return Response.json(outcome.success, { status: 200 });
 }

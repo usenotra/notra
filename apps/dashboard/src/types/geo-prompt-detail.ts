@@ -5,6 +5,7 @@ import type {
   GeoPromptReceiptView,
   GeoPromptResult,
 } from "@notra/geo-core/types/geo";
+import type { ReactNode } from "react";
 
 import type { GeoPromptDetailSurface } from "@/types/analytics/geo-events";
 import type { GeoPromptTableRow, PromptAnswerPageProps } from "@/types/geo";
@@ -65,15 +66,17 @@ export interface PromptAnswerLanguageBarProps {
   onSelect: (language: string) => void;
 }
 
-export interface PromptAnswerTagsFooterProps {
+export interface PromptAnswerDetailsProps {
   tagsInputId: string;
   row: GeoPromptTableRow;
   tags: string[];
   pending: boolean;
   onChange: (nextTags: string[]) => void;
+  children?: ReactNode;
 }
 
 export interface PromptAnswerEmptyProps {
+  organizationId: string;
   isScanning: boolean;
   detailState: GeoPromptDetailState;
   view: GeoPromptReceiptView;
@@ -89,6 +92,7 @@ export interface PromptAnswerHeaderProps {
   active: GeoPromptResultSummary | null;
   view: GeoPromptReceiptView;
   onSelectEngine: (engine: string, direction: number) => void;
+  onPrefetchEngine: (engine: string) => void;
   onSelectView: (view: GeoPromptReceiptView) => void;
 }
 

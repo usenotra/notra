@@ -1,3 +1,5 @@
+import { shouldBypassAutumnInDevelopment } from "@notra/ai/utils/autumn-development";
+import { logError } from "@notra/ai/utils/server-log";
 import { Effect } from "effect";
 import type { Context, Next } from "hono";
 
@@ -27,13 +29,11 @@ export function subscriptionMiddleware(
 
     const secretKey = c.env.AUTUMN_SECRET_KEY as string | undefined;
     if (!secretKey) {
-      if (process.env.NODE_ENV === "development") {
+      if (shouldBypassAutumnInDevelopment(process.env.NODE_ENV, secretKey)) {
         return next();
       }
 
-      console.error(
-        "AUTUMN_SECRET_KEY is not configured — rejecting write request"
-      );
+      logError("AUTUMN_SECRET_KEY is not configured, rejecting write request");
       trackApiPaywalled(c, {
         feature: API_PAYWALL_FEATURES.SUBSCRIPTION,
         status: 503,

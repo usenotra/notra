@@ -34,23 +34,9 @@ export const EMAIL_CONFIG = {
   },
 
   /**
-   * Horizontal mark + “Notra” lockup. PNG so email clients can render it.
-   */
-  getWordmarkUrl(): string {
-    const siteUrl = this.getSiteUrl();
-    return `${siteUrl}/brand/notra-wordmark.png`;
-  },
-
-  /**
    * Reply-to email address
    */
   replyTo: "support@usenotra.com",
-
-  /**
-   * From email address for automated notification emails.
-   * Use a subdomain sender so notification mail does not share the apex domain.
-   */
-  from: "Notra <notifications@notifications.usenotra.com>",
 
   /**
    * Physical mailing address (matches Legal Notice / CAN-SPAM).

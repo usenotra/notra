@@ -1,7 +1,8 @@
 import { useStore } from "@tanstack/react-form";
+import { useTranslations } from "use-intl";
 
 import { BrandIdentityRadioGroup } from "@/components/brand-identity-radio-group";
-import { FORMAT_CARD_META } from "@/constants/content-formats";
+import { OUTPUT_TYPE_LABEL_KEYS } from "@/constants/automation-output-types";
 import { supportsAutoPublish } from "@/constants/schedule-output-types";
 import type { EventTriggerRulesSectionProps } from "@/types/automation/event-trigger";
 
@@ -11,13 +12,16 @@ export function EventTriggerRulesSection({
   form,
   brandVoices,
 }: EventTriggerRulesSectionProps) {
+  const t = useTranslations("automation.events.dialog");
+  const tSchedules = useTranslations("automation.schedules");
+  const tCommon = useTranslations("common");
   const outputType = useStore(form.store, (s) => s.values.outputType);
 
   const nonDefaultBrandVoices = brandVoices.filter((voice) => !voice.isDefault);
   const defaultBrandVoice = brandVoices.find((voice) => voice.isDefault);
   const defaultBrandVoiceLabel = defaultBrandVoice
-    ? `${defaultBrandVoice.name} (Default)`
-    : "Default brand voice";
+    ? tSchedules("dialog.defaultVoiceName", { name: defaultBrandVoice.name })
+    : tSchedules("dialog.defaultVoice");
 
   if (!(brandVoices.length > 1 || supportsAutoPublish(outputType))) {
     return null;
@@ -27,25 +31,25 @@ export function EventTriggerRulesSection({
     <section className="space-y-3">
       <div className="space-y-1">
         <h3 className="text-base font-semibold">
-          {FORMAT_CARD_META[outputType].label} rules
+          {tSchedules("dialog.rules", {
+            type: tCommon(`labels.${OUTPUT_TYPE_LABEL_KEYS[outputType]}`),
+          })}
         </h3>
-        <p className="text-muted-foreground text-sm">
-          Voice and publishing behaviour for this trigger.
-        </p>
+        <p className="text-muted-foreground text-sm">{t("rulesHint")}</p>
       </div>
 
       {brandVoices.length > 1 && (
         <form.Field name="brandVoiceId">
           {(field) => (
             <BrandIdentityRadioGroup
-              description="Choose which brand voice to use for generated content."
+              description={tSchedules("dialog.brandVoiceDescription")}
               emptyOption={{
                 label: defaultBrandVoiceLabel,
-                description: "Use your default brand voice.",
+                description: tSchedules("dialog.brandVoiceDefaultDescription"),
                 voice: defaultBrandVoice,
               }}
               id={field.name}
-              label="Brand voice"
+              label={tCommon("labels.brandVoice")}
               onChange={field.handleChange}
               value={field.state.value}
               voices={nonDefaultBrandVoices}
@@ -60,9 +64,9 @@ export function EventTriggerRulesSection({
             <TriggerSwitchRow
               checked={field.state.value}
               id={field.name}
-              label="Auto-publish"
+              label={tSchedules("dialog.autoPublish")}
               onCheckedChange={field.handleChange}
-              tooltip="When on, posts are published immediately instead of saved as drafts."
+              tooltip={tSchedules("dialog.autoPublishHint")}
             />
           )}
         </form.Field>

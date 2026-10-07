@@ -4,16 +4,20 @@ import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "@notra/ui/components/ui/input";
 import { Label } from "@notra/ui/components/ui/label";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import Link from "@/components/framework/link";
 import { resetPasswordAction } from "@/lib/auth/password-actions";
+import { useRouter } from "@/lib/navigation";
 
 function ResetPasswordForm() {
+  const t = useTranslations("auth.resetPassword");
+  const tAuthShared = useTranslations("auth.shared");
+  const tCommon2 = useTranslations("common");
   const router = useRouter();
   const [token] = useQueryState("token", parseAsString);
   const [error] = useQueryState(
@@ -29,20 +33,22 @@ function ResetPasswordForm() {
     return (
       <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
         <div className="text-center">
-          <h1 className="text-xl font-semibold lg:text-2xl">Invalid link</h1>
+          <h1 className="text-xl font-semibold lg:text-2xl">
+            {t("invalidTitle")}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            This password reset link is invalid or has expired.
+            {t("invalidDescription")}
           </p>
         </div>
         <Link href="/forgot-password">
-          <Button className="w-full">Request a new link</Button>
+          <Button className="w-full">{t("requestNew")}</Button>
         </Link>
         <div className="text-muted-foreground px-8 text-center text-xs">
           <Link
             className="hover:text-primary underline underline-offset-4"
             href="/login"
           >
-            Back to login
+            {tAuthShared("backToLogin")}
           </Link>
         </div>
       </div>
@@ -53,20 +59,22 @@ function ResetPasswordForm() {
     return (
       <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
         <div className="text-center">
-          <h1 className="text-xl font-semibold lg:text-2xl">Missing token</h1>
+          <h1 className="text-xl font-semibold lg:text-2xl">
+            {t("missingTitle")}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            No reset token found. Please use the link from your email.
+            {t("missingDescription")}
           </p>
         </div>
         <Link href="/forgot-password">
-          <Button className="w-full">Request a new link</Button>
+          <Button className="w-full">{t("requestNew")}</Button>
         </Link>
         <div className="text-muted-foreground px-8 text-center text-xs">
           <Link
             className="hover:text-primary underline underline-offset-4"
             href="/login"
           >
-            Back to login
+            {tAuthShared("backToLogin")}
           </Link>
         </div>
       </div>
@@ -84,12 +92,12 @@ function ResetPasswordForm() {
     }
 
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long.");
+      toast.error(t("passwordMin"));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
@@ -108,26 +116,24 @@ function ResetPasswordForm() {
         resetErrorMessage = result.message;
       }
     } catch {
-      toast.error("Network error. Please check your connection and try again.");
+      toast.error(tAuthShared("networkErrorPleaseCheckYour"));
       setIsLoading(false);
       return;
     }
 
     if (hasResetError) {
       if (resetErrorMessage?.includes("expired")) {
-        toast.error("This reset link has expired. Please request a new one.");
+        toast.error(t("linkExpired"));
       } else if (resetErrorMessage?.includes("invalid")) {
-        toast.error("This reset link is invalid. Please request a new one.");
+        toast.error(t("linkInvalid"));
       } else {
-        toast.error(
-          resetErrorMessage ?? "Something went wrong. Please try again."
-        );
+        toast.error(resetErrorMessage ?? tCommon2("errors.generic"));
       }
       setIsLoading(false);
       return;
     }
 
-    toast.success("Password reset successfully! Please log in.");
+    toast.success(t("success"));
     router.push("/login");
     setIsLoading(false);
   }
@@ -135,17 +141,15 @@ function ResetPasswordForm() {
   return (
     <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
       <div className="text-center">
-        <h1 className="text-xl font-semibold lg:text-2xl">Set new password</h1>
-        <p className="text-muted-foreground text-sm">
-          Enter your new password below.
-        </p>
+        <h1 className="text-xl font-semibold lg:text-2xl">{t("title")}</h1>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-3">
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="password">
-              New Password
+              {tAuthShared("newPassword")}
             </Label>
             <div className="relative">
               <Input
@@ -155,12 +159,16 @@ function ResetPasswordForm() {
                 id="password"
                 minLength={8}
                 name="password"
-                placeholder="New password"
+                placeholder={tAuthShared("newPassword")}
                 required
                 type={showPassword ? "text" : "password"}
               />
               <button
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showPassword
+                    ? tCommon2("labels.hidePassword")
+                    : tCommon2("labels.showPassword")
+                }
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 disabled:opacity-50"
                 disabled={isLoading}
                 onClick={() => setShowPassword(!showPassword)}
@@ -176,7 +184,7 @@ function ResetPasswordForm() {
           </div>
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="confirmPassword">
-              Confirm Password
+              {t("confirmPassword")}
             </Label>
             <div className="relative">
               <Input
@@ -186,15 +194,15 @@ function ResetPasswordForm() {
                 id="confirmPassword"
                 minLength={8}
                 name="confirmPassword"
-                placeholder="Confirm new password"
+                placeholder={t("confirmPasswordPlaceholder")}
                 required
                 type={showConfirmPassword ? "text" : "password"}
               />
               <button
                 aria-label={
                   showConfirmPassword
-                    ? "Hide confirm password"
-                    : "Show confirm password"
+                    ? t("hideConfirmPassword")
+                    : t("showConfirmPassword")
                 }
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 disabled:opacity-50"
                 disabled={isLoading}
@@ -210,11 +218,9 @@ function ResetPasswordForm() {
             </div>
           </div>
         </div>
-        <p className="text-muted-foreground mt-2 text-xs">
-          Password must be at least 8 characters long.
-        </p>
+        <p className="text-muted-foreground mt-2 text-xs">{t("passwordMin")}</p>
         <Button className="mt-4 w-full" disabled={isLoading} type="submit">
-          {isLoading ? "Resetting…" : "Reset Password"}
+          {isLoading ? tCommon2("labels.resetting") : t("submit")}
         </Button>
       </form>
 
@@ -223,7 +229,7 @@ function ResetPasswordForm() {
           className="hover:text-primary underline underline-offset-4"
           href="/login"
         >
-          Back to login
+          {tAuthShared("backToLogin")}
         </Link>
       </div>
     </div>
@@ -231,12 +237,15 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPassword() {
+  const tCommon = useTranslations("common");
   return (
     <Suspense
       fallback={
         <div className="mx-auto flex min-w-[300px] flex-col gap-8 rounded-md p-6 lg:w-[384px] lg:px-8 lg:py-10">
           <div className="text-center">
-            <h1 className="text-xl font-semibold lg:text-2xl">Loading…</h1>
+            <h1 className="text-xl font-semibold lg:text-2xl">
+              {tCommon("states.loading")}
+            </h1>
           </div>
         </div>
       }

@@ -1,8 +1,9 @@
 "use client";
 
 import { TitleCard } from "@notra/ui/components/ui/title-card";
-import Image from "next/image";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { isHttpImageContent } from "@/utils/image-content";
 import { extractMarkdownImageSrc } from "@/utils/markdown-image";
 
@@ -17,6 +18,7 @@ function getImageSrc(content: ContentEditorProps["content"]): string | null {
 }
 
 export function ImageEditor({ content, imageExportRef }: ContentEditorProps) {
+  const t = useTranslations("content.editors");
   const imageSrc = getImageSrc(content);
 
   return (
@@ -40,7 +42,7 @@ export function ImageEditor({ content, imageExportRef }: ContentEditorProps) {
         </div>
       ) : (
         <div className="text-muted-foreground px-4 py-12 text-center text-sm">
-          Image data is unavailable.
+          {t("imageUnavailable")}
         </div>
       )}
     </TitleCard>

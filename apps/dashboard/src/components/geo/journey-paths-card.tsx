@@ -1,15 +1,21 @@
 "use client";
 
+import { Files01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { GeoJourneyPageStats } from "@notra/geo-core/types/geo";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
+import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import { useMemo } from "react";
+import { useTranslations } from "use-intl";
 
 import { JourneyCountCell } from "@/components/geo/journey-count-cell";
 import { JourneyStatCard } from "@/components/geo/journey-stat-card";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import type { JourneyPathsCardProps } from "@/types/geo";
+import type { JourneyPageKindStat, JourneyPathsCardProps } from "@/types/geo";
 import {
   journeyPageKindCounts,
   journeyPageKindStats,
@@ -25,14 +31,22 @@ export function JourneyPathsCard({
   previousTotalPages,
   previewRows,
   onOpenPath,
+  loading = false,
 }: JourneyPathsCardProps) {
+  const t = useTranslations("geo.journeyPathsCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const tCommon = useTranslations("common");
+  const kindLabels: Record<JourneyPageKindStat["kind"], string> = {
+    docs: tGeoShared("docs"),
+    blog: tCommon("labels.posts"),
+    other: tCommon("labels.other"),
+  };
   const kindCounts = useMemo(() => journeyPageKindCounts(pages), [pages]);
   const sampled = totalPages > pages.length;
-  const pageNoun = totalPages === 1 ? "page" : "pages";
   const columns: TableColumn<GeoJourneyPageStats>[] = [
     {
       key: "path",
-      header: "Page",
+      header: tGeoShared("page"),
       width: "1fr",
       sortable: true,
       cell: (row) => (
@@ -43,7 +57,7 @@ export function JourneyPathsCard({
     },
     {
       key: "journeys",
-      header: "Journeys",
+      header: tCommon("labels.journeys"),
       width: "9.5rem",
       align: "right",
       sortable: true,
@@ -59,26 +73,36 @@ export function JourneyPathsCard({
 
   return (
     <JourneyStatCard
-      caption={sampled ? `${pageNoun} (top ${pages.length} shown)` : pageNoun}
+      caption={
+        sampled
+          ? t("captionSampled", { count: totalPages, shown: pages.length })
+          : t("caption", { count: totalPages })
+      }
       delta={trafficVisitDelta(totalPages, previousTotalPages)}
-      emptyMessage={
-        failed ? "Could not load fetched pages" : "No fetched pages yet"
+      emptyMessage={failed ? t("loadFailed") : t("empty")}
+      emptyDescription={failed ? undefined : t("emptyDescription")}
+      emptyMedia={
+        failed ? undefined : (
+          <HugeiconsIcon icon={Files01Icon} className="size-5" />
+        )
       }
       emptySeed="geo-journey-paths"
-      eyebrow="Fetched pages"
-      stats={journeyPageKindStats(kindCounts, totalPages)}
+      eyebrow={tGeoShared("fetchedPages")}
+      stats={journeyPageKindStats(kindCounts, totalPages).map((stat) => ({
+        label: kindLabels[stat.kind],
+        value: tGeoShared("countPluralOnePageOther", { count: stat.pages }),
+      }))}
       total={totalPages}
     >
-      <Table
-        className="rounded-2xl"
+      <DataTable
         columns={columns}
         data={pages}
         defaultSort={{ key: "journeys", direction: "desc" }}
         getRowId={pathRowId}
         height={tableHeightFor(previewRows)}
+        loading={loading}
         onRowClick={onOpenPath}
         rowHeight={TABLE_ROW_HEIGHT}
-        scrollFade
       />
     </JourneyStatCard>
   );

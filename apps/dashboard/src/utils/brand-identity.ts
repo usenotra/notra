@@ -88,39 +88,14 @@ export function isBrandAnalysisRunning(
   );
 }
 
-export function getModalTitle(
-  isPendingSettings: boolean,
-  isAnalyzing: boolean,
-  status: string
-): string {
-  if (isPendingSettings) {
-    return "Loading...";
-  }
+export function getModalState(isAnalyzing: boolean, status: string) {
   if (isAnalyzing) {
-    return "Analyzing Website";
+    return "analyzing";
   }
   if (status === "failed") {
-    return "Analysis Failed";
+    return "failed";
   }
-  return "Add Your Brand";
-}
-
-export function getModalDescription(
-  isPendingSettings: boolean,
-  isAnalyzing: boolean,
-  status: string,
-  error?: string
-): string {
-  if (isPendingSettings) {
-    return "Checking your brand settings";
-  }
-  if (isAnalyzing) {
-    return "Please wait while we extract your brand information";
-  }
-  if (status === "failed") {
-    return error ?? "Something went wrong";
-  }
-  return "Enter your website URL to automatically extract your brand identity";
+  return "idle";
 }
 
 export const sanitizeBrandUrlInput = (value: string) =>

@@ -10,6 +10,10 @@ import {
 } from "@notra/geo-core/utils/ai-traffic";
 import { Badge } from "@notra/ui/components/ui/badge";
 import {
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -18,13 +22,13 @@ import {
 } from "@notra/ui/components/ui/sheet";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useMemo } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathTree } from "@/components/geo/journey-path-tree";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { CountryFlag } from "@/components/geo/twemoji";
-import { Table, type TableColumn } from "@/components/motion/table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoJourneyDetail } from "@/lib/hooks/use-geo";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
@@ -60,23 +64,36 @@ function SectionHeader({ title, meta }: { title: string; meta?: string }) {
   );
 }
 
-function buildJourneyColumns(
-  showReferer: boolean
-): TableColumn<GeoJourneyEvent>[] {
+function JourneyDetailContent({
+  journey,
+  events,
+  isLoading,
+}: {
+  journey: GeoJourney;
+  events: GeoJourneyEvent[];
+  isLoading: boolean;
+}) {
+  const t = useTranslations("geo.journeyDetailSheet");
+  const tGeoShared = useTranslations("geo.shared");
+  const tTime = useTranslations("common.time");
+  const locale = useLocale();
+  const tree = useMemo(() => buildJourneyPathTree(events), [events]);
+  const branches = countJourneyBranches(tree);
+  const showReferer = !isLoading && hasGeoJourneyReferers(events);
   const columns: TableColumn<GeoJourneyEvent>[] = [
     {
       key: "capturedAt",
-      header: "Time",
+      header: t("columns.time"),
       width: "7.5rem",
       cell: (event) => (
         <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
-          {formatGeoJourneyClock(event.capturedAt)}
+          {formatGeoJourneyClock(event.capturedAt, locale)}
         </span>
       ),
     },
     {
       key: "path",
-      header: "Path",
+      header: tGeoShared("path"),
       width: "1fr",
       minWidth: "10rem",
       cell: (event) => (
@@ -89,7 +106,7 @@ function buildJourneyColumns(
   if (showReferer) {
     columns.push({
       key: "referer",
-      header: "Referer",
+      header: t("columns.referer"),
       width: "8rem",
       cell: (event) => (
         <span className="block truncate text-xs">
@@ -100,54 +117,46 @@ function buildJourneyColumns(
   }
   columns.push({
     key: "country",
-    header: "Country",
+    header: tGeoShared("country"),
     width: "9rem",
     cell: (event) =>
       event.country ? (
         <span className="flex min-w-0 items-center gap-2 text-xs">
           <CountryFlag className="size-4 shrink-0" code={event.country} />
-          <span className="truncate">{countryName(event.country)}</span>
+          <span className="truncate">{countryName(event.country, locale)}</span>
         </span>
       ) : (
         <span className="text-muted-foreground">-</span>
       ),
   });
-  return columns;
-}
-
-function JourneyDetailContent({
-  journey,
-  events,
-  isLoading,
-}: {
-  journey: GeoJourney;
-  events: GeoJourneyEvent[];
-  isLoading: boolean;
-}) {
-  const tree = useMemo(() => buildJourneyPathTree(events), [events]);
-  const branches = countJourneyBranches(tree);
-  const columns = buildJourneyColumns(
-    !isLoading && hasGeoJourneyReferers(events)
-  );
   const fetchLimitMeta =
     !isLoading && events.length > 0 && events.length < journey.pages
-      ? `First ${events.length.toLocaleString()} of ${journey.pages.toLocaleString()} fetches`
+      ? t("fetchLimitMeta", {
+          shown: events.length.toLocaleString(locale),
+          total: journey.pages.toLocaleString(locale),
+        })
       : undefined;
   const branchMeta =
-    branches > 0
-      ? `Branched ${branches} ${branches === 1 ? "time" : "times"}`
-      : undefined;
+    branches > 0 ? t("branchMeta", { count: branches }) : undefined;
   const pathMeta =
     [fetchLimitMeta, branchMeta].filter(Boolean).join(" · ") || undefined;
   const stats = [
     {
-      label: "Span",
-      value: formatGeoJourneySpan(journey.firstSeenAt, journey.lastSeenAt),
+      label: tGeoShared("span"),
+      value: formatGeoJourneySpan(
+        journey.firstSeenAt,
+        journey.lastSeenAt,
+        tTime("underAMinute"),
+        locale
+      ),
     },
-    { label: "Fetches", value: journey.pages.toLocaleString() },
     {
-      label: "Unique pages",
-      value: journey.distinctPaths.toLocaleString(),
+      label: tGeoShared("fetches"),
+      value: journey.pages.toLocaleString(locale),
+    },
+    {
+      label: t("stats.uniquePages"),
+      value: journey.distinctPaths.toLocaleString(locale),
     },
   ];
 
@@ -160,17 +169,23 @@ function JourneyDetailContent({
             {formatGeoSource(journey.source)}
           </span>
           <Badge variant="secondary">
-            {journey.visitorType === "crawler" ? "Crawler" : "AI referral"}
+            {journey.visitorType === "crawler"
+              ? tGeoShared("crawler")
+              : tGeoShared("aiReferral")}
           </Badge>
         </SheetTitle>
         <SheetDescription className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <span>Last seen {formatAiTrafficTimestamp(journey.lastSeenAt)}</span>
+          <span>
+            {tGeoShared("lastSeenTime", {
+              time: formatAiTrafficTimestamp(journey.lastSeenAt, locale),
+            })}
+          </span>
           <span className="inline-flex min-w-0 items-center gap-1">
             <span className="bg-muted truncate rounded-sm px-1.5 py-0.5 font-mono text-xs">
               {journey.journeyId}
             </span>
             <Button
-              aria-label="Copy journey id"
+              aria-label={t("copyJourneyId")}
               className="size-6"
               onClick={() => copyToClipboard(journey.journeyId)}
               size="icon"
@@ -186,7 +201,7 @@ function JourneyDetailContent({
         <SheetStatGrid stats={stats} />
 
         <section className="space-y-3">
-          <SectionHeader meta={pathMeta} title="Path" />
+          <SectionHeader meta={pathMeta} title={tGeoShared("path")} />
           <div className="bg-muted/30 max-h-96 overflow-auto overscroll-contain rounded-xl border p-4">
             {isLoading ? (
               <div aria-hidden className="flex flex-col gap-3">
@@ -204,12 +219,11 @@ function JourneyDetailContent({
         </section>
 
         <section className="space-y-3">
-          <SectionHeader meta={fetchLimitMeta} title="Fetches" />
-          <Table
-            className="rounded-2xl"
+          <SectionHeader meta={fetchLimitMeta} title={tGeoShared("fetches")} />
+          <DataTable
             columns={columns}
             data={events}
-            emptyState="No fetches captured for this journey"
+            emptyState={t("noFetches")}
             getRowId={(event, index) =>
               `${event.capturedAt}-${event.path}-${index}`
             }

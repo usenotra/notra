@@ -21,7 +21,6 @@ export function getGitHubAppPermissionsRecovery({
   });
 
   return {
-    message: "The GitHub App needs write access to Contents and Pull requests.",
     data: {
       code: "github_app_permissions_required" as const,
       ...(permissionsUrl ? { permissionsUrl } : {}),
@@ -51,9 +50,6 @@ export function getGitHubPublishFailurePolicy(
       failureKind,
       recordFailure: false,
       recovery: {
-        message: usesToken
-          ? "The saved GitHub token was rejected. Update it or connect this repository through the GitHub App."
-          : "GitHub App authentication failed. Review the installation and save your repository selection again.",
         data: {
           code: usesToken
             ? "github_token_authentication_required"
@@ -68,8 +64,6 @@ export function getGitHubPublishFailurePolicy(
         failureKind,
         recordFailure: false,
         recovery: {
-          message:
-            "The saved GitHub token needs write access to repository contents and pull requests.",
           data: { code: "github_token_permissions_required" },
         },
       };

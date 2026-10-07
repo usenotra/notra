@@ -1,0 +1,39 @@
+---
+title: Codex
+description: A full recreation of an OpenAI Codex CLI session, from the banner to the pinned prompt.
+---
+
+A rebuild of a session in OpenAI's Codex CLI, composed from the [Codex components](/components/codex/terminal). It has the banner and greeting, a banded user turn, a `Ran` cell with shell colors and folded output, an `Explored` group and a markdown answer with a list and a table. The composer is pinned under the transcript and works: type a prompt and press Enter, and Codex shows `Working`, runs its command, and streams the answer. Press Escape to interrupt the turn.
+
+<Component path="codex/examples/codex-demo" />
+
+## Installation
+
+<RegistryInstall name="codex" />
+
+This adds every Codex component to `components/codex` along with the demo session.
+
+It also adds the `useCodexChat` hook that plays back the scripted replies in `CODEX_REPLIES`. Pass `chat.busy`, `chat.send` and `chat.stop` to `CodexComposer` as `busy`, `onSend` and `onStop`, and show `CodexWorking` above it while `busy`. Replace the hook with your agent's stream to run a real session.
+
+The components use the system monospace stack through `font-codex`. Point it at your own mono font to change it.
+
+## CodexTerminal
+
+The root is a shadcn `Card` with the window chrome, so it takes every `Card` prop. `title` sets the text in the title bar and `footer` pins content under the scrolling transcript. Put `CodexHeader`, `CodexMessage`, `CodexExec`, `CodexExplored` and `CodexWorking` inside it in transcript order and pass `CodexComposer` as the `footer`.
+
+## Theming
+
+The block is built on the shadcn Base UI style. It uses shadcn `Button`, `Card`, `Collapsible`, `InputGroup`, `Kbd`, `ScrollArea` and `Table`, and the CLI installs any you're missing.
+
+Its colors are `--codex-*` tokens that the CLI adds to your CSS, mapped to utilities like `bg-codex-bg` and `text-codex-blue`. They ship with a light and a dark terminal palette, so the window follows your app's theme. Change them in your CSS to retheme it, or point them at your own tokens:
+
+```css
+:root {
+  --codex-bg: var(--card);
+  --codex-blue: var(--primary);
+}
+```
+
+## Trademarks
+
+OpenAI and Codex are trademarks of OpenAI OpCo, LLC. Notra is not affiliated with or endorsed by OpenAI. Logos and brand assets in the demo belong to their respective owners. See [Trademarks](/trademarks).

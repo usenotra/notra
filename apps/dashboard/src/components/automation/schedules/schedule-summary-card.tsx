@@ -4,14 +4,9 @@ import { Calendar02Icon, Clock04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSyncExternalStore } from "react";
 
+import { useScheduleSummary } from "@/lib/hooks/use-schedule-summary";
 import type { ScheduleSummaryCardProps } from "@/types/automation/schedule";
-import {
-  computeNextRun,
-  formatNextRunDate,
-  formatNextRunRelative,
-  formatScheduleSummary,
-  getLocalTimezone,
-} from "@/utils/schedule-summary";
+import { computeNextRun, getLocalTimezone } from "@/utils/schedule-summary";
 
 const NOW_REFRESH_INTERVAL_MS = 60_000;
 const nowListeners = new Set<() => void>();
@@ -48,7 +43,13 @@ export function ScheduleSummaryCard({ schedule }: ScheduleSummaryCardProps) {
     getServerNowSnapshot
   );
 
-  const summary = formatScheduleSummary(schedule);
+  const {
+    summary: formatSummary,
+    relative: formatRelative,
+    nextRunDate,
+    t,
+  } = useScheduleSummary();
+  const summary = formatSummary(schedule);
 
   if (!now) {
     return (
@@ -65,8 +66,8 @@ export function ScheduleSummaryCard({ schedule }: ScheduleSummaryCardProps) {
   }
 
   const nextRun = computeNextRun(schedule, now);
-  const relative = formatNextRunRelative(nextRun, now);
-  const formatted = formatNextRunDate(nextRun);
+  const relative = formatRelative(nextRun, now);
+  const formatted = nextRunDate(nextRun);
   const tz = getLocalTimezone();
 
   return (
@@ -89,7 +90,7 @@ export function ScheduleSummaryCard({ schedule }: ScheduleSummaryCardProps) {
           icon={Clock04Icon}
         />
         <p className="text-muted-foreground text-sm">
-          Next run: {formatted} ({relative}) &middot;{" "}
+          {t("nextRun", { date: formatted, relative })} &middot;{" "}
           <span className="text-muted-foreground/80">{tz}</span>
         </p>
       </div>

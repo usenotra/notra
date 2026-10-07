@@ -35,41 +35,42 @@ function buildFetchOptions(token: string): RequestInit {
 const HTTP_NOT_FOUND = 404;
 const HTTP_UNAUTHORIZED = 401;
 
-class TokenRejected extends Error {}
+class GitHubRequestFailed extends Data.TaggedError("GitHubRequestFailed")<{
+  readonly cause: unknown;
+}> {}
 
-async function fetchJson<T>(url: string, token: string): Promise<T | null> {
-  let res: Response;
-  try {
-    res = await fetch(url, buildFetchOptions(token));
-  } catch {
-    return null;
-  }
-  if (res.status === HTTP_UNAUTHORIZED) {
-    throw new TokenRejected();
-  }
-  if (!res.ok) {
-    return null;
-  }
-  try {
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
-}
+const requestGitHub = (url: string, token: string) =>
+  Effect.tryPromise({
+    try: (signal) => fetch(url, { ...buildFetchOptions(token), signal }),
+    catch: (cause) => new GitHubRequestFailed({ cause }),
+  });
 
-async function fetchRepoMeta(
-  base: string,
-  token: string
-): Promise<{ status: number; data: GitHubRepo | null }> {
-  try {
-    const res = await fetch(base, buildFetchOptions(token));
-    if (!res.ok) {
-      return { status: res.status, data: null };
+const readGitHubJson = <T>(response: Response) =>
+  Effect.tryPromise({
+    try: () => response.json() as Promise<T>,
+    catch: (cause) => new GitHubRequestFailed({ cause }),
+  });
+
+/**
+ * Avatar sources are best effort: a failed or non-OK request yields `null` so
+ * the next source can be tried. Only a rejected token is a real failure.
+ */
+function fetchAvatarSource<T>(
+  url: string,
+  token: string,
+  owner: string,
+  repo: string
+): Effect.Effect<T | null, RepoUnauthorized> {
+  return Effect.gen(function* () {
+    const response = yield* requestGitHub(url, token);
+    if (response.status === HTTP_UNAUTHORIZED) {
+      return yield* Effect.fail(new RepoUnauthorized({ owner, repo }));
     }
-    return { status: res.status, data: (await res.json()) as GitHubRepo };
-  } catch {
-    return { status: 0, data: null };
-  }
+    if (!response.ok) {
+      return null;
+    }
+    return yield* readGitHubJson<T>(response);
+  }).pipe(Effect.catchTag("GitHubRequestFailed", () => Effect.succeed(null)));
 }
 
 function withSize(avatarUrl: string): string {
@@ -92,35 +93,43 @@ function toAvatarUrls(users: GitHubUser[] | null): string[] {
   return urls;
 }
 
-async function fetchAvatars(base: string, token: string): Promise<string[]> {
-  const stargazers = await fetchJson<GitHubUser[]>(
+const fetchAvatars = Effect.fnUntraced(function* (
+  base: string,
+  token: string,
+  owner: string,
+  repo: string
+) {
+  const stargazers = yield* fetchAvatarSource<GitHubUser[]>(
     `${base}/stargazers?per_page=100`,
-    token
+    token,
+    owner,
+    repo
   );
   const fromStars = toAvatarUrls(stargazers);
   if (fromStars.length > 0) {
     return fromStars;
   }
 
-  const contributors = await fetchJson<GitHubUser[]>(
+  const contributors = yield* fetchAvatarSource<GitHubUser[]>(
     `${base}/contributors?per_page=100`,
-    token
+    token,
+    owner,
+    repo
   );
   const fromContributors = toAvatarUrls(contributors);
   if (fromContributors.length > 0) {
     return fromContributors;
   }
 
-  const commits = await fetchJson<Array<{ author: GitHubUser | null }>>(
-    `${base}/commits?per_page=100`,
-    token
-  );
+  const commits = yield* fetchAvatarSource<
+    Array<{ author: GitHubUser | null }>
+  >(`${base}/commits?per_page=100`, token, owner, repo);
   return toAvatarUrls(
     (commits ?? [])
       .map((commit) => commit.author)
       .filter((author): author is GitHubUser => Boolean(author))
   );
-}
+});
 
 export const fetchRepoStarData = Effect.fn("fetchRepoStarData")(function* (
   owner: string,
@@ -129,30 +138,31 @@ export const fetchRepoStarData = Effect.fn("fetchRepoStarData")(function* (
 ) {
   const base = `https://api.github.com/repos/${owner}/${repo}`;
 
-  const meta = yield* Effect.promise(() => fetchRepoMeta(base, token));
+  const metaResponse = yield* requestGitHub(base, token).pipe(
+    Effect.mapError(() => new RepoUnavailable({ owner, repo }))
+  );
 
-  if (meta.status === HTTP_NOT_FOUND) {
+  if (metaResponse.status === HTTP_NOT_FOUND) {
     return yield* Effect.fail(new RepoNotFound({ owner, repo }));
   }
 
-  if (meta.status === HTTP_UNAUTHORIZED) {
+  if (metaResponse.status === HTTP_UNAUTHORIZED) {
     return yield* Effect.fail(new RepoUnauthorized({ owner, repo }));
   }
 
-  const repoData = meta.data;
-
-  if (!repoData) {
+  if (!metaResponse.ok) {
     return yield* Effect.fail(new RepoUnavailable({ owner, repo }));
   }
+
+  const repoData = yield* readGitHubJson<GitHubRepo>(metaResponse).pipe(
+    Effect.mapError(() => new RepoUnavailable({ owner, repo }))
+  );
 
   if (repoData.private) {
     return yield* Effect.fail(new RepoNotFound({ owner, repo }));
   }
 
-  const avatars = yield* Effect.tryPromise({
-    try: () => fetchAvatars(base, token),
-    catch: () => new RepoUnauthorized({ owner, repo }),
-  });
+  const avatars = yield* fetchAvatars(base, token, owner, repo);
   const resolvedOwner = repoData.full_name.split("/")[0] ?? owner;
 
   return {

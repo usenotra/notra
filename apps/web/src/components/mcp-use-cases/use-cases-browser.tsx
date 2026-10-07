@@ -1,8 +1,6 @@
-"use client";
-
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 import { HeroDither } from "@/components/landing/hero-dither";
@@ -57,7 +55,7 @@ export function McpUseCasesBrowser({
               <CtaButton
                 className="w-full sm:w-auto"
                 nativeButton={false}
-                render={<Link href="/mcp" />}
+                render={<Link to="/mcp" />}
                 variant="primary"
               >
                 {MCP_USE_CASES_PRIMARY_CTA}
@@ -65,7 +63,7 @@ export function McpUseCasesBrowser({
               <CtaButton
                 className="w-full sm:w-auto"
                 nativeButton={false}
-                render={<Link href={MCP_USE_CASES_SHARE_HREF} />}
+                render={<Link to={MCP_USE_CASES_SHARE_HREF} />}
                 variant="light"
               >
                 {MCP_USE_CASES_SECONDARY_CTA}

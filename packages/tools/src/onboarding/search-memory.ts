@@ -21,6 +21,7 @@ export function createSearchMemoryTool() {
           retryTransientEffect(
             requestSupermemoryEffect("/v4/search", {
               q: query,
+              searchMode: "hybrid",
               limit,
               rerank: true,
               containerTag: getOrganizationContainerTag(organizationId),
@@ -35,13 +36,14 @@ export function createSearchMemoryTool() {
           documentId: result.documentId ?? null,
           content:
             result.memory ??
+            result.chunk ??
             result.chunks
               ?.filter((chunk) => chunk.isRelevant !== false)
               .map((chunk) => chunk.content)
               .filter(Boolean)
               .join("\n") ??
             null,
-          score: result.score ?? null,
+          score: result.similarity ?? result.score ?? null,
         })),
       };
     },

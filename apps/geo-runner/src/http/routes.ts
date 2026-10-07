@@ -1,15 +1,14 @@
 import { geoLog, useLogger } from "@notra/ai/evlog";
 import { isAiGatewayConfigured } from "@notra/ai/gateway";
 import { db } from "@notra/db/drizzle";
+import { geoAdhocScans } from "@notra/db/schema";
 import {
   createGeoAdhocScan,
-  discardQueuedGeoAdhocScan,
   getGeoAdhocScan,
   listGeoAdhocScanModels,
   requireQueuedGeoAdhocScan,
 } from "@notra/geo-core/geo/adhoc-scan";
 import { describeGeoError } from "@notra/geo-core/utils/geo-log";
-import { sql } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -65,6 +64,12 @@ export function createApp(
   });
 
   app.use("*", async (c, next) => {
+    c.header("cache-control", "no-store");
+    if (c.req.path === "/health" || c.req.path === "/ready") {
+      await next();
+      c.header("cache-control", "no-store");
+      return;
+    }
     const startedAt = performance.now();
     const requestId = c.req.header("x-request-id") ?? crypto.randomUUID();
     useLogger().set({
@@ -78,6 +83,8 @@ export function createApp(
     try {
       await next();
     } finally {
+      c.header("cache-control", "no-store");
+      c.header("x-request-id", requestId);
       const event = {
         event: "geo.runner.request" as const,
         method: c.req.method,
@@ -115,8 +122,15 @@ export function createApp(
     if (!isAiGatewayConfigured()) {
       return notReady();
     }
+    if (
+      process.env.NODE_ENV === "production" &&
+      !process.env.AUTUMN_SECRET_KEY?.trim()
+    ) {
+      return notReady();
+    }
     try {
-      await db.execute(sql`select 1`);
+      // Validate the runner's migrated columns without reading scan data.
+      await db.select().from(geoAdhocScans).limit(0);
       return c.json({ ok: true });
     } catch (error) {
       geoLog.error({
@@ -193,9 +207,8 @@ export function createApp(
         }
         const accepted = yield* queue.offer(scan.id);
         if (!accepted) {
-          if (scan.created) {
-            yield* discardQueuedGeoAdhocScan(scan.id);
-          }
+          // Another replica may already have accepted a retry of this row.
+          // Local backpressure must not delete shared durable scan state.
           return failure(
             503,
             "runner_busy",

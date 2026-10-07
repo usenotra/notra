@@ -6,10 +6,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useTranslations } from "use-intl";
 
 import { useBillingCustomer } from "@/lib/hooks/use-billing-customer";
 
 export function LogRetentionHint() {
+  const t = useTranslations("logs.retention");
   const { check, data: customer } = useBillingCustomer();
   let days = 7;
   if (
@@ -26,15 +28,12 @@ export function LogRetentionHint() {
   return (
     <Tooltip>
       <TooltipTrigger
-        aria-label="Log retention information"
+        aria-label={t("label")}
         className="text-muted-foreground hover:text-foreground inline-flex cursor-help transition-colors"
       >
         <HugeiconsIcon className="size-3.5" icon={InformationCircleIcon} />
       </TooltipTrigger>
-      <TooltipContent>
-        Log data is retained for {days} days. Older entries are automatically
-        removed.
-      </TooltipContent>
+      <TooltipContent>{t("description", { days })}</TooltipContent>
     </Tooltip>
   );
 }

@@ -4,14 +4,16 @@ import type { PostStatus } from "@notra/schemas/dashboard/content";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { dashboardOrpc } from "../orpc/query";
 
 /**
- * Delete and publish actions for a post, shared by every surface that lists
- * posts (cards, sidebar) so the toasts and cache invalidations stay identical.
+ * Shared post and collection actions keep toasts and list caches consistent.
  */
 export function usePostActions(organizationId: string) {
+  const tToast = useTranslations("content.toasts");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
@@ -21,6 +23,9 @@ export function usePostActions(organizationId: string) {
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.list.key(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: dashboardOrpc.content.recents.key(),
         }),
         queryClient.invalidateQueries({
           queryKey: dashboardOrpc.content.home.get.key(),
@@ -46,19 +51,40 @@ export function usePostActions(organizationId: string) {
       return dashboardOrpc.content.delete
         .call({ organizationId, contentId })
         .then(async () => {
-          toast.success("Post deleted");
+          toast.success(tToast("postDeleted"));
           await invalidateLists();
           return true;
         })
         .catch(() => {
-          toast.error("Failed to delete post");
+          toast.error(tToast("deletePostFailed"));
           return false;
         })
         .finally(() => {
           setIsDeleting(false);
         });
     },
-    [invalidateLists, organizationId]
+    [invalidateLists, organizationId, tToast]
+  );
+
+  const deleteCollection = useCallback(
+    (collectionId: string) => {
+      setIsDeleting(true);
+      return dashboardOrpc.content.collections.delete
+        .call({ organizationId, collectionId })
+        .then(async () => {
+          toast.success(tToast("collectionDeleted"));
+          await invalidateLists();
+          return true;
+        })
+        .catch(() => {
+          toast.error(tToast("deleteCollectionFailed"));
+          return false;
+        })
+        .finally(() => {
+          setIsDeleting(false);
+        });
+    },
+    [invalidateLists, organizationId, tToast]
   );
 
   const togglePostStatus = useCallback(
@@ -74,8 +100,8 @@ export function usePostActions(organizationId: string) {
         .then(async () => {
           toast.success(
             nextStatus === "published"
-              ? "Post published"
-              : "Post moved to drafts"
+              ? tCommon("labels.postPublished")
+              : tToast("postMovedToDrafts")
           );
           await Promise.all([
             invalidateLists(),
@@ -88,15 +114,21 @@ export function usePostActions(organizationId: string) {
           return true;
         })
         .catch(() => {
-          toast.error("Failed to update post status");
+          toast.error(tToast("updatePostStatusFailed"));
           return false;
         })
         .finally(() => {
           setIsTogglingStatus(false);
         });
     },
-    [invalidateLists, organizationId, queryClient]
+    [invalidateLists, organizationId, queryClient, tToast, tCommon]
   );
 
-  return { deletePost, isDeleting, isTogglingStatus, togglePostStatus };
+  return {
+    deletePost,
+    deleteCollection,
+    isDeleting,
+    isTogglingStatus,
+    togglePostStatus,
+  };
 }

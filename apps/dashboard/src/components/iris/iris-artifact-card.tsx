@@ -1,7 +1,8 @@
 import { Badge } from "@notra/ui/components/ui/badge";
-import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
+import Link from "@/components/framework/link";
 import type { IrisArtifactCardProps } from "@/types/iris";
 import { humanizeIrisContentType } from "@/utils/iris-copy";
 
@@ -9,9 +10,10 @@ export function IrisArtifactCard({
   artifact,
   organizationSlug,
 }: IrisArtifactCardProps) {
+  const tCommon = useTranslations("common");
   return (
     <Link
-      className="border-border hover:bg-muted/50 flex gap-3 rounded-xl border p-3 transition-colors"
+      className="border-border hover:bg-muted/50 flex min-w-0 gap-3 rounded-xl border p-3 transition-colors"
       href={`/${organizationSlug}/content/${artifact.postId}`}
     >
       {artifact.imageUrl ? (
@@ -32,10 +34,14 @@ export function IrisArtifactCard({
           <Badge
             variant={artifact.status === "published" ? "default" : "ghost"}
           >
-            {artifact.status === "published" ? "Published" : "Draft"}
+            {artifact.status === "published"
+              ? tCommon("labels.published")
+              : tCommon("labels.draft")}
           </Badge>
         </div>
-        <p className="truncate text-sm font-medium">{artifact.title}</p>
+        <p className="truncate text-sm font-medium" title={artifact.title}>
+          {artifact.title}
+        </p>
         <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
           {artifact.excerpt}
         </p>

@@ -135,6 +135,7 @@ export interface LinearContext {
 
 export interface OrchestrateInput {
   organizationId: string;
+  chatId?: string;
   messages: UIMessage[];
   currentMarkdown: string;
   contentType?: string;
@@ -145,6 +146,7 @@ export interface OrchestrateInput {
   selection?: TextSelection;
   context?: ContextItem[];
   maxSteps?: number;
+  abortSignal?: AbortSignal;
   log?: AILogTarget;
   timezone?: string;
   telemetryMetadata?: TccMetadata;
@@ -169,6 +171,7 @@ export interface OrchestrateDeps {
     modelId: string,
     routeUsage?: RouteUsageSummary
   ) => void | Promise<void>;
+  onFirstChunk?: () => void;
   log?: AILogTarget;
 }
 
@@ -195,6 +198,9 @@ export interface BuildStandaloneToolSetParams {
   chatId?: string;
   userId?: string;
   useMarkup?: boolean;
+  chargeAiCredits?: boolean;
+  // Lets the chat read connected repositories through the code researcher.
+  codeResearch?: boolean;
   validatedIntegrations: ValidatedIntegration[];
   postResult: PostToolsResult;
 }

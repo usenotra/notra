@@ -3,6 +3,7 @@
 import type { TextSelection } from "@notra/ai/types/chat";
 import { Button } from "@notra/ui/components/ui/button";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
 import { ContentPlanView } from "@/components/content/content-plan-view";
 import { ContentEditorSwitch } from "@/components/content/editors";
@@ -23,6 +24,8 @@ function GeoWriterPlanDocument({
   contentId,
   document,
 }: Pick<ContentDetailMainDocumentProps, "contentId" | "document">) {
+  const t = useTranslations("content.detail.plan");
+  const tCommon = useTranslations("common.actions");
   const {
     briefStatus,
     geoWriterBriefQuery,
@@ -30,6 +33,7 @@ function GeoWriterPlanDocument({
     handlePlanBriefChange,
     hasPlanConflict,
     isGeoWriterBriefError,
+    isGeoWriterBriefMissing,
     isGeoWriterPlanReviewableNow,
     planEditorVersion,
     resolvePlanConflictLoadLatest,
@@ -37,6 +41,17 @@ function GeoWriterPlanDocument({
     setIsPlanDirty,
   } = document;
   const planBrief = geoWriterBriefQuery.data?.brief;
+
+  if (isGeoWriterBriefMissing) {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-1 py-12 text-center">
+        <p className="font-medium">{t("missingTitle")}</p>
+        <p className="text-muted-foreground text-sm">
+          {t("missingDescription")}
+        </p>
+      </div>
+    );
+  }
 
   if (planBrief) {
     return (
@@ -47,9 +62,9 @@ function GeoWriterPlanDocument({
             role="alert"
           >
             <div>
-              <p className="text-sm font-medium">This plan changed elsewhere</p>
+              <p className="text-sm font-medium">{t("conflictTitle")}</p>
               <p className="text-muted-foreground text-sm">
-                Your edits are preserved. Choose which version to keep.
+                {t("conflictDescription")}
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
@@ -58,10 +73,10 @@ function GeoWriterPlanDocument({
                 size="sm"
                 variant="outline"
               >
-                Load latest
+                {t("loadLatest")}
               </Button>
               <Button onClick={resolvePlanConflictSaveMine} size="sm">
-                Save my version
+                {t("saveMine")}
               </Button>
             </div>
           </div>
@@ -87,9 +102,9 @@ function GeoWriterPlanDocument({
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 py-12 text-center">
         <div>
-          <p className="font-medium">Could not load this content plan</p>
+          <p className="font-medium">{t("loadFailedTitle")}</p>
           <p className="text-muted-foreground text-sm">
-            Try again to continue reviewing or generating this content.
+            {t("loadFailedDescription")}
           </p>
         </div>
         <Button
@@ -100,7 +115,9 @@ function GeoWriterPlanDocument({
           size="sm"
           variant="outline"
         >
-          {geoWriterBriefQuery.isFetching ? "Trying again…" : "Try again"}
+          {geoWriterBriefQuery.isFetching
+            ? t("tryingAgain")
+            : tCommon("tryAgain")}
         </Button>
       </div>
     );
@@ -148,8 +165,19 @@ export function ContentDetailMainDocument({
     serverTitle,
     writeFocusNonce,
   } = contentDocument;
+  const t = useTranslations("content.detail");
   const { activeOrganization } = useOrganizationsContext();
   const content = data.content;
+
+  if (contentDocument.isGeoArticleLoading) {
+    return (
+      <div className="space-y-6" role="status">
+        <span className="sr-only">{t("loadingArticle")}</span>
+        <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
 
   if (isGeoWriterPlanMode) {
     return (
@@ -190,7 +218,7 @@ export function ContentDetailMainDocument({
       editorRef={editorRef}
       imageExportRef={imageExportRef}
       organization={{
-        name: activeOrganization?.name ?? "Your Organization",
+        name: activeOrganization?.name ?? t("yourOrganization"),
         logo: activeOrganization?.logo ?? null,
       }}
       organizationId={organizationId}

@@ -28,6 +28,11 @@ export interface GeoAdhocScanCheck {
   outputTokens: number | null;
   reasoningTokens: number | null;
   zdrEnforced: boolean | null;
+  /** Wall time for this answer and its judge, excluding retries. */
+  durationMs: number | null;
+  /** Estimated engine and judge cost before billing markup. */
+  costUsd: number | null;
+  judgeTokens: number | null;
   capturedAt: string;
 }
 

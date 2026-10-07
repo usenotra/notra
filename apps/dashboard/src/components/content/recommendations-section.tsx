@@ -7,6 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@notra/ui/components/ui/collapsible";
+import { useTranslations } from "use-intl";
 
 import { markdownToElements } from "@/utils/inline-markdown";
 
@@ -15,6 +16,7 @@ interface RecommendationsSectionProps {
 }
 
 export function RecommendationsSection({ value }: RecommendationsSectionProps) {
+  const t = useTranslations("content.detail");
   if (!value?.trim()) {
     return null;
   }
@@ -27,7 +29,7 @@ export function RecommendationsSection({ value }: RecommendationsSectionProps) {
           icon={ArrowDown01Icon}
           size={14}
         />
-        Recommendations
+        {t("recommendations")}
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none pt-2">

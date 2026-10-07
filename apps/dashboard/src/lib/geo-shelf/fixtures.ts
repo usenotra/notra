@@ -203,7 +203,7 @@ const TEMPLATES: FixtureTemplate[] = [
   },
   {
     slug: "competitor-blog",
-    url: "https://blog.example-competitor.com/alternatives",
+    url: "https://blog.example.net/alternatives",
     title: (ctx) =>
       `${ctx.competitors[0]?.name ?? "Competitor"} alternatives: 7 tools worth a look`,
     kind: "listicle",

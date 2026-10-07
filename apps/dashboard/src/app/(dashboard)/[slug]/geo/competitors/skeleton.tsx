@@ -1,20 +1,16 @@
 "use client";
 
-import { PlusSignIcon, Upload01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Kbd } from "@notra/ui/components/ui/kbd";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { DataTableSkeleton } from "@notra/ui/components/ui/data-table";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
-import {
-  GeoSectionSkeleton,
-  GeoTableSkeleton,
-} from "@/components/geo/skeleton-parts";
 import { PageContainer } from "@/components/layout/container";
 
 const COMPETITOR_ROW_COUNT = 6;
 
 export function CompetitorDetailSkeleton() {
+  const tGeoShared = useTranslations("geo.shared");
   return (
     <div className="space-y-6">
       <div className="flex min-w-0 items-center gap-3">
@@ -26,7 +22,7 @@ export function CompetitorDetailSkeleton() {
       </div>
       <div className="space-y-2">
         <h2 className="text-base font-semibold text-pretty">
-          Mentions over time
+          {tGeoShared("mentionsOverTime")}
         </h2>
         <Skeleton className="h-56 w-full" />
       </div>
@@ -39,33 +35,22 @@ export function CompetitorDetailSkeleton() {
 }
 
 export function GeoCompetitorsSkeleton() {
+  const t = useTranslations("geo.pages.competitors");
+  const tCommon = useTranslations("common");
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full space-y-6 px-4 lg:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Competitors</h1>
-            <p className="text-muted-foreground">
-              Who AI engines recommend instead of you
-            </p>
-          </div>
+        <PageHeading
+          description={t("description")}
+          title={tCommon("labels.competitors")}
+        >
           <div className="flex items-center gap-2">
-            <Skeleton className="h-9 w-36 rounded-md" />
-            <Button className="gap-1.5" variant="outline">
-              <HugeiconsIcon className="size-4" icon={Upload01Icon} />
-              Import CSV
-            </Button>
-            <Button className="gap-1.5">
-              <HugeiconsIcon className="size-4" icon={PlusSignIcon} />
-              Add Competitor
-              <Kbd className="ml-1 hidden sm:inline-flex">C</Kbd>
-            </Button>
+            <Skeleton className="h-8 w-36 rounded-md" />
+            <Skeleton className="h-7 w-48 rounded-md" />
           </div>
-        </header>
-        <GeoTableSkeleton rows={COMPETITOR_ROW_COUNT} />
-        <GeoSectionSkeleton eyebrow="Share of voice">
-          <Skeleton className="h-64 w-full rounded-xl" />
-        </GeoSectionSkeleton>
+        </PageHeading>
+        <Skeleton className="h-96 w-full rounded-2xl" />
+        <DataTableSkeleton rows={COMPETITOR_ROW_COUNT} />
       </div>
     </PageContainer>
   );

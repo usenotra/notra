@@ -1,25 +1,22 @@
 "use client";
 
 import {
-  GEO_MENTION_ACTIVITY_LABEL,
   GEO_MENTION_TREND_LINE_KEY,
-  GEO_MENTION_TREND_LINE_LABEL,
   GEO_MENTION_TREND_TOTAL_KEY,
-  GEO_MENTION_TREND_TOTAL_LABEL,
 } from "@notra/geo-core/constants/geo";
 import type { MentionTrendRow } from "@notra/geo-core/types/geo";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
-import { geoScanEmptyMessage } from "@notra/geo-core/utils/geo-scan";
+import {
+  InstrumentEmpty,
+  InstrumentModule,
+} from "@notra/ui/components/instrument/instrument-module";
 import { useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { EmptyStateTrendPreview } from "@/components/empty-state-preview";
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
 import { MentionTrendAgentsPicker } from "@/components/geo/mention-trend-agents";
-import {
-  InstrumentEmpty,
-  InstrumentModule,
-} from "@/components/instrument/instrument-module";
 import { CHART_MUTED_COLOR, CHART_PRIMARY_COLOR } from "@/constants/charts";
 import type { ChartConfig } from "@/types/charts";
 import type { MentionTrendCardProps, MentionTrendSeries } from "@/types/geo";
@@ -31,7 +28,7 @@ import {
   buildMentionTrendRows,
   fitMentionTrendLine,
   formatChartInteger,
-  mentionTrendEmptyLabel,
+  mentionTrendEmptyState,
 } from "@/utils/geo-charts";
 
 const TOTAL_STROKE_WIDTH = 2;
@@ -75,9 +72,12 @@ export function MentionTrendCard({
   points,
   isScanning = false,
 }: MentionTrendCardProps) {
+  const t = useTranslations("geo.mentionTrendCard");
+  const tGeoShared = useTranslations("geo.shared");
+  const locale = useLocale();
   const [activeKeys, setActiveKeys] = useState<Set<string>>(() => new Set());
 
-  const { rows, engines } = buildMentionTrendRows(points);
+  const { rows, engines } = buildMentionTrendRows(points, locale);
   const series = mentionTrendSeries(engines).filter((entry) =>
     rows.some((row) => {
       const value = row[entry.key];
@@ -100,11 +100,11 @@ export function MentionTrendCard({
   });
   const config: ChartConfig = {
     [GEO_MENTION_TREND_TOTAL_KEY]: {
-      label: GEO_MENTION_TREND_TOTAL_LABEL,
+      label: tGeoShared("allModels"),
       colors: seriesColors(CHART_PRIMARY_COLOR),
     },
     [GEO_MENTION_TREND_LINE_KEY]: {
-      label: GEO_MENTION_TREND_LINE_LABEL,
+      label: tGeoShared("trendLabel"),
       colors: seriesColors(CHART_MUTED_COLOR),
     },
   };
@@ -122,13 +122,10 @@ export function MentionTrendCard({
     setActiveKeys((previous) => toggleActiveSeries(previous, key));
   };
 
-  const emptyMessage =
-    sampledDays === 0
-      ? geoScanEmptyMessage(
-          isScanning,
-          "Run a scan to see your visibility trend"
-        )
-      : null;
+  const idleEmptyMessage = isScanning
+    ? tGeoShared("scanningEngines")
+    : t("runScan");
+  const emptyMessage = sampledDays === 0 ? idleEmptyMessage : null;
 
   return (
     <InstrumentModule
@@ -142,7 +139,7 @@ export function MentionTrendCard({
       }
       bodyClassName="flex min-h-0 flex-1 flex-col px-4 pt-1 pb-4"
       className="h-full"
-      eyebrow={GEO_MENTION_ACTIVITY_LABEL}
+      eyebrow={t("eyebrow")}
       variant="table"
     >
       {emptyMessage ? (
@@ -156,7 +153,7 @@ export function MentionTrendCard({
       ) : (
         <EChartsAreaChart
           animation={false}
-          className="min-h-64 w-full flex-1"
+          className="min-h-64 w-full flex-1 cursor-crosshair"
           config={config}
           curveType="monotone"
           data={chartRows}
@@ -201,14 +198,19 @@ export function MentionTrendCard({
           />
           <EChartsAreaChart.Tooltip
             confine={false}
-            emptyLabel={(row) => mentionTrendEmptyLabel(row, allKeys)}
-            labelFormatter={formatFullDayLabel}
+            emptyLabel={(row) =>
+              tGeoShared(mentionTrendEmptyState(row, allKeys))
+            }
+            labelFormatter={(day: string) => formatFullDayLabel(day, locale)}
             labelKey="rawDay"
             layout="activity"
             position="fixed"
             roundness="xl"
             rowKeys={visibleKeys}
-            valueFormatter={formatChartInteger}
+            scrub
+            valueFormatter={(value: number) =>
+              formatChartInteger(value, locale)
+            }
           />
         </EChartsAreaChart>
       )}

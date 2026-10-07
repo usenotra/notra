@@ -36,6 +36,7 @@ export type {
   CommandRoute,
   CommandSection,
 } from "@/types/components/command-palette";
+import type { NavVisibility } from "@/types/components/nav";
 
 export const COMMAND_ROUTES: CommandRoute[] = [
   {
@@ -61,6 +62,7 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     icon: Analytics01Icon,
     section: "Navigation",
     path: (slug) => `/${slug}/analytics`,
+    flag: "analytics",
   },
   {
     id: "geo",
@@ -268,22 +270,6 @@ export const COMMAND_ROUTES: CommandRoute[] = [
     path: (slug) => `/${slug}/integrations/github`,
   },
   {
-    id: "settings-integrations",
-    label: "Integrations",
-    keywords: [
-      "github",
-      "linear",
-      "slack",
-      "granola",
-      "connect",
-      "repositories",
-    ],
-    icon: PlugIcon,
-    section: "Settings",
-    path: (slug) => `/${slug}?settings=integrations`,
-    settingsSection: "integrations",
-  },
-  {
     id: "logs",
     label: "Logs",
     keywords: ["audit", "activity", "events", "history"],
@@ -374,9 +360,22 @@ export function isCommandRouteAvailable(
   return !route.requiresAiCredits || hasAiCredits;
 }
 
-export function commandRoutesForAI(slug: string, hasAiCredits: boolean) {
-  return COMMAND_ROUTES.filter((r) =>
-    isCommandRouteAvailable(r, hasAiCredits)
+export function isCommandRouteVisible(
+  route: CommandRoute,
+  visibility: NavVisibility
+): boolean {
+  return !route.flag || visibility[route.flag];
+}
+
+export function commandRoutesForAI(
+  slug: string,
+  hasAiCredits: boolean,
+  visibility: NavVisibility
+) {
+  return COMMAND_ROUTES.filter(
+    (r) =>
+      isCommandRouteAvailable(r, hasAiCredits) &&
+      isCommandRouteVisible(r, visibility)
   ).map((r) => ({
     id: r.id,
     label: r.label,

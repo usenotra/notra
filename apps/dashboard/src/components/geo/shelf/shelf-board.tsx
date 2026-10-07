@@ -24,9 +24,17 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useRef, useState } from "react";
+import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ShelfMemberAvatar } from "@/components/geo/shelf/shelf-member-avatar";
@@ -39,9 +47,11 @@ import {
   GEO_SHELF_BOARD_COLUMN_WIDTH,
   GEO_SHELF_BOARD_HEIGHT,
   GEO_SHELF_BOARD_OVERSCAN,
-  GEO_SHELF_NO_MATCHES_MESSAGE,
-  GEO_SHELF_SOURCE_KIND_LABELS,
 } from "@/constants/geo-shelf";
+import {
+  useGeoShelfKindLabels,
+  useGeoShelfStatusLabels,
+} from "@/lib/hooks/use-geo-shelf-labels";
 import { cn } from "@/lib/utils";
 import type {
   GeoShelfBoardColumnId,
@@ -168,20 +178,25 @@ function ShelfBoardCard({
 }
 
 function ShelfBoardCardBody({ row }: { row: GeoShelfRow }) {
+  const t = useTranslations("geo.shelf.shelfBoard");
+  const tLabels = useTranslations("geo.shelf.labels");
+  const kindLabels = useGeoShelfKindLabels();
   const title = row.title ?? row.domain;
   return (
     <div className="space-y-2">
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{title}</p>
         <p className="text-muted-foreground truncate text-xs">
-          {GEO_SHELF_SOURCE_KIND_LABELS[row.kind]}
+          {kindLabels[row.kind]}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         {row.opportunity ? (
           <ShelfTicketBadge status={row.opportunity.status} />
         ) : (
-          <span className="text-muted-foreground text-xs">No ticket</span>
+          <span className="text-muted-foreground text-xs">
+            {tLabels("noTicket")}
+          </span>
         )}
         <ShelfPlacementBadge
           evidence={row.ownPlacement?.evidence}
@@ -196,7 +211,7 @@ function ShelfBoardCardBody({ row }: { row: GeoShelfRow }) {
           size="sm"
         />
         <span className="shrink-0 tabular-nums">
-          {row.citations.windowCount} cited
+          {t("cited", { count: row.citations.windowCount })}
         </span>
       </div>
     </div>
@@ -224,6 +239,8 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
   onLoadMore: (() => void) | undefined;
 }) {
   "use no memo";
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const scrollRef = useRef<HTMLDivElement>(null);
   const dropDisabled = columnId === UNTRACKED_COLUMN;
   const { isOver, setNodeRef } = useDroppable({
@@ -231,14 +248,30 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
     data: { type: "column" },
     disabled: dropDisabled,
   });
-  const itemIds =
-    rows.length > 0 ? rows.map((row) => row.id) : EMPTY_COLUMN_IDS;
+  const itemIds = useMemo(
+    () => (rows.length > 0 ? rows.map((row) => row.id) : EMPTY_COLUMN_IDS),
+    [rows]
+  );
+  const activeIndex = useMemo(
+    () => (activeId ? rows.findIndex((row) => row.id === activeId) : -1),
+    [activeId, rows]
+  );
+  const rangeExtractor = useCallback(
+    (range: Parameters<typeof defaultRangeExtractor>[0]) => {
+      const indexes = defaultRangeExtractor(range);
+      return activeIndex < 0 || indexes.includes(activeIndex)
+        ? indexes
+        : [...indexes, activeIndex].sort((a, b) => a - b);
+    },
+    [activeIndex]
+  );
   // react-doctor-disable-next-line react-hooks-js/incompatible-library
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => GEO_SHELF_BOARD_CARD_HEIGHT,
     getItemKey: (index) => rows[index]?.id ?? index,
+    rangeExtractor,
     initialRect: {
       height: GEO_SHELF_BOARD_COLUMN_SCROLL_HEIGHT,
       width: GEO_SHELF_BOARD_COLUMN_WIDTH,
@@ -289,7 +322,7 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
         >
           {rows.length === 0 && !onLoadMore ? (
             <p className="text-muted-foreground px-1 py-6 text-center text-xs">
-              Empty
+              {tCommon2("labels.empty")}
             </p>
           ) : null}
           {rows.length === 0 ? null : (
@@ -329,7 +362,7 @@ const ShelfBoardColumn = memo(function ShelfBoardColumn({
               type="button"
               variant="ghost"
             >
-              Load more
+              {tCommon("loadMore")}
             </Button>
           ) : null}
         </div>
@@ -349,7 +382,10 @@ export function ShelfBoard({
   pendingSourceIds,
   onRowClick,
   onUpdateOpportunity,
+  height = GEO_SHELF_BOARD_HEIGHT,
 }: GeoShelfBoardProps) {
+  const tLabels = useTranslations("geo.shelf.labels");
+  const statusLabels = useGeoShelfStatusLabels();
   const grouped = groupRowsByBoardColumn(rows);
   const rowById = new Map(rows.map((row) => [row.id, row]));
   const visibleColumns = boardColumnsForTicketFilter(ticketFilter);
@@ -374,8 +410,11 @@ export function ShelfBoard({
 
   if (rows.length === 0) {
     return (
-      <div className="text-muted-foreground flex min-h-48 items-center justify-center rounded-xl border border-dashed px-4 text-sm">
-        {GEO_SHELF_NO_MATCHES_MESSAGE}
+      <div
+        className="text-muted-foreground flex h-(--shelf-height) items-center justify-center rounded-xl border border-dashed px-4 text-sm"
+        style={{ "--shelf-height": `${height}px` } as CSSProperties}
+      >
+        {tLabels("noMatches")}
       </div>
     );
   }
@@ -525,8 +564,8 @@ export function ShelfBoard({
       sensors={sensors}
     >
       <div
-        className="flex gap-3 overflow-x-auto overflow-y-hidden"
-        style={{ height: GEO_SHELF_BOARD_HEIGHT }}
+        className="flex h-(--shelf-height) gap-3 overflow-x-auto overflow-y-hidden"
+        style={{ "--shelf-height": `${height}px` } as CSSProperties}
       >
         {visibleColumns.map((column) => {
           const columnId = column.id as GeoShelfBoardColumnId;
@@ -544,7 +583,11 @@ export function ShelfBoard({
                   : columnRows.length
               }
               key={columnId}
-              name={column.name}
+              name={
+                columnId === UNTRACKED_COLUMN
+                  ? tLabels("noTicket")
+                  : statusLabels[columnId]
+              }
               onLoadMore={hasMore ? onLoadMore : undefined}
               onRowClick={onRowClick}
               pendingSourceIds={pendingSourceIds}

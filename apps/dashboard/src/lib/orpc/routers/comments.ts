@@ -10,6 +10,7 @@ import {
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
+import { getTranslations } from "@/lib/i18n/server";
 import { authorizedProcedure } from "@/lib/orpc/base";
 import { badRequest, notFound } from "@/lib/orpc/utils/errors";
 import { publishCommentChange } from "@/lib/realtime/comments";
@@ -126,7 +127,10 @@ export const commentsRouter = {
       const parent = input.parentId
         ? await findComment({ ...input, commentId: input.parentId })
         : null;
-      const depth = replyDepth(parent);
+      const depth = replyDepth(
+        parent,
+        (await getTranslations("errors.comments"))("replyNotAllowed")
+      );
       await db
         .insert(discussionComments)
         .values({
@@ -148,9 +152,14 @@ export const commentsRouter = {
     .handler(async ({ context, input }) => {
       await assertDiscussionAccess(context, input);
       const comment = await findComment(input);
-      assertCommentAuthor(comment.userId, context.user.id);
+      assertCommentAuthor(
+        comment.userId,
+        context.user.id,
+        (await getTranslations("errors.comments"))("notAuthor")
+      );
       if (!input.body || comment.deletedAt) {
-        throw badRequest("This comment cannot be edited");
+        const tErrors = await getTranslations("errors.comments");
+        throw badRequest(tErrors("notEditable"));
       }
       await db
         .update(discussionComments)
@@ -169,7 +178,11 @@ export const commentsRouter = {
     .handler(async ({ context, input }) => {
       await assertDiscussionAccess(context, input);
       const comment = await findComment(input);
-      assertCommentAuthor(comment.userId, context.user.id);
+      assertCommentAuthor(
+        comment.userId,
+        context.user.id,
+        (await getTranslations("errors.comments"))("notAuthor")
+      );
       await db
         .update(discussionComments)
         .set({ body: "", deletedAt: new Date() })
@@ -183,7 +196,8 @@ export const commentsRouter = {
       await assertDiscussionAccess(context, input);
       const comment = await findComment(input);
       if (comment.deletedAt) {
-        throw badRequest("This comment was deleted");
+        const tErrors = await getTranslations("errors.comments");
+        throw badRequest(tErrors("deleted"));
       }
       if (input.active) {
         await db

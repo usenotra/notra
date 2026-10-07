@@ -1,7 +1,9 @@
 import type {
   SidebarUpgradeCopy,
   SidebarUpgradeCopyInput,
+  SidebarUpgradeTranslator,
 } from "@/types/dashboard/sidebar-upgrade";
+import type { CommonTranslator } from "@/types/i18n";
 
 export function canShowSidebarUpgrade(
   completed?: boolean | null,
@@ -14,20 +16,21 @@ export function canShowSidebarUpgrade(
 }
 
 export function sidebarUpgradeCopy(
-  input: SidebarUpgradeCopyInput
+  input: SidebarUpgradeCopyInput,
+  t: SidebarUpgradeTranslator,
+  tCommon: CommonTranslator
 ): SidebarUpgradeCopy {
   if (input.hasNoPlan) {
     return {
-      buttonLabel: "Upgrade now",
-      description:
-        "Feedback is free. Upgrade for AI content and visibility tracking.",
-      heading: "Get more from Notra",
+      buttonLabel: t("upgradeNow"),
+      description: t("freeDescription"),
+      heading: t("freeHeading"),
     };
   }
-  const upgradeLabel = `Upgrade to ${input.planName}`;
+  const upgradeLabel = t("upgradeToPlan", { plan: input.planName ?? "" });
   return {
-    buttonLabel: input.isLoading ? "Loading..." : upgradeLabel,
-    description: "Get more AI answers, projects, and higher usage limits.",
+    buttonLabel: input.isLoading ? tCommon("states.loading") : upgradeLabel,
+    description: t("paidDescription"),
     heading: upgradeLabel,
   };
 }

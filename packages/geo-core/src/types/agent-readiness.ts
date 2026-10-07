@@ -88,7 +88,6 @@ export type AgentReadinessScoreBandKey = "great" | "needs-improvement" | "poor";
 
 export interface AgentReadinessScoreBand {
   key: AgentReadinessScoreBandKey;
-  label: string;
 }
 
 export interface AgentReadinessIssueGroups {

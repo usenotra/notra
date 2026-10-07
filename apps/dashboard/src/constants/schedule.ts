@@ -1,8 +1,3 @@
-import {
-  CRON_FREQUENCIES,
-  type CronFrequency,
-} from "@notra/schemas/dashboard/integrations";
-
 import type { ScheduleCron } from "@/types/automation/schedule";
 
 export const DEFAULT_SCHEDULE: ScheduleCron = {
@@ -11,42 +6,18 @@ export const DEFAULT_SCHEDULE: ScheduleCron = {
   minute: 0,
 };
 
-export const FREQUENCY_LABELS: Record<CronFrequency, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  custom: "Custom",
-};
+export const DAYS_OF_WEEK: readonly number[] = [1, 2, 3, 4, 5, 6, 0];
 
-export const FREQUENCY_OPTIONS: Array<{
-  value: CronFrequency;
-  label: string;
-}> = CRON_FREQUENCIES.map((value) => ({
-  value,
-  label: FREQUENCY_LABELS[value],
-}));
-
-export const DAY_NAMES_LONG = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-] as const;
-
-export const DAYS_OF_WEEK: Array<{ value: number; label: string }> = [
-  { value: 1, label: "Mon" },
-  { value: 2, label: "Tue" },
-  { value: 3, label: "Wed" },
-  { value: 4, label: "Thu" },
-  { value: 5, label: "Fri" },
-  { value: 6, label: "Sat" },
-  { value: 0, label: "Sun" },
-];
+export const WEEKDAY_REFERENCE_SUNDAY_UTC = Date.UTC(2024, 0, 7);
 
 export const DAYS_OF_MONTH: number[] = Array.from(
   { length: 31 },
   (_, i) => i + 1
 );
+
+export const LOOKBACK_WINDOW_COMMON_LABEL_KEYS = {
+  yesterday: "yesterday",
+  last_7_days: "last7Days",
+  last_14_days: "last14Days",
+  last_30_days: "last30Days",
+} as const;

@@ -1,0 +1,22 @@
+---
+title: Exec
+description: A shell command cell with syntax colors and folded output.
+---
+
+<Component path="codex/examples/codex-exec" />
+
+<RegistryInstall name="codex-exec" />
+
+`CodexExec` renders `• Ran <command>`. The command is colored like Codex does it: programs in blue, flags in pink, quoted strings in green and operators like `&&` and `|` in teal. The bullet is green for `ran`, a dim pulse for `running` and red for `failed`.
+
+Output hangs under a `└`. Only the first lines show, followed by `+ N lines (click to expand)`. The cell is a shadcn `Collapsible`, and that line is its trigger.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `command` | | The shell command. |
+| `output` | | Optional output, one line per `\n`. |
+| `previewLines` | `3` | Lines shown before the fold. |
+| `status` | `ran` | `ran`, `running` or `failed`. |
+| `open`, `defaultOpen`, `onOpenChange` | `defaultOpen={false}` | Collapsible state for the folded lines. |
+
+<include>./_used-in.mdx</include>

@@ -1,0 +1,50 @@
+import type {
+  AgentFeedbackKind,
+  AgentFeedbackStatus,
+} from "@notra/db/types/agent-feedback";
+import { useTranslations } from "use-intl";
+
+import type { AgentFeedbackStatusFilter } from "@/types/agent-feedback";
+
+export function useAgentFeedbackStatusLabels(): Record<
+  AgentFeedbackStatus,
+  string
+> {
+  const tCommon = useTranslations("common.labels");
+  const tShared = useTranslations("feedback.shared");
+  return {
+    new: tCommon("new"),
+    triaged: tShared("triaged"),
+    resolved: tShared("resolved"),
+    archived: tCommon("archived"),
+  };
+}
+
+export function useAgentFeedbackFilterLabels(): Record<
+  AgentFeedbackStatusFilter,
+  string
+> {
+  const tCommon = useTranslations("common.labels");
+  const tShared = useTranslations("feedback.shared");
+  return {
+    open: tShared("open"),
+    resolved: tShared("resolved"),
+    archived: tCommon("archived"),
+    all: tCommon("all"),
+  };
+}
+
+export function useAgentFeedbackKindLabels(): Record<
+  AgentFeedbackKind,
+  string
+> {
+  const t = useTranslations("feedback.kind");
+  const tCommon = useTranslations("common.labels");
+  return {
+    bug: t("bug"),
+    feature: t("feature"),
+    praise: t("praise"),
+    question: tCommon("question"),
+    other: tCommon("otherNeuter"),
+  };
+}

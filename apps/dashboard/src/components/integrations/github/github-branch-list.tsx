@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  GitBranchIcon,
-  GitBranchPlusIcon,
-  Loading03Icon,
-} from "@hugeicons/core-free-icons";
+import { GitBranchIcon, GitBranchPlusIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Command,
@@ -13,6 +9,8 @@ import {
   CommandItem,
   CommandList,
 } from "@notra/ui/components/ui/command";
+import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import type { GitHubBranchListProps } from "@/types/integrations/github";
@@ -28,9 +26,13 @@ export function GitHubBranchList({
   onRetry,
   onSelect,
 }: GitHubBranchListProps) {
+  const t = useTranslations("integrations.github.branchList");
+  const tIntegrationsShared = useTranslations("integrations.shared");
+  const tCommon = useTranslations("common");
+
   return (
     <Command className="h-full">
-      <CommandInput autoFocus placeholder="Search branches" />
+      <CommandInput autoFocus placeholder={t("searchPlaceholder")} />
       <CommandList className="max-h-none min-h-0 flex-1">
         <div className="bg-popover sticky top-0 z-10 border-b p-1">
           <Button
@@ -42,31 +44,28 @@ export function GitHubBranchList({
             variant="ghost"
           >
             <HugeiconsIcon className="size-4" icon={GitBranchPlusIcon} />
-            Create branch
+            {tIntegrationsShared("createBranch")}
           </Button>
         </div>
         {isLoading ? (
           <div className="text-muted-foreground flex items-center justify-center gap-2 py-6 text-sm">
-            <HugeiconsIcon
-              className="size-4 animate-spin"
-              icon={Loading03Icon}
-            />
-            Loading branches…
+            <Spinner />
+            {t("loading")}
           </div>
         ) : null}
         {isError ? (
           <div className="space-y-2 px-3 py-4 text-center">
             <p className="text-destructive text-sm" role="alert">
-              Unable to load branches.
+              {t("loadFailed")}
             </p>
             <Button onClick={onRetry} size="sm" type="button" variant="outline">
-              Retry
+              {tCommon("actions.retry")}
             </Button>
           </div>
         ) : null}
         {!isLoading && !isError ? (
           <>
-            <CommandEmpty>No branches found.</CommandEmpty>
+            <CommandEmpty>{t("noResults")}</CommandEmpty>
             {branches.map((branch) => (
               <CommandItem
                 data-checked={branch === currentBranch}

@@ -1,5 +1,6 @@
 import type { useCustomer, useListPlans } from "autumn-js/react";
 import type { ReactNode } from "react";
+import type { useTranslations } from "use-intl";
 
 import type { ProductFeature } from "@/types/hooks/billing";
 
@@ -79,4 +80,25 @@ export interface PlanCardProps {
   action?: ReactNode;
   addon?: PlanCardAddon;
   button: PlanCardButton;
+  renewalTerms?: PlanRenewalTerms;
+}
+
+export type PlanRenewalTerms = "standard" | "trial" | "trialRevert";
+
+export interface PlanTierLimits {
+  aiAnswers: number;
+  imageGenerations: number;
+  longFormPosts: number;
+  pullRequestCredits: number;
+  projects: number;
+  references: number;
+  referenceOveragePrice: string;
+  prioritySupport: boolean;
+}
+
+export type BillingTranslator = ReturnType<typeof useTranslations<"billing">>;
+
+export interface CurrencyAffix {
+  symbol: string;
+  position: "prefix" | "suffix";
 }

@@ -9,17 +9,19 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarRail,
   useSidebar,
 } from "@notra/ui/components/ui/sidebar";
 import { cn } from "@notra/ui/lib/utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
+import dynamic from "@/utils/lazy-component";
+import { isNavigation } from "@/utils/sidebar-navigation";
 
-import { ChatHistoryNav } from "./chat-history-nav";
+import { ChatHistoryNavLoading } from "./chat-history-nav-loading";
 import {
   DeferredSidebarStatus,
   DeferredSidebarUpgrade,
@@ -33,17 +35,25 @@ import { SidebarProjectSwitcher } from "./sidebar-project-switcher";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
 import { SidebarSwap } from "./sidebar-swap";
 
+const ChatHistoryNav = dynamic(
+  () => import("./chat-history-nav").then((module) => module.ChatHistoryNav),
+  {
+    loading: () => <ChatHistoryNavLoading />,
+  }
+);
+
 function SidebarBackButton({ onBack }: { onBack: () => void }) {
+  const t = useTranslations("common.actions");
   return (
     <div className="bg-sidebar sticky top-0 z-10 p-2">
       <SidebarMenu>
         <SidebarMenuButton
           className="hover:bg-sidebar-accent duration-normal cursor-pointer transition-colors [&>*]:group-data-[collapsible=icon]:-translate-x-px"
           onClick={onBack}
-          tooltip="Back"
+          tooltip={t("back")}
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} />
-          <SidebarLabel>Back</SidebarLabel>
+          <SidebarLabel>{t("back")}</SidebarLabel>
         </SidebarMenuButton>
       </SidebarMenu>
     </div>
@@ -101,7 +111,10 @@ export function DashboardSidebar({
   }, [isSubpage]);
 
   useEffect(() => {
-    if (previousNavigationKeyRef.current !== navigationKey && isMobile) {
+    if (
+      isMobile &&
+      isNavigation(previousNavigationKeyRef.current, navigationKey)
+    ) {
       setOpenMobile(false);
     }
     previousNavigationKeyRef.current = navigationKey;
@@ -120,7 +133,7 @@ export function DashboardSidebar({
       collapsible="icon"
       {...props}
       className={cn(
-        "overflow-hidden overscroll-none border-none",
+        "overscroll-none border-none",
         resizing && "transition-none!",
         className
       )}
@@ -179,7 +192,6 @@ export function DashboardSidebar({
       <SidebarFooter>
         <OrgSelector />
       </SidebarFooter>
-      <SidebarRail />
       <SidebarResizeHandle
         onWidthChange={onWidthChange}
         onWidthChangeEnd={onWidthChangeEnd}

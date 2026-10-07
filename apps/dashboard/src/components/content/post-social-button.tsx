@@ -1,6 +1,5 @@
 "use client";
 
-import { Confetti } from "@neoconfetti/react";
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -12,12 +11,12 @@ import {
 } from "@notra/ui/components/shared/responsive-dialog";
 import { Linkedin } from "@notra/ui/components/ui/svgs/linkedin";
 import { XTwitter } from "@notra/ui/components/ui/svgs/twitter";
-import { Loader2Icon } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { Button, buttonVariants } from "@/components/button";
+import { Confetti } from "@/components/confetti";
 import { AddReferenceControl } from "@/components/content/add-reference-control";
 import { PostSocialErrorNotice } from "@/components/content/post-social-error-notice";
 import { PostSocialIntentButton } from "@/components/content/post-social-intent-button";
@@ -30,6 +29,7 @@ import { useBrandSettings } from "@/lib/hooks/use-brand-analysis";
 import { useCreateReferenceForVoice } from "@/lib/hooks/use-brand-references";
 import { usePublishSocialPost } from "@/lib/hooks/use-connected-accounts";
 import { useSelectedSocialAccount } from "@/lib/hooks/use-selected-social-account";
+import { useParams, useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { PostSocialButtonProps } from "@/types/content/post-social";
 import { linkedInAuthorFromAccount } from "@/utils/linkedin";
@@ -53,6 +53,9 @@ export function PostSocialButton({
   onPublished,
   from,
 }: PostSocialButtonProps) {
+  const t = useTranslations("content.postSocial");
+  const tCommon2 = useTranslations("common");
+  const tCommon = useTranslations("common.actions");
   const params = useParams<{ slug?: string }>();
   const router = useRouter();
   const { accounts, selectedAccount, selectAccount } = useSelectedSocialAccount(
@@ -133,18 +136,18 @@ export function PostSocialButton({
       {
         onSuccess: () => {
           setReferencedVoiceIds((ids) => [...ids, voiceId]);
-          toast.success(`Added as reference to ${voiceName}`);
+          toast.success(t("addedReference", { name: voiceName }));
         },
         onError: (error) => {
           const message =
             error instanceof Error && error.message
               ? error.message
-              : "Failed to add reference";
+              : t("addReferenceFailed");
           if (isReferenceLimitError(error) && params.slug) {
             const billingPath = `/${params.slug}/settings/billing`;
             toast.error(message, {
               action: {
-                label: "Upgrade",
+                label: tCommon("upgrade"),
                 onClick: () => router.push(billingPath),
               },
             });
@@ -157,12 +160,14 @@ export function PostSocialButton({
   };
 
   const handleMissingVoice = () => {
-    toast.error(
-      "No brand identity to save this reference to. Create one on the Brand Identity page first."
-    );
+    toast.error(t("noBrandIdentity"));
   };
 
-  const publishError = getPublishErrorInfo(publishMutation.error, platform);
+  const publishError = getPublishErrorInfo(
+    publishMutation.error,
+    tCommon2("labels.failedToPublishPost"),
+    platform
+  );
 
   const charLimit =
     platform === "twitter" && selectedAccount
@@ -202,7 +207,7 @@ export function PostSocialButton({
         }
       >
         <BrandIcon className="size-4" />
-        Post to {label}
+        {t("postTo", { platform: label })}
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent className="sm:max-w-lg">
         {published && (
@@ -220,7 +225,9 @@ export function PostSocialButton({
           </div>
         )}
         <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Post to {label}</ResponsiveDialogTitle>
+          <ResponsiveDialogTitle>
+            {t("postTo", { platform: label })}
+          </ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
         {publishMutation.isError && (
           <PostSocialErrorNotice
@@ -237,7 +244,7 @@ export function PostSocialButton({
               className="h-auto"
               content={displayContent}
               onContentChange={isLocked ? undefined : handleDraftChange}
-              timestamp="Just now"
+              timestamp={tCommon2("labels.justNow")}
             />
           ) : (
             <LinkedInPost
@@ -246,17 +253,18 @@ export function PostSocialButton({
               content={displayContent}
               defaultExpanded
               onContentChange={isLocked ? undefined : handleDraftChange}
-              timestamp="Just now"
+              timestamp={tCommon2("labels.justNow")}
               truncate={false}
             />
           )}
         </div>
         {!published && charLimit !== null && isOverCharLimit && (
           <p className="text-warning text-sm">
-            This post is {overCharCount.toLocaleString()}{" "}
-            {overCharCount === 1 ? "character" : "characters"} over the{" "}
-            {charLimit.toLocaleString()} character limit for @
-            {selectedAccount.username}. Shorten it to post.
+            {t("overLimit", {
+              count: overCharCount,
+              limit: charLimit,
+              username: selectedAccount.username,
+            })}
           </p>
         )}
         <ResponsiveDialogFooter>
@@ -279,33 +287,27 @@ export function PostSocialButton({
                       target="_blank"
                     >
                       <BrandIcon className="size-4" />
-                      Open on {label}
+                      {t("openOn", { platform: label })}
                     </a>
                   }
                   variant="outline"
                 />
               )}
-              <ResponsiveDialogClose render={<Button>Done</Button>} />
+              <ResponsiveDialogClose
+                render={<Button>{tCommon("done")}</Button>}
+              />
             </>
           ) : (
             <>
               <ResponsiveDialogClose
-                render={<Button variant="outline">Cancel</Button>}
+                render={<Button variant="outline">{tCommon("cancel")}</Button>}
               />
               <Button
-                disabled={
-                  publishMutation.isPending || !draft.trim() || isOverCharLimit
-                }
+                disabled={!draft.trim() || isOverCharLimit}
+                loading={publishMutation.isPending}
                 onClick={handlePublish}
               >
-                {publishMutation.isPending ? (
-                  <>
-                    <Loader2Icon className="size-4 animate-spin" />
-                    Posting...
-                  </>
-                ) : (
-                  `Post as @${selectedAccount.username}`
-                )}
+                {t("postAs", { username: selectedAccount.username })}
               </Button>
             </>
           )}

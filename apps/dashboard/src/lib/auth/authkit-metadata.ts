@@ -16,9 +16,7 @@ export async function fetchAuthKitAuthorizationServerMetadata() {
     );
   }
 
-  const response = await fetch(`https://${domain}${AUTHKIT_METADATA_PATH}`, {
-    next: { revalidate: 300 },
-  });
+  const response = await fetch(`https://${domain}${AUTHKIT_METADATA_PATH}`);
 
   if (!response.ok) {
     return Response.json(

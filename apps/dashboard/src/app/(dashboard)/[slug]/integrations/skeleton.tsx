@@ -6,7 +6,7 @@ import { useId } from "react";
 export function IntegrationsPageSkeleton() {
   const id = useId();
   return (
-    <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           className="border-border/80 bg-muted/80 rounded-lg border p-2"

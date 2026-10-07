@@ -1,4 +1,5 @@
 import { getContentBillingLimitLabel } from "@notra/ai/billing/content-billing";
+import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
 import { eventWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 import { flattenError } from "zod";
 
@@ -392,7 +393,7 @@ export async function eventContentWorkflow(payload: {
       action: "confirm",
       units: createdPosts.length,
       usage: contentResult.usage,
-      fallbackModelId: "anthropic/claude-sonnet-4.6",
+      fallbackModelId: CONTENT_AGENT_MODEL,
       properties: {
         source: "workflow_event",
         output_type: trigger.outputType,

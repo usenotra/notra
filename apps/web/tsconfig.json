@@ -1,26 +1,20 @@
 {
-  "extends": "@notra/typescript-config/nextjs.json",
+  "extends": "@notra/typescript-config/react-library.json",
   "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "types": ["vite/client", "node", "mdx", "bun-types/test"],
     "incremental": true,
     "tsBuildInfoFile": ".cache/typecheck.tsbuildinfo",
-    "strict": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "~types/*": ["./types/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "next.config.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", ".output", ".nitro", ".tanstack"]
 }

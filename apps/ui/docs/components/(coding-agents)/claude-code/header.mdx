@@ -1,0 +1,24 @@
+---
+title: Header
+description: The pixel mascot next to the version, model and working directory.
+---
+
+<Component path="claude-code/examples/claude-code-header" />
+
+<RegistryInstall name="claude-code-header" />
+
+`ClaudeCodeHeader` is the compact banner Claude Code prints on start: the orange pixel mascot on the left and three lines next to it. The first line is **Claude Code** with the version, the second the model and plan, the third the working directory. Notices and hook output print below it, one blank line down.
+
+| Prop | Default | Description |
+| --- | --- | --- |
+| `version` | `v2.1.0` | Dim, next to the title. |
+| `model`, `org` | | Joined with `·` on the second line, like `Opus 5.5 (1M context) · Claude Max`. Leave both out to skip the line. |
+| `cwd` | `~/` | The third line. Pass `""` to hide it. |
+| `whatsNew` | `[]` | Notice lines in the body color. `` `code` `` renders in lavender and `**bold**` in white. |
+| `tips` | `[]` | Dim `⎿` lines under the notices, for hook output or tips. |
+
+The rest of the props go to the root `div`.
+
+`ClaudeCodeLogo` is the mascot on its own, drawn on a 22×14 pixel grid. It fills with `currentColor` and its eyes are cut out, so the background shows through. `size` sets the width in pixels and defaults to `76`.
+
+<include>./_used-in.mdx</include>

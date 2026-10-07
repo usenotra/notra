@@ -1,6 +1,6 @@
 ---
 title: "Webhooks Overview"
-description: "How Notra receives GitHub webhooks, and what to use instead of outbound webhooks"
+description: "Inbound GitHub webhooks, outbound post lifecycle, generation and GEO scan events, and polling alternatives"
 authors:
   - handle: dominik
 
@@ -26,10 +26,10 @@ docolin:
   next: ./events.mdx
 ---
 
-Webhooks in Notra are inbound. GitHub sends events to Notra so that event triggers can generate content the moment a release is published or commits land on the default branch.
+Notra receives GitHub webhooks and sends signed outbound webhooks. GitHub events let event triggers generate content the moment a release is published or commits land on the default branch. Outbound subscriptions notify your endpoint about post lifecycle changes, tracked generation jobs and terminal GEO scan results.
 
 <Warning>
-  Notra does not send outbound webhooks to your servers. There is no way to register a callback URL, and Notra never signs or delivers events to third-party endpoints. To react to things that happen in Notra, poll the job endpoints or read the agent session stream. See [No outbound webhooks](#no-outbound-webhooks) below.
+  Notra can also send signed [outbound webhooks](/api/webhooks/outbound) to your own endpoint. Set them up in **Settings**, then **Webhooks**, or through `/v1/webhooks`. The GitHub endpoint below only receives events and has nothing to do with outbound subscriptions.
 </Warning>
 
 ## Inbound webhooks from GitHub
@@ -67,7 +67,7 @@ The dashboard generates this URL for you. Copy it from the **Setup Webhook** dia
 </Steps>
 
 <Note>
-  Without a webhook you can still generate content manually, on a schedule, or through `POST /v1/posts/generate`. Webhooks are only needed for event triggers.
+  Without an inbound GitHub webhook you can still generate content manually, on a schedule, or through `POST /v1/posts/generate`. Inbound GitHub webhooks are only needed for GitHub event triggers.
 </Note>
 
 ### Rotate the secret
@@ -184,9 +184,9 @@ Notra answers every delivery with JSON. GitHub shows the body under **Recent Del
 
 Every delivery, including rejected ones, is written to **Settings**, then **Logs** in the dashboard with its status, HTTP status code, GitHub delivery ID, and payload summary. Retention is 7, 14, or 30 days depending on your plan.
 
-## No outbound webhooks
+## Polling alternatives
 
-Notra does not push notifications when a post is generated, a brand identity finishes analyzing, or a GEO scan completes. Use these instead:
+Post generation, brand analysis and GEO scans can send [outbound events](/api/webhooks/outbound). You can still poll them for status and progress if you prefer. Outbound subscriptions also cover post creation, persisted edits, deletion, publishing and unpublishing; new subscriptions receive only future events, without a backfill.
 
 <CardGroup cols={2}>
   <Card title="Poll post generation" icon="rotate" href="/api-reference/content/get-async-post-generation-status">

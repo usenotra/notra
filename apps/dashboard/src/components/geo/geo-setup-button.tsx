@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { GeoProjectCreateDialog } from "@/components/geo/project-create-dialog";
@@ -9,10 +10,11 @@ import type { GeoSetupButtonProps } from "@/types/geo";
 
 export function GeoSetupButton({
   organizationId,
-  children = "Set up GEO tracking",
+  children,
   className,
   size,
 }: GeoSetupButtonProps) {
+  const tGeoShared = useTranslations("geo.shared");
   const [open, setOpen] = useState(false);
   const [, setProjectParam] = useGeoProjectQueryState();
 
@@ -24,7 +26,7 @@ export function GeoSetupButton({
         size={size}
         type="button"
       >
-        {children}
+        {children ?? tGeoShared("setUpGeoTracking")}
       </Button>
       <GeoProjectCreateDialog
         onCreated={(projectId) => setProjectParam(projectId)}

@@ -7,9 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@notra/ui/components/ui/card";
+import { useTranslations } from "use-intl";
 
 import { PageContainer } from "@/components/layout/container";
-import { getModalDescription, getModalTitle } from "@/utils/brand-identity";
+import { getModalState } from "@/utils/brand-identity";
 
 import { ModalContent } from "./modal-content";
 
@@ -35,6 +36,17 @@ export function EmptyBrandIdentityState({
   setUrl,
   url,
 }: EmptyBrandIdentityStateProps) {
+  const t = useTranslations("brand.identity");
+  const tCommon = useTranslations("common");
+  const modalState = getModalState(isAnalyzing, effectiveProgress.status);
+  const modalTitle = t(`modal.${modalState}.title`);
+  let modalDescription = progressError;
+  if (!(modalState === "failed" && progressError)) {
+    modalDescription =
+      modalState === "failed"
+        ? tCommon("states.error")
+        : t(`modal.${modalState}.description`);
+  }
   return (
     <PageContainer className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="w-full px-4 lg:px-6">
@@ -42,10 +54,10 @@ export function EmptyBrandIdentityState({
           <div className="pointer-events-none blur-sm">
             <div className="mb-6 space-y-1">
               <h1 className="text-3xl font-bold tracking-tight">
-                Brand Identity
+                {tCommon("labels.brandIdentity")}
               </h1>
               <p className="text-muted-foreground">
-                Configure your brand identity and tone
+                {t("header.tabs.identity.description")}
               </p>
             </div>
             <div className="space-y-8">
@@ -59,17 +71,8 @@ export function EmptyBrandIdentityState({
           <div className="absolute inset-0 flex items-center justify-center">
             <Card className="border-border/50 w-full max-w-md shadow-xs">
               <CardHeader className="text-center">
-                <CardTitle>
-                  {getModalTitle(false, isAnalyzing, effectiveProgress.status)}
-                </CardTitle>
-                <CardDescription>
-                  {getModalDescription(
-                    false,
-                    isAnalyzing,
-                    effectiveProgress.status,
-                    progressError
-                  )}
-                </CardDescription>
+                <CardTitle>{modalTitle}</CardTitle>
+                <CardDescription>{modalDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ModalContent

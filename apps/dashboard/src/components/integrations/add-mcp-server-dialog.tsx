@@ -26,11 +26,12 @@ import {
 } from "@notra/ui/components/ui/avatar";
 import { openMcpOAuthPopup } from "@notra/utils/oauth-popup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
 import type React from "react";
 import { isValidElement, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
+import Image from "@/components/framework/image";
 import { McpAuthenticationFields } from "@/components/integrations/mcp-authentication-fields";
 import { McpConnectionTestStatus } from "@/components/integrations/mcp-connection-test-status";
 import { McpDialogFooter } from "@/components/integrations/mcp-dialog-footer";
@@ -62,6 +63,8 @@ export function AddMcpServerDialog({
   logoLightUrl,
   logoDarkUrl,
 }: AddMcpServerDialogProps) {
+  const t = useTranslations("integrations.mcp.addDialog");
+  const tIntegrationsShared = useTranslations("integrations.shared");
   const queryClient = useQueryClient();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -109,9 +112,7 @@ export function AddMcpServerDialog({
       });
 
       if (!payload.success) {
-        throw new Error(
-          payload.error.issues[0]?.message ?? "Check the MCP server details"
-        );
+        throw new Error(t("checkDetails"));
       }
 
       const result = await dashboardOrpc.integrations.mcp.test.call(
@@ -128,7 +129,11 @@ export function AddMcpServerDialog({
         return;
       }
       setTestStatus(result.success ? "success" : "error");
-      setTestMessage(result.message);
+      setTestMessage(
+        result.success
+          ? t("testSucceeded", { count: result.toolCount })
+          : t("testFailed")
+      );
     },
     onError: (error, variables) => {
       if (
@@ -151,7 +156,7 @@ export function AddMcpServerDialog({
           input: { organizationId },
         }),
       });
-      toast.success("MCP server added");
+      toast.success(t("added"));
       onSuccess?.();
       resetForm();
       setOpen(false);
@@ -187,10 +192,7 @@ export function AddMcpServerDialog({
         callbackPath: window.location.pathname,
       });
       if (!oauthPayload.success) {
-        toast.error(
-          oauthPayload.error.issues[0]?.message ??
-            "Check the MCP server details"
-        );
+        toast.error(t("checkDetails"));
         return;
       }
       const oauthPopup = openMcpOAuthPopup();
@@ -213,9 +215,7 @@ export function AddMcpServerDialog({
     });
 
     if (!payload.success) {
-      toast.error(
-        payload.error.issues[0]?.message ?? "Check the MCP server details"
-      );
+      toast.error(t("checkDetails"));
       return;
     }
 
@@ -262,7 +262,7 @@ export function AddMcpServerDialog({
                 <McpDialogLogo
                   darkUrl={logoDarkUrl}
                   lightUrl={logoLightUrl}
-                  name={initialValues?.name ?? "MCP server"}
+                  name={initialValues?.name ?? t("defaultName")}
                   url={buildMcpUrl(url)}
                 />
               )}
@@ -270,13 +270,13 @@ export function AddMcpServerDialog({
             <div>
               <ResponsiveDialogTitle className="text-xl">
                 {storeIntegrationId
-                  ? `Connect ${initialValues?.name ?? "integration"}`
-                  : "Add MCP Server"}
+                  ? tIntegrationsShared("connectName", {
+                      name: initialValues?.name ?? t("defaultIntegrationName"),
+                    })
+                  : t("title")}
               </ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
-                {storeIntegrationId
-                  ? "This catalog integration has a preset server URL and authentication method. For your own configuration, add a custom server under MCP Servers."
-                  : "Connect a custom Model Context Protocol server to extend Notra with your own tools and context."}
+                {storeIntegrationId ? t("storeDescription") : t("description")}
               </ResponsiveDialogDescription>
             </div>
           </div>
@@ -302,10 +302,7 @@ export function AddMcpServerDialog({
               message={testMessage}
               status={testStatus}
             />
-            <p className="text-muted-foreground text-xs">
-              Test Connection checks server reachability and lists available
-              tools. It does not run tools or verify access to your account.
-            </p>
+            <p className="text-muted-foreground text-xs">{t("testHint")}</p>
           </div>
 
           <ResponsiveDialogFooter>
@@ -354,6 +351,7 @@ function McpDialogLogo({
   name: string;
   url: string;
 }) {
+  const tCommon = useTranslations("common");
   const lightLogo = lightUrl ?? darkUrl;
   const darkLogo = darkUrl ?? lightUrl;
 
@@ -361,14 +359,14 @@ function McpDialogLogo({
     return (
       <div className="bg-muted size-9 shrink-0 overflow-hidden rounded-lg">
         <Image
-          alt={`${name} logo`}
+          alt={tCommon("labels.nameLogo", { name })}
           className="size-9 object-contain dark:hidden"
           height={36}
           src={lightLogo}
           width={36}
         />
         <Image
-          alt={`${name} logo`}
+          alt={tCommon("labels.nameLogo", { name })}
           className="hidden size-9 object-contain dark:block"
           height={36}
           src={darkLogo}

@@ -1,18 +1,37 @@
 "use client";
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import type { SecurityLoadStatus } from "@notra/ui/types/security";
+import { isDemoModeClient } from "@notra/utils/demo-mode";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
-import { ChatSection } from "@/components/settings/chat-section";
 import { ConnectedAccountsSection } from "@/components/settings/connected-accounts-section";
 import { DeleteAccountSection } from "@/components/settings/delete-account";
 import { LoginDetailsSection } from "@/components/settings/login-details-section";
 import { OrganizationsSection } from "@/components/settings/organizations-section";
-import { PrivacySection } from "@/components/settings/privacy-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { SettingsPane } from "@/components/settings/settings-pane";
+import { TwoFactorSection } from "@/components/settings/two-factor-section";
 import { authClient } from "@/lib/auth/client";
+import { useRouter } from "@/lib/navigation";
+import { QUERY_KEYS } from "@/utils/query-keys";
+
+function resolveSecurityStatus(
+  isPending: boolean,
+  isError: boolean
+): SecurityLoadStatus {
+  // The demo has no WorkOS, so there is nothing to load: show the empty state.
+  if (isDemoModeClient()) {
+    return "ready";
+  }
+  if (isPending) {
+    return "loading";
+  }
+  if (isError) {
+    return "error";
+  }
+  return "ready";
+}
 
 export function AccountSettingsPane() {
   const router = useRouter();
@@ -37,6 +56,18 @@ export function AccountSettingsPane() {
       return result.data ?? [];
     },
     enabled: !!user,
+  });
+
+  const securityQuery = useQuery({
+    queryKey: [...QUERY_KEYS.AUTH.security, user?.id],
+    queryFn: async () => {
+      const result = await authClient.security.getOverview();
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      return result.data;
+    },
+    enabled: !!user && !isDemoModeClient(),
   });
 
   if (!user && isSessionPending) {
@@ -72,6 +103,16 @@ export function AccountSettingsPane() {
         email={user.email}
         hasPasswordAccount={hasPasswordAccount ?? false}
       />
+      <TwoFactorSection
+        accountLabel={user.email}
+        backupCodesRemaining={securityQuery.data?.backupCodesRemaining ?? null}
+        factors={securityQuery.data?.totpFactors ?? []}
+        onRefresh={() => securityQuery.refetch()}
+        status={resolveSecurityStatus(
+          securityQuery.isPending,
+          securityQuery.isError
+        )}
+      />
       <ConnectedAccountsSection
         accounts={accounts ?? []}
         hasGithubLinked={hasGithubLinked ?? false}
@@ -80,8 +121,6 @@ export function AccountSettingsPane() {
         onAccountsChange={refetchAccounts}
       />
       <OrganizationsSection />
-      <PrivacySection />
-      <ChatSection />
       <DeleteAccountSection />
     </SettingsPane>
   );

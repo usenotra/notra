@@ -5,6 +5,7 @@ import {
   saveOnboardingNotificationSettings,
   triggerOnboardingAgentSetup,
   triggerOnboardingBrandAnalysis,
+  validateOnboardingWebsiteUrl,
 } from "@/app/onboarding/workspace/actions";
 import { COMPANY_LOGO_SOURCE_HOSTS } from "@/constants/company-logo";
 import { authClient } from "@/lib/auth/client";
@@ -33,7 +34,7 @@ async function setOrganizationLogo(organizationId: string, logoUrl: string) {
   });
 
   if (result.error) {
-    throw new Error(result.error.message ?? "Failed to set workspace logo");
+    throw new Error(result.error.message);
   }
 }
 
@@ -54,6 +55,7 @@ async function applyOrganizationLogoFromUrl(
 
 export async function submitWorkspaceForm({
   existingOrg,
+  onOrganizationCreated,
   logoFile,
   logoSourceUrl,
   value,
@@ -61,14 +63,22 @@ export async function submitWorkspaceForm({
   const parsed = onboardingWorkspaceSchema.safeParse(value);
 
   if (!parsed.success) {
-    throw new Error(
-      parsed.error.issues[0]?.message ?? "Please check your inputs"
-    );
+    throw new Error(parsed.error.issues[0]?.message);
   }
 
   let organizationId: string;
 
   if (existingOrg) {
+    // A saved brand's website is locked and never re-analyzed here, so a
+    // domain that stopped resolving must not block the step.
+    if (parsed.data.websiteUrl && !existingOrg.hasBrand) {
+      const validation = await validateOnboardingWebsiteUrl(
+        parsed.data.websiteUrl
+      );
+      if (validation.error) {
+        throw new Error(validation.error.message);
+      }
+    }
     organizationId = existingOrg.id;
     if (logoFile || logoSourceUrl) {
       await authClient.organization.setActive({
@@ -77,16 +87,22 @@ export async function submitWorkspaceForm({
     }
   } else {
     const { data, error } = await authClient.organization.create({
+      websiteUrl: parsed.data.websiteUrl,
       name: parsed.data.name,
       slug: parsed.data.slug,
       logo: generateOrganizationAvatar(parsed.data.slug),
     });
 
     if (error || !data) {
-      throw new Error(error?.message ?? "Failed to create workspace");
+      throw new Error(error?.message);
     }
 
     organizationId = data.id;
+    onOrganizationCreated?.({
+      ...data,
+      dailySummary: parsed.data.dailySummary,
+      marketingEmails: parsed.data.marketingEmails,
+    });
 
     await authClient.organization.setActive({
       organizationId: data.id,
@@ -150,18 +166,16 @@ export async function submitWorkspaceForm({
       });
   }
 
-  if (parsed.data.websiteUrl) {
-    try {
-      await triggerOnboardingBrandAnalysis({
-        organizationId,
-        websiteUrl: parsed.data.websiteUrl,
-        name: parsed.data.name,
-      });
-    } catch (error) {
-      console.error("[Onboarding] Background brand analysis failed", {
-        organizationId,
-        error,
-      });
+  // An existing brand keeps its website here; the analysis action would skip
+  // it anyway, and switching domains is done from the brand settings.
+  if (parsed.data.websiteUrl && !existingOrg?.hasBrand) {
+    const analysis = await triggerOnboardingBrandAnalysis({
+      organizationId,
+      websiteUrl: parsed.data.websiteUrl,
+      name: parsed.data.name,
+    });
+    if (analysis.error) {
+      throw new Error(analysis.error.message);
     }
   }
 

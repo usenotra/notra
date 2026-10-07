@@ -33,6 +33,13 @@ export const getPostingPerformanceInputSchema = z.object({
 });
 
 export const getGeoOverviewInputSchema = z.object({
+  projectId: z
+    .string()
+    .min(1)
+    .optional()
+    .describe(
+      "GEO project ID. Defaults to the oldest project in this organization."
+    ),
   days: z
     .number()
     .int()

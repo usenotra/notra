@@ -1,10 +1,11 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import { DEFAULT_AUTH_LAST_USED_LABEL } from "@notra/ui/constants/auth-labels";
+
 import type {
   AuthSocialButtonsProps,
   SocialProvider,
-} from "../../../lib/auth-types";
+} from "../../../types/auth";
 import { Badge } from "../../ui/badge";
 import { Github } from "../../ui/svgs/github";
 import { Google } from "../../ui/svgs/google";
@@ -23,6 +24,7 @@ export function AuthSocialButtons({
   authMethod,
   disabled,
   lastMethod,
+  lastUsedLabel = DEFAULT_AUTH_LAST_USED_LABEL,
   onSelect,
 }: AuthSocialButtonsProps) {
   return (
@@ -31,27 +33,24 @@ export function AuthSocialButtons({
         <div className="relative" key={provider}>
           {lastMethod === provider && (
             <Badge className="-top-4 -right-2 absolute z-10" variant="default">
-              Last Used
+              {lastUsedLabel}
             </Badge>
           )}
           <CtaButton
             className="w-full"
             disabled={disabled}
+            loading={authMethod === provider}
             onClick={() => onSelect(provider)}
             type="button"
             variant="light"
           >
-            {authMethod === provider ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <Icon
-                className={
-                  provider === "github"
-                    ? "size-4 dark:[&_path]:fill-[#1e1e1e]"
-                    : "size-4"
-                }
-              />
-            )}
+            <Icon
+              className={
+                provider === "github"
+                  ? "size-4 dark:[&_path]:fill-[#1e1e1e]"
+                  : "size-4"
+              }
+            />
             {label}
           </CtaButton>
         </div>

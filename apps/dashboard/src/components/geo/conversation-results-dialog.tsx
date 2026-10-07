@@ -1,6 +1,6 @@
 "use client";
 
-import { Loading03Icon, PlayIcon } from "@hugeicons/core-free-icons";
+import { PlayIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import {
@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { ConversationReplayThread } from "@/components/geo/conversation-replay-thread";
@@ -50,13 +51,9 @@ function RunConversationButton({
   label: string;
 }) {
   return (
-    <Button disabled={isRunning} onClick={onRun} size="sm">
-      <HugeiconsIcon
-        className={isRunning ? "animate-spin" : undefined}
-        icon={isRunning ? Loading03Icon : PlayIcon}
-        size={14}
-      />
-      {isRunning ? "Playing against the engines…" : label}
+    <Button loading={isRunning} onClick={onRun} size="sm">
+      <HugeiconsIcon icon={PlayIcon} size={14} />
+      {label}
     </Button>
   );
 }
@@ -78,6 +75,8 @@ export function ConversationResultsDialog({
   const [playToken, setPlayToken] = useState(1);
   const [skipReplay, setSkipReplay] = useState(true);
   const reducedMotion = useReducedMotion();
+  const t = useTranslations("geo.conversationResultsDialog");
+  const locale = useLocale();
 
   const threads = useMemo(
     () => buildSequenceEngineThreads(data?.results ?? [], sequence?.id),
@@ -113,14 +112,14 @@ export function ConversationResultsDialog({
             {sequence.name}
           </SheetTitle>
           <SheetDescription className="sr-only">
-            Where your brand shows up as the conversation unfolds.
+            {t("description")}
           </SheetDescription>
           {latestCheck ? (
             <time
               className="text-muted-foreground text-xs tabular-nums"
               dateTime={latestCheck}
             >
-              {formatAiTrafficTimestamp(latestCheck)}
+              {formatAiTrafficTimestamp(latestCheck, locale)}
             </time>
           ) : null}
           {active ? (
@@ -142,7 +141,7 @@ export function ConversationResultsDialog({
                     size="sm"
                     variant="outline"
                   >
-                    Skip
+                    {t("skip")}
                   </Button>
                 ) : null}
                 <Button
@@ -154,7 +153,7 @@ export function ConversationResultsDialog({
                   variant="outline"
                 >
                   <HugeiconsIcon icon={PlayIcon} size={14} />
-                  Replay
+                  {t("replay")}
                 </Button>
               </div>
             </div>
@@ -178,12 +177,11 @@ export function ConversationResultsDialog({
           {!(isLoading || active) && (
             <div className="flex h-full min-h-0 flex-col items-center justify-center gap-4 px-6">
               <p className="text-muted-foreground text-center text-sm text-pretty">
-                No results yet. Play this conversation against the engines to
-                see where your brand shows up.
+                {t("empty")}
               </p>
               <RunConversationButton
                 isRunning={isRunning}
-                label="Run conversation now"
+                label={t("runNow")}
                 onRun={onRun}
               />
             </div>

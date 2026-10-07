@@ -53,6 +53,9 @@ export async function saveContentDetail({
       queryKey: dashboardOrpc.content.list.key(),
     }),
     queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.content.recents.key(),
+    }),
+    queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.collections.list.key(),
     }),
   ]);
@@ -63,14 +66,14 @@ export async function saveContentDetail({
   };
 }
 
-export function getSaveContentDetailErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.message.includes("already exists")) {
-    return "A post with this slug already exists";
-  }
+export function getSaveContentDetailErrorMessage(
+  error: unknown,
+  fallback: string
+): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Failed to save content";
+  return fallback;
 }
 
 interface ToggleContentDetailStatusParams {
@@ -102,6 +105,9 @@ export async function toggleContentDetailStatus({
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.list.key(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: dashboardOrpc.content.recents.key(),
     }),
     queryClient.invalidateQueries({
       queryKey: dashboardOrpc.content.collections.list.key(),

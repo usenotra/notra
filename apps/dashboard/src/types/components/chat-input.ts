@@ -1,25 +1,53 @@
 import type {
+  ChatAttachment,
+  ChatInputHandle,
   ChatModel,
   ContextItem,
   TextSelection,
 } from "@notra/ai/types/chat";
+import type { Ref } from "react";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
+import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
 import type { GitHubRepository } from "@/types/integrations";
+import type { SkillSlashOption } from "@/types/skills/slash";
 
 export type ChatModelProvider = "anthropic" | "openai" | "auto";
+
+export type ChatModelDescriptionKey =
+  | "auto"
+  | "latestOpus"
+  | "everyday"
+  | "fast"
+  | "advancedReasoning"
+  | "fastAffordable"
+  | "zdrRoute"
+  | "previousOpus"
+  | "previousSonnet"
+  | "previousOpenai";
+
+export interface ChatModelPricing {
+  input: string;
+  output: string;
+}
 
 export interface ChatModelOption {
   id: ChatModel;
   label: string;
-  description: string;
-  pricing: string;
+  description: ChatModelDescriptionKey | null;
+  pricing: ChatModelPricing | "varies" | null;
   provider: ChatModelProvider;
   beta?: boolean;
 }
 
+export type ContentChatInputHandle = Pick<ChatInputHandle, "setAttachments"> & {
+  /** The content page mounts a floating and a panel composer; only one shows. */
+  isVisible: () => boolean;
+};
+
 export interface ChatInputProps {
-  onSend?: (value: string) => void;
+  ref?: Ref<ContentChatInputHandle>;
+  onSend?: (value: string, attachments: ChatAttachment[]) => void;
   onStop?: () => void;
   isLoading?: boolean;
   disabled?: boolean;
@@ -39,6 +67,7 @@ export interface ChatInputProps {
   queuedMessages?: QueuedMessage[];
   onEditQueued?: (message: QueuedMessage) => void;
   onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
 }
 
 export type EnabledRepo = GitHubRepository & { integrationId: string };
@@ -70,6 +99,40 @@ export interface ChatContextOption {
   logoDarkUrl?: string | null;
 }
 
+export interface ChatInputContextPickerProps {
+  contextOptions: ChatContextOption[];
+  contextPickerId: string;
+  disabledReason: string | null;
+  isInContext: (item: ContextItem) => boolean;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  organizationSlug?: string;
+  toggleContextItem: (item: ContextItem, inContext: boolean) => void;
+}
+
+export interface ChatInputComposerNudgeProps {
+  attachments: ChatAttachment[];
+  context: ContextItem[];
+  hasAttachmentChips: boolean;
+  hasContextChips: boolean;
+  onClearSelection?: () => void;
+  onEditQueued?: (message: QueuedMessage) => void;
+  onRemoveContext?: (item: ContextItem) => void;
+  onRemoveQueued?: (id: string) => void;
+  onSteerQueued?: (message: QueuedMessage) => void;
+  organizationSlug?: string;
+  pendingUploads: PendingChatUpload[];
+  queuedMessages: QueuedMessage[];
+  remainingChatCredits: number | null;
+  removeAttachment: (key: string) => void;
+  selection?: TextSelection | null;
+  setPreviewAttachment: (attachment: ChatAttachment) => void;
+  shouldShowLowCredits: boolean;
+  taggedSkills: SkillSlashOption[];
+  untagSkill: (name: string) => void;
+  usageLimitError: string | null;
+}
+
 export interface ChatContextOptionContentProps {
   option: ChatContextOption;
 }
@@ -79,7 +142,6 @@ export type ChatContextSuggestedIntegrationId = "github" | "linear" | "mcp";
 export interface ChatContextSuggestedIntegration {
   id: ChatContextSuggestedIntegrationId;
   name: string;
-  description: string;
   href: string;
   keywords: readonly string[];
 }
@@ -87,4 +149,10 @@ export interface ChatContextSuggestedIntegration {
 export interface ChatContextConnectSuggestionsProps {
   organizationSlug: string;
   onSelect: () => void;
+}
+
+export interface ChatFileAttachmentProps {
+  url: string;
+  filename?: string;
+  mediaType?: string;
 }

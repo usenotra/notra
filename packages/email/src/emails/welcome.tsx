@@ -1,54 +1,49 @@
-import { Body, Head, Html, Link, Preview, Text } from "react-email";
+import { Link, Text } from "react-email";
+
+import { EmailLayout } from "../components/layout";
+import { EMAIL_THEME } from "../constants/theme";
+
+const PARAGRAPH = "mt-0 mb-4 text-[15px] leading-[24px] text-[#171717]";
+const LINK_STYLE = { color: EMAIL_THEME.link, textDecoration: "underline" };
 
 export const WelcomeEmail = () => {
   return (
-    <Html>
-      <Head />
-      <Preview>Welcome to Notra - A quick note from the founder</Preview>
-      <Body>
-        <Text>
-          Hey I'm Dominik, the founder of Notra. I wanted to personally welcome
-          you and say thanks for signing up.
-        </Text>
+    <EmailLayout
+      heading="Welcome to Notra"
+      preview="A quick note from Dominik, the founder of Notra"
+    >
+      <Text className={PARAGRAPH}>
+        Hey, I'm Dominik, the founder of Notra. I wanted to personally welcome
+        you and say thanks for signing up.
+      </Text>
 
-        <Text>
-          We built Notra because we were shipping faster than ever but didn't
-          have enough time to come up with tweets, changelogs and LinkedIn
-          posts.
-        </Text>
+      <Text className={PARAGRAPH}>
+        We built Notra because we were shipping faster than ever but didn't have
+        enough time to come up with tweets, changelogs and LinkedIn posts.
+      </Text>
 
-        <Text>
-          If you have any questions, feedback, or just want to chat reply to
-          this email. We read every single one of them.
-        </Text>
+      <Text className={PARAGRAPH}>
+        If you have any questions, feedback, or just want to chat, reply to this
+        email. We read every single one.
+      </Text>
 
-        <Text>
-          You can also{" "}
-          <Link href="https://usenotra.com/founder-chat">schedule a chat</Link>{" "}
-          with us or join our{" "}
-          <Link href="https://usenotra.com/discord">Discord Community</Link>!
-        </Text>
+      <Text className={PARAGRAPH}>
+        You can also{" "}
+        <Link href="https://usenotra.com/founder-chat" style={LINK_STYLE}>
+          book a chat with me
+        </Link>{" "}
+        or join our{" "}
+        <Link href="https://usenotra.com/discord" style={LINK_STYLE}>
+          Discord community
+        </Link>
+        .
+      </Text>
 
-        <Text>
-          Cheers,
-          <br />
-          Dominik & The Notra Team
-        </Text>
-
-        <Text style={{ fontSize: "12px", color: "#999", marginTop: "32px" }}>
-          <Link href="https://usenotra.com/legal" style={{ color: "#999" }}>
-            Legal Notice
-          </Link>
-          {" · "}
-          <Link href="https://usenotra.com/privacy" style={{ color: "#999" }}>
-            Privacy Policy
-          </Link>
-          {" · "}
-          <Link href="https://usenotra.com/terms" style={{ color: "#999" }}>
-            Terms of Service
-          </Link>
-        </Text>
-      </Body>
-    </Html>
+      <Text className={PARAGRAPH}>
+        Cheers,
+        <br />
+        Dominik & the Notra team
+      </Text>
+    </EmailLayout>
   );
 };

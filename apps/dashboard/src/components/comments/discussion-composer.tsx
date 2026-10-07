@@ -2,10 +2,12 @@
 
 import { ArrowUp02Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Composer } from "@notra/ui/components/ui/composer";
 import { Textarea } from "@notra/ui/components/ui/textarea";
+import { cn } from "@notra/ui/lib/utils";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
-import { Composer } from "@/components/composer/composer-shell";
 import type { DiscussionComposerProps } from "@/types/comments";
 
 export function DiscussionComposer({
@@ -17,10 +19,15 @@ export function DiscussionComposer({
   onDraftChange,
   onSubmit,
   onCancelReply,
+  sticky = true,
 }: DiscussionComposerProps) {
+  const t = useTranslations("comments");
   return (
     <form
-      className="bg-background sticky bottom-0 flex items-start gap-3 pt-2 pb-1"
+      className={cn(
+        "bg-background flex items-start gap-3 pt-2 pb-1",
+        sticky && "sticky bottom-0"
+      )}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -28,13 +35,14 @@ export function DiscussionComposer({
     >
       <Composer.Frame
         className="min-w-0 flex-1"
+        flat
         nudge={
           reply ? (
             <Composer.Nudge
-              title={`Replying to ${reply.name}`}
+              title={t("replyingTo", { name: reply.name })}
               action={
                 <Button
-                  aria-label="Cancel reply"
+                  aria-label={t("cancelReply")}
                   size="icon-sm"
                   variant="ghost"
                   onClick={onCancelReply}
@@ -49,8 +57,12 @@ export function DiscussionComposer({
         <div className="flex items-end gap-2 p-1.5">
           <Textarea
             ref={textarea}
-            aria-label={reply ? `Reply to ${reply.name}` : "Write a comment"}
-            placeholder={reply ? "Write a reply…" : "Write a comment…"}
+            aria-label={
+              reply ? t("replyTo", { name: reply.name }) : t("writeComment")
+            }
+            placeholder={
+              reply ? t("writeReplyPlaceholder") : t("writeCommentPlaceholder")
+            }
             className="max-h-32 min-h-7 flex-1 resize-none border-0 bg-transparent px-2 py-1 text-sm leading-5 shadow-none focus-visible:ring-0 dark:bg-transparent"
             rows={1}
             maxLength={10000}
@@ -68,8 +80,8 @@ export function DiscussionComposer({
             }}
           />
           <Composer.Send
-            label="Send comment"
-            tooltip="Send comment"
+            label={t("send")}
+            tooltip={t("send")}
             busy={busy}
             disabled={!canSubmit}
             onClick={onSubmit}

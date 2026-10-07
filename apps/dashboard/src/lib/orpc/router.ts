@@ -4,6 +4,7 @@ import { apiKeysRouter } from "./routers/api-keys";
 import { attachmentsRouter } from "./routers/attachments";
 import { automationRouter } from "./routers/automation";
 import { brandRouter } from "./routers/brand";
+import { chatRouter } from "./routers/chat";
 import { commentsRouter } from "./routers/comments";
 import { contentRouter } from "./routers/content";
 import { feedbackRouter } from "./routers/feedback";
@@ -14,6 +15,8 @@ import { irisRouter } from "./routers/iris";
 import { logsRouter } from "./routers/logs";
 import { notificationsRouter } from "./routers/notifications";
 import { onboardingRouter } from "./routers/onboarding";
+import { organizationRouter } from "./routers/organization";
+import { outboundWebhooksRouter } from "./routers/outbound-webhooks";
 import { searchRouter } from "./routers/search";
 import { skillsRouter } from "./routers/skills";
 import { socialAccountsRouter } from "./routers/social-accounts";
@@ -23,12 +26,14 @@ import { userRouter } from "./routers/user";
 
 export const dashboardRouter = {
   comments: commentsRouter,
+  outboundWebhooks: outboundWebhooksRouter,
   agentFeedback: agentFeedbackRouter,
   analytics: analyticsRouter,
   apiKeys: apiKeysRouter,
   attachments: attachmentsRouter,
   automation: automationRouter,
   brand: brandRouter,
+  chat: chatRouter,
   content: contentRouter,
   feedback: feedbackRouter,
   geo: geoRouter,
@@ -38,6 +43,7 @@ export const dashboardRouter = {
   logs: logsRouter,
   notifications: notificationsRouter,
   onboarding: onboardingRouter,
+  organization: organizationRouter,
   search: searchRouter,
   skills: skillsRouter,
   socialAccounts: socialAccountsRouter,

@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  GEO_PROMPT_GAP_IGNORED_TOAST,
-  GEO_PROMPT_GAP_RESTORED_TOAST,
-  GEO_SEARCH_GAP_DISMISSED_TOAST,
-} from "@notra/geo-core/constants/geo";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import {
@@ -22,6 +17,7 @@ import {
   useGeoPromptGapIgnore,
   useGeoWriterGaps,
 } from "@/lib/hooks/use-geo-writer";
+import { useRouter } from "@/lib/navigation";
 import type { GeoGapsPageModel } from "@/types/components/geo-gaps";
 import type { WriteDialogInitialState } from "@/types/components/geo-writer";
 import {
@@ -36,6 +32,7 @@ import {
 } from "@/utils/geo-write-entry";
 
 export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
+  const tToast = useTranslations("geo.toasts");
   const router = useRouter();
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
@@ -94,6 +91,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
         competitors,
         organizationId,
         hasScanData: gapsQuery.data?.hasScanData ?? false,
+        snapshotReady: gapsQuery.data?.snapshotReady ?? false,
         isScanning,
         onOpenPost: (postId) => {
           router.push(geoContentPath(organizationSlug, postId));
@@ -112,9 +110,9 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
           } catch {
             return;
           }
-          toast.success(GEO_PROMPT_GAP_IGNORED_TOAST, {
+          toast.success(tToast("gapIgnored"), {
             action: {
-              label: "Undo",
+              label: tToast("undo"),
               onClick: async () => {
                 try {
                   await ignoreGap.mutateAsync({
@@ -124,7 +122,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
                 } catch {
                   return;
                 }
-                toast.success(GEO_PROMPT_GAP_RESTORED_TOAST);
+                toast.success(tToast("gapRestored"));
               },
             },
           });
@@ -152,7 +150,7 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             { suggestionId: row.id },
             {
               onSuccess: () => {
-                toast.success(GEO_SEARCH_GAP_DISMISSED_TOAST);
+                toast.success(tToast("searchGapDismissed"));
               },
             }
           );
@@ -165,9 +163,16 @@ export function useGeoGapsPage(organizationSlug: string): GeoGapsPageModel {
             existingPageUrl,
           });
         },
-        organizationSlug,
+        onWriteAiSearch: (row) => {
+          openDialog({
+            sourceKind: "ai_search",
+            sourceId: row.id,
+            topic: row.query,
+          });
+        },
         promptGaps: gapsQuery.data?.promptGaps ?? [],
         searchGaps: gapsQuery.data?.searchGaps ?? [],
+        aiSearchGaps: gapsQuery.data?.aiSearchGaps ?? [],
       },
       dialog: {
         open: dialogOpen,

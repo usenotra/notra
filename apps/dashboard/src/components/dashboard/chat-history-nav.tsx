@@ -10,19 +10,10 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CHAT_TITLE_MAX_LENGTH } from "@notra/ai/constants/chat";
-import { externalChannelIdSchema } from "@notra/ai/schemas/chat";
 import type { ChatSessionSummary } from "@notra/ai/types/chat";
 import { normalizeChatTitle } from "@notra/ai/utils/chat";
-import {
-  ResponsiveAlertDialog,
-  ResponsiveAlertDialogAction,
-  ResponsiveAlertDialogCancel,
-  ResponsiveAlertDialogContent,
-  ResponsiveAlertDialogDescription,
-  ResponsiveAlertDialogFooter,
-  ResponsiveAlertDialogHeader,
-  ResponsiveAlertDialogTitle,
-} from "@notra/ui/components/shared/responsive-alert-dialog";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
+import { Button } from "@notra/ui/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -47,20 +38,24 @@ import {
 } from "@notra/ui/components/ui/sidebar";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
-import { CHAT_HISTORY_PINNED_LABEL } from "@/constants/chat-history";
 import {
   useChatSessionMutations,
   useChatSessions,
 } from "@/lib/hooks/use-chat-sessions";
+import { usePathname, useRouter } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import { getChatHistoryGroups } from "@/utils/chat-history-groups";
+import {
+  displayChatTitle,
+  getChatHistoryGroups,
+} from "@/utils/chat-history-groups";
+import { chatHistoryQueryOptions } from "@/utils/chat-history-query";
 
+import { ChatHistoryNavLoading } from "./chat-history-nav-loading";
 import { SidebarLabel } from "./sidebar-label";
 import { SidebarNavLink } from "./sidebar-nav-link";
 
@@ -70,6 +65,10 @@ function chatIdFromPath(path: string): string | undefined {
 }
 
 export function ChatHistoryNav() {
+  const t = useTranslations("dashboard.chatHistory");
+  const tCommon2 = useTranslations("common");
+  const tChat = useTranslations("dashboard.chatTitle");
+  const tCommon = useTranslations("common.actions");
   const { activeOrganization } = useOrganizationsContext();
   const pathname = usePathname();
   const router = useRouter();
@@ -92,45 +91,19 @@ export function ChatHistoryNav() {
     if (!organizationId) {
       return;
     }
-    queryClient.prefetchQuery({
-      queryKey: ["chat-history", organizationId, chatId],
-      queryFn: async () => {
-        const res = await fetch(
-          `/api/organizations/${organizationId}/chat/${encodeURIComponent(chatId)}`
-        );
-        if (!res.ok) {
-          throw new Error("Failed to prefetch chat history");
-        }
-        const data = await res.json();
-        const externalChannelId = externalChannelIdSchema.safeParse(
-          data?.externalChannelId
-        );
-        return {
-          messages: data?.messages ?? null,
-          lastResponseStopped: Boolean(data?.lastResponseStopped),
-          activeStreamId:
-            typeof data?.activeStreamId === "string"
-              ? data.activeStreamId
-              : null,
-          externalChannelId: externalChannelId.success
-            ? externalChannelId.data
-            : null,
-        };
-      },
-      staleTime: 1000 * 60 * 5,
-    });
+    void queryClient.prefetchQuery(
+      chatHistoryQueryOptions(organizationId, chatId)
+    );
   }
 
-  const { sessions, generatingTitleChatIds, isLoading } = useChatSessions();
-  const shouldReduceMotion = useReducedMotion();
+  const { sessions, generatingTitleChatIds, isLoading, isError } =
+    useChatSessions();
+  const showError = isError && sessions.length === 0;
+  const showLoading = !showError && isLoading && sessions.length === 0;
   const { renameChat, togglePinned, deleteChat } = useChatSessionMutations();
 
   const pathSegments = pathname.split("/").filter(Boolean);
-  const currentChatId =
-    chatIdFromPath(pathname) ??
-    (typeof window === "undefined"
-      ? undefined
-      : chatIdFromPath(window.location.pathname));
+  const currentChatId = chatIdFromPath(pathname);
   const isOnChatRoute = pathSegments[1] === "chat";
   const pinnedSessions = sessions.filter((session) =>
     Boolean(session.pinnedAt)
@@ -152,7 +125,7 @@ export function ChatHistoryNav() {
     const nextTitle = normalizeChatTitle(draftTitle);
 
     if (!nextTitle) {
-      toast.error("Title can't be empty");
+      toast.error(tChat("emptyTitle"));
       setDraftTitle(session.title);
       setEditingChatId(null);
       return;
@@ -273,7 +246,9 @@ export function ChatHistoryNav() {
                         ) : (
                           <SidebarNavLink
                             aria-label={
-                              isGeneratingTitle ? "Generating title" : undefined
+                              isGeneratingTitle
+                                ? tChat("generating")
+                                : undefined
                             }
                             href={sessionHref}
                             onClick={(event) => {
@@ -285,27 +260,42 @@ export function ChatHistoryNav() {
                             onMouseEnter={() =>
                               prefetchChatHistory(session.chatId)
                             }
+                            onPointerDown={() =>
+                              prefetchChatHistory(session.chatId)
+                            }
                             replace={isOnChatRoute}
                           >
                             {isGeneratingTitle ? (
                               <Skeleton
-                                aria-label="Generating title"
+                                aria-label={tChat("generating")}
                                 className="h-4 w-28 max-w-full"
                                 role="status"
                               />
                             ) : (
-                              <span className="truncate">{session.title}</span>
+                              <span className="truncate">
+                                {displayChatTitle(
+                                  session.title,
+                                  tCommon2("labels.newChat")
+                                )}
+                              </span>
                             )}
                           </SidebarNavLink>
                         )
                       }
-                      tooltip={isGeneratingTitle ? undefined : session.title}
+                      tooltip={
+                        isGeneratingTitle
+                          ? undefined
+                          : displayChatTitle(
+                              session.title,
+                              tCommon2("labels.newChat")
+                            )
+                      }
                     />
 
                     {!isEditing && (
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          aria-label="Chat options"
+                          aria-label={t("options")}
                           className="text-muted-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-foreground duration-fast absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md opacity-0 outline-hidden transition-opacity ease-out group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 data-popup-open:opacity-100 [&>svg]:size-4 [&>svg]:shrink-0"
                           onClick={(event) => {
                             event.preventDefault();
@@ -326,21 +316,21 @@ export function ChatHistoryNav() {
                             <HugeiconsIcon
                               icon={session.pinnedAt ? PinOffIcon : PinIcon}
                             />
-                            {session.pinnedAt ? "Unpin" : "Pin"}
+                            {session.pinnedAt ? tChat("unpin") : tChat("pin")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={isGeneratingTitle}
                             onClick={() => startEditing(session)}
                           >
                             <HugeiconsIcon icon={PencilEdit02Icon} />
-                            Rename
+                            {tCommon("rename")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => setDeleteCandidate(session)}
                             variant="destructive"
                           >
                             <HugeiconsIcon icon={Delete02Icon} />
-                            Delete
+                            {tCommon("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -354,21 +344,21 @@ export function ChatHistoryNav() {
                       <HugeiconsIcon
                         icon={session.pinnedAt ? PinOffIcon : PinIcon}
                       />
-                      {session.pinnedAt ? "Unpin" : "Pin"}
+                      {session.pinnedAt ? tChat("unpin") : tChat("pin")}
                     </ContextMenuItem>
                     <ContextMenuItem
                       disabled={isGeneratingTitle}
                       onClick={() => startEditing(session)}
                     >
                       <HugeiconsIcon icon={PencilEdit02Icon} />
-                      Rename
+                      {tCommon("rename")}
                     </ContextMenuItem>
                     <ContextMenuItem
                       onClick={() => setDeleteCandidate(session)}
                       variant="destructive"
                     >
                       <HugeiconsIcon icon={Delete02Icon} />
-                      Delete
+                      {tCommon("delete")}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -398,10 +388,10 @@ export function ChatHistoryNav() {
                     replace={isOnChatRoute}
                   >
                     <HugeiconsIcon icon={Add01Icon} />
-                    <SidebarLabel>New chat</SidebarLabel>
+                    <SidebarLabel>{tCommon2("labels.newChat")}</SidebarLabel>
                   </SidebarNavLink>
                 }
-                tooltip="New chat"
+                tooltip={tCommon2("labels.newChat")}
               />
             </SidebarMenuItem>
           </SidebarMenu>
@@ -410,60 +400,52 @@ export function ChatHistoryNav() {
 
       {!isCollapsed && (
         <div className="flex-1 overflow-x-hidden overflow-y-auto">
-          <AnimatePresence initial={false}>
-            {!isLoading || sessions.length > 0 ? (
-              <motion.div
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-                key="chat-sessions"
-                transition={{ duration: 0.25, ease: "easeOut" }}
+          {showError && (
+            <div className="space-y-2 p-3" role="alert">
+              <p className="text-muted-foreground text-xs">{t("loadFailed")}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
-                {renderSessions(CHAT_HISTORY_PINNED_LABEL, pinnedSessions)}
-                {historyGroups.map((group) =>
-                  renderSessions(group.label, group.sessions)
-                )}
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+                {tCommon("refresh")}
+              </Button>
+            </div>
+          )}
+          {showLoading && <ChatHistoryNavLoading />}
+          {!(showError || showLoading) && (
+            <div>
+              {renderSessions(t("pinned"), pinnedSessions)}
+              {historyGroups.map((group) =>
+                renderSessions(
+                  group.id === "lastMonth"
+                    ? t("groups.lastMonth")
+                    : tCommon2(`labels.${group.id}`),
+                  group.sessions
+                )
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      <ResponsiveAlertDialog
+      <ConfirmDialog
+        confirmLabel={tCommon("delete")}
+        description={tCommon2("messages.thisWillPermanentlyDeleteTitle", {
+          title: deleteCandidate?.title ?? "",
+        })}
+        onConfirm={handleDelete}
         onOpenChange={(open) => {
-          if (!open && !deletingChatId) {
+          if (!open) {
             setDeleteCandidate(null);
           }
         }}
         open={Boolean(deleteCandidate)}
-      >
-        <ResponsiveAlertDialogContent>
-          <ResponsiveAlertDialogHeader>
-            <ResponsiveAlertDialogTitle>
-              Delete chat?
-            </ResponsiveAlertDialogTitle>
-            <ResponsiveAlertDialogDescription>
-              This will permanently delete &quot;{deleteCandidate?.title}&quot;.
-              This action cannot be undone.
-            </ResponsiveAlertDialogDescription>
-          </ResponsiveAlertDialogHeader>
-          <ResponsiveAlertDialogFooter>
-            <ResponsiveAlertDialogCancel disabled={Boolean(deletingChatId)}>
-              Cancel
-            </ResponsiveAlertDialogCancel>
-            <ResponsiveAlertDialogAction
-              disabled={Boolean(deletingChatId)}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-              variant="destructive"
-            >
-              {deletingChatId ? "Deleting..." : "Delete"}
-            </ResponsiveAlertDialogAction>
-          </ResponsiveAlertDialogFooter>
-        </ResponsiveAlertDialogContent>
-      </ResponsiveAlertDialog>
+        pending={Boolean(deletingChatId)}
+        title={tChat("deleteTitle")}
+        variant="destructive"
+      />
     </>
   );
 }

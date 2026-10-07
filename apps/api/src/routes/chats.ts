@@ -189,10 +189,8 @@ async function handleSend(
     });
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("[Standalone Chat] Error:", {
-      requestId,
-      error: errorMessage,
-      stack: e instanceof Error ? e.stack : undefined,
+    log.error(e instanceof Error ? e : errorMessage, {
+      errorCode: "standalone_chat_failed",
     });
     return c.json(
       {
@@ -230,6 +228,7 @@ const streamingChatResponses = {
   401: errorResponse("Missing or invalid API key"),
   403: errorResponse("Forbidden, or usage limit reached"),
   404: errorResponse("Chat not found"),
+  409: errorResponse("Chat is generating or pending approvals have changed"),
   429: rateLimitResponse(
     RATE_LIMITS.chatGeneration.requests,
     RATE_LIMITS.chatGeneration.window
@@ -264,7 +263,7 @@ chatsRoutes.openAPIRegistry.registerPath({
   operationId: "postChatMessage",
   summary: "Post a message to an existing chat and stream the reply",
   description:
-    "Appends a user message to the chat and streams the assistant reply. Earlier messages in the chat are included as context automatically.",
+    'Sends a message or resumes pending tool approvals and streams the assistant reply. Earlier messages are included automatically. To approve or deny tools, send approvals: [{ "id": "<approvalId>", "approved": true }] for every pending approval in the latest assistant message, without a message field; use "approved": false to deny. Approval IDs are emitted in tool-approval-request chunks and stored on tool parts in chat history.',
   request: {
     params: sendChatParamsSchema,
     body: {
