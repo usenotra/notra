@@ -55,29 +55,6 @@ export function isDiagramSpecError(error: unknown) {
   );
 }
 
-/** Which image format a stored image post is, from its source metadata. */
-export function readImageFormat(metadata: unknown): "diagram" | "marketing" {
-  const isDiagram =
-    typeof metadata === "object" &&
-    metadata !== null &&
-    (("format" in metadata && metadata.format === "diagram") ||
-      ("diagramSpec" in metadata && Boolean(metadata.diagramSpec)));
-  return isDiagram ? "diagram" : "marketing";
-}
-
-/** The editable spec saved on a diagram post, or null for other images. */
-export function readDiagramSpec(metadata: unknown): DiagramSpec | null {
-  if (
-    typeof metadata !== "object" ||
-    metadata === null ||
-    !("diagramSpec" in metadata)
-  ) {
-    return null;
-  }
-  const parsed = diagramSpecSchema.safeParse(metadata.diagramSpec);
-  return parsed.success ? parsed.data : null;
-}
-
 export function describeDiagramSpecError(error: unknown) {
   if (error instanceof z.ZodError) {
     return z.prettifyError(error);

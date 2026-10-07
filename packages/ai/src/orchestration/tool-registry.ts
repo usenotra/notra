@@ -86,10 +86,6 @@ export function buildToolSet(
         organizationId,
         userId,
         postId: currentPostId,
-        title: imageDefaults.title,
-        integrationId: imageDefaults.integrationId,
-        branch: imageDefaults.branch,
-        brandIdentityId: imageDefaults.brandIdentityId,
         useMarkup,
         chargeAiCredits,
       });

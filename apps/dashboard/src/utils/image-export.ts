@@ -3,7 +3,10 @@ import {
   IMAGE_EXPORT_TARGET_LABELS,
   IMAGE_EXPORT_TARGETS,
 } from "@/constants/image-export";
-import type { ImageExportTarget } from "@/types/content/image-export";
+import type {
+  DiagramExportTarget,
+  ImageExportTarget,
+} from "@/types/content/image-export";
 
 export function isImageExportTarget(value: string): value is ImageExportTarget {
   return IMAGE_EXPORT_TARGETS.some((target) => target === value);
@@ -15,7 +18,7 @@ export function getImageExportTargetLabel(target: ImageExportTarget): string {
 
 export function isDiagramExportTarget(
   target: ImageExportTarget
-): target is (typeof DIAGRAM_EXPORT_TARGETS)[number] {
+): target is DiagramExportTarget {
   return DIAGRAM_EXPORT_TARGETS.some((value) => value === target);
 }
 

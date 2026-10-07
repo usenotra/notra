@@ -44,6 +44,14 @@ export interface GenerateRepoImageResult {
   usage?: AgentTokenUsage;
 }
 
+export type RepoImageUsage = AgentTokenUsage | undefined;
+
+/** What one format run produces; generateRepoImage adds format and sandbox. */
+export type RepoImageRender = Pick<
+  GenerateRepoImageResult,
+  "pngBase64" | "svg" | "html" | "excalidrawScene" | "diagramSpec"
+> & { usage: RepoImageUsage };
+
 export interface ImageToolConfig {
   chatId?: string;
   organizationId: string;
@@ -55,10 +63,6 @@ export interface ImageRevisionToolConfig {
   organizationId: string;
   userId: string;
   postId: string;
-  title: string;
-  integrationId: string;
-  branch: string;
-  brandIdentityId?: string;
   useMarkup?: boolean;
   chargeAiCredits?: boolean;
 }

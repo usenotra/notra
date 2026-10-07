@@ -1,7 +1,5 @@
-import {
-  type generateRepoImage,
-  RepoImageError,
-} from "@notra/ai/agents/repo-image";
+import type { generateRepoImage } from "@notra/ai/agents/repo-image";
+import { RepoImageError } from "@notra/ai/agents/repo-image-agent";
 import { calculateAiCreditCostCents } from "@notra/ai/billing/ai-credit-cost";
 import {
   allowUnmeteredAiInDevelopment,
@@ -13,9 +11,10 @@ import { IMAGE_GEN_MODEL_ID } from "@notra/ai/constants/repo-image";
 import { maybeGenerateCollectionTitle } from "@notra/ai/jobs/collection-title";
 import type { GenerateRepoImageResult } from "@notra/ai/types/repo-image";
 import {
+  readDiagramRevision,
   readDiagramSpec,
   readImageFormat,
-} from "@notra/ai/utils/excalidraw-diagram";
+} from "@notra/ai/utils/diagram-metadata";
 import {
   uploadGeneratedExcalidrawAsset,
   uploadGeneratedHtmlAsset,
@@ -101,6 +100,11 @@ export async function buildRevisionSourceMetadata(params: {
     sourcePostId: params.postId,
     sandbox: params.result.sandbox,
     usage: params.result.usage ?? null,
+    // A sandbox revision replaces the diagram too, so an editor opened before
+    // it must not save over it.
+    ...(params.result.format === "diagram"
+      ? { diagramRevision: readDiagramRevision(existing) + 1 }
+      : {}),
   };
 }
 

@@ -72,11 +72,10 @@ function ContentDetailImageActions({
       content_id: contentId,
       target,
     });
+    // Diagram targets are only offered when the post has a scene.
     if (isDiagramExportTarget(target)) {
       copyDiagramScene(
-        hasExcalidrawScene
-          ? `/api/organizations/${organizationId}/content/${contentId}/excalidraw`
-          : null,
+        `/api/organizations/${organizationId}/content/${contentId}/excalidraw`,
         target
       );
       return;

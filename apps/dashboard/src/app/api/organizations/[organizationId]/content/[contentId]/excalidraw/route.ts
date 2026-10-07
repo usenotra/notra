@@ -1,10 +1,13 @@
 import {
   canEditDiagramWithoutSandbox,
-  isDiagramConflictError,
   readDiagramRevision,
+  readExcalidrawUrl,
+} from "@notra/ai/utils/diagram-metadata";
+import {
+  isDiagramConflictError,
   saveDiagramRevision,
-  sceneToDiagramSpec,
-} from "@notra/ai/utils/diagram-edit";
+} from "@notra/ai/utils/diagram-post";
+import { sceneToDiagramSpec } from "@notra/ai/utils/diagram-scene-import";
 import { describeDiagramSpecError } from "@notra/ai/utils/excalidraw-diagram";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
@@ -19,18 +22,6 @@ import { saveDiagramSceneSchema } from "@/schemas/diagram-editor";
 import type { RouteContext } from "@/types/api/routes";
 
 const TRAILING_SLASHES_RE = /\/+$/;
-
-function readExcalidrawUrl(metadata: unknown): string | null {
-  if (
-    typeof metadata === "object" &&
-    metadata !== null &&
-    "excalidrawUrl" in metadata &&
-    typeof metadata.excalidrawUrl === "string"
-  ) {
-    return metadata.excalidrawUrl;
-  }
-  return null;
-}
 
 // Serves the diagram's Excalidraw scene same-origin, so the clipboard export
 // does not depend on the asset bucket's CORS rules.

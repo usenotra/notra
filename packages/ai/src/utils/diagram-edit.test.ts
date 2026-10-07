@@ -1,15 +1,10 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 
-// diagram-edit pulls in the DB and asset helpers for saving; the pure helpers
-// under test never touch them.
-mock.module("@notra/db/drizzle", () => ({ db: {} }));
-
-const { diagramSpecSchema } = await import("../schemas/excalidraw-diagram");
-const { buildExcalidrawScene } = await import("../utils/excalidraw-diagram");
-const { findDiagramLayoutIssues } =
-  await import("../utils/excalidraw-layout-check");
-const { parseDiagramSpecText, sceneToDiagramSpec } =
-  await import("../utils/diagram-edit");
+import { diagramSpecSchema } from "../schemas/excalidraw-diagram";
+import { parseDiagramSpecText } from "../utils/diagram-edit";
+import { sceneToDiagramSpec } from "../utils/diagram-scene-import";
+import { buildExcalidrawScene } from "../utils/excalidraw-diagram";
+import { findDiagramLayoutIssues } from "../utils/excalidraw-layout-check";
 
 const measurer = {
   measure(text: string, fontSize: number) {

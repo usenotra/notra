@@ -1,12 +1,16 @@
 import { toast } from "sonner";
 
 import { EXCALIDRAW_CLIPBOARD_TYPE } from "@/constants/image-export";
-import type { ImageExportTarget } from "@/types/content/image-export";
+import type {
+  DiagramExportTarget,
+  ImageExportTarget,
+} from "@/types/content/image-export";
 import {
   buildImageDownloadFilename,
   downloadBlob,
   sanitizeDownloadFilename,
 } from "@/utils/download";
+import { isDiagramExportTarget } from "@/utils/image-export";
 import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
 import {
   commonLabelToastMessage,
@@ -68,7 +72,8 @@ export function isImageExportCopyReady(target: ImageExportTarget): boolean {
   if (target === "paper") {
     return copyAsPaperFn !== null;
   }
-  return target === "excalidraw" || target === "tldraw";
+  // The scene is fetched inside the click; nothing to preload.
+  return isDiagramExportTarget(target);
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */
@@ -88,7 +93,7 @@ export function preloadImageExportCopy(
       .then(() => true)
       .catch(() => false);
   }
-  return Promise.resolve(target === "excalidraw" || target === "tldraw");
+  return Promise.resolve(isDiagramExportTarget(target));
 }
 
 function createExportElement(html: string): HTMLDivElement {
@@ -241,14 +246,9 @@ async function fetchExcalidrawClipboardBlob(sceneUrl: string): Promise<Blob> {
 
 /** Copies the editable diagram scene so it pastes as native shapes in Excalidraw or tldraw. */
 export async function copyDiagramScene(
-  sceneUrl: string | null,
-  target: "excalidraw" | "tldraw"
+  sceneUrl: string,
+  target: DiagramExportTarget
 ): Promise<void> {
-  if (!sceneUrl) {
-    toast.error(imageExportToastMessage("imageNotReady"));
-    return;
-  }
-
   try {
     // Hand the clipboard a pending blob so the write starts inside the click
     // and keeps user activation while the scene downloads.

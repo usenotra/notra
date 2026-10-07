@@ -1,23 +1,5 @@
-import {
-  deleteRepoImageSnapshot,
-  generateRepoImage,
-} from "@notra/ai/agents/repo-image";
-import {
-  canEditDiagramWithoutSandbox,
-  reviseDiagramPost,
-} from "@notra/ai/utils/diagram-edit";
-import { readImageFormat } from "@notra/ai/utils/excalidraw-diagram";
-import {
-  uploadGeneratedHtmlAsset,
-  uploadGeneratedImageAsset,
-} from "@notra/ai/utils/image-assets";
-import {
-  buildRevisionSourceMetadata,
-  getImageSnapshot,
-  trackImageGenerationUsage,
-} from "@notra/ai/utils/image-post-service";
+import { reviseImagePost } from "@notra/ai/utils/image-revision";
 import { redis } from "@notra/ai/utils/redis";
-import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -49,7 +31,9 @@ export function createReviseImageTool() {
         );
       }
 
+      // Only for answering a repeated call with the current image.
       const post = await db.query.posts.findFirst({
+        columns: { title: true, content: true },
         where: and(
           eq(posts.id, postId),
           eq(posts.organizationId, organizationId)
@@ -78,119 +62,16 @@ export function createReviseImageTool() {
         }
       }
       try {
-        if (
-          !useRepository &&
-          canEditDiagramWithoutSandbox(post.sourceMetadata)
-        ) {
-          return await reviseDiagramPost({
-            organizationId,
-            postId,
-            prompt,
-            title,
-            useMarkup,
-            chargeAiCredits,
-          });
-        }
-
-        const metadata =
-          post.sourceMetadata && typeof post.sourceMetadata === "object"
-            ? post.sourceMetadata
-            : {};
-        const integrationId =
-          "integrationId" in metadata &&
-          typeof metadata.integrationId === "string"
-            ? metadata.integrationId
-            : null;
-        const branch =
-          "branch" in metadata && typeof metadata.branch === "string"
-            ? metadata.branch
-            : null;
-        if (!(integrationId && branch)) {
-          throw new Error(
-            "The image post is missing its repository metadata and cannot be revised."
-          );
-        }
-
-        const previousSnapshot = await getImageSnapshot(organizationId, postId);
-        const nextTitle = title ?? post.title;
-
-        const result = await generateRepoImage({
-          input: {
-            organizationId,
-            integrationId,
-            branch,
-            brandIdentityId: previousSnapshot.brandIdentityId,
-            mode: "prompt",
-            prompt,
-            // From the post, not from files in the restored repo: a customer
-            // repo can contain its own diagram.json.
-            format: readImageFormat(post.sourceMetadata),
-          },
-          restoreSnapshotId: previousSnapshot.snapshotId,
-          restoreDiagramSpec: previousSnapshot.diagramSpec,
-          snapshotName: `image-${organizationId}-${Date.now()}`,
-          userId,
-        });
-
-        const [imageUrl, htmlUrl] = await Promise.all([
-          uploadGeneratedImageAsset({
-            organizationId,
-            pngBase64: result.pngBase64,
-            postId,
-          }),
-          uploadGeneratedHtmlAsset({
-            organizationId,
-            html: result.html,
-            postId,
-          }),
-        ]);
-        const sourceMetadata = await buildRevisionSourceMetadata({
+        return await reviseImagePost({
           organizationId,
           postId,
-          integrationId,
-          branch,
           prompt,
-          result,
-        });
-
-        await db
-          .update(posts)
-          .set({
-            title: nextTitle,
-            content: imageUrl,
-            htmlUrl,
-            markdown: null,
-            sourceMetadata,
-            updatedAt: new Date(),
-          })
-          .where(
-            and(eq(posts.id, postId), eq(posts.organizationId, organizationId))
-          );
-
-        await deleteRepoImageSnapshot(previousSnapshot).catch((error) => {
-          logError("Failed to delete previous repo image snapshot", error, {
-            postId,
-            snapshotId: previousSnapshot.snapshotId,
-          });
-        });
-
-        await trackImageGenerationUsage({
-          organizationId,
-          postId,
-          usage: result.usage,
+          title,
+          useRepository,
+          userId,
           useMarkup,
           chargeAiCredits,
         });
-
-        return {
-          postId,
-          title: nextTitle,
-          imageUrl,
-          status: "updated",
-          contentType: "image",
-          sandbox: result.sandbox,
-          usage: result.usage ?? null,
-        };
       } catch (error) {
         if (redis) {
           await redis.del(revisionKey).catch(() => null);

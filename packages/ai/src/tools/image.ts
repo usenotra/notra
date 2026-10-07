@@ -1,7 +1,4 @@
-import {
-  deleteRepoImageSnapshot,
-  generateRepoImage,
-} from "@notra/ai/agents/repo-image";
+import { generateRepoImage } from "@notra/ai/agents/repo-image";
 import {
   imageRevisionToolInputSchema,
   imageToolInputSchema,
@@ -12,25 +9,12 @@ import type {
 } from "@notra/ai/types/repo-image";
 import { toolDescription } from "@notra/ai/utils/description";
 import {
-  canEditDiagramWithoutSandbox,
-  reviseDiagramPost,
-} from "@notra/ai/utils/diagram-edit";
-import { readImageFormat } from "@notra/ai/utils/excalidraw-diagram";
-import {
-  uploadGeneratedHtmlAsset,
-  uploadGeneratedImageAsset,
-} from "@notra/ai/utils/image-assets";
-import {
-  buildRevisionSourceMetadata,
   getImageSnapshot,
   saveGeneratedImagePost,
   trackImageGenerationUsage,
 } from "@notra/ai/utils/image-post-service";
-import { logError } from "@notra/ai/utils/server-log";
-import { db } from "@notra/db/drizzle";
-import { posts } from "@notra/db/schema";
+import { reviseImagePost } from "@notra/ai/utils/image-revision";
 import { type Tool, tool } from "ai";
-import { and, eq } from "drizzle-orm";
 
 export function createImageTool(config: ImageToolConfig): Tool {
   return tool({
@@ -125,112 +109,16 @@ export function createImageRevisionTool(config: ImageRevisionToolConfig): Tool {
         "Describe the requested visual change in prompt. Marketing asset revisions usually take 3–8 minutes; diagram edits take seconds unless useRepository is set because the change needs new facts from the code. The tool UI shows a persistent elapsed timer. The current image post ID, repository integration, branch, and sandbox snapshot are supplied automatically.",
     }),
     inputSchema: imageRevisionToolInputSchema,
-    execute: async ({ prompt, title, useRepository }) => {
-      const post = await db.query.posts.findFirst({
-        columns: { sourceMetadata: true },
-        where: and(
-          eq(posts.id, config.postId),
-          eq(posts.organizationId, config.organizationId)
-        ),
-      });
-      if (
-        !useRepository &&
-        canEditDiagramWithoutSandbox(post?.sourceMetadata)
-      ) {
-        return await reviseDiagramPost({
-          organizationId: config.organizationId,
-          postId: config.postId,
-          prompt,
-          title,
-          useMarkup: config.useMarkup,
-          chargeAiCredits: config.chargeAiCredits,
-        });
-      }
-
-      const previousSnapshot = await getImageSnapshot(
-        config.organizationId,
-        config.postId
-      );
-      const nextTitle = title ?? config.title;
-
-      const result = await generateRepoImage({
-        input: {
-          organizationId: config.organizationId,
-          integrationId: config.integrationId,
-          branch: config.branch,
-          brandIdentityId: config.brandIdentityId,
-          mode: "prompt",
-          prompt,
-          // From the post, not from files in the restored repo: a customer
-          // repo can contain its own diagram.json.
-          format: readImageFormat(post?.sourceMetadata),
-        },
-        restoreSnapshotId: previousSnapshot.snapshotId,
-        restoreDiagramSpec: previousSnapshot.diagramSpec,
-        snapshotName: `image-${config.organizationId}-${Date.now()}`,
-        userId: config.userId,
-      });
-
-      const imageUrl = await uploadGeneratedImageAsset({
-        organizationId: config.organizationId,
-        pngBase64: result.pngBase64,
-        postId: config.postId,
-      });
-      const htmlUrl = await uploadGeneratedHtmlAsset({
-        organizationId: config.organizationId,
-        html: result.html,
-        postId: config.postId,
-      });
-      const sourceMetadata = await buildRevisionSourceMetadata({
+    execute: async ({ prompt, title, useRepository }) =>
+      await reviseImagePost({
         organizationId: config.organizationId,
         postId: config.postId,
-        integrationId: config.integrationId,
-        branch: config.branch,
         prompt,
-        result,
-      });
-
-      await db
-        .update(posts)
-        .set({
-          title: nextTitle,
-          content: imageUrl,
-          htmlUrl,
-          markdown: null,
-          sourceMetadata,
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(posts.id, config.postId),
-            eq(posts.organizationId, config.organizationId)
-          )
-        );
-
-      await deleteRepoImageSnapshot(previousSnapshot).catch((error) => {
-        logError("[repo-image] Failed to delete previous snapshot", error, {
-          postId: config.postId,
-          snapshotId: previousSnapshot.snapshotId,
-        });
-      });
-
-      await trackImageGenerationUsage({
-        organizationId: config.organizationId,
-        postId: config.postId,
-        usage: result.usage,
+        title,
+        useRepository,
+        userId: config.userId,
         useMarkup: config.useMarkup,
         chargeAiCredits: config.chargeAiCredits,
-      });
-
-      return {
-        postId: config.postId,
-        title: nextTitle,
-        imageUrl,
-        status: "updated",
-        contentType: "image",
-        sandbox: result.sandbox,
-        usage: result.usage ?? null,
-      };
-    },
+      }),
   });
 }
