@@ -6,7 +6,7 @@ export const RETENTION_DAYS = 30;
 export const SIGNATURE_TOLERANCE_SECONDS = 300;
 export const PAGE_SIZE = 25;
 export const MAX_PAYLOAD_BYTES = 65_536;
-export const API_VERSION = "2026-09-01";
+export const API_VERSION = "2026-10-06";
 export const RETRY_DELAYS_SECONDS: readonly number[] = [
   30, 120, 600, 1800, 3600, 10800, 21600,
 ];

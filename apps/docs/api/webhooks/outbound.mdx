@@ -18,13 +18,53 @@ deliveries. Members can see the delivery history.
 | `brand_identity.generation.completed` | `jobId`, `brandIdentityId` |
 | `brand_identity.generation.failed` | `jobId`, `error` |
 | `post.published` | `postId` |
+| `post.created` | `postId` |
+| `post.updated` | `postId` |
+| `post.deleted` | `postId` |
+| `post.unpublished` | `postId` |
+| `geo.scan.completed` | `scanId`, `projectId`, `runId`, `checksTotal`, `checksFailed`, `mentions`, `durationMs` |
+| `geo.scan.failed` | `scanId`, `projectId`, `errorCode`, `error`, `failedStage`, `retryable` |
 
 You get `post.generation.*` events for tracked post generation jobs, including the
-ones you start with `POST /v1/posts/generate`. `post.published` fires the first time
-a post moves to `published`. Unpublishing and publishing it again won't send a
-second event. We write the event in the same database transaction as the status
-change, so every published post has one. GEO scans don't send events yet, so keep
-polling for those.
+ones you start with `POST /v1/posts/generate`. The first terminal result for each
+tracked generation job wins.
+
+### Post lifecycle
+
+Post lifecycle events all have the same data shape: `{ "postId": "post_123" }`.
+`post.created` fires when a post is inserted. `post.updated` fires when persisted
+post fields actually change, including status changes, but not for timestamp-only
+updates. `post.published` fires when a post is inserted as published and every time
+a draft becomes published, including after unpublishing. Leaving published status
+emits `post.unpublished`. A status transition also emits `post.updated`.
+
+Deleting a post emits `post.deleted`, including when deleting its collection
+cascades to the post. Deleting the organization does not emit post deletion events.
+These events are written by database triggers in the same transaction as the post
+change, covering API, dashboard, AI and GitHub writes. A failed event insert rolls
+back the post change.
+
+### GEO scan results
+
+The first persisted terminal result for a scan ID emits either `geo.scan.completed`
+or `geo.scan.failed`, whether the scan is inserted as terminal or transitions to
+terminal. Later metadata changes and repeated terminal updates do not emit another
+event, even if the reported outcome changes.
+
+Both events contain string `scanId` and `projectId` fields. Completed events also
+contain `runId` (`string | null`) and `checksTotal`, `checksFailed`, `mentions` and
+`durationMs` (each `number | null`). Failed events also contain `errorCode`, `error`
+and `failedStage` (each `string | null`) and `retryable` (`boolean | null`). All
+fields are present; unavailable values are `null`. The event is written in the
+same transaction as the scan result. Failure text is bounded: `errorCode` is
+limited to 256 characters and `error` to 4096 characters. Polling remains available
+for scan progress.
+
+### Payload version
+
+New events use `apiVersion: "2026-10-06"` to identify the repeat-publish semantics.
+The `post.published` data payload remains `{ "postId": "post_123" }`. Existing
+stored events keep their original payload and version when retried.
 
 ## Subscribe through the API
 
@@ -39,6 +79,9 @@ curl https://api.usenotra.com/v1/webhooks \
 
 The response has the `endpoint` and a one-time `secret`. Save the secret somewhere
 safe because you won't see it again. `GET /v1/webhooks` lists your subscriptions.
+An endpoint can subscribe to between one and twelve event types. Subscriptions
+receive only future matching events; existing posts, jobs and scans are not
+backfilled.
 `DELETE /v1/webhooks/{endpointId}` removes one and cancels anything not sent yet. A
 request that's already on its way can still reach the deleted endpoint.
 

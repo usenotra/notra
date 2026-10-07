@@ -15,8 +15,6 @@ import {
   ALL_POST_CONTENT_TYPES,
   ALL_POST_STATUSES,
 } from "@notra/schemas/api/content";
-import { publishEventInTransaction } from "@notra/webhooks/drizzle";
-import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { nanoid } from "nanoid";
@@ -537,20 +535,6 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
             createdAt: posts.createdAt,
             updatedAt: posts.updatedAt,
           });
-        const [updated] = rows;
-        if (
-          updated &&
-          updated.status === "published" &&
-          input.prepared.previousStatus !== "published"
-        ) {
-          await publishEventInTransaction(
-            tx,
-            postPublishedInput({
-              organizationId: input.organizationId,
-              postId: updated.id,
-            })
-          );
-        }
         return rows;
       }),
     catch: (cause) => {

@@ -227,6 +227,8 @@ export interface PromptEngineSwitcherProps {
   results: readonly { engine: string }[];
   active: { engine: string };
   onChange: (engine: string, direction: number) => void;
+  /** Pointer intent on a menu item; warm that engine's answer. */
+  onPrefetch?: (engine: string) => void;
 }
 
 export interface GeoSettingsUpsertOptions {

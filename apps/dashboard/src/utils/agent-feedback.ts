@@ -24,6 +24,16 @@ export function isAgentFeedbackStatusFilter(
   return AGENT_FEEDBACK_STATUS_FILTERS.some((filter) => filter.value === value);
 }
 
+/** The statuses a filter tab lists, or undefined for every status. */
+export function agentFeedbackFilterStatuses(
+  filter: AgentFeedbackStatusFilter
+): AgentFeedbackStatus[] | undefined {
+  const statuses = AGENT_FEEDBACK_STATUS_FILTERS.find(
+    (entry) => entry.value === filter
+  )?.statuses;
+  return statuses ? [...statuses] : undefined;
+}
+
 export function isAgentFeedbackSnippetKey(
   value: string
 ): value is AgentFeedbackSnippetKey {

@@ -5,6 +5,7 @@
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-composer.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-message.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-model-selector.tsx";
+@source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-reasoning.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-actions.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-composer.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-message.tsx";

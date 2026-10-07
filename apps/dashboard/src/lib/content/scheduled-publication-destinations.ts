@@ -16,8 +16,6 @@ import { db } from "@notra/db/drizzle";
 import { githubIntegrations, posts } from "@notra/db/schema";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { postGitHubPublishSchema } from "@notra/schemas/dashboard/content";
-import { publishEventInTransaction } from "@notra/webhooks/drizzle";
-import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
@@ -129,31 +127,18 @@ async function publishInNotra(
 ): Promise<ScheduledPublicationOutcome> {
   // Guarded like Iris shipping: a post someone published by hand in the
   // meantime counts as done instead of being stamped a second time. The
-  // `post.published` webhook goes into the outbox in the same transaction,
-  // like the public API's publish, and its source key dedupes replays.
-  const published = await db.transaction(async (tx) => {
-    const [row] = await tx
-      .update(posts)
-      .set({ status: "published", publishedAt: new Date() })
-      .where(
-        and(
-          eq(posts.id, attempt.postId),
-          eq(posts.organizationId, attempt.organizationId),
-          eq(posts.status, "draft")
-        )
+  // `post.published` webhook comes from the trigger on `posts`.
+  const [published] = await db
+    .update(posts)
+    .set({ status: "published", publishedAt: new Date() })
+    .where(
+      and(
+        eq(posts.id, attempt.postId),
+        eq(posts.organizationId, attempt.organizationId),
+        eq(posts.status, "draft")
       )
-      .returning({ id: posts.id });
-    if (row) {
-      await publishEventInTransaction(
-        tx,
-        postPublishedInput({
-          organizationId: attempt.organizationId,
-          postId: attempt.postId,
-        })
-      );
-    }
-    return row;
-  });
+    )
+    .returning({ id: posts.id });
   if (!published) {
     return { kind: "published", result: { alreadyPublished: true } };
   }

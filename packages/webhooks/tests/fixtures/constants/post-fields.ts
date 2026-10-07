@@ -1,0 +1,15 @@
+export const POST_FIELD_UPDATES = [
+  ["title", "'Changed title'"],
+  ["slug", "'changed-slug'"],
+  ["content", "'Changed content'"],
+  ["html_url", "'https://example.com/changed'"],
+  ["markdown", "'# Changed'"],
+  ["recommendations", "'Changed recommendation'"],
+  ["content_type", "'changelog'"],
+  ["content_subtype", "'tutorial'"],
+  ["source_metadata", '\'{"commits":["changed"]}\'::jsonb'],
+  ["github_publish", '\'{"sha":"changed"}\'::jsonb'],
+  ["collection_id", "'collection-two'"],
+  ["id", "'renamed-post'"],
+  ["organization_id", "'org-two'"],
+] as const;

@@ -709,13 +709,9 @@
       "viewDetails": "View details",
       "setStatus": "Set status",
       "filterEmpty": {
-        "new": {
+        "open": {
           "title": "You're all caught up",
-          "description": "New feedback from agents lands here first."
-        },
-        "triaged": {
-          "title": "Nothing triaged",
-          "description": "Feedback you've looked at but haven't resolved yet shows up here."
+          "description": "New feedback from agents lands here, and stays until you resolve or archive it."
         },
         "resolved": {
           "title": "Nothing resolved yet",
@@ -742,6 +738,7 @@
       "deleteFailed": "Failed to delete feedback"
     },
     "shared": {
+      "open": "Open",
       "resolved": "Resolved",
       "triaged": "Triaged"
     }
@@ -2420,7 +2417,7 @@
       "exactExcerpt": "Exact excerpt: "
     },
     "brandSentimentCard": {
-      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
+      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. Single-turn answers in your prompt language only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
     },
     "citationsTable": {
       "showDetails": "{title}, show details",
@@ -3159,9 +3156,7 @@
       "unavailable": "This answer is no longer available. Refresh the results to select another answer."
     },
     "promptEngineSwitcher": {
-      "engine": "Engine: {engine}",
-      "previous": "Previous engine",
-      "next": "Next engine"
+      "engine": "Engine: {engine}"
     },
     "promptKeywordTextarea": {
       "metricsAria": "Search Console metrics for {query}: {impressions} impressions, {clicks} clicks, position {position}",

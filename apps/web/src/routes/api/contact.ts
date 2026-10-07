@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Effect } from "effect";
 
+import { CONTACT_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { isContactSpam } from "@/lib/contact/classify-spam";
 import {
   enforceContactMessageRateLimit,
@@ -8,7 +9,7 @@ import {
   getContactRateLimitHeaders,
 } from "@/lib/contact/ratelimit";
 import { sendContactMessageEmail } from "@/lib/contact/send-message-email";
-import { verifyContactTurnstile } from "@/lib/contact/verify-turnstile";
+import { verifyTurnstile } from "@/lib/turnstile/verify";
 import { contactMessageSchema } from "@/schemas/contact";
 import { jsonError } from "@/utils/api-response";
 
@@ -36,7 +37,7 @@ async function POST(request: Request) {
     Effect.gen(function* () {
       yield* enforceContactVerificationRateLimit(request);
       const verified = yield* Effect.promise(() =>
-        verifyContactTurnstile(token)
+        verifyTurnstile(token, CONTACT_TURNSTILE_ACTION)
       );
       if (!verified) {
         return jsonError("Verification failed. Please try again.", 403);

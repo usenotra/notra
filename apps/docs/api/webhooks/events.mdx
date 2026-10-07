@@ -29,7 +29,7 @@ docolin:
 Notra only accepts four GitHub event types on its webhook endpoint: `ping`, `push`, `release`, and `pull_request`. Every other event type is acknowledged with `200` and `"ignored": true` so GitHub does not retry it, and nothing else happens.
 
 <Info>
-  These are events Notra receives from GitHub. Notra does not emit its own webhook events; see [No outbound webhooks](/api/webhooks/overview#no-outbound-webhooks) for polling and streaming alternatives.
+  These are events Notra receives from GitHub. For signed post lifecycle, generation and GEO scan events sent to your endpoint, see [Outbound webhooks](/api/webhooks/outbound).
 </Info>
 
 ## Processing order

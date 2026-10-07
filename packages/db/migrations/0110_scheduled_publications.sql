@@ -25,7 +25,10 @@ CREATE TABLE "scheduled_publications" (
 );
 --> statement-breakpoint
 ALTER TABLE "posts" ADD COLUMN "published_at" timestamp;--> statement-breakpoint
+-- The backfill is not a content change: keep it out of the post webhooks.
+ALTER TABLE "posts" DISABLE TRIGGER "posts_webhook_lifecycle";--> statement-breakpoint
 UPDATE "posts" SET "published_at" = "updated_at" WHERE "status" = 'published' AND "published_at" IS NULL;--> statement-breakpoint
+ALTER TABLE "posts" ENABLE TRIGGER "posts_webhook_lifecycle";--> statement-breakpoint
 ALTER TABLE "scheduled_publications" ADD CONSTRAINT "scheduled_publications_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "scheduled_publications" ADD CONSTRAINT "scheduled_publications_post_id_posts_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "scheduled_publications" ADD CONSTRAINT "scheduled_publications_created_by_user_id_users_id_fk" FOREIGN KEY ("created_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
