@@ -1,0 +1,36 @@
+apps/dashboard/src/types/relative-time.ts
+  s_b4954af693f26f::t_61e68eafc0a99c 1-4
+apps/dashboard/messages/en.json
+  s_b4954af693f26f::t_26879abe3f921f 2639-2640
+apps/dashboard/messages/de.json
+  s_b4954af693f26f::t_26879abe3f921f 2639-2640
+apps/dashboard/src/components/comments/comment-timestamp.tsx
+  s_b4954af693f26f::t_1e3fa7e17e71c1 3,8-11
+apps/dashboard/src/components/agent-feedback/feedback-table.tsx
+  s_b4954af693f26f::t_1e3fa7e17e71c1 27,110
+apps/dashboard/src/components/relative-time.tsx
+  s_b4954af693f26f::t_61e68eafc0a99c 1-39,41-48
+  s_b4954af693f26f::t_12f38dfb5f05c6 40
+apps/dashboard/src/components/geo/engine-rate-table.tsx
+  s_b4954af693f26f::t_b3254325767ee6 50,75
+  ai_agent 185
+  s_b4954af693f26f::t_61e68eafc0a99c 93,95-99,178,180-184,186-188
+  s_b4954af693f26f::t_1e3fa7e17e71c1 5,31
+  s_b4954af693f26f::t_26879abe3f921f 167,174-177,179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "eed2bcc70386522f9c5c7869f9346e7f7c690971",
+  "prompts": {},
+  "sessions": {
+    "s_b4954af693f26f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59894cc3-f232-458f-8334-7c30bbcf0e5e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
