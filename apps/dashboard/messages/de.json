@@ -2636,7 +2636,8 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "KI-Engine ({count, number})"
+        "engineCount": "KI-Engine ({count, number})",
+        "lastChecked": "Zuletzt geprüft"
       },
       "hints": {
         "visible": "Antworten, in denen du überhaupt aufgetaucht bist: Deine Marke wurde genannt, eine deiner Seiten wurde als Quelle zitiert oder beides. Zitate sind in dieser Zahl enthalten.",
@@ -2645,7 +2646,6 @@
         "avgPosition": "Durchschnittlicher Rang deiner Marke in den Antworten, die sie genannt haben. Antworten, die dich nur zitiert haben, haben keinen Rang und werden nicht berücksichtigt."
       },
       "visibilityLabel": "Sichtbarkeit in {engine}",
-      "visibleCount": "{count, number} sichtbar",
       "readoutScanning": "Scan läuft",
       "filterLabel": "KI-Engines filtern",
       "filterPlaceholder": "Nach KI-Engine filtern…",

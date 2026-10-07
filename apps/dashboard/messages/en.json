@@ -2636,7 +2636,8 @@
     },
     "engineRateTable": {
       "columns": {
-        "engineCount": "Engine ({count, number})"
+        "engineCount": "Engine ({count, number})",
+        "lastChecked": "Last checked"
       },
       "hints": {
         "visible": "Answers where you showed up at all: your brand was named, one of your pages was cited as a source or both. Citations are included in this number.",
@@ -2645,7 +2646,6 @@
         "avgPosition": "Average rank of your brand across the answers that named it. Answers that only cited you carry no rank and are left out."
       },
       "visibilityLabel": "{engine} visibility",
-      "visibleCount": "{count, number} visible",
       "readoutScanning": "Scanning now",
       "filterLabel": "Filter engines",
       "filterPlaceholder": "Filter by engine…",
