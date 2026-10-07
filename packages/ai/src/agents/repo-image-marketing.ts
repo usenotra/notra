@@ -28,7 +28,6 @@ import { logError, logInfo, logWarn } from "@notra/ai/utils/server-log";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 
-const MISSING_OUTPUT_RECOVERY_ATTEMPTS = 1;
 const DEFAULT_LOGO_REVISION_PROMPT =
   "Review the rendered image for unofficial or fabricated company logos. Replace any questionable logos with official assets from the brand-logos skill or real repo assets, or remove them if no official source is available. Preserve the current layout as much as possible.";
 
@@ -119,21 +118,14 @@ export const marketingFormat: RepoImageFormatRunner = {
       allowTimeout: !restoreSnapshotId,
     });
 
-    for (
-      let attempt = 1;
-      attempt <= MISSING_OUTPUT_RECOVERY_ATTEMPTS &&
-      !(await hasHtmlOutput(box));
-      attempt++
-    ) {
+    if (!(await hasHtmlOutput(box))) {
       logWarn("[repo-image] Missing output; running recovery attempt", {
         outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
-        attempt,
-        maxAttempts: MISSING_OUTPUT_RECOVERY_ATTEMPTS,
       });
       await agent.run({
         prompt: buildMarketingAssetMissingOutputPrompt(),
         timeout: RECOVERY_AGENT_TIMEOUT_MS,
-        label: `recovery-${attempt}`,
+        label: "recovery-1",
         allowTimeout: true,
       });
     }
