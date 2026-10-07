@@ -1,0 +1,21 @@
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_9afdfa27a4636c::t_392b7ffd868063 2841-2845,3060-3061
+apps/dashboard/src/hooks/use-traffic-zoom.ts
+  s_9afdfa27a4636c::t_392b7ffd868063 56-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ed885c9d8f3f61fe12b3869799214c2838ab92ed",
+  "prompts": {},
+  "sessions": {
+    "s_9afdfa27a4636c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6630c7d9-0dc9-44c2-8103-cd4c7cce6b26",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
