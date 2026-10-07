@@ -175,12 +175,6 @@ export interface GeoCheckCompetitorShareTimeseriesRow {
   mentions: number;
 }
 
-export interface GeoCheckCompetitorShareTrendRow {
-  day: string;
-  brand: string;
-  share: number;
-}
-
 export interface GeoCheckCompetitorTimeseriesRow {
   day: string;
   mentions: number;

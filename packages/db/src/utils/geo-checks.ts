@@ -20,7 +20,6 @@ import type {
   GeoCheckCompetitorPromptSummaryRow,
   GeoCheckCompetitorShareRow,
   GeoCheckCompetitorShareTimeseriesRow,
-  GeoCheckCompetitorShareTrendRow,
   GeoCheckCompetitorTimeseriesRow,
   GeoCheckBrandKey,
   GeoCheckEngineBrandRow,
@@ -299,7 +298,6 @@ function capturedWithin(window: GeoCheckWindow | undefined): SQL[] {
  * language aggregates, which reason about tracked prompts.
  */
 const withoutPersonaRows = isNull(geoMentionChecks.personaId);
-const withoutPersonaRowsSql = sql`and ${geoMentionChecks.personaId} is null`;
 const unnestedCompetitorBrand = sql`unnest(${geoMentionChecks.competitors}) as brand`;
 const competitorBrand = sql<string>`brand`;
 
@@ -841,72 +839,6 @@ export async function queryGeoCheckCompetitorShareTimeseries(
     day: toDay(row.day),
     mentions: toNumber(row.mentions),
   }));
-}
-
-export async function queryGeoCheckCompetitorShareTrends(
-  scope: GeoCheckScope,
-  window: GeoCheckWindow | undefined,
-  limit: number
-): Promise<GeoCheckCompetitorShareTrendRow[]> {
-  // ponytail: db.execute has no $withCache; nested subqueries drop join aliases
-  const withinParts = capturedWithin(window);
-  const projectFilter = scope.projectId
-    ? sql`and ${geoMentionChecks.projectId} = ${scope.projectId}`
-    : sql``;
-  const windowFilter =
-    withinParts.length > 0 ? sql`and ${and(...withinParts)}` : sql``;
-
-  const result = await db.execute<{
-    day: string;
-    brand: string;
-    share: number;
-  }>(sql`
-    with daily_mentions as (
-      select
-        (${geoMentionChecks.capturedAt})::date as day,
-        brand,
-        count(*)::int as mentions
-      from ${geoMentionChecks}
-      cross join lateral unnest(${geoMentionChecks.competitors}) as brand
-      where ${geoMentionChecks.organizationId} = ${scope.organizationId}
-        ${projectFilter}
-        ${windowFilter}
-        ${withoutPersonaRowsSql}
-      group by day, brand
-    ), brands as (
-      select brand
-      from daily_mentions
-      group by brand
-      order by sum(mentions) desc
-      limit ${limit}
-    ), selected_mentions as (
-      select daily_mentions.*
-      from daily_mentions
-      inner join brands on brands.brand = daily_mentions.brand
-    ), daily_totals as (
-      select day, sum(mentions)::int as mentions
-      from selected_mentions
-      group by day
-    )
-    select
-      daily_totals.day,
-      brands.brand,
-      round(coalesce(selected_mentions.mentions, 0)::numeric / nullif(daily_totals.mentions, 0), 3)::float8 as share
-    from daily_totals
-    cross join brands
-    left join selected_mentions
-      on selected_mentions.day = daily_totals.day
-      and selected_mentions.brand = brands.brand
-    order by daily_totals.day asc, brands.brand asc
-  `);
-
-  return (result.rows as { day: string; brand: string; share: number }[]).map(
-    (row) => ({
-      day: toDay(row.day),
-      brand: row.brand,
-      share: toNumber(row.share),
-    })
-  );
 }
 
 export async function queryGeoCheckCompetitorTimeseries(
