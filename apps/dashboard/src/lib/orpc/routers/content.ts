@@ -49,8 +49,6 @@ import {
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
 import { slugify } from "@notra/utils/slugify";
-import { publishEventInTransaction } from "@notra/webhooks/drizzle";
-import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import {
   and,
   asc,
@@ -828,20 +826,6 @@ export const contentRouter = {
               status: posts.status,
               updatedAt: posts.updatedAt,
             });
-          const [row] = rows;
-          if (
-            row &&
-            row.status === "published" &&
-            existingPost.status !== "published"
-          ) {
-            await publishEventInTransaction(
-              tx,
-              postPublishedInput({
-                organizationId: input.organizationId,
-                postId: row.id,
-              })
-            );
-          }
           return rows;
         });
 

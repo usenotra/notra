@@ -38,7 +38,12 @@ export type AgentFeedbackItem = Omit<
   resolvedAt: string | null;
 };
 
-export type AgentFeedbackStatusFilter = AgentFeedbackStatus | "all";
+/** "open" covers everything not yet resolved or archived. */
+export type AgentFeedbackStatusFilter =
+  | "open"
+  | "resolved"
+  | "archived"
+  | "all";
 
 export interface AgentFeedbackListResponse {
   items: AgentFeedbackItem[];
@@ -88,7 +93,7 @@ export interface AgentFeedbackSetupSource {
 
 export interface AgentFeedbackListInput {
   organizationId: string;
-  status?: AgentFeedbackStatus;
+  statuses?: AgentFeedbackStatus[];
   kind?: AgentFeedbackKind;
   cursor?: string;
   limit?: number;

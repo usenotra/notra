@@ -22,8 +22,7 @@ import {
   queryGeoCheckCompetitorPrompts,
   queryGeoCheckCompetitorPromptSummary,
   queryGeoCheckCompetitorShare,
-  queryGeoCheckCompetitorShareTimeseries,
-  queryGeoCheckCompetitorShareTrends,
+  queryGeoCheckCompetitorShareAggregate,
   queryGeoCheckCompetitorTimeseries,
   queryGeoCheckEngineBrandMentions,
   queryGeoCheckEngineTotals,
@@ -112,6 +111,7 @@ import {
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
 import { competitorCanonicalMap } from "../utils/geo-competitor-names";
+import { summarizeGeoCompetitorShare } from "../utils/geo-competitor-share";
 import {
   normalizeConversionPaths,
   sumConversionVisits,
@@ -1033,8 +1033,6 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     const checkWindow = toGeoCheckWindow(window);
 
     if (summaryOnly) {
-      // Callers that only render aggregate shares skip the two additional
-      // full-range scans used for sparklines, charts and change indicators.
       const rows = yield* geoDb("competitor share query failed", () =>
         queryGeoCheckCompetitorShare(
           checkScope,
@@ -1053,46 +1051,14 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
       return response;
     }
 
-    const [rows, timeseries, trendRows] = yield* Effect.all(
-      [
-        geoDb("competitor share query failed", () =>
-          queryGeoCheckCompetitorShare(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-        geoDb("competitor share timeseries query failed", () =>
-          queryGeoCheckCompetitorShareTimeseries(checkScope, checkWindow)
-        ),
-        geoDb("competitor share trends query failed", () =>
-          queryGeoCheckCompetitorShareTrends(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-      ],
-      { concurrency: "unbounded" }
-    );
-    const trendsByBrand = groupGeoSparklinePoints(
-      trendRows,
-      (point) => point.brand,
-      (point) => ({ day: point.day, value: point.share })
+    const aggregates = yield* geoDb(
+      "competitor share aggregate query failed",
+      () => queryGeoCheckCompetitorShareAggregate(checkScope, checkWindow)
     );
 
     const response: GeoCompetitorShareResponse = {
       configured: true,
-      points: rows.map((row) => ({
-        brand: row.brand,
-        mentions: row.mentions,
-        trend: trendsByBrand.get(row.brand) ?? [],
-      })),
-      timeseries: timeseries.map((row) => ({
-        brand: row.brand,
-        day: row.day,
-        mentions: row.mentions,
-      })),
+      ...summarizeGeoCompetitorShare(aggregates, GEO_COMPETITOR_SHARE_LIMIT),
     };
     return response;
   }

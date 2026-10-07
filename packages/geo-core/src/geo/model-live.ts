@@ -69,6 +69,7 @@ export const geoModelLive = Layer.succeed(
             organizationId: input.organizationId,
             zdr: input.zdr,
             gateway: input.gateway,
+            logContext: input.logContext,
           });
           const options = {
             prompt: input.prompt,
@@ -141,7 +142,10 @@ export const geoModelLive = Layer.succeed(
           const invocation = buildGroundedInvocation(input.engine, {
             organizationId: input.organizationId,
             zdr: input.zdr,
+            logContext: input.logContext,
           });
+          const modelId = engineModelOf(input.engine.key);
+          const useFlex = GEO_FLEX_MODELS.has(modelId);
           const result = await generateText({
             model: invocation.model,
             tools: invocation.tools,
@@ -153,14 +157,15 @@ export const geoModelLive = Layer.succeed(
             providerOptions: {
               gateway: {
                 tags: ["geo-scan-grounded"],
-                ...(input.engine.provider === "gateway-openai" &&
-                GEO_FLEX_MODELS.has(input.engine.model)
+                ...(input.engine.provider === "gateway-openai" && useFlex
                   ? { serviceTier: "flex" }
                   : {}),
               },
+              ...(input.engine.provider === "direct-openai" && useFlex
+                ? { openai: { serviceTier: "flex" } }
+                : {}),
             },
           });
-          const modelId = engineModelOf(input.engine.key);
           const route = getRouteMetadata(result.finalStep.providerMetadata);
           return {
             steps: result.steps,
@@ -215,6 +220,7 @@ export const geoModelLive = Layer.succeed(
           const result = await generateText({
             model: gateway(GEO_JUDGE_MODEL, {
               organizationId: input.organizationId,
+              logContext: input.logContext,
             }),
             output: Output.object({ schema: geoJudgeResultSchema }),
             prompt: input.prompt,

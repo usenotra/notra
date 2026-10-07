@@ -1,6 +1,9 @@
 import type { CheckResponse } from "autumn-js";
 
 import type { AgentTokenUsage } from "./agents";
+import type { GatewayId } from "./router";
+
+export type ModelPricingSource = GatewayId | "direct";
 
 export interface ModelPricing {
   inputPerMillionTokens: number;

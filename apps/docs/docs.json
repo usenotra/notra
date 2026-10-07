@@ -136,8 +136,7 @@
               "integrations/slack",
               "integrations/granola",
               "integrations/google-search-console",
-              "integrations/framer",
-              "integrations/kontentspace"
+              "integrations/framer"
             ]
           },
           {

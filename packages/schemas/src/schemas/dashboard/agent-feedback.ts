@@ -39,7 +39,11 @@ export const agentFeedbackItemInputSchema = z.object({
 
 export const agentFeedbackListInputSchema = z.object({
   organizationId: organizationIdSchema,
-  status: z.enum(AGENT_FEEDBACK_STATUSES).optional(),
+  statuses: z
+    .array(z.enum(AGENT_FEEDBACK_STATUSES))
+    .min(1)
+    .max(AGENT_FEEDBACK_STATUSES.length)
+    .optional(),
   kind: z.enum(AGENT_FEEDBACK_KINDS).optional(),
   cursor: z.string().min(1).optional(),
   limit: z.number().int().min(1).max(100).default(AGENT_FEEDBACK_PAGE_SIZE),

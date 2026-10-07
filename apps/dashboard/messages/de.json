@@ -709,13 +709,9 @@
       "viewDetails": "Details ansehen",
       "setStatus": "Status setzen",
       "filterEmpty": {
-        "new": {
+        "open": {
           "title": "Alles erledigt",
-          "description": "Neues Feedback von Agents landet zuerst hier."
-        },
-        "triaged": {
-          "title": "Nichts gesichtet",
-          "description": "Feedback, das du dir angesehen, aber noch nicht gelöst hast, erscheint hier."
+          "description": "Neues Feedback von Agents landet hier und bleibt, bis du es löst oder archivierst."
         },
         "resolved": {
           "title": "Noch nichts gelöst",
@@ -742,6 +738,7 @@
       "deleteFailed": "Feedback konnte nicht gelöscht werden"
     },
     "shared": {
+      "open": "Offen",
       "resolved": "Gelöst",
       "triaged": "Gesichtet"
     }
@@ -3146,9 +3143,7 @@
       "unavailable": "Diese Antwort ist nicht mehr verfügbar. Aktualisiere die Ergebnisse, um eine andere Antwort auszuwählen."
     },
     "promptEngineSwitcher": {
-      "engine": "KI-Engine: {engine}",
-      "previous": "Vorherige KI-Engine",
-      "next": "Nächste KI-Engine"
+      "engine": "KI-Engine: {engine}"
     },
     "promptKeywordTextarea": {
       "metricsAria": "Search-Console-Werte für {query}: {impressions} Impressionen, {clicks} Klicks, Position {position}",
