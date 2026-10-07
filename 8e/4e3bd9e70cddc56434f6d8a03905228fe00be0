@@ -1,0 +1,39 @@
+apps/dashboard/messages/en.json
+  s_5172235b5bf8ad::t_5432fdd3fcc853 712,714,741
+apps/dashboard/messages/de.json
+  s_5172235b5bf8ad::t_5432fdd3fcc853 712,714,741
+packages/schemas/src/schemas/dashboard/agent-feedback.ts
+  s_5172235b5bf8ad::t_5432fdd3fcc853 42-46
+apps/dashboard/src/components/agent-feedback/feedback-inbox.tsx
+  s_5172235b5bf8ad::t_15d48977bd84b4 69-71
+  s_5172235b5bf8ad::t_2521f8577586de 30-32,38,44-47,139-142,270,292,308,328,331,335,342,344
+apps/dashboard/src/constants/agent-feedback.ts
+  s_5172235b5bf8ad::t_5432fdd3fcc853 31-34,37,39-41
+apps/dashboard/src/lib/agent-feedback/programs.ts
+  s_5172235b5bf8ad::t_5432fdd3fcc853 5,55-56
+apps/dashboard/src/types/agent-feedback.ts
+  s_5172235b5bf8ad::t_15d48977bd84b4 42-46
+  s_5172235b5bf8ad::t_5432fdd3fcc853 41,96
+apps/dashboard/src/lib/hooks/use-agent-feedback-labels.ts
+  s_5172235b5bf8ad::t_2521f8577586de 7-8,23-33
+apps/dashboard/src/lib/hooks/use-agent-feedback.ts
+  s_5172235b5bf8ad::t_2521f8577586de 23-26,35
+apps/dashboard/src/utils/agent-feedback.ts
+  s_5172235b5bf8ad::t_2521f8577586de 27-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8e4e3bd9e70cddc56434f6d8a03905228fe00be0",
+  "prompts": {},
+  "sessions": {
+    "s_5172235b5bf8ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f893b69f-2237-4b14-8261-0925f7c10099",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
