@@ -340,6 +340,7 @@ describe("one-off GEO scan", () => {
     );
     await run(executeGeoAdhocScan(id), {
       settled,
+      gate: { ...testBillingGate, mode: "ai_credits" },
       models: {
         ...groundedModels,
         groundedAnswer: (input) =>

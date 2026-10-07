@@ -1,6 +1,6 @@
 # Runner verification, 2026-10-07
 
-The final implementation was exercised in an isolated Daytona sandbox on Linux
+The implementation at commit `9e6491f` was exercised in an isolated Daytona sandbox on Linux
 x86-64 with Bun 1.4.0, 2 CPUs, 4 GiB RAM, and 8 GiB disk. Source uploads contained
 Git-tracked files only. No production database, billing key, or provider key was
 sent to the sandbox. Database tests use PGlite; provider and billing boundaries
@@ -63,8 +63,8 @@ memory requirements under production load.
 
 ## Remaining production checks
 
-The Railway service is provisioned and configured, but has no source or active
-deployment. `AUTUMN_SECRET_KEY` was unavailable. No production migration,
+The Railway service was deleted at the user's request. There is no active
+runner deployment. `AUTUMN_SECRET_KEY` was unavailable during the sandbox tests. No production migration,
 billable model call, or production Axiom drain was verified. Follow the
 [activation steps](README.md#railway-setup) before enabling callers.
 

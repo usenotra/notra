@@ -48,38 +48,92 @@ durable queue recovery. The stale sweep fails queued scans after 12 hours and
 running scans after 15 minutes without a heartbeat. Claimed scans interrupted
 by shutdown fail and release their billing reservation.
 
-## Smoke test
+## CLI test tool
 
-The command targets the local development server by default. Development uses
-a fixed local-only secret and binds the runner to `127.0.0.1`, so no secret
-setup is needed:
+Start the runner on a free port, then call it with an existing organization's
+project. The CLI uses the runner's authenticated HTTP API and needs no database
+connection unless you explicitly request a local fixture.
 
 ```sh
-bun run dev --filter=geo-runner
+PORT=3010 bun run dev --filter=geo-runner
 # In another terminal:
-bun geo:smoke
+bun geo:smoke --url http://127.0.0.1:3010 <organization-id> <project-id> "best GEO tools" --json
+bun geo:smoke --help
 ```
 
-The zero-argument local command idempotently creates a `GEO Smoke Test`
-organization and project in the local database, then scans the example prompt
-`What are the best AI content marketing tools?`.
-
-To use an existing local project instead, pass its IDs and a prompt:
+Development binds to `127.0.0.1` and uses a fixed local secret. Set
+`GEO_RUNNER_URL` to configure the default endpoint and `GEO_RUNNER_SECRET` to
+use a custom credential. For a remote deployment, configure
+`GEO_RUNNER_PROD_URL` and `GEO_RUNNER_PROD_SECRET` and use `--prod`:
 
 ```sh
-bun geo:smoke <organization-id> <project-id> "best GEO tools"
+bun geo:smoke --prod <organization-id> <project-id> "best GEO tools" --json
 ```
 
-For production, configure `GEO_RUNNER_PROD_URL` and
-`GEO_RUNNER_PROD_SECRET` once in the root `.env`, then pass only the flag:
+Select up to five available models with `--models model-id,model-id`, or pass
+one model as the fourth positional argument. `--language German` sets the
+answer language; `--no-web-search` disables web search. Otherwise the CLI picks
+an available catalog default and its supported search behavior.
+
+`--json` prints the final scan envelope to stdout, including its ID, normalized
+input, status, results, and timestamps. Progress goes to stderr. A failed scan
+prints its envelope and exits unsuccessfully. `--timeout 300` controls the
+maximum wait in seconds.
+
+The CLI prints its idempotency key before creating the scan and reuses it for
+bounded retries after transient failures. Pass `--idempotency-key <key>` to
+retry the same request after a process interruption. To read an existing scan
+without creating another, use its ID and original scope:
 
 ```sh
-bun geo:smoke --prod <organization-id> <project-id> "best GEO tools"
+bun geo:smoke --url http://127.0.0.1:3010 <organization-id> <project-id> --scan-id <scan-id> --json
 ```
 
-Pass a model ID as the optional fourth argument to override the catalog default.
-The command checks health and readiness, starts one billable scan, polls it, and
-prints the final result.
+Calling the command without arguments shows help and writes nothing. Use
+`--fixture` to create the local `GEO Smoke Test` organization/project and run an
+example prompt. Fixture creation requires both the runner and `DATABASE_URL`
+to use a loopback host and refuses production mode.
+
+A scan can make billable provider requests. Fixtures do not override billing
+or turn provider calls into mocks.
+
+## Billing and product integration
+
+One-off scans currently use the existing `ai_answers` allowance. They reserve
+one unit per eligible model and consume one unit per successful check. A scan
+that produces no check releases an answer-quota reservation. When the shared
+billing adapter falls back to `ai_credits`, it charges retained usage from
+successful checks and reported answer usage from final empty-answer or
+judge-error outcomes. Usage from earlier failed retries or calls that fail
+without reporting usage is not fully captured. The
+`source: geo_adhoc_scan` property identifies these charges but does not create
+a separate balance.
+
+Separate billing is feasible with the existing lock, confirmation, release,
+and model-cost mechanisms. `packages/ai/src/billing/github-mention-billing.ts`
+already uses a dedicated balance for another product feature. For one-off GEO
+scans, a dedicated cost-based balance would account for the different model
+prices without changing shared model routing, judging, or ZDR policy.
+[Autumn supports independent metered balances](https://docs.useautumn.com/documentation/concepts/features).
+
+Before implementing that policy, choose the billing unit, allowance or package,
+price, and behavior when its balance runs out. A proposed `geo_adhoc_credits`
+feature would need its own Autumn catalog entry and adapter. Do not fall back
+to `ai_answers` or the shared credit pool unless that is the chosen policy.
+No separate feature, plan, price, or customer billing configuration is enabled
+by this PR.
+
+The CLI is an operator tool with a trusted service credential. A later dashboard
+or API entry point must authorize the user's organization membership before
+calling the runner and enforce the chosen standalone entitlement. It must keep
+the bearer secret on the backend. An `ai_answers` access check would prevent a
+truly independent scan package from working for customers without that feature.
+
+Results stay in `geo_adhoc_scans` and do not change scheduled visibility. The
+runner has no automatic restart recovery. Billing-finalization errors currently
+emit `geo.scan.billing_failed`; completion does not prove that Autumn confirmed
+the charge. Reconciliation and authenticated end-user integration remain
+production follow-up work.
 
 ## Environment
 
@@ -94,9 +148,9 @@ See [verification results](TESTING.md) for the Daytona tests and their limits.
 
 ## Railway setup
 
-The `geo-runner` service is provisioned in `notra-prod`, production environment,
-next to `ai-traffic-ingest`. Its service ID is
-`f7c4e28f-bfcf-40c6-9658-96104977202b`.
+The previously created Railway service was deleted at the user's request.
+There is no active `geo-runner` service or deployment. The settings below are
+instructions for a future deployment.
 
 | Setting | Value |
 | --- | --- |
@@ -113,22 +167,23 @@ next to `ai-traffic-ingest`. Its service ID is
 Watch `/apps/geo-runner/**`, `/packages/**`, `/bun.lock`, `/package.json`,
 `/bunfig.toml`, `/patches/**`, and `/.dockerignore`. Configure the service
 directly in Railway. The deprecated `railway.json` mechanism is not required.
-Postgres and Redis use references to the existing ingest service's variables.
-The runner has its own generated bearer secret and provider/logging configuration.
+A future service needs Postgres and Redis references, its own bearer secret,
+and provider, billing, and logging credentials.
 
-The service currently has no source or deployment. Before activation:
+Before activation:
 
 1. Merge this PR and apply `0110_geo_adhoc_scans` through the normal database
    release process.
-2. Set a valid `AUTUMN_SECRET_KEY`; this credential was unavailable during setup.
-3. Connect `usenotra/notra`, branch `main`, and disable automatic deployments
-   to follow the existing production release policy.
-4. Deploy once and verify `/ready`, then run `geo:smoke --prod` against an
-   authorized project. This command makes a billable provider request.
-5. Add the service to the existing `railwayServices` list in
-   `scripts/github/production-deploy.mjs` after its first healthy deployment.
-   Use project `557ca18d-9de8-40ad-9fca-cf3d165f3c44`, environment
-   `276f8b24-ccd7-4bf3-a6b6-1dbe9f7fe5c6`, and the service ID above.
+2. Decide the scan billing policy and configure the corresponding Autumn
+   entitlement. A real `AUTUMN_SECRET_KEY` is required in production.
+3. Create the service only when deployment is requested. Connect
+   `usenotra/notra`, branch `main`, and disable automatic deployments to follow
+   the existing production release policy.
+4. Deploy and verify `/ready`, then run `geo:smoke --prod` against an authorized
+   project. This command makes a billable provider request.
+5. Add the newly created service's actual IDs to the existing `railwayServices`
+   list in `scripts/github/production-deploy.mjs` after its first healthy
+   deployment.
 
 ## Result data
 

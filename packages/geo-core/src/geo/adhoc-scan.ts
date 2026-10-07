@@ -404,6 +404,7 @@ const runClaimedGeoAdhocScan = Effect.fn("geo.runClaimedAdhocScan")(function* (
       executionId: runId,
       outputType: null,
       quotaFeatureId: FEATURES.AI_ANSWERS,
+      units: tasks.length,
     })
     .pipe(
       Effect.mapError(
@@ -477,7 +478,11 @@ const runClaimedGeoAdhocScan = Effect.fn("geo.runClaimedAdhocScan")(function* (
       usage.cacheReadTokens > 0 ||
       usage.cacheWriteTokens > 0 ||
       (usage.totalUsd ?? 0) > 0;
-    yield* checks.length > 0 || hasUsage
+    // Answer quotas count successful checks. Credit billing still covers
+    // provider usage when an empty answer or judge failure produced no check.
+    const shouldConfirm =
+      checks.length > 0 || (gate.mode === "ai_credits" && hasUsage);
+    yield* shouldConfirm
       ? settle("confirm", checks.length, usage)
       : settle("release");
     const results: GeoAdhocScanResults = { checks, skipped };

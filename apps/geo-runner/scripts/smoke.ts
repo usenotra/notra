@@ -1,215 +1,123 @@
-import { db } from "@notra/db/drizzle";
-import {
-  brandSettings,
-  geoSettings,
-  organizations,
-  projects,
-} from "@notra/db/schema";
-import { eq, or } from "drizzle-orm";
+import { SMOKE_HELP, SMOKE_POLL_INTERVAL_MS } from "./constants/smoke";
+import type { SmokeModel, SmokeOptions, SmokeScan } from "./types/smoke";
+import { smokeRequest } from "./utils/smoke-http";
+import { parseSmokeOptions } from "./utils/smoke-options";
 
-import { RUNNER_LOCAL_SECRET } from "../src/constants/runner";
-
-const args = process.argv.slice(2);
-const production = args.includes("--prod");
-const positional = args.filter((argument) => argument !== "--prod");
-const localFixture = !production && positional.length === 0;
-const [organizationId, projectId, prompt, requestedModel] = localFixture
-  ? [
-      "geo-smoke-org",
-      "geo-smoke-project",
-      "What are the best AI content marketing tools?",
-    ]
-  : positional;
-const baseUrl = production
-  ? process.env.GEO_RUNNER_PROD_URL?.replace(/\/$/, "")
-  : "http://localhost:3000";
-const secret = production
-  ? process.env.GEO_RUNNER_PROD_SECRET
-  : (process.env.GEO_RUNNER_SECRET ?? RUNNER_LOCAL_SECRET);
-
-if (!(organizationId && projectId && prompt)) {
-  console.error(
-    'Usage: bun geo:smoke [--prod] <organization-id> <project-id> "<prompt>" [model-id]'
-  );
-  process.exit(1);
-}
-if (!(baseUrl && secret)) {
-  throw new Error(
-    production
-      ? "Set GEO_RUNNER_PROD_URL and GEO_RUNNER_PROD_SECRET in the root .env"
-      : "Local runner configuration is missing"
-  );
-}
-
-const scanInput = { organizationId, projectId, prompt };
-const authorization = { authorization: `Bearer ${secret}` };
-
-const LEGACY_FIXTURE_SLUG = "geo-smoke-test";
-const FIXTURE_BRAND_ID = "geo-smoke-brand";
-
-async function seedLocalFixture() {
-  const fixtureId = scanInput.organizationId;
-  await db.transaction(async (transaction) => {
-    await transaction
-      .insert(organizations)
-      .values({
-        id: fixtureId,
-        name: "GEO Smoke Test",
-        slug: fixtureId,
-        createdAt: new Date(),
-      })
-      .onConflictDoNothing();
-    const matches = await transaction
-      .select({ id: organizations.id, slug: organizations.slug })
-      .from(organizations)
-      .where(
-        or(
-          eq(organizations.id, fixtureId),
-          eq(organizations.slug, fixtureId),
-          eq(organizations.slug, LEGACY_FIXTURE_SLUG)
-        )
-      );
-    const organization =
-      matches.find((row) => row.id === fixtureId) ??
-      matches.find((row) => row.slug === fixtureId) ??
-      matches.find((row) => row.slug === LEGACY_FIXTURE_SLUG);
-    if (!organization) {
+async function run(options: SmokeOptions): Promise<number> {
+  const deadline = Date.now() + options.timeoutMs;
+  const authorization = { authorization: `Bearer ${options.secret}` };
+  const request = <T>(path: string, init?: RequestInit) =>
+    smokeRequest<T>(options.baseUrl, path, deadline, init);
+  const query = new URLSearchParams({
+    organizationId: options.organizationId,
+    projectId: options.projectId,
+  });
+  let scanId = options.scanId;
+  if (!scanId) {
+    await request("/health");
+    await request("/ready");
+    if (options.fixture) {
+      await (await import("./utils/smoke-fixture")).seedSmokeFixture();
+    }
+    const { models } = await request<{ models: SmokeModel[] }>(
+      `/models?${query}`,
+      { headers: authorization }
+    );
+    if (
+      !Array.isArray(models) ||
+      models.some((model) => !model || typeof model.id !== "string")
+    ) {
+      throw new Error("Runner returned an invalid model catalog.");
+    }
+    const automatic =
+      models.find((model) => model.default && model.supportsWebSearch) ??
+      models.find((model) => model.supportsWebSearch) ??
+      models.find((model) => model.default) ??
+      models[0];
+    let engines = options.models;
+    if (engines.length === 0 && automatic) {
+      engines = [automatic.id];
+    }
+    if (engines.length === 0) {
+      throw new Error("No model is available for this project.");
+    }
+    const unknown = engines.filter(
+      (id) => !models.some((model) => model.id === id)
+    );
+    if (unknown.length > 0) {
       throw new Error(
-        "GEO smoke fixture organization could not be created or found"
+        `Models unavailable in this project's catalog: ${unknown.join(", ")}`
       );
     }
-    scanInput.organizationId = organization.id;
-
-    await transaction
-      .insert(brandSettings)
-      .values({
-        id: FIXTURE_BRAND_ID,
-        organizationId: scanInput.organizationId,
-        name: "Default",
-        websiteUrl: "https://www.usenotra.com",
-        companyName: "Notra",
-      })
-      .onConflictDoNothing();
-    const [brand] = await transaction
-      .select({ id: brandSettings.id })
-      .from(brandSettings)
-      .where(eq(brandSettings.id, FIXTURE_BRAND_ID))
-      .limit(1);
-    if (!brand) {
-      await transaction.insert(brandSettings).values({
-        id: FIXTURE_BRAND_ID,
-        organizationId: scanInput.organizationId,
-        name: "GEO Smoke Test",
-        isDefault: false,
-        websiteUrl: "https://www.usenotra.com",
-        companyName: "Notra",
-      });
+    console.error(`Idempotency-Key: ${options.idempotencyKey}`);
+    console.error(`Starting scan with ${engines.join(", ")}`);
+    const created = await request<{ id: string }>("/scans", {
+      method: "POST",
+      headers: {
+        ...authorization,
+        "content-type": "application/json",
+        "idempotency-key": options.idempotencyKey,
+      },
+      body: JSON.stringify({
+        organizationId: options.organizationId,
+        projectId: options.projectId,
+        prompt: options.prompt,
+        engines,
+        language: options.language,
+        webSearch:
+          options.webSearch &&
+          (options.models.length > 0 || automatic?.supportsWebSearch === true),
+      }),
+    });
+    if (!created || typeof created.id !== "string" || !created.id.trim()) {
+      throw new Error("Runner returned an invalid scan ID.");
     }
-    await transaction
-      .insert(projects)
-      .values({
-        id: scanInput.projectId,
-        organizationId: scanInput.organizationId,
-        name: "GEO Smoke Test",
-        brandSettingsId: "geo-smoke-brand",
-      })
-      .onConflictDoNothing();
-    await transaction
-      .insert(geoSettings)
-      .values({
-        id: "geo-smoke-settings",
-        organizationId: scanInput.organizationId,
-        projectId: scanInput.projectId,
-        companyName: "Notra",
-      })
-      .onConflictDoNothing();
-  });
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...init,
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${await response.text()}`);
+    scanId = created.id;
   }
-  return response.json() as Promise<T>;
-}
-
-await request<{ ok: true }>("/health");
-await request<{ ok: true }>("/ready");
-if (localFixture) {
-  await seedLocalFixture();
-}
-
-const query = new URLSearchParams({
-  organizationId: scanInput.organizationId,
-  projectId: scanInput.projectId,
-});
-const { models } = await request<{
-  models: Array<{
-    id: string;
-    default?: boolean;
-    supportsWebSearch?: boolean;
-  }>;
-}>(`/models?${query}`, { headers: authorization });
-const automatic =
-  models.find((item) => item.default && item.supportsWebSearch) ??
-  models.find((item) => item.supportsWebSearch) ??
-  models.find((item) => item.default) ??
-  models[0];
-const chosen = requestedModel
-  ? {
-      id: requestedModel,
-      supportsWebSearch:
-        models.find((item) => item.id === requestedModel)?.supportsWebSearch ===
-        true,
+  console.error(`Scan-ID: ${scanId}`);
+  let previousStatus = "";
+  while (Date.now() < deadline) {
+    const scan = await request<SmokeScan>(
+      `/scans/${encodeURIComponent(scanId)}?${query}`,
+      { headers: authorization }
+    );
+    if (
+      !scan ||
+      !["queued", "running", "completed", "failed"].includes(scan.status)
+    ) {
+      throw new Error("Runner returned an invalid scan status.");
     }
-  : automatic;
-if (!chosen) {
-  throw new Error("No model is available for this project");
-}
-
-console.log(`Starting scan with ${chosen.id}`);
-const { id } = await request<{ id: string }>("/scans", {
-  method: "POST",
-  headers: {
-    ...authorization,
-    "content-type": "application/json",
-    "idempotency-key": crypto.randomUUID(),
-  },
-  body: JSON.stringify({
-    ...scanInput,
-    engines: [chosen.id],
-    webSearch: chosen.supportsWebSearch === true,
-  }),
-});
-
-const deadline = Date.now() + 5 * 60_000;
-let previousStatus = "";
-while (Date.now() < deadline) {
-  const scan = await request<{
-    status: "queued" | "running" | "completed" | "failed";
-    errorCode?: string;
-    errorMessage?: string;
-    results?: unknown;
-  }>(`/scans/${id}?${query}`, { headers: authorization });
-
-  if (scan.status !== previousStatus) {
-    console.log(`${id}: ${scan.status}`);
-    previousStatus = scan.status;
-  }
-  if (scan.status === "completed") {
-    console.log(JSON.stringify(scan.results, null, 2));
-    process.exit(0);
-  }
-  if (scan.status === "failed") {
-    throw new Error(
-      `${scan.errorCode ?? "scan_failed"}: ${scan.errorMessage ?? "Scan failed"}`
+    if (scan.status !== previousStatus) {
+      console.error(`${scanId}: ${scan.status}`);
+      previousStatus = scan.status;
+    }
+    if (scan.status === "completed" || scan.status === "failed") {
+      await Bun.write(
+        Bun.stdout,
+        `${JSON.stringify({ ...scan, id: scanId }, null, options.json ? undefined : 2)}\n`
+      );
+      return scan.status === "completed" ? 0 : 1;
+    }
+    await Bun.sleep(
+      Math.min(SMOKE_POLL_INTERVAL_MS, Math.max(0, deadline - Date.now()))
     );
   }
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  throw new Error(
+    `Timed out waiting for scan ${scanId}. Resume with --scan-id ${scanId}.`
+  );
 }
 
-throw new Error(`Timed out waiting for scan ${id}`);
+try {
+  const options = parseSmokeOptions(process.argv.slice(2));
+  if (options) {
+    process.exitCode = await run(options);
+  } else {
+    console.log(SMOKE_HELP);
+  }
+} catch (error) {
+  console.error(
+    error instanceof Error ? error.message : "GEO scan command failed."
+  );
+  process.exitCode = 1;
+}
+process.exit(process.exitCode ?? 0);
