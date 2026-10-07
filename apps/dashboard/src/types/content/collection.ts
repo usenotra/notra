@@ -57,5 +57,6 @@ export interface CollectionMenuItemsProps {
   organizationSlug: string;
   disabled: boolean;
   onDelete: (collection: PostCollectionSummary) => void;
+  onSchedule: (collection: PostCollectionSummary) => void;
   variant?: "context" | "dropdown";
 }

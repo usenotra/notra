@@ -16,8 +16,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useNow, useTranslations } from "use-intl";
 
 import {
@@ -31,12 +33,14 @@ import {
   COLLECTION_TABLE_TOOLTIP_DELAY_MS,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
+import { usePostSchedule } from "@/lib/hooks/use-content-calendar";
 import { useLocalDateFormat } from "@/lib/hooks/use-local-date-format";
 import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
 import { useRouter } from "@/lib/navigation";
+import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   CollectionStatus,
   CollectionsViewProps,
@@ -47,8 +51,16 @@ import {
   collectionTitle,
   collectionStatus,
 } from "@/utils/content-collections";
+import { toErrorMessage } from "@/utils/error-message";
+import dynamic from "@/utils/lazy-component";
 import { getOutputTypeIconClass, OutputTypeIcon } from "@/utils/output-types";
 import { paginatedTableHeightFor } from "@/utils/table";
+
+const ScheduleContentDialog = dynamic(() =>
+  import("@/components/content/schedule/schedule-content-dialog").then(
+    (module) => module.ScheduleContentDialog
+  )
+);
 
 function statusVariant(
   status: CollectionStatus
@@ -142,13 +154,40 @@ export function CollectionsView({
   const router = useRouter();
   const t = useTranslations("content.collections");
   const tCommon = useTranslations("common");
+  const tCalendar = useTranslations("content.calendar.toasts");
+  const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] =
     useState<PostCollectionSummary | null>(null);
+  const [scheduleTarget, setScheduleTarget] =
+    useState<PostCollectionSummary | null>(null);
+  const [isOpeningSchedule, setIsOpeningSchedule] = useState(false);
+  const { data: scheduleData } = usePostSchedule(
+    organizationId,
+    scheduleTarget?.singlePost?.id ?? ""
+  );
   const { deleteCollection, isDeleting } = usePostActions(organizationId);
   const menuProps = {
     organizationSlug,
-    disabled: isDeleting,
+    disabled: isDeleting || isOpeningSchedule,
     onDelete: setDeleteTarget,
+    onSchedule: async (collection: PostCollectionSummary) => {
+      if (!collection.singlePost) {
+        return;
+      }
+      setIsOpeningSchedule(true);
+      try {
+        await queryClient.fetchQuery({
+          ...dashboardOrpc.contentCalendar.get.queryOptions({
+            input: { organizationId, contentId: collection.singlePost.id },
+          }),
+          staleTime: 0,
+        });
+        setScheduleTarget(collection);
+      } catch (error) {
+        toast.error(toErrorMessage(error, tCalendar("scheduleFailed")));
+      }
+      setIsOpeningSchedule(false);
+    },
   };
   const deleteDialog = (
     <ConfirmDialog
@@ -313,6 +352,23 @@ export function CollectionsView({
         )}
       />
       {deleteDialog}
+      {scheduleTarget?.singlePost ? (
+        <ScheduleContentDialog
+          contentId={scheduleTarget.singlePost.id}
+          contentType={scheduleTarget.contentTypes[0] ?? ""}
+          hasUnsavedChanges={false}
+          onOpenChange={(open) => {
+            if (!open) {
+              setScheduleTarget(null);
+            }
+          }}
+          open
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          schedule={scheduleData?.schedule ?? null}
+          title={collectionTitle(scheduleTarget)}
+        />
+      ) : null}
     </TooltipProvider>
   );
 }
