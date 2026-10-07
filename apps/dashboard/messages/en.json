@@ -2404,7 +2404,7 @@
       "exactExcerpt": "Exact excerpt: "
     },
     "brandSentimentCard": {
-      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
+      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. Single-turn answers in your prompt language only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
     },
     "citationsTable": {
       "showDetails": "{title}, show details",
