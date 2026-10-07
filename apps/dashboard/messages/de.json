@@ -2368,7 +2368,10 @@
         "copyFullBacklog": "Gesamten Backlog kopieren",
         "suggestedFix": "Vorgeschlagene Lösung",
         "copyFix": "Lösung kopieren",
-        "allPassed": "Alle relevanten Checks bestanden"
+        "allPassed": "Alle relevanten Checks bestanden",
+        "whatWeFound": "Was wir gefunden haben",
+        "noDetails": "Keine Details gemeldet.",
+        "noRecommendation": "Mehr Hinweise im vollständigen Bericht."
       },
       "scanDialog": {
         "title": "Öffentlichen Scan starten?",
@@ -2384,15 +2387,34 @@
         "sinceLastScan": "{delta} seit dem letzten Scan",
         "checksPassingAria": "{passing} von {total} {label}-Checks bestanden",
         "noScore": "Noch kein Score",
-        "checksPassing": "Checks bestanden",
-        "extraSignals": "{count, plural, one {# zusätzliches Signal} other {# zusätzliche Signale}}",
-        "bonus": "Bonus",
-        "scanned": "Gescannt am {date}",
+        "scanned": "Gescannt {time}",
         "eligibleChecks": "{count, plural, one {# relevanter Check} other {# relevante Checks}}",
-        "fullReport": "Vollständiger Bericht auf is-agentic.com"
+        "fullReport": "Vollständiger Bericht",
+        "tierSummary": "<strong>{passing}</strong> von {total} bestanden · <strong>{earned}</strong>/{available} Pkt.",
+        "bonusSummary": "Bonus +{points} Pkt. durch {count, plural, one {# zusätzliches Signal} other {# zusätzliche Signale}}",
+        "openSummary": "{count, plural, one {# offener Check} other {# offene Checks}} · {points} Pkt. möglich",
+        "nextStepMustDo": "{count, plural, one {# Pflicht-Check ist offen} other {# Pflicht-Checks sind offen}}, bis zu {points} Pkt. wert. Fang an mit <strong>{name}</strong>",
+        "nextStepShouldDo": "Alle Pflicht-Checks bestanden. Als Nächstes: <strong>{name}</strong>"
       },
       "scoreGauge": {
         "ariaLabel": "Readiness-Score {score} von 100, {band}"
+      },
+      "changes": {
+        "eyebrow": "Seit dem letzten Scan",
+        "fixed": "Behoben",
+        "improved": "Verbessert",
+        "added": "Neu",
+        "worsened": "Verschlechtert",
+        "empty": "Scanne erneut, nachdem du Fixes veröffentlicht hast, um zu sehen, was sich geändert hat.",
+        "noChanges": "Seit dem letzten Scan hat sich kein Check verändert.",
+        "passing": "Bestanden",
+        "subline": "Verglichen mit dem Scan vom {date}",
+        "columns": {
+          "change": "Änderung",
+          "check": "Check",
+          "priority": "Priorität",
+          "result": "Ergebnis"
+        }
       }
     },
     "aiTrafficCard": {

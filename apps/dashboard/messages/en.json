@@ -2368,7 +2368,10 @@
         "copyFullBacklog": "Copy full backlog",
         "suggestedFix": "Suggested fix",
         "copyFix": "Copy fix",
-        "allPassed": "All eligible checks passed"
+        "allPassed": "All eligible checks passed",
+        "whatWeFound": "What we found",
+        "noDetails": "No details reported.",
+        "noRecommendation": "See the full report for guidance."
       },
       "scanDialog": {
         "title": "Run a public scan?",
@@ -2384,15 +2387,34 @@
         "sinceLastScan": "{delta} since last scan",
         "checksPassingAria": "{passing} of {total} {label} checks passing",
         "noScore": "No score yet",
-        "checksPassing": "checks passing",
-        "extraSignals": "{count, plural, one {# extra signal} other {# extra signals}}",
-        "bonus": "Bonus",
-        "scanned": "Scanned {date}",
+        "scanned": "Scanned {time}",
         "eligibleChecks": "{count, plural, one {# eligible check} other {# eligible checks}}",
-        "fullReport": "Full report on is-agentic.com"
+        "fullReport": "Full report",
+        "tierSummary": "<strong>{passing}</strong> of {total} passing · <strong>{earned}</strong>/{available} pts",
+        "bonusSummary": "Bonus +{points} pts from {count, plural, one {# extra signal} other {# extra signals}}",
+        "openSummary": "{count, plural, one {# check open} other {# checks open}} · {points} pts to gain",
+        "nextStepMustDo": "{count, plural, one {# must-do check is open} other {# must-do checks are open}}, worth up to {points} pts. Start with <strong>{name}</strong>",
+        "nextStepShouldDo": "Every must-do check passes. Next up: <strong>{name}</strong>"
       },
       "scoreGauge": {
         "ariaLabel": "Readiness score {score} out of 100, {band}"
+      },
+      "changes": {
+        "eyebrow": "Since last scan",
+        "fixed": "Fixed",
+        "improved": "Improved",
+        "added": "New",
+        "worsened": "Got worse",
+        "empty": "Rescan after shipping fixes to see what changed.",
+        "noChanges": "No checks changed since the last scan.",
+        "passing": "Passing",
+        "subline": "Compared with the scan from {date}",
+        "columns": {
+          "change": "Change",
+          "check": "Check",
+          "priority": "Priority",
+          "result": "Result"
+        }
       }
     },
     "aiTrafficCard": {

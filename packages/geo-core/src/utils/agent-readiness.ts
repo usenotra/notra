@@ -1,4 +1,7 @@
-import type { AgentReadinessIssue } from "@notra/db/types/agent-readiness";
+import type {
+  AgentReadinessIssue,
+  AgentReadinessScoreBreakdown,
+} from "@notra/db/types/agent-readiness";
 
 import {
   AGENT_READINESS_GREAT_THRESHOLD,
@@ -8,6 +11,9 @@ import {
   AGENT_READINESS_STALE_RUNNING_MS,
 } from "../constants/agent-readiness";
 import type {
+  AgentReadinessChangedCheck,
+  AgentReadinessComparison,
+  AgentReadinessIssueChange,
   AgentReadinessIssueGroups,
   AgentReadinessRunningScan,
   AgentReadinessScoreBand,
@@ -187,4 +193,78 @@ export function getAgentReadinessScoreBand(
     return { key: "needs-improvement" };
   }
   return { key: "poor" };
+}
+
+function toChangedCheck(
+  issue: AgentReadinessIssue,
+  previousResult: AgentReadinessIssue["result"] | null,
+  result: AgentReadinessIssue["result"] | null
+): AgentReadinessChangedCheck {
+  return {
+    id: issue.id,
+    name: issue.name,
+    tier: issue.tier,
+    previousResult,
+    result,
+  };
+}
+
+/** Diffs the open checks of two completed scans by check id. */
+export function compareAgentReadinessIssues(
+  previous: AgentReadinessIssue[],
+  current: AgentReadinessIssue[]
+): Omit<AgentReadinessComparison, "previousScore" | "previousScannedAt"> {
+  const previousById = new Map(previous.map((issue) => [issue.id, issue]));
+  const currentIds = new Set(current.map((issue) => issue.id));
+  const added: AgentReadinessChangedCheck[] = [];
+  const improved: AgentReadinessChangedCheck[] = [];
+  const worsened: AgentReadinessChangedCheck[] = [];
+
+  for (const issue of current) {
+    const before = previousById.get(issue.id);
+    if (!before) {
+      added.push(toChangedCheck(issue, null, issue.result));
+    } else if (before.result === "failed" && issue.result === "partial") {
+      improved.push(toChangedCheck(issue, before.result, issue.result));
+    } else if (before.result === "partial" && issue.result === "failed") {
+      worsened.push(toChangedCheck(issue, before.result, issue.result));
+    }
+  }
+
+  return {
+    resolved: previous
+      .filter((issue) => !currentIds.has(issue.id))
+      .map((issue) => toChangedCheck(issue, issue.result, null)),
+    added,
+    improved,
+    worsened,
+  };
+}
+
+/** Score points still open across essential and recommended checks. */
+export function getAgentReadinessOpenPoints(
+  breakdown: AgentReadinessScoreBreakdown
+): number {
+  const open =
+    breakdown.essential.available -
+    breakdown.essential.earned +
+    (breakdown.recommended.available - breakdown.recommended.earned);
+  return Math.max(0, Math.round(open * 10) / 10);
+}
+
+/** Check id → how it moved since the previous scan, for row badges. */
+export function getAgentReadinessIssueChanges(
+  comparison: AgentReadinessComparison | null
+): Map<string, AgentReadinessIssueChange> {
+  const changes = new Map<string, AgentReadinessIssueChange>();
+  for (const check of comparison?.added ?? []) {
+    changes.set(check.id, "added");
+  }
+  for (const check of comparison?.improved ?? []) {
+    changes.set(check.id, "improved");
+  }
+  for (const check of comparison?.worsened ?? []) {
+    changes.set(check.id, "worsened");
+  }
+  return changes;
 }

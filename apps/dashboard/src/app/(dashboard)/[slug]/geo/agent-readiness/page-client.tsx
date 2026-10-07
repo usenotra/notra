@@ -10,6 +10,7 @@ import { useTranslations } from "use-intl";
 
 import { EmptyState } from "@/components/empty-state";
 import { EmptyStateReadinessPreview } from "@/components/empty-state-preview";
+import { AgentReadinessChangesCard } from "@/components/geo/agent-readiness/readiness-changes-card";
 import { AgentReadinessChecklist } from "@/components/geo/agent-readiness/readiness-checklist";
 import { AgentReadinessScanDialog } from "@/components/geo/agent-readiness/readiness-scan-dialog";
 import { AgentReadinessScanningNotice } from "@/components/geo/agent-readiness/readiness-scanning-notice";
@@ -35,7 +36,7 @@ function ReadinessBody({
   const t = useTranslations("geo.pages.agentReadiness");
   const tGeoShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common.actions");
-  const { report, scan, targetUrl, history } = data;
+  const { report, scan, targetUrl, history, comparison } = data;
   const isScanning = isScanPending || scan?.status === "running";
   const previousScore =
     history.length > 1 ? (history.at(-2)?.score ?? null) : null;
@@ -95,8 +96,14 @@ function ReadinessBody({
         onRescan={onRequestScan}
         previousScore={previousScore}
         report={report}
+        targetUrl={targetUrl}
       />
-      <AgentReadinessChecklist issues={report.issues} targetUrl={targetUrl} />
+      <AgentReadinessChangesCard comparison={comparison} />
+      <AgentReadinessChecklist
+        comparison={comparison}
+        issues={report.issues}
+        targetUrl={targetUrl}
+      />
     </div>
   );
 }

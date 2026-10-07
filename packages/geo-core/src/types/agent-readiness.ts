@@ -57,6 +57,33 @@ export interface AgentReadinessHistoryPoint {
   scannedAt: string;
 }
 
+/** A check that moved between two completed scans. */
+export interface AgentReadinessChangedCheck {
+  id: string;
+  name: string;
+  tier: AgentReadinessIssue["tier"];
+  /** Result on the previous scan; null when the check passed. */
+  previousResult: AgentReadinessIssue["result"] | null;
+  /** Result on the latest scan; null when the check passes now. */
+  result: AgentReadinessIssue["result"] | null;
+}
+
+/** What changed between the latest completed scan and the one before it. */
+export interface AgentReadinessComparison {
+  previousScore: number | null;
+  previousScannedAt: string;
+  /** Open before, passing now. */
+  resolved: AgentReadinessChangedCheck[];
+  /** Passing before (or not reported), open now. */
+  added: AgentReadinessChangedCheck[];
+  /** Failed before, partial now. */
+  improved: AgentReadinessChangedCheck[];
+  /** Partial before, failed now. */
+  worsened: AgentReadinessChangedCheck[];
+}
+
+export type AgentReadinessIssueChange = "added" | "improved" | "worsened";
+
 export interface AgentReadinessResponse {
   targetUrl: string;
   /** Latest completed report, if any. */
@@ -65,6 +92,8 @@ export interface AgentReadinessResponse {
   scan: AgentReadinessReportView | null;
   /** Completed scans, oldest first, for trend detection. */
   history: AgentReadinessHistoryPoint[];
+  /** Diff against the previous completed scan; null on the first scan. */
+  comparison: AgentReadinessComparison | null;
 }
 
 export interface AgentReadinessScanResponse {

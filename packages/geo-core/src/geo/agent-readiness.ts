@@ -14,6 +14,7 @@ import {
   AgentReadinessStartError,
 } from "../schemas/agent-readiness-errors";
 import type {
+  AgentReadinessComparison,
   AgentReadinessHistoryPoint,
   AgentReadinessReportView,
   AgentReadinessReportRow,
@@ -23,7 +24,10 @@ import type {
   AgentReadinessWorkflowPayload,
   AgentReadinessWorkflowResult,
 } from "../types/agent-readiness";
-import { canReuseAgentReadinessScan } from "../utils/agent-readiness";
+import {
+  canReuseAgentReadinessScan,
+  compareAgentReadinessIssues,
+} from "../utils/agent-readiness";
 import { logGeoFailure } from "../utils/geo-log";
 import {
   areWebsiteUrlsEquivalent,
@@ -179,11 +183,9 @@ async function latestReadinessReports(
   };
 }
 
-async function loadHistory(
-  projectId: string,
-  targetUrl: string
-): Promise<AgentReadinessHistoryPoint[]> {
-  const rows = await db.query.geoAgentReadinessReports.findMany({
+/** Completed scans for this target, newest first. */
+async function loadCompletedScans(projectId: string, targetUrl: string) {
+  return await db.query.geoAgentReadinessReports.findMany({
     columns: {
       id: true,
       score: true,
@@ -202,6 +204,15 @@ async function loadHistory(
     orderBy: desc(geoAgentReadinessReports.createdAt),
     limit: AGENT_READINESS_HISTORY_LIMIT,
   });
+}
+
+type CompletedScanRow = Awaited<ReturnType<typeof loadCompletedScans>>[number];
+
+function scanTimestamp(row: CompletedScanRow): string {
+  return (row.scannedAt ?? row.createdAt).toISOString();
+}
+
+function toHistory(rows: CompletedScanRow[]): AgentReadinessHistoryPoint[] {
   return rows
     .map((row) => ({
       id: row.id,
@@ -210,21 +221,38 @@ async function loadHistory(
         .length,
       partialCount: row.issues.filter((issue) => issue.result === "partial")
         .length,
-      scannedAt: (row.scannedAt ?? row.createdAt).toISOString(),
+      scannedAt: scanTimestamp(row),
     }))
     .reverse();
+}
+
+function toComparison(
+  rows: CompletedScanRow[],
+  reportId: string | undefined
+): AgentReadinessComparison | null {
+  const index = rows.findIndex((row) => row.id === reportId);
+  const current = rows[index];
+  const previous = index === -1 ? undefined : rows[index + 1];
+  if (!(current && previous)) {
+    return null;
+  }
+  return {
+    previousScore: previous.score,
+    previousScannedAt: scanTimestamp(previous),
+    ...compareAgentReadinessIssues(previous.issues, current.issues),
+  };
 }
 
 export const loadAgentReadiness = Effect.fn("geo.agentReadiness.load")(
   function* (scope: AgentReadinessScope) {
     const targetUrl = yield* resolveTargetUrl(scope.brandSettingsId);
-    const [reports, history] = yield* Effect.all(
+    const [reports, completedScans] = yield* Effect.all(
       [
         geoDb("read readiness reports", () =>
           latestReadinessReports(scope.projectId, targetUrl)
         ),
         geoDb("read readiness history", () =>
-          loadHistory(scope.projectId, targetUrl)
+          loadCompletedScans(scope.projectId, targetUrl)
         ),
       ],
       { concurrency: "unbounded" }
@@ -238,7 +266,8 @@ export const loadAgentReadiness = Effect.fn("geo.agentReadiness.load")(
       targetUrl,
       report,
       scan,
-      history,
+      history: toHistory(completedScans),
+      comparison: toComparison(completedScans, completed?.id),
     } satisfies AgentReadinessResponse;
   }
 );
