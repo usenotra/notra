@@ -41,19 +41,7 @@ export function buildWebTrendRows(
     const day = trafficDayKey(point.day);
     agents.set(day, (agents.get(day) ?? 0) + point.visits);
   }
-  const days = trafficSparklineDays(
-    [
-      ...aiPoints,
-      ...webPoints.map((point) => ({
-        day: point.day,
-        visitorType: "human" as const,
-        source: "",
-        visits: point.views,
-      })),
-    ],
-    from,
-    to
-  );
+  const days = trafficSparklineDays([...aiPoints, ...webPoints], from, to);
   return days.map((day) => ({
     day: formatDayLabel(day, locale),
     rawDay: day,

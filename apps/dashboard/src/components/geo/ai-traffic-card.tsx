@@ -7,7 +7,6 @@ import {
   GEO_TRAFFIC_OTHER_GROUP,
 } from "@notra/geo-core/constants/geo";
 import {
-  buildTrafficTrendRows,
   formatAiTrafficTimestamp,
   hasTrafficSourceSeries,
   toGeoTrafficPreviousTotals,
@@ -85,7 +84,6 @@ export function AiTrafficCard({
     () => trafficSparklineDays(points, range?.from, range?.to),
     [points, range?.from, range?.to]
   );
-  const trendRows = buildTrafficTrendRows(points, locale, sparklineDays);
   const canSparkline = hasTrafficSourceSeries(points);
   const seriesByGroup = useMemo(() => {
     const map = new Map<string, { day: string; value: number }[]>();
@@ -224,7 +222,7 @@ export function AiTrafficCard({
           groups={groups}
           points={points}
           previousTotals={previousTotals}
-          rows={trendRows}
+          days={sparklineDays}
           settingsHref={settingsHref}
           totals={totals}
         />

@@ -16,9 +16,23 @@ import type {
 } from "@notra/geo-core/types/geo";
 import { urlHost } from "@notra/geo-core/utils/url-host";
 import { listMountedAreas } from "@notra/sites-core/utils/mounts";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const memory = new Map<string, { site: GeoIngestSite | null; until: number }>();
+
+export async function invalidateIngestSiteCaches(
+  siteId: string,
+  organizationId: string
+): Promise<void> {
+  memory.delete(siteId);
+  const client = redis;
+  if (client) {
+    await client.del(
+      `${GEO_INGEST_SITE_CACHE_PREFIX}:${siteId}`,
+      `${GEO_INGEST_ORGANIZATION_SITES_CACHE_PREFIX}:${organizationId}`
+    );
+  }
+}
 
 async function cached<T>(
   key: string,
@@ -112,7 +126,12 @@ export async function loadOrganizationSitePrefixes(
         const rows = await db
           .select({ publicOrigin: sites.publicOrigin, mounts: sites.mounts })
           .from(sites)
-          .where(eq(sites.organizationId, organizationId));
+          .where(
+            and(
+              eq(sites.organizationId, organizationId),
+              eq(sites.status, "active")
+            )
+          );
         const prefixes: GeoIngestSitePrefix[] = [];
         for (const row of rows) {
           const host = urlHost(row.publicOrigin);

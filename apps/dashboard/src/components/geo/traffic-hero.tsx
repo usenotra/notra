@@ -112,7 +112,7 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
 export function TrafficHero({
   totals,
   previousTotals,
-  rows,
+  days,
   groups,
   points,
   settingsHref,
@@ -132,10 +132,9 @@ export function TrafficHero({
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
-  const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
-  const showTrend = rows.length > 0;
-  const singleDay = rows.length === 1;
-  const days = rows.map((row) => row.rawDay);
+  const markIncompleteTail = days.at(-1) === todayIsoDate();
+  const showTrend = days.length > 0;
+  const singleDay = days.length === 1;
 
   const metrics: TrafficTrendMetric[] = GEO_TRAFFIC_FUNNEL_STAGES.map(
     (stage) => ({

@@ -57,7 +57,6 @@ import type {
   GeoTrafficSource,
   GeoTrafficSourceGroupDefinition,
   GeoTrafficTotals,
-  GeoTrafficTrendRow,
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
@@ -1696,7 +1695,7 @@ export interface TrafficTrendMetric {
 export interface TrafficHeroProps {
   totals: GeoTrafficTotals;
   previousTotals: GeoTrafficTotals | null;
-  rows: readonly GeoTrafficTrendRow[];
+  days: readonly string[];
   groups: readonly GeoTrafficSourceGroup[];
   points: readonly GeoTrafficPoint[];
   settingsHref: string;
