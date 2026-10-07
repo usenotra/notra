@@ -1,6 +1,6 @@
 ---
 title: "Webhooks Overview"
-description: "Inbound GitHub webhooks, outbound generation events and polling alternatives"
+description: "Inbound GitHub webhooks, outbound post lifecycle, generation and GEO scan events, and polling alternatives"
 authors:
   - handle: dominik
 
@@ -26,7 +26,7 @@ docolin:
   next: ./events.mdx
 ---
 
-Webhooks in Notra are inbound. GitHub sends events to Notra so that event triggers can generate content the moment a release is published or commits land on the default branch.
+Notra receives GitHub webhooks and sends signed outbound webhooks. GitHub events let event triggers generate content the moment a release is published or commits land on the default branch. Outbound subscriptions notify your endpoint about post lifecycle changes, tracked generation jobs and terminal GEO scan results.
 
 <Warning>
   Notra can also send signed [outbound webhooks](/api/webhooks/outbound) to your own endpoint. Set them up in **Settings**, then **Webhooks**, or through `/v1/webhooks`. The GitHub endpoint below only receives events and has nothing to do with outbound subscriptions.
@@ -67,7 +67,7 @@ The dashboard generates this URL for you. Copy it from the **Setup Webhook** dia
 </Steps>
 
 <Note>
-  Without a webhook you can still generate content manually, on a schedule, or through `POST /v1/posts/generate`. Webhooks are only needed for event triggers.
+  Without an inbound GitHub webhook you can still generate content manually, on a schedule, or through `POST /v1/posts/generate`. Inbound GitHub webhooks are only needed for GitHub event triggers.
 </Note>
 
 ### Rotate the secret
@@ -186,7 +186,7 @@ Every delivery, including rejected ones, is written to **Settings**, then **Logs
 
 ## Polling alternatives
 
-Post generation and brand analysis can send [outbound events](/api/webhooks/outbound). You can still poll them if you prefer. GEO scans don't send outbound events yet, so polling is the way to go there:
+Post generation, brand analysis and GEO scans can send [outbound events](/api/webhooks/outbound). You can still poll them for status and progress if you prefer. Outbound subscriptions also cover post creation, persisted edits, deletion, publishing and unpublishing; new subscriptions receive only future events, without a backfill.
 
 <CardGroup cols={2}>
   <Card title="Poll post generation" icon="rotate" href="/api-reference/content/get-async-post-generation-status">

@@ -15,8 +15,6 @@ import {
   githubIntegrations,
   linearIntegrations,
   members,
-  organizationNotificationSettings,
-  organizations,
   postCollections,
 } from "@notra/db/schema";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
@@ -37,6 +35,7 @@ import {
   trackScheduledContentFailed,
   trackScheduledContentSkipped,
 } from "@/lib/databuddy";
+import { getNotificationData } from "@/lib/email/notification-data";
 import {
   addActiveGeneration,
   completeActiveGeneration,
@@ -576,43 +575,7 @@ export async function fetchNotificationData(input: {
   setting: NotificationSettingKey;
 }): Promise<NotificationData> {
   "use step";
-  const notificationSettings =
-    await db.query.organizationNotificationSettings.findFirst({
-      where: eq(
-        organizationNotificationSettings.organizationId,
-        input.organizationId
-      ),
-    });
-
-  if (!notificationSettings?.[input.setting]) {
-    return {
-      enabled: false,
-      ownerEmails: [],
-      organizationName: "",
-      organizationSlug: "",
-    };
-  }
-
-  const [org, ownerMemberships] = await Promise.all([
-    db.query.organizations.findFirst({
-      where: eq(organizations.id, input.organizationId),
-      columns: { name: true, slug: true },
-    }),
-    db.query.members.findMany({
-      where: and(
-        eq(members.organizationId, input.organizationId),
-        eq(members.role, "owner")
-      ),
-      with: { users: { columns: { email: true } } },
-    }),
-  ]);
-
-  return {
-    enabled: true,
-    ownerEmails: ownerMemberships.map((membership) => membership.users.email),
-    organizationName: org?.name ?? "Your organization",
-    organizationSlug: org?.slug ?? "",
-  };
+  return getNotificationData(input);
 }
 
 export async function enqueueDigest(input: EnqueueDigestInput): Promise<void> {

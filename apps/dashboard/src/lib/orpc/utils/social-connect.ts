@@ -15,11 +15,13 @@ import {
 import {
   getSocialConnectStatusCode,
   type SocialConnectConfigError,
+  type SocialConnectDeliveryUnknownError,
   type SocialConnectRequestError,
 } from "@/lib/social-connect/errors";
 
 type SocialConnectFailure =
   | SocialConnectConfigError
+  | SocialConnectDeliveryUnknownError
   | SocialConnectRequestError;
 
 interface RunSocialConnectOptions {
@@ -51,15 +53,18 @@ export async function runSocialConnect<A>(
   }
 
   logError(options.logLabel, error);
+  const tErrors = await getTranslations("errors.socialAccounts");
+  if (error._tag === "SocialConnectDeliveryUnknownError") {
+    // "Try again" here could post twice.
+    throw serviceUnavailable(tErrors("deliveryUnknown"));
+  }
   const statusCode = getSocialConnectStatusCode(error.cause);
 
   if (options.reconnectHint && (statusCode === 401 || statusCode === 403)) {
-    const tErrors = await getTranslations("errors.socialAccounts");
     throw badRequest(tErrors("notAuthorizedToPost"), {
       code: "reconnect_required",
     });
   }
-  const tErrors = await getTranslations("errors.socialAccounts");
   const providerMessage =
     error.cause instanceof Error ? error.cause.message : error.message;
   if (SOCIAL_DUPLICATE_CONTENT_REGEX.test(providerMessage)) {

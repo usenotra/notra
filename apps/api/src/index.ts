@@ -50,6 +50,7 @@ import { geoTrafficRoutes } from "./routes/geo-traffic";
 import { geoVisibilityRoutes } from "./routes/geo-visibility";
 import { integrationsRoutes } from "./routes/integrations";
 import { legacyRedirectRoutes } from "./routes/legacy-redirects";
+import { postSchedulesRoutes } from "./routes/post-schedules";
 import { postsRoutes } from "./routes/posts";
 import { schedulesRoutes } from "./routes/schedules";
 import { skillsRoutes } from "./routes/skills";
@@ -338,6 +339,7 @@ app.get("/.well-known/api-catalog", (c) => {
 app.route("/v1", legacyRedirectRoutes);
 app.route("/v1", postsRoutes);
 app.route("/v1", webhooksRoutes);
+app.route("/v1", postSchedulesRoutes);
 app.route("/v1", brandIdentitiesRoutes);
 app.route("/v1", integrationsRoutes);
 app.route("/v1", schedulesRoutes);

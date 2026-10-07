@@ -197,7 +197,11 @@ export const shipIrisPost = Effect.fn("iris.post.ship")(function* (
     try: () =>
       db
         .update(posts)
-        .set({ status: "published", updatedAt: new Date() })
+        .set({
+          status: "published",
+          publishedAt: new Date(),
+          updatedAt: new Date(),
+        })
         .where(
           and(
             eq(posts.id, input.postId),

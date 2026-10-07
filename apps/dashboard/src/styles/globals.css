@@ -376,3 +376,9 @@
     opacity: 0;
   }
 }
+
+/* Tint table rows in GEO answers that name the user's own brand. Global so
+   it also reaches the expanded table, which renders in a portal. */
+tr:has(> [data-own-mention]) > * {
+  background-color: color-mix(in oklab, var(--geo-up) 10%, transparent);
+}

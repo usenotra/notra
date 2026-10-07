@@ -60,7 +60,11 @@ import {
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
 import { GEO_PROMPT_DETAIL_SURFACES } from "@/constants/geo-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
-import { useGeoPromptResultDetail, useGeoSettings } from "@/lib/hooks/use-geo";
+import {
+  useGeoPromptResultDetail,
+  useGeoSettings,
+  usePrefetchGeoPromptResultDetail,
+} from "@/lib/hooks/use-geo";
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
@@ -85,6 +89,7 @@ import {
   adjacentPromptEngine,
   promptEngineArrowDelta,
 } from "@/utils/geo-prompt-engines";
+import { loadGeoPromptAnswerThread } from "@/utils/prompt-answer-thread-chunk";
 
 function usePromptDetailOpened({
   open,
@@ -165,6 +170,7 @@ function PromptAnswerHeader({
   active,
   view,
   onSelectEngine,
+  onPrefetchEngine,
   onSelectView,
 }: PromptAnswerHeaderProps) {
   const t = useTranslations("geo.promptDetailDialog");
@@ -223,6 +229,7 @@ function PromptAnswerHeader({
           <PromptEngineSwitcher
             active={active}
             onChange={onSelectEngine}
+            onPrefetch={onPrefetchEngine}
             results={results}
           />
           <PromptReceiptViewSwitch onChange={onSelectView} view={view} />
@@ -499,6 +506,33 @@ export function PromptAnswerPage({
     enabled: open,
   });
   const showLanguageBar = Boolean(scanId) && languages.length > 1;
+  const prefetchDetail = usePrefetchGeoPromptResultDetail(organizationId);
+  const checkIdFor = (target: string) =>
+    results.find((result) => result.engine === target)?.checkId;
+  const activeEngine = active?.engine ?? null;
+  // Arrow keys step to a neighbour; warm both once the shown answer is in,
+  // so stepping doesn't wait on a round trip.
+  const neighbourCheckIds =
+    open && activeEngine && detailState.status === "ready"
+      ? [-1, 1].map((delta) =>
+          checkIdFor(adjacentPromptEngine(engines, activeEngine, delta))
+        )
+      : [];
+  const previousCheckId = neighbourCheckIds[0];
+  const nextCheckId = neighbourCheckIds[1];
+
+  useEffect(() => {
+    prefetchDetail(previousCheckId);
+    prefetchDetail(nextCheckId);
+  }, [prefetchDetail, previousCheckId, nextCheckId]);
+
+  useEffect(() => {
+    if (open) {
+      // Analysis is the default view; fetch the raw answer's markdown
+      // renderer in the background so switching to it doesn't flash.
+      loadGeoPromptAnswerThread().catch(() => undefined);
+    }
+  }, [open]);
 
   usePromptDetailOpened({
     open,
@@ -549,6 +583,7 @@ export function PromptAnswerPage({
         onPrepareScan={onPrepareScan}
         organizationId={organizationId}
         active={active}
+        onPrefetchEngine={(target) => prefetchDetail(checkIdFor(target))}
         onSelectEngine={selectEngine}
         onSelectView={selectView}
         row={row}

@@ -3,18 +3,19 @@
 import type { PostCollectionSummary } from "@notra/schemas/dashboard/content";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
-import { TablePagination } from "@notra/ui/components/shared/table-pagination";
+import { TruncateWithTooltip } from "@notra/ui/components/shared/truncate-with-tooltip";
 import { Badge } from "@notra/ui/components/ui/badge";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuTrigger,
-} from "@notra/ui/components/ui/context-menu";
 import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
 import { Spinner } from "@notra/ui/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useState } from "react";
 import { useNow, useTranslations } from "use-intl";
@@ -27,14 +28,15 @@ import Link from "@/components/framework/link";
 import {
   COLLECTION_JUST_NOW_MS,
   COLLECTION_TABLE_ROW_HEIGHT,
+  COLLECTION_TABLE_TOOLTIP_DELAY_MS,
   COLLECTION_TYPE_STACK_LIMIT,
 } from "@/constants/content-collections";
+import { useLocalDateFormat } from "@/lib/hooks/use-local-date-format";
 import { useOutputTypeLabel } from "@/lib/hooks/use-output-type-label";
 import { usePostActions } from "@/lib/hooks/use-post-actions";
 import { useDateFnsLocale } from "@/lib/i18n/date-fns";
 import { useLogoStackLabels } from "@/lib/i18n/use-logo-stack-labels";
 import { useRouter } from "@/lib/navigation";
-import { cn } from "@/lib/utils";
 import type {
   CollectionStatus,
   CollectionsViewProps,
@@ -120,9 +122,9 @@ function CollectionNameCell({
   const t = useTranslations("content.collections");
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
-      <span className="truncate text-sm leading-snug font-medium">
+      <TruncateWithTooltip className="text-sm leading-snug font-medium">
         {collectionTitle(collection)}
-      </span>
+      </TruncateWithTooltip>
       <span className="text-muted-foreground truncate text-xs tabular-nums">
         {collectionMeta(collection, t)}
       </span>
@@ -135,7 +137,6 @@ export function CollectionsView({
   pagination,
   organizationId,
   organizationSlug,
-  view,
   loading = false,
 }: CollectionsViewProps) {
   const router = useRouter();
@@ -190,6 +191,7 @@ export function CollectionsView({
     />
   );
   const dateFnsLocale = useDateFnsLocale();
+  const formatDate = useLocalDateFormat();
   const now = useNow({ updateInterval: 60_000 });
   const formatRelativeDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -227,12 +229,24 @@ export function CollectionsView({
       width: "8.5rem",
       collapsePriority: 3,
       cell: (collection) => (
-        <span
-          className="text-muted-foreground whitespace-nowrap tabular-nums"
-          suppressHydrationWarning
-        >
-          {formatRelativeDate(collection.createdAt)}
-        </span>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <span
+                className="text-muted-foreground whitespace-nowrap tabular-nums"
+                suppressHydrationWarning
+              />
+            }
+          >
+            {formatRelativeDate(collection.createdAt)}
+          </TooltipTrigger>
+          <TooltipContent>
+            {formatDate(new Date(collection.createdAt), {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          </TooltipContent>
+        </Tooltip>
       ),
     },
   ];
@@ -247,7 +261,6 @@ export function CollectionsView({
           className="focus-visible:ring-ring block min-w-0 rounded-sm focus-visible:ring-2 focus-visible:outline-none"
           href={collectionHref(organizationSlug, collection)}
           prefetch={false}
-          title={collectionTitle(collection)}
         >
           <CollectionNameCell collection={collection} />
         </Link>
@@ -266,86 +279,9 @@ export function CollectionsView({
     },
   ];
 
-  if (view === "grid") {
-    return (
-      <div
-        aria-busy={loading || undefined}
-        className={cn(
-          "space-y-4",
-          loading &&
-            "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
-        )}
-        inert={loading ? true : undefined}
-      >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-          {collections.map((collection) => (
-            <ContextMenu key={collection.id}>
-              <ContextMenuTrigger
-                render={
-                  <div className="border-border/60 bg-background hover:bg-muted/40 relative min-w-0 rounded-xl border transition-colors" />
-                }
-              >
-                <Link
-                  className="focus-visible:ring-ring flex h-full min-w-0 flex-col gap-4 rounded-xl p-4 focus-visible:ring-2 focus-visible:outline-none"
-                  href={collectionHref(organizationSlug, collection)}
-                  prefetch={false}
-                  title={collectionTitle(collection)}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <CollectionTypesCell
-                      contentTypes={collection.contentTypes}
-                    />
-                    <div className="pr-9">
-                      <CollectionStatusBadge
-                        status={collectionStatus(collection)}
-                      />
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <p className="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere">
-                      {collectionTitle(collection)}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {collectionMeta(collection, t)}
-                    </p>
-                  </div>
-                  <time
-                    className="text-muted-foreground text-xs"
-                    dateTime={collection.createdAt}
-                    suppressHydrationWarning
-                  >
-                    {formatRelativeDate(collection.createdAt)}
-                  </time>
-                </Link>
-                <div className="absolute top-2.5 right-2.5">
-                  <CollectionActionsMenu
-                    collection={collection}
-                    {...menuProps}
-                  />
-                </div>
-              </ContextMenuTrigger>
-              <ContextMenuContent className="w-48">
-                <CollectionMenuItems collection={collection} {...menuProps} />
-              </ContextMenuContent>
-            </ContextMenu>
-          ))}
-        </div>
-        {collections.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">
-            {t("emptyPage")}
-          </p>
-        ) : null}
-        <TablePagination
-          {...pagination}
-          itemLabel={t("items", { count: pagination.totalItems })}
-        />
-        {deleteDialog}
-      </div>
-    );
-  }
-
+  // One shared tooltip glides between the cells instead of reopening.
   return (
-    <>
+    <TooltipProvider delay={COLLECTION_TABLE_TOOLTIP_DELAY_MS}>
       <DataTable
         columns={columns}
         data={collections}
@@ -377,6 +313,6 @@ export function CollectionsView({
         )}
       />
       {deleteDialog}
-    </>
+    </TooltipProvider>
   );
 }

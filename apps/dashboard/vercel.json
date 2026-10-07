@@ -13,6 +13,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/scheduled-publications",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/geo-scan",
       "schedule": "*/10 * * * *"
     },

@@ -18,8 +18,10 @@ import { githubIntegrations, postCollections, posts } from "@notra/db/schema";
 import type { BlogPostSubtype } from "@notra/db/types/content";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
 import { extractImageArtifactHtml } from "@notra/db/utils/post-image-artifacts";
+import { publishedAtForStatusChange } from "@notra/db/utils/post-published-at";
 import {
   isProjectInOrganization,
+  projectScopedCollectionIds,
   projectScopeFilter,
 } from "@notra/db/utils/projects";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
@@ -49,8 +51,6 @@ import {
 } from "@notra/schemas/dashboard/content";
 import { clearCompletedGenerationSchema } from "@notra/schemas/dashboard/generations";
 import { slugify } from "@notra/utils/slugify";
-import { publishEventInTransaction } from "@notra/webhooks/drizzle";
-import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import {
   and,
   asc,
@@ -80,7 +80,6 @@ import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { assertActiveSubscription } from "@/lib/billing/subscription";
 import { getUtcDayRange } from "@/lib/content/content-calendar";
 import { getContentPublishingMetrics } from "@/lib/content/content-publishing-metrics.server";
-import { projectScopedCollectionIds } from "@/lib/content/project-scope";
 import { afterResponse } from "@/lib/framework/after-response";
 import {
   addActiveGeneration,
@@ -256,7 +255,7 @@ function formatFailureMessage(error: unknown): string {
 }
 
 export async function buildContentUpdateData(
-  existingTitle: string,
+  existingPost: { title: string; status: "draft" | "published" },
   input: {
     markdown?: string;
     status?: "draft" | "published";
@@ -274,7 +273,7 @@ export async function buildContentUpdateData(
     updateData.markdown = input.markdown;
 
     if (input.title === undefined) {
-      updateData.title = titleMatch?.[1] ?? existingTitle;
+      updateData.title = titleMatch?.[1] ?? existingPost.title;
     }
 
     updateData.content = sanitizeMarkdownHtml(
@@ -284,6 +283,13 @@ export async function buildContentUpdateData(
 
   if (input.status !== undefined) {
     updateData.status = input.status;
+    const publishedAt = publishedAtForStatusChange(
+      existingPost.status,
+      input.status
+    );
+    if (publishedAt !== undefined) {
+      updateData.publishedAt = publishedAt;
+    }
   }
 
   return updateData;
@@ -787,10 +793,7 @@ export const contentRouter = {
         throw notFound("Content not found");
       }
 
-      const updateData = await buildContentUpdateData(
-        existingPost.title,
-        input
-      );
+      const updateData = await buildContentUpdateData(existingPost, input);
 
       if (input.slug !== undefined) {
         if (!supportsPostSlug(existingPost.contentType)) {
@@ -828,20 +831,6 @@ export const contentRouter = {
               status: posts.status,
               updatedAt: posts.updatedAt,
             });
-          const [row] = rows;
-          if (
-            row &&
-            row.status === "published" &&
-            existingPost.status !== "published"
-          ) {
-            await publishEventInTransaction(
-              tx,
-              postPublishedInput({
-                organizationId: input.organizationId,
-                postId: row.id,
-              })
-            );
-          }
           return rows;
         });
 

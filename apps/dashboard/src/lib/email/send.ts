@@ -4,6 +4,7 @@ import { FeedbackEmail } from "@notra/email/emails/feedback";
 import { ScheduledContentCreatedEmail } from "@notra/email/emails/schedule-content-created";
 import { ScheduledContentFailedEmail } from "@notra/email/emails/schedule-content-failed";
 import { ScheduledContentSkippedEmail } from "@notra/email/emails/schedule-content-skipped";
+import { ScheduledPublicationFailedEmail } from "@notra/email/emails/scheduled-publication-failed";
 import { WelcomeEmail } from "@notra/email/emails/welcome";
 import { WorkflowPausedEmail } from "@notra/email/emails/workflow-paused";
 import { sendBrewEmail } from "@notra/email/utils/brew";
@@ -17,6 +18,7 @@ import type {
   SendScheduledContentCreatedEmailProps,
   SendScheduledContentFailedEmailProps,
   SendScheduledContentSkippedEmailProps,
+  SendScheduledPublicationFailedEmailProps,
   SendWorkflowPausedEmailProps,
 } from "@/types/email/send";
 
@@ -55,6 +57,22 @@ export async function sendScheduledContentFailedEmail({
       settingsLink,
     }),
     idempotencyKey: digestBatchKey,
+  });
+}
+
+export async function sendScheduledPublicationFailedEmail({
+  recipientEmail,
+  failureKey,
+  ...props
+}: SendScheduledPublicationFailedEmailProps) {
+  // Shares the scheduled-content failure trigger: same audience and setting.
+  return sendBrewEmail({
+    category: "schedule-content-failed",
+    to: recipientEmail,
+    subject: `"${props.postTitle}" could not be published`,
+    react: ScheduledPublicationFailedEmail(props),
+    // One email per failure and recipient, however often the step retries.
+    idempotencyKey: `scheduled-publication:${failureKey}:${recipientEmail}`,
   });
 }
 

@@ -709,13 +709,9 @@
       "viewDetails": "View details",
       "setStatus": "Set status",
       "filterEmpty": {
-        "new": {
+        "open": {
           "title": "You're all caught up",
-          "description": "New feedback from agents lands here first."
-        },
-        "triaged": {
-          "title": "Nothing triaged",
-          "description": "Feedback you've looked at but haven't resolved yet shows up here."
+          "description": "New feedback from agents lands here, and stays until you resolve or archive it."
         },
         "resolved": {
           "title": "Nothing resolved yet",
@@ -742,6 +738,7 @@
       "deleteFailed": "Failed to delete feedback"
     },
     "shared": {
+      "open": "Open",
       "resolved": "Resolved",
       "triaged": "Triaged"
     }
@@ -1052,6 +1049,7 @@
       "requestRejected": "The social platform rejected this request. Check the account and try again.",
       "duplicateContent": "The platform rejected this post because it duplicates an earlier one.",
       "notAuthorizedToPost": "This account is not authorized to post right now.",
+      "deliveryUnknown": "The post may have gone out, but the platform did not confirm it. Check the account before trying again.",
       "serviceUnavailable": "The social platform service is temporarily unavailable. Please try again in a few minutes."
     },
     "brand": {
@@ -1103,6 +1101,18 @@
         "no-company-domain": "We couldn't determine your company website. Add a website URL to your brand identity first.",
         "website-unreachable": "We couldn't reach your company website. Check the website URL in your brand identity."
       }
+    },
+    "contentCalendar": {
+      "postNotFound": "Post not found",
+      "invalidTime": "Pick a time from now up to one year ahead.",
+      "destinationNotSupported": "This content type can't be published there.",
+      "repositoryNotFound": "The selected GitHub repository isn't connected anymore.",
+      "accountNotFound": "The selected account isn't connected anymore.",
+      "publishingInProgress": "This post is being published right now. Try again in a minute.",
+      "unconfirmedSocialPost": "A social post of this schedule may already be live. Check the account, then retry or dismiss it before scheduling again.",
+      "socialAlreadyPosted": "This post already went out to that account. Create a new post to post again.",
+      "conflict": "The schedule changed in the meantime. Reload and try again.",
+      "nothingScheduled": "Nothing is scheduled for this post."
     }
   },
   "onboarding": {
@@ -2407,7 +2417,7 @@
       "exactExcerpt": "Exact excerpt: "
     },
     "brandSentimentCard": {
-      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. English, single-turn answers only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
+      "scoreHint": "AI-assessed tone toward your brand, from 0 to 100. Positive mentions count as 100, neutral as 50 and negative as 0. Single-turn answers in your prompt language only. Unknown labels and non-mentions are excluded. This is a descriptive score, not confidence or a percentage."
     },
     "citationsTable": {
       "showDetails": "{title}, show details",
@@ -3146,9 +3156,7 @@
       "unavailable": "This answer is no longer available. Refresh the results to select another answer."
     },
     "promptEngineSwitcher": {
-      "engine": "Engine: {engine}",
-      "previous": "Previous engine",
-      "next": "Next engine"
+      "engine": "Engine: {engine}"
     },
     "promptKeywordTextarea": {
       "metricsAria": "Search Console metrics for {query}: {impressions} impressions, {clicks} clicks, position {position}",
@@ -6174,12 +6182,11 @@
       "description": "Posts and collections in one place.",
       "loadingDescription": "Every batch of generated content, organized into collections.",
       "allContent": "All content",
-      "viewToggle": "Content view",
-      "viewGrid": "Grid",
       "loadFailedTitle": "Couldn't load content",
       "loadFailedDescription": "Try loading your content again.",
       "emptyTitle": "No content yet",
-      "emptyDescription": "Start with New post to write from scratch, or Generate content to use your sources."
+      "emptyDescription": "Start with New post to write from scratch, or Generate content to use your sources.",
+      "viewCalendar": "Calendar"
     },
     "toasts": {
       "contentSaved": "Content saved",
@@ -6213,6 +6220,101 @@
         "paperCopied": "Copied for Paper. Paste it into your Paper file.",
         "paperCopyFailed": "Failed to copy for Paper",
         "downloadFailed": "Failed to download image"
+      }
+    },
+    "calendar": {
+      "previous": "Previous",
+      "next": "Next",
+      "today": "Today",
+      "more": "+{count} more",
+      "loadFailedTitle": "Couldn't load the calendar",
+      "loadFailedDescription": "Try loading the calendar again.",
+      "chip": {
+        "automation": "{name} runs at {time}",
+        "entry": "{title}, {state} at {time}"
+      },
+      "states": {
+        "published": "published",
+        "scheduled": "scheduled",
+        "publishing": "publishing",
+        "failed": "failed",
+        "partial": "partly failed"
+      },
+      "toasts": {
+        "scheduleFailed": "Couldn't schedule the post",
+        "unscheduled": "Schedule removed",
+        "unscheduledPartially": "Schedule removed. One destination was already publishing and will finish.",
+        "unscheduleFailed": "Couldn't remove the schedule",
+        "publishingNow": "Publishing now",
+        "publishNowFailed": "Couldn't publish the post",
+        "retrying": "Trying again",
+        "retryFailed": "Couldn't retry publishing",
+        "moveIntoPast": "That time has already passed. Pick a later day.",
+        "moved": "“{title}” moved to {date}"
+      },
+      "schedule": {
+        "trigger": "Schedule",
+        "publishingTrigger": "Publishing…",
+        "failedTrigger": "Publishing failed",
+        "scheduledTrigger": "Scheduled · {date}",
+        "saveFirst": "Save your changes first. Scheduled posts go out as saved.",
+        "saveFirstHint": "Save your changes first",
+        "title": "Schedule post",
+        "editTitle": "Edit schedule",
+        "when": "When",
+        "date": "Date",
+        "pickDate": "Pick a date",
+        "time": "Time",
+        "inPast": "This time has already passed.",
+        "where": "Where",
+        "github": {
+          "hint": "Opens a pull request now, so there is time to review it.",
+          "merge": "Merge at the scheduled time",
+          "mergeHint": "Checks can delay the merge. Notra retries for about an hour.",
+          "openOnlyHint": "Only updates the pull request. You merge it yourself."
+        },
+        "social": {
+          "hint": "Posts the saved text.",
+          "noAccounts": "No account connected yet. <link>Connect one</link> to post automatically.",
+          "account": "Account",
+          "accountMissing": "The account this post was scheduled from is no longer connected. Pick another account or turn this off.",
+          "loadFailed": "Couldn't load your connected accounts. Try again later or turn this off."
+        },
+        "unschedule": "Unschedule",
+        "dismiss": "Clear schedule",
+        "publishNow": "Publish now",
+        "saveSchedule": "Save schedule",
+        "schedule": "Schedule",
+        "scheduling": "Scheduling…",
+        "scheduledToast": "Scheduled for {date}",
+        "destinations": {
+          "notra": "Notra",
+          "github": "GitHub",
+          "social": "Social"
+        },
+        "statuses": {
+          "scheduled": "Scheduled",
+          "publishing": "Publishing",
+          "published": "Published",
+          "failed": "Failed",
+          "canceled": "Canceled"
+        },
+        "viewResult": "View",
+        "outcomeUnknown": "Publishing was interrupted after the post was sent. Check the account before retrying so it isn't posted twice.",
+        "failedFallback": "Publishing failed.",
+        "retry": "Retry",
+        "retryAnyway": "Retry anyway",
+        "retryPending": "Last attempt failed ({error}). Notra retries automatically.",
+        "statusTitle": "Publishing status",
+        "moreActions": "More actions",
+        "always": "Always"
+      },
+      "preview": {
+        "when": "{date} · {state}"
+      },
+      "day": {
+        "open": "Show everything on {date}",
+        "empty": "Nothing planned for this day."
       }
     }
   },
@@ -6410,6 +6512,9 @@
         "createInvestorUpdate": "{state, select, running {Drafting investor update} done {Drafted investor update} approve {Approve investor update} other {Failed investor update}}",
         "createSchedule": "{state, select, running {Creating schedule} done {Created schedule} approve {Approve schedule} other {Failed schedule}}",
         "listSchedules": "{state, select, running {Listing schedules} done {Listed schedules} approve {Approve schedules} other {Failed schedules}}",
+        "schedulePost": "{state, select, running {Scheduling post} done {Scheduled post} approve {Approve schedule} other {Failed to schedule post}}",
+        "cancelPostSchedule": "{state, select, running {Unscheduling post} done {Unscheduled post} approve {Approve unscheduling} other {Failed to unschedule post}}",
+        "getPostSchedule": "{state, select, running {Checking schedule} done {Checked schedule} approve {Approve schedule check} other {Failed schedule check}}",
         "reviseImage": "{state, select, running {Revising image} done {Revised image} approve {Approve image} other {Failed image}}",
         "listBrandIdentities": "{state, select, running {Listing brand identities} done {Listed brand identities} approve {Approve brand identities} other {Failed brand identities}}",
         "getBrandIdentity": "{state, select, running {Loading brand identity} done {Loaded brand identity} approve {Approve brand identity} other {Failed brand identity}}",

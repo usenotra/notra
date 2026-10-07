@@ -99,17 +99,11 @@ const layers = Layer.mergeAll(
   Layer.succeed(
     WebhookQueues,
     WebhookQueues.of({
-      event: (id) =>
+      events: (ids) =>
         queueFails
           ? Effect.fail(new WebhookQueueError({ operation: "test" }))
           : Effect.sync(() => {
-              queuedEvents.push(id);
-            }),
-      delivery: (id) =>
-        queueFails
-          ? Effect.fail(new WebhookQueueError({ operation: "test" }))
-          : Effect.sync(() => {
-              queuedDeliveries.push(id);
+              queuedEvents.push(...ids);
             }),
       deliveries: (ids) =>
         queueFails
