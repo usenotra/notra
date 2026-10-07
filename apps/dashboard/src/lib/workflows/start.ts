@@ -10,7 +10,7 @@ import { agentReadinessWorkflowPayloadSchema } from "@notra/geo-core/schemas/age
 import {
   geoScanWorkflowPayloadSchema,
   geoWriterWorkflowPayloadSchema,
-} from "@notra/geo-core/schemas/geo";
+} from "@notra/geo-core/schemas/geo-workflows";
 import { gscSyncPayloadSchema } from "@notra/geo-core/schemas/google-search-console";
 import type { AgentReadinessWorkflowPayload } from "@notra/geo-core/types/agent-readiness";
 import type { GeoWriterPayload } from "@notra/geo-core/types/geo";

@@ -4,7 +4,7 @@ import {
   GITHUB_PULL_REQUEST_EVENT_TYPE,
   GITHUB_PULL_REQUEST_MERGED_ACTION,
 } from "@notra/ai/constants/autonomy-signals";
-import { getWebhookSecretByRepositoryId } from "@notra/ai/integrations/github";
+import { decryptToken } from "@notra/ai/crypto/token-encryption";
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
@@ -293,7 +293,9 @@ export async function handleGitHubWebhook(
     });
   }
 
-  const secret = await getWebhookSecretByRepositoryId(repositoryId);
+  const secret = context.encryptedGitHubWebhookSecret
+    ? decryptToken(context.encryptedGitHubWebhookSecret)
+    : null;
   if (!secret) {
     await appendWebhookLog({
       organizationId,

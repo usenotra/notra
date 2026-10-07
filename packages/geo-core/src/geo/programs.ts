@@ -1,4 +1,4 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,

@@ -8,6 +8,7 @@ export interface WebhookContext {
   repositoryId: string;
   request: Request;
   rawBody: string;
+  encryptedGitHubWebhookSecret?: string | null;
 }
 
 export type WebhookHandler = (

@@ -1,8 +1,5 @@
-import {
-  getGitHubIntegrationById,
-  getRepositoryById,
-} from "@notra/ai/integrations/github";
 import { getLinearIntegrationById } from "@notra/ai/integrations/linear";
+import { getGitHubWebhookIntegrations } from "@notra/ai/utils/github-webhook-integration";
 import { logError } from "@notra/ai/utils/server-log";
 import type { InputIntegrationType } from "@notra/schemas/dashboard/integrations";
 import { webhookParamsWithRepoSchema } from "@notra/schemas/dashboard/webhooks";
@@ -36,16 +33,7 @@ const INTEGRATION_FETCHERS: Record<
   InputIntegrationType,
   IntegrationFetcher | null
 > = {
-  github: async (integrationId) => {
-    const integration = await getGitHubIntegrationById(integrationId);
-    if (!integration) {
-      return null;
-    }
-    return {
-      organizationId: integration.organizationId,
-      enabled: integration.enabled,
-    };
-  },
+  github: null,
   linear: async (integrationId) => {
     const integration = await getLinearIntegrationById(integrationId);
     if (!integration) {
@@ -79,7 +67,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     validation.data;
 
   const fetcher = INTEGRATION_FETCHERS[provider];
-  if (!fetcher) {
+  if (provider !== "github" && !fetcher) {
     return Response.json(
       { error: `Provider ${provider} is not yet supported` },
       { status: 501 }
@@ -87,7 +75,14 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   try {
-    const integration = await fetcher(integrationId);
+    const githubRecords =
+      provider === "github"
+        ? await getGitHubWebhookIntegrations(integrationId, repositoryId)
+        : undefined;
+    const integration =
+      provider === "github"
+        ? githubRecords?.find((record) => record.id === integrationId)
+        : await fetcher?.(integrationId);
 
     if (!integration) {
       return Response.json({ error: "Integration not found" }, { status: 404 });
@@ -108,7 +103,9 @@ export async function POST(request: Request, { params }: RouteContext) {
     }
 
     if (provider === "github") {
-      const repository = await getRepositoryById(repositoryId);
+      const repository = githubRecords?.find(
+        (record) => record.id === repositoryId
+      );
       if (!repository) {
         return Response.json(
           { error: "Repository not found" },
@@ -116,7 +113,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         );
       }
 
-      if (repository.integration.id !== integrationId) {
+      if (repository.id !== integrationId) {
         return Response.json(
           { error: "Repository does not belong to this integration" },
           { status: 403 }
@@ -141,6 +138,9 @@ export async function POST(request: Request, { params }: RouteContext) {
       repositoryId,
       request,
       rawBody,
+      encryptedGitHubWebhookSecret: githubRecords?.find(
+        (record) => record.id === repositoryId
+      )?.encryptedWebhookSecret,
     };
 
     return await handler(context);

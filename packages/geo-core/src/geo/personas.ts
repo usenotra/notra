@@ -1,6 +1,6 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { gateway } from "@notra/ai/gateway";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
 import {

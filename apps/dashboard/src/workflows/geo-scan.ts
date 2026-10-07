@@ -6,7 +6,7 @@ import {
   GEO_SCAN_TASK_BATCH_SIZE,
 } from "@notra/geo-core/constants/geo";
 import { GEO_SCAN_PERSONA_BATCH_SIZE } from "@notra/geo-core/constants/geo-personas";
-import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
+import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo-workflows";
 import type {
   GeoScanBatchOutcome,
   GeoScanFailureMetadata,

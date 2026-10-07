@@ -2,11 +2,11 @@ import {
   askGeoOpenCode,
   askGeoOpenCodeConversation,
 } from "@notra/ai/agents/geo-opencode";
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import { GEO_OPENCODE_BOX_MODEL_ID } from "@notra/ai/constants/geo-opencode";
 import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type { GatewayModelOptions } from "@notra/ai/types/gateway";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import {
   EMPTY_GEO_CHECK_GROUNDING,
   GEO_CHECK_GROUNDING_MAX_SOURCES,
