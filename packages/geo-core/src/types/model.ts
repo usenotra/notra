@@ -1,3 +1,4 @@
+import type { GatewayModelOptions } from "@notra/ai/types/gateway";
 import type { ModelMessage } from "ai";
 import type { Effect } from "effect";
 import type { z } from "zod";
@@ -25,6 +26,7 @@ export interface GeoModelServiceShape {
   readonly answer: (input: {
     organizationId: string;
     engine: string;
+    logContext?: GatewayModelOptions["logContext"];
     prompt: string;
     zdr: GeoZdrMode;
     gateway: Exclude<GeoModelGateway, "cursor" | "box" | "serpapi"> | undefined;
@@ -32,11 +34,13 @@ export interface GeoModelServiceShape {
   readonly groundedAnswer: (input: {
     organizationId: string;
     engine: GeoGroundedEngine;
+    logContext?: GatewayModelOptions["logContext"];
     messages: ModelMessage[];
     zdr: GeoZdrMode;
   }) => Effect.Effect<GeoGroundedAnswer, GeoScanError>;
   readonly judge: (input: {
     organizationId: string;
+    logContext?: GatewayModelOptions["logContext"];
     prompt: string;
   }) => Effect.Effect<GeoJudgeResult, GeoJudgeError>;
   /**

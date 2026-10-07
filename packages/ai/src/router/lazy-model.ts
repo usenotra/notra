@@ -287,6 +287,7 @@ export class RoutedLanguageModel implements LanguageModelV4 {
       request: this.context.request,
       operation: "generate",
       signal: options.abortSignal,
+      providerOptions: options.providerOptions,
     });
     try {
       const result = await this.execute(options, async (route, params) => {
@@ -317,6 +318,7 @@ export class RoutedLanguageModel implements LanguageModelV4 {
       request: this.context.request,
       operation: "stream",
       signal: options.abortSignal,
+      providerOptions: options.providerOptions,
     });
     try {
       return await this.execute(options, async (route, params) => {
@@ -377,6 +379,7 @@ export class RoutedLanguageModel implements LanguageModelV4 {
   ): LanguageModelV4CallOptions {
     const { router, rest } = splitRouterOptions(options.providerOptions);
     const providerOptions = route.adapter.buildProviderOptions({
+      organizationId: this.context.request.organizationId,
       providerOptions: stripForeignGatewayOptions(route.decision.gateway, rest),
       router,
       allowNonZdr: this.context.policy.allowNonZdr,

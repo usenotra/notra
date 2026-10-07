@@ -1,11 +1,12 @@
+import {
+  OPENAI_GPT_5_6_SOL_PRICING,
+  OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
+} from "@notra/ai/constants/token-pricing";
 import type { Balance } from "autumn-js";
 
 import type { AgentTokenUsage } from "../types/agents";
-import type { ModelPricing } from "../types/billing";
+import type { ModelPricing, ModelPricingSource } from "../types/billing";
 import type { GatewayId } from "../types/router";
-
-/** OpenAI charges double above this prompt size on its long-context models. */
-const OPENAI_LONG_CONTEXT_PROMPT_TOKENS = 272_000;
 
 const CLAUDE_SONNET_4_6_PRICING: ModelPricing = {
   inputPerMillionTokens: 3.0,
@@ -206,19 +207,8 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
       cacheWritePerMillionTokens: 5.0,
     },
   },
-  "vercel/openai/gpt-5.6-sol": {
-    inputPerMillionTokens: 4.0,
-    outputPerMillionTokens: 20.0,
-    cacheReadPerMillionTokens: 0.4,
-    cacheWritePerMillionTokens: 5.0,
-    longContext: {
-      promptTokens: OPENAI_LONG_CONTEXT_PROMPT_TOKENS,
-      inputPerMillionTokens: 8.0,
-      outputPerMillionTokens: 30.0,
-      cacheReadPerMillionTokens: 0.8,
-      cacheWritePerMillionTokens: 10.0,
-    },
-  },
+  "vercel/openai/gpt-5.6-sol": OPENAI_GPT_5_6_SOL_PRICING,
+  "direct/openai/gpt-5.6-sol": OPENAI_GPT_5_6_SOL_PRICING,
   "moonshotai/kimi-k3": {
     inputPerMillionTokens: 3.0,
     outputPerMillionTokens: 15.0,
@@ -269,13 +259,20 @@ export function calculateTokenCostCents(
 export function calculateTokenCostUsd(
   usage: AgentTokenUsage,
   modelId?: string,
-  gateway?: GatewayId
+  source?: ModelPricingSource,
+  serviceTier?: string
 ): number {
   if (usage.tokenCostUsd !== undefined) {
     return usage.tokenCostUsd;
   }
 
-  const pricing = resolvePricingTier(getModelPricing(modelId, gateway), usage);
+  const pricing = resolvePricingTier(getModelPricing(modelId, source), usage);
+  const tierMultiplier =
+    serviceTier === "flex" &&
+    modelId?.startsWith("openai/") &&
+    source !== "openrouter"
+      ? 0.5
+      : 1;
 
   const inputCostDollars =
     (usage.inputTokens / 1_000_000) * pricing.inputPerMillionTokens;
@@ -287,10 +284,11 @@ export function calculateTokenCostUsd(
     (usage.cacheWriteTokens / 1_000_000) * pricing.cacheWritePerMillionTokens;
 
   return (
-    inputCostDollars +
-    outputCostDollars +
-    cacheReadCostDollars +
-    cacheWriteCostDollars
+    tierMultiplier *
+    (inputCostDollars +
+      outputCostDollars +
+      cacheReadCostDollars +
+      cacheWriteCostDollars)
   );
 }
 
@@ -311,10 +309,9 @@ export function shouldApplyMarkup(balance: Balance | null): boolean {
 
 export function getModelPricing(
   modelId?: string,
-  gateway?: GatewayId
+  source?: ModelPricingSource
 ): ModelPricing {
-  const routedModelId =
-    gateway && modelId ? `${gateway}/${modelId}` : undefined;
+  const routedModelId = source && modelId ? `${source}/${modelId}` : undefined;
   return (
     (routedModelId && MODEL_PRICING[routedModelId]) ||
     (modelId && MODEL_PRICING[modelId]) ||
