@@ -1,0 +1,66 @@
+packages/geo-core/tests/adhoc-scan.test.ts
+  s_7b0d907503ea7a::t_44c8b8fb5983d2 343
+.env.example
+  s_7b0d907503ea7a::t_3e2b38f93ccd58 52-53
+apps/geo-runner/scripts/utils/smoke-fixture.ts
+  s_7b0d907503ea7a::t_fe945daecf76a9 1-4,10-15,39,61-62,82-83,103-107,111-112
+  s_7b0d907503ea7a::t_3a90758f6db727 5-9,16-38,40-60,63-81,84-102,108-110
+apps/geo-runner/scripts/types/smoke.ts
+  s_7b0d907503ea7a::t_4159b06800ceeb 1-29
+apps/geo-runner/scripts/utils/smoke-http.ts
+  s_7b0d907503ea7a::t_4159b06800ceeb 5,12-20,25-39,45,49-51
+  s_7b0d907503ea7a::t_46fcf6479470a4 21
+  s_7b0d907503ea7a::t_3a90758f6db727 1-4,6-11,22-24,40-44,46-48
+apps/geo-runner/scripts/smoke.ts
+  s_7b0d907503ea7a::t_f3527387eaedcf 95-98
+  s_7b0d907503ea7a::t_3a90758f6db727 9-14,22-25,32-36,44-46,49,56-66,70,80-83,101-102,105-107,118-120
+  s_7b0d907503ea7a::t_2b1933f0d26a92 37-40,77
+  s_7b0d907503ea7a::t_4159b06800ceeb 1-4,6-8,15-18,41-43,47,52-55,71,75,78-79,90-94,99-100,110-117,121-122
+  s_7b0d907503ea7a::t_d10f2d6b9c38da 72
+  s_7b0d907503ea7a::t_3461c719f92322 19-21,30-31,73,88,123
+  s_7b0d907503ea7a::t_13bea26284a745 26-29,67-69,84-87
+apps/geo-runner/tests/utils/smoke-cli.ts
+  s_7b0d907503ea7a::t_13bea26284a745 1-2,4-18
+  s_7b0d907503ea7a::t_3461c719f92322 19-25
+  s_7b0d907503ea7a::t_5080e8233c83be 3
+apps/geo-runner/TESTING.md
+  s_7b0d907503ea7a::t_3e2b38f93ccd58 3,66-67
+packages/geo-core/src/geo/adhoc-scan.ts
+  s_7b0d907503ea7a::t_44c8b8fb5983d2 407,481-485
+apps/geo-runner/scripts/constants/smoke.ts
+  s_7b0d907503ea7a::t_4159b06800ceeb 1-36
+apps/geo-runner/scripts/utils/smoke-options.ts
+  s_7b0d907503ea7a::t_4159b06800ceeb 1-31,37-40,44,55-62,76-77,81-83,92,100,102-103,115-117,123-125,130,135,139,143-144,153-157,171-172
+  s_7b0d907503ea7a::t_774330ec12d860 69-70
+  ai_agent 93-96
+  s_7b0d907503ea7a::t_97c69c2a03bc58 101,105,170
+  s_7b0d907503ea7a::t_2b1933f0d26a92 104,106-109
+  s_7b0d907503ea7a::t_3a90758f6db727 32-36,41-43,45-54,63-68,71-75,78-80,84-91,97-99,110-114,118-122,126-129,131-134,136-138,140-142,145-152,158-169
+apps/geo-runner/README.md
+  s_7b0d907503ea7a::t_9455c42805b249 103-108
+  s_7b0d907503ea7a::t_3e2b38f93ccd58 51,53-55,58,60-61,64-67,70,73-86,89,92-102,109-136,151-153,170-171,173,177-186
+apps/geo-runner/tests/smoke-cli.test.ts
+  s_7b0d907503ea7a::t_5080e8233c83be 253
+  s_7b0d907503ea7a::t_d10f2d6b9c38da 2,145-157,163-170,174-178,187-198,365-368,382,390-392
+  s_7b0d907503ea7a::t_3cf9ae13fb0733 212-215
+  s_7b0d907503ea7a::t_46fcf6479470a4 234,237,246,278
+  s_7b0d907503ea7a::t_3461c719f92322 1,3-8,16,21-24,28-36,45-47,54,62-65,81,87-90,106-109,134-135,139,143-144,199-200,208,221-226,230-233,264-266,274-277,282-285,297,306-308,313-316,337-340,344-346,351,360-361,396-397
+  s_7b0d907503ea7a::t_f3527387eaedcf 158-162,171-173,179-186,369-381,383-389,393-395
+  s_7b0d907503ea7a::t_774330ec12d860 9-15,17-20,25-27,37-44,48-53,55-61,66-80,82-86,91-105,110-133,136-138,140-142,201-207,209-211,216-220,227-229,235-236,238-245,247-252,254-263,267-273,279-281,286-296,298-305,309-312,317-336,341-343,347-350,352-359,362-364
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c4e0e4df642e68e6d2a3290fda7a2aff3ed54988",
+  "prompts": {},
+  "sessions": {
+    "s_7b0d907503ea7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1155e-2258-7f91-b515-5aed6fd1abc0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
