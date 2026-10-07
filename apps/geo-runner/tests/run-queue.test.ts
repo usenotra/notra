@@ -9,7 +9,6 @@ import {
 
 const started = await Effect.runPromise(Queue.unbounded<string>());
 const interrupted: string[] = [];
-const discarded: string[][] = [];
 
 mock.module("@notra/geo-core/geo/adhoc-scan", () => ({
   executeGeoAdhocScan: (scanId: string) =>
@@ -18,8 +17,6 @@ mock.module("@notra/geo-core/geo/adhoc-scan", () => ({
       Effect.ensuring(Effect.sync(() => interrupted.push(scanId)))
     ),
   failStaleGeoAdhocScans: () => Effect.void,
-  interruptQueuedGeoAdhocScans: (scanIds: string[]) =>
-    Effect.sync(() => discarded.push(scanIds)),
 }));
 mock.module("@notra/geo-core/utils/geo-log", () => ({
   describeGeoCause: () => ({}),
@@ -48,7 +45,6 @@ test("bounds the backlog, deduplicates offers, and drains before interruption", 
     expect(await offer("overflow")).toBe(false);
 
     await runtime.runPromise(queue.drain());
-    expect(discarded).toHaveLength(0);
     expect(await offer("after-drain")).toBe(false);
     expect(await offer("active-0")).toBe(false);
   } finally {

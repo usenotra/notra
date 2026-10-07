@@ -43,7 +43,6 @@ import {
 
 const {
   createGeoAdhocScan: createGeoAdhocScanEffect,
-  discardQueuedGeoAdhocScan,
   executeGeoAdhocScan,
   failStaleGeoAdhocScans,
   getGeoAdhocScan,
@@ -470,15 +469,6 @@ describe("one-off GEO scan", () => {
       }).pipe(Effect.flip)
     );
     expect(result._tag).toBe("GeoAdhocScanInvalidError");
-  });
-
-  test("discards a queued scan when its runner cannot accept it", async () => {
-    const scope = await seedProject("adhoc-discard");
-    const { id } = await run(
-      createGeoAdhocScan({ ...scope, prompt: "best tools", engines: [ENGINE] })
-    );
-    expect(await run(discardQueuedGeoAdhocScan(id))).toBe(true);
-    expect(await loadScan(id)).toBeUndefined();
   });
 
   test("the stale sweep fails scans whose runner disappeared", async () => {

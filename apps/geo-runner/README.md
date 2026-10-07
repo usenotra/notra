@@ -90,6 +90,8 @@ outside Vercel), `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `AXIOM_AI_DATASET`, and optionally `AXIOM_ORG_ID` to drain structured evlog
 events from the runner to Axiom.
 
+See [verification results](TESTING.md) for the Daytona tests and their limits.
+
 ## Railway setup
 
 The `geo-runner` service is provisioned in `notra-prod`, production environment,

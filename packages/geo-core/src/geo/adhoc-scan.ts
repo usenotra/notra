@@ -10,7 +10,7 @@ import type {
   GeoAdhocScanResults,
 } from "@notra/db/types/geo-adhoc-scan";
 import type { GeoCheckWrite } from "@notra/db/types/geo-checks";
-import { and, eq, inArray, lt, or } from "drizzle-orm";
+import { and, eq, lt, or } from "drizzle-orm";
 import { Effect, Schedule } from "effect";
 
 import {
@@ -248,34 +248,6 @@ export const getGeoAdhocScan = Effect.fn("geo.getAdhocScan")(function* (
   return scan;
 });
 
-/** Fails queued scans this process accepted but will not run, such as on shutdown. */
-export const interruptQueuedGeoAdhocScans = Effect.fn(
-  "geo.interruptQueuedAdhocScans"
-)(function* (scanIds: readonly string[]) {
-  if (scanIds.length === 0) {
-    return 0;
-  }
-  const rows = yield* geoDb("adhoc scan interrupt failed", () =>
-    db
-      .update(geoAdhocScans)
-      .set({
-        status: "failed",
-        errorCode: "interrupted",
-        errorMessage: "The scan was interrupted. Try again.",
-        retryable: true,
-        finishedAt: new Date(),
-      })
-      .where(
-        and(
-          inArray(geoAdhocScans.id, [...scanIds]),
-          eq(geoAdhocScans.status, "queued")
-        )
-      )
-      .returning({ id: geoAdhocScans.id })
-  );
-  return rows.length;
-});
-
 export const requireQueuedGeoAdhocScan = Effect.fn(
   "geo.requireQueuedAdhocScan"
 )(function* (scanId: string) {
@@ -296,20 +268,6 @@ export const requireQueuedGeoAdhocScan = Effect.fn(
     );
   }
   return row.id;
-});
-
-export const discardQueuedGeoAdhocScan = Effect.fn(
-  "geo.discardQueuedAdhocScan"
-)(function* (scanId: string) {
-  const rows = yield* geoDb("adhoc scan discard failed", () =>
-    db
-      .delete(geoAdhocScans)
-      .where(
-        and(eq(geoAdhocScans.id, scanId), eq(geoAdhocScans.status, "queued"))
-      )
-      .returning({ id: geoAdhocScans.id })
-  );
-  return rows.length > 0;
 });
 
 const finishGeoAdhocScan = (
