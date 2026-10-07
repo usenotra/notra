@@ -1,0 +1,67 @@
+packages/ai/src/utils/image-revision.ts
+  s_c919a343b1b3a7::t_370f5954d531c3 1-144
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_c919a343b1b3a7::t_475c0dcb7226a5 75,78
+packages/ai/src/utils/diagram-scene-import.ts
+  s_c919a343b1b3a7::t_96b687388648bd 1-421
+packages/ai/src/utils/diagram-edit.ts
+  s_c919a343b1b3a7::t_96b687388648bd 17
+packages/ai/src/utils/diagram-post.ts
+  s_c919a343b1b3a7::t_96b687388648bd 1,3-137,139-174
+  s_c919a343b1b3a7::t_f2d3eca4aa6e05 2
+  s_c919a343b1b3a7::t_e2c741f8a6a2bb 138
+packages/ai/src/utils/diagram-metadata.ts
+  s_c919a343b1b3a7::t_d2d329a4f68a28 1-36,38,40
+  s_c919a343b1b3a7::t_e2c741f8a6a2bb 37,39
+packages/ai/src/agents/repo-image-agent.ts
+  s_c919a343b1b3a7::t_fc678a4ecbfb84 1-165
+apps/dashboard/src/utils/image-export.ts
+  s_c919a343b1b3a7::t_fe42c5b5222f43 6-9
+  s_c919a343b1b3a7::t_475c0dcb7226a5 21
+apps/dashboard/src/types/content/image-export.ts
+  s_c919a343b1b3a7::t_fe42c5b5222f43 1-4,8
+packages/ai/src/utils/diagram-edit.test.ts
+  s_c919a343b1b3a7::t_f2d3eca4aa6e05 1,3-7
+packages/ai/src/agents/repo-image-diagram.ts
+  s_c919a343b1b3a7::t_dd001cab32a5ca 1-237
+packages/tools/src/image/revise-image.ts
+  s_c919a343b1b3a7::t_17fed47e8151c2 1,65,69-71
+  s_c919a343b1b3a7::t_8706d2eeb8e30d 34,36
+packages/ai/src/agents/repo-image.ts
+  s_c919a343b1b3a7::t_f6148929850a75 335-345,370,381,398
+  s_c919a343b1b3a7::t_82ed7728ffe9d0 2-9,22,27,37,42-45,63
+packages/ai/src/utils/unknown-record.ts
+  s_c919a343b1b3a7::t_d2d329a4f68a28 1-18
+packages/ai/src/agents/repo-image-marketing.ts
+  s_c919a343b1b3a7::t_ae2cd3fca942b4 1-202
+packages/ai/src/tools/image.ts
+  s_c919a343b1b3a7::t_8706d2eeb8e30d 112-113,117-119,122
+  s_c919a343b1b3a7::t_78c488c73c50ac 1,16
+packages/ai/src/utils/image-post-service.ts
+  s_c919a343b1b3a7::t_83f9dfee31c389 1-2
+  s_c919a343b1b3a7::t_b00bef926d7092 14,103-107
+  s_c919a343b1b3a7::t_3d8b6b43c53c33 17
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/excalidraw/route.ts
+  s_c919a343b1b3a7::t_3d8b6b43c53c33 4-7,9-10
+apps/dashboard/src/lib/content/image-export.ts
+  s_c919a343b1b3a7::t_475c0dcb7226a5 4-7,75-76,96,249-250
+  s_c919a343b1b3a7::t_fe42c5b5222f43 13
+packages/ai/src/types/repo-image.ts
+  s_c919a343b1b3a7::t_ea9d849b9e24d9 47-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2e6e09e8c3528ba63ba3f63d7325f15b1f5bf56e",
+  "prompts": {},
+  "sessions": {
+    "s_c919a343b1b3a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d702b52-a27a-4406-bcdc-2ff9e43a1186",
+        "model": "unknown"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
