@@ -1,0 +1,163 @@
+apps/dashboard/src/lib/hooks/use-annotation-flash.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-101
+packages/ai/src/utils/scheduled-publications.test.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 491-525
+apps/geo-runner/README.md
+  s_7b0d907503ea7a::t_81dadf26f1d567 175
+packages/ai/src/utils/post-service.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 16,123-131,164-165
+apps/dashboard/src/components/chat/chat-message-annotations.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-50
+apps/dashboard/src/app/design-system/page-client.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 243,1681-1687
+apps/dashboard/src/components/chat/chat-input.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 80,92,105-106,109,114-119,126,132,154,156,472-494,496,506,508-509,536-537,541,547-550,552-555,573-577,604,608-610,628,649,705,1089-1091,1119-1120,1128-1129,1146,1148,1213,1235,1253-1257,1271-1275,1296,1322,1325,1359,1364,1368-1391,1935-1947,1952,1955,1968-1989,1998-2016,2025-2059,2079,2268-2273,2282,2285,2322,2341-2347,2368,2487-2491,2493-2521,2524-2528,2559,2585,2589,2592,2600-2603,2639,2662-2666,2868,2895,2919,3025
+apps/dashboard/src/routes/api.internal.content.scheduled-publication-attempt.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-23
+apps/dashboard/src/types/components/chat-quote.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 3-7,17-22,27-33,38-39,41
+packages/db/migrations/0111_scheduled_publication_attempt_outcome.sql
+  ai_agent 1
+packages/ai/src/tools/todos.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-45
+packages/ai/src/types/todos.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-10
+apps/geo-runner/TESTING.md
+  s_7b0d907503ea7a::t_81dadf26f1d567 102-107
+apps/dashboard/src/types/content/ai-preview.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 40-41
+packages/ai/src/utils/post-text-edits.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-33
+apps/dashboard/src/types/content/scheduled-publications.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-2,33-39
+packages/db/migrations/meta/0111_snapshot.json
+  ai_agent 2,12004-12005
+apps/dashboard/src/components/ai/blog-changelog-preview.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 3-4,11,28,81-95
+apps/dashboard/src/app/(dashboard)/[slug]/chat/page-client.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 4-8,11,26,73,78,85,91,102,111-116,139,157-160,174,276,410-430,825-970,1533-1541,1544-1547,1639-1648,1650-1655,2339-2341,2353-2405,2412-2413,2417-2430,2434-2435,2443-2447,2515-2518,2783,2785-2787,2805-2808,2992-2998,3128-3130,3271,3306-3320
+apps/dashboard/src/components/chat/chat-minimap-rail.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 65-67
+apps/dashboard/src/workflows/steps/scheduled-publication-steps.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1,6,9,12-15,18-20,22-24,28,30-38,40-44,46-47,49,52-56
+apps/dashboard/src/lib/hooks/use-stable-value.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-15
+packages/ai/src/schemas/todos.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-32
+apps/dashboard/src/components/chat/chat-queue.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 38-39,49,110-113
+apps/dashboard/src/styles/globals.css
+  s_7b0d907503ea7a::t_6843d645f454f7 360-379
+apps/dashboard/src/utils/find-passage-range.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-98
+apps/dashboard/src/types/chat-annotations.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-32
+apps/dashboard/src/components/chat/chat-content-panel.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-591
+packages/db/migrations/meta/_journal.json
+  ai_agent 785-793
+apps/dashboard/src/constants/design-system-catalog.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 47
+packages/ai/e2e-break.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-50
+apps/dashboard/src/routeTree.gen.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 59,335-340,534,608,683,759,833,907,976,1327-1333,1653-1654
+apps/dashboard/src/types/components/chat-message-annotations.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-5
+apps/dashboard/src/lib/hooks/use-annotation-highlights.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-39
+apps/dashboard/messages/de.json
+  s_7b0d907503ea7a::t_6843d645f454f7 5525-5526,5718-5751,6632-6633
+apps/dashboard/src/constants/chat-posts.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-25
+apps/dashboard/src/constants/content-calendar.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 100-103
+apps/dashboard/src/lib/hooks/use-right-panel-state.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 14
+packages/ai/src/utils/scheduled-publications.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 695,877-919,938
+packages/db/src/schema.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 2443-2447
+apps/dashboard/messages/en.json
+  s_7b0d907503ea7a::t_6843d645f454f7 5525-5526,5718-5751,6632-6633
+apps/dashboard/src/components/chat/integration-reference.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1,10,12-15,39-42,53-55,65-67,77-79,119-120,124,131-143,179-230
+apps/dashboard/src/types/components/chat-input.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 11,103-111
+packages/schemas/src/schemas/dashboard/workflows/scheduled-publication-wake.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 13-18
+packages/ai/src/prompts/standalone-chat.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 47,93,96-101
+apps/dashboard/src/lib/hooks/use-scroll-edges.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-46
+packages/ai/src/orchestration/standalone-tool-registry.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 40,61-64,138-145,174-178
+packages/ai/src/types/chat.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 73-74
+apps/dashboard/src/types/components/chat-annotation-note-form.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-7
+apps/dashboard/src/utils/chat-annotations.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-149
+apps/dashboard/src/components/chat/chat-quote.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 4-8,32,35-43,58-67,73,76-78,80-85,91,93,97-108,113,147-158,161-164,167-169,196-207,212-228,235-271,276,280,287-292,300-302,307-310,312-346
+packages/ai/src/types/post-service.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 35-36
+apps/dashboard/src/app/api/internal/content/scheduled-publication-attempt/route.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-24
+apps/dashboard/src/types/components/chat-todo-list.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-9
+packages/ai/src/types/orchestration.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 206-207
+apps/dashboard/src/constants/chat-annotations.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-17
+apps/dashboard/src/lib/content/scheduled-publication-attempt.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-69
+apps/dashboard/src/components/ai/chat-todo-list.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-187
+apps/dashboard/src/components/chat/chat-annotations-preview.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-144
+apps/dashboard/src/types/components/chat-annotations-preview.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-3
+apps/dashboard/src/components/dashboard/right-panel.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 16-17,23,30-32,35-46,68,87
+packages/ai/src/orchestration/orchestrate-standalone.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 9,151,665-677
+packages/ai/src/tools/post.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 19,277-337
+apps/dashboard/src/components/design-system/design-system-todo-list-demo.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-71
+packages/ai/src/types/post-text-edits.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-8
+apps/dashboard/src/types/chat-posts.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-19
+apps/dashboard/src/utils/chat-posts.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-129
+packages/db/migrations/meta/0112_snapshot.json
+  ai_agent 1-14102
+apps/dashboard/src/constants/design-system-todo-list.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-109
+apps/dashboard/src/types/components/right-panel.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 3,18-19
+apps/dashboard/src/components/chat/chat-annotation-note-form.tsx
+  s_7b0d907503ea7a::t_6843d645f454f7 1-74
+apps/dashboard/src/constants/right-panel.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 7-8,13-14
+apps/dashboard/src/types/components/chat-content-panel.ts
+  s_7b0d907503ea7a::t_6843d645f454f7 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "383ecedc4a7c4381ec0d3b8ea15bd83f97d3e5ce",
+  "prompts": {},
+  "sessions": {
+    "s_7b0d907503ea7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1155e-2258-7f91-b515-5aed6fd1abc0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
