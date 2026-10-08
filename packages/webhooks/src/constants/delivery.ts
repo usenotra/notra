@@ -1,6 +1,7 @@
 export const MAX_ATTEMPTS = 8;
 export const LEASE_SECONDS = 60;
 export const HTTP_TIMEOUT_MS = 10_000;
+export const DNS_CHECK_TTL_SECONDS = 5;
 export const RECOVERY_BATCH_SIZE = 500;
 export const RETENTION_DAYS = 30;
 export const SIGNATURE_TOLERANCE_SECONDS = 300;

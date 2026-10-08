@@ -117,6 +117,7 @@ export const Endpoint = Schema.Struct({
   createdAt: Schema.String,
 });
 export const IdentifierRow = Schema.Struct({ id: Schema.String });
+export const CountRow = Schema.Struct({ count: Schema.Number });
 export const StoredDelivery = Schema.Struct({
   id: DeliveryId,
   eventId: EventId,
@@ -160,7 +161,6 @@ export const Attempt = Schema.Struct({
   error: Schema.NullOr(Schema.String),
   durationMs: Schema.NullOr(Schema.Number),
 });
-export const EventMessage = Schema.Struct({ eventId: EventId });
 export const DeliveryMessage = Schema.Struct({ deliveryId: DeliveryId });
 export const DnsResponse = Schema.Struct({
   Status: Schema.Number,
@@ -188,10 +188,7 @@ export const DeliveryActivityDay = Schema.Struct({
 });
 export const PipelineMetrics = Schema.Struct({
   openDeliveries: Schema.Number,
-  dueDeliveries: Schema.Number,
   oldestOpenSeconds: Schema.Number,
-  undispatchedEvents: Schema.Number,
-  oldestUndispatchedSeconds: Schema.Number,
   succeededLastMinute: Schema.Number,
   failedLastMinute: Schema.Number,
 });

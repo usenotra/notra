@@ -1,37 +1,27 @@
 import { Effect, Schema } from "effect";
 
-import { DELIVERY_QUEUE_NAME, EVENT_QUEUE_NAME } from "../constants/queues";
+import { DELIVERY_QUEUE_NAME } from "../constants/queues";
 import { WebhookValidationError } from "../errors/webhooks";
 import { deliver } from "../programs/deliveries";
-import {
-  cleanup,
-  dispatchEvent,
-  emitMetrics,
-  recover,
-} from "../programs/recovery";
-import { DeliveryMessage, EventMessage } from "../schemas/webhooks";
+import { DeliveryMessage } from "../schemas/webhooks";
 
 export const processQueueBatch = Effect.fn("webhooks.processQueueBatch")(
   function* (batch: MessageBatch<unknown>) {
+    // A batch holds at most `max_batch_size` (10) messages and each delivery
+    // mostly waits on I/O, so all of them run at once.
     yield* Effect.forEach(
       batch.messages,
       (message) =>
         Effect.gen(function* () {
-          if (batch.queue === EVENT_QUEUE_NAME) {
-            const body = yield* Schema.decodeUnknownEffect(EventMessage)(
-              message.body
-            );
-            yield* dispatchEvent(body.eventId);
-          } else if (batch.queue === DELIVERY_QUEUE_NAME) {
-            const body = yield* Schema.decodeUnknownEffect(DeliveryMessage)(
-              message.body
-            );
-            yield* deliver(body.deliveryId);
-          } else {
+          if (batch.queue !== DELIVERY_QUEUE_NAME) {
             return yield* new WebhookValidationError({
               message: "Unknown queue",
             });
           }
+          const body = yield* Schema.decodeUnknownEffect(DeliveryMessage)(
+            message.body
+          );
+          yield* deliver(body.deliveryId);
           yield* Effect.sync(() => message.ack());
         }).pipe(
           Effect.catch((error) =>
@@ -47,15 +37,7 @@ export const processQueueBatch = Effect.fn("webhooks.processQueueBatch")(
             })
           )
         ),
-      { concurrency: 5, discard: true }
+      { concurrency: "unbounded", discard: true }
     );
-  }
-);
-
-export const runScheduledPass = Effect.fn("webhooks.runScheduledPass")(
-  function* () {
-    yield* recover();
-    yield* cleanup();
-    yield* emitMetrics();
   }
 );

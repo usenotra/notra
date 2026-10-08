@@ -33,7 +33,7 @@ import {
   retryDelivery,
 } from "../src/programs/history";
 import { publishPostPublished } from "../src/programs/posts";
-import { cleanup, dispatchEvent, recover } from "../src/programs/recovery";
+import { sweep } from "../src/programs/recovery";
 import { OrganizationId } from "../src/schemas/webhooks";
 import { WebhookCrypto, webCryptoLayer } from "../src/services/crypto";
 import { WebhookDatabase } from "../src/services/database";
@@ -68,7 +68,6 @@ const sql = <T = Record<string, unknown>>(
 const org = Schema.decodeUnknownSync(OrganizationId)("org-one");
 const otherOrg = Schema.decodeUnknownSync(OrganizationId)("org-two");
 const sent: SendRequest[] = [];
-const queuedEvents: string[] = [];
 const queuedDeliveries: string[] = [];
 let queueFails = false;
 let outcome: DeliveryOutcome = {
@@ -83,6 +82,22 @@ const layers = Layer.mergeAll(
     WebhookDatabase.of({
       query: (query, parameters) =>
         sql(query, parameters).pipe(Effect.map((result) => result.rows)),
+      transaction: (statements) =>
+        Effect.tryPromise({
+          try: () =>
+            db.transaction(async (tx) => {
+              const results: unknown[] = [];
+              for (const statement of statements) {
+                const result = await tx.query(statement.sql, [
+                  ...statement.parameters,
+                ]);
+                results.push(result.rows);
+              }
+              return results;
+            }),
+          catch: (cause) =>
+            new WebhookStorageError({ operation: "test.transaction", cause }),
+        }),
     })
   ),
   webCryptoLayer(Redacted.make(btoa("x".repeat(32)))),
@@ -99,12 +114,6 @@ const layers = Layer.mergeAll(
   Layer.succeed(
     WebhookQueues,
     WebhookQueues.of({
-      events: (ids) =>
-        queueFails
-          ? Effect.fail(new WebhookQueueError({ operation: "test" }))
-          : Effect.sync(() => {
-              queuedEvents.push(...ids);
-            }),
       deliveries: (ids) =>
         queueFails
           ? Effect.fail(new WebhookQueueError({ operation: "test" }))
@@ -162,7 +171,6 @@ beforeEach(
       Effect.gen(function* () {
         yield* sql("TRUNCATE webhook_events, webhook_endpoints CASCADE");
         sent.length = 0;
-        queuedEvents.length = 0;
         queuedDeliveries.length = 0;
         queueFails = false;
         outcome = {
@@ -239,16 +247,13 @@ describe("durable webhook pipeline", () => {
         yield* endpoint();
         const id = yield* publish();
         queueFails = true;
-        expect((yield* Effect.result(recover()))._tag).toBe("Failure");
+        expect((yield* Effect.result(sweep()))._tag).toBe("Failure");
         queueFails = false;
-        yield* recover();
-        expect(queuedEvents).toContain(id);
         const [delivery] = yield* listDeliveries(org);
         if (!delivery) {
           return yield* Effect.die("missing delivery");
         }
-        queuedDeliveries.length = 0;
-        yield* dispatchEvent(id);
+        expect((yield* sweep()).queuedDeliveries).toBe(1);
         expect(queuedDeliveries).toEqual([delivery.id]);
         const dispatched = yield* sql(
           "SELECT dispatch_at FROM webhook_events WHERE id = $1",
@@ -315,7 +320,7 @@ describe("durable webhook pipeline", () => {
         yield* sql(
           "UPDATE webhook_deliveries SET lease_expires_at = now() - interval '1 minute'"
         );
-        yield* recover();
+        expect((yield* sweep()).expiredLeases).toBe(1);
         const current = yield* claimDelivery(summary.id);
         if (!current) {
           return yield* Effect.die("missing recovered claim");
@@ -355,18 +360,18 @@ describe("durable webhook pipeline", () => {
     Effect.runPromise(
       Effect.gen(function* () {
         yield* endpoint();
-        const id = yield* publish();
-        yield* dispatchEvent(id);
+        yield* publish();
+        yield* sweep();
         yield* sql(
           "UPDATE webhook_events SET created_at = now() - interval '40 days'"
         );
-        expect(yield* cleanup()).toHaveLength(0);
+        expect((yield* sweep()).removedEvents).toBe(0);
         const [delivery] = yield* listDeliveries(org);
         if (!delivery) {
           return yield* Effect.die("missing delivery");
         }
         yield* deliver(delivery.id);
-        expect(yield* cleanup()).toHaveLength(1);
+        expect((yield* sweep()).removedEvents).toBe(1);
       }).pipe(Effect.provide(layers))
     ));
 });
@@ -680,7 +685,6 @@ const queueStub = <T>(): Queue<T> => ({
 const bindings: WorkerBindings = {
   DATABASE_URL: "postgres://user:password@localhost:1/notra",
   WEBHOOK_ENCRYPTION_KEY: btoa("x".repeat(32)),
-  EVENT_QUEUE: queueStub(),
   DELIVERY_QUEUE: queueStub(),
 };
 
@@ -722,8 +726,8 @@ test("worker retries messages it cannot process instead of acking or crashing", 
   expect(malformed.acked).toHaveLength(0);
   expect(malformed.retried).toEqual([{ delaySeconds: 60 }]);
 
-  const unreachableDatabase = await runBatch("notra-webhook-events", {
-    eventId: "whev_missing",
+  const unreachableDatabase = await runBatch("notra-webhook-deliveries", {
+    deliveryId: "whdl_missing",
   });
   expect(unreachableDatabase.acked).toHaveLength(0);
   expect(unreachableDatabase.retried).toEqual([{ delaySeconds: 60 }]);

@@ -13,13 +13,18 @@ Public API clients use `webhooks.read` and `webhooks.write` scopes.
    subscriptions at event creation; new subscriptions receive only future events,
    without a backfill. Stable organization/source keys deduplicate repeated
    generation calls and terminal GEO results. No queue call is needed in that write.
-2. A once-per-minute Cloudflare Cron Trigger reads the durable outbox and submits
-   IDs to `notra-webhook-events`. The event consumer queues each delivery ID.
+2. A once-per-minute Cloudflare Cron Trigger sweeps the outbox in **one
+   transaction and one Neon HTTP round trip**: it turns expired claims into
+   retries, cancels work for removed endpoints, marks new events dispatched,
+   deletes expired history and reads every due delivery. It then submits those
+   delivery IDs to `notra-webhook-deliveries`.
 3. The delivery consumer atomically claims a delivery and creates its attempt row.
    It signs the exact stored payload, sends it and atomically records the result.
-4. Recovery resubmits due deliveries independently of queue acknowledgement.
-   Expired claims become retries; stale workers cannot overwrite
-   a new attempt because completion is fenced by a unique lease token.
+   All messages of a batch are delivered concurrently.
+4. Deliveries, not queue messages, are the source of outstanding work. Every sweep
+   resubmits due deliveries independently of queue acknowledgement. Stale workers
+   cannot overwrite a new attempt because completion is fenced by a unique lease
+   token.
 
 The application database remains authoritative. Queue duplicates are safe; delivery
 is **at least once**, not exactly once. A receiver may process a request before a
@@ -44,10 +49,9 @@ The code does not provision infrastructure or apply production migrations.
    `0109_webhook_lifecycle.sql` installs post and GEO lifecycle triggers. Unique
    indexes deliberately precede composite foreign keys. Follow `AGENTS.md` for
    fresh database setup.
-2. From this package, create the two queues:
+2. From this package, create the delivery queue:
 
    ```sh
-   bunx wrangler queues create notra-webhook-events
    bunx wrangler queues create notra-webhook-deliveries
    ```
 
