@@ -1,6 +1,6 @@
 import { db } from "@notra/db/drizzle";
-import { organizations, siteDeployments } from "@notra/db/schema";
-import { eq } from "drizzle-orm";
+import { organizations, siteDeployments, sites } from "@notra/db/schema";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import {
   CHECK_RUN_ANNOTATION_MAX_LENGTH,
@@ -11,11 +11,13 @@ import {
   completeCheckRun,
   createCheckRun,
   siteRepositoryAccess,
+  upsertPreviewComment,
 } from "./github";
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
 import type { CheckReport } from "./types/reporting";
 import type { Site } from "./types/sites";
 import { errorMessage } from "./utils/errors";
+import { previewCommentBody } from "./utils/preview-comment";
 import { deploymentDashboardUrl, primaryMountUrl } from "./utils/urls";
 
 async function safely<T>(
@@ -50,6 +52,7 @@ export async function openCheckRun(
   site: Site,
   deployment: SiteDeployment
 ): Promise<SiteDeployment> {
+  await reportPreviewComment(site, deployment);
   if (deployment.checkRunId) {
     return deployment;
   }
@@ -133,6 +136,7 @@ export async function reportOutcome(
   deployment: SiteDeployment,
   outcome: DeploymentOutcome
 ): Promise<void> {
+  await reportPreviewComment(site, deployment, outcome);
   const checkRunId = deployment.checkRunId;
   if (!checkRunId) {
     return;
@@ -170,4 +174,77 @@ export async function reportOutcome(
           : undefined,
     });
   });
+}
+
+async function reportPreviewComment(
+  site: Site,
+  deployment: SiteDeployment,
+  outcome?: DeploymentOutcome
+): Promise<void> {
+  const pullRequestNumber = deployment.pullRequestNumber;
+  if (deployment.kind !== "preview" || !pullRequestNumber) {
+    return;
+  }
+  await safely("preview_comment", () =>
+    db.transaction(async (tx) => {
+      // Serialize comment creation and updates across workers and retries.
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`sites-preview-comment:${site.id}:${pullRequestNumber}`}, 0))`
+      );
+      const [currentSite] = await tx
+        .select()
+        .from(sites)
+        .where(eq(sites.id, site.id))
+        .limit(1)
+        .for("share");
+      if (
+        !currentSite ||
+        currentSite.status !== "active" ||
+        !currentSite.previewsEnabled ||
+        !currentSite.previewCommentsEnabled
+      ) {
+        return;
+      }
+      const [latest] = await tx
+        .select()
+        .from(siteDeployments)
+        .where(
+          and(
+            eq(siteDeployments.siteId, site.id),
+            eq(siteDeployments.kind, "preview"),
+            eq(siteDeployments.pullRequestNumber, pullRequestNumber)
+          )
+        )
+        .orderBy(desc(siteDeployments.generation))
+        .limit(1)
+        .for("share");
+      if (
+        latest?.id !== deployment.id ||
+        (!outcome &&
+          !["queued", "building", "uploading"].includes(latest.status)) ||
+        (outcome?.kind === "failed" && latest.status !== "failed") ||
+        ((outcome?.kind === "live" || outcome?.kind === "not_live") &&
+          latest.status !== "ready") ||
+        (outcome?.kind === "skipped" &&
+          !["canceled", "superseded"].includes(latest.status))
+      ) {
+        return;
+      }
+      const { repository, token } = await siteRepositoryAccess(site, {
+        pull_requests: "write",
+      });
+      await upsertPreviewComment(repository, token, {
+        marker: `<!-- notra-preview:${site.id} -->`,
+        pullRequestNumber,
+        commitSha: latest.commitSha,
+        productionBranch: currentSite.productionBranch,
+        body: previewCommentBody(
+          currentSite,
+          latest,
+          await dashboardUrl(currentSite, latest),
+          outcome
+        ),
+      });
+    })
+  );
 }

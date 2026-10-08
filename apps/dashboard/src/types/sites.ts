@@ -106,6 +106,7 @@ export interface SiteSettingsForm {
   changelogEnabled: boolean;
   changelogPath: string;
   publishMode: SitePublishMode;
+  previewCommentsEnabled: boolean;
 }
 
 export interface SiteCreateFormValues {
@@ -134,6 +135,7 @@ export interface SiteSettingsPatch {
   rootDirectory?: string;
   mounts?: { blog?: string; changelog?: string };
   publishMode?: SitePublishMode;
+  previewCommentsEnabled?: boolean;
 }
 
 export type SiteDomainRecord = SiteDomain["records"][number];
