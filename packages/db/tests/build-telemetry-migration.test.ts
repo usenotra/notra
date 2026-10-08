@@ -57,5 +57,7 @@ test("telemetry remains deployment-owned within the consolidated Sites migration
       "utf8"
     )
   );
-  expect(journal.entries.at(-1).tag).toBe("0112_sites");
+  expect(journal.entries).toContainEqual(
+    expect.objectContaining({ tag: "0112_sites" })
+  );
 });

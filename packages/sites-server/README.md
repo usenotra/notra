@@ -24,7 +24,7 @@ GitHub App webhook (push / pull_request / check_run)
   → out.tgz → validated (regular files only, limits) → R2 deployments/{site}/{deployment}/files/**
   → manifest.json written last
   → state.json compare-and-swap (ETag): pointer only moves to a higher generation
-  → GitHub check run (annotations on failure)
+  → GitHub check run (annotations on failure) + updated PR preview comment
 
 Visitor → sites worker → hosts/{host}.json → sites/{site}/state.json (re-read every ≤5 s, fail closed)
   → manifest (immutable, cached per isolate) → file from R2 (edge cache keyed by deployment)
@@ -122,6 +122,16 @@ WHERE metrics #>> '{phases,compile}' IS NOT NULL;
 - *Password*: the database (`sites.preview_password`) is the source of truth: PBKDF2-SHA256, 100k iterations (the Workers maximum), 16-byte random salt, random `version`, never the password. Every `state.json` write copies it from the database, so a lost or stale state gets it back with the next write; `sites.get` also repairs a mismatch in the background (`syncServingPreviewAccess`). The worker verifies `POST /_notra/auth` and mints a password session carrying `passwordVersion`, so changing or removing the password ends all password sessions within 5 s. Guessing is limited by the `PREVIEW_PASSWORD_LIMITER` rate limit binding (10/min per IP and preview, per Cloudflare location) on top of the PBKDF2 cost.
 - *Threat model*: `state.json` is a private R2 object; the worker only serves files below `deployments/*/files/`. Someone with R2 read access gets exactly what a database leak gives: a salted, 100k-iteration PBKDF2 hash per site to attack offline (choose long preview passwords), plus the revocation timestamps. Neither lets them mint sessions: that needs `PREVIEW_SECRET`. The dashboard client only ever sees whether a password is set and when.
 - Turning previews off closes all open previews like closed PRs; the next push after turning them on builds again.
+
+**PR preview comments.** Enabled per site by default (`preview_comments_enabled`,
+migration `0113_site_preview_comments`). Settings → Previews → Post PR comments
+can disable comments independently of builds and GitHub checks. One comment per
+PR and site is updated while building and on completion, with the commit, build
+details and, only once activated, the normal preview URL. Protected previews
+retain their access controls; comments contain no share tokens, passwords or
+build logs. Reporting is best effort and cannot fail the build. Updates are
+serialized, restricted to comments authored by this GitHub App, and ignored for
+superseded deployments, closed PRs, changed heads and disabled previews.
 
 **Customer proxy domain stopped verifying.** `Check` in the Domains tab runs the probe (`{origin}{mount}/_notra/probe.txt` must name the site) and shows the exact failing URL. The site keeps serving; only the canonical origin is affected.
 

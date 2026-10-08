@@ -46,6 +46,7 @@ export function serializeSite(
     liveUrl: primaryMountUrl(site.publicOrigin, site.mounts),
     mounts: site.mounts,
     previewsEnabled: site.previewsEnabled,
+    previewCommentsEnabled: site.previewCommentsEnabled,
     previewVisibility: site.previewVisibility,
     previewPasswordSetAt: site.previewPassword?.updatedAt ?? null,
     publishMode: site.publishMode,

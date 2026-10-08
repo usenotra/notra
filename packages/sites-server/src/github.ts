@@ -1,5 +1,8 @@
 import { createScopedGitHubAppInstallationToken } from "@notra/ai/integrations/github";
-import { createOctokit } from "@notra/ai/utils/octokit";
+import {
+  createOctokit,
+  GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+} from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
 import {
   githubAppInstallations,
@@ -26,6 +29,7 @@ import type {
   BranchHead,
   CompleteCheckRunParams,
   CreateCheckRunParams,
+  PreviewCommentParams,
   RepositoryContentCount,
   RepositorySuggestions,
   RepositoryTreeScan,
@@ -282,6 +286,70 @@ export async function createCheckRun(
     }
   );
   return String(data.id);
+}
+
+export async function upsertPreviewComment(
+  repository: SiteRepository,
+  token: string,
+  params: PreviewCommentParams
+): Promise<void> {
+  const appId = Number(process.env.GITHUB_APP_ID);
+  if (!Number.isSafeInteger(appId) || appId < 1) {
+    throw new Error("GITHUB_APP_ID is required to identify preview comments");
+  }
+  const octokit = createOctokit(token, {
+    requestTimeoutMs: GITHUB_INTERACTIVE_READ_TIMEOUT_MS,
+  });
+  const repo = {
+    owner: repository.owner,
+    repo: repository.repo,
+    headers: GITHUB_API_VERSION_HEADER,
+  };
+  const { data: pr } = await octokit.request(
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}",
+    { ...repo, pull_number: params.pullRequestNumber }
+  );
+  if (
+    pr.state !== "open" ||
+    pr.head.sha !== params.commitSha ||
+    pr.base.ref !== params.productionBranch ||
+    pr.head.repo?.id !== pr.base.repo.id
+  ) {
+    return;
+  }
+  for (let page = 1; ; page++) {
+    const { data: comments } = await octokit.request(
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+      {
+        ...repo,
+        issue_number: params.pullRequestNumber,
+        per_page: GITHUB_PAGE_SIZE,
+        page,
+      }
+    );
+    const existing = comments.find(
+      (comment) =>
+        comment.user?.type === "Bot" &&
+        comment.performed_via_github_app?.id === appId &&
+        comment.body?.startsWith(params.marker)
+    );
+    if (existing) {
+      if (existing.body !== params.body) {
+        await octokit.request(
+          "PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}",
+          { ...repo, comment_id: existing.id, body: params.body }
+        );
+      }
+      return;
+    }
+    if (comments.length < GITHUB_PAGE_SIZE) {
+      break;
+    }
+  }
+  await octokit.request(
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+    { ...repo, issue_number: params.pullRequestNumber, body: params.body }
+  );
 }
 
 export async function completeCheckRun(
