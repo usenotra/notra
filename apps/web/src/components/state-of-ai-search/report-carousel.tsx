@@ -1,9 +1,6 @@
 "use client";
 
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import {
   Carousel,
   type CarouselApi,
@@ -18,11 +15,12 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { ReportPanel } from "@/components/state-of-ai-search/report-section";
-import { Brand } from "@/components/state-of-ai-search/report-tables";
+import {
+  LeaderList,
+  ReadReportRow,
+} from "@/components/state-of-ai-search/report-ui";
 import type { StateOfAiSearchSummary } from "@/types/state-of-ai-search";
-import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
 
-const PERCENT_MAX = 100;
 const PROGRESS_FULL = 100;
 /** Horizontal wheel distance that counts as one swipe. */
 const WHEEL_SWIPE_THRESHOLD = 40;
@@ -124,68 +122,48 @@ function ReportBoard({
   report: StateOfAiSearchSummary;
   active: boolean;
 }) {
+  // The whole board is the link: one click anywhere opens the report.
+  // Embla swallows the click that ends a drag, so swiping never navigates.
   return (
-    <ReportPanel
-      bodyClassName="flex flex-col"
+    <Link
+      aria-label={`Read the ${report.subject} report`}
       className={cn(
-        "transition-[opacity,scale] duration-300 ease-out motion-reduce:transition-none",
-        active ? "opacity-100" : "scale-[0.96] opacity-50"
+        "group focus-visible:outline-ring block rounded-2xl outline-offset-2 transition-[opacity,scale] duration-300 ease-out focus-visible:outline-2 motion-reduce:transition-none",
+        active ? "opacity-100" : "scale-[0.96] opacity-50 hover:opacity-75"
       )}
-      header={
-        <>
-          <span className="text-foreground">{report.subject}</span>
-          <span className="ml-auto flex items-center gap-1.5">
-            {report.engines.map((engine) => (
-              <EngineIcon
-                className="size-3.5"
-                engine={engine.model}
-                key={engine.id}
-              />
-            ))}
-          </span>
-        </>
-      }
+      draggable={false}
+      params={{ category: report.slug, edition: report.edition }}
+      to="/state-of-ai-search/$category/$edition"
     >
-      <div className="border-border/60 flex items-baseline justify-between gap-4 border-b px-4 py-3">
-        <p className="text-muted-foreground text-sm">
-          Best {report.noun}, according to AI
-        </p>
-        <span className="text-muted-foreground shrink-0 text-xs">
-          {report.editionLabel}
-        </span>
-      </div>
-      <ol className="divide-border/60 divide-y">
-        {report.leaders.map((row) => (
-          <li
-            className="flex h-12 items-center gap-3 px-4 text-sm tabular-nums"
-            key={row.name}
-          >
-            <span className="text-muted-foreground w-3">{row.rank}</span>
-            <span className="min-w-0 flex-1">
-              <Brand domain={row.domain} name={row.name} />
+      <ReportPanel
+        bodyClassName="flex flex-col"
+        header={
+          <>
+            <span className="text-foreground">{report.subject}</span>
+            <span className="ml-auto flex items-center gap-1.5">
+              {report.engines.map((engine) => (
+                <EngineIcon
+                  className="size-3.5"
+                  engine={engine.model}
+                  key={engine.id}
+                />
+              ))}
             </span>
-            <GeoBar
-              className="w-16 sm:w-24"
-              fillColor={brandColor(row.rank)}
-              max={PERCENT_MAX}
-              value={row.visibility}
-            />
-            <span className="w-10 text-right font-medium">
-              {formatPercent(row.visibility)}
-            </span>
-          </li>
-        ))}
-      </ol>
-      <Link
-        className="text-muted-foreground hover:text-foreground border-border/60 flex h-11 items-center justify-between border-t px-4 text-sm font-medium transition-colors"
-        params={{ category: report.slug, edition: report.edition }}
-        tabIndex={active ? 0 : -1}
-        to="/state-of-ai-search/$category/$edition"
+          </>
+        }
       >
-        Read the {report.subject} report
-        <HugeiconsIcon className="size-4" icon={ArrowRight01Icon} />
-      </Link>
-    </ReportPanel>
+        <div className="border-border/60 flex items-baseline justify-between gap-4 border-b px-4 py-3">
+          <p className="text-muted-foreground text-sm">
+            Best {report.noun}, according to AI
+          </p>
+          <span className="text-muted-foreground shrink-0 text-xs">
+            {report.editionLabel}
+          </span>
+        </div>
+        <LeaderList leaders={report.leaders} />
+        <ReadReportRow subject={report.subject} />
+      </ReportPanel>
+    </Link>
   );
 }
 
