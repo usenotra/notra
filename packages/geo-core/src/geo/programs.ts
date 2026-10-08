@@ -110,7 +110,10 @@ import {
   summarizeGeoChanges,
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
-import { competitorCanonicalMap } from "../utils/geo-competitor-names";
+import {
+  competitorCanonicalMap,
+  isGeoOwnBrandName,
+} from "../utils/geo-competitor-names";
 import { summarizeGeoCompetitorShare } from "../utils/geo-competitor-share";
 import {
   normalizeConversionPaths,
@@ -1132,9 +1135,24 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
       toGeoCheckWindow({ days: GEO_COMPETITOR_DETAIL_DAYS });
 
     const checkScope = geoCheckScope(scope);
+    const settingsRow = scope.projectId
+      ? yield* geoDb("settings lookup failed", () =>
+          findGeoSettingsRow(scope.projectId ?? "")
+        )
+      : null;
+    const own = isGeoOwnBrandName(
+      brand,
+      settingsRow?.companyName,
+      settingsRow?.aliases ?? []
+    );
     if (summaryOnly) {
       const summary = yield* geoDb("competitor summary query failed", () =>
-        queryGeoCheckCompetitorPromptSummary(checkScope, brand, resolvedWindow)
+        queryGeoCheckCompetitorPromptSummary(
+          checkScope,
+          brand,
+          resolvedWindow,
+          own
+        )
       );
       const response: GeoCompetitorDetailResponse = {
         configured: true,
@@ -1153,10 +1171,15 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
     const [timeseries, prompts] = yield* Effect.all(
       [
         geoDb("competitor timeseries query failed", () =>
-          queryGeoCheckCompetitorTimeseries(checkScope, brand, resolvedWindow)
+          queryGeoCheckCompetitorTimeseries(
+            checkScope,
+            brand,
+            resolvedWindow,
+            own
+          )
         ),
         geoDb("competitor prompts query failed", () =>
-          queryGeoCheckCompetitorPrompts(checkScope, brand, resolvedWindow)
+          queryGeoCheckCompetitorPrompts(checkScope, brand, resolvedWindow, own)
         ),
       ],
       { concurrency: "unbounded" }

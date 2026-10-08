@@ -937,19 +937,24 @@ export async function queryGeoCheckCompetitorShareAggregate(
   return [...competitorRows, ...ownShareRows];
 }
 
+function brandMentionedWhere(brand: string, own: boolean): SQL {
+  return own
+    ? eq(geoMentionChecks.mentioned, true)
+    : sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`;
+}
+
 export async function queryGeoCheckCompetitorTimeseries(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorTimeseriesRow[]> {
   const rows = await withGeoCheckAggregateCache(
     scope,
     db
       .select({
         day: sql<string>`(${geoMentionChecks.capturedAt})::date`,
-        mentions: countChecksWhere(
-          sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`
-        ),
+        mentions: countChecksWhere(brandMentionedWhere(brand, own)),
         checks: countChecks,
       })
       .from(geoMentionChecks)
@@ -968,12 +973,13 @@ export async function queryGeoCheckCompetitorTimeseries(
 export async function queryGeoCheckCompetitorPrompts(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorPromptRow[]> {
   const filters = [
     scopeWhere(scope),
     withoutPersonaRows,
-    sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`,
+    brandMentionedWhere(brand, own),
     ...capturedWithin(window),
   ];
 
@@ -1014,7 +1020,8 @@ export async function queryGeoCheckCompetitorPrompts(
 export async function queryGeoCheckCompetitorPromptSummary(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorPromptSummaryRow> {
   const latest = db
     .selectDistinctOn([geoMentionChecks.promptId, geoMentionChecks.engine], {
@@ -1027,7 +1034,7 @@ export async function queryGeoCheckCompetitorPromptSummary(
       and(
         scopeWhere(scope),
         withoutPersonaRows,
-        sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`,
+        brandMentionedWhere(brand, own),
         ...capturedWithin(window)
       )
     )
