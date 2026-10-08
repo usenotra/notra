@@ -3,7 +3,12 @@ import { spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
-import { siteDeployments, siteJobs, sites } from "@notra/db/schema";
+import {
+  organizations,
+  siteDeployments,
+  siteJobs,
+  sites,
+} from "@notra/db/schema";
 import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
 
@@ -93,15 +98,29 @@ if (process.env.NOTRA_SITES_BUDGET_TEST_WORKER !== "1") {
           }),
           select: () => ({
             from: (table: unknown) => ({
-              where: async (condition: SQL) => {
+              where: (condition: SQL) => {
+                const params = dialect.sqlToQuery(condition).params;
+                if (table === sites) {
+                  return Promise.resolve(
+                    rows.get(String(params[0]))
+                      ? [rows.get(String(params[0]))]
+                      : []
+                  );
+                }
+                if (table === organizations) {
+                  return {
+                    for: async (mode: string) => {
+                      expect(mode).toBe("key share");
+                      expect(params[0]).toBe("organization");
+                      return [{ id: "organization" }];
+                    },
+                  };
+                }
                 expect(table).toBe(siteDeployments);
-                expect(dialect.sqlToQuery(condition).params[0]).toBe(
-                  "organization"
-                );
+                expect(params[0]).toBe("organization");
                 const snapshot = count;
                 observed.push(snapshot);
-                await delay(5);
-                return [{ count: snapshot }];
+                return delay(5).then(() => [{ count: snapshot }]);
               },
             }),
           }),

@@ -2,7 +2,12 @@ import { beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { siteDeployments, siteJobs, sites } from "@notra/db/schema";
+import {
+  organizations,
+  siteDeployments,
+  siteJobs,
+  sites,
+} from "@notra/db/schema";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import { createInitialServingState } from "@notra/sites-core/utils/serving-state";
 import type { SQL } from "drizzle-orm";
@@ -40,6 +45,9 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
         const params = condition ? dialect.sqlToQuery(condition).params : [];
         if (table === sites) {
           return [site];
+        }
+        if (table === organizations) {
+          return [{ id: site.organizationId }];
         }
         if (table === siteJobs && selection) {
           const running = jobs.filter(
@@ -88,6 +96,10 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
         },
         orderBy: () => builder,
         for: (mode: string) => {
+          if (table === organizations) {
+            expect(mode).toBe("key share");
+            return builder;
+          }
           expect(mode).toBe("update");
           expect(table).toBe(sites);
           return builder;
@@ -273,6 +285,7 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
     locks.clear();
     site = {
       id: "site1",
+      organizationId: "organization",
       slug: "example",
       lastGeneration: 10,
       previewPassword: null,

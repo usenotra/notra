@@ -31,16 +31,25 @@ import type {
 import type { SettingsJobAttempt } from "./types/jobs";
 import type { Site } from "./types/sites";
 import { prefixedId } from "./utils/ids";
+import { lockSiteOrganization } from "./utils/site-organization-lock";
 import { buildTargetForDeployment } from "./utils/urls";
 
 export async function allocateGeneration(
   executor: DeploymentExecutor,
-  siteId: string
+  siteId: string,
+  organizationId?: string
 ): Promise<Site> {
   const [site] = await executor
     .update(sites)
     .set({ lastGeneration: sql`${sites.lastGeneration} + 1` })
-    .where(eq(sites.id, siteId))
+    .where(
+      and(
+        eq(sites.id, siteId),
+        organizationId === undefined
+          ? undefined
+          : eq(sites.organizationId, organizationId)
+      )
+    )
     .returning();
   if (!site) {
     throw new SiteNotBuildableError("Site not found");
@@ -91,15 +100,22 @@ export async function cancelPreviewBuilds(
 export async function enqueueSiteDeployment(
   input: EnqueueDeploymentInput
 ): Promise<EnqueuedDeployment> {
-  return await db.transaction((tx) => insertDeployment(tx, input));
+  return await db.transaction(async (tx) => {
+    const organizationId = await lockSiteOrganization(tx, input.siteId);
+    if (!organizationId) {
+      throw new SiteNotBuildableError("Site workspace not found");
+    }
+    return await insertDeployment(tx, input, organizationId);
+  });
 }
 
 async function insertDeployment(
   tx: SiteStorageTransaction,
   input: EnqueueDeploymentInput,
+  organizationId: string,
   dedupeKey?: string
 ): Promise<EnqueuedDeployment> {
-  const site = await allocateGeneration(tx, input.siteId);
+  const site = await allocateGeneration(tx, input.siteId, organizationId);
   if (site.status !== "active") {
     throw new SiteNotBuildableError("This site is suspended");
   }
@@ -170,6 +186,10 @@ export async function enqueueSettingsDeployment(
   attempt: SettingsJobAttempt
 ): Promise<string | null> {
   return await db.transaction(async (tx) => {
+    const organizationId = await lockSiteOrganization(tx, input.siteId);
+    if (!organizationId) {
+      return null;
+    }
     const [job] = await tx
       .select()
       .from(siteJobs)
@@ -198,7 +218,12 @@ export async function enqueueSettingsDeployment(
     const [site] = await tx
       .select()
       .from(sites)
-      .where(eq(sites.id, input.siteId))
+      .where(
+        and(
+          eq(sites.id, input.siteId),
+          eq(sites.organizationId, organizationId)
+        )
+      )
       .for("update");
     if (!site || site.status !== "active") {
       return null;
@@ -218,7 +243,12 @@ export async function enqueueSettingsDeployment(
       requestedByUserId = user?.id ?? null;
     }
     return (
-      await insertDeployment(tx, { ...input, requestedByUserId }, dedupeKey)
+      await insertDeployment(
+        tx,
+        { ...input, requestedByUserId },
+        organizationId,
+        dedupeKey
+      )
     ).jobId;
   });
 }
