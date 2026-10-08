@@ -60,6 +60,20 @@ export interface GitHubPublishRepositoryFieldProps {
   selectedRepository: GitHubRepository | undefined;
 }
 
+/** The repository field's props that come from the shared repository selection. */
+export type GitHubPublishRepositorySelectionFieldProps = Omit<
+  GitHubPublishRepositoryFieldProps,
+  "isPublishing" | "onRepositoryChange" | "organizationSlug"
+>;
+
+export interface GitHubPublishRepositorySelectionOptions {
+  organizationId: string;
+  contentType: string;
+  /** The preferred repository; falls back to the first publishable one. */
+  repositoryId: string;
+  enabled: boolean;
+}
+
 export interface GitHubPublishRepositoryStatusProps {
   connectedRepositoryCount: number;
   contentTypeLabel: string;

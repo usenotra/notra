@@ -5,6 +5,7 @@
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-composer.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-message.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-model-selector.tsx";
+@source "../../../../packages/ui/src/components/ai-skins/chatgpt/chatgpt-reasoning.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-actions.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-composer.tsx";
 @source "../../../../packages/ui/src/components/ai-skins/claude-chat/claude-chat-message.tsx";
@@ -173,6 +174,7 @@
 @source "../../../../packages/ui/src/constants/perplexity-models.ts";
 @source "../../../../packages/ui/src/constants/table.ts";
 @source "../../../../packages/ui/src/constants/ui-labels.ts";
+@source "../../../../packages/ui/src/hooks/compose-refs.ts";
 @source "../../../../packages/ui/src/hooks/use-mobile.tsx";
 @source "../../../../packages/ui/src/hooks/use-opencode-frame.ts";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";

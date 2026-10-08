@@ -27,6 +27,32 @@ export const postgresDatabaseLayer = Layer.effect(
             new WebhookStorageError({ operation: "postgres.query", cause }),
         }).pipe(Effect.map((result) => result.rows))
       ),
+      transaction: Effect.fn("webhooks.postgres.transaction")((statements) =>
+        Effect.tryPromise({
+          try: async () => {
+            const client = await pool.connect();
+            try {
+              await client.query("BEGIN");
+              const results: unknown[] = [];
+              for (const { sql, parameters } of statements) {
+                results.push((await client.query(sql, [...parameters])).rows);
+              }
+              await client.query("COMMIT");
+              return results;
+            } catch (error) {
+              await client.query("ROLLBACK").catch(() => undefined);
+              throw error;
+            } finally {
+              client.release();
+            }
+          },
+          catch: (cause) =>
+            new WebhookStorageError({
+              operation: "postgres.transaction",
+              cause,
+            }),
+        })
+      ),
     });
   })
 );

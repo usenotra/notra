@@ -1,6 +1,6 @@
 import { number, string } from "zod";
 
-import { geoOrganizationInputSchema } from "./geo";
+import { geoOrganizationInputSchema } from "./geo-scope";
 
 export const geoScanRunsInputSchema = geoOrganizationInputSchema.extend({
   offset: number().int().min(0).max(100_000).default(0),

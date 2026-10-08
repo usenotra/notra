@@ -16,6 +16,7 @@ import {
   ensureChatPostCollection,
   updatePostRecord,
 } from "@notra/ai/utils/post-service";
+import { applyPostTextEdits } from "@notra/ai/utils/post-text-edits";
 import { getCreatePostToolName } from "@notra/ai/utils/post-tool-name";
 import {
   serializeAvailablePost,
@@ -270,6 +271,70 @@ export function createUpdatePostTool(
       withSlug ? updatePostSlugInputShape : updatePostBaseInputShape
     ),
     execute,
+  });
+}
+
+export function createEditPostTool(config: PostToolsConfig): Tool {
+  return tool({
+    description: toolDescription({
+      toolName: "editPost",
+      intro:
+        "Changes specific passages of an existing post's body with exact find/replace edits.",
+      whenToUse:
+        "For targeted revisions such as rewording a paragraph, fixing a fact, or changing the intro. Use updatePost instead when most of the post changes or you change the title.",
+      usageNotes:
+        "Read the post with viewPost first. Each find must be copied exactly from the current markdown and match one place only; edits apply in order. If an edit fails, nothing is saved.",
+    }),
+    inputSchema: z.object({
+      postId: z.string().describe("The ID of the post to edit"),
+      edits: z
+        .array(
+          z.object({
+            find: z
+              .string()
+              .min(1)
+              .describe("Exact text from the current markdown to replace"),
+            replace: postTextSchema.describe("The replacement text"),
+          })
+        )
+        .min(1)
+        .max(20),
+    }),
+    execute: async ({ postId, edits }) => {
+      const post = await db.query.posts.findFirst({
+        columns: { markdown: true },
+        where: and(
+          eq(posts.id, postId),
+          eq(posts.organizationId, config.organizationId)
+        ),
+      });
+      if (!post) {
+        return { postId, status: "not_found" as const };
+      }
+
+      const applied = applyPostTextEdits(post.markdown ?? "", edits);
+      if (!applied.ok) {
+        return { postId, status: "edit_failed" as const, error: applied.error };
+      }
+
+      // Save only if nobody changed the body since it was read, so a
+      // concurrent edit is never overwritten with this stale copy.
+      const { status } = await updatePostRecord({
+        organizationId: config.organizationId,
+        postId,
+        markdown: applied.markdown,
+        expectedMarkdown: post.markdown,
+      });
+      if (status === "not_found") {
+        return {
+          postId,
+          status: "edit_failed" as const,
+          error:
+            "The post changed while editing. Call viewPost again and redo the edits on the current text.",
+        };
+      }
+      return { postId, status, editCount: edits.length };
+    },
   });
 }
 

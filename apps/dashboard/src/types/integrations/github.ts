@@ -501,3 +501,14 @@ export type GitHubFormsTranslator = ReturnType<
 
 export type GitHubCallbackErrorMessageKey =
   keyof (typeof messages)["integrations"]["github"]["callbackErrors"];
+
+export interface ContentPullRequestRef {
+  owner: string;
+  repo: string;
+  pullNumber: number;
+}
+
+export type ContentPullRequestState =
+  | { status: "merged"; mergedAt: Date | null }
+  | { status: "closed" }
+  | { status: "open"; draft: boolean; nodeId: string };

@@ -7,7 +7,7 @@ import type { IntegritySnapshot } from "./types/sites-tenant-integrity";
 import { expectConstraint } from "./utils/expect-constraint";
 
 const migration = readFileSync(
-  new URL("../migrations/0109_sites.sql", import.meta.url),
+  new URL("../migrations/0112_sites.sql", import.meta.url),
   "utf8"
 );
 const statements = migration.split("--> statement-breakpoint");
@@ -49,13 +49,13 @@ test("new migration creates referenced keys before FKs and matches its snapshot"
   }
   const snapshot: IntegritySnapshot = JSON.parse(
     readFileSync(
-      new URL("../migrations/meta/0109_snapshot.json", import.meta.url),
+      new URL("../migrations/meta/0112_snapshot.json", import.meta.url),
       "utf8"
     )
   );
   const priorSnapshot = JSON.parse(
     readFileSync(
-      new URL("../migrations/meta/0108_snapshot.json", import.meta.url),
+      new URL("../migrations/meta/0111_snapshot.json", import.meta.url),
       "utf8"
     )
   );

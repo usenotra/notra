@@ -1,6 +1,7 @@
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
 import type { ContentBillingReservation } from "@notra/ai/types/billing";
 import type { GeoLogEventName } from "@notra/ai/types/evlog";
+import type { GatewayModelOptions } from "@notra/ai/types/gateway";
 import type {
   GeoContentBrief,
   GeoContentSubtype,
@@ -223,8 +224,7 @@ export type GeoScanSkipReason =
   | "superseded"
   | "already_running"
   | "scoped_prompts_missing"
-  | "scoped_engines_missing"
-  | "no_search_engines";
+  | "scoped_engines_missing";
 
 export interface GeoErrorFields {
   errorName: string;
@@ -884,6 +884,7 @@ export interface GeoGroundedInvocation {
 export interface GeoGroundedInvocationOptions {
   organizationId?: string;
   zdr?: GeoZdrMode;
+  logContext?: GatewayModelOptions["logContext"];
 }
 
 export interface GeoDiscoveredPrompt {

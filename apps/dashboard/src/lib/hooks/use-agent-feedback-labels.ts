@@ -4,6 +4,8 @@ import type {
 } from "@notra/db/types/agent-feedback";
 import { useTranslations } from "use-intl";
 
+import type { AgentFeedbackStatusFilter } from "@/types/agent-feedback";
+
 export function useAgentFeedbackStatusLabels(): Record<
   AgentFeedbackStatus,
   string
@@ -15,6 +17,20 @@ export function useAgentFeedbackStatusLabels(): Record<
     triaged: tShared("triaged"),
     resolved: tShared("resolved"),
     archived: tCommon("archived"),
+  };
+}
+
+export function useAgentFeedbackFilterLabels(): Record<
+  AgentFeedbackStatusFilter,
+  string
+> {
+  const tCommon = useTranslations("common.labels");
+  const tShared = useTranslations("feedback.shared");
+  return {
+    open: tShared("open"),
+    resolved: tShared("resolved"),
+    archived: tCommon("archived"),
+    all: tCommon("all"),
   };
 }
 

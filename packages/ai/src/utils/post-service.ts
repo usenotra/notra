@@ -13,7 +13,7 @@ import { sanitizeMarkdownHtml } from "@notra/ai/utils/sanitize";
 import { db } from "@notra/db/drizzle";
 import { postCollections, posts } from "@notra/db/schema";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { marked } from "marked";
 import { customAlphabet } from "nanoid";
 
@@ -71,6 +71,7 @@ export async function createPostRecord(
           contentType: params.contentType,
           contentSubtype: params.contentSubtype ?? null,
           status: params.autoPublish ? "published" : "draft",
+          publishedAt: params.autoPublish ? new Date() : null,
           sourceMetadata: params.sourceMetadata ?? null,
         })
         .onConflictDoNothing({ target: posts.id })
@@ -119,6 +120,15 @@ export async function createPostRecord(
   return { postId: id, deduplicated };
 }
 
+function expectedMarkdownCondition(expected: string | null | undefined) {
+  if (expected === undefined) {
+    return undefined;
+  }
+  return expected === null
+    ? isNull(posts.markdown)
+    : eq(posts.markdown, expected);
+}
+
 export async function updatePostRecord(
   params: UpdatePostRecordParams,
   database: PostDatabase = db
@@ -151,7 +161,8 @@ export async function updatePostRecord(
     .where(
       and(
         eq(posts.id, params.postId),
-        eq(posts.organizationId, params.organizationId)
+        eq(posts.organizationId, params.organizationId),
+        expectedMarkdownCondition(params.expectedMarkdown)
       )
     )
     .returning({ id: posts.id });

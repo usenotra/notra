@@ -16,7 +16,8 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "/overview"
+      "destination": "/quickstart",
+      "permanent": false
     },
     {
       "source": "/api",
@@ -42,6 +43,54 @@
     {
       "source": "/api/rust-sdk",
       "destination": "/api/getting-started"
+    },
+    {
+      "source": "/concepts/how-it-works",
+      "destination": "/geo/how-scans-work"
+    },
+    {
+      "source": "/geo/overview",
+      "destination": "/geo/product-map"
+    },
+    {
+      "source": "/geo/prompts-and-competitors",
+      "destination": "/geo/prompts"
+    },
+    {
+      "source": "/geo/content-gaps-and-writer",
+      "destination": "/geo/content-gaps"
+    },
+    {
+      "source": "/geo/settings",
+      "destination": "/geo/brand-and-domains"
+    },
+    {
+      "source": "/overview",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/geo/traffic",
+      "destination": "/ai-traffic/overview"
+    },
+    {
+      "source": "/geo/ai-traffic/:slug*",
+      "destination": "/ai-traffic/:slug*"
+    },
+    {
+      "source": "/api/agent-feedback",
+      "destination": "/feedback/send-feedback"
+    },
+    {
+      "source": "/geo/playbooks/:slug*",
+      "destination": "/playbooks/:slug*"
+    },
+    {
+      "source": "/geo/troubleshooting/no-ai-traffic",
+      "destination": "/ai-traffic/troubleshooting/no-ai-traffic"
+    },
+    {
+      "source": "/geo/dashboard",
+      "destination": "/geo/product-map"
     }
   ],
   "api": {
@@ -62,7 +111,7 @@
     "404": {
       "redirect": false,
       "title": "This page is on a content pipeline of its own",
-      "description": "Looks like this page hasn't shipped yet. Try the [quickstart](/quickstart) or head back to the [overview](/overview)."
+      "description": "Looks like this page hasn't shipped yet. Try the [quickstart](/quickstart) or the [product map](/geo/product-map)."
     }
   },
   "contextual": {
@@ -80,36 +129,144 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
-        "icon": "book",
+        "tab": "GEO",
+        "icon": "chart-line",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Get started",
             "icon": "rocket",
-            "pages": ["overview", "quickstart"]
+            "pages": ["quickstart", "geo/product-map", "geo/how-scans-work"]
           },
           {
-            "group": "Core Concepts",
+            "group": "Metrics",
+            "icon": "gauge",
+            "pages": [
+              "geo/metrics/mention-rate",
+              "geo/metrics/share-of-voice",
+              "geo/metrics/position",
+              "geo/metrics/sentiment",
+              "geo/metrics/citations"
+            ]
+          },
+          {
+            "group": "Set up tracking",
+            "icon": "sliders",
+            "pages": [
+              "geo/projects",
+              "geo/brand-and-domains",
+              "geo/engines",
+              "geo/languages",
+              "geo/prompts",
+              "geo/conversations",
+              "geo/competitors",
+              "geo/personas",
+              "integrations/google-search-console"
+            ]
+          },
+          {
+            "group": "Improve visibility",
+            "icon": "arrow-trend-up",
+            "pages": [
+              "geo/content-gaps",
+              "geo/shelf-space",
+              "geo/writer",
+              "geo/agent-readiness"
+            ]
+          },
+          {
+            "group": "Agent feedback",
+            "icon": "comments",
+            "pages": ["feedback/inbox", "feedback/send-feedback"]
+          },
+          {
+            "group": "Troubleshooting",
+            "icon": "wrench",
+            "pages": [
+              "geo/troubleshooting/visibility-is-zero",
+              "geo/troubleshooting/numbers-changed"
+            ]
+          },
+          {
+            "group": "Account",
+            "icon": "users-gear",
+            "pages": [
+              "organization/workspace-setup",
+              "organization/team-management",
+              "organization/billing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "AI Traffic",
+        "icon": "robot",
+        "groups": [
+          {
+            "group": "AI traffic",
+            "icon": "robot",
+            "pages": [
+              "ai-traffic/overview",
+              "ai-traffic/crawlers",
+              "ai-traffic/journeys",
+              "ai-traffic/referrals"
+            ]
+          },
+          {
+            "group": "Install the tracker",
+            "icon": "download",
+            "pages": [
+              "ai-traffic/install/nextjs",
+              "ai-traffic/install/tanstack-start",
+              "ai-traffic/install/nuxt",
+              "ai-traffic/install/astro",
+              "ai-traffic/install/sveltekit",
+              "ai-traffic/install/netlify"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book",
+            "pages": ["ai-traffic/tracker-reference"]
+          },
+          {
+            "group": "Troubleshooting",
+            "icon": "wrench",
+            "pages": ["ai-traffic/troubleshooting/no-ai-traffic"]
+          }
+        ]
+      },
+      {
+        "tab": "Playbooks",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get started",
+            "icon": "rocket",
+            "pages": ["playbooks/first-30-days", "playbooks/win-a-prompt"]
+          },
+          {
+            "group": "By industry",
+            "icon": "building",
+            "pages": [
+              "playbooks/software-companies",
+              "playbooks/developer-tools",
+              "playbooks/ecommerce",
+              "playbooks/agencies"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Studio",
+        "icon": "pen-nib",
+        "groups": [
+          {
+            "group": "Concepts",
             "icon": "lightbulb",
-            "pages": [
-              "concepts/how-it-works",
-              "concepts/content-pipeline",
-              "concepts/brand-voice"
-            ]
+            "pages": ["concepts/content-pipeline", "concepts/brand-voice"]
           },
           {
-            "group": "GEO",
-            "icon": "chart-line",
-            "pages": [
-              "geo/overview",
-              "geo/prompts-and-competitors",
-              "geo/traffic",
-              "geo/agent-readiness",
-              "geo/content-gaps-and-writer"
-            ]
-          },
-          {
-            "group": "Content Types",
+            "group": "Content types",
             "icon": "pen-nib",
             "pages": [
               "content/changelogs",
@@ -142,6 +299,11 @@
             ]
           },
           {
+            "group": "Analytics",
+            "icon": "chart-simple",
+            "pages": ["studio/social-analytics"]
+          },
+          {
             "group": "Integrations",
             "icon": "plug",
             "pages": [
@@ -150,35 +312,13 @@
               "integrations/linear",
               "integrations/slack",
               "integrations/granola",
-              "integrations/google-search-console",
-              "integrations/framer",
-              "integrations/kontentspace"
-            ]
-          },
-          {
-            "group": "Organization",
-            "icon": "users-gear",
-            "pages": [
-              "organization/workspace-setup",
-              "organization/team-management",
-              "organization/billing"
+              "integrations/framer"
             ]
           }
         ]
       },
       {
-        "tab": "Developer Tools",
-        "icon": "terminal",
-        "groups": [
-          {
-            "group": "Developer Tools",
-            "icon": "terminal",
-            "pages": ["devtools/cli", "devtools/mcp", "devtools/raycast"]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
+        "tab": "Developers",
         "groups": [
           {
             "group": "Getting Started",
@@ -190,13 +330,17 @@
             "icon": "rocket"
           },
           {
+            "group": "Developer Tools",
+            "icon": "terminal",
+            "pages": ["devtools/cli", "devtools/mcp", "devtools/raycast"]
+          },
+          {
             "group": "Guides",
             "pages": [
               "api/caching",
               "api/common-tasks",
               "api/pagination",
-              "api/types",
-              "api/agent-feedback"
+              "api/types"
             ],
             "icon": "book-open"
           },
@@ -236,6 +380,15 @@
                     "pages": [
                       "POST /v1/posts/generate",
                       "GET /v1/posts/generate/{jobId}"
+                    ]
+                  },
+                  {
+                    "group": "Scheduling",
+                    "expanded": true,
+                    "pages": [
+                      "GET /v1/posts/{postId}/schedule",
+                      "POST /v1/posts/{postId}/schedule",
+                      "DELETE /v1/posts/{postId}/schedule"
                     ]
                   }
                 ]
@@ -483,59 +636,6 @@
       "x": "https://x.com/usenotra",
       "github": "https://github.com/usenotra",
       "discord": "https://www.usenotra.com/discord"
-    },
-    "links": [
-      {
-        "header": "Resources",
-        "items": [
-          {
-            "label": "Website",
-            "href": "https://www.usenotra.com"
-          },
-          {
-            "label": "Changelog",
-            "href": "https://www.usenotra.com/changelog"
-          },
-          {
-            "label": "Blog",
-            "href": "https://www.usenotra.com/blog"
-          }
-        ]
-      },
-      {
-        "header": "Developers",
-        "items": [
-          {
-            "label": "API Reference",
-            "href": "/api/getting-started"
-          },
-          {
-            "label": "OpenAPI Spec",
-            "href": "https://api.usenotra.com/openapi.json"
-          },
-          {
-            "label": "GitHub",
-            "href": "https://github.com/usenotra/notra"
-          }
-        ]
-      },
-      {
-        "header": "Support",
-        "items": [
-          {
-            "label": "Quickstart",
-            "href": "/quickstart"
-          },
-          {
-            "label": "Rate Limits",
-            "href": "/api/rate-limits"
-          },
-          {
-            "label": "Discord",
-            "href": "https://www.usenotra.com/discord"
-          }
-        ]
-      }
-    ]
+    }
   }
 }

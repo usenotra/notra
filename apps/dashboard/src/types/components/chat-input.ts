@@ -8,6 +8,7 @@ import type {
 import type { Ref } from "react";
 
 import type { QueuedMessage } from "@/components/chat/chat-queue";
+import type { ChatPostMention } from "@/types/chat-posts";
 import type { PendingChatUpload } from "@/types/hooks/chat-composer-attachments";
 import type { GitHubRepository } from "@/types/integrations";
 import type { SkillSlashOption } from "@/types/skills/slash";
@@ -98,6 +99,16 @@ export interface ChatContextOption {
   logoLightUrl?: string | null;
   logoDarkUrl?: string | null;
 }
+
+export interface ChatPostMentionOption {
+  id: string;
+  kind: "post";
+  label: string;
+  searchText: string;
+  post: ChatPostMention;
+}
+
+export type ChatMentionOption = ChatContextOption | ChatPostMentionOption;
 
 export interface ChatInputContextPickerProps {
   contextOptions: ChatContextOption[];

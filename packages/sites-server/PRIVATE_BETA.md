@@ -104,7 +104,7 @@ Run `bun scripts/sites-private-beta-preflight.ts` in the intended dashboard
 deployment environment. It prints variable names/status, never values. It cannot
 certify remote permissions, edge settings or matching worker/dashboard secrets.
 
-1. Apply the consolidated `0109_sites.sql` from the pre-Sites migration baseline;
+1. Apply the consolidated `0112_sites.sql` after main's migrations through `0111`;
    it includes visitor tracking and tenant-integrity changes. Do not replay it
    on a database that already applied the former 0109–0111 sequence; reconcile
    that development migration history separately. Deploy the updated Tinybird

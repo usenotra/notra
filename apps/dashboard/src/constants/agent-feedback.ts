@@ -28,14 +28,18 @@ export const AGENT_FEEDBACK_API_PATH = "/v1/feedback";
 export const AGENT_FEEDBACK_API_URL_ENV = "FEEDBACK_API_URL";
 export const AGENT_FEEDBACK_PACKAGE = "@usenotra/geo";
 export const AGENT_FEEDBACK_PACKAGE_ENTRY = `${AGENT_FEEDBACK_PACKAGE}/feedback`;
+export const AGENT_FEEDBACK_DEFAULT_STATUS_FILTER: AgentFeedbackStatusFilter =
+  "open";
+
+/** Tab order on the feedback page. `statuses` is undefined for "all". */
 export const AGENT_FEEDBACK_STATUS_FILTERS: {
   value: AgentFeedbackStatusFilter;
+  statuses?: readonly AgentFeedbackStatus[];
 }[] = [
+  { value: "open", statuses: ["new", "triaged"] },
+  { value: "resolved", statuses: ["resolved"] },
+  { value: "archived", statuses: ["archived"] },
   { value: "all" },
-  { value: "new" },
-  { value: "triaged" },
-  { value: "resolved" },
-  { value: "archived" },
 ];
 
 export const AGENT_FEEDBACK_KIND_ICONS: Record<
@@ -102,6 +106,15 @@ export const AGENT_FEEDBACK_KIND_PILL_CLASS: Record<AgentFeedbackKind, string> =
     question: "border-warning/25 bg-warning/10 text-foreground",
     other: "border-border bg-muted/50 text-muted-foreground dark:bg-muted/30",
   };
+
+export const AGENT_FEEDBACK_SENTIMENT_ICON_CLASS: Record<
+  AgentFeedbackSentiment,
+  string
+> = {
+  negative: "text-destructive",
+  neutral: "text-muted-foreground",
+  positive: "text-success",
+};
 
 export const AGENT_FEEDBACK_SENTIMENT_PILL_CLASS: Record<
   AgentFeedbackSentiment,

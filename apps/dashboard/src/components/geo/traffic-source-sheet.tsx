@@ -1,10 +1,6 @@
 "use client";
 
-import { GEO_SPARKLINE_MIN_POINTS } from "@notra/geo-core/constants/geo";
-import type {
-  GeoTrafficSource,
-  GeoVisitorType,
-} from "@notra/geo-core/types/geo";
+import type { GeoTrafficSource } from "@notra/geo-core/types/geo";
 import {
   formatAiTrafficTimestamp,
   formatGeoAgent,
@@ -28,98 +24,50 @@ import {
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
-import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
-import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
+import { TrafficSheetHero } from "@/components/geo/traffic-sheet-hero";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
-import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
-import { TOP_PAGES_LIMIT, SHEET_TABLE_MAX_ROWS } from "@/constants/geo-table";
+import { TOP_PAGES_LIMIT } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
+import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
 import type {
-  TrafficSourceMemberColumnLabels,
   TrafficSourcePageColumnLabels,
   GeoTrafficGroupPage,
+  GeoTrafficSourceGroup,
   SheetStat,
   TrafficSourceSheetContentProps,
   TrafficSourceSheetProps,
 } from "@/types/geo";
 import {
+  trafficGroupKey,
   trafficGroupPreviousVisits,
   trafficGroupCurrentMembers,
   trafficGroupTopPages,
-  trafficVisitShare,
 } from "@/utils/ai-traffic-groups";
-import { aiTrafficPurposeKey } from "@/utils/ai-traffic-purpose";
-import { tableHeightFor } from "@/utils/table";
+import { paginatedTableHeightFor } from "@/utils/table";
 
-function memberColumns(
-  total: number,
-  visitorType: GeoVisitorType,
-  labels: TrafficSourceMemberColumnLabels,
-  locale: string
-): TableColumn<GeoTrafficSource>[] {
-  const isCrawler = visitorType === "crawler";
-  return [
-    {
-      key: "agent",
-      header: isCrawler ? labels.bot : labels.source,
-      width: "1fr",
-      cell: (row) => (
-        <span className="flex min-w-0 items-center gap-2 text-sm">
-          <TrafficSourceGroupIcon
-            className="size-3.5"
-            group={{
-              key: row.source,
-              label: row.source,
-              icon: resolveEngineIconKey(row.source) ? row.source : null,
-            }}
-          />
-          <span className="truncate">
-            {isCrawler
-              ? formatGeoAgent(row.agent || row.source)
-              : formatGeoSource(row.source)}
-          </span>
-        </span>
-      ),
-    },
-    {
-      key: "category",
-      header: labels.purpose,
-      width: "9rem",
-      cell: (row) => (
-        <span className="text-muted-foreground truncate text-xs">
-          {labels.purposeLabel(row.category)}
-        </span>
-      ),
-    },
-    {
-      key: "visits",
-      header: labels.visits,
-      width: "7.5rem",
-      align: "right",
-      cell: (row) => (
-        <span className="flex items-center justify-end gap-2 tabular-nums">
-          <span className="text-muted-foreground text-xs">
-            {trafficVisitShare(row.visits, total)}
-          </span>
-          <span className="min-w-8 text-right text-sm">
-            {row.visits.toLocaleString(locale)}
-          </span>
-        </span>
-      ),
-    },
-    {
-      key: "lastSeenAt",
-      header: labels.lastSeen,
-      width: "8.5rem",
-      cell: (row) => (
-        <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
-          {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
-        </span>
-      ),
-    },
-  ];
+/** A single bot as a one-member group, so it fits the overview's table columns. */
+function botAsGroup(
+  group: GeoTrafficSourceGroup,
+  member: GeoTrafficSource
+): GeoTrafficSourceGroup {
+  return {
+    key: `${member.source}-${member.visitorType}`,
+    label:
+      group.visitorType === "crawler"
+        ? formatGeoAgent(member.agent || member.source)
+        : formatGeoSource(member.source),
+    icon: resolveEngineIconKey(member.source) ? member.source : null,
+    visitorType: member.visitorType,
+    band: group.band,
+    visits: member.visits,
+    markdownVisits: member.markdownVisits,
+    paths: member.paths,
+    lastSeenAt: member.lastSeenAt,
+    categories: member.category ? [member.category] : [],
+    members: [member],
+  };
 }
 
 function pageColumns(
@@ -131,6 +79,7 @@ function pageColumns(
       key: "path",
       header: labels.page,
       width: "1fr",
+      minWidth: "8rem",
       cell: (row) => (
         <TruncateWithTooltip className="font-mono text-xs">
           {`${row.host}${row.path}`}
@@ -165,12 +114,6 @@ function TrafficSourceSheetContent({
   const [trafficHost] = useGeoTrafficHostQuery();
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const purposeLabel = (category: string) => {
-    const key = aiTrafficPurposeKey(category);
-    return key === null
-      ? category
-      : tGeoShared(AI_TRAFFIC_PURPOSE_LABEL_KEYS[key]);
-  };
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
   const members = trafficGroupCurrentMembers(group);
@@ -199,85 +142,78 @@ function TrafficSourceSheetContent({
           value: members.length.toLocaleString(locale),
         },
   ];
+  const bots = useMemo(
+    () =>
+      trafficGroupCurrentMembers(group)
+        .sort((left, right) => right.visits - left.visits)
+        .map((member) => botAsGroup(group, member)),
+    [group]
+  );
+  const botColumns = useTrafficSourceColumns({
+    rowsAreBots: true,
+    sourceHeader: t(
+      group.visitorType === "crawler" ? "botsTitle" : "sourcesTitle",
+      { count: bots.length }
+    ),
+  });
 
   return (
     <>
-      <SheetHeader className="bg-muted/50 shrink-0 gap-1.5 border-b pr-14">
-        <SheetTitle className="flex min-w-0 items-center gap-2 text-base leading-snug">
-          <TrafficSourceGroupIcon group={group} />
-          <span className="min-w-0 truncate">{group.label}</span>
-          <Badge variant="secondary">
-            {group.band === "cited"
-              ? t("bands.cited")
-              : tGeoShared(group.band === "crawler" ? "crawler" : "aiReferral")}
-          </Badge>
-        </SheetTitle>
-        <SheetDescription>
-          {tGeoShared("lastSeenTime", {
-            time: formatAiTrafficTimestamp(group.lastSeenAt, locale),
-          })}
-        </SheetDescription>
+      <SheetHeader className="flex-row items-center gap-3 pr-14">
+        <span className="bg-shell border-shell-border flex size-10 shrink-0 items-center justify-center rounded-xl border">
+          <TrafficSourceGroupIcon className="size-5" group={group} />
+        </span>
+        <div className="min-w-0 space-y-0.5">
+          <SheetTitle className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate">{group.label}</span>
+            <Badge variant="secondary">
+              {group.band === "cited"
+                ? t("bands.cited")
+                : tGeoShared(
+                    group.band === "crawler" ? "crawler" : "aiReferral"
+                  )}
+            </Badge>
+          </SheetTitle>
+          <SheetDescription className="tabular-nums">
+            {tGeoShared("lastSeenTime", {
+              time: formatAiTrafficTimestamp(group.lastSeenAt, locale),
+            })}
+          </SheetDescription>
+        </div>
       </SheetHeader>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-5">
-        <SheetStatGrid stats={stats} />
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 pt-2 pb-6">
+        <TrafficSheetHero
+          chartLabel={tGeoShared("visits")}
+          chartTitle={t("visitsPerDay")}
+          series={series}
+          stats={stats}
+        />
 
-        {series.length >= GEO_SPARKLINE_MIN_POINTS ? (
-          <section className="space-y-3">
-            <h3 className="text-sm font-medium">{t("visitsPerDay")}</h3>
-            <DailyTrendChart label={tGeoShared("visits")} points={series} />
-          </section>
-        ) : null}
+        <DataTable
+          columns={botColumns}
+          data={bots}
+          getRowId={(row) => trafficGroupKey(row.band, row.key)}
+          height={paginatedTableHeightFor(bots.length)}
+          rowHeight={TABLE_ROW_HEIGHT}
+        />
 
-        <section className="space-y-3">
-          <h3 className="text-sm font-medium">
-            {group.visitorType === "crawler"
-              ? t("bots")
-              : tCommon("labels.sources")}
-          </h3>
-          <DataTable
-            columns={memberColumns(
-              group.visits,
-              group.visitorType,
-              {
-                bot: t("bot"),
-                source: tCommon("labels.source"),
-                purpose: tGeoShared("purpose"),
-                visits: tGeoShared("visits"),
-                lastSeen: tGeoShared("lastSeen"),
-                purposeLabel,
-              },
-              locale
-            )}
-            data={members}
-            getRowId={(row) => `${row.source}-${row.visitorType}`}
-            height={tableHeightFor(
-              Math.min(members.length, SHEET_TABLE_MAX_ROWS)
-            )}
-            rowHeight={TABLE_ROW_HEIGHT}
-          />
-        </section>
-
-        <section className="space-y-3">
-          <h3 className="text-sm font-medium">{t("topPages")}</h3>
-          <DataTable
-            columns={pageColumns(
-              { page: tGeoShared("page"), visits: tGeoShared("visits") },
-              locale
-            )}
-            data={topPages}
-            // `pages` is the site-wide busiest-pages list, so a quiet source can
-            // contribute none of them even though it did visit pages.
-            emptyState={
-              group.paths > 0 ? t("pagesOutsideBusiest") : t("noPages")
-            }
-            getRowId={(row) => row.key}
-            height={tableHeightFor(
-              Math.min(topPages.length, SHEET_TABLE_MAX_ROWS)
-            )}
-            rowHeight={TABLE_ROW_HEIGHT}
-          />
-        </section>
+        <DataTable
+          columns={pageColumns(
+            {
+              page: t("pagesTitle", { count: topPages.length }),
+              visits: tGeoShared("visits"),
+            },
+            locale
+          )}
+          data={topPages}
+          // `pages` is the site-wide busiest-pages list, so a quiet source can
+          // contribute none of them even though it did visit pages.
+          emptyState={group.paths > 0 ? t("pagesOutsideBusiest") : t("noPages")}
+          getRowId={(row) => row.key}
+          height={paginatedTableHeightFor(topPages.length)}
+          rowHeight={TABLE_ROW_HEIGHT}
+        />
       </div>
     </>
   );
@@ -303,7 +239,7 @@ export function TrafficSourceSheet({
       onOpenChangeComplete={release}
       open={groupProp !== null}
     >
-      <SheetContent className="rounded-2xl" variant="inset">
+      <SheetContent variant="inset">
         {retained ? (
           <TrafficSourceSheetContent
             group={retained.group}

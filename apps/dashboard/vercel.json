@@ -13,6 +13,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/scheduled-publications",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/geo-scan",
       "schedule": "*/10 * * * *"
     },
@@ -29,7 +33,7 @@
       "schedule": "30 3 * * *"
     },
     {
-      "path": "/api/cron/daily-summary",
+      "path": "/api/cron/geo-recap",
       "schedule": "0 8 * * *"
     },
     {

@@ -9,7 +9,12 @@ import { useTranslations } from "use-intl";
 
 import { ChartColorScope } from "@/components/charts/chart-color-scope";
 import { EChartsPieChart } from "@/components/evilcharts/charts/echarts-pie-chart";
-import { DONUT_INNER_RADIUS, DONUT_OUTER_RADIUS } from "@/constants/charts";
+import {
+  DONUT_CORNER_RADIUS,
+  DONUT_INNER_RADIUS,
+  DONUT_OUTER_RADIUS,
+  DONUT_PADDING_ANGLE,
+} from "@/constants/charts";
 import { useLeaderboard } from "@/lib/hooks/use-social-analytics";
 import type {
   ImpressionsShareCardProps,
@@ -93,6 +98,8 @@ export function ImpressionsShareCard({
               <EChartsPieChart.Pie
                 innerRadius={DONUT_INNER_RADIUS}
                 outerRadius={DONUT_OUTER_RADIUS}
+                cornerRadius={DONUT_CORNER_RADIUS}
+                paddingAngle={DONUT_PADDING_ANGLE}
               />
               <EChartsPieChart.Tooltip />
             </EChartsPieChart>

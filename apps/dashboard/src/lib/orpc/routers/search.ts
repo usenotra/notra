@@ -7,11 +7,11 @@ import {
   linearIntegrations,
   posts,
 } from "@notra/db/schema";
+import { projectScopedCollectionIds } from "@notra/db/utils/projects";
 import { globalSearchInputSchema } from "@notra/schemas/dashboard/search";
 import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 
 import { assertOrganizationAccess } from "@/lib/auth/organization";
-import { projectScopedCollectionIds } from "@/lib/content/project-scope";
 import { baseProcedure } from "@/lib/orpc/base";
 
 const LIKE_ESCAPE_PATTERN = /[\\%_]/g;

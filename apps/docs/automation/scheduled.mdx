@@ -1,6 +1,6 @@
 ---
-title: "Scheduled Automation"
-description: "Generate content daily, weekly, or monthly from repository and Linear activity in a lookback window"
+title: "Scheduled automation"
+description: "Generate content daily, weekly or monthly from repository and Linear activity in a lookback window"
 authors:
   - handle: dominik
 
@@ -23,13 +23,19 @@ docolin:
   prev: ./event-based.mdx
 ---
 
-Schedules generate content at a fixed cadence from activity over a lookback window. They suit consistent output: weekly progress posts, monthly changelog roundups, a daily social image during a launch. You manage them under **Automation > Schedules** in the dashboard, through the `/v1/schedules` API, or with `notra schedules` in the [CLI](/devtools/cli).
+Schedules generate content at a fixed cadence from activity over a lookback window, which suits regular output such as weekly progress posts, monthly changelog roundups or a daily social image during a launch. You manage them under **Automation > Schedules** in the dashboard or with `notra schedules` in the [CLI](/devtools/cli).
+
+<Visibility for="agents">
+
+You can also manage them through the `/v1/schedules` API.
+
+</Visibility>
 
 ## How schedules work
 
 <Steps>
   <Step title="Schedule configuration">
-    Choose daily, weekly, or monthly, plus the time of day in UTC.
+    Choose daily, weekly or monthly, plus the time of day in UTC.
   </Step>
 
   <Step title="Automatic trigger">
@@ -37,11 +43,11 @@ Schedules generate content at a fixed cadence from activity over a lookback wind
   </Step>
 
   <Step title="Activity analysis">
-    The run collects pull requests, commits, and releases from the selected repositories, plus completed Linear work when Linear is connected, inside the lookback window.
+    The run collects pull requests, commits and releases from the selected repositories inside the lookback window, and when Linear is connected it also collects completed Linear work.
   </Step>
 
   <Step title="Content generation">
-    The content is written in the selected brand identity. If there is nothing worth writing about, the run is skipped.
+    Notra writes the content in the selected brand identity, or skips the run if there is nothing worth writing about.
   </Step>
 
   <Step title="Review">
@@ -55,24 +61,24 @@ Schedules generate content at a fixed cadence from activity over a lookback wind
   <Tab title="Daily">
     Runs every day at a set time.
 
-    **Configuration:**
+    Configure:
 
     * Hour (0-23, UTC)
     * Minute (0-59)
 
-    **Good for:** high-velocity teams, daily social posts during a launch, end-of-day changelog entries.
+    Use it for teams that ship every day, daily social posts during a launch or end-of-day changelog entries.
   </Tab>
 
   <Tab title="Weekly">
     Runs once a week on a set day and time.
 
-    **Configuration:**
+    Configure:
 
     * Day of week (0-6, where 0 is Sunday)
     * Hour (0-23, UTC)
     * Minute (0-59)
 
-    **Good for:** Monday changelog roundups, Friday LinkedIn updates, a weekly blog post about what shipped.
+    Use it for Monday changelog roundups, Friday LinkedIn updates or a weekly blog post about what shipped.
 
     ```json Weekly schedule
     {
@@ -87,13 +93,13 @@ Schedules generate content at a fixed cadence from activity over a lookback wind
   <Tab title="Monthly">
     Runs once a month on a set day and time.
 
-    **Configuration:**
+    Configure:
 
     * Day of month (1-31)
     * Hour (0-23, UTC)
     * Minute (0-59)
 
-    **Good for:** monthly product update blog posts, end-of-month recaps, monthly changelog newsletters.
+    Use it for monthly product update blog posts, end-of-month recaps or monthly changelog newsletters.
 
     <Note>
       The schedule runs only on months that have the chosen day. Pick a day between 1 and 28 if you need a run every month.
@@ -133,29 +139,29 @@ Each schedule analyzes activity over one of five windows:
 
 <CardGroup cols={2}>
   <Card title="Changelog entry" icon="list-check">
-    A concise summary of what shipped and why it matters. Supports auto-publish.
+    A short summary of what shipped and why it matters, with auto-publish support.
   </Card>
 
   <Card title="Blog post" icon="newspaper">
-    A longer-form article explaining the feature in depth. Supports auto-publish.
+    A long-form article that explains the feature in depth, with auto-publish support.
   </Card>
 
   <Card title="LinkedIn post" icon="linkedin">
-    A professional update to share with your network. Saved as a draft.
+    A professional update to share with your network, which Notra saves as a draft.
   </Card>
 
   <Card title="Tweet" icon="twitter">
-    A short announcement for X. Saved as a draft.
+    A short announcement for X, which Notra saves as a draft.
   </Card>
 
   <Card title="Image" icon="image">
-    A brand-matched social image generated from repository activity. Saved as a draft.
+    A brand-matched social image generated from repository activity, which Notra saves as a draft.
   </Card>
 </CardGroup>
 
 ## Sources
 
-A schedule needs at least one GitHub repository. Pick them in the **Sources** step of the dialog. When a Linear integration is connected and enabled, its completed work is included in every schedule run automatically, alongside the selected repositories, and shows up in the sources column of the schedule list.
+A schedule needs at least one GitHub repository, which you pick in the **Sources** step of the dialog. When a Linear integration is connected and enabled, every schedule run includes its completed work next to the selected repositories, and Linear shows up in the sources column of the schedule list.
 
 ## Create a schedule
 
@@ -165,7 +171,7 @@ A schedule needs at least one GitHub repository. Pick them in the **Sources** st
   </Step>
 
   <Step title="Name your schedule">
-    Use a descriptive name such as "Weekly LinkedIn update". Names are limited to 120 characters.
+    Use a descriptive name such as "Weekly LinkedIn update", up to 120 characters.
   </Step>
 
   <Step title="Select sources">
@@ -173,15 +179,15 @@ A schedule needs at least one GitHub repository. Pick them in the **Sources** st
   </Step>
 
   <Step title="Set the cadence">
-    Daily, weekly (pick a day), or monthly (pick a day of month), plus the time. Times use UTC; the summary card also shows the next run in your local timezone.
+    Choose daily, weekly (pick a day) or monthly (pick a day of month), plus the time. Times use UTC, and the summary card also shows the next run in your local timezone.
   </Step>
 
   <Step title="Choose the lookback window">
-    How far back to analyze activity.
+    Choose how far back Notra analyzes activity.
   </Step>
 
   <Step title="Choose the content format">
-    Changelog entry, blog post, LinkedIn post, tweet, or image.
+    Pick a changelog entry, blog post, LinkedIn post, tweet or image.
   </Step>
 
   <Step title="Pick a brand identity and auto-publish">
@@ -189,9 +195,11 @@ A schedule needs at least one GitHub repository. Pick them in the **Sources** st
   </Step>
 
   <Step title="Save">
-    New schedules start enabled. Notra rejects a schedule that duplicates an existing one ("Schedule already exists").
+    New schedules start enabled, and Notra rejects a schedule that duplicates an existing one ("Schedule already exists").
   </Step>
 </Steps>
+
+<Visibility for="agents">
 
 ### Through the API
 
@@ -242,16 +250,18 @@ const { schedule } = await response.json();
 ```
 </CodeGroup>
 
-`repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `dayOfWeek` is required for weekly schedules and `dayOfMonth` for monthly ones. `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post`, or `image`. `lookbackWindow` defaults to `last_7_days` and `autoPublish` to `false`. List, update, and delete with `GET /v1/schedules?repositoryIds=repo_123`, `PATCH /v1/schedules/{scheduleId}` (full body), and `DELETE /v1/schedules/{scheduleId}`. A duplicate configuration returns `409`.
+`repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `dayOfWeek` is required for weekly schedules and `dayOfMonth` for monthly ones, while `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`. `lookbackWindow` defaults to `last_7_days` and `autoPublish` to `false`. You list, update and delete schedules with `GET /v1/schedules?repositoryIds=repo_123`, `PATCH /v1/schedules/{scheduleId}` (full body) and `DELETE /v1/schedules/{scheduleId}`, and a duplicate configuration returns `409`.
+
+</Visibility>
 
 ## Content generation context
 
 Each run builds its prompt from:
 
 * **Time range**: the lookback window, computed in UTC at run time
-* **Repositories**: merged pull requests, commits, and releases across all selected repositories
+* **Repositories**: merged pull requests, commits and releases across all selected repositories
 * **Linear**: completed issues from every enabled Linear integration
-* **Brand identity**: tone, audience, company details, and custom instructions
+* **Brand identity**: tone, audience, company details and custom instructions
 
 ## Cron expressions
 
@@ -276,23 +286,23 @@ Notra derives a cron expression from your configuration and evaluates it in UTC:
 
 ## Run a schedule now
 
-Open the row menu on the Schedules page and choose **Run now**. The run uses the current time and the configured lookback window: running a weekly schedule on a Tuesday analyzes the 7 days before that Tuesday, not the days before the scheduled Monday. Run now requires an enabled schedule and an active subscription.
+Open the row menu on the Schedules page and choose **Run now**, which uses the current time and the configured lookback window. A weekly schedule run on a Tuesday analyzes the 7 days before that Tuesday, not the days before the scheduled Monday. **Run now** needs an enabled schedule and an active subscription.
 
 ## Managing schedules
 
 The Schedules page splits schedules into **Active** and **Paused** tabs. From the row menu you can:
 
-* **Edit**: change the name, sources, cadence, lookback window, format, brand identity, or auto-publish. Timing changes take effect for the next run.
+* **Edit**: change the name, sources, cadence, lookback window, format, brand identity or auto-publish, with timing changes applying from the next run.
 * **Pause** or **Enable**: turn the schedule off or on without deleting it.
 * **Run now**: start a run immediately.
 * **Delete**: remove the schedule.
 
-A schedule whose repository integration was removed cannot be re-enabled until you edit it and pick another repository.
+If a schedule's repository integration was removed, you cannot re-enable the schedule until you edit it and pick another repository.
 
 ## Monitoring
 
-* **Content** shows every generated post. Posts from a schedule are grouped into a collection per run.
-* **Settings > Notifications** can email you when scheduled content is created, when generation fails, and when a run is skipped because there was nothing worth writing about.
+* **Content** shows every generated post, and Notra groups posts from a schedule into one collection per run.
+* **Settings > Notifications** can email you when Notra creates scheduled content, when generation fails and when Notra skips a run because there was nothing worth writing about.
 * If the run hits GitHub's API rate limit, Notra waits 30 minutes and retries up to three attempts before marking the run as failed.
 * If your plan quota for the format is used up and no AI credits are available, the run stops and workspace owners receive an email.
 
@@ -320,7 +330,7 @@ A schedule whose repository integration was removed cannot be re-enabled until y
 
 <AccordionGroup>
   <Accordion title="Match frequency to activity">
-    Pick a cadence that matches your development pace. Teams shipping daily can use daily or weekly schedules; teams with monthly releases should schedule monthly.
+    Pick a cadence that matches how often you ship. Teams that ship daily can use daily or weekly schedules, while teams with monthly releases should schedule monthly.
   </Accordion>
 
   <Accordion title="Align lookback with frequency">
@@ -332,7 +342,7 @@ A schedule whose repository integration was removed cannot be re-enabled until y
   </Accordion>
 
   <Accordion title="Think in UTC">
-    Schedule times are UTC. The summary card in the dialog shows the next run in your local timezone so you can double-check.
+    Schedule times are UTC, and the summary card in the dialog shows the next run in your local timezone so you can check it.
   </Accordion>
 
   <Accordion title="One format per schedule">
@@ -340,7 +350,7 @@ A schedule whose repository integration was removed cannot be re-enabled until y
   </Accordion>
 
   <Accordion title="Review generated content">
-    Treat scheduled content as drafts. Keep auto-publish off until you trust the output for that format.
+    Treat scheduled content as drafts and keep auto-publish off until you trust the output for that format.
   </Accordion>
 </AccordionGroup>
 
@@ -348,7 +358,7 @@ A schedule whose repository integration was removed cannot be re-enabled until y
 
 <AccordionGroup>
   <Accordion title="Schedule not running">
-    **Check:**
+    Check that:
 
     * The schedule is in the Active tab, not Paused
     * Your subscription is active and the format's quota (or AI credits) is not used up
@@ -358,20 +368,20 @@ A schedule whose repository integration was removed cannot be re-enabled until y
   </Accordion>
 
   <Accordion title="Run skipped or no content">
-    **Check:**
+    Check that:
 
     * The repositories have activity inside the lookback window
     * The repositories are still connected and accessible
     * Linear is enabled if you expect issues to be included
 
-    Runs with nothing meaningful to say are recorded as skipped; enable the Skipped notification to hear about them.
+    Notra records runs with nothing meaningful to say as skipped, and you can enable the Skipped notification to get an email about them.
   </Accordion>
 
   <Accordion title="Content quality issues">
-    **Check:**
+    Check that:
 
     * The lookback window fits your activity level
-    * The brand identity has a tone, audience, and custom instructions
+    * The brand identity has a tone, audience and custom instructions
     * You are analyzing the right repositories
 
     Adjust the window or the brand identity's custom instructions and run the schedule again.

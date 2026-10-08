@@ -7,16 +7,26 @@ Public API clients use `webhooks.read` and `webhooks.write` scopes.
 
 ## Architecture
 
-1. The terminal generation transition writes an event and snapshots matching
-   subscriptions in **one Postgres statement**. A stable organization/source key
-   makes repeated producer calls idempotent. No queue call is needed in that write.
-2. A once-per-minute Cloudflare Cron Trigger reads the durable outbox and submits
-   IDs to `notra-webhook-events`. The event consumer queues each delivery ID.
+1. Database triggers write post lifecycle and terminal GEO scan events in the
+   transaction that changes the source row. Tracked generation producers write
+   terminal events in **one Postgres statement**. Both snapshot matching
+   subscriptions at event creation; new subscriptions receive only future events,
+   without a backfill. Stable organization/source keys deduplicate repeated
+   generation calls and terminal GEO results. No queue call is needed in that write.
+2. A once-per-minute Cloudflare Cron Trigger sweeps the outbox in **one
+   transaction and one Neon HTTP round trip**: it turns expired claims into
+   retries, cancels work for removed endpoints, marks new events dispatched,
+   deletes expired history and reads every due delivery. It then submits those
+   delivery IDs to `notra-webhook-deliveries`.
 3. The delivery consumer atomically claims a delivery and creates its attempt row.
    It signs the exact stored payload, sends it and atomically records the result.
-4. Recovery resubmits due deliveries independently of queue acknowledgement.
-   Expired claims become retries; stale workers cannot overwrite
-   a new attempt because completion is fenced by a unique lease token.
+   Up to five messages of a batch are delivered concurrently, below the Workers
+   limit of six open connections. A sweep queues every due delivery, oldest
+   deadline first, in pages of 5,000.
+4. Deliveries, not queue messages, are the source of outstanding work. Every sweep
+   resubmits due deliveries independently of queue acknowledgement. Stale workers
+   cannot overwrite a new attempt because completion is fenced by a unique lease
+   token.
 
 The application database remains authoritative. Queue duplicates are safe; delivery
 is **at least once**, not exactly once. A receiver may process a request before a
@@ -33,15 +43,17 @@ workers do not sleep in memory using a retry schedule between attempts.
 
 The code does not provision infrastructure or apply production migrations.
 
-1. Apply `packages/db/migrations/0105_round_cable.sql` through the
-   repository migration workflow against an initialized Notra database. The
-   migration includes endpoints, events, deliveries, attempts, tenant-aware foreign
-   keys, deduplication indexes and lease/retry fields. Unique indexes deliberately
-   precede composite foreign keys. Follow `AGENTS.md` for fresh database setup.
-2. From this package, create the two queues:
+1. Apply all repository migrations through
+   `packages/db/migrations/0109_webhook_lifecycle.sql` against an initialized Notra
+   database before deploying the updated worker or application. Migration
+   `0105_round_cable.sql` creates endpoints, events, deliveries, attempts,
+   tenant-aware foreign keys, deduplication indexes and lease/retry fields;
+   `0109_webhook_lifecycle.sql` installs post and GEO lifecycle triggers. Unique
+   indexes deliberately precede composite foreign keys. Follow `AGENTS.md` for
+   fresh database setup.
+2. From this package, create the delivery queue:
 
    ```sh
-   bunx wrangler queues create notra-webhook-events
    bunx wrangler queues create notra-webhook-deliveries
    ```
 
@@ -50,9 +62,13 @@ The code does not provision infrastructure or apply production migrations.
    the dashboard/API and generation producer use the normal Postgres connection.
    Point both at the **same database**. Use a dedicated base64-encoded 32-byte
    encryption key (`openssl rand -base64 32`), also configured in the API/dashboard.
-4. Deploy the worker with `bun run deploy`, then deploy the API/dashboard changes.
-5. Create an endpoint, generate a post through the API and inspect its delivery
-   and attempt history. Allow up to a minute for initial dispatch/retries.
+4. Deploy the updated worker with `bun run deploy`, then deploy the API/dashboard
+   application changes, including removal of the old application-side publish
+   producer. The required order is **migrations, worker, application**. Do not
+   remove the application producer before the database triggers are installed.
+5. Create an endpoint and verify post creation, edits, publish/unpublish/republish,
+   deletion and terminal GEO results in its delivery and attempt history. Allow
+   up to a minute for initial dispatch/retries.
 
 The worker has no public HTTP ingress, private network bindings, or admin token.
 Subscription management is served by the authenticated Notra API and dashboard.
@@ -84,28 +100,56 @@ Creation body:
 }
 ```
 
-Events are currently limited to terminal **tracked generation jobs** and the
-first publish of a post:
-`post.generation.completed` (`jobId`, `postId`), `post.generation.failed`
-(`jobId`, `error`), `post.generation.skipped` (`jobId`, `reason`),
-`brand_identity.generation.completed` (`jobId`, `brandIdentityId`),
-`brand_identity.generation.failed` (`jobId`, `error`) and `post.published`
-(`postId`). This does not emit post edits, scheduled runs without a tracked
-job, or GEO scan events. A completed job requires a post ID or brand identity
-ID. The first terminal event for a job wins, even if a retried producer later
-reports a different terminal outcome; the first `post.published` for a post
-wins, so unpublishing and republishing does not re-emit.
+An endpoint accepts one to twelve event types:
 
-The terminal event is written before Redis job state. These stores cannot share a
-transaction: if the Redis update fails, a receiver may see the terminal event
-before the polling endpoint catches up. The generation step must retry; its stable
-source key prevents creating a second event or snapshotting new subscriptions.
+| Event | Data |
+| --- | --- |
+| `post.generation.completed` | `jobId`, `postId` |
+| `post.generation.failed` | `jobId`, `error` |
+| `post.generation.skipped` | `jobId`, `reason` |
+| `brand_identity.generation.completed` | `jobId`, `brandIdentityId` |
+| `brand_identity.generation.failed` | `jobId`, `error` |
+| `post.published` | `postId` |
+| `post.created` | `postId` |
+| `post.updated` | `postId` |
+| `post.deleted` | `postId` |
+| `post.unpublished` | `postId` |
+| `geo.scan.completed` | `scanId`, `projectId`, `runId`, `checksTotal`, `checksFailed`, `mentions`, `durationMs` |
+| `geo.scan.failed` | `scanId`, `projectId`, `errorCode`, `error`, `failedStage`, `retryable` |
 
-`post.published` is stronger: the outbox row is inserted in the same Postgres
-transaction as the post's status update (via `publishEventInTransaction` from
-`@notra/webhooks/drizzle`), so a publish either commits with its event or rolls
-back entirely. A failing outbox insert fails the request; the client's retry is
-deduped by the source key.
+Generation events require a **tracked generation job**. A completed job requires a
+post ID or brand identity ID. The first terminal event for a job wins, even if a
+retried producer later reports a different terminal outcome.
+
+Tracked generation updates Redis job state before writing the terminal event.
+These stores cannot share a transaction: if the outbox write fails, polling may
+show a terminal job before its webhook is recorded. Retrying the terminal update
+uses the same source key, preventing a second event or new subscription snapshots.
+
+Post lifecycle events are written by database triggers, covering API, dashboard,
+AI and GitHub writes without application-side producers. Inserting a post emits
+`post.created`, plus `post.published` if inserted as published. Changing actual
+persisted fields emits `post.updated`; timestamp-only changes do not. Status
+transitions also emit `post.published` for every draft-to-published transition or
+`post.unpublished` when leaving published status. Republishing emits a new event.
+Deleting a post emits `post.deleted`, including collection cascades, but not
+organization deletion. All five lifecycle payloads contain only string `postId`.
+
+GEO triggers emit the first terminal result per scan ID, from either an insert or
+a status transition. Later metadata or terminal updates do not emit another event,
+even if the outcome changes. Both payloads contain string `scanId` and `projectId`.
+Completed payloads contain `runId` (`string | null`) and `checksTotal`,
+`checksFailed`, `mentions`, `durationMs` (each `number | null`). Failed payloads
+contain `errorCode`, `error`, `failedStage` (each `string | null`) and `retryable`
+(`boolean | null`). All fields are required; unavailable values are `null`.
+Failure text is bounded to 256 characters for `errorCode` and 4096 for `error`.
+
+Post and GEO outbox rows and subscription snapshots commit in the source
+transaction. A failing event insert rolls back the source change. New events use
+`apiVersion: "2026-10-06"` for the repeat-publish semantics; the `post.published`
+payload remains `{ "postId": "post_123" }`. Retries of stored events retain their
+original payload and version. New subscriptions do not backfill existing posts,
+jobs or scans.
 
 ## Receiver verification
 

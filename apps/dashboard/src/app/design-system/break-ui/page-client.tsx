@@ -25,7 +25,6 @@ import {
 import { SIDEBAR_MIN_WIDTH } from "@/constants/nav";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import { cn } from "@/lib/utils";
-import type { ContentCollectionView } from "@/types/content/collection";
 import type {
   BreakUiDataset,
   BreakUiFixture,
@@ -234,13 +233,7 @@ function usePreviewWriteGuard() {
   }, []);
 }
 
-function CollectionsSample({
-  fixture,
-  view,
-}: {
-  fixture: BreakUiFixture;
-  view: ContentCollectionView;
-}) {
+function CollectionsSample({ fixture }: { fixture: BreakUiFixture }) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(
     1,
@@ -268,7 +261,6 @@ function CollectionsSample({
           ).length,
           setPage,
         }}
-        view={view}
       />
     </div>
   );
@@ -319,14 +311,7 @@ function BreakUiSamples({ dataset }: { dataset: BreakUiDataset }) {
             note="Content page, list view. Collections fixture with server pagination."
             title="Content · List"
           >
-            <CollectionsSample fixture={fixture} view="list" />
-          </Sample>
-          <Sample
-            id="content-grid"
-            note="Content page, grid view."
-            title="Content · Grid"
-          >
-            <CollectionsSample fixture={fixture} view="grid" />
+            <CollectionsSample fixture={fixture} />
           </Sample>
         </div>
       </OrganizationsProvider>

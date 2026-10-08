@@ -151,7 +151,7 @@ export function DashboardSidebar({
         className
       )}
     >
-      <SidebarHeader>
+      <SidebarHeader className="pt-px pb-0.5">
         <SidebarProjectSwitcher />
       </SidebarHeader>
       <SidebarContent>

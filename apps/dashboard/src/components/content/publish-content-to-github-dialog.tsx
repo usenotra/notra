@@ -20,6 +20,7 @@ import { GitHubPublishDialogFooter } from "@/components/content/github-publish-d
 import { GitHubPublishRecoveryAlert } from "@/components/content/github-publish-recovery-alert";
 import { GitHubPublishRepositoryField } from "@/components/content/github-publish-repository-field";
 import { GitHubPublishResultCard } from "@/components/content/github-publish-result-card";
+import { useGitHubPublishRepositorySelection } from "@/lib/hooks/use-github-publish-repository-selection";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   GitHubPublishDialogBodyProps,
@@ -27,12 +28,7 @@ import type {
 } from "@/types/content/detail";
 import type { ContentApiResponse } from "@/types/hooks/content";
 import { getGitHubPublishRecovery } from "@/utils/github-publish-recovery";
-import {
-  formatGitHubRepositoryLabel,
-  getGitHubPublishRepositoryLists,
-  isGitHubContentPublishingEnabled,
-  resolveGitHubPublishRepositoryId,
-} from "@/utils/github-publish-repositories";
+import { formatGitHubRepositoryLabel } from "@/utils/github-publish-repositories";
 import {
   readStoredGitHubPublishRepositoryId,
   writeStoredGitHubPublishRepositoryId,
@@ -110,29 +106,19 @@ export function PublishContentToGitHubDialog({
       readStoredGitHubPublishRepositoryId(organizationId) ??
       ""
   );
-  const contentLabel = contentType === "changelog" ? "changelog" : "blog post";
-
-  const integrationsQuery = useQuery(
-    dashboardOrpc.integrations.list.queryOptions({
-      input: { organizationId },
-      enabled: open,
-      staleTime: 5 * 60 * 1000,
-    })
-  );
-  const { connected, publishable: repositories } =
-    getGitHubPublishRepositoryLists(integrationsQuery.data?.integrations ?? []);
-  const integrationsLoadFailed =
-    integrationsQuery.isError && !integrationsQuery.data;
-  const selectedRepositoryId = resolveGitHubPublishRepositoryId(
+  const {
+    repositories,
+    selectedRepositoryId,
+    selectedRepository,
+    selectedPublishingEnabled,
+    fieldProps,
+  } = useGitHubPublishRepositorySelection({
+    organizationId,
+    contentType,
     repositoryId,
-    repositories
-  );
-  const selectedRepository = repositories.find(
-    (repository) => repository.id === selectedRepositoryId
-  );
-  const selectedPublishingEnabled = selectedRepository
-    ? isGitHubContentPublishingEnabled(selectedRepository, contentType)
-    : false;
+    enabled: open,
+  });
+  const { contentLabel } = fieldProps;
 
   const invalidateIntegrations = () => {
     queryClient.invalidateQueries({
@@ -282,19 +268,12 @@ export function PublishContentToGitHubDialog({
 
           <div className="min-w-0 space-y-4">
             <GitHubPublishDialogBody
-              contentLabel={contentLabel}
-              connectedRepositoryCount={connected.length}
-              integrationsLoadFailed={integrationsLoadFailed}
-              isLoadingIntegrations={integrationsQuery.isLoading}
+              {...fieldProps}
               isPublishing={publishMutation.isPending}
               onRepositoryChange={handleRepositoryChange}
-              onRetryIntegrations={() => integrationsQuery.refetch()}
               organizationSlug={organizationSlug}
               publishRecovery={publishRecovery}
               pullRequest={pullRequest}
-              repositories={repositories}
-              selectedPublishingEnabled={selectedPublishingEnabled}
-              selectedRepository={selectedRepository}
               title={title}
             />
           </div>

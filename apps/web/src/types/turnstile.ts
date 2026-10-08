@@ -6,6 +6,7 @@ interface TurnstileApi {
     options: {
       sitekey: string;
       action: string;
+      appearance: TurnstileAppearance;
       size: "flexible";
       callback: (token: string) => void;
       "expired-callback": () => void;
@@ -23,11 +24,18 @@ declare global {
   }
 }
 
-export interface ContactTurnstileHandle {
+/** "interaction-only" stays invisible unless Cloudflare needs a click. */
+type TurnstileAppearance = "always" | "execute" | "interaction-only";
+
+export interface TurnstileHandle {
   reset: () => void;
 }
 
-export interface ContactTurnstileProps {
+export interface TurnstileProps {
+  /** Checked again on the server, so a token only works for its own form. */
+  action: string;
+  appearance?: TurnstileAppearance;
+  failureMessage: string;
   onToken: (token: string) => void;
-  ref: Ref<ContactTurnstileHandle>;
+  ref?: Ref<TurnstileHandle>;
 }

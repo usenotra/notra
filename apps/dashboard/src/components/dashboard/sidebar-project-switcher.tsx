@@ -116,7 +116,7 @@ export function SidebarProjectSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuSkeleton showIcon />
+          <SidebarMenuSkeleton className="h-12" showIcon />
         </SidebarMenuItem>
       </SidebarMenu>
     );

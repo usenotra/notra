@@ -92,6 +92,7 @@ export interface PromptAnswerHeaderProps {
   active: GeoPromptResultSummary | null;
   view: GeoPromptReceiptView;
   onSelectEngine: (engine: string, direction: number) => void;
+  onPrefetchEngine: (engine: string) => void;
   onSelectView: (view: GeoPromptReceiptView) => void;
 }
 

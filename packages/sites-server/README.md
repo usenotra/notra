@@ -44,7 +44,7 @@ logs/{siteId}/{deploymentId}.log
 
 ## Build metrics and retained logs
 
-The telemetry table is included in the consolidated `0109_sites` migration.
+The telemetry table is included in the consolidated `0112_sites` migration.
 Apply that migration for a fresh rollout. Do not replay it on a database that
 already applied an earlier local Sites migration sequence; reconcile that
 database's migration history separately.

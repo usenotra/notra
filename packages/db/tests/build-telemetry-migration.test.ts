@@ -4,18 +4,18 @@ import { readFileSync } from "node:fs";
 test("telemetry remains deployment-owned within the consolidated Sites migration", () => {
   const prior = JSON.parse(
     readFileSync(
-      new URL("../migrations/meta/0108_snapshot.json", import.meta.url),
+      new URL("../migrations/meta/0111_snapshot.json", import.meta.url),
       "utf8"
     )
   );
   const current = JSON.parse(
     readFileSync(
-      new URL("../migrations/meta/0109_snapshot.json", import.meta.url),
+      new URL("../migrations/meta/0112_snapshot.json", import.meta.url),
       "utf8"
     )
   );
   const migration = readFileSync(
-    new URL("../migrations/0109_sites.sql", import.meta.url),
+    new URL("../migrations/0112_sites.sql", import.meta.url),
     "utf8"
   );
   expect(current.prevId).toBe(prior.id);
@@ -57,5 +57,5 @@ test("telemetry remains deployment-owned within the consolidated Sites migration
       "utf8"
     )
   );
-  expect(journal.entries.at(-1).tag).toBe("0109_sites");
+  expect(journal.entries.at(-1).tag).toBe("0112_sites");
 });

@@ -1,111 +1,127 @@
-import { Effect, Option, Stream } from "effect";
+import { Effect } from "effect";
 
-import { RECOVERY_BATCH_SIZE, RETENTION_DAYS } from "../constants/delivery";
-import { IdentifierRow, PipelineMetrics } from "../schemas/webhooks";
-import { queryRows } from "../services/database";
+import {
+  DUE_DELIVERIES_PER_SWEEP,
+  RECOVERY_BATCH_SIZE,
+  RETENTION_DAYS,
+} from "../constants/delivery";
+import { CountRow, DueDeliveryRow, PipelineMetrics } from "../schemas/webhooks";
+import { decodeRows, queryRows, WebhookDatabase } from "../services/database";
 import { WebhookQueues } from "../services/queue";
-import type { EventId } from "../types/webhooks";
+import type { SqlStatement } from "../types/services";
+import type { DueDeliveryRow as DueDelivery } from "../types/webhooks";
 
-export const emitMetrics = Effect.fn("webhooks.emitMetrics")(function* () {
-  const [metrics] = yield* queryRows(
-    PipelineMetrics,
-    `SELECT
-    (SELECT count(*) FROM webhook_deliveries WHERE status IN ('pending', 'retrying', 'sending'))::int AS "openDeliveries",
-    (SELECT count(*) FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now())::int AS "dueDeliveries",
-    (SELECT COALESCE(max(EXTRACT(EPOCH FROM (now() - created_at))), 0)::int FROM webhook_deliveries WHERE status IN ('pending', 'retrying')) AS "oldestOpenSeconds",
-    (SELECT count(*) FROM webhook_events WHERE dispatch_at <= now())::int AS "undispatchedEvents",
-    (SELECT COALESCE(max(EXTRACT(EPOCH FROM (now() - created_at))), 0)::int FROM webhook_events WHERE dispatch_at <= now()) AS "oldestUndispatchedSeconds",
-    (SELECT count(*) FROM webhook_attempts WHERE finished_at > now() - interval '1 minute' AND status_code BETWEEN 200 AND 299)::int AS "succeededLastMinute",
-    (SELECT count(*) FROM webhook_attempts WHERE finished_at > now() - interval '1 minute' AND (status_code IS NULL OR status_code < 200 OR status_code >= 300))::int AS "failedLastMinute"`,
-    []
-  );
-  if (metrics) {
-    yield* Effect.logInfo("Webhook pipeline metrics").pipe(
-      Effect.annotateLogs(metrics)
-    );
-  }
-});
-
-export const dispatchEvent = Effect.fn("webhooks.dispatchEvent")(function* (
-  eventId: EventId
-) {
-  const queues = yield* WebhookQueues;
-  yield* Stream.paginate("", (cursor: string) =>
-    queryRows(
-      IdentifierRow,
-      `SELECT id FROM webhook_deliveries WHERE event_id = $1 AND id > $2 AND status IN ('pending', 'retrying') AND next_attempt_at <= now() ORDER BY id LIMIT $3`,
-      [eventId, cursor, RECOVERY_BATCH_SIZE]
-    ).pipe(
-      Effect.map((rows) => {
-        const last = rows.at(-1);
-        return [
-          last === undefined ? [] : [rows],
-          last === undefined ? Option.none() : Option.some(last.id),
-        ] as const;
-      })
-    )
-  ).pipe(
-    Stream.runForEach((rows) => queues.deliveries(rows.map((row) => row.id)))
-  );
-  yield* queryRows(
-    IdentifierRow,
-    "UPDATE webhook_events SET dispatch_at = NULL WHERE id = $1 RETURNING id",
-    [eventId]
-  );
-});
-
-export const recover = Effect.fn("webhooks.recover")(function* () {
-  const queues = yield* WebhookQueues;
-  yield* queryRows(
-    IdentifierRow,
-    `WITH expired AS (
+const expireLeases: SqlStatement = {
+  sql: `WITH expired AS (
     UPDATE webhook_deliveries SET status = CASE WHEN attempt_count >= attempt_limit THEN 'failed' ELSE 'retrying' END,
       lease_token = NULL, lease_expires_at = NULL, next_attempt_at = now(), updated_at = now()
     WHERE status = 'sending' AND lease_expires_at < now() RETURNING id, attempt_count
   ), attempts AS (
     UPDATE webhook_attempts a SET finished_at = now(), error = 'lease_expired_outcome_unknown'
     FROM expired e WHERE a.delivery_id = e.id AND a.attempt_number = e.attempt_count AND a.finished_at IS NULL
-  ) SELECT id FROM expired`
+  ) SELECT count(*)::int AS count FROM expired`,
+  parameters: [],
+};
+
+const cancelOrphans: SqlStatement = {
+  sql: `WITH cancelled AS (
+    UPDATE webhook_deliveries d SET status = 'cancelled', updated_at = now()
+    WHERE status IN ('pending', 'retrying') AND NOT EXISTS (SELECT 1 FROM webhook_endpoints e WHERE e.id = d.endpoint_id AND e.enabled AND e.deleted_at IS NULL) RETURNING 1
+  ) SELECT count(*)::int AS count FROM cancelled`,
+  parameters: [],
+};
+
+// Deliveries are the source of truth for outstanding work, so an event only
+// needs to be marked dispatched to become eligible for retention cleanup.
+const markEventsDispatched: SqlStatement = {
+  sql: `WITH dispatched AS (
+    UPDATE webhook_events SET dispatch_at = NULL WHERE dispatch_at <= now() RETURNING 1
+  ) SELECT count(*)::int AS count FROM dispatched`,
+  parameters: [],
+};
+
+const removeExpiredEvents: SqlStatement = {
+  sql: `WITH removed AS (
+    DELETE FROM webhook_events WHERE id IN (
+      SELECT e.id FROM webhook_events e WHERE e.created_at < now() - ($1 * interval '1 day') AND e.dispatch_at IS NULL
+      AND NOT EXISTS (SELECT 1 FROM webhook_deliveries d WHERE d.event_id = e.id AND d.status IN ('pending', 'retrying', 'sending'))
+      ORDER BY e.created_at LIMIT $2
+    ) RETURNING 1
+  ) SELECT count(*)::int AS count FROM removed`,
+  parameters: [RETENTION_DAYS, RECOVERY_BATCH_SIZE],
+};
+
+// `next_attempt_at::text` keeps microsecond precision for the keyset cursor.
+const DUE_DELIVERY_COLUMNS = `SELECT id, next_attempt_at::text AS "dueAt" FROM webhook_deliveries
+    WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now()`;
+
+const selectDueDeliveries: SqlStatement = {
+  sql: `${DUE_DELIVERY_COLUMNS} ORDER BY next_attempt_at, id LIMIT $1`,
+  parameters: [DUE_DELIVERIES_PER_SWEEP],
+};
+
+const selectDueDeliveriesAfter = (cursor: DueDelivery) =>
+  queryRows(
+    DueDeliveryRow,
+    `${DUE_DELIVERY_COLUMNS} AND (next_attempt_at, id) > ($1::timestamptz, $2)
+    ORDER BY next_attempt_at, id LIMIT $3`,
+    [cursor.dueAt, cursor.id, DUE_DELIVERIES_PER_SWEEP]
   );
-  yield* queryRows(
-    IdentifierRow,
-    `UPDATE webhook_deliveries d SET status = 'cancelled', updated_at = now()
-    WHERE status IN ('pending', 'retrying') AND NOT EXISTS (SELECT 1 FROM webhook_endpoints e WHERE e.id = d.endpoint_id AND e.enabled AND e.deleted_at IS NULL) RETURNING id`
-  );
-  const events = yield* queryRows(
-    IdentifierRow,
-    `SELECT id FROM webhook_events WHERE dispatch_at <= now() ORDER BY dispatch_at, id LIMIT $1`,
-    [RECOVERY_BATCH_SIZE]
-  );
-  yield* Effect.forEach(
-    events,
-    (row) =>
-      Effect.gen(function* () {
-        yield* queues.event(row.id);
-        yield* queryRows(
-          IdentifierRow,
-          "UPDATE webhook_events SET dispatch_at = now() + interval '5 minutes' WHERE id = $1 AND dispatch_at IS NOT NULL RETURNING id",
-          [row.id]
-        );
-      }),
-    { concurrency: 5, discard: true }
-  );
-  const deliveries = yield* queryRows(
-    IdentifierRow,
-    `SELECT id FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now() ORDER BY attempt_count, next_attempt_at, id LIMIT $1`,
-    [RECOVERY_BATCH_SIZE]
-  );
-  yield* queues.deliveries(deliveries.map((row) => row.id));
+
+const selectMetrics: SqlStatement = {
+  sql: `SELECT
+    (SELECT count(*) FROM webhook_deliveries WHERE status IN ('pending', 'retrying', 'sending'))::int AS "openDeliveries",
+    (SELECT COALESCE(max(EXTRACT(EPOCH FROM (now() - created_at))), 0)::int FROM webhook_deliveries WHERE status IN ('pending', 'retrying')) AS "oldestOpenSeconds",
+    (SELECT count(*) FROM webhook_attempts WHERE finished_at > now() - interval '1 minute' AND status_code BETWEEN 200 AND 299)::int AS "succeededLastMinute",
+    (SELECT count(*) FROM webhook_attempts WHERE finished_at > now() - interval '1 minute' AND (status_code IS NULL OR status_code < 200 OR status_code >= 300))::int AS "failedLastMinute"`,
+  parameters: [],
+};
+
+const countOf = Effect.fn("webhooks.countOf")(function* (rows: unknown) {
+  const [row] = yield* decodeRows(CountRow, rows);
+  return row?.count ?? 0;
 });
 
-export const cleanup = Effect.fn("webhooks.cleanup")(function* () {
-  return yield* queryRows(
-    IdentifierRow,
-    `DELETE FROM webhook_events WHERE id IN (
-    SELECT e.id FROM webhook_events e WHERE e.created_at < now() - ($1 * interval '1 day') AND e.dispatch_at IS NULL
-    AND NOT EXISTS (SELECT 1 FROM webhook_deliveries d WHERE d.event_id = e.id AND d.status IN ('pending', 'retrying', 'sending'))
-    ORDER BY e.created_at LIMIT $2
-  ) RETURNING id`,
-    [RETENTION_DAYS, RECOVERY_BATCH_SIZE]
+/**
+ * The once-per-minute pass: recovers expired leases, cancels work for removed
+ * endpoints, retires old events and queues every due delivery. All database
+ * work is one transaction, so an idle pass costs a single Neon round trip.
+ */
+export const sweep = Effect.fn("webhooks.sweep")(function* () {
+  const database = yield* WebhookDatabase;
+  const queues = yield* WebhookQueues;
+  const [expired, cancelled, dispatched, removed, due, metrics] =
+    yield* database.transaction([
+      expireLeases,
+      cancelOrphans,
+      markEventsDispatched,
+      removeExpiredEvents,
+      selectDueDeliveries,
+      selectMetrics,
+    ]);
+  let page = yield* decodeRows(DueDeliveryRow, due);
+  let queuedDeliveries = 0;
+  // Pages past the transaction only exist during a backlog; queue each page
+  // before reading the next so no sweep caps how much work it submits.
+  while (page.length > 0) {
+    yield* queues.deliveries(page.map((row) => row.id));
+    queuedDeliveries += page.length;
+    const last = page.at(-1);
+    page =
+      last && page.length === DUE_DELIVERIES_PER_SWEEP
+        ? yield* selectDueDeliveriesAfter(last)
+        : [];
+  }
+  const [pipeline] = yield* decodeRows(PipelineMetrics, metrics);
+  const summary = {
+    expiredLeases: yield* countOf(expired),
+    cancelledDeliveries: yield* countOf(cancelled),
+    dispatchedEvents: yield* countOf(dispatched),
+    removedEvents: yield* countOf(removed),
+    queuedDeliveries,
+  };
+  yield* Effect.logInfo("Webhook pipeline metrics").pipe(
+    Effect.annotateLogs({ ...pipeline, ...summary })
   );
+  return summary;
 });

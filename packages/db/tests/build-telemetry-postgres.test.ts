@@ -68,7 +68,7 @@ if (!databaseUrl) {
       await pool.query(`CREATE SCHEMA "${scope}"`);
       for (const path of [
         "fixtures/sites-tenant-integrity.sql",
-        "../migrations/0109_sites.sql",
+        "../migrations/0112_sites.sql",
         "fixtures/sites-tenant-integrity-seed.sql",
       ]) {
         await pool.query(
