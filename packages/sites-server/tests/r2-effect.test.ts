@@ -85,16 +85,22 @@ test("R2 preserves missing objects, conditional failures, and raw SDK error iden
     Object.assign(new Error("missing"), { name: "NoSuchKey" })
   );
   expect(await r2GetText("missing")).toBeNull();
-  send.mockRejectedValueOnce(
-    new S3ServiceException({
-      name: "PreconditionFailed",
-      $fault: "client",
-      $metadata: { httpStatusCode: 412 },
-    })
-  );
+  const conflict = new S3ServiceException({
+    name: "PreconditionFailed",
+    $fault: "client",
+    $metadata: { httpStatusCode: 412 },
+  });
+  send.mockRejectedValueOnce(conflict);
   await expect(r2Put("key", "body")).rejects.toBeInstanceOf(
     R2PreconditionFailedError
   );
+  send.mockRejectedValueOnce(conflict);
+  expect(
+    await Effect.runPromise(Effect.result(r2PutEffect("key", "body")))
+  ).toMatchObject({
+    _tag: "Failure",
+    failure: expect.any(R2PreconditionFailedError),
+  });
   const error = new Error("SDK failure");
   for (const operation of [
     () => r2GetText("key"),
@@ -105,7 +111,7 @@ test("R2 preserves missing objects, conditional failures, and raw SDK error iden
     send.mockRejectedValueOnce(error);
     await expect(operation()).rejects.toBe(error);
   }
-  expect(send).toHaveBeenCalledTimes(7);
+  expect(send).toHaveBeenCalledTimes(8);
 });
 
 test("R2 preserves put conditionals and supplies the runtime abort signal", async () => {
@@ -133,24 +139,6 @@ test("R2 preserves put conditionals and supplies the runtime abort signal", asyn
     IfNoneMatch: "*",
   });
   expect(options).toEqual({ abortSignal: expect.any(AbortSignal) });
-});
-
-test("native R2 PUT exposes the same conditional failure class", async () => {
-  send.mockRejectedValueOnce(
-    new S3ServiceException({
-      name: "PreconditionFailed",
-      $fault: "client",
-      $metadata: { httpStatusCode: 412 },
-    })
-  );
-  const result = await Effect.runPromise(
-    Effect.result(r2PutEffect("key", "body"))
-  );
-  expect(result._tag).toBe("Failure");
-  if (result._tag === "Failure") {
-    expect(result.failure).toBeInstanceOf(R2PreconditionFailedError);
-  }
-  expect(send).toHaveBeenCalledTimes(1);
 });
 
 test("R2 paginates prefixes with delimiters and deletes pages sequentially in order", async () => {

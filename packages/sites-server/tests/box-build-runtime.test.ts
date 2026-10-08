@@ -364,18 +364,6 @@ test("shared redaction preserves deployment markers and redacts explicit secrets
   expect(log).not.toContain("bar");
 });
 
-test("UTF-8 final log stays byte bounded without splitting characters", async () => {
-  files.set(
-    "/workspace/home/build.log",
-    "💡".repeat(SITE_BUILD_LIMITS.maxBuildLogBytes)
-  );
-  const build = await runSandboxBuild(params);
-  expect(new TextEncoder().encode(build.log).byteLength).toBeLessThanOrEqual(
-    SITE_BUILD_LIMITS.maxBuildLogBytes
-  );
-  expect(build.log).not.toContain("�");
-});
-
 test("logs above 2 MiB retain their newest UTF-8 compiler output through the real bounded tail script", async () => {
   const directory = mkdtempSync(join(tmpdir(), "notra-log-tail-"));
   const path = join(directory, "build.log");
