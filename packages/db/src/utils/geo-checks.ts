@@ -288,6 +288,17 @@ function capturedWithin(window: GeoCheckWindow | undefined): SQL[] {
 const withoutPersonaRows = isNull(geoMentionChecks.personaId);
 const unnestedCompetitorBrand = sql`unnest(${geoMentionChecks.competitors}) as brand`;
 const competitorBrand = sql<string>`brand`;
+const projectGeoSettings = sql`${geoSettings} where ${geoSettings.projectId} = ${geoMentionChecks.projectId}`;
+const shareOfVoiceBrand = sql`(
+  select competitor.name from unnest(${geoMentionChecks.competitors}) as competitor(name)
+  where not exists (
+    select 1 from ${projectGeoSettings}
+    and lower(trim(competitor.name)) in (select lower(trim(own.name)) from unnest(array_prepend(${geoSettings.companyName}, ${geoSettings.aliases})) as own(name))
+  )
+  union all
+  select ${geoSettings.companyName} from ${projectGeoSettings}
+  and ${geoMentionChecks.mentioned} and trim(${geoSettings.companyName}) <> ''
+) as share_of_voice(brand)`;
 
 /** Views that list or compare individual tracked prompts. */
 const PROMPT_LEVEL_FILTERS: GeoCheckFilterOptions = {
@@ -700,7 +711,7 @@ export async function queryGeoCheckCompetitorShare(
         mentions: countChecks,
       })
       .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
+      .crossJoinLateral(shareOfVoiceBrand)
       .where(mentionFilters(scope, window, options))
       .groupBy(competitorBrand)
       .orderBy(sql`count(distinct ${checkUnit}) desc`)
@@ -832,7 +843,7 @@ export async function queryGeoCheckCompetitorShareAggregate(
         mentions: countChecks,
       })
       .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
+      .crossJoinLateral(shareOfVoiceBrand)
       .where(mentionFilters(scope, window))
       .groupBy(
         sql`grouping sets ((${competitorBrand}, ${day}), (${competitorBrand}))`
