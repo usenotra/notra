@@ -37,7 +37,7 @@ export function DailyTrendChart({ points, label }: DailyTrendChartProps) {
 
   return (
     <EChartsBarChart
-      animation={false}
+      barRadius={4}
       className="h-44 w-full"
       config={config}
       data={rows}
@@ -49,6 +49,7 @@ export function DailyTrendChart({ points, label }: DailyTrendChartProps) {
       <EChartsBarChart.Bar
         bufferBar={incompleteTail}
         dataKey={DAILY_TREND_SERIES_KEY}
+        variant="gradient"
       />
       <EChartsBarChart.Tooltip />
     </EChartsBarChart>

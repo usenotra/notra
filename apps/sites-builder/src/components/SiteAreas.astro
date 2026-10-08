@@ -1,0 +1,26 @@
+---
+import { AREA_DEFAULT_TITLES, THEME_AREAS } from "../constants/areas";
+import { areaHref, params } from "../lib/params";
+
+const sections = THEME_AREAS.map((area) => ({ area, label: AREA_DEFAULT_TITLES[area], href: areaHref(area), active: area === params.area }))
+  .filter((section) => section.href !== null);
+---
+
+{
+  sections.length > 1 && (
+    <nav aria-label="Sections" class="flex shrink-0 items-center gap-0.5 text-sm">
+      {sections.map((section) => (
+        <a
+          href={section.href}
+          aria-current={section.active ? "page" : undefined}
+          class:list={[
+            "flex h-7 items-center rounded-full px-2.5 transition-colors duration-150 ease-out",
+            section.active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          ]}
+        >
+          {section.label}
+        </a>
+      ))}
+    </nav>
+  )
+}

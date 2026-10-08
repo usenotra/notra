@@ -12,6 +12,7 @@ export type NavItemLabelKey =
   | "home"
   | "chat"
   | "content"
+  | "sites"
   | "analytics"
   | "feedback"
   | "brandIdentityTitle"
@@ -58,6 +59,7 @@ export interface NavPrimaryActionConfig {
 export interface NavVisibility {
   iris: boolean;
   analytics: boolean;
+  sites: boolean;
 }
 
 export interface NavListProps {
@@ -190,4 +192,8 @@ export interface NavRecentContentItemProps {
     status: PostStatus;
     title: string;
   };
+}
+
+export interface NavSiteProps {
+  slug: string;
 }

@@ -32,6 +32,8 @@ export interface UpdatePostRecordParams {
   markdown?: string;
   recommendations?: string | null;
   contentSubtype?: BlogPostSubtype | null;
+  /** Only update while the stored markdown still equals this value. */
+  expectedMarkdown?: string | null;
 }
 
 export interface UpdatePostRecordResult {

@@ -45,7 +45,7 @@ function TitleCard({
     <Root
       aria-disabled={disabled || undefined}
       className={cn(
-        "group relative isolate flex flex-col overflow-hidden rounded-lg border border-border/80 border-b-border/40 bg-muted/80",
+        "group relative isolate flex flex-col overflow-hidden rounded-2xl border border-shell-border bg-shell px-0.5 pb-0.5",
         disabled && "cursor-not-allowed",
         className
       )}
@@ -69,7 +69,7 @@ function TitleCard({
           {hoverBackground}
         </div>
       )}
-      <div className="flex min-h-10 items-center justify-between gap-4 px-4">
+      <div className="flex min-h-10 items-center justify-between gap-4 px-3.5">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {icon && (
             <div className="flex size-8 shrink-0 items-center justify-center text-muted-foreground [&_svg]:size-5">
@@ -84,24 +84,21 @@ function TitleCard({
           <div className="flex shrink-0 items-center gap-2">{action}</div>
         )}
       </div>
-      <div
-        className={cn(
-          "flex-1 rounded-t-lg border-border/60 border-t bg-background px-4 py-3",
-          contentClassName
-        )}
-      >
-        {children}
-      </div>
-      {footer && (
-        <div
-          className={cn(
-            "flex items-center justify-between gap-4 border-border/80 border-t bg-background px-4 py-3",
-            footerClassName
-          )}
-        >
-          {footer}
+      <div className="flex flex-1 flex-col overflow-hidden rounded-[14px] border border-border bg-background shadow-lift">
+        <div className={cn("flex-1 px-4 py-3", contentClassName)}>
+          {children}
         </div>
-      )}
+        {footer && (
+          <div
+            className={cn(
+              "flex items-center justify-between gap-4 border-border/80 border-t px-4 py-3",
+              footerClassName
+            )}
+          >
+            {footer}
+          </div>
+        )}
+      </div>
     </Root>
   );
 }

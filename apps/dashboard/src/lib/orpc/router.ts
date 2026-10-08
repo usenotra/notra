@@ -7,6 +7,7 @@ import { brandRouter } from "./routers/brand";
 import { chatRouter } from "./routers/chat";
 import { commentsRouter } from "./routers/comments";
 import { contentRouter } from "./routers/content";
+import { contentCalendarRouter } from "./routers/content-calendar";
 import { feedbackRouter } from "./routers/feedback";
 import { geoRouter } from "./routers/geo";
 import { githubRouter } from "./routers/github";
@@ -18,6 +19,7 @@ import { onboardingRouter } from "./routers/onboarding";
 import { organizationRouter } from "./routers/organization";
 import { outboundWebhooksRouter } from "./routers/outbound-webhooks";
 import { searchRouter } from "./routers/search";
+import { sitesRouter } from "./routers/sites";
 import { skillsRouter } from "./routers/skills";
 import { socialAccountsRouter } from "./routers/social-accounts";
 import { uploadRouter } from "./routers/upload";
@@ -35,10 +37,12 @@ export const dashboardRouter = {
   brand: brandRouter,
   chat: chatRouter,
   content: contentRouter,
+  contentCalendar: contentCalendarRouter,
   feedback: feedbackRouter,
   geo: geoRouter,
   github: githubRouter,
   iris: irisRouter,
+  sites: sitesRouter,
   integrations: integrationsRouter,
   logs: logsRouter,
   notifications: notificationsRouter,

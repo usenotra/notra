@@ -9,6 +9,7 @@ import {
 import type { GeoModelCatalogEntry } from "@notra/geo-core/types/geo";
 import {
   applyGeoZdrEngineFallback,
+  isGeoWebSearchEngine,
   sortKnownEngines,
 } from "@notra/geo-core/utils/geo-engines";
 import { geoModelsForProvider } from "@notra/geo-core/utils/geo-model-catalog";
@@ -30,6 +31,7 @@ import { useTranslations } from "use-intl";
 import { ZdrConsentDialog } from "@/components/billing/zdr-consent-dialog";
 import Link from "@/components/framework/link";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { NoWebSearchBadge } from "@/components/geo/no-web-search-badge";
 import {
   hasProviderWordmark,
   ProviderWordmark,
@@ -66,6 +68,7 @@ function GeoModelRow({
   revealTotal,
   revealed,
   showZdrState,
+  webSearch,
 }: {
   approved: boolean;
   checked: boolean;
@@ -77,6 +80,7 @@ function GeoModelRow({
   revealTotal?: number;
   revealed?: boolean;
   showZdrState: boolean;
+  webSearch: boolean;
 }) {
   const t = useTranslations("geo.geoEnginePicker");
   const reduceMotion = useReducedMotion();
@@ -112,6 +116,7 @@ function GeoModelRow({
         htmlFor={id}
       >
         <span className="min-w-0 text-xs">{model.label}</span>
+        {webSearch ? null : <NoWebSearchBadge />}
         {showZdrState && model.zdr === "none" ? (
           <span className="text-muted-foreground shrink-0 text-xs">
             {approved ? t("approvedWithoutZdr") : t("noZdrHost")}
@@ -742,6 +747,7 @@ function GeoEngineProviderRow({
             <GeoEngineProviderModels
               additionalModels={row.additionalModels}
               approvedNonZdrIds={approvedNonZdrIds}
+              catalog={catalog}
               disabled={disabled}
               id={id}
               lastSelected={lastSelected}
@@ -763,6 +769,7 @@ function GeoEngineProviderRow({
 function GeoEngineProviderModels({
   additionalModels,
   approvedNonZdrIds,
+  catalog,
   disabled,
   id,
   lastSelected,
@@ -790,6 +797,7 @@ function GeoEngineProviderModels({
             model={model}
             onCheckedChange={(next) => onToggleModel(model, next)}
             showZdrState={zdrActive}
+            webSearch={isGeoWebSearchEngine(catalog, model.id)}
           />
         );
       })}
@@ -822,6 +830,7 @@ function GeoEngineProviderModels({
                     revealIndex={modelIndex}
                     revealTotal={additionalModels.length}
                     showZdrState={zdrActive}
+                    webSearch={isGeoWebSearchEngine(catalog, model.id)}
                   />
                 );
               })}

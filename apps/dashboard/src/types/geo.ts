@@ -3,6 +3,10 @@ import type { GeoWriterBrief } from "@notra/ai/types/geo-writer";
 import type { GeoWriterSourceKind } from "@notra/db/types/geo-writer";
 import type {
   AiTrafficResponse,
+  WebAnalyticsOutcome,
+  WebAnalyticsResponse,
+  WebEngagement,
+  WebAnalyticsSource,
   GeoAnswerSource,
   GeoChangeEvent,
   GeoChangesSummary,
@@ -30,6 +34,7 @@ import type {
   GeoPresenceStatus,
   GeoProject,
   GeoPromptHistoryCheck,
+  GeoResolvedModelCatalog,
   GeoPromptIntent,
   GeoPromptReceiptView,
   GeoPromptResult,
@@ -54,7 +59,6 @@ import type {
   GeoTrafficSource,
   GeoTrafficSourceGroupDefinition,
   GeoTrafficTotals,
-  GeoTrafficTrendRow,
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
@@ -160,11 +164,11 @@ export interface TrafficPageViewProps {
   geoRange: GeoRangeControl;
   traffic: AiTrafficResponse | undefined;
   isTrafficPending: boolean;
-  inventoryPages: readonly GeoTrafficPage[];
   knownHosts: readonly string[];
   isPagesPending: boolean;
   trafficPages: readonly GeoTrafficPage[];
   ingestSetup: GeoIngestSetupResponse | undefined;
+  web: WebAnalyticsResponse | undefined;
 }
 
 export interface GeoTrafficSkeletonProps {
@@ -500,6 +504,13 @@ export interface SheetStatGridProps {
   stats: readonly SheetStat[];
 }
 
+export interface TrafficSheetHeroProps {
+  stats: readonly SheetStat[];
+  series: { day: string; value: number }[];
+  chartTitle: string;
+  chartLabel: string;
+}
+
 export type JourneyGroupSheetStat =
   | {
       key: "journeys" | "deepCrawls" | "entryPage" | "ofAllJourneys";
@@ -593,10 +604,11 @@ export interface DailyTrendChartProps {
   label: string;
 }
 
-export interface JourneyCountCellProps {
+export interface GeoCountCellProps {
   label: string;
-  journeys: number;
-  previousJourneys: number;
+  value: number;
+  previousValue?: number | null;
+  unavailableHint?: string;
 }
 
 export interface JourneyPathPillProps {
@@ -661,6 +673,7 @@ export interface AiTrafficCardProps {
   pages: readonly GeoTrafficPage[];
   settingsHref: string;
   isPending?: boolean;
+  showHero?: boolean;
 }
 
 export interface GeoTrafficPageSource {
@@ -683,10 +696,29 @@ export interface TrafficPageSourcesCellProps {
   group: GeoTrafficPageGroup;
 }
 
+export interface TrafficPageColumnLabels {
+  page: string;
+  sources: string;
+  visits: string;
+}
+
+export interface TrafficSourceMemberColumnLabels {
+  bot: string;
+  source: string;
+  purpose: string;
+  visits: string;
+  lastSeen: string;
+  purposeLabel: (category: string) => string;
+}
+
+export interface TrafficSourcePageColumnLabels {
+  page: string;
+  visits: string;
+}
+
 export interface TrafficPagesCardProps {
   pages: readonly GeoTrafficPage[];
   isPending?: boolean;
-  hosts?: readonly string[];
 }
 
 export interface TrafficPagesResultsProps {
@@ -696,10 +728,6 @@ export interface TrafficPagesResultsProps {
 }
 
 export interface TrafficPagesFiltersProps {
-  showHostFilter: boolean;
-  hostSelectValue: string;
-  hostOptions: readonly string[];
-  onHostChange: (value: string) => void;
   pathQuery: string;
   onPathQueryChange: (value: string) => void;
 }
@@ -947,6 +975,21 @@ export interface TrafficSourceSheetContentProps {
   pages: readonly GeoTrafficPage[];
 }
 
+export interface UseTrafficSourceColumnsOptions {
+  /**
+   * Daily series per row, keyed by `trafficGroupKey(band, key)`. Rows without
+   * a series show the visit count alone.
+   */
+  seriesByKey?: ReadonlyMap<string, { day: string; value: number }[]>;
+  /**
+   * Rows are single bots of one source rather than source groups: the name
+   * drops the bot count and the purpose is one plain badge.
+   */
+  rowsAreBots?: boolean;
+  /** Replaces the first column's header, e.g. with a titled count. */
+  sourceHeader?: ReactNode;
+}
+
 export interface TrafficSourceGroupCellProps {
   group: GeoTrafficSourceGroup;
 }
@@ -1044,7 +1087,7 @@ export type GeoSettingsFormSection = "brand" | "languages" | "models";
 export interface GeoSettingsFormProps {
   organizationId: string;
   settings: GeoSettings | null;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   promptCount?: number;
   hideHeader?: boolean;
   section?: GeoSettingsFormSection;
@@ -1073,7 +1116,7 @@ export interface GeoLanguagesSectionProps {
 
 export interface GeoModelsSectionProps {
   id: string;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   engines: string[];
   onEnginesChange: (values: string[]) => void;
   enforceZdr: boolean;
@@ -1104,7 +1147,7 @@ export interface GeoSettingsAutosaveInput {
   scanIntervalHours: number;
   canEnforceZdr: boolean;
   planLoading: boolean;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   settings: GeoSettings | null;
   brandDomain: string | null;
 }
@@ -1125,7 +1168,7 @@ export interface GeoTagListProps {
 }
 
 export interface GeoEnginePickerProps {
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   selected: string[];
   onChange: (values: string[]) => void;
   enforceZdr: boolean;
@@ -1143,7 +1186,7 @@ export interface GeoEnginePickerProps {
 }
 
 export interface GeoEngineProviderListProps {
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   expanded: ReadonlySet<string>;
   id: string;
@@ -1166,7 +1209,7 @@ export interface GeoEngineProviderListProps {
 
 export interface GeoEngineProviderRowProps {
   approvedNonZdrIds: ReadonlySet<string>;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   expanded: boolean;
   hiddenCount: number;
@@ -1190,6 +1233,7 @@ export interface GeoEngineProviderRowProps {
 export interface GeoEngineProviderModelsProps {
   additionalModels: readonly GeoModelCatalogEntry[];
   approvedNonZdrIds: ReadonlySet<string>;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   id: string;
   lastSelected: boolean;
@@ -1698,10 +1742,16 @@ export interface TrafficTrendMetric {
 export interface TrafficHeroProps {
   totals: GeoTrafficTotals;
   previousTotals: GeoTrafficTotals | null;
-  rows: readonly GeoTrafficTrendRow[];
+  days: readonly string[];
   groups: readonly GeoTrafficSourceGroup[];
   points: readonly GeoTrafficPoint[];
   settingsHref: string;
+}
+
+export interface TrafficZoomChipProps {
+  rows: readonly { day: string }[];
+  zoomed: boolean;
+  onReset: () => void;
 }
 
 export interface TrafficHeroMetricProps {
@@ -1832,4 +1882,64 @@ export interface PromptTranslationTextProps {
   translating: boolean;
   onEdit: () => void;
   onReset: () => void;
+}
+
+export interface WebTrendShare {
+  people: number;
+  agents: number;
+}
+
+export interface WebTrendRow {
+  day: string;
+  rawDay: string;
+  people: number;
+  agents: number;
+  [key: string]: string | number;
+}
+
+export interface WebVisitorsSectionProps {
+  web: WebAnalyticsResponse;
+  traffic: AiTrafficResponse | undefined;
+  range?: GeoRangeQuery;
+  /** Notra Sites only: visible time per view, replaces the AI-referred metric. */
+  engagement?: WebEngagement;
+}
+
+export interface WebMetricProps {
+  label: string;
+  value: number;
+  previous: number;
+  /** Durations are in seconds and skip the delta until both periods have data. */
+  format?: "count" | "duration";
+}
+
+export interface WebOutcomesTableProps {
+  outcomes: readonly WebAnalyticsOutcome[];
+}
+
+export interface WebReferrerIconProps {
+  source: WebAnalyticsSource;
+}
+
+export interface WebBreakdownRow {
+  key: string;
+  label: ReactNode;
+  sortLabel: string;
+  value: number;
+  previous?: number | null;
+  fromAi?: number;
+  avgSeconds?: number | null;
+}
+
+export interface WebBreakdownTableProps {
+  title: string;
+  nameHeader: string;
+  valueHeader: string;
+  rows: readonly WebBreakdownRow[];
+  showFromAi?: boolean;
+  showAvgTime?: boolean;
+}
+
+export interface TrafficDomainSelectProps {
+  hosts: readonly string[];
 }

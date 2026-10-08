@@ -1,0 +1,31 @@
+---
+import type { BannerProps as Props } from "../types/banner";
+import Icon from "./Icon.astro";
+
+const { banner } = Astro.props;
+---
+
+<div id="banner" data-site-banner class="site-banner relative text-sm" style={`--banner-light:${banner.light};--banner-dark:${banner.dark};--banner-foreground:${banner.foreground}`}>
+  <div class:list={["mx-auto flex min-h-10 items-center justify-center px-5 py-2 text-center sm:px-6", banner.dismissible && "pr-12"]}>
+    <p class="banner-content text-pretty" set:html={banner.html} />
+  </div>
+  {
+    banner.dismissible && (
+      <button type="button" data-banner-dismiss={banner.storageKey} aria-label="Dismiss announcement" class="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md opacity-80 transition-opacity duration-150 hover:opacity-100">
+        <Icon name="close" size={16} />
+      </button>
+    )
+  }
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-banner-dismiss]")) {
+    button.addEventListener("click", () => {
+      const key = button.dataset.bannerDismiss;
+      if (key) {
+        localStorage.setItem(key, "1");
+      }
+      document.documentElement.toggleAttribute("data-banner-dismissed", true);
+    });
+  }
+</script>

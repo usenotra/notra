@@ -24,7 +24,7 @@ docolin:
   next: ./types.mdx
 ---
 
-Notra uses page-based pagination on the list endpoints that can grow without bound. Each of them takes `page` and `limit` query parameters and returns a `pagination` object you can build paging controls from.
+Notra uses page-based pagination on the list endpoints that can grow without bound. Each takes `page` and `limit` query parameters and returns a `pagination` object for building paging controls.
 
 ## Paginated endpoints
 
@@ -34,23 +34,23 @@ Notra uses page-based pagination on the list endpoints that can grow without bou
 | `GET /v1/feedback` | 25 | 100 | `feedback` |
 | `GET /v1/projects/{projectId}/geo/scans` | 20 | 100 | `scans` |
 
-Other list endpoints are not paginated. Brand identities, integrations, schedules, event triggers, chats, skills, GEO projects, prompts, sequences, competitors and briefs return the full list. GEO traffic endpoints (`traffic/log`, `traffic/journeys`, `traffic/pages`) and `GET /v2/agent-chats` accept a `limit` only and return the most recent items. Visibility and traffic reads are windowed by `days` or `from`/`to` instead.
+Other list endpoints are not paginated, so brand identities, integrations, schedules, event triggers, chats, skills, GEO projects, prompts, sequences, competitors and briefs return the full list. GEO traffic endpoints (`traffic/log`, `traffic/journeys`, `traffic/pages`) and `GET /v2/agent-chats` accept a `limit` only and return the most recent items. Visibility and traffic reads use a `days` or `from`/`to` window instead.
 
-## Query Parameters
+## Query parameters
 
 <ParamField query="limit" type="integer" default="10">
-  Items per page. **Range:** 1 to 100. The default depends on the endpoint (see the table above).
+  Items per page. **Range:** 1 to 100. The default depends on the endpoint, as the table above shows.
 </ParamField>
 
 <ParamField query="page" type="integer" default="1">
-  The page number to retrieve. Pages start at 1.
+  The page number to retrieve, starting at 1.
 </ParamField>
 
-Out-of-range values are rejected rather than clamped: `limit=500` or `page=0` returns `400` with an `error` such as `limit: Too big: expected number to be <=100`.
+The API rejects out-of-range values instead of clamping them, so `limit=500` or `page=0` returns `400` with an `error` such as `limit: Too big: expected number to be <=100`.
 
 `GET /v1/posts` also accepts `sort` (`asc` or `desc` by creation date, default `desc`) and the comma-separated filters `status`, `contentType` and `brandIdentityId`. `GET /v1/feedback` accepts `status`, `kind` and `projectId`.
 
-## Pagination Response
+## Pagination response
 
 Every paginated response includes a `pagination` object:
 
@@ -75,20 +75,20 @@ Every paginated response includes a `pagination` object:
     </ResponseField>
 
     <ResponseField name="totalPages" type="integer">
-      The total number of pages. Always at least `1`, even when there are no items.
+      The total number of pages, which is always at least `1`, even when there are no items.
     </ResponseField>
 
     <ResponseField name="totalItems" type="integer">
-      The total number of items across all pages after filters are applied.
+      The total number of items across all pages after the API applies filters.
     </ResponseField>
 
   </Expandable>
 </ResponseField>
 
-## Request Examples
+## Request examples
 
 <Tabs>
-<Tab title="Default Pagination">
+<Tab title="Default pagination">
 Fetch the first page with the default limit (`10`):
 
 <CodeGroup>
@@ -104,7 +104,7 @@ const result = await notra.content.listPosts();
 
 </Tab>
 
-<Tab title="Custom Limit">
+<Tab title="Custom limit">
 Fetch 5 items per page:
 
 <CodeGroup>
@@ -122,7 +122,7 @@ const result = await notra.content.listPosts({
 
 </Tab>
 
-<Tab title="Specific Page">
+<Tab title="Specific page">
 Fetch page 2 with 5 items per page:
 
 <CodeGroup>
@@ -152,9 +152,9 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 </Tab>
 </Tabs>
 
-## Building Pagination Controls
+## Building pagination controls
 
-Use the pagination object to build navigation controls:
+Build navigation controls from the pagination object:
 
 <CodeGroup>
 ```typescript fetch
@@ -251,42 +251,41 @@ const itemCount = `${pagination.totalItems} total items`;
 ```
 </ResponseExample>
 
-## Best Practices
+## Best practices
 
 - Use a distinct cache key for each combination of `page`, `limit`, `sort` and filters.
-- Invalidate paginated list caches after post updates, deletes, and completed generation jobs.
+- Invalidate paginated list caches after post updates, deletes and completed generation jobs.
 - For a fuller strategy, see [Caching](/api/caching).
 
 <Tip>
-  **Performance:** Use smaller page sizes (5 to 20 items), especially for mobile
-  clients.
+  Use smaller page sizes (5 to 20 items), especially for mobile clients.
 </Tip>
 
 <Tip>
-  **Empty states:** Always handle an empty items array in your UI.
+  Always handle an empty items array in your UI.
 </Tip>
 
 <Note>
-  **Navigation:** Use `nextPage` and `previousPage` to enable or disable buttons.
-  These values are `null` when movement is not possible.
+  Use `nextPage` and `previousPage` to enable or disable navigation buttons,
+  since each is `null` when there is no page in that direction.
 </Note>
 
-## Edge Cases
+## Edge cases
 
 <AccordionGroup>
 <Accordion title="Page past the end">
-  Requesting a page beyond `totalPages` is not an error. The API returns `200` with an empty items array, `nextPage: null` and `previousPage` set to the page before the one you asked for. Stop paging when `nextPage` is `null` rather than guessing page numbers.
+  Requesting a page beyond `totalPages` is not an error, and the API returns `200` with an empty items array, `nextPage: null` and `previousPage` set to the page before the one you asked for. Stop paging when `nextPage` is `null` instead of guessing page numbers.
 </Accordion>
 
 <Accordion title="Invalid limit or page">
-  Values outside the allowed range are rejected with `400` and an `error` message naming the parameter. Non-numeric values fail the same way. Nothing is silently clamped.
+  The API rejects values outside the allowed range with `400` and an `error` message that names the parameter. Non-numeric values fail the same way, and the API never clamps values.
 </Accordion>
 
 <Accordion title="Empty datasets">
-  When there are no items, `totalItems` is `0`, `totalPages` is `1`, the items array is empty, and both `nextPage` and `previousPage` are `null`.
+  When there are no items, `totalItems` is `0`, `totalPages` is `1`, the items array is empty and both `nextPage` and `previousPage` are `null`.
 </Accordion>
 
 <Accordion title="Filters and totals">
-  `totalItems` and `totalPages` reflect the filtered result set. On `GET /v1/posts`, omitting `status` returns only `published` posts; pass `status=draft,published` to count drafts too.
+  `totalItems` and `totalPages` reflect the filtered result set. On `GET /v1/posts`, omitting `status` returns only `published` posts, so pass `status=draft,published` to count drafts too.
 </Accordion>
 </AccordionGroup>

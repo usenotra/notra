@@ -1,0 +1,10 @@
+---
+import type { StepProps as Props } from "../types/builtins";
+
+const { title } = Astro.props;
+---
+
+<li class="step relative pl-9 [counter-increment:step] before:absolute before:top-0 before:left-0 before:flex before:size-6 before:items-center before:justify-center before:rounded-full before:bg-muted before:text-xs before:font-medium before:text-muted-foreground before:tabular-nums before:content-[counter(step)]">
+  {title && <p class="leading-6 font-medium">{title}</p>}
+  <div class="mt-1 text-[0.9375rem] leading-relaxed text-muted-foreground [&>p]:my-0 [&>p+p]:mt-2"><slot /></div>
+</li>

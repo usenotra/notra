@@ -1,0 +1,50 @@
+---
+title: "Share of voice"
+description: "Share of voice compares how often engines mention your brand with how often they mention each tracked competitor."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/metrics/share-of-voice
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Share of voice puts your mentions next to your competitors'. Mention rate tells you whether you show up at all, while share of voice tells you whether you show up more or less often than the brands you compete with.
+
+<img
+  src="/images/geo/share-of-voice-light.webp"
+  alt="Share of voice table with your brand and competitors"
+  className="block dark:hidden rounded-lg border"
+/>
+<img
+  src="/images/geo/share-of-voice-dark.webp"
+  alt="Share of voice table with your brand and competitors"
+  className="hidden dark:block rounded-lg border"
+/>
+
+## How it is calculated
+
+Share of voice = a brand's mentions / mentions of every brand the engines named over the selected range, including yours and brands you don't track. Your brand counts once per answer that mentions it, which is the same rule every other brand follows.
+
+- The total includes brands you don't track, so your share is measured against everyone engines recommend, not only your selected competitors.
+- The dashboard breaks out the top five brands by name and groups the rest under **Other brands**. You can start tracking an untracked brand straight from the table.
+- [Tracked competitors](/geo/competitors) with synonyms get their name variants merged into one row, so keep the competitor list complete.
+
+## Where to find it
+
+- **Share of voice** donut and table on the GEO **Overview** page and the Competitors page.
+
+<Visibility for="agents">
+
+- `GET /v1/projects/{projectId}/geo/visibility/competitor-share`.
+
+</Visibility>
+
+## What counts as a mention
+
+A brand counts once per answer that names it, no matter how many times the answer repeats it. The judge matches names and synonyms, and the dashboard merges saved names onto your current competitor list, so adding a synonym later also groups older mentions under the right competitor.

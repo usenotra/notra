@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type RightPanelId = "agent" | "content";
+export type RightPanelId = "agent" | "content" | "preview";
 
 export interface RightPanelContextValue {
   active: RightPanelId | null;
@@ -15,4 +15,6 @@ export interface RightPanelContextValue {
 export interface RightPanelProps {
   id: RightPanelId;
   children: ReactNode;
+  /** `wide` docks at reading width for document previews. */
+  size?: "default" | "wide";
 }

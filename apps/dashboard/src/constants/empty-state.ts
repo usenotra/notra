@@ -17,6 +17,7 @@ export const EMPTY_STATE_TABLE_COLUMNS = {
   shelf: [220, 72, 64, 88, 120],
   feedback: [220, 56, 64, 88, 56],
   searchConsole: [220, 72, 96, 72],
+  sites: [200, 160, 88, 72],
 } as const;
 
 export const EMPTY_STATE_TABLE_ROWS = 6;

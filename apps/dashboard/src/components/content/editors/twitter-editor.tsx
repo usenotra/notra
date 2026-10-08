@@ -98,6 +98,9 @@ export function TwitterEditor({
               }
             }}
             onKeyDown={(e) => {
+              if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) {
+                return;
+              }
               if (e.key === "Enter") {
                 e.preventDefault();
                 titleInputRef.current?.blur();

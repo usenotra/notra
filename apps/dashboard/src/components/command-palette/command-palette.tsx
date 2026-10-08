@@ -43,6 +43,8 @@ import { useOrganizationsContext } from "@/components/providers/organization-pro
 import {
   COMMAND_ROUTE_LABEL_KEYS,
   COMMAND_SECTION_LABEL_KEYS,
+  COMMAND_ROUTES,
+  COMMAND_SECTIONS,
 } from "@/constants/command-palette";
 import { COMMAND_PALETTE_AI_ERROR_ACTION } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -66,16 +68,14 @@ import type {
   EntityHitsBySection,
 } from "@/types/components/command-palette";
 import type { CommonTranslator } from "@/types/i18n";
+import {
+  isCommandRouteAvailable,
+  isCommandRouteVisible,
+} from "@/utils/command-palette";
 import { truncateSnippet } from "@/utils/format";
 import { isGeoDashboardPath, withGeoProject } from "@/utils/geo-paths";
 
 import { useCommandPalette } from "./command-palette-context";
-import {
-  COMMAND_ROUTES,
-  COMMAND_SECTIONS,
-  isCommandRouteAvailable,
-  isCommandRouteVisible,
-} from "./registry";
 
 const APPLE_PLATFORM_PATTERN = /Mac|iPhone|iPad|iPod/i;
 const SEARCH_DEBOUNCE_MS = 300;

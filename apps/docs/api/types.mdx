@@ -1,5 +1,5 @@
 ---
-title: "TypeScript Types"
+title: "TypeScript types"
 description: "TypeScript type definitions and Zod schemas for Notra API post responses and errors."
 authors:
   - handle: dominik
@@ -26,7 +26,7 @@ docolin:
 
 ## Using the SDK
 
-If you're using the `@usenotra/sdk` package, types are already included. Import them directly:
+The `@usenotra/sdk` package includes its types, so you can import them directly:
 
 ```typescript
 import type {
@@ -37,10 +37,10 @@ import type {
 ```
 
 <Tip>
-  The SDK ships with full type definitions, so there is no need to maintain your own. The types below are only needed if you're calling the API with raw `fetch`.
+  The SDK ships with full type definitions, so you do not need to maintain your own, and you only need the types below if you call the API with raw `fetch`.
 </Tip>
 
-For any endpoint, including the GEO group that the SDK does not cover yet, the [OpenAPI document](https://api.usenotra.com/openapi.json) is the source of truth. Tools such as `openapi-typescript` can turn it into a complete set of types.
+For any endpoint, including the GEO group that the SDK does not cover yet, the [OpenAPI document](https://api.usenotra.com/openapi.json) is the source of truth, and tools such as `openapi-typescript` can turn it into a complete set of types.
 
 ---
 
@@ -83,7 +83,7 @@ const updateResponse = await fetch(
 const updateData: NotraPostUpdateResponse = await updateResponse.json();
 ```
 
-### Type Definitions
+### Type definitions
 
 Copy these types into your project:
 
@@ -178,9 +178,14 @@ export type NotraRateLimitErrorResponse = {
   Copy these type definitions into a `types/notra.ts` file in your project.
 </Tip>
 
-### Zod Schemas
+### Zod schemas
 
-For runtime validation, you can use these Zod schemas. The request limits mirror the API: titles up to 120 characters, slugs up to 160 characters of lowercase letters, numbers and hyphens, markdown up to 100,000 characters, and at least one field per update.
+Use these Zod schemas for runtime validation. Their request limits match the API:
+
+- Titles up to 120 characters.
+- Slugs up to 160 characters of lowercase letters, numbers and hyphens.
+- Markdown up to 100,000 characters.
+- At least one field per update.
 
 ```typescript
 import * as z from "zod";

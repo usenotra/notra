@@ -1,9 +1,11 @@
 import { AiCreditsDepletedEmail } from "@notra/email/emails/ai-credits-depleted";
-import { DailySummaryEmail } from "@notra/email/emails/daily-summary";
 import { FeedbackEmail } from "@notra/email/emails/feedback";
 import { ScheduledContentCreatedEmail } from "@notra/email/emails/schedule-content-created";
 import { ScheduledContentFailedEmail } from "@notra/email/emails/schedule-content-failed";
 import { ScheduledContentSkippedEmail } from "@notra/email/emails/schedule-content-skipped";
+import { ScheduledPublicationFailedEmail } from "@notra/email/emails/scheduled-publication-failed";
+import { VisibilityDropEmail } from "@notra/email/emails/visibility-drop";
+import { WeeklySummaryEmail } from "@notra/email/emails/weekly-summary";
 import { WelcomeEmail } from "@notra/email/emails/welcome";
 import { WorkflowPausedEmail } from "@notra/email/emails/workflow-paused";
 import { sendBrewEmail } from "@notra/email/utils/brew";
@@ -12,11 +14,13 @@ import { FEEDBACK_SENTIMENT_META } from "@notra/email/utils/feedback";
 
 import type {
   SendAiCreditsDepletedEmailProps,
-  SendDailySummaryEmailProps,
+  SendVisibilityDropEmailProps,
+  SendWeeklySummaryEmailProps,
   SendFeedbackEmailProps,
   SendScheduledContentCreatedEmailProps,
   SendScheduledContentFailedEmailProps,
   SendScheduledContentSkippedEmailProps,
+  SendScheduledPublicationFailedEmailProps,
   SendWorkflowPausedEmailProps,
 } from "@/types/email/send";
 
@@ -55,6 +59,22 @@ export async function sendScheduledContentFailedEmail({
       settingsLink,
     }),
     idempotencyKey: digestBatchKey,
+  });
+}
+
+export async function sendScheduledPublicationFailedEmail({
+  recipientEmail,
+  failureKey,
+  ...props
+}: SendScheduledPublicationFailedEmailProps) {
+  // Shares the scheduled-content failure trigger: same audience and setting.
+  return sendBrewEmail({
+    category: "schedule-content-failed",
+    to: recipientEmail,
+    subject: `"${props.postTitle}" could not be published`,
+    react: ScheduledPublicationFailedEmail(props),
+    // One email per failure and recipient, however often the step retries.
+    idempotencyKey: `scheduled-publication:${failureKey}:${recipientEmail}`,
   });
 }
 
@@ -213,41 +233,32 @@ export async function sendScheduledContentCreatedEmail({
   });
 }
 
-export async function sendDailySummaryEmail({
+export async function sendWeeklySummaryEmail({
   recipientEmail,
-  organizationName,
-  organizationSlug,
-  dateLabel,
-  headline,
-  mentionRateLabel,
-  mentionRateDeltaLabel,
-  scansCompleted,
-  gained,
-  lost,
-  items,
-  remainingCount,
-  dashboardLink,
-  dateKey,
-}: SendDailySummaryEmailProps) {
+  weekKey,
+  ...props
+}: SendWeeklySummaryEmailProps) {
   return sendBrewEmail({
+    // Same Brew trigger the daily recap used; renaming it needs brew:setup.
     category: "daily-summary",
     to: recipientEmail,
     // The headline goes in the preview text; long subjects get truncated.
-    subject: `GEO recap for ${organizationName}, ${dateLabel}`,
-    react: DailySummaryEmail({
-      organizationName,
-      organizationSlug,
-      dateLabel,
-      headline,
-      mentionRateLabel,
-      mentionRateDeltaLabel,
-      scansCompleted,
-      gained,
-      lost,
-      items,
-      remainingCount,
-      dashboardLink,
-    }),
-    idempotencyKey: `${recipientEmail}:${organizationSlug}:${dateKey}`,
+    subject: `Weekly GEO recap for ${props.organizationName}, ${props.weekLabel}`,
+    react: WeeklySummaryEmail(props),
+    idempotencyKey: `${recipientEmail}:${props.organizationSlug}:week:${weekKey}`,
+  });
+}
+
+export async function sendVisibilityDropEmail({
+  recipientEmail,
+  dateKey,
+  ...props
+}: SendVisibilityDropEmailProps) {
+  return sendBrewEmail({
+    category: "daily-summary",
+    to: recipientEmail,
+    subject: `AI visibility dropped for ${props.organizationName}`,
+    react: VisibilityDropEmail(props),
+    idempotencyKey: `${recipientEmail}:${props.organizationSlug}:drop:${dateKey}`,
   });
 }

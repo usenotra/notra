@@ -699,12 +699,16 @@ export function PromptDetailDialog({
   const scanControls = useGeoScanControls();
   const resolvedOrganizationId = organizationId ?? activeOrganization?.id ?? "";
   const [row, releaseRow] = useRetainedValue(rowProp);
+  // Callers clear the engine with the row; keep it until the exit finishes,
+  // or the closing sheet swaps engines mid-slide.
+  const [engine, releaseEngine] = useRetainedValue(initialEngine ?? null);
 
   const content = row ? (
     <Sheet
       onOpenChange={onOpenChange}
       onOpenChangeComplete={(nextOpen) => {
         releaseRow(nextOpen);
+        releaseEngine(nextOpen);
         onOpenChangeComplete?.(nextOpen);
       }}
       open={open}
@@ -712,7 +716,7 @@ export function PromptDetailDialog({
       <PromptAnswerSheetContent>
         <PromptAnswerPage
           onPrepareScan={() => onOpenChange(false)}
-          initialEngine={initialEngine}
+          initialEngine={engine}
           initialLanguage={initialLanguage}
           scanId={scanId}
           isScanning={isScanning}

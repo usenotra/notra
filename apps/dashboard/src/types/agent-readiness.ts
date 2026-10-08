@@ -1,15 +1,21 @@
-import type { IconSvgElement } from "@hugeicons/react";
-import type { AgentReadinessIssue } from "@notra/db/types/agent-readiness";
 import type {
-  AgentReadinessIssueGroups,
+  AgentReadinessIssue,
+  AgentReadinessTierBreakdown,
+} from "@notra/db/types/agent-readiness";
+import type {
+  AgentReadinessChangedCheck,
+  AgentReadinessComparison,
+  AgentReadinessIssueChange,
   AgentReadinessReportView,
   AgentReadinessResponse,
 } from "@notra/geo-core/types/agent-readiness";
 
+import type { AGENT_READINESS_CHANGE_ROW_ORDER } from "@/constants/agent-readiness";
 import type { AgentReadinessFixCopyKind } from "@/types/analytics/geo-events";
 
 export interface AgentReadinessScoreCardProps {
   report: AgentReadinessReportView;
+  targetUrl: string;
   previousScore: number | null;
   isScanning: boolean;
   onRescan: () => void;
@@ -22,6 +28,31 @@ export interface AgentReadinessScanningNoticeProps {
 export interface AgentReadinessChecklistProps {
   targetUrl: string;
   issues: AgentReadinessIssue[];
+  comparison: AgentReadinessComparison | null;
+}
+
+export interface AgentReadinessChangesCardProps {
+  comparison: AgentReadinessComparison | null;
+}
+
+export type AgentReadinessChangeKind =
+  (typeof AGENT_READINESS_CHANGE_ROW_ORDER)[number];
+
+export interface AgentReadinessChangeRow {
+  check: AgentReadinessChangedCheck;
+  kind: AgentReadinessChangeKind;
+}
+
+export interface AgentReadinessChangeCellProps {
+  row: AgentReadinessChangeRow;
+}
+
+export interface AgentReadinessResultLabelProps {
+  result: AgentReadinessIssue["result"] | null;
+}
+
+export interface AgentReadinessChangeBadgeProps {
+  change: AgentReadinessIssueChange | undefined;
 }
 
 export interface AgentReadinessScanDialogProps {
@@ -50,20 +81,13 @@ export interface AgentReadinessResultBadgeProps {
   result: AgentReadinessIssue["result"];
 }
 
-export interface AgentReadinessChecklistPromptActionsProps {
-  targetUrl: string;
-  groups: AgentReadinessIssueGroups;
-}
-
-export interface AgentReadinessIssueEntryProps {
+export interface AgentReadinessIssueRowProps {
   issue: AgentReadinessIssue;
-  index: number;
+  change: AgentReadinessIssueChange | undefined;
   targetUrl: string;
 }
 
 export interface AgentReadinessSectionHeaderProps {
-  icon: IconSvgElement;
-  iconClassName: string;
   label: string;
   hint: string;
   count: number;
@@ -74,12 +98,16 @@ export interface AgentReadinessScoreDeltaProps {
   previousScore: number | null;
 }
 
-export interface AgentReadinessBreakdownTileProps {
+export interface AgentReadinessTierRowProps {
   label: string;
-  value: string;
-  hint: string;
-  passing?: number;
-  total?: number;
+  tier: AgentReadinessTierBreakdown;
+}
+
+export interface AgentReadinessNextStepProps {
+  issues: AgentReadinessIssue[];
+  targetUrl: string;
+  /** Null when the report has no score breakdown. */
+  mustDoOpenPoints: number | null;
 }
 
 export interface AgentReadinessScoreGaugeProps {

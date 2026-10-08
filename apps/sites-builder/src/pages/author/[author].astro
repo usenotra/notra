@@ -1,0 +1,75 @@
+---
+import type { AuthorPageProps as Props } from "../../types/authors";
+import AuthorAvatar from "../../components/AuthorAvatar.astro";
+import Icon from "../../components/Icon.astro";
+import PostCard from "../../components/PostCard.astro";
+import Base from "../../layouts/Base.astro";
+import { allAuthors, authorsOf, personNode } from "../../lib/authors";
+import { getBlogEntries } from "../../lib/entries";
+import { absoluteUrl, config, href, params } from "../../lib/params";
+import { breadcrumbs, pageTitle } from "../../lib/seo";
+
+export async function getStaticPaths() {
+  if (params.area !== "blog") {
+    return [];
+  }
+  const entries = await getBlogEntries();
+  return allAuthors()
+    .filter((author) => entries.some((entry) => authorsOf(entry).some((byline) => byline.id === author.id)))
+    .map((author) => ({ params: { author: author.id }, props: { author } }));
+}
+
+const { author } = Astro.props;
+const posts = (await getBlogEntries()).filter((entry) => authorsOf(entry).some((byline) => byline.id === author.id));
+const url = absoluteUrl(author.href ?? href());
+const description = author.bio ?? `Posts by ${author.name}.`;
+const noindex = config.seo.indexing !== "all";
+const jsonLd = [
+  { "@type": "ProfilePage", "@id": `${url}#page`, url, name: author.name, mainEntity: { ...personNode(author), "@id": `${url}#person` } },
+  breadcrumbs(author.name, url),
+];
+---
+
+<Base title={pageTitle(author.name)} description={description} jsonLd={jsonLd} noindex={noindex}>
+  <div class="mx-auto flex max-w-(--layout-index) flex-col gap-12 pt-10 sm:pt-16 lg:pt-20">
+    <header>
+      <a href={href()} class="group mb-8 inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
+        <Icon name="arrow-left" size={16} class="transition-transform duration-150 group-hover:-translate-x-0.5" />
+        Back to blog
+      </a>
+      <div class="flex items-center gap-5">
+        <AuthorAvatar author={author} size={64} />
+        <div class="min-w-0">
+          <h1 id="page-title" class="font-heading text-3xl font-medium tracking-[-0.02em] sm:text-4xl">{author.name}</h1>
+          {author.title && <p class="mt-1 text-muted-foreground">{author.title}</p>}
+        </div>
+      </div>
+      {author.bio && <p class="mt-6 max-w-2xl text-lg leading-8 text-pretty text-foreground/80">{author.bio}</p>}
+      {
+        author.links.length > 0 && (
+          <ul class="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm text-muted-foreground">
+            {author.links.map((link) => (
+              <li>
+                <a href={link} rel="me noopener" target="_blank" class="inline-flex items-center gap-1 transition-colors duration-150 hover:text-foreground">
+                  {new URL(link).hostname.replace(/^www\./, "")}
+                  <Icon name="arrow-up-right" size={13} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+    {
+      posts.length > 0 && (
+        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {posts.map((entry) => (
+            <li class="h-full">
+              <PostCard entry={entry} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</Base>

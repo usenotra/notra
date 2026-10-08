@@ -28,6 +28,7 @@ export type CommandRouteId =
   | "geo-settings-languages"
   | "geo-settings-models"
   | "content"
+  | "sites"
   | "brand-company-info"
   | "brand-references"
   | "automation-schedules"

@@ -24,7 +24,7 @@ export const AGENT_READINESS_RESULT_ORDER = {
 
 export const AGENT_READINESS_PROMPT_WORK_RULES = [
   "Finish every item in Must do before starting Should do.",
-  "A failed check needs a complete implementation. A partial check already has some of the pieces — close the gap described in Evidence.",
+  "A failed check needs a complete implementation. A partial check already has some of the pieces, so close the gap described in Evidence.",
   "Stay scoped: implement the recommended fix. Do not refactor unrelated code.",
   "After each item, note the files you changed in one line.",
 ] as const;
@@ -40,9 +40,3 @@ export const AGENT_READINESS_SKELETON_ROW_KEYS = Array.from(
   { length: 3 },
   (_, index) => `checklist-row-${index}`
 );
-
-export const AGENT_READINESS_BAND_TEXT_CLASS = {
-  great: "text-emerald-500",
-  "needs-improvement": "text-amber-500",
-  poor: "text-red-500",
-} as const;

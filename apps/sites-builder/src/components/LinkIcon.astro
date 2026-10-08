@@ -1,0 +1,11 @@
+---
+import type { LinkIconProps as Props } from "../types/icons";
+import BrandIcon from "./BrandIcon.astro";
+import Icon from "./Icon.astro";
+
+const { icon, size = 16, class: className } = Astro.props;
+const brandSize = Math.round(size * 0.875);
+---
+
+{icon?.kind === "lucide" && <Icon name={icon.name} size={size} class={className} />}
+{icon?.kind === "brand" && <BrandIcon name={icon.name} size={brandSize} class={className} />}

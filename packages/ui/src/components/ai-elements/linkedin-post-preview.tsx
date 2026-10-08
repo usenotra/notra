@@ -94,6 +94,7 @@ export function LinkedInPostPreview({
           </div>
         </div>
         <Button
+          aria-label="More options"
           className="size-6 text-muted-foreground"
           size="icon-sm"
           variant="ghost"

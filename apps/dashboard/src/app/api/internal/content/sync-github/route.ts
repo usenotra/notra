@@ -58,13 +58,16 @@ export async function POST(request: Request) {
         );
       }
     }
-    await publishSavedContentToGitHub({
-      organizationId,
-      contentId: postId,
-      contentType: post.contentType,
-      repositoryId: linked.repositoryId,
-      linkedOnly: true,
-    });
+    await publishSavedContentToGitHub(
+      {
+        organizationId,
+        contentId: postId,
+        contentType: post.contentType,
+        repositoryId: linked.repositoryId,
+        linkedOnly: true,
+      },
+      { publisherUserId: actorId }
+    );
     return Response.json({ success: true });
   } catch (error) {
     logError("Failed to sync saved post to GitHub", error, { postId });

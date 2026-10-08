@@ -1,0 +1,102 @@
+---
+title: "Track AI crawlers on Nuxt"
+sidebarTitle: "Nuxt"
+description: "Install the @usenotra/geo tracker in a Nuxt app to log AI crawlers, AI-cited fetches and AI referrals in Notra."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/install/nuxt
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide adds the Notra tracker to a Nuxt app, which takes about five minutes and touches one file, `server/middleware/geo.ts`.
+
+<Tip>
+  The Traffic page has a **Copy agent prompt** button. Paste it into Claude Code, Cursor or Codex and the agent does these steps for you.
+</Tip>
+
+<Steps>
+  <Step title="Get your token">
+    Open **Traffic** in the GEO sidebar. Until the first event arrives, the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. Your token is in the **Set your token** section, and the panel also has a **Copy agent prompt** button that copies an instruction block for a coding agent.
+
+    <Visibility for="agents">
+
+    From the API, you need `traffic.read` to read the snippets and `traffic.write` to issue the token:
+
+    ```bash
+    curl https://api.usenotra.com/v1/geo/ingest/setup \
+      -H "Authorization: Bearer $NOTRA_API_KEY"
+    ```
+
+    ```bash
+    curl -X POST "https://api.usenotra.com/v1/geo/ingest/token?projectId=$PROJECT_ID" \
+      -H "Authorization: Bearer $NOTRA_API_KEY"
+    ```
+
+    Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys. The token endpoint also returns `token`.
+
+    </Visibility>
+
+    The ingest routes are organization-level, so pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate earlier tokens. Install the same project token on every domain the project tracks, and add extra hostnames under **Tracked domains** in GEO settings.
+  </Step>
+  <Step title="Install the package">
+    <CodeGroup>
+    ```bash npm
+    npm install @usenotra/geo
+    ```
+
+    ```bash yarn
+    yarn add @usenotra/geo
+    ```
+
+    ```bash pnpm
+    pnpm add @usenotra/geo
+    ```
+
+    ```bash bun
+    bun add @usenotra/geo
+    ```
+    </CodeGroup>
+
+    The package has zero dependencies and no Node APIs in the core, so it runs on edge runtimes. You can also install it with npm, pnpm or yarn.
+  </Step>
+  <Step title="Set the environment variable">
+    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, both locally and at your hosting provider, and never hardcode or commit it.
+  </Step>
+  <Step title="Add the tracker">
+    ```typescript server/middleware/geo.ts
+    import { createGeoHandler } from "@usenotra/geo/nuxt";
+
+    const geo = createGeoHandler({
+      token: process.env.NOTRA_GEO_TOKEN!,
+      endpoint: "https://ingest.usenotra.com",
+    });
+
+    export default defineEventHandler(async (event) => {
+      await geo(event);
+    });
+    ```
+
+    Nitro usually does not pass geo headers, so location fields stay undefined and ingest falls back to an IP-based lookup.
+  </Step>
+  <Step title="Deploy and verify">
+    Deploy your site, and the Traffic page switches from the install panel to the dashboard once Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
+  </Step>
+</Steps>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Tracker reference" icon="sliders" href="/ai-traffic/tracker-reference">
+    Options, excluded paths, privacy and token rotation.
+  </Card>
+  <Card title="Journey tagging" icon="route" href="/ai-traffic/journeys">
+    Follow one agent across the pages it reads.
+  </Card>
+</Columns>

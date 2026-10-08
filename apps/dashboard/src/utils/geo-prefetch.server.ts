@@ -167,6 +167,12 @@ async function dehydrateGeoTraffic(
     queryFn: () => client.geo.aiTraffic(input.aiTraffic),
   });
   void queryClient.prefetchQuery({
+    ...dashboardOrpc.geo.webAnalytics.queryOptions({
+      input: input.webAnalytics,
+    }),
+    queryFn: () => client.geo.webAnalytics(input.webAnalytics),
+  });
+  void queryClient.prefetchQuery({
     ...dashboardOrpc.geo.trafficPages.queryOptions({
       input: input.trafficPages,
     }),

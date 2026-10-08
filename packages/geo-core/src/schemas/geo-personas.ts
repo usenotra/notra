@@ -11,7 +11,7 @@ import {
   GEO_PERSONA_MAX_TURNS,
   GEO_PERSONA_PROFILE_LIST_MIN,
 } from "../constants/geo-personas";
-import { geoOrganizationInputSchema } from "./geo";
+import { geoOrganizationInputSchema } from "./geo-scope";
 
 // The model-facing schema stays lenient on purpose: models routinely overshoot
 // list lengths by one, and a hard max would discard an otherwise good set.

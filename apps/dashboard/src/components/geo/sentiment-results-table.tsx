@@ -15,17 +15,40 @@ import { useTranslations } from "use-intl";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import {
   AGENT_FEEDBACK_LABEL_PILL_CLASS,
+  AGENT_FEEDBACK_SENTIMENT_ICON_CLASS,
   AGENT_FEEDBACK_SENTIMENT_ICONS,
   AGENT_FEEDBACK_SENTIMENT_PILL_CLASS,
 } from "@/constants/agent-feedback";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
+import { cn } from "@/lib/utils";
 import type {
   SentimentDetailRow,
   SentimentThemeTableProps,
 } from "@/types/geo-sentiment";
 import { formatModelLabel } from "@/utils/geo-model-display";
 import { sentimentTableRows } from "@/utils/sentiment-table";
+
+function SentimentPolarityIcon({
+  polarity,
+}: {
+  polarity: SentimentDetailRow["polarity"];
+}) {
+  const tLabels = useTranslations("common.labels");
+  return (
+    <span
+      className={`${AGENT_FEEDBACK_SENTIMENT_ICON_CLASS[polarity]} flex h-5 items-center`}
+    >
+      <HugeiconsIcon
+        aria-hidden
+        className="size-4 shrink-0"
+        icon={AGENT_FEEDBACK_SENTIMENT_ICONS[polarity]}
+        strokeWidth={2}
+      />
+      <span className="sr-only">{tLabels(polarity)}</span>
+    </span>
+  );
+}
 
 function SentimentPolarityPill({
   polarity,
@@ -67,10 +90,19 @@ export function SentimentResultsTable({
     () => [
       {
         key: "polarity",
-        header: tCommon("labels.sentiment"),
-        width: "9rem",
-        sortable: true,
-        cell: (row) => <SentimentPolarityPill polarity={row.polarity} />,
+        header: isMobile ? (
+          <span className="sr-only">{tCommon("labels.sentiment")}</span>
+        ) : (
+          tCommon("labels.sentiment")
+        ),
+        width: isMobile ? "2.5rem" : "9rem",
+        sortable: !isMobile,
+        cell: (row) =>
+          isMobile ? (
+            <SentimentPolarityIcon polarity={row.polarity} />
+          ) : (
+            <SentimentPolarityPill polarity={row.polarity} />
+          ),
       },
       {
         key: "title",
@@ -82,13 +114,17 @@ export function SentimentResultsTable({
         cell: (row) => (
           <span className="flex min-w-0 items-center gap-2 text-sm">
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate font-medium">{row.theme}</span>
-              <span className="text-muted-foreground truncate text-xs">
+              <span className={cn("font-medium", !isMobile && "truncate")}>
+                {row.theme}
+              </span>
+              <span
+                className={cn(
+                  "text-muted-foreground text-xs",
+                  isMobile ? "line-clamp-2" : "truncate"
+                )}
+              >
                 {row.title}
               </span>
-              {isMobile ? (
-                <SentimentPolarityPill polarity={row.polarity} />
-              ) : null}
             </span>
           </span>
         ),
@@ -122,7 +158,7 @@ export function SentimentResultsTable({
       {
         key: "answers",
         header: t("columns.evidence"),
-        width: "9rem",
+        width: isMobile ? "5rem" : "9rem",
         align: "right",
         sortable: true,
         sortValue: (row) =>
@@ -134,7 +170,7 @@ export function SentimentResultsTable({
         ),
       },
     ],
-    [isMobile, t]
+    [isMobile, t, tCommon]
   );
 
   return (
@@ -148,9 +184,7 @@ export function SentimentResultsTable({
       <DataTable
         columns={
           isMobile
-            ? columns.filter(
-                (column) => column.key !== "polarity" && column.key !== "models"
-              )
+            ? [...columns.slice(0, 2), ...columns.slice(3)]
             : [
                 ...columns.slice(1, 2),
                 ...columns.slice(0, 1),
@@ -160,12 +194,16 @@ export function SentimentResultsTable({
         data={rows}
         getRowId={(row) => row.id}
         rowHeight={TABLE_ROW_HEIGHT}
+        rowSizing={isMobile ? "content" : "fixed"}
+        autoHeight={isMobile}
+        scrollFade={!isMobile}
         height={
           (Math.min(Math.max(rows.length, pending ? 3 : 1), 8) + 1) *
           TABLE_ROW_HEIGHT
         }
         loading={pending}
-        resizable
+        resizable={!isMobile}
+        minColumnWidth={isMobile ? 40 : undefined}
         skeletonRows={3}
         emptyState={t("empty")}
         onRowClick={(row) => {

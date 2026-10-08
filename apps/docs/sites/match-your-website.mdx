@@ -1,0 +1,73 @@
+---
+title: "Match your website"
+description: "Your own header, footer and page sections, so the blog looks like the rest of your site."
+---
+
+Three kinds of files make the blog match your website: your own header, your own footer and slots that fill fixed places on every page.
+
+<Tip>
+When you create a site from a repository without `blog.json`, Notra offers **Create starter from your brand**. It reads your Brand Identity and landing page and opens a pull request with `blog.json`, `header.mdx`, `footer.mdx` and a first post that already use your logo, colors and links.
+</Tip>
+
+## Header and footer
+
+Add `header.mdx` or `footer.mdx` next to `blog.json`. Each replaces the theme's own. Write plain markup with Tailwind classes, and paste HTML from your landing page if you like (change `class` to `className`).
+
+```mdx header.mdx
+<header className="border-b border-border">
+  <div className="site-container flex h-16 items-center gap-6">
+    <a href="https://acme.com" className="flex items-center gap-2 font-semibold">
+      <img src="/images/logo.svg" alt="" className="h-6" />
+      Acme
+    </a>
+    <SiteAreas />
+    <nav className="ml-auto hidden gap-6 text-sm md:flex">
+      <a href="https://acme.com/product" className="text-muted-foreground hover:text-foreground">Product</a>
+      <a href="https://acme.com/pricing" className="text-muted-foreground hover:text-foreground">Pricing</a>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+```
+
+Two built-in components cover what the theme's header did:
+
+| Component | What it renders |
+| --- | --- |
+| `<SiteAreas />` | The Blog and Changelog switch, with the current one highlighted |
+| `<ThemeToggle />` | The light and dark mode button (hidden when `appearance.strict` is set) |
+
+Interactive parts like a mobile menu go in a component in `snippets/` and are imported as usual; see [Components](/sites/components). Wrap your content in `site-container` to give it the same width as the posts below (it follows `layout.width`). Theme colors are available as Tailwind classes: `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-primary`.
+
+## Slots
+
+Slots add your own content at fixed places. Each is a file in `slots/`:
+
+| File | Where it appears | Data you can use |
+| --- | --- | --- |
+| `slots/blog-hero.mdx` | Replaces the top of the blog home | `site`, `area` |
+| `slots/changelog-hero.mdx` | Replaces the top of the changelog | `site`, `area` |
+| `slots/before-post.mdx` | Above every post | `post` |
+| `slots/after-post.mdx` | Below every post | `post` |
+| `slots/sidebar.mdx` | Next to every post, under "On this page" | `post` |
+| `slots/after-changelog-entry.mdx` | Below every changelog entry | `entry` |
+
+`post` has `title`, `description`, `date`, `tags`, `authors` and `url`; `entry` has `title`, `version`, `date` and `url`.
+
+```mdx slots/after-post.mdx
+<div className="mt-12 rounded-xl border border-border p-6">
+  <p className="font-semibold">Enjoyed "{post.title}"?</p>
+  <p className="mt-1 text-sm text-muted-foreground">Try Acme free for 14 days.</p>
+  <a href="https://acme.com/signup" className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm text-white">Start free trial</a>
+</div>
+```
+
+A call to action under every post, a newsletter form or a product card in the sidebar each fit in a slot. A file in `slots/` with any other name stops the build with the list of valid names.
+
+## Your own CSS
+
+For anything the settings and files don't cover, add `style.css`. It loads after the theme, so it can override any style.
+
+## What isn't allowed
+
+Header, footer and slots are compiled like posts: nothing runs during the build, imports only come from your repository and `<script>` tags aren't allowed. Put JavaScript in `script.js`; see [Analytics and scripts](/sites/analytics-and-scripts).

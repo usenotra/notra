@@ -207,6 +207,8 @@ export interface BuildStandaloneToolSetParams {
   codeResearch?: boolean;
   validatedIntegrations: ValidatedIntegration[];
   postResult: PostToolsResult;
+  /** updateTodos calls already made in this reply, before an approval. */
+  previousTodoCalls?: number;
 }
 
 export interface BuildStandaloneToolSetDeps {

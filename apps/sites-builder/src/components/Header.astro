@@ -1,0 +1,138 @@
+---
+import { navbarCta, navbarLinks, navbarPrimary } from "../lib/navigation";
+import { config, href, params } from "../lib/params";
+import { logoFor } from "../lib/theme";
+import Icon from "./Icon.astro";
+import LinkIcon from "./LinkIcon.astro";
+import SiteAreas from "./SiteAreas.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+
+const lightLogo = logoFor("light");
+const darkLogo = logoFor("dark");
+const logoHref = typeof config.logo === "object" && config.logo.href ? config.logo.href : href();
+const hasSections = Boolean(params.mounts.blog && params.mounts.changelog);
+const links = navbarLinks();
+const cta = navbarCta();
+const primary = navbarPrimary();
+const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
+---
+
+<header
+  id="navbar"
+  data-site-header
+  class="sticky top-0 z-30 border-b border-transparent bg-[color-mix(in_oklab,var(--page-background)_88%,transparent)] backdrop-blur-lg transition-[border-color] duration-200 ease-out data-scrolled:border-border"
+>
+  <div class="flex h-14 w-full items-center gap-3 px-5 sm:px-6">
+    <a href={logoHref} class="flex min-w-0 items-center gap-2.5 rounded-md text-[0.9375rem] font-semibold tracking-[-0.01em]">
+      {
+        lightLogo && (
+          <>
+            <img src={lightLogo} alt="" width="24" height="24" class="size-6 shrink-0 rounded-md object-contain dark:hidden" />
+            <img src={darkLogo ?? lightLogo} alt="" width="24" height="24" class="hidden size-6 shrink-0 rounded-md object-contain dark:block" />
+          </>
+        )
+      }
+      <span class="truncate" title={config.name}>{config.name}</span>
+    </a>
+
+    {
+      hasSections && (
+        <>
+          <span aria-hidden="true" class="h-4 w-px shrink-0 bg-border" />
+          <div class="-ml-1">
+            <SiteAreas />
+          </div>
+        </>
+      )
+    }
+
+    <div class="ml-auto flex shrink-0 items-center gap-1">
+      {
+        links.length > 0 && (
+          <nav aria-label="Main" class="mr-2 hidden items-center gap-5 text-sm md:flex">
+            {links.map((link) => (
+              <a
+                href={link.href}
+                aria-label={link.iconOnly ? link.label : undefined}
+                title={link.iconOnly ? link.label : undefined}
+                class="inline-flex items-center gap-1.5 text-muted-foreground transition-colors duration-150 ease-out hover:text-foreground"
+              >
+                <LinkIcon icon={link.icon} size={15} class="shrink-0" />
+                {!link.iconOnly && link.label}
+              </a>
+            ))}
+          </nav>
+        )
+      }
+      <ThemeToggle />
+      {
+        primary && (
+          <div id="topbar-primary-button" class="ml-2 hidden md:flex">
+            <a href={primary.href} class="btn btn-secondary btn-sm">
+              <LinkIcon icon={primary.icon} size={14} />
+              {primary.label}
+            </a>
+          </div>
+        )
+      }
+      {
+        cta && (
+          <div id="topbar-cta-button" class="ml-2 hidden md:flex">
+            <a href={cta.href} class="btn btn-primary btn-sm">
+              {cta.label}
+            </a>
+          </div>
+        )
+      }
+      {
+        hasMenu && (
+          <button type="button" popovertarget="mobile-nav" aria-label="Menu" class="btn btn-ghost btn-icon md:hidden">
+            <Icon name="menu" size={16} class="site-menu-open" />
+            <Icon name="close" size={16} class="site-menu-close" />
+          </button>
+        )
+      }
+    </div>
+  </div>
+
+  {
+    hasMenu && (
+      <div id="mobile-nav" popover class="site-menu md:hidden">
+        <nav id="mobile-nav-content" aria-label="Main" class="flex flex-col px-5 py-2 sm:px-6">
+          {links.map((link) => (
+            <a href={link.href} class="flex h-11 items-center gap-2.5 border-b border-border text-[0.9375rem] last:border-b-0">
+              <LinkIcon icon={link.icon} size={16} class="shrink-0 text-muted-foreground" />
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        {
+          (cta || primary) && (
+            <div class="flex flex-col gap-2 px-5 pt-1 pb-4 sm:px-6">
+              {primary && (
+                <a href={primary.href} class="btn btn-secondary w-full justify-center">
+                  <LinkIcon icon={primary.icon} size={14} />
+                  {primary.label}
+                </a>
+              )}
+              {cta && (
+                <a href={cta.href} class="btn btn-primary w-full justify-center">
+                  {cta.label}
+                </a>
+              )}
+            </div>
+          )
+        }
+      </div>
+    )
+  }
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  if (header) {
+    const sync = () => header.toggleAttribute("data-scrolled", window.scrollY > 4);
+    window.addEventListener("scroll", sync, { passive: true });
+    sync();
+  }
+</script>

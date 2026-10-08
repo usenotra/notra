@@ -16,7 +16,10 @@ mock.module("@notra/db/drizzle", () => ({
 mock.module("@/utils/server-cookies", () => ({
   readServerCookies: () => ({}),
 }));
+// bun shares module mocks across test files; keep the rest of the module real.
+const cookies = await import("@/utils/cookies");
 mock.module("@/utils/cookies", () => ({
+  ...cookies,
   getLastVisitedProject: () => "cookie-project",
 }));
 const { resolveInitialGeoProjectId } = await import("./initial-project.server");

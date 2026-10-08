@@ -1,5 +1,5 @@
-import { getContentBillingLimitLabel } from "@notra/ai/billing/content-billing";
 import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
+import { getContentBillingLimitLabel } from "@notra/ai/utils/content-billing-messages";
 import { isCustomIntervalDue } from "@notra/ai/utils/schedule-interval";
 import { scheduleWorkflowPayloadSchema } from "@notra/schemas/dashboard/workflows";
 import { sleep } from "workflow";

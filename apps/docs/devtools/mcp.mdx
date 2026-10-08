@@ -1,6 +1,6 @@
 ---
-title: "MCP Server"
-description: "Connect the hosted Notra MCP server to Claude, Cursor, ChatGPT, and other AI tools with OAuth or an API key, and bring your own MCP servers into Notra."
+title: "MCP server"
+description: "Connect the hosted Notra MCP server to Claude, Cursor, ChatGPT and other AI tools with OAuth or an API key, and bring your own MCP servers into Notra."
 authors:
   - handle: dominik
 
@@ -26,20 +26,20 @@ docolin:
   next: ./raycast.mdx
 ---
 
-Notra runs a hosted MCP server at `https://mcp.usenotra.com/mcp` (streamable HTTP) so AI agents can work with your workspace directly. Connected agents can manage brand identities, generate and edit content, connect integrations, manage schedules, chats and skills, and run the full GEO surface: projects, prompts, competitors, scans, visibility, content briefs, agent readiness, and AI traffic.
+Notra runs a hosted MCP server at `https://mcp.usenotra.com/mcp` (streamable HTTP) so AI agents can work with your workspace. Connected agents can manage brand identities, generate and edit content, connect integrations and manage schedules, chats and skills. They can also use every GEO feature: projects, prompts, competitors, scans, visibility, content briefs, agent readiness and AI traffic.
 
-This page covers two different things:
+This page covers two things:
 
-- **Notra's MCP server**: give an AI client (Claude, Cursor, ChatGPT, Codex, and others) access to Notra.
-- **External MCP servers**: give Notra's chat agent access to your own tools by connecting servers under **Integrations > MCP Servers**.
+- **Notra's MCP server.** Give an AI client (Claude, Cursor, ChatGPT, Codex and others) access to Notra.
+- **External MCP servers.** Give Notra's chat agent access to your own tools by connecting servers under **Integrations > MCP Servers**.
 
 ## Authentication
 
-The server accepts bearer credentials in the `Authorization` header. Two kinds work: an OAuth access token, or a Notra API key.
+The server accepts bearer credentials in the `Authorization` header, either as an OAuth access token or as a Notra API key.
 
 <Tabs>
   <Tab title="OAuth (recommended for interactive clients)">
-    Use OAuth when a person is in the loop: Claude, Cursor, ChatGPT connectors, and any client that supports OAuth discovery. You add the server URL, the client opens a browser, you sign in to Notra and pick an organization, and the client stores the token.
+    Use OAuth when a person is present, for example in Claude, Cursor, ChatGPT connectors and any client that supports OAuth discovery. You add the server URL and the client opens a browser. After you sign in to Notra and pick an organization, the client stores the token.
 
     Clients discover everything from the protected resource metadata:
 
@@ -47,7 +47,7 @@ The server accepts bearer credentials in the `Authorization` header. Two kinds w
     https://mcp.usenotra.com/.well-known/oauth-protected-resource
     ```
 
-    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes, and the bearer method. The authorization server supports dynamic client registration, client ID metadata documents, the authorization code flow with PKCE, and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
+    That document lists the authorization server (`https://oauth.usenotra.com`), the supported scopes and the bearer method. The authorization server supports dynamic client registration, client ID metadata documents, the authorization code flow with PKCE and refresh tokens. The API mirrors the same metadata at `https://api.usenotra.com/.well-known/oauth-protected-resource` and `https://api.usenotra.com/.well-known/oauth-authorization-server`.
 
     Request these two scopes and nothing else:
 
@@ -55,21 +55,21 @@ The server accepts bearer credentials in the `Authorization` header. Two kinds w
     openid offline_access
     ```
 
-    Permissions like `posts.read` or `projects.write` are not OAuth scopes, and asking for them fails with `invalid_scope`. You pick the organization and an access level (Read only, Write only, or Full access) on the consent screen instead. Notra signs that choice into the access token and maps it to the same [permissions](/api/authentication#scopes) API keys use, so the session acts as you, in that organization, with that access level.
+    Permissions like `posts.read` or `projects.write` are not OAuth scopes, so requesting them fails with `invalid_scope`. Instead, you pick the organization and an access level (Read only, Write only or Full access) on the consent screen. Notra signs that choice into the access token and maps it to the same [permissions](/api/authentication#scopes) API keys use, so the session acts as you, in that organization, with that access level.
 
     <Note>
-      Access tokens are short-lived. Clients should include `offline_access` in the requested scope so they receive a refresh token; without it the connection drops when the access token expires and you have to sign in again.
+      Access tokens are short-lived, so clients should include `offline_access` in the requested scope to receive a refresh token. Without it, the connection drops when the access token expires and you have to sign in again.
     </Note>
   </Tab>
 
   <Tab title="API key (headless and CI)">
-    Clients that do not support OAuth discovery, and unattended agents, can send a Notra API key instead:
+    Unattended agents and clients that do not support OAuth discovery can send a Notra API key instead:
 
     ```text
     Authorization: Bearer ntra_xxx
     ```
 
-    A key carries exactly the scopes you picked when you created it, and it is bound to one organization. Create and manage keys under **API Keys** in the dashboard; see [Authentication](/api/authentication).
+    A key carries exactly the scopes you picked when you created it and is bound to one organization. You create and manage keys under **API Keys** in the dashboard. See [Authentication](/api/authentication).
 
     <img
       src="/images/api/api-keys-light.webp"
@@ -92,7 +92,7 @@ The server accepts bearer credentials in the `Authorization` header. Two kinds w
 
 ### With OAuth
 
-Add the server URL without any headers. The client detects the OAuth metadata and opens the sign-in flow.
+Add the server URL without any headers, and the client detects the OAuth metadata and opens the sign-in flow.
 
 <CodeGroup>
 ```bash Claude Code
@@ -120,9 +120,23 @@ In ChatGPT, add a custom connector with the URL `https://mcp.usenotra.com/mcp` a
 
 If your client supports [`add-mcp`](https://www.npmjs.com/package/add-mcp), install the server with a header override:
 
-```bash
+<CodeGroup>
+```bash npm
 npx add-mcp https://mcp.usenotra.com/mcp --header "Authorization: Bearer $NOTRA_API_KEY"
 ```
+
+```bash yarn
+yarn dlx add-mcp https://mcp.usenotra.com/mcp --header "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```bash pnpm
+pnpm dlx add-mcp https://mcp.usenotra.com/mcp --header "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```bash bun
+bunx add-mcp https://mcp.usenotra.com/mcp --header "Authorization: Bearer $NOTRA_API_KEY"
+```
+</CodeGroup>
 
 Or add the header to the client config by hand:
 
@@ -166,11 +180,11 @@ The same server is published on npm as [`@usenotra/mcp`](https://www.npmjs.com/p
 claude mcp add notra -- npx -y @usenotra/mcp
 ```
 
-The hosted server is updated first; the npm package can lag behind it, so prefer the hosted URL when your client supports remote servers.
+The hosted server gets updates first and the npm package can lag behind it, so prefer the hosted URL when your client supports remote servers.
 
 ## Available tools
 
-Tool names are exactly as the server registers them; some clients prefix them with the server name.
+Tool names match exactly what the server registers, although some clients prefix them with the server name.
 
 **Posts**
 
@@ -181,9 +195,9 @@ Tool names are exactly as the server registers them; some clients prefix them wi
 - `generate_post`
 - `get_post_generation_status`
 
-When `update_post` changes the title, slug, or markdown of a blog post or changelog with a linked GitHub pull request, Notra saves the article and updates that PR using the same publishing logic as the dashboard. It does not create a new PR. Status-only changes do not trigger a GitHub update.
+When `update_post` changes the title, slug or markdown of a blog post or changelog with a linked GitHub pull request, Notra saves the article and updates that PR using the same publishing logic as the dashboard, without creating a new PR. Status-only changes do not trigger a GitHub update.
 
-If the PR update fails, the tool returns an error stating that the post was saved in Notra. A rate-limited GitHub sync returns 429 with `Retry-After`; wait before retrying the content update. A timeout returns 504 with an unknown sync outcome: the PR update may still finish, so check the PR before retrying. Check the PR after other unconfirmed sync errors as well. A closed or merged PR must be resolved in the dashboard before it can be synced again.
+If the PR update fails, the tool returns an error stating that Notra saved the post. A rate-limited GitHub sync returns 429 with `Retry-After`, so wait before retrying the content update. A timeout returns 504 with an unknown sync outcome, and because the PR update may still finish, check the PR before retrying, as you should after any other unconfirmed sync error. If the PR is closed or merged, resolve it in the dashboard before Notra can sync it again.
 
 **Brand identities**
 
@@ -292,19 +306,19 @@ If the PR update fails, the tool returns an error stating that the post was save
 
 **Feedback**
 
-- `submit_feedback` sends a bug report, feature request, question, or praise to the Notra team. It needs no credentials. See [Agent feedback](/api/agent-feedback).
+- `submit_feedback` sends a bug report, feature request, question or praise to the Notra team and needs no credentials. See [Agent feedback](/feedback/send-feedback).
 
 <Warning>
-  `create_geo_scan`, `run_geo_sequence`, and `plan_geo_content_brief` use billed AI credits and can take minutes. The server instructs agents to confirm with you before starting them.
+  `create_geo_scan`, `run_geo_sequence` and `plan_geo_content_brief` use billed AI credits and can take minutes, so the server instructs agents to confirm with you before starting them.
 </Warning>
 
 ## Connect external MCP servers to Notra
 
-This is the reverse direction: Notra's chat agent can use tools from MCP servers you run or subscribe to. Open **Integrations > MCP Servers** in the dashboard (or press `C` on that page) and add a server.
+Notra's chat agent can also use tools from MCP servers you run or subscribe to. Open **Integrations > MCP Servers** in the dashboard (or press `C` on that page) and add a server.
 
 <Steps>
   <Step title="Describe the server">
-    Give it a name, the server URL (for example `mcp.example.com/mcp`), and a short description of what tools or context Notra should use it for. The description helps the agent decide when to reach for the server.
+    Give it a name, the server URL (for example `mcp.example.com/mcp`) and a short description of what tools or context Notra should use it for. The agent uses the description to decide when to use the server.
   </Step>
 
   <Step title="Choose authentication">
@@ -312,22 +326,22 @@ This is the reverse direction: Notra's chat agent can use tools from MCP servers
 
     - **None** for public servers without credentials.
     - **API key** to send one or more custom headers, such as `Authorization: Bearer ...`.
-    - **OAuth** to sign in with the server's own OAuth flow. Notra opens the authorization page in a popup.
+    - **OAuth** to sign in with the server's own OAuth flow, which Notra opens in a popup.
   </Step>
 
   <Step title="Test and save">
-    Notra tests the connection before saving and reports whether it could reach the server. With OAuth, the button reads **Connect & Authorize** and the server is saved once authorization completes.
+    Notra tests the connection before saving and reports whether it could reach the server. With OAuth, the button reads **Connect & Authorize** and Notra saves the server once authorization completes.
   </Step>
 </Steps>
 
-After saving, Notra indexes the server's tools and shows the tool count on the server card. From the card you can refresh the tool index, enable or disable the server, reauthorize an expired OAuth grant, or delete it. Indexed tools are available to the Notra chat agent, which searches the index and activates the tools it needs for a conversation.
+After saving, Notra indexes the server's tools and shows the tool count on the server card, where you can refresh the tool index, enable or disable the server, reauthorize an expired OAuth grant or delete it. The Notra chat agent searches the indexed tools and activates the ones it needs for a conversation.
 
 ## Composio
 
-If you want to use the Notra MCP server through [Composio](https://composio.dev/), upvote the request at [request.composio.dev/boards/tool-requests/posts/notra](https://request.composio.dev/boards/tool-requests/posts/notra). That helps the Composio team see demand for a Notra integration.
+If you want to use the Notra MCP server through [Composio](https://composio.dev/), upvote the request at [request.composio.dev/boards/tool-requests/posts/notra](https://request.composio.dev/boards/tool-requests/posts/notra) so the Composio team sees demand for a Notra integration.
 
 ## Notes
 
 - Prefer OAuth for personal clients so tokens rotate and can be revoked per session.
-- Keep API keys in a server-side or local secret store; do not commit MCP config files that contain live bearer tokens.
+- Keep API keys in a server-side or local secret store, and do not commit MCP config files that contain live bearer tokens.
 - Revoke and replace a key immediately if it is exposed.

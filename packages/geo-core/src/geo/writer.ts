@@ -1,5 +1,4 @@
 import { generateGeoContentBrief } from "@notra/ai/agents/geo-writer";
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { GEO_WRITER_PLANNER_MODEL } from "@notra/ai/constants/models";
 import { POST_SLUG_MAX_LENGTH } from "@notra/ai/schemas/post";
 import type {
@@ -7,6 +6,7 @@ import type {
   GeoPlannerSitemapPage,
   GeoWriterBrief,
 } from "@notra/ai/types/geo-writer";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import {
   createPostRecord,
   updatePostRecord,

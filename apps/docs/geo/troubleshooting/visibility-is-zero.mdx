@@ -1,0 +1,36 @@
+---
+title: "Why is my visibility zero?"
+sidebarTitle: "Visibility is zero"
+description: "A zero mention rate is either missing data or a real zero. Work through the causes in order of how often they are the answer."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/troubleshooting/visibility-is-zero
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A zero mention rate means either missing data or a real zero, so check these causes in order.
+
+<AccordionGroup>
+  <Accordion title="No scan has finished yet">
+    Results appear once the first scan completes, which is usually within minutes of onboarding. The Overview page shows a running scan and polls until it finishes, and you can press **Run Scan** (`R`) if nothing has run.
+  </Accordion>
+  <Accordion title="Engines name you differently">
+    The judge only counts your company name and [aliases](/geo/brand-and-domains), so if engines call you by a product name or your domain, add it. To check, open a few answers on the Prompts page and search for how they name you.
+  </Accordion>
+  <Accordion title="Zero on some engines only">
+    Each engine has its own index and training data, and engines labelled **No web search** only know what the model learned in training, so they miss newer brands and pages. You can check this in the **Mention rate by engine** table on the GEO **Overview** page.
+  </Accordion>
+  <Accordion title="Your prompts are too broad">
+    A prompt like "best software" will never name a niche product, so compare your prompts with the ones where competitors show up and then follow [Writing good prompts](/geo/prompts#writing-good-prompts).
+  </Accordion>
+  <Accordion title="It is a real zero">
+    Engines do not recommend you for these questions yet, so start with [Content gaps](/geo/content-gaps) and [Shelf space](/geo/shelf-space).
+  </Accordion>
+</AccordionGroup>

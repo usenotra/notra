@@ -1,6 +1,7 @@
 import { handleCallbackRoute } from "@workos/authkit-tanstack-react-start";
 import { Effect } from "effect";
 
+import { clearHostAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { syncAuthenticatedUser } from "@/lib/auth/sync";
 
 export const GET = handleCallbackRoute({
@@ -21,5 +22,6 @@ export const GET = handleCallbackRoute({
         authenticationMethod,
       })
     );
+    clearHostAuthSessionCookie();
   },
 });

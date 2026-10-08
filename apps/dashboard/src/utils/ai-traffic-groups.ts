@@ -94,16 +94,18 @@ export function groupTrafficSources(
         band,
         visits: source.visits,
         markdownVisits: source.markdownVisits,
-        paths: source.paths,
+        paths: source.visits > 0 ? source.paths : 0,
         lastSeenAt: source.lastSeenAt,
-        categories: source.category ? [source.category] : [],
+        categories: [],
         members: [source],
       });
       continue;
     }
     existing.visits += source.visits;
     existing.markdownVisits += source.markdownVisits;
-    existing.paths = Math.max(existing.paths, source.paths);
+    if (source.visits > 0) {
+      existing.paths = Math.max(existing.paths, source.paths);
+    }
     existing.lastSeenAt = laterTrafficTimestamp(
       existing.lastSeenAt,
       source.lastSeenAt
@@ -111,11 +113,11 @@ export function groupTrafficSources(
     existing.members.push(source);
   }
 
-  const result = [...groups.values()];
+  const result = [...groups.values()].filter((group) => group.visits > 0);
   for (const group of result) {
     group.members.sort(byVisitsDesc);
     const categories = new Set<string>();
-    for (const member of group.members) {
+    for (const member of trafficGroupCurrentMembers(group)) {
       if (member.category.length > 0) {
         categories.add(member.category);
       }
@@ -123,6 +125,18 @@ export function groupTrafficSources(
     group.categories = [...categories];
   }
   return result;
+}
+
+export function trafficGroupCurrentMembers(
+  group: GeoTrafficSourceGroup
+): GeoTrafficSource[] {
+  return group.members.filter((member) => member.visits > 0);
+}
+
+export function trafficGroupPathsAreLowerBound(
+  group: GeoTrafficSourceGroup
+): boolean {
+  return trafficGroupCurrentMembers(group).length > 1;
 }
 
 export function buildTrafficGroupSeries(
@@ -164,7 +178,7 @@ export function trafficGroupPurposeTotals(
   group: GeoTrafficSourceGroup
 ): GeoTrafficPurposeTotal[] {
   const totals = new Map<string, GeoTrafficPurposeTotal>();
-  for (const member of group.members) {
+  for (const member of trafficGroupCurrentMembers(group)) {
     if (member.category.length === 0) {
       continue;
     }

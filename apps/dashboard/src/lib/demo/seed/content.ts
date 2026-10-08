@@ -65,6 +65,7 @@ export async function seedDemoContent(
           contentType: post.contentType,
           contentSubtype: post.contentSubtype ?? null,
           status: post.status,
+          publishedAt: post.status === "published" ? postCreatedAt : null,
           sourceMetadata: { seed: "demo" },
           createdAt: postCreatedAt,
           updatedAt: postCreatedAt,

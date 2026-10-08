@@ -21,6 +21,7 @@ import { DiagramEditorDialog } from "@/components/content/diagram-editor-dialog"
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
+import { ContentPublishButton } from "@/components/content/schedule/content-publish-button";
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
 import { IMAGE_EXPORT_DOWNLOAD_TARGET } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
@@ -31,6 +32,7 @@ import {
   downloadImage,
   preloadImageExportCopy,
 } from "@/lib/content/image-export";
+import { usePostSchedule } from "@/lib/hooks/use-content-calendar";
 import { cn } from "@/lib/utils";
 import type {
   ContentDetailToolbarProps,
@@ -193,6 +195,60 @@ function ContentDetailImageActions({
   );
 }
 
+/** The linked pull request, or the dialog that opens one. */
+function ContentDetailGitHubAction({
+  content,
+  contentId,
+  document,
+  organizationId,
+  organizationSlug,
+}: ContentDetailToolbarProps) {
+  if (
+    !(
+      content.contentType === "changelog" || content.contentType === "blog_post"
+    )
+  ) {
+    return null;
+  }
+  if (content.githubPublish) {
+    return (
+      <Button
+        nativeButton={false}
+        render={
+          <a
+            href={content.githubPublish.pullRequestUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <Github className="size-4" />
+            <span className="max-w-52 truncate">
+              {content.githubPublish.owner}/{content.githubPublish.repo} #
+              {content.githubPublish.pullRequestNumber}
+            </span>
+          </a>
+        }
+        size="sm"
+        variant="outline"
+      />
+    );
+  }
+  if (document.isGeoArticleLoading || document.currentMarkdown.trim() === "") {
+    return null;
+  }
+  return (
+    <PublishContentToGitHubDialog
+      contentId={contentId}
+      contentType={content.contentType}
+      githubPublish={null}
+      key={organizationId}
+      onSave={document.handleSave}
+      organizationId={organizationId}
+      organizationSlug={organizationSlug}
+      title={document.title}
+    />
+  );
+}
+
 function ContentDetailPublishActions({
   content,
   contentId,
@@ -210,70 +266,65 @@ function ContentDetailPublishActions({
   if (document.isGeoWriterPlanMode) {
     return document.isGeoWriterBriefMissing ? null : <WriterExecute.Button />;
   }
+  const publishButton = (
+    <Button
+      disabled={
+        document.isTogglingStatus ||
+        document.isGeoArticleLoading ||
+        document.hasChanges ||
+        document.isSaving
+      }
+      onClick={document.handleToggleStatus}
+      size="sm"
+      variant={content.status === "draft" ? "default" : "outline"}
+    >
+      {publishLabel}
+      <HugeiconsIcon
+        className="size-4"
+        icon={content.status === "published" ? TextIcon : SentIcon}
+      />
+    </Button>
+  );
   return (
     <>
-      {(content.contentType === "changelog" ||
-        content.contentType === "blog_post") &&
-      content.githubPublish ? (
-        <Button
-          nativeButton={false}
-          render={
-            <a
-              href={content.githubPublish.pullRequestUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <Github className="size-4" />
-              <span className="max-w-52 truncate">
-                {content.githubPublish.owner}/{content.githubPublish.repo} #
-                {content.githubPublish.pullRequestNumber}
-              </span>
-            </a>
-          }
-          size="sm"
-          variant="outline"
-        />
-      ) : null}
-      {(content.contentType === "changelog" ||
-        content.contentType === "blog_post") &&
-      !content.githubPublish &&
-      !document.isGeoArticleLoading &&
-      document.currentMarkdown.trim() !== "" ? (
-        <PublishContentToGitHubDialog
+      <ContentDetailGitHubAction
+        content={content}
+        contentId={contentId}
+        document={document}
+        organizationId={organizationId}
+        organizationSlug={organizationSlug}
+      />
+      {document.isGeoArticleLoading ? (
+        publishButton
+      ) : (
+        <ContentPublishButton
           contentId={contentId}
           contentType={content.contentType}
-          githubPublish={null}
-          key={organizationId}
-          onSave={document.handleSave}
+          hasUnsavedChanges={document.hasChanges || document.isSaving}
           organizationId={organizationId}
           organizationSlug={organizationSlug}
+          publishButton={publishButton}
+          published={content.status === "published"}
           title={document.title}
         />
-      ) : null}
-      <Button
-        disabled={
-          document.isTogglingStatus ||
-          document.isGeoArticleLoading ||
-          document.hasChanges ||
-          document.isSaving
-        }
-        onClick={document.handleToggleStatus}
-        size="sm"
-        variant={content.status === "draft" ? "default" : "outline"}
-      >
-        {publishLabel}
-        <HugeiconsIcon
-          className="size-4"
-          icon={content.status === "published" ? TextIcon : SentIcon}
-        />
-      </Button>
+      )}
     </>
   );
 }
 
 export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
-  const { content, document, organizationId } = props;
+  const { content, contentId, document, organizationId } = props;
   const t = useTranslations("content.toolbar");
+  const { data: scheduleData } = usePostSchedule(organizationId, contentId);
+  // Posting by hand while a social send is pending would post it twice.
+  const socialSendPending = Boolean(
+    scheduleData?.schedule?.publications.some(
+      (publication) =>
+        publication.destination === "social" &&
+        (publication.status === "scheduled" ||
+          publication.status === "publishing")
+    )
+  );
   const tCommon = useTranslations("common.actions");
   const updatesLinkedPullRequest = Boolean(content.githubPublish);
   let saveLabel = tCommon("saveChanges");
@@ -316,8 +367,9 @@ export function ContentDetailToolbar(props: ContentDetailToolbarProps) {
       ) : (
         <ContentDetailPublishActions {...props} />
       )}
-      {content.contentType === "linkedin_post" ||
-      content.contentType === "twitter_post" ? (
+      {(content.contentType === "linkedin_post" ||
+        content.contentType === "twitter_post") &&
+      !socialSendPending ? (
         <PostSocialButton
           content={document.currentMarkdown}
           from="editor"

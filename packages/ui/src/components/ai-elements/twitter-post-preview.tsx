@@ -93,6 +93,7 @@ export function TwitterPostPreview({
               </>
             )}
             <Button
+              aria-label="More options"
               className="ml-auto size-5 text-muted-foreground"
               size="icon-sm"
               variant="ghost"
@@ -108,6 +109,7 @@ export function TwitterPostPreview({
 
             <div className="mt-auto flex items-center justify-between pt-1.5">
               <Button
+                aria-label="Comment"
                 className="gap-1 text-muted-foreground"
                 size="icon-sm"
                 variant="ghost"
@@ -115,6 +117,7 @@ export function TwitterPostPreview({
                 <HugeiconsIcon className="size-3" icon={Comment01Icon} />
               </Button>
               <Button
+                aria-label="Repost"
                 className="gap-1 text-muted-foreground"
                 size="icon-sm"
                 variant="ghost"
@@ -122,6 +125,7 @@ export function TwitterPostPreview({
                 <HugeiconsIcon className="size-3" icon={RepeatIcon} />
               </Button>
               <Button
+                aria-label="Like"
                 className="gap-1 text-muted-foreground"
                 size="icon-sm"
                 variant="ghost"
@@ -130,6 +134,7 @@ export function TwitterPostPreview({
               </Button>
               <div className="flex items-center gap-0.5">
                 <Button
+                  aria-label="Bookmark"
                   className="text-muted-foreground"
                   size="icon-sm"
                   variant="ghost"
@@ -137,6 +142,7 @@ export function TwitterPostPreview({
                   <HugeiconsIcon className="size-3" icon={Bookmark02Icon} />
                 </Button>
                 <Button
+                  aria-label="Share"
                   className="text-muted-foreground"
                   size="icon-sm"
                   variant="ghost"

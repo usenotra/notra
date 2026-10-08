@@ -3,11 +3,11 @@ import type { ReactElement } from "react";
 
 import { AiCreditsDepletedEmail } from "../src/emails/ai-credits-depleted";
 import { ContactMessageEmail } from "../src/emails/contact";
-import { DailySummaryEmail } from "../src/emails/daily-summary";
 import { FeedbackEmail } from "../src/emails/feedback";
 import { ScheduledContentCreatedEmail } from "../src/emails/schedule-content-created";
 import { ScheduledContentFailedEmail } from "../src/emails/schedule-content-failed";
 import { ScheduledContentSkippedEmail } from "../src/emails/schedule-content-skipped";
+import { WeeklySummaryEmail } from "../src/emails/weekly-summary";
 import { WelcomeEmail } from "../src/emails/welcome";
 import { WorkflowPausedEmail } from "../src/emails/workflow-paused";
 import type { BrewEmailCategory } from "../src/types/brew";
@@ -42,8 +42,8 @@ export const EMAIL_SAMPLES: Record<BrewEmailCategory, [string, ReactElement]> =
       ScheduledContentSkippedEmail({} as never),
     ],
     "daily-summary": [
-      `GEO recap for ${DailySummaryEmail.PreviewProps.organizationName}, ${DailySummaryEmail.PreviewProps.dateLabel}`,
-      DailySummaryEmail(DailySummaryEmail.PreviewProps),
+      `Weekly GEO recap for ${WeeklySummaryEmail.PreviewProps.organizationName}, ${WeeklySummaryEmail.PreviewProps.weekLabel}`,
+      WeeklySummaryEmail(WeeklySummaryEmail.PreviewProps),
     ],
   };
 
