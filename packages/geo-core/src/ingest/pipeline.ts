@@ -289,6 +289,29 @@ function droppedResult(
   };
 }
 
+/** A page view or engagement row was stored, but no AI traffic event. */
+function webOnlyResult(
+  identity: GeoIngestIdentity,
+  visitorType: GeoVisitorType
+): GeoIngestResult {
+  return {
+    outcome: "ingested",
+    organizationId: identity.organizationId,
+    projectId: identity.projectId,
+    visitorType,
+    source: "",
+    agent: "",
+    ingestMs: 0,
+  };
+}
+
+function isOutsideSiteMounts(identity: GeoIngestIdentity, url: URL): boolean {
+  return (
+    identity.site !== undefined &&
+    !isServedBySite(url, [{ host: url.hostname, mounts: identity.site.mounts }])
+  );
+}
+
 // The Notra Sites script reports how long a page stayed visible. Only site
 // tokens may send it: the worker forwards it from its own first-party path.
 const runWebEngagementIngest = Effect.fn("geoIngest.engagement")(function* (
@@ -327,7 +350,7 @@ const runWebEngagementIngest = Effect.fn("geoIngest.engagement")(function* (
   }
   if (
     !acceptsIngestHost(url.hostname, allowedHosts) ||
-    !isServedBySite(url, [{ host: url.hostname, mounts: identity.site.mounts }])
+    isOutsideSiteMounts(identity, url)
   ) {
     return droppedResult(identity, "human", "host", url.hostname);
   }
@@ -340,15 +363,7 @@ const runWebEngagementIngest = Effect.fn("geoIngest.engagement")(function* (
     }),
     buffer
   );
-  return {
-    outcome: "ingested",
-    organizationId: identity.organizationId,
-    projectId: identity.projectId,
-    visitorType: "human",
-    source: "",
-    agent: "",
-    ingestMs: 0,
-  } satisfies GeoIngestResult;
+  return webOnlyResult(identity, "human");
 });
 
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
@@ -428,10 +443,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   }
   if (
     !acceptsIngestHost(url.hostname, allowedHosts) ||
-    (identity.site &&
-      !isServedBySite(url, [
-        { host: url.hostname, mounts: identity.site.mounts },
-      ]))
+    isOutsideSiteMounts(identity, url)
   ) {
     return droppedResult(
       identity,
@@ -465,15 +477,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     yield* storeWebPageView(webRow, buffer);
   }
   if (!isAi) {
-    return {
-      outcome: "ingested",
-      organizationId: identity.organizationId,
-      projectId: identity.projectId,
-      visitorType: classification.visitorType,
-      source: "",
-      agent: "",
-      ingestMs: 0,
-    } satisfies GeoIngestResult;
+    return webOnlyResult(identity, classification.visitorType);
   }
 
   const journey = resolveJourneyId({

@@ -15,7 +15,7 @@ const previewPassword = z
   .max(SITE_PREVIEW_PASSWORD_MAX_LENGTH)
   .nullable();
 
-export const siteMountsInputSchema = z
+const siteMountsInputSchema = z
   .object({
     blog: mountPath.optional(),
     changelog: mountPath.optional(),

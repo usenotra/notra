@@ -22,7 +22,9 @@ import {
   DOMAIN_INPUT_PATH,
   DOMAIN_INPUT_SCHEME,
   IP_LITERAL,
+  PROBE_FILE,
   PROBE_MAX_BYTES,
+  PROBE_SITE_MARKER,
   PROBE_TIMEOUT_MS,
   PROBE_USER_AGENT,
 } from "./constants/domains";
@@ -276,7 +278,7 @@ async function probeProxyOrigin(
   origin: string
 ): Promise<string | null> {
   for (const { area, mount } of listMountedAreas(site.mounts)) {
-    const probeUrl = `${origin}${joinMountPath(mount, "_notra/probe.txt")}`;
+    const probeUrl = `${origin}${joinMountPath(mount, PROBE_FILE)}`;
     try {
       const probe = await fetchWithTimeout(probeUrl);
       let body = "";
@@ -289,7 +291,7 @@ async function probeProxyOrigin(
       } else {
         await probe.body?.cancel();
       }
-      if (!body.includes(`notra-site=${site.id}`)) {
+      if (!body.includes(`${PROBE_SITE_MARKER}${site.id}`)) {
         return `${probeUrl} did not return this site (HTTP ${probe.status}). Check the ${area} rewrite.`;
       }
       const page = await fetchWithTimeout(`${origin}${mount}`);

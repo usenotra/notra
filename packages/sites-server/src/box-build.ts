@@ -11,6 +11,7 @@ import {
   BOX_TTL_SECONDS,
   BOX_WORKDIR,
   BUILD_LOG_POLL_MS,
+  BUILD_TIMEOUT_EXIT_CODE,
 } from "./constants/build";
 import { GUEST_BUILD_RUNNER } from "./constants/build-runner";
 import {
@@ -35,6 +36,7 @@ import type {
 } from "./types/build";
 import { boundBuildLog } from "./utils/bound-build-log";
 import { redactBuildLog } from "./utils/build-log";
+import { errorMessage } from "./utils/errors";
 import { safeJson } from "./utils/json";
 import { isSafeRootDirectory } from "./utils/root-directory";
 import { runSitesEffect } from "./utils/run-sites-effect";
@@ -145,7 +147,7 @@ const readLogEffect = Effect.fn("Sites.Sandbox.readLog")(function* (
 });
 
 function crashReason(exitText: string | null, wroteResult: boolean): string {
-  if (exitText?.trim() === "124") {
+  if (exitText?.trim() === String(BUILD_TIMEOUT_EXIT_CODE)) {
     return `The build took longer than ${SITE_BUILD_LIMITS.buildTimeoutSeconds / 60} minutes`;
   }
   return wroteResult
@@ -190,9 +192,7 @@ export const runSandboxBuildEffect = Effect.fn("Sites.Sandbox.build")(
       boundBuildLog(redactBuildLog(log, [apiKey]));
     const appendError = (stage: string, error: unknown) => {
       lifecycleLog = boundedLog(
-        `${
-          lifecycleLog
-        }\n[build:${stage}] ${error instanceof Error ? error.message : String(error)}\n`
+        `${lifecycleLog}\n[build:${stage}] ${errorMessage(error)}\n`
       );
     };
     const readBuildFiles = () =>
@@ -253,7 +253,7 @@ export const runSandboxBuildEffect = Effect.fn("Sites.Sandbox.build")(
               if (metrics.exitCode === null) {
                 build.crash =
                   "The build did not report an execution exit code. See the build log.";
-              } else if (metrics.exitCode === 124) {
+              } else if (metrics.exitCode === BUILD_TIMEOUT_EXIT_CODE) {
                 build.crash = crashReason(exitText ?? null, true);
               } else {
                 build.crash = `The build stopped with exit code ${metrics.exitCode}. See the build log.`;
@@ -449,9 +449,7 @@ export const runSandboxBuildEffect = Effect.fn("Sites.Sandbox.build")(
               })
             );
           }
-          build.crash = boundedLog(
-            error instanceof Error ? error.message : String(error)
-          );
+          build.crash = boundedLog(errorMessage(error));
           if (build.durationMs === 0) {
             build.durationMs = Date.now() - startedAt;
           }

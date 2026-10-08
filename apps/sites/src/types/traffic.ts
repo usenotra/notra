@@ -49,3 +49,12 @@ export interface EngagementReport {
   publicOrigin: string;
   event: AnalyticsEvent;
 }
+
+export interface IngestPost {
+  fetch: (url: string, init: RequestInit) => Promise<Response>;
+  ingestUrl: string;
+  token: string;
+  kind: "traffic" | "engagement";
+  /** Built inside the error boundary so a malformed URL is logged, not thrown. */
+  buildBody: () => TrafficPayload | Record<string, unknown>;
+}

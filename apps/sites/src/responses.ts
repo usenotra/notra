@@ -14,6 +14,9 @@ import {
   ASSET_SEGMENT,
   EDGE_CACHE_ORIGIN,
   IMMUTABLE_CACHE_CONTROL,
+  PREVIEW_CACHE_CONTROL,
+  REVALIDATE_CACHE_CONTROL,
+  ROBOTS_TXT_MAX_AGE_SECONDS,
 } from "./constants/responses";
 import { serviceErrorPage } from "./pages";
 import type { MarkdownNotFoundParams, ServeFileParams } from "./types/serving";
@@ -61,16 +64,16 @@ export function robotsTxt(
         ),
       ]
     : ["User-agent: *", "Disallow: /"];
-  return plainText(`${lines.join("\n")}\n`, 300);
+  return plainText(`${lines.join("\n")}\n`, ROBOTS_TXT_MAX_AGE_SECONDS);
 }
 
 function fileCacheControl(file: SiteManifestFile, isPreview: boolean): string {
   if (isPreview) {
-    return "private, no-store";
+    return PREVIEW_CACHE_CONTROL;
   }
   return file.path.includes(ASSET_SEGMENT)
     ? IMMUTABLE_CACHE_CONTROL
-    : "public, max-age=0, must-revalidate";
+    : REVALIDATE_CACHE_CONTROL;
 }
 
 async function readFileBody(

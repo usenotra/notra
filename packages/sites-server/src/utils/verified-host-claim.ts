@@ -4,6 +4,7 @@ import { siteHostRecordSchema } from "@notra/sites-core/schemas/deployment";
 import { and, eq } from "drizzle-orm";
 
 import { JSON_CONTENT_TYPE } from "../constants/content-types";
+import { R2_CONTROL_CACHE_CONTROL } from "../constants/r2";
 import { SiteHostConflictError } from "../errors";
 import { r2GetText, r2Put } from "../r2";
 import type { SiteStorageTransaction } from "../types/deployments";
@@ -67,7 +68,7 @@ export async function claimVerifiedHost(
     JSON.stringify({ version: 1, siteId: domain.siteId, kind: "custom" }),
     {
       contentType: JSON_CONTENT_TYPE,
-      cacheControl: "no-store",
+      cacheControl: R2_CONTROL_CACHE_CONTROL,
       ...(current ? { ifMatch: current.etag } : { ifNoneMatch: "*" as const }),
     }
   );

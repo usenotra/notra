@@ -8,9 +8,9 @@ import {
   ANALYTICS_SCRIPT,
   ANALYTICS_SCRIPT_CACHE_CONTROL,
 } from "./constants/analytics";
-import { TRAFFIC_REPORT_TIMEOUT_MS } from "./constants/traffic";
 import type { AnalyticsEvent, EngagementReport } from "./types/traffic";
 import { escapeHtml } from "./utils/html";
+import { postToIngest } from "./utils/ingest";
 
 export function isAnalyticsEventPath(pathname: string): boolean {
   return pathname.endsWith(`/${SITE_ANALYTICS_EVENT_FILE}`);
@@ -91,28 +91,18 @@ export async function reportEngagement(
   report: EngagementReport
 ): Promise<void> {
   const { event, publicOrigin } = report;
-  try {
-    const response = await report.fetch(report.ingestUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${report.token}`,
-      },
-      body: JSON.stringify({
-        type: "engagement",
-        timestamp: new Date().toISOString(),
-        url: new URL(event.path, publicOrigin).href,
-        viewId: event.viewId,
-        visibleMs: event.visibleMs,
-        scrollDepth: event.scrollDepth,
-      }),
-      signal: AbortSignal.timeout(TRAFFIC_REPORT_TIMEOUT_MS),
-    });
-    await response.body?.cancel();
-    if (!response.ok && response.status !== 401) {
-      console.warn("sites.engagement_rejected", { status: response.status });
-    }
-  } catch (error) {
-    console.warn("sites.engagement_failed", { error: String(error) });
-  }
+  await postToIngest({
+    fetch: report.fetch,
+    ingestUrl: report.ingestUrl,
+    token: report.token,
+    kind: "engagement",
+    buildBody: () => ({
+      type: "engagement",
+      timestamp: new Date().toISOString(),
+      url: new URL(event.path, publicOrigin).href,
+      viewId: event.viewId,
+      visibleMs: event.visibleMs,
+      scrollDepth: event.scrollDepth,
+    }),
+  });
 }

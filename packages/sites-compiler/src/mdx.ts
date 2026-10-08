@@ -28,7 +28,11 @@ import type {
   TextEdit,
 } from "./types/mdx";
 import { hasErrors } from "./utils/diagnostics";
-import { errorSummary, micromarkErrorPosition } from "./utils/errors";
+import {
+  errorMessage,
+  errorSummary,
+  micromarkErrorPosition,
+} from "./utils/errors";
 import {
   containsJsxOrFunction,
   declaredNames,
@@ -336,7 +340,7 @@ function buildInlineModule(
       severity: "error",
       code: "inline_component",
       file: pass.path,
-      message: `Inline component could not be compiled: ${(parseError as Error).message}`,
+      message: `Inline component could not be compiled: ${errorMessage(parseError)}`,
     });
     return null;
   }

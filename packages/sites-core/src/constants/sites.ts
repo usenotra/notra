@@ -16,6 +16,7 @@ export const SITE_PREVIEW_KEY_MAX_LENGTH = 40;
 export const SITE_SLUG_MIN_LENGTH = 3;
 export const SITE_SLUG_MAX_LENGTH = 40;
 export const DNS_LABEL_MAX_LENGTH = 63;
+export const DNS_HOSTNAME_MAX_LENGTH = 253;
 export const SITE_RESERVED_SLUGS = new Set([
   "www",
   "app",

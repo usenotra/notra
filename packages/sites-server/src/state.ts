@@ -28,6 +28,7 @@ import { and, eq, isNotNull, lte } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { JSON_CONTENT_TYPE } from "./constants/content-types";
+import { R2_CONTROL_CACHE_CONTROL } from "./constants/r2";
 import { SERVING_STATE_RETRY_SCHEDULE } from "./constants/state";
 import { R2PreconditionFailedError, SiteHostConflictError } from "./errors";
 import {
@@ -156,7 +157,7 @@ export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
     const body = JSON.stringify(write);
     yield* r2PutEffect(SITE_R2_KEYS.state(site.id), body, {
       contentType: JSON_CONTENT_TYPE,
-      cacheControl: "no-store",
+      cacheControl: R2_CONTROL_CACHE_CONTROL,
       ...(current ? { ifMatch: current.etag } : { ifNoneMatch: "*" }),
     }).pipe(
       Effect.mapError((error): ServingStateAttemptFailure => ({
@@ -331,10 +332,11 @@ export async function syncServingAccess(
   return await mutateServingState(
     site,
     (state, access) => {
+      const now = new Date();
       let write = setPreviewVisibilityInState(
         state,
         access.previewVisibility ?? "protected",
-        new Date()
+        now
       );
       const keys = new Set<string>();
       if (removePreviewsThrough !== null) {
@@ -351,7 +353,7 @@ export async function syncServingAccess(
             write,
             key,
             removePreviewsThrough,
-            new Date()
+            now
           );
         }
       }
@@ -383,7 +385,7 @@ export async function claimHostRecord(
   try {
     await r2Put(SITE_R2_KEYS.host(hostname), body, {
       contentType: JSON_CONTENT_TYPE,
-      cacheControl: "no-store",
+      cacheControl: R2_CONTROL_CACHE_CONTROL,
       ifNoneMatch: "*",
     });
   } catch (error) {

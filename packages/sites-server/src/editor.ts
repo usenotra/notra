@@ -21,6 +21,7 @@ import {
 import { GITHUB_API_VERSION_HEADER } from "./constants/github";
 import { SiteInputError, SitePublishConflictError } from "./errors";
 import { getBranchHead, siteRepositoryAccess } from "./github";
+import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   CreateCommitOnBranchResponse,
   PublishSiteDraftsInput,
@@ -215,6 +216,31 @@ export async function listSiteDrafts(siteId: string): Promise<SiteDraft[]> {
     .where(eq(siteDrafts.siteId, siteId));
 }
 
+// Locks the site row so a branch or root directory change cannot race the
+// draft write, and rejects drafts made against a different source.
+async function lockSourceContext(
+  tx: SiteStorageTransaction,
+  siteId: string,
+  input: Pick<SiteDraftMutationInput, "path" | "sourceContext">,
+  action: "saving" | "discarding"
+): Promise<void> {
+  const [current] = await tx
+    .select()
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .for("update");
+  if (
+    !current ||
+    current.productionBranch !== input.sourceContext.productionBranch ||
+    current.rootDirectory !== input.sourceContext.rootDirectory
+  ) {
+    throw new SitePublishConflictError(
+      [input.path],
+      `The site's source changed. Reload the editor before ${action}.`
+    );
+  }
+}
+
 export async function saveSiteDraft(
   site: Site,
   input: SaveSiteDraftInput
@@ -224,21 +250,7 @@ export async function saveSiteDraft(
     throw new SiteInputError("This file is too large to edit in the browser");
   }
   return await db.transaction(async (tx) => {
-    const [current] = await tx
-      .select()
-      .from(sites)
-      .where(eq(sites.id, site.id))
-      .for("update");
-    if (
-      !current ||
-      current.productionBranch !== input.sourceContext.productionBranch ||
-      current.rootDirectory !== input.sourceContext.rootDirectory
-    ) {
-      throw new SitePublishConflictError(
-        [input.path],
-        "The site's source changed. Reload the editor before saving."
-      );
-    }
+    await lockSourceContext(tx, site.id, input, "saving");
     if ((input.draftId === null) !== (input.draftRevision === null)) {
       throw new SiteInputError(
         "A draft ID and revision must be supplied together"
@@ -327,21 +339,7 @@ export async function discardSiteDraft(
   input: SiteDraftMutationInput
 ): Promise<void> {
   await db.transaction(async (tx) => {
-    const [current] = await tx
-      .select()
-      .from(sites)
-      .where(eq(sites.id, site.id))
-      .for("update");
-    if (
-      !current ||
-      current.productionBranch !== input.sourceContext.productionBranch ||
-      current.rootDirectory !== input.sourceContext.rootDirectory
-    ) {
-      throw new SitePublishConflictError(
-        [input.path],
-        "The site's source changed. Reload the editor before discarding."
-      );
-    }
+    await lockSourceContext(tx, site.id, input, "discarding");
     if (input.draftId === null || input.draftRevision === null) {
       const [existing] = await tx
         .select()

@@ -1,3 +1,4 @@
+import { MOUNT_SEGMENT } from "@notra/sites-core/constants/mounts";
 import {
   SITE_AREAS,
   SITE_MOUNT_MAX_SEGMENTS,
@@ -7,8 +8,6 @@ import type {
   SiteMountedArea,
   SiteMounts,
 } from "@notra/sites-core/types/deployment";
-
-import { MOUNT_SEGMENT } from "../constants/mounts";
 
 class SiteMountError extends Error {
   readonly name = "SiteMountError";

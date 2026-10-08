@@ -5,6 +5,7 @@ import {
   GEO_HOSTS_SQL,
   GEO_PROJECT_SCOPE_PARAMS,
   GEO_PROJECT_SCOPE_SQL,
+  GEO_SITE_SCOPE_SQL,
   GEO_WINDOW_PARAMS,
 } from "./geo-queries";
 
@@ -16,7 +17,7 @@ export const WEB_SCOPE_PARAMS = {
   ...GEO_HOSTS_PARAMS,
 };
 
-export const WEB_SCOPE_SQL = `AND ({{String(site_id, '')}} = '' OR site_id = {{String(site_id, '')}})
+export const WEB_SCOPE_SQL = `${GEO_SITE_SCOPE_SQL}
           ${GEO_HOSTS_SQL}`;
 
 export const WEB_LANDING_SQL = "session_page_index <= 1";

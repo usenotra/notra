@@ -1,9 +1,9 @@
 import {
   TRAFFIC_CONTENT_TYPES,
-  TRAFFIC_REPORT_TIMEOUT_MS,
   TRAFFIC_TRACING_HEADERS,
 } from "./constants/traffic";
 import type { TrafficPayload, TrafficReport } from "./types/traffic";
+import { postToIngest } from "./utils/ingest";
 
 function header(headers: Headers, name: string): string | undefined {
   return headers.get(name) ?? undefined;
@@ -115,21 +115,11 @@ function buildPayload(report: TrafficReport): TrafficPayload {
 }
 
 export async function reportTraffic(report: TrafficReport): Promise<void> {
-  try {
-    const response = await report.fetch(report.ingestUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${report.token}`,
-      },
-      body: JSON.stringify(buildPayload(report)),
-      signal: AbortSignal.timeout(TRAFFIC_REPORT_TIMEOUT_MS),
-    });
-    await response.body?.cancel();
-    if (!response.ok && response.status !== 401) {
-      console.warn("sites.traffic_rejected", { status: response.status });
-    }
-  } catch (error) {
-    console.warn("sites.traffic_failed", { error: String(error) });
-  }
+  await postToIngest({
+    fetch: report.fetch,
+    ingestUrl: report.ingestUrl,
+    token: report.token,
+    kind: "traffic",
+    buildBody: () => buildPayload(report),
+  });
 }

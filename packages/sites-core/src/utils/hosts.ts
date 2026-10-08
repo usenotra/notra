@@ -1,4 +1,13 @@
 import {
+  COMBINING_MARKS,
+  EDGE_DASHES,
+  HOST_LABEL,
+  NON_SLUG_CHARACTERS,
+  PREVIEW_KEY,
+  SLUG,
+} from "@notra/sites-core/constants/hosts";
+import {
+  DNS_HOSTNAME_MAX_LENGTH,
   DNS_LABEL_MAX_LENGTH,
   SITE_PREVIEW_HOST_SEPARATOR,
   SITE_PREVIEW_KEY_MAX_LENGTH,
@@ -7,15 +16,6 @@ import {
   SITE_SLUG_MIN_LENGTH,
 } from "@notra/sites-core/constants/sites";
 import type { ParsedSiteHost } from "@notra/sites-core/types/hosts";
-
-import {
-  HOST_LABEL,
-  SLUG,
-  PREVIEW_KEY,
-  NON_SLUG_CHARACTERS,
-  EDGE_DASHES,
-  COMBINING_MARKS,
-} from "../constants/hosts";
 
 function dashCase(value: string): string {
   return value
@@ -30,7 +30,7 @@ export function normalizeHostname(input: string): string | null {
     .toLowerCase()
     .replace(/:\d+$/, "")
     .replace(/\.$/, "");
-  if (host.length === 0 || host.length > 253) {
+  if (host.length === 0 || host.length > DNS_HOSTNAME_MAX_LENGTH) {
     return null;
   }
   const labels = host.split(".");

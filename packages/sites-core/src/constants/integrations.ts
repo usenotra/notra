@@ -31,3 +31,7 @@ export const HTTPS_BASE_URL = new RegExp(
 export const CSP_ORIGIN = new RegExp(
   String.raw`^(?:https|wss):\/\/(?:\*\.)?${HOST}${PORT}$`
 );
+
+export const DATABUDDY_CLIENT_ID = /^[A-Za-z0-9_-]{8,64}$/;
+export const POSTHOG_API_KEY = /^phc_[A-Za-z0-9]{20,64}$/;
+export const GA4_MEASUREMENT_ID = /^G-[A-Z0-9]{4,16}$/;

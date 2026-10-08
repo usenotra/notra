@@ -1,6 +1,8 @@
 export const WEB_SESSION_TTL_SECONDS = 30 * 60;
 export const WEB_SESSION_KEY_PREFIX = "web:session";
 export const WEB_VISITOR_ID_LENGTH = 16;
+export const WEB_UTM_MAX_LENGTH = 100;
+export const WEB_UTM_CAMPAIGN_MAX_LENGTH = 200;
 
 export const WEB_DEFAULT_DAYS = 30;
 export const WEB_PAGES_LIMIT = 50;

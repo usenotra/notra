@@ -20,6 +20,11 @@ import {
   reportEngagement,
 } from "./analytics";
 import {
+  PREVIEW_CACHE_CONTROL,
+  REDIRECT_CACHE_CONTROL,
+  SECURITY_TXT_MAX_AGE_SECONDS,
+} from "./constants/responses";
+import {
   loadHost,
   loadManifest,
   loadState,
@@ -269,7 +274,10 @@ async function answerAnalyticsRequest(
 
 function hostingApexResponse(deps: SitesDeps, url: URL): Response {
   if (url.pathname === "/.well-known/security.txt") {
-    return plainText(securityTxt(url.origin, deps.now()), 86_400);
+    return plainText(
+      securityTxt(url.origin, deps.now()),
+      SECURITY_TXT_MAX_AGE_SECONDS
+    );
   }
   return html(hostingApexPage(deps.hostingDomain), 200);
 }
@@ -305,7 +313,7 @@ async function serveFromManifest(
       status: redirect.status,
       headers: {
         Location: redirect.location,
-        "Cache-Control": "public, max-age=300",
+        "Cache-Control": REDIRECT_CACHE_CONTROL,
       },
     });
   }
@@ -367,7 +375,7 @@ async function serveFromManifest(
         extraHeaders: {
           "Content-Type": "text/markdown; charset=utf-8",
           "Cache-Control": resolved.isPreview
-            ? "private, no-store"
+            ? PREVIEW_CACHE_CONTROL
             : "no-store",
           "X-Robots-Tag": "noindex",
           Vary: "Accept",

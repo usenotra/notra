@@ -38,7 +38,7 @@ import {
   unknownConfigKeyWarnings,
 } from "./utils/config-checks";
 import { hasErrors } from "./utils/diagnostics";
-import { acornSyntaxError } from "./utils/errors";
+import { acornSyntaxError, errorMessage } from "./utils/errors";
 import { importCycleDiagnostics } from "./utils/import-cycles";
 import { blockedMarkdownHtml } from "./utils/markdown-html";
 import { isTextSourceFile, offsetToLineColumn } from "./utils/paths";
@@ -170,7 +170,7 @@ function parseSiteConfig(raw: string | null | undefined): ParsedSiteConfig {
       diagnostics: [
         configError(
           "config_json",
-          `${SITE_CONFIG_FILENAME} is not valid JSON: ${(error as Error).message}`
+          `${SITE_CONFIG_FILENAME} is not valid JSON: ${errorMessage(error)}`
         ),
       ],
     };

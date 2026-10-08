@@ -1,4 +1,7 @@
-import { SITE_PREVIEW_AUTH_PATH } from "@notra/sites-core/constants/sites";
+import {
+  SITE_PREVIEW_AUTH_PATH,
+  SITE_PREVIEW_PASSWORD_MAX_LENGTH,
+} from "@notra/sites-core/constants/sites";
 
 import {
   GATE_ERROR_MESSAGES,
@@ -79,7 +82,7 @@ function passwordForm(next: string, error: PreviewGateError | null): string {
   const message = passwordError
     ? `<p class="error" id="password-error" role="alert">${GATE_ERROR_MESSAGES[error]}</p>`
     : "";
-  return `<div class="divider">or</div><form method="post" action="${SITE_PREVIEW_AUTH_PATH}"><input type="hidden" name="next" value="${escapeHtml(next)}"><div><label for="password">Preview password</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128"${describedBy}${passwordError ? " autofocus" : ""}></div>${message}<button class="button secondary" type="submit">Continue with password</button></form>`;
+  return `<div class="divider">or</div><form method="post" action="${SITE_PREVIEW_AUTH_PATH}"><input type="hidden" name="next" value="${escapeHtml(next)}"><div><label for="password">Preview password</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="${SITE_PREVIEW_PASSWORD_MAX_LENGTH}"${describedBy}${passwordError ? " autofocus" : ""}></div>${message}<button class="button secondary" type="submit">Continue with password</button></form>`;
 }
 
 export function previewLockedPage(params: PreviewGatePage): string {

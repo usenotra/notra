@@ -15,6 +15,8 @@ import {
   WEB_SESSION_KEY_PREFIX,
   WEB_SESSION_TTL_SECONDS,
   WEB_SOCIAL_HOSTS,
+  WEB_UTM_CAMPAIGN_MAX_LENGTH,
+  WEB_UTM_MAX_LENGTH,
   WEB_VISITOR_ID_LENGTH,
 } from "@notra/geo-core/constants/web-analytics";
 import { WEB_SESSION_RESOLVE_SCRIPT } from "@notra/geo-core/constants/web-session";
@@ -29,6 +31,8 @@ import type {
   WebSession,
 } from "../types/ingest";
 import { isHumanPageView } from "../utils/web-page-view";
+
+const LEADING_WWW_REGEX = /^www\./;
 
 export function webVisitorId(
   scope: string,
@@ -97,8 +101,8 @@ export function classifyWebReferrer(
   if (!host) {
     return { host: "", group: "direct", source: "", aiProduct: "" };
   }
-  const bare = host.replace(/^www\./, "");
-  if (bare === pageHost.replace(/^www\./, "")) {
+  const bare = host.replace(LEADING_WWW_REGEX, "");
+  if (bare === pageHost.replace(LEADING_WWW_REGEX, "")) {
     return { host, group: "internal", source: "", aiProduct: "" };
   }
   const search = matchHost(bare, WEB_SEARCH_HOSTS);
@@ -162,7 +166,7 @@ export async function buildWebPageView(
   );
   const params = url.searchParams;
   const utmSource = (params.get("utm_source") ?? "")
-    .slice(0, 100)
+    .slice(0, WEB_UTM_MAX_LENGTH)
     .toLowerCase();
   const fromOutside =
     utmSource.length > 0 ||
@@ -193,8 +197,13 @@ export async function buildWebPageView(
     referrer_source: referrer.source,
     ai_product: referrer.aiProduct,
     utm_source: utmSource,
-    utm_medium: (params.get("utm_medium") ?? "").slice(0, 100).toLowerCase(),
-    utm_campaign: (params.get("utm_campaign") ?? "").slice(0, 200),
+    utm_medium: (params.get("utm_medium") ?? "")
+      .slice(0, WEB_UTM_MAX_LENGTH)
+      .toLowerCase(),
+    utm_campaign: (params.get("utm_campaign") ?? "").slice(
+      0,
+      WEB_UTM_CAMPAIGN_MAX_LENGTH
+    ),
     country: payload.geo?.country ?? "",
     device: agent.device,
     browser: agent.browser,

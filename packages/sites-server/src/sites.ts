@@ -6,7 +6,6 @@ import {
   siteJobs,
   sites,
 } from "@notra/db/schema";
-import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import {
   SITE_PREVIEW_PASSWORD_MAX_LENGTH,
   SITE_PREVIEW_PASSWORD_MIN_LENGTH,
@@ -22,7 +21,13 @@ import { hashPreviewPassword } from "@notra/sites-core/utils/preview-password";
 import { and, eq } from "drizzle-orm";
 
 import { deleteCustomHostnameQuietly } from "./cloudflare-saas";
-import { DEFAULT_SITE_MOUNTS, SITE_SLUG_ATTEMPTS } from "./constants/sites";
+import {
+  DEFAULT_SITE_MOUNTS,
+  SITE_SLUG_ATTEMPTS,
+  SITE_SLUG_FALLBACK_MAX_LENGTH,
+  SITE_SLUG_RETRY_ROOT_MAX_LENGTH,
+  SITE_SLUG_RETRY_SUFFIX_LENGTH,
+} from "./constants/sites";
 import { deployBranchHead } from "./deploy";
 import { getSitesHostingDomain } from "./env";
 import { SiteInputError } from "./errors";
@@ -46,6 +51,7 @@ import type {
 } from "./types/sites";
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
+import { invalidateSiteIngestCaches } from "./utils/ingest-cache";
 import { parseRootDirectory } from "./utils/root-directory";
 import { acquireSiteHostLock } from "./utils/site-host-lock";
 import { siteAliasOrigin } from "./utils/urls";
@@ -65,12 +71,14 @@ function parseMounts(mounts: SiteMounts): SiteMounts {
 async function uniqueSlug(base: string): Promise<string> {
   const root = isValidSiteSlug(base)
     ? base
-    : `site-${base}`.slice(0, 32).replace(/-$/, "");
+    : `site-${base}`.slice(0, SITE_SLUG_FALLBACK_MAX_LENGTH).replace(/-$/, "");
   for (let attempt = 0; attempt < SITE_SLUG_ATTEMPTS; attempt += 1) {
     const candidate =
       attempt === 0
         ? root
-        : `${root.slice(0, 34)}-${Math.random().toString(36).slice(2, 6)}`;
+        : `${root.slice(0, SITE_SLUG_RETRY_ROOT_MAX_LENGTH)}-${Math.random()
+            .toString(36)
+            .slice(2, 2 + SITE_SLUG_RETRY_SUFFIX_LENGTH)}`;
     if (!isValidSiteSlug(candidate)) {
       continue;
     }
@@ -156,9 +164,7 @@ export async function createSite(
   if (!site) {
     throw new Error("Could not create site");
   }
-  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-    () => undefined
-  );
+  await invalidateSiteIngestCaches(site);
   await mutateServingState(site, (state) => ({
     write: state,
     result: undefined,
@@ -184,9 +190,7 @@ export async function setSiteSuspended(
     .update(sites)
     .set({ status, suspendedReason: suspended ? (reason ?? null) : null })
     .where(eq(sites.id, site.id));
-  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-    () => undefined
-  );
+  await invalidateSiteIngestCaches(site);
 }
 
 export async function updateSiteSettings(
@@ -310,9 +314,7 @@ export async function updateSiteSettings(
     });
     return { site: updated, syncJobId, rebuilding };
   });
-  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-    () => undefined
-  );
+  await invalidateSiteIngestCaches(site);
   return result;
 }
 
@@ -368,9 +370,8 @@ export async function deleteSite(
     });
     return;
   }
-  const executor = tx ?? db;
   await setServingStatus(site, "suspended", tx);
-  const subdomains = await executor
+  const subdomains = await tx
     .select({
       hostname: siteDomains.hostname,
       cloudflareHostnameId: siteDomains.cloudflareHostnameId,
@@ -384,10 +385,8 @@ export async function deleteSite(
     await releaseHostRecord(domain.hostname, site.id, tx);
     await deleteCustomHostnameQuietly(domain.cloudflareHostnameId);
   }
-  await executor.delete(sites).where(eq(sites.id, site.id));
-  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-    () => undefined
-  );
+  await tx.delete(sites).where(eq(sites.id, site.id));
+  await invalidateSiteIngestCaches(site);
   await Promise.all(
     ["deployments", "logs", "sites"].map((root) =>
       r2DeletePrefix(`${root}/${site.id}/`)

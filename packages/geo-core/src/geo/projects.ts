@@ -181,6 +181,28 @@ export const updateGeoProject = Effect.fn("geo.projectUpdate")(function* (
   return toGeoProject(row);
 });
 
+// Sites whose cached ingest identity may point at the project: pinned ones,
+// plus unpinned ones that fall back to the organization's oldest project.
+function projectSitesCondition(organizationId: string, projectId: string) {
+  return and(
+    eq(sites.organizationId, organizationId),
+    or(eq(sites.projectId, projectId), isNull(sites.projectId))
+  );
+}
+
+function invalidateSiteCaches(
+  siteIds: Iterable<string>,
+  organizationId: string
+) {
+  return Effect.promise(() =>
+    Promise.all(
+      Array.from(siteIds, (id) =>
+        invalidateIngestSiteCaches(id, organizationId).catch(() => undefined)
+      )
+    )
+  );
+}
+
 /**
  * Deletes a project and everything hanging off it.
  *
@@ -249,21 +271,10 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
     db
       .select({ id: sites.id })
       .from(sites)
-      .where(
-        and(
-          eq(sites.organizationId, organizationId),
-          or(eq(sites.projectId, projectId), isNull(sites.projectId))
-        )
-      )
+      .where(projectSitesCondition(organizationId, projectId))
   );
   const affectedSiteIds = new Set(affectedSites.map(({ id }) => id));
-  yield* Effect.promise(() =>
-    Promise.all(
-      [...affectedSiteIds].map((id) =>
-        invalidateIngestSiteCaches(id, organizationId).catch(() => undefined)
-      )
-    )
-  );
+  yield* invalidateSiteCaches(affectedSiteIds, organizationId);
 
   const outcome = yield* geoDb("project delete failed", () =>
     db.transaction(async (tx) => {
@@ -296,12 +307,7 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
       const currentSites = await tx
         .select({ id: sites.id })
         .from(sites)
-        .where(
-          and(
-            eq(sites.organizationId, organizationId),
-            or(eq(sites.projectId, projectId), isNull(sites.projectId))
-          )
-        );
+        .where(projectSitesCondition(organizationId, projectId));
       for (const { id } of currentSites) {
         affectedSiteIds.add(id);
       }
@@ -325,13 +331,7 @@ export const deleteGeoProject = Effect.fn("geo.projectDelete")(function* (
   }
 
   if (outcome === "deleted") {
-    yield* Effect.promise(() =>
-      Promise.all(
-        [...affectedSiteIds].map((id) =>
-          invalidateIngestSiteCaches(id, organizationId).catch(() => undefined)
-        )
-      )
-    );
+    yield* invalidateSiteCaches(affectedSiteIds, organizationId);
     // The project's checks went with it (cascade); org-wide aggregates must
     // stop counting them now, not when their cache entries expire.
     yield* Effect.promise(() => bumpGeoCheckGeneration([organizationId]));

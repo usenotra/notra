@@ -2,7 +2,11 @@ import { db } from "@notra/db/drizzle";
 import { organizations, siteDeployments } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 
-import { CHECK_RUN_NAME } from "./constants/github";
+import {
+  CHECK_RUN_ANNOTATION_MAX_LENGTH,
+  CHECK_RUN_NAME,
+  CHECK_RUN_SUMMARY_MAX_LENGTH,
+} from "./constants/github";
 import {
   completeCheckRun,
   createCheckRun,
@@ -142,7 +146,7 @@ export async function reportOutcome(
       checkRunId,
       conclusion: check.conclusion,
       title: check.title,
-      summary: check.summary.slice(0, 60_000),
+      summary: check.summary.slice(0, CHECK_RUN_SUMMARY_MAX_LENGTH),
       detailsUrl: check.liveUrl ?? (await dashboardUrl(site, deployment)),
       annotations:
         outcome.kind === "failed"
@@ -158,7 +162,10 @@ export async function reportOutcome(
                   diagnostic.severity === "error"
                     ? ("failure" as const)
                     : ("warning" as const),
-                message: diagnostic.message.slice(0, 1000),
+                message: diagnostic.message.slice(
+                  0,
+                  CHECK_RUN_ANNOTATION_MAX_LENGTH
+                ),
               }))
           : undefined,
     });

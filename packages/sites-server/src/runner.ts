@@ -1,6 +1,5 @@
 import { db } from "@notra/db/drizzle";
 import { siteJobs, sites } from "@notra/db/schema";
-import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import { and, eq, gt, sql } from "drizzle-orm";
 
 import { BUILDABLE_STATUSES } from "./constants/jobs";
@@ -26,6 +25,7 @@ import {
 } from "./state";
 import type { JobDeployment, SiteJob, SiteJobOutcome } from "./types/jobs";
 import { errorMessage } from "./utils/errors";
+import { invalidateSiteIngestCaches } from "./utils/ingest-cache";
 import { withSiteStorageLock } from "./utils/site-storage-lock";
 
 async function loadJobDeployment(job: SiteJob): Promise<JobDeployment | null> {
@@ -115,9 +115,7 @@ async function runSettingsJob(job: SiteJob): Promise<SiteJobOutcome> {
   if (!site) {
     return { status: "skipped" };
   }
-  await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-    () => undefined
-  );
+  await invalidateSiteIngestCaches(site);
   if (rebuild && site.status === "active") {
     const [existing] = await db
       .select({ id: siteJobs.id })

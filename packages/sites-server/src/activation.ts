@@ -1,6 +1,5 @@
 import { db } from "@notra/db/drizzle";
 import { sites } from "@notra/db/schema";
-import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import type {
   PreviewActivationResult,
@@ -22,6 +21,7 @@ import type {
   SiteDeployment,
 } from "./types/deployments";
 import type { Site } from "./types/sites";
+import { invalidateSiteIngestCaches } from "./utils/ingest-cache";
 import { withSiteStorageLock } from "./utils/site-storage-lock";
 
 async function hasStoredFiles(
@@ -87,9 +87,7 @@ export async function activateDeployment(
     );
   });
   if (outcome === "live" && deployment.kind === "production") {
-    await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-      () => undefined
-    );
+    await invalidateSiteIngestCaches(site);
   }
   return outcome;
 }
@@ -124,9 +122,7 @@ export async function restoreProductionDeployment(
     );
   });
   if (outcome === "live") {
-    await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
-      () => undefined
-    );
+    await invalidateSiteIngestCaches(site);
   }
   return outcome;
 }

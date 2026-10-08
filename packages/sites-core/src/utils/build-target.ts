@@ -28,6 +28,8 @@ export async function hashBuildTarget(
   target: SiteBuildTarget
 ): Promise<string> {
   const { branding, ...normalized } = normalizeBuildTarget(target);
+  // Branding on (the default) is left out so deployments from before the
+  // setting keep their hash and stay restorable.
   const hashed = branding ? normalized : { ...normalized, branding };
   const digest = await sha256Hex(
     new TextEncoder().encode(stableStringify(hashed))

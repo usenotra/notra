@@ -1,4 +1,4 @@
-import type { SiteBuildResult } from "./build";
+import type { SiteBuildResult } from "@notra/sites-core/types/build";
 
 export type SiteBuildMetricPhase =
   | "repositoryAccess"

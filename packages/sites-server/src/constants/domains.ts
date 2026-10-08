@@ -1,5 +1,8 @@
 export const CLOUDFLARE_ZONES_API =
   "https://api.cloudflare.com/client/v4/zones";
+/** Written below every mount by the sites builder; it names the site. */
+export const PROBE_FILE = "_notra/probe.txt";
+export const PROBE_SITE_MARKER = "notra-site=";
 export const PROBE_TIMEOUT_MS = 10_000;
 export const PROBE_MAX_BYTES = 8 * 1024;
 export const DNS_RESOLVER_TIMEOUT_MS = 3000;
