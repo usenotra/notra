@@ -48,8 +48,13 @@ test("prepare stages a virtual config but leaves an empty source untouched", asy
 });
 
 test("real fixture and empty-source builds use snapshot config without adding source files", async () => {
-  const root = await mkdtemp(join(tmpdir(), "notra-default-build-"));
   const toolchainRoot = resolve(import.meta.dir, "..");
+  // Astro renames prerendered assets from the toolchain into outDir; on CI
+  // runners /tmp is another filesystem, so build next to the toolchain like
+  // the sandbox does.
+  const scratch = join(toolchainRoot, ".astro");
+  await mkdir(scratch, { recursive: true });
+  const root = await mkdtemp(join(scratch, "test-build-"));
   try {
     for (const source of ["fixture", "empty"]) {
       const siteRoot = join(root, source);
