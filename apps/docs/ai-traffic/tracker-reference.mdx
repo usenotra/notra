@@ -1,0 +1,67 @@
+---
+title: "Tracker reference"
+description: "Options, captured fields, excluded paths and token rotation for the @usenotra/geo tracker."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/tracker-reference
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `token` | required | Per organization ingest token |
+| `endpoint` | `https://ingest.usenotra.com` | Ingest origin, and the SDK appends `/api/geo/ingest` |
+| `exclude` | `["/api"]` | Paths to skip. Pass `[]` to disable |
+| `sample` | `1` | Fraction of eligible requests to send, 0 to 1 |
+| `onError` | none | Called with anything that goes wrong. The SDK never throws |
+| `fetch` | global `fetch` | Injectable fetch, for tests |
+
+When you omit `endpoint`, the SDK posts directly to `https://ingest.usenotra.com` and does not retry through the dashboard. To use the dashboard ingestion route, set `endpoint: "https://app.usenotra.com"` and redeploy your site. Self-hosted installations must set `endpoint` to their own ingestion origin.
+
+The tracker captures only `GET` requests that look like pages, and it skips anything under `/_next/`, `/_nuxt/`, `/_vercel/`, `/_astro/`, `/_app/immutable/` and `/static/`, plus any path ending in a common static extension, although it always captures `llms.txt` and `llms-full.txt`. An `exclude` entry can be a string prefix, a `RegExp` or a `(request, url) => boolean` function.
+
+The envelope contains the timestamp, method, URL, client IP, edge location headers when present, referer, user agent, accept and accept-language headers and a request id. The SDK does not read or send the request body, cookies or any other headers, and the POST uses `keepalive` and a 2 second timeout.
+
+<Visibility for="agents">
+
+## Install snippets from the API
+
+Open **Traffic** in the GEO sidebar. Until the first event arrives, the page shows **No activity yet** with the full install panel of **Install the package**, **Set your token** and **Add the proxy**, and the token appears in the **Set your token** section. The **Copy agent prompt** button copies an instruction block you can paste into a coding agent.
+
+From the API, reading the snippets needs `traffic.read` and issuing the token needs `traffic.write`:
+
+```bash
+curl https://api.usenotra.com/v1/geo/ingest/setup \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```bash
+curl -X POST "https://api.usenotra.com/v1/geo/ingest/token?projectId=$PROJECT_ID" \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys. The token endpoint also returns `token`. The ingest routes are organization-level, so pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier, so install the same project token on every domain the project tracks, and add extra hostnames under **Tracked domains** in GEO settings.
+
+</Visibility>
+
+## Rotating the token
+
+Open **API Keys** and press **Rotate** on the tracking token card. Rotation covers the whole organization, so every project gets a new token.
+
+<Visibility for="agents">
+
+```bash
+curl -X POST "https://api.usenotra.com/v1/geo/ingest/rotate-token?projectId=$PROJECT_ID" \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+</Visibility>
+
+Rotation invalidates every tracking token previously issued for the organization and returns a fresh one. Because Notra immediately rejects events from deployments that still send the old token, update `NOTRA_GEO_TOKEN` everywhere before you rotate.

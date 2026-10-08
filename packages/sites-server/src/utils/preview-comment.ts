@@ -1,0 +1,36 @@
+import { PREVIEW_COMMENT_TITLES } from "../constants/github";
+import type { DeploymentOutcome, SiteDeployment } from "../types/deployments";
+import type { Site } from "../types/sites";
+import { primaryMountUrl } from "./urls";
+
+export function previewCommentBody(
+  site: Site,
+  deployment: SiteDeployment,
+  buildUrl: string,
+  outcome?: DeploymentOutcome
+): string {
+  const status = outcome
+    ? PREVIEW_COMMENT_TITLES[outcome.kind]
+    : "⏳ Building preview";
+  const links = [`[View build](<${buildUrl}>)`];
+  if (outcome?.kind === "live") {
+    const url = primaryMountUrl(
+      deployment.target.publicOrigin,
+      deployment.target.mounts
+    );
+    links.unshift(`[Open preview](<${url}>)`);
+  }
+  return [
+    `<!-- notra-preview:${site.id} -->`,
+    `### Notra · ${site.slug} preview`,
+    `${status} · Commit \`${deployment.commitSha.slice(0, 7)}\``,
+    links.join(" · "),
+    ...(outcome?.kind === "live" && site.previewVisibility === "protected"
+      ? [
+          site.previewPassword
+            ? "This preview is protected. Sign in to Notra or use the preview password."
+            : "This preview is protected. Sign in to Notra to open it.",
+        ]
+      : []),
+  ].join("\n\n");
+}

@@ -2,6 +2,7 @@ import {
   and,
   desc,
   eq,
+  ne,
   gte,
   inArray,
   ilike,
@@ -18,6 +19,8 @@ import type {
   GeoCheckCompetitorPromptRow,
   GeoCheckCompetitorPromptSummaryRow,
   GeoCheckCompetitorShareRow,
+  GeoCheckOwnBrandShare,
+  GeoCheckOwnBrandShareRow,
   GeoCheckCompetitorShareAggregateRow,
   GeoCheckCompetitorTimeseriesRow,
   GeoCheckBrandKey,
@@ -28,6 +31,10 @@ import type {
   GeoCheckLanguageShareRow,
   GeoCheckLanguageShareTrendRow,
   GeoCheckOverviewRow,
+  GeoCheckPeriod,
+  GeoCheckPeriodCompetitorRow,
+  GeoCheckPeriodInput,
+  GeoCheckPeriodPromptRow,
   GeoCheckPromptHistoryQuery,
   GeoCheckPromptHistoryRow,
   GeoCheckPromptResultRow,
@@ -686,31 +693,139 @@ export async function queryGeoCheckPromptHistory(
   return await (query.scanId ? rowsQuery : rowsQuery.limit(query.limit));
 }
 
+function normalizeBrandName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function summarizeOwnBrandShare(
+  rows: GeoCheckOwnBrandShareRow[]
+): GeoCheckOwnBrandShare {
+  const namesByProject = new Map<string, Set<string>>();
+  const byBrand = new Map<string, Map<string, number>>();
+  for (const row of rows) {
+    const names = namesByProject.get(row.projectId) ?? new Set<string>();
+    names.add(normalizeBrandName(row.brand));
+    for (const alias of row.aliases ?? []) {
+      names.add(normalizeBrandName(alias));
+    }
+    namesByProject.set(row.projectId, names);
+    const byDay = byBrand.get(row.brand) ?? new Map<string, number>();
+    byDay.set(row.day, (byDay.get(row.day) ?? 0) + row.mentions);
+    byBrand.set(row.brand, byDay);
+  }
+  return { namesByProject, byBrand };
+}
+
+function isOwnBrandInProject(
+  own: GeoCheckOwnBrandShare,
+  projectId: string | null,
+  brand: string
+): boolean {
+  if (!projectId) {
+    return false;
+  }
+  return (
+    own.namesByProject.get(projectId)?.has(normalizeBrandName(brand)) ?? false
+  );
+}
+
+function sumMentions(byDay: Map<string, number>): number {
+  let total = 0;
+  for (const mentions of byDay.values()) {
+    total += mentions;
+  }
+  return total;
+}
+
+function addMentions(
+  totals: Map<string, number>,
+  key: string,
+  mentions: number
+): void {
+  totals.set(key, (totals.get(key) ?? 0) + mentions);
+}
+
+async function queryGeoCheckOwnBrandShare(
+  scope: GeoCheckScope,
+  window: GeoCheckWindow | undefined,
+  options?: GeoCheckFilterOptions
+): Promise<GeoCheckOwnBrandShare> {
+  const day = sql<string>`(${geoMentionChecks.capturedAt})::date`;
+  const rows = await withGeoCheckAggregateCache(
+    scope,
+    db
+      .select({
+        projectId: geoSettings.projectId,
+        brand: geoSettings.companyName,
+        aliases: geoSettings.aliases,
+        day,
+        mentions: countChecks,
+      })
+      .from(geoMentionChecks)
+      .innerJoin(
+        geoSettings,
+        eq(geoSettings.projectId, geoMentionChecks.projectId)
+      )
+      .where(
+        and(
+          mentionFilters(scope, window, options),
+          eq(geoMentionChecks.mentioned, true),
+          ne(geoSettings.companyName, "")
+        )
+      )
+      .groupBy(
+        geoSettings.projectId,
+        geoSettings.companyName,
+        geoSettings.aliases,
+        day
+      )
+  );
+  return summarizeOwnBrandShare(
+    rows.map((row) => ({
+      projectId: row.projectId,
+      brand: row.brand,
+      aliases: row.aliases,
+      day: toDay(row.day),
+      mentions: toNumber(row.mentions),
+    }))
+  );
+}
+
 export async function queryGeoCheckCompetitorShare(
   scope: GeoCheckScope,
   window: GeoCheckWindow | undefined,
   limit: number,
   options?: GeoCheckFilterOptions
 ): Promise<GeoCheckCompetitorShareRow[]> {
-  const rows = await withGeoCheckAggregateCache(
-    scope,
-    db
-      .select({
-        brand: competitorBrand,
-        mentions: countChecks,
-      })
-      .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
-      .where(mentionFilters(scope, window, options))
-      .groupBy(competitorBrand)
-      .orderBy(sql`count(distinct ${checkUnit}) desc`)
-      .limit(limit)
-  );
-
-  return rows.map((row) => ({
-    brand: row.brand,
-    mentions: toNumber(row.mentions),
-  }));
+  const [rows, own] = await Promise.all([
+    withGeoCheckAggregateCache(
+      scope,
+      db
+        .select({
+          projectId: geoMentionChecks.projectId,
+          brand: competitorBrand,
+          mentions: countChecks,
+        })
+        .from(geoMentionChecks)
+        .crossJoinLateral(unnestedCompetitorBrand)
+        .where(mentionFilters(scope, window, options))
+        .groupBy(geoMentionChecks.projectId, competitorBrand)
+    ),
+    queryGeoCheckOwnBrandShare(scope, window, options),
+  ]);
+  const totals = new Map<string, number>();
+  for (const row of rows) {
+    if (!isOwnBrandInProject(own, row.projectId, row.brand)) {
+      addMentions(totals, row.brand, toNumber(row.mentions));
+    }
+  }
+  for (const [brand, byDay] of own.byBrand) {
+    addMentions(totals, brand, sumMentions(byDay));
+  }
+  return [...totals]
+    .map(([brand, mentions]) => ({ brand, mentions }))
+    .sort((a, b) => b.mentions - a.mentions)
+    .slice(0, limit);
 }
 
 /**
@@ -823,43 +938,86 @@ export async function queryGeoCheckCompetitorShareAggregate(
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckCompetitorShareAggregateRow[]> {
   const day = sql<string | null>`(${geoMentionChecks.capturedAt})::date`;
-  const rows = await withGeoCheckAggregateCache(
-    scope,
-    db
-      .select({
-        brand: competitorBrand,
-        day,
-        mentions: countChecks,
-      })
-      .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
-      .where(mentionFilters(scope, window))
-      .groupBy(
-        sql`grouping sets ((${competitorBrand}, ${day}), (${competitorBrand}))`
-      )
-      .orderBy(day)
-  );
+  const [rows, own] = await Promise.all([
+    withGeoCheckAggregateCache(
+      scope,
+      db
+        .select({
+          projectId: geoMentionChecks.projectId,
+          brand: competitorBrand,
+          day,
+          mentions: countChecks,
+        })
+        .from(geoMentionChecks)
+        .crossJoinLateral(unnestedCompetitorBrand)
+        .where(mentionFilters(scope, window))
+        .groupBy(
+          sql`grouping sets ((${geoMentionChecks.projectId}, ${competitorBrand}, ${day}), (${geoMentionChecks.projectId}, ${competitorBrand}))`
+        )
+    ),
+    queryGeoCheckOwnBrandShare(scope, window),
+  ]);
+  const totals = new Map<string, Map<string | null, number>>();
+  const add = (brand: string, rowDay: string | null, mentions: number) => {
+    const byDay = totals.get(brand) ?? new Map<string | null, number>();
+    byDay.set(rowDay, (byDay.get(rowDay) ?? 0) + mentions);
+    totals.set(brand, byDay);
+  };
+  for (const row of rows) {
+    if (!isOwnBrandInProject(own, row.projectId, row.brand)) {
+      add(
+        row.brand,
+        row.day === null ? null : toDay(row.day),
+        toNumber(row.mentions)
+      );
+    }
+  }
+  for (const [brand, byDay] of own.byBrand) {
+    for (const [ownDay, mentions] of byDay) {
+      add(brand, ownDay, mentions);
+    }
+    add(brand, null, sumMentions(byDay));
+  }
+  return [...totals]
+    .flatMap(([brand, byDay]) =>
+      [...byDay].map(([rowDay, mentions]) => ({
+        brand,
+        day: rowDay,
+        mentions,
+      }))
+    )
+    .sort((a, b) => {
+      if (a.day === b.day) {
+        return 0;
+      }
+      if (a.day === null) {
+        return 1;
+      }
+      if (b.day === null) {
+        return -1;
+      }
+      return a.day.localeCompare(b.day);
+    });
+}
 
-  return rows.map((row) => ({
-    brand: row.brand,
-    day: row.day === null ? null : toDay(row.day),
-    mentions: toNumber(row.mentions),
-  }));
+function brandMentionedWhere(brand: string, own: boolean): SQL {
+  return own
+    ? eq(geoMentionChecks.mentioned, true)
+    : sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`;
 }
 
 export async function queryGeoCheckCompetitorTimeseries(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorTimeseriesRow[]> {
   const rows = await withGeoCheckAggregateCache(
     scope,
     db
       .select({
         day: sql<string>`(${geoMentionChecks.capturedAt})::date`,
-        mentions: countChecksWhere(
-          sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`
-        ),
+        mentions: countChecksWhere(brandMentionedWhere(brand, own)),
         checks: countChecks,
       })
       .from(geoMentionChecks)
@@ -878,12 +1036,13 @@ export async function queryGeoCheckCompetitorTimeseries(
 export async function queryGeoCheckCompetitorPrompts(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorPromptRow[]> {
   const filters = [
     scopeWhere(scope),
     withoutPersonaRows,
-    sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`,
+    brandMentionedWhere(brand, own),
     ...capturedWithin(window),
   ];
 
@@ -924,7 +1083,8 @@ export async function queryGeoCheckCompetitorPrompts(
 export async function queryGeoCheckCompetitorPromptSummary(
   scope: GeoCheckScope,
   brand: string,
-  window: GeoCheckWindow | undefined
+  window: GeoCheckWindow | undefined,
+  own = false
 ): Promise<GeoCheckCompetitorPromptSummaryRow> {
   const latest = db
     .selectDistinctOn([geoMentionChecks.promptId, geoMentionChecks.engine], {
@@ -937,7 +1097,7 @@ export async function queryGeoCheckCompetitorPromptSummary(
       and(
         scopeWhere(scope),
         withoutPersonaRows,
-        sql`${geoMentionChecks.competitors} @> array[${brand}]::text[]`,
+        brandMentionedWhere(brand, own),
         ...capturedWithin(window)
       )
     )
@@ -1225,4 +1385,105 @@ export async function queryGeoScanComparison(
   }
 
   return { previousScan, currentScan, previous, current };
+}
+
+function periodFilters(input: GeoCheckPeriodInput): SQL {
+  return and(
+    eq(geoMentionChecks.organizationId, input.organizationId),
+    gte(geoMentionChecks.capturedAt, input.from),
+    lt(geoMentionChecks.capturedAt, input.toExclusive),
+    ...mentionOptionFilters(PROMPT_LEVEL_FILTERS)
+  ) as SQL;
+}
+
+function checkPeriod(splitAt: Date) {
+  return sql<GeoCheckPeriod>`case when ${geoMentionChecks.capturedAt} >= ${splitAt} then 'current' else 'previous' end`;
+}
+
+/**
+ * Per tracked prompt and engine, how often the brand was mentioned in each of
+ * two back-to-back periods. Recaps compare these rates instead of single scans
+ * because one answer per scan flips on LLM sampling alone.
+ */
+export async function queryGeoCheckPeriodPrompts(
+  input: GeoCheckPeriodInput
+): Promise<GeoCheckPeriodPromptRow[]> {
+  const period = checkPeriod(input.splitAt);
+  const rows = await db
+    .select({
+      period,
+      projectId: geoMentionChecks.projectId,
+      promptId: geoMentionChecks.promptId,
+      engine: geoMentionChecks.engine,
+      prompt: sql<string>`max(${geoMentionChecks.prompt})`,
+      checks: countChecks,
+      mentions: countChecksWhere(isMentioned),
+      avgPosition: sql<
+        number | null
+      >`round(avg(${geoMentionChecks.position}) filter (where ${geoMentionChecks.mentioned} and ${geoMentionChecks.position} is not null), 1)::float8`,
+    })
+    .from(geoMentionChecks)
+    .where(periodFilters(input))
+    // Ordinal: a repeated `period` binds `splitAt` again, and Postgres treats
+    // the two parameters as different expressions.
+    .groupBy(
+      sql`1`,
+      geoMentionChecks.projectId,
+      geoMentionChecks.promptId,
+      geoMentionChecks.engine
+    );
+
+  return rows.map((row) => ({
+    period: row.period,
+    projectId: row.projectId,
+    promptId: row.promptId,
+    engine: row.engine,
+    prompt: row.prompt,
+    checks: toNumber(row.checks),
+    mentions: toNumber(row.mentions),
+    avgPosition: toNullableNumber(row.avgPosition),
+  }));
+}
+
+/**
+ * Competitor mentions per tracked prompt and engine, split like above. Brands
+ * are keyed trimmed and lowercased so "Acme" and "acme " count as one.
+ */
+export async function queryGeoCheckPeriodCompetitors(
+  input: GeoCheckPeriodInput
+): Promise<GeoCheckPeriodCompetitorRow[]> {
+  const period = checkPeriod(input.splitAt);
+  const brandKey = sql<string>`lower(trim(brand))`;
+  const rows = await db
+    .select({
+      period,
+      projectId: geoMentionChecks.projectId,
+      promptId: geoMentionChecks.promptId,
+      engine: geoMentionChecks.engine,
+      brandKey,
+      brand: sql<string>`min(trim(brand))`,
+      checks: countChecks,
+    })
+    .from(geoMentionChecks)
+    .crossJoinLateral(unnestedCompetitorBrand)
+    .where(periodFilters(input))
+    // Ordinal: a repeated `period` binds `splitAt` again, and Postgres treats
+    // the two parameters as different expressions.
+    .groupBy(
+      sql`1`,
+      geoMentionChecks.projectId,
+      geoMentionChecks.promptId,
+      geoMentionChecks.engine,
+      brandKey
+    );
+
+  return rows.map((row) => ({
+    period: row.period,
+    projectId: row.projectId,
+    promptId: row.promptId,
+    engine: row.engine,
+    brandKey: row.brandKey,
+    brand: row.brand,
+    checks: toNumber(row.checks),
+  }));
 }

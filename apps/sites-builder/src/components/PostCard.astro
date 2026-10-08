@@ -1,0 +1,93 @@
+---
+import type { PostCardProps as Props } from "../types/entries";
+import { POST_CARD_RADIUS } from "../constants/post-card";
+import { authorsOf } from "../lib/authors";
+import { blogOptions } from "../lib/options";
+import { assetUrl, href } from "../lib/params";
+import { formatDate, isoDate } from "../utils/dates";
+import { excerpt } from "../utils/excerpt";
+import { readingMinutes } from "../utils/reading-time";
+import AuthorAvatar from "./AuthorAvatar.astro";
+
+const { entry, headingLevel: Heading = "h2", variant = "card", featured = false } = Astro.props;
+const show = blogOptions.card;
+const [author] = show.author ? authorsOf(entry) : [];
+const summary = show.excerpt ? (entry.data.description ?? excerpt(entry.body)) : undefined;
+const image = show.image && variant !== "row" ? assetUrl(entry.data.image) : undefined;
+const minutes = show.readingTime ? readingMinutes(entry.body) : undefined;
+const hasMeta = Boolean(author) || show.date || minutes !== undefined || entry.data.draft;
+const radius = POST_CARD_RADIUS[variant];
+const linkClass = `after:absolute after:inset-0 after:z-10 ${radius} focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-primary`;
+---
+
+{
+  variant === "row" ? (
+    <article class="group relative grid gap-1.5 rounded-xl py-6 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-8">
+      <div class="font-mono text-sm text-muted-foreground tabular-nums sm:pt-1">
+        {show.date && <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>}
+        {featured && <p class="text-primary">Featured</p>}
+      </div>
+      <div class="flex min-w-0 flex-col gap-2">
+        <Heading class="font-heading text-xl font-medium tracking-[-0.015em] text-balance transition-colors duration-150 group-hover:text-primary">
+          <a href={href(entry.id)} class={linkClass}>{entry.data.title}</a>
+        </Heading>
+        {summary && <p class="line-clamp-2 text-base leading-7 text-muted-foreground">{summary}</p>}
+        {(author || minutes !== undefined || entry.data.draft) && (
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            {author && (
+              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors hover:text-foreground" : "pointer-events-none"]}>
+                <AuthorAvatar author={author} size={20} />
+                <span>{author.name}</span>
+              </a>
+            )}
+            {author && minutes !== undefined && <span aria-hidden="true">·</span>}
+            {minutes !== undefined && <span>{minutes} min read</span>}
+            {entry.data.draft && <span class="text-warning">· Draft</span>}
+          </div>
+        )}
+      </div>
+    </article>
+  ) : (
+    <article
+      class:list={[
+        "post-card group relative isolate flex h-full overflow-hidden border transition-colors duration-150",
+        variant === "feature" ? "flex-col rounded-3xl md:flex-row" : "flex-col rounded-2xl",
+      ]}
+    >
+      {image && (
+        <div class:list={["shrink-0 overflow-hidden", variant === "feature" ? "md:order-last md:w-1/2" : ""]}>
+          <img src={image} alt="" loading="lazy" class:list={["aspect-[1200/630] w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]", variant === "feature" && "md:h-full"]} />
+        </div>
+      )}
+      <div class:list={["flex flex-1 flex-col", variant === "feature" ? "p-6 sm:p-8" : "p-6"]}>
+        <div class="flex flex-col gap-3">
+          {featured && <p class="font-mono text-sm text-primary">Featured</p>}
+          <Heading
+            class:list={[
+              "font-heading font-medium tracking-[-0.015em] text-balance transition-colors duration-150 group-hover:text-primary",
+              variant === "feature" ? "text-2xl leading-tight sm:text-[2rem]" : "text-xl sm:text-2xl",
+            ]}
+          >
+            <a href={href(entry.id)} class={linkClass}>{entry.data.title}</a>
+          </Heading>
+          {summary && <p class:list={["text-base leading-7 text-muted-foreground", variant === "feature" ? "line-clamp-4 sm:text-lg sm:leading-8" : "line-clamp-3"]}>{summary}</p>}
+        </div>
+        {hasMeta && (
+          <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-6 text-sm text-muted-foreground">
+            {author && (
+              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors hover:text-foreground" : "pointer-events-none"]}>
+                <AuthorAvatar author={author} size={24} />
+                <span>{author.name}</span>
+              </a>
+            )}
+            {author && show.date && <span aria-hidden="true">·</span>}
+            {show.date && <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>}
+            {minutes !== undefined && (author || show.date) && <span aria-hidden="true">·</span>}
+            {minutes !== undefined && <span>{minutes} min read</span>}
+            {entry.data.draft && <span class="text-warning">· Draft</span>}
+          </div>
+        )}
+      </div>
+    </article>
+  )
+}

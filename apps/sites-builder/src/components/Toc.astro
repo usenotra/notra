@@ -1,0 +1,44 @@
+---
+import type { TocProps as Props } from "../types/toc";
+
+const items = Astro.props.headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+
+{
+  items.length > 1 && (
+    <nav id="table-of-contents" aria-label="On this page" data-toc>
+      <p class="mb-3 text-sm font-medium">On this page</p>
+      <ul class="flex flex-col border-l border-border">
+        {items.map((item) => (
+          <li>
+            <a href={`#${item.slug}`} data-toc-link={item.slug} class:list={["-ml-px block border-l border-transparent py-1.5 text-sm leading-snug text-muted-foreground transition-colors duration-150 hover:text-foreground data-[active]:border-foreground data-[active]:text-foreground", item.depth === 3 ? "pl-7" : "pl-4"]}>
+              {item.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+  const headings = links
+    .map((link) => document.getElementById(link.dataset.tocLink ?? ""))
+    .filter((heading): heading is HTMLElement => heading !== null);
+  const update = () => {
+    let current = headings[0]?.id;
+    for (const heading of headings) {
+      if (heading.getBoundingClientRect().top <= 120) {
+        current = heading.id;
+      }
+    }
+    for (const link of links) {
+      link.toggleAttribute("data-active", link.dataset.tocLink === current);
+    }
+  };
+  if (headings.length > 0) {
+    update();
+    addEventListener("scroll", update, { passive: true });
+  }
+</script>

@@ -1,0 +1,17 @@
+---
+title: "Bring your own buttons"
+description: "Restyle the navbar and drop your own button component into any post."
+date: 2026-10-06
+tags: [product, design]
+---
+
+import { DocsButton } from "/snippets/button.jsx";
+
+Any `.css` file in your repository loads on every page after the theme. This site ships a `buttons.css` that restyles the navbar buttons through `#topbar-cta-button > a` and `#topbar-primary-button > a`.
+
+The same stylesheet styles a button component from `snippets/button.jsx`:
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <DocsButton href="https://acme.example.com/signup">Start free trial</DocsButton>
+  <DocsButton href="https://acme.example.com/docs" variant="outline">Read the docs</DocsButton>
+</div>

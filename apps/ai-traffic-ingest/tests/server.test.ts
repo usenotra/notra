@@ -19,7 +19,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await Promise.all([configured?.stop(), unconfigured?.stop()]);
+  const exits = await Promise.all([configured?.stop(), unconfigured?.stop()]);
+  expect(exits).toEqual([0, 0]);
 });
 
 describe("standalone ingest HTTP service", () => {

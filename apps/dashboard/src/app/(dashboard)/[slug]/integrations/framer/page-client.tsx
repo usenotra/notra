@@ -55,64 +55,70 @@ export default function PageClient({ organizationSlug }: PageClientProps) {
             const isCompleted = completedSteps.has(index);
 
             return (
-              <button
-                className="group hover:bg-muted/60 flex w-full gap-3 rounded-lg p-3 text-left transition-colors"
+              <div
+                className="group hover:bg-muted/60 w-full rounded-lg p-3 text-left transition-colors"
                 key={step.key}
-                onClick={() => toggleStep(index)}
-                type="button"
               >
-                <div
-                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium transition-colors ${
-                    isCompleted
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground"
-                  }`}
+                <button
+                  aria-pressed={isCompleted}
+                  className="flex w-full gap-3 text-left"
+                  onClick={() => toggleStep(index)}
+                  type="button"
                 >
-                  {isCompleted ? (
-                    <HugeiconsIcon icon={Tick02Icon} className="h-3.5 w-3.5" />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p
-                    className={`text-sm font-medium ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}
+                  <div
+                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium transition-colors ${
+                      isCompleted
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground"
+                    }`}
                   >
-                    {t(`steps.${step.key}.title`)}
-                  </p>
-                  <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-                    {t(`steps.${step.key}.description`)}
-                  </p>
-                  {"link" in step && step.link ? (
-                    <a
-                      className="text-primary mt-1.5 inline-flex items-center gap-1 text-xs hover:underline"
-                      href={step.link.href}
-                      onClick={(e) => e.stopPropagation()}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      {t("linkLabel")}
+                    {isCompleted ? (
                       <HugeiconsIcon
-                        icon={LinkSquare02Icon}
-                        className="h-3 w-3"
+                        icon={Tick02Icon}
+                        className="h-3.5 w-3.5"
                       />
-                    </a>
-                  ) : null}
-                  {"internalLink" in step && step.internalLink ? (
-                    <Link
-                      className="text-primary mt-1.5 inline-flex items-center gap-1 text-xs hover:underline"
-                      href={`/${organizationSlug}/api-keys`}
-                      onClick={(e) => e.stopPropagation()}
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={`text-sm font-medium ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}
                     >
-                      {tGuide("goToApiKeys")}
-                      <HugeiconsIcon
-                        icon={LinkSquare02Icon}
-                        className="h-3 w-3"
-                      />
-                    </Link>
-                  ) : null}
-                </div>
-              </button>
+                      {t(`steps.${step.key}.title`)}
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+                      {t(`steps.${step.key}.description`)}
+                    </p>
+                  </div>
+                </button>
+                {"link" in step && step.link ? (
+                  <a
+                    className="text-primary ms-9 mt-1.5 inline-flex items-center gap-1 text-xs hover:underline"
+                    href={step.link.href}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {t("linkLabel")}
+                    <HugeiconsIcon
+                      icon={LinkSquare02Icon}
+                      className="h-3 w-3"
+                    />
+                  </a>
+                ) : null}
+                {"internalLink" in step && step.internalLink ? (
+                  <Link
+                    className="text-primary ms-9 mt-1.5 inline-flex items-center gap-1 text-xs hover:underline"
+                    href={`/${organizationSlug}/api-keys`}
+                  >
+                    {tGuide("goToApiKeys")}
+                    <HugeiconsIcon
+                      icon={LinkSquare02Icon}
+                      className="h-3 w-3"
+                    />
+                  </Link>
+                ) : null}
+              </div>
             );
           })}
         </div>

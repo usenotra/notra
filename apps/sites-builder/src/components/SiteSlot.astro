@@ -1,0 +1,17 @@
+---
+import type { SiteSlotProps as Props } from "../types/site-files";
+import { slotComponent } from "../lib/site-files";
+
+const { name, data = {}, class: className } = Astro.props;
+const Component = slotComponent(name);
+---
+
+{
+  Component ? (
+    <div data-slot={name} class={className}>
+      <Component {...data} />
+    </div>
+  ) : (
+    <slot />
+  )
+}

@@ -1,0 +1,89 @@
+---
+import type { EntryPageProps as Props } from "../types/entries";
+import BlogPost from "../components/BlogPost.astro";
+import ChangelogEntry from "../components/ChangelogEntry.astro";
+import Icon from "../components/Icon.astro";
+import SiteSlot from "../components/SiteSlot.astro";
+import Base from "../layouts/Base.astro";
+import { authorsOf, personNode } from "../lib/authors";
+import { getBlogEntries, getChangelogEntries } from "../lib/entries";
+import { generatedImage } from "../lib/og";
+import { slotChangelogEntry } from "../lib/slot-data";
+import { absoluteUrl, areaTitle, config, href, markdownHref, params } from "../lib/params";
+import { areaNodeId, breadcrumbs, pageTitle, publisherRef, socialImage } from "../lib/seo";
+import { excerpt } from "../utils/excerpt";
+
+export async function getStaticPaths() {
+  if (params.area === "blog") {
+    const entries = await getBlogEntries();
+    return entries.map((entry) => ({
+      params: { slug: entry.id },
+      props: { kind: "blog" as const, entry },
+    }));
+  }
+  const entries = await getChangelogEntries();
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { kind: "changelog" as const, entry } }));
+}
+
+const props = Astro.props;
+const entry = props.entry;
+const noindex = props.kind === "blog" ? props.entry.data.noindex || props.entry.data.draft : props.entry.data.draft;
+const url = absoluteUrl(href(entry.id));
+const description = entry.data.description ?? excerpt(entry.body) ?? config.description;
+const updated = props.kind === "blog" ? props.entry.data.updated : undefined;
+const modified = updated ?? entry.data.date;
+const authors = props.kind === "blog" ? authorsOf(props.entry) : [];
+const thumbnail = generatedImage(entry.id);
+const image = socialImage(entry.data.image, thumbnail);
+const jsonLd = [
+  {
+    "@type": props.kind === "blog" ? "BlogPosting" : "TechArticle",
+    "@id": `${url}#article`,
+    headline: entry.data.title,
+    description,
+    datePublished: entry.data.date.toISOString(),
+    dateModified: modified.toISOString(),
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: image?.url,
+    keywords: entry.data.tags.length > 0 ? entry.data.tags.join(", ") : undefined,
+    articleSection: areaTitle(params.area),
+    inLanguage: "en",
+    author: authors.length > 0 ? authors.map(personNode) : publisherRef(),
+    version: props.kind === "changelog" ? props.entry.data.version : undefined,
+    publisher: publisherRef(),
+    isPartOf: { "@id": areaNodeId() },
+  },
+  breadcrumbs(entry.data.title, url),
+];
+---
+
+<Base
+  title={pageTitle(entry.data.title)}
+  description={description}
+  image={entry.data.image}
+  generatedImage={thumbnail}
+  type="article"
+  noindex={noindex}
+  publishedTime={entry.data.date}
+  modifiedTime={modified}
+  tags={entry.data.tags}
+  markdown={markdownHref(href(entry.id))}
+  jsonLd={jsonLd}
+>
+  {props.kind === "blog" && <BlogPost entry={props.entry} />}
+  {
+    props.kind === "changelog" && (
+      <div class="mx-auto max-w-(--layout-reading) pt-10 sm:pt-16 lg:pt-20">
+        <a href={href()} class="group inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
+          <Icon name="arrow-left" size={16} class="transition-transform duration-150 group-hover:-translate-x-0.5" />
+          Back to {areaTitle("changelog").toLowerCase()}
+        </a>
+        <div class="mt-8">
+          <ChangelogEntry entry={props.entry} standalone />
+        </div>
+        <SiteSlot name="after-changelog-entry" data={{ entry: slotChangelogEntry(props.entry) }} class="mt-8 sm:pl-[10rem]" />
+      </div>
+    )
+  }
+</Base>

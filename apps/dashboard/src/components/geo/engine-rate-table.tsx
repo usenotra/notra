@@ -28,6 +28,7 @@ import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { NoWebSearchBadge } from "@/components/geo/no-web-search-badge";
 import { RelativeTime } from "@/components/relative-time";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
@@ -38,6 +39,7 @@ import {
   engineFamilyLastCheckedAt,
   engineFamilyStatTrends,
   engineFamilyTotals,
+  engineFamilyWithoutWebSearch,
   formatMentionRate,
   groupEngineFamilies,
   keepTrackedFamilies,
@@ -156,6 +158,7 @@ export function EngineRateTable({
             <span className="truncate font-medium">
               {engineFamilyLabel(row.family)}
             </span>
+            {engineFamilyWithoutWebSearch(row) ? <NoWebSearchBadge /> : null}
           </span>
         ),
         sortValue: (row) => engineFamilyLabel(row.family),

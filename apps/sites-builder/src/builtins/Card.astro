@@ -1,0 +1,20 @@
+---
+import type { CardProps as Props } from "../types/builtins";
+
+const { title, href, img, cta } = Astro.props;
+const Element = href ? "a" : "div";
+const external = href ? /^https?:\/\//.test(href) : false;
+---
+
+<Element
+  href={href}
+  rel={external ? "noopener" : undefined}
+  class:list={["card not-prose group flex flex-col overflow-hidden rounded-lg border border-border transition-colors", href && "hover:bg-muted/50"]}
+>
+  {img && <img src={img} alt="" class="aspect-[16/9] w-full border-b border-border object-cover" loading="lazy" />}
+  <div class="flex flex-1 flex-col p-4">
+    {title && <p class="font-medium">{title}{href && <span class="ml-1 text-muted-foreground" data-md-skip>{external ? "↗" : "→"}</span>}</p>}
+    <div class="mt-1 text-sm leading-6 text-muted-foreground [&>p]:my-0"><slot /></div>
+    {cta && <p class="mt-3 text-sm font-medium">{cta}</p>}
+  </div>
+</Element>

@@ -1,5 +1,5 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { CONTENT_AGENT_MODEL } from "@notra/ai/constants/models";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { contentGenerationWorkflowPayloadSchema } from "@notra/content-generation/schemas";
 import { flattenError } from "zod";
 

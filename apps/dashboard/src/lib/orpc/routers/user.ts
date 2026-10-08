@@ -5,6 +5,7 @@ import {
   deleteWithTransfersSchema,
   organizationMembershipActionSchema,
 } from "@notra/schemas/dashboard/api-params";
+import { deleteOrganizationSites } from "@notra/sites-server/organization";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -16,6 +17,7 @@ import {
   updateMembershipRoleInWorkOS,
 } from "@/lib/organizations/workos-sync";
 import { authorizedProcedure } from "@/lib/orpc/base";
+import { revokeSitePreviewAccess } from "@/lib/sites/preview-revocation";
 import {
   deleteOrganizationChatFiles,
   deleteOrganizationFiles,
@@ -172,6 +174,7 @@ export const userRouter = {
               where: eq(organizations.id, input.organizationId),
             });
 
+            await deleteOrganizationSites(input.organizationId, tx);
             await tx
               .delete(organizations)
               .where(eq(organizations.id, input.organizationId));
@@ -213,6 +216,7 @@ export const userRouter = {
           await Effect.runPromise(
             removeMembershipFromWorkOS(input.organizationId, context.user.id)
           );
+          await revokeSitePreviewAccess(input.organizationId, context.user.id);
         }
 
         if (shouldCleanupDeletedOrganization) {
@@ -314,6 +318,7 @@ export const userRouter = {
             throw notFound(`Organization ${transfer.orgId} not found`);
           }
 
+          await deleteOrganizationSites(transfer.orgId, tx);
           await tx
             .delete(organizations)
             .where(eq(organizations.id, transfer.orgId));
@@ -337,6 +342,7 @@ export const userRouter = {
           await Effect.runPromise(
             removeMembershipFromWorkOS(transfer.orgId, context.user.id)
           );
+          await revokeSitePreviewAccess(transfer.orgId, context.user.id);
         } else {
           await Effect.runPromise(
             deleteOrganizationFromWorkOS(outcome.workosOrgId)

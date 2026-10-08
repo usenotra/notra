@@ -20,6 +20,7 @@ export default defineConfig({
     "packages/db/migrations/**",
     ".temp/**",
     "**/*.astro",
+    "apps/sites-builder/fixtures/**",
   ],
   options: {
     reportUnusedDisableDirectives: "warn",

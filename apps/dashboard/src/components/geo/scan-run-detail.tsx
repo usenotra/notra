@@ -42,7 +42,9 @@ import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { ScanActivityStatus } from "@/components/geo/scan-activity-status";
 import { ScanAnswerSheet } from "@/components/geo/scan-answer-sheet";
+import { GEO_LOG_ARRIVE_STAGGER_STEPS } from "@/constants/geo-citations";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { useArrivedRowIds } from "@/lib/hooks/use-arrived-row-ids";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoScanRun } from "@/lib/hooks/use-geo-scan-history";
 import type {
@@ -67,6 +69,7 @@ import type { CommonTranslator } from "@/types/i18n";
 import { formatEngineFamily } from "@/utils/geo-charts";
 import {
   hasScanActivityStatus,
+  runProgress,
   scanRunDetailView,
 } from "@/utils/geo-scan-activity";
 
@@ -297,7 +300,6 @@ function ScanRunPendingTable({
   pending,
   showLanguage,
   emptyState,
-  running,
   offset,
   onOffsetChange,
   total,
@@ -315,7 +317,7 @@ function ScanRunPendingTable({
       pagination={scanPagination(
         offset,
         total,
-        running ? t("itemInProgress") : t("itemMissing"),
+        t("itemMissing"),
         onOffsetChange
       )}
       getRowId={(row) => row.key}
@@ -336,22 +338,55 @@ function ScanRunAnswersTable({
   height,
   loading,
   onRowClick,
+  progress,
+  viewKey,
 }: GeoScanRunAnswersTableProps) {
   const t = useTranslations("geo.scanRunDetail");
   const tShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const arrivals = useArrivedRowIds({
+    ids: results.map((row) => row.id),
+    viewKey,
+    ready: !loading,
+    enabled: progress !== null,
+  });
+  const pagination = scanPagination(
+    offset,
+    total,
+    t("itemAnswers"),
+    onOffsetChange
+  );
+  // The pager renders nothing without answers, so the footer carries the count then.
+  const progressText = progress
+    ? t("progress", {
+        checks: progress.checks.toLocaleString(locale),
+        total: progress.total.toLocaleString(locale),
+      })
+    : null;
   return (
     <DataTable
       columns={answerColumns(showLanguage, t, tShared, tCommon, locale)}
       data={results}
       emptyState={emptyState}
-      pagination={scanPagination(
-        offset,
-        total,
-        t("itemAnswers"),
-        onOffsetChange
-      )}
+      footer={
+        progressText && total === 0 ? (
+          <p className="text-muted-foreground flex min-h-11 items-center px-4 py-1.5 text-xs tabular-nums">
+            {progressText}
+          </p>
+        ) : undefined
+      }
+      pagination={
+        progressText
+          ? { ...pagination, formatRange: () => progressText }
+          : pagination
+      }
+      getRowClassName={(row) => {
+        const order = arrivals.get(row.id);
+        return order === undefined
+          ? undefined
+          : `geo-log-row-arrive geo-log-arrive-${Math.min(order, GEO_LOG_ARRIVE_STAGGER_STEPS)}`;
+      }}
       getRowId={(row) => row.id}
       height={height}
       loading={loading}
@@ -375,9 +410,9 @@ export function ScanRunFilters({
   const t = useTranslations("geo.scanRunDetail");
   const tGeoShared = useTranslations("geo.shared");
   const locale = useLocale();
-  const showViews = pendingCount > 0;
+  const showViews = pendingCount > 0 && !running;
   const showEngines = engines.length > 1;
-  const pendingLabel = running ? tGeoShared("inProgress") : t("missing");
+  const pendingLabel = t("missing");
   if (!(showViews || showEngines)) {
     return null;
   }
@@ -516,8 +551,7 @@ export function ScanRunDetail({ organizationId }: GeoScanRunDetailProps) {
   }
   if (isScanning && !query.isError) {
     return (
-      <section aria-label={tGeoShared("scans")} className="space-y-3">
-        <ScanActivityStatus run={undefined} />
+      <section aria-label={tGeoShared("scans")}>
         <DataTableSkeleton rows={SCAN_SKELETON_ROWS} />
       </section>
     );
@@ -577,7 +611,6 @@ function ScanRunLoaded({
           setState((prev) => ({ ...prev, pendingOffset }))
         }
         pending={model.pending}
-        running={model.running}
         showLanguage={model.showLanguage}
         total={model.pendingTotal}
       />
@@ -595,9 +628,11 @@ function ScanRunLoaded({
             language: row.language,
           })
         }
+        progress={runProgress(run)}
         results={model.results}
         showLanguage={model.showLanguage}
         total={model.total}
+        viewKey={`${run.id}:${state.offset}:${state.engine}`}
       />
     );
 

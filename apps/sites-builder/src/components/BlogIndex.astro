@@ -1,0 +1,52 @@
+---
+import { getBlogEntries } from "../lib/entries";
+import { splitFeatured } from "../lib/featured";
+import { blogOptions } from "../lib/options";
+import { areaDescription, areaTitle } from "../lib/params";
+import { slotArea, slotSite } from "../lib/slot-data";
+import AreaHero from "./AreaHero.astro";
+import PostCard from "./PostCard.astro";
+import SiteSlot from "./SiteSlot.astro";
+
+const entries = await getBlogEntries();
+const { layout, featured: featuredSetting } = blogOptions;
+const split = splitFeatured(entries, featuredSetting);
+const lead = layout === "magazine" && split.featured.length === 0 ? splitFeatured(entries, "latest") : split;
+const { featured, rest } = lead;
+---
+
+<div class="flex flex-col items-center gap-12 md:gap-16">
+  <SiteSlot name="blog-hero" data={{ site: slotSite(), area: slotArea() }} class="w-full">
+    <AreaHero title={areaTitle("blog")} description={areaDescription("blog")} />
+  </SiteSlot>
+
+  {
+    entries.length === 0 ? (
+      <div class="post-card w-full max-w-(--layout-index) rounded-3xl border px-6 py-16 text-center">
+        <h2 class="font-heading text-xl font-medium tracking-[-0.015em]">No posts yet</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">Add a Markdown file to blog/ and push.</p>
+      </div>
+    ) : layout === "list" ? (
+      <ul class="w-full max-w-(--layout-index) divide-y divide-border border-y border-border">
+        {[...featured, ...rest].map((entry) => (
+          <li>
+            <PostCard entry={entry} variant="row" featured={featured.includes(entry)} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <ul class="grid w-full max-w-(--layout-index) grid-cols-1 gap-6 sm:grid-cols-2">
+        {featured.map((entry) => (
+          <li class="h-full sm:col-span-2">
+            <PostCard entry={entry} variant="feature" featured={layout === "grid" || split.featured.length > 0} />
+          </li>
+        ))}
+        {rest.map((entry) => (
+          <li class="h-full">
+            <PostCard entry={entry} />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</div>

@@ -15,8 +15,9 @@ import {
 import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
-import { JourneyCountCell } from "@/components/geo/journey-count-cell";
+import { GeoCountCell } from "@/components/geo/geo-count-cell";
 import { JourneyStatCard } from "@/components/geo/journey-stat-card";
+import { GEO_COUNT_COLUMN_WIDTH } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { JourneyOverviewCardProps } from "@/types/geo";
 import {
@@ -62,14 +63,14 @@ export function JourneyOverviewCard({
     {
       key: "journeys",
       header: tCommon("labels.journeys"),
-      width: "9.5rem",
+      width: GEO_COUNT_COLUMN_WIDTH,
       align: "right",
       sortable: true,
       cell: (row) => (
-        <JourneyCountCell
-          journeys={row.journeys}
+        <GeoCountCell
+          value={row.journeys}
           label={formatGeoSource(row.source)}
-          previousJourneys={row.previousJourneys}
+          previousValue={row.previousJourneys}
         />
       ),
     },

@@ -1,0 +1,9 @@
+---
+import type { VideoProps as Props } from "../types/builtins";
+
+const { src, poster, title } = Astro.props;
+---
+
+<figure class="not-prose my-8">
+  <video class="w-full rounded-lg border border-border" src={src} poster={poster} title={title} controls playsinline preload="metadata"></video>
+</figure>

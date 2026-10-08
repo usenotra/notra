@@ -17,9 +17,12 @@ the pipeline; typed failures are mapped to HTTP responses with `Effect.match`.
   Shared Redis keys preserve cache invalidation and the per-organization limit
   across replicas and during the migration.
 
-Events receive `202` only after Tinybird accepts the write, or when the pipeline
-deliberately drops them. Analytics run in the background. SIGTERM stops accepting
-requests and waits for active requests and background work before exiting.
+Tracked events receive `202` once queued in the bounded in-memory batcher, or
+after Tinybird accepts a direct write when batching is disabled or full. Dropped
+traffic also receives `202`. The batcher retries transient write failures; queued
+events are not durable across a forced process exit. Analytics run in the
+background. SIGTERM stops accepting requests and waits for active requests,
+background work and the batcher before closing the database pool and exiting.
 Rate-limit hits return `429`; Redis transport failures and limiter timeouts return
 `502` without writing an event. Redis availability is required for tracked ingestion.
 Token generation is still checked against Postgres and fails closed on an outage.
@@ -29,6 +32,13 @@ pass a separate 1,000-request-per-minute admission limit keyed by organization,
 project and token generation. Token rotation gets a fresh admission budget, and
 revoked tokens cannot consume the existing organization-wide accepted-traffic quota.
 Human/unknown traffic keeps its zero-I/O drop path.
+
+The worker disables pg's default 10-second idle connection eviction. Sparse AI
+traffic therefore reuses connections instead of paying a new TLS/database
+handshake after every idle gap. The existing pool maximum (10 connections per
+replica), 10-second acquisition timeout and idle-client error handler are
+unchanged. No keepalive queries run; a connection dropped by the database is
+removed by pg and recreated on demand. Dashboard/API pool defaults are unchanged.
 
 ## Local development
 
@@ -142,6 +152,20 @@ origin. The SDK has no automatic dashboard fallback. Direct clients continue
 using the dedicated service until their endpoint is changed and redeployed.
 
 ## Monitoring in Axiom
+
+The standalone worker also emits `geo.ingest.runtime` once per minute with
+process RSS, JS heap and external memory (bytes), active requests, background
+tasks, buffered events, and total/idle/waiting database connections. Use these
+counters to distinguish retained process memory from growing queues; RSS alone
+does not establish a JS memory leak. Railway replica and deployment IDs separate
+the processes and restarts. These events contain no request payloads.
+
+```kusto
+['notra-geo-scan'] | where event == 'geo.ingest.runtime'
+| summarize rss = max(todouble(rssBytes)), heap = max(todouble(heapUsedBytes)),
+    pending = max(todouble(pendingTasks)), buffered = max(todouble(bufferedEvents))
+    by bin(_time, 1m), tostring(replicaId), tostring(deploymentId)
+```
 
 Every ingest request, on Railway and on the dashboard fallback, emits one
 `geo.ingest` event to the `notra-geo-scan` dataset with `outcome`

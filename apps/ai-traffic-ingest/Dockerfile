@@ -21,6 +21,9 @@ COPY packages/geo-core/package.json ./packages/geo-core/package.json
 COPY packages/kiwi/package.json ./packages/kiwi/package.json
 COPY packages/posthog/package.json ./packages/posthog/package.json
 COPY packages/schemas/package.json ./packages/schemas/package.json
+COPY packages/sites-compiler/package.json ./packages/sites-compiler/package.json
+COPY packages/sites-core/package.json ./packages/sites-core/package.json
+COPY packages/sites-server/package.json ./packages/sites-server/package.json
 COPY packages/tools/package.json ./packages/tools/package.json
 COPY packages/typescript-config/package.json ./packages/typescript-config/package.json
 COPY packages/ui/package.json ./packages/ui/package.json
@@ -33,6 +36,7 @@ COPY packages/db ./packages/db
 COPY packages/geo-core ./packages/geo-core
 COPY packages/posthog ./packages/posthog
 COPY packages/schemas ./packages/schemas
+COPY packages/sites-core ./packages/sites-core
 COPY packages/utils ./packages/utils
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/ai-traffic-ingest ./apps/ai-traffic-ingest

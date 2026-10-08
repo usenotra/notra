@@ -1,4 +1,4 @@
-import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
+import { geoScanWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo-workflows";
 
 import { verifyInternalWorkflowRequest } from "@/lib/workflows/internal-auth";
 import { startGeoScanRun } from "@/lib/workflows/start";

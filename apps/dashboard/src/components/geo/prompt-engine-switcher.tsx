@@ -1,5 +1,6 @@
 "use client";
 
+import { geoEngineUsedWebSearch } from "@notra/geo-core/utils/geo-engines";
 import {
   Select,
   SelectContent,
@@ -10,6 +11,7 @@ import {
 import { useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { NoWebSearchBadge } from "@/components/geo/no-web-search-badge";
 import type { PromptEngineSwitcherProps } from "@/types/geo";
 import { formatEngineFamily } from "@/utils/geo-charts";
 
@@ -29,6 +31,7 @@ export function PromptEngineSwitcher({
         <span className="bg-background inline-flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8rem] font-medium">
           <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
           <span className="truncate">{formatEngineFamily(active.engine)}</span>
+          {geoEngineUsedWebSearch(active.engine) ? null : <NoWebSearchBadge />}
         </span>
       </div>
     );
@@ -56,6 +59,9 @@ export function PromptEngineSwitcher({
             <span className="truncate">
               {formatEngineFamily(active.engine)}
             </span>
+            {geoEngineUsedWebSearch(active.engine) ? null : (
+              <NoWebSearchBadge />
+            )}
           </SelectValue>
         </SelectTrigger>
         <SelectContent
@@ -77,6 +83,9 @@ export function PromptEngineSwitcher({
                 <span className="truncate">
                   {formatEngineFamily(result.engine)}
                 </span>
+                {geoEngineUsedWebSearch(result.engine) ? null : (
+                  <NoWebSearchBadge />
+                )}
               </span>
             </SelectItem>
           ))}

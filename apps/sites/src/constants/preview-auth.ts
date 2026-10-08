@@ -1,0 +1,1 @@
+export const PASSWORD_FORM_MAX_BYTES = 4096;

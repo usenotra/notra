@@ -1,0 +1,16 @@
+---
+import type { AuthorAvatarProps as Props } from "../types/authors";
+
+const { author, size = 24, class: className } = Astro.props;
+const initial = author.name.trim().charAt(0).toUpperCase();
+---
+
+{
+  author.avatar ? (
+    <img src={author.avatar} alt="" width={size} height={size} class:list={["image-outline shrink-0 rounded-full object-cover", className]} style={`width:${size}px;height:${size}px`} loading="lazy" />
+  ) : (
+    <span aria-hidden="true" class:list={["flex shrink-0 items-center justify-center rounded-full bg-primary/15 font-medium text-primary", className]} style={`width:${size}px;height:${size}px;font-size:${Math.round(size * 0.45)}px`}>
+      {initial}
+    </span>
+  )
+}

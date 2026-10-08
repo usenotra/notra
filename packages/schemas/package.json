@@ -20,6 +20,7 @@
     "@notra/content-generation": "workspace:*",
     "@notra/db": "workspace:*",
     "@notra/geo-core": "workspace:*",
+    "@notra/sites-core": "workspace:*",
     "@notra/utils": "workspace:*",
     "effect": "4.0.0",
     "zod": "^4.6.5"

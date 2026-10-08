@@ -1,0 +1,75 @@
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "description": "Notes from the Acme team on building calm software.",
+  "markdown": {
+    "instructions": [
+      "Call the product Acme Cloud, never just Acme.",
+      "Pricing changes often; link to https://acme.example.com/pricing instead of quoting prices."
+    ]
+  },
+  "variables": {
+    "product": "Acme Cloud",
+    "supportEmail": "help@acme.example.com"
+  },
+  "logo": "/images/logo.svg",
+  "favicon": "/images/logo.svg",
+  "navbar": {
+    "links": [
+      {
+        "label": "Product",
+        "href": "https://acme.example.com"
+      },
+      {
+        "label": "Docs",
+        "href": "https://acme.example.com/docs"
+      }
+    ],
+    "cta": {
+      "label": "Sign up",
+      "href": "https://acme.example.com/signup"
+    }
+  },
+  "footer": {
+    "links": [
+      {
+        "label": "Privacy",
+        "href": "https://acme.example.com/privacy"
+      }
+    ],
+    "socials": {
+      "x": "https://x.com/acme",
+      "github": "https://github.com/acme"
+    }
+  },
+  "blog": {
+    "title": "Acme Blog",
+    "description": "Product notes, engineering and launches."
+  },
+  "changelog": {
+    "title": "Changelog",
+    "description": "Everything we shipped."
+  },
+  "redirects": [
+    {
+      "source": "/blog/old-launch",
+      "destination": "/blog/2026/launch"
+    }
+  ],
+  "authors": {
+    "jan": {
+      "name": "Jan Burzinski",
+      "title": "Engineer",
+      "avatar": "https://github.com/janburzinski.png",
+      "bio": "Builds Notra Sites.",
+      "x": "https://x.com/janburzinski",
+      "github": "https://github.com/janburzinski"
+    },
+    "dominik": {
+      "name": "Dominik Koch",
+      "title": "Founder",
+      "avatar": "https://github.com/dominikkoch.png",
+      "url": "https://usenotra.com"
+    }
+  }
+}

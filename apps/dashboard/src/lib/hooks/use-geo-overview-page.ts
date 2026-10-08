@@ -27,6 +27,7 @@ import {
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useGeoTab } from "@/lib/hooks/use-geo-tab";
+import { useRouter } from "@/lib/navigation";
 import type { GeoOverviewPageModel } from "@/types/geo";
 import { resolveOrganizationId } from "@/utils/geo-overview-organization";
 import {
@@ -104,6 +105,7 @@ export function useGeoOverviewPage(
   organizationSlug: string
 ): GeoOverviewPageModel {
   const tToast = useTranslations("geo.toasts");
+  const router = useRouter();
   const tScanButton = useTranslations("geo.promptScanButton");
   const { getOrganization, activeOrganization } = useOrganizationsContext();
   const organizationId = resolveOrganizationId(
@@ -257,7 +259,12 @@ export function useGeoOverviewPage(
             await startScan.mutateAsync({
               engines: scanModelSelectionToSubmit(settings.engines, engines),
             });
-            toast.success(tToast("scanStarted"));
+            toast.success(tToast("scanStarted"), {
+              action: {
+                label: tToast("viewScan"),
+                onClick: () => router.push(`/${organizationSlug}/geo/prompts`),
+              },
+            });
           } catch {
             // The mutation reports the error itself.
           }

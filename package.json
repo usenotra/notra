@@ -23,7 +23,7 @@
     "devtools:api": "cd apps/api && bunx @ai-sdk/devtools",
     "devtools:dashboard": "cd apps/dashboard && bunx @ai-sdk/devtools",
     "check": "bun run check:effect && ultracite check --threads=4",
-    "check:effect": "oxlint --config oxlint.effect.config.ts packages/tools/src packages/geo-core/src --threads=2",
+    "check:effect": "oxlint --config oxlint.effect.config.ts packages/tools/src packages/geo-core/src packages/sites-server/src --threads=2",
     "format": "ultracite fix --threads=4",
     "format:unsafe": "ultracite fix --unsafe --threads=4",
     "commitlint": "commitlint",

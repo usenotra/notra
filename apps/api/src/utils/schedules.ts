@@ -1,6 +1,5 @@
-import crypto from "node:crypto";
-
-import { toUtcDateString } from "@notra/ai/utils/schedule-interval";
+import { normalizeCronConfig } from "@notra/ai/qstash/triggers";
+import { scheduleDedupeHashes } from "@notra/ai/utils/trigger-hash";
 import { githubIntegrations } from "@notra/db/schema";
 import type { QstashError } from "@notra/schemas/api/qstash";
 import {
@@ -42,45 +41,12 @@ export function runScheduleProgram<A, E extends ScheduleDomainError>(
   );
 }
 
-function normalizeCronConfig(
-  config: CreateScheduleBody["sourceConfig"]["cron"]
-) {
-  const base = {
-    frequency: config.frequency,
-    hour: config.hour,
-    minute: config.minute,
-  } as const;
-
-  if (config.frequency === "weekly") {
-    return {
-      ...base,
-      dayOfWeek: config.dayOfWeek ?? 1,
-    };
-  }
-
-  if (config.frequency === "monthly") {
-    return {
-      ...base,
-      dayOfMonth: config.dayOfMonth ?? 1,
-    };
-  }
-
-  if (config.frequency === "custom") {
-    return {
-      ...base,
-      intervalDays: config.intervalDays,
-      anchorDate: config.anchorDate ?? toUtcDateString(new Date()),
-    };
-  }
-
-  return base;
-}
-
 export function normalizeSchedule(input: CreateScheduleBody) {
   return {
     ...input,
     sourceConfig: {
-      cron: normalizeCronConfig(input.sourceConfig.cron),
+      cron:
+        normalizeCronConfig(input.sourceConfig.cron) ?? input.sourceConfig.cron,
     },
     targets: {
       repositoryIds: [...input.targets.repositoryIds].sort(),
@@ -89,21 +55,7 @@ export function normalizeSchedule(input: CreateScheduleBody) {
 }
 
 export function hashSchedule(input: CreateScheduleBody) {
-  const normalized = normalizeSchedule(input);
-
-  return crypto
-    .createHash("sha256")
-    .update(
-      JSON.stringify({
-        sourceType: normalized.sourceType,
-        sourceConfig: normalized.sourceConfig,
-        targets: normalized.targets,
-        outputType: normalized.outputType,
-        outputConfig: normalized.outputConfig ?? null,
-        lookbackWindow: normalized.lookbackWindow,
-      })
-    )
-    .digest("hex");
+  return scheduleDedupeHashes(input)[0];
 }
 
 export async function ensureScheduleTargetsExist(

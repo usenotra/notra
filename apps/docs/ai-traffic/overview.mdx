@@ -1,0 +1,146 @@
+---
+title: "Traffic and AI crawler logs"
+sidebarTitle: "Overview"
+description: "Capture human visits, AI crawlers and AI referrals automatically with the @usenotra/geo tracker."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/ai-traffic/overview
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Traffic tracking shows human visits alongside the AI systems fetching your pages and people arriving from AI answers. A small request-capture SDK on your site sends a neutral request envelope to Notra, which classifies every request at ingest and shows the results on the **Traffic** page. Human page views are collected automatically once the SDK is installed. The dashboard shows visitor statistics when there are views in the selected period and domain; no tracking switch is required.
+
+<img
+  src="/images/ai-traffic/traffic-light.webp"
+  alt="AI Traffic page with crawler and referral activity"
+  className="block dark:hidden rounded-lg border"
+/>
+<img
+  src="/images/ai-traffic/traffic-dark.webp"
+  alt="AI Traffic page with crawler and referral activity"
+  className="hidden dark:block rounded-lg border"
+/>
+
+<Visibility for="agents">
+
+The results are also available under `/geo/traffic` in the API.
+
+</Visibility>
+
+## What is captured
+
+Notra classifies captured requests into these visitor types:
+
+- **AI crawler**: bots fetching your pages to train models or build a search index. Each crawler carries a **Purpose**: **Model training** (collects pages for training corpora), **Search index** (builds the index an AI answer engine searches) or **Cited in answer** (fetched while an assistant was answering someone).
+- **AI referral**: a person who clicked through to your site from an AI answer. Notra detects referrals by referrer host, for example chatgpt.com, perplexity.ai, gemini.google.com, claude.ai, copilot.microsoft.com, you.com, chat.deepseek.com, chat.mistral.ai, grok.com and chat.qwen.ai.
+- **Human visitor**: an ordinary person opening a page. Valid human page views are stored separately from AI crawler events. Prefetches, non-page requests and ordinary bots are excluded.
+
+Human visitor analytics use a daily rotating, keyed visitor identifier; raw IP addresses are not stored in page-view rows. Collection needs no browser script or cookies. Each AI event carries:
+
+- the source, the agent and the purpose
+- a **Confidence** of **Verified**, **Reported** or **Heuristic**, which records where the agent's signature came from
+- the path, host and country
+- whether the client asked for Markdown
+- a journey id
+
+## Supported frameworks
+
+The `@usenotra/geo` tracker runs inside your app's request pipeline. Pick your framework:
+
+<Columns cols={3}>
+  <Card title="Next.js" icon="react" href="/ai-traffic/install/nextjs">
+    `proxy.ts`
+  </Card>
+  <Card title="TanStack Start" icon="layer-group" href="/ai-traffic/install/tanstack-start">
+    `src/start.ts`
+  </Card>
+  <Card title="Nuxt" icon="vuejs" href="/ai-traffic/install/nuxt">
+    `server/middleware/geo.ts`
+  </Card>
+  <Card title="Astro" icon="rocket" href="/ai-traffic/install/astro">
+    `src/middleware.ts`
+  </Card>
+  <Card title="SvelteKit" icon="fire" href="/ai-traffic/install/sveltekit">
+    `src/hooks.server.ts`
+  </Card>
+  <Card title="Netlify Edge Functions" icon="cloud" href="/ai-traffic/install/netlify">
+    `netlify/edge-functions/geo.ts`
+  </Card>
+</Columns>
+
+## Recognized AI agents
+
+Notra recognizes more than 60 AI crawlers and agents from OpenAI, Anthropic, Google, Perplexity, Meta, Apple, Amazon and others. See the full [AI crawler directory](/ai-traffic/crawlers).
+
+## The Traffic page
+
+Once events arrive, the page shows the sections below, and each one follows the range picker.
+
+- A hero row with **Crawlers**, **Referrals** and **Total** visit counts, each compared "vs. previous period", and a daily trend chart.
+- **Sources** has three groups: **Crawlers** (training and search-index bots), **Cited** (assistant-browse fetches while an engine answered someone) and **Referrals**. Columns are **Source**, **Purpose**, **Visits**, **Pages** and **Last seen**. Open a source to see the share of its visits that asked for Markdown, and log rows that asked for Markdown carry a **Markdown** badge. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Instagram, Amazon, Apple, ByteDance and Common Crawl, with Instagram kept as its own source rather than folded into Meta.
+- **Top pages by AI source** has the columns **Page** (host and path), **Sources** and **Visits**. When a project tracks more than one domain, a domain filter narrows the table.
+- **Recent citations** is the live event log, with **All visitors** (AI crawler, AI referral) and **All purposes** (Model training, Search index, Cited in answer) filters. The domain filter on top pages also narrows this log, and live updates refresh every few seconds until you pause them.
+
+<Visibility for="agents">
+
+## Reading traffic from the API
+
+All paths below are prefixed with `/v1/projects/{projectId}` and need `traffic.read`. Windowed endpoints accept `days` (1 to 365) or `from`/`to` (`YYYY-MM-DD`).
+
+| Endpoint | Query | Returns |
+| --- | --- | --- |
+| `GET /geo/traffic/overview` | `days`, `from`, `to` | `totals` (`crawler`, `aiReferral`), `sources[]` with `source`, `visitorType`, `agent`, `category`, `confidence`, `visits`, `previousVisits`, `markdownVisits`, `paths`, `lastSeenAt` and daily `points[]` |
+| `GET /geo/traffic/log` | `limit` (1 to 200), `visitorTypes`, `categories`, `host` | `log[]` with `capturedAt`, `visitorType`, `source`, `agent`, `category`, `confidence`, `path`, `host`, `country`, `ua`, `journeyId`, `wantsMarkdown`, plus `total`. It takes no window. Bound it with `limit`. `host` keeps the newest matching events for that hostname and its subdomains |
+| `GET /geo/traffic/journeys` | window plus `limit` (1 to 100) | `journeys[]` with `journeyId`, `source`, `visitorType`, `pages`, `distinctPaths`, `firstSeenAt`, `lastSeenAt`, `entryPath`, `samplePaths[]` |
+| `GET /geo/traffic/journeys/{journeyId}` | window | `events[]` with `capturedAt`, `path`, `host`, `method`, `referer`, `country`, `agent`, `category` |
+| `GET /geo/traffic/pages` | window plus `limit` (1 to 500), `visitorType` (`crawler` or `ai_referral`), `host` | `pages[]` with `host`, `path`, `source`, `visitorType`, `visits`, `previousVisits`, `lastSeenAt`. `host` ranks pages for that hostname and its subdomains before applying `limit` |
+
+`visitorTypes` and `categories` on the log endpoint are comma-separated lists. `categories` accepts `training-crawler`, `search-index` and `assistant-browse`.
+
+```typescript
+const response = await fetch(
+  `https://api.usenotra.com/v1/projects/${projectId}/geo/traffic/log?limit=50&visitorTypes=crawler&categories=assistant-browse`,
+  { headers: { Authorization: `Bearer ${process.env.NOTRA_API_KEY}` } }
+);
+const { log } = await response.json();
+```
+
+Every traffic response includes `configured`. When it is `false`, the deployment has no traffic backend configured, and the payload is empty instead of an error.
+
+</Visibility>
+
+## Limits to keep in mind
+
+<AccordionGroup>
+  <Accordion title="User agent matching is spoofable">
+    Crawler classification relies on user agent signatures, and anyone can send a crawler's user agent string, so the **Confidence** value tells you where the signature came from. Where an operator publishes IP ranges or a reverse DNS method, the signature table points at it, but Notra doesn't verify IPs at ingest.
+  </Accordion>
+  <Accordion title="A fetch is not proof of a citation">
+    The **Cited in answer** purpose means an assistant fetched the page while answering someone, but it doesn't prove the answer quoted or linked the page.
+  </Accordion>
+  <Accordion title="Some agents cannot be detected">
+    The signature table leaves out agents that a user agent can't honestly identify, including Pi, ChatGPT Atlas, `Google-Extended` and `Applebot-Extended`. Notra cannot reliably attribute their traffic to a specific AI agent; eligible human page views are recorded separately.
+  </Accordion>
+  <Accordion title="Referrals depend on the referrer header">
+    Notra recognizes AI referrals by referrer host, so it doesn't count clicks from apps that strip the referrer or from hosts that aren't in the list.
+  </Accordion>
+  <Accordion title="Fingerprinted journeys are estimates">
+    Only journeys that followed a tagged `ntr` link are exact, while fingerprinted journeys group requests by heuristic and can merge or split real sessions.
+  </Accordion>
+  <Accordion title="Sampling reduces counts">
+    If you set `sample` below 1, every count in the Traffic page reflects the sampled fraction, and Notra doesn't scale the numbers back up.
+
+    <Visibility for="agents">
+
+    API counts reflect the sampled fraction too.
+
+    </Visibility>
+  </Accordion>
+</AccordionGroup>

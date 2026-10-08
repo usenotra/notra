@@ -109,6 +109,9 @@ export function SettingsModalNav({
   }, [activeSection]);
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+      return;
+    }
     if (event.key === "Escape" && isSearching) {
       event.preventDefault();
       event.stopPropagation();

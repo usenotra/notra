@@ -1,0 +1,53 @@
+---
+title: "Accordions"
+description: "Hide details, like FAQs or long explanations, until a reader opens them."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/accordions
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+An accordion hides details, like an FAQ answer, under a title that readers click to open.
+
+```mdx
+<AccordionGroup>
+  <Accordion title="Does Acme Flow work offline?" defaultOpen>
+    Yes. Changes sync when you're back online.
+  </Accordion>
+  <Accordion title="Can I use my own domain?">
+    Yes, a subdomain or a path on your website.
+  </Accordion>
+</AccordionGroup>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/accordions-light.webp" alt="An accordion group with one open accordion on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/accordions-dark.webp" alt="An accordion group with one open accordion on a Notra site" className="hidden dark:block" />
+</Frame>
+
+Accordions work without JavaScript, and search engines read their content even when they're closed. `AccordionGroup` draws a line above the first accordion so a list of them looks like one block.
+
+## Props
+
+### Accordion
+
+<ResponseField name="title" type="string" required>
+  The question or label readers click.
+</ResponseField>
+
+<ResponseField name="defaultOpen" type="boolean" default="false">
+  Open the accordion when the page loads.
+</ResponseField>
+
+`AccordionGroup` takes no props.
+
+## Styling
+
+Accordions carry the class `accordion` and groups carry `accordion-group`.

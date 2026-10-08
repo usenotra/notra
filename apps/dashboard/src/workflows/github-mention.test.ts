@@ -56,6 +56,7 @@ if (process.env.NOTRA_MENTION_WORKFLOW_TEST !== "1") {
   }));
   mock.module("@/lib/framework/server", () => ({ after: mock() }));
   mock.module("@notra/ai/utils/github-mention-ingest", () => ({
+    getGitHubAppWebhookSecret: () => null,
     ingestGitHubAppMentionWebhook: async () => ({
       httpStatus: 202,
       body: { message: "accepted" },

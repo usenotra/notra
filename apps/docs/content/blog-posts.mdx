@@ -1,6 +1,6 @@
 ---
-title: "Blog Posts"
-description: "Generate blog posts from your development activity or from a GEO content brief, refine them with the content agent, and publish"
+title: "Blog posts"
+description: "Generate blog posts from your development activity or from a GEO content brief, refine them with the content agent and publish"
 authors:
   - handle: dominik
 
@@ -26,12 +26,12 @@ docolin:
 
 Notra writes blog posts in two ways:
 
-* **From your activity (Studio)**: turn pull requests, commits, releases, and Linear issues into a narrative post about what you shipped.
-* **From a prompt (GEO Write)**: write an article that targets a prompt AI answer engines are asked about, using your brand identity, sitemap, and competitor data as context.
+* **From your activity (Studio).** Turn pull requests, commits, releases and Linear issues into a narrative post about what you shipped.
+* **From a prompt (GEO Write).** Write an article that targets a prompt people ask AI answer engines, with your brand identity, sitemap and competitor data as context for the writer.
 
 Both produce a post with the content type `blog_post` that you review and publish from **Content**.
 
-## Content Types
+## Content types
 
 Posts in Notra have one of these content types:
 
@@ -43,49 +43,55 @@ Posts in Notra have one of these content types:
 | `twitter_post`  | Post for X                                         |
 | `image`         | Generated social image (1200 x 630)                |
 
-Every post has a status of `draft` or `published`. The API also accepts `investor_update` as a filter value for older posts, but the dashboard no longer generates that type.
+Every post has a status of `draft` or `published`.
 
-Blog posts can additionally carry a subtype: `guide`, `comparison`, `listicle`, `how-to`, `faq`, or `alternatives`. Posts written through GEO Write get one of these; posts generated from repository activity do not.
+<Visibility for="agents">
 
-## How Blog Posts Differ from Changelogs
+The API also accepts `investor_update` as a filter value for older posts, but the dashboard no longer generates that type.
 
-| Aspect        | Changelog                     | Blog Post                             |
+</Visibility>
+
+Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`, `faq` or `alternatives`. Posts written through GEO Write get one of these, while posts generated from repository activity do not.
+
+## How blog posts differ from changelogs
+
+| Aspect        | Changelog                     | Blog post                             |
 | ------------- | ----------------------------- | ------------------------------------- |
-| **Purpose**   | Comprehensive list of changes | Narrative around specific features    |
-| **Scope**     | All changes in a timeframe    | Selected highlights worth exploring   |
-| **Structure** | Summary + categorised lists   | Introduction + deep dive + conclusion |
-| **Length**    | Fixed structure               | Around 400 to 800 words in the body   |
-| **Quota**     | Long-form post                | Long-form post                        |
+| Purpose       | Full list of changes          | Narrative around specific features    |
+| Scope         | All changes in a timeframe    | Selected highlights worth exploring   |
+| Structure     | Summary + categorised lists   | Introduction + deep dive + conclusion |
+| Length        | Fixed structure               | Around 400 to 800 words in the body   |
+| Quota         | Long-form post                | Long-form post                        |
 
 <Info>
-  Both count against the long-form posts quota of your plan. See [Billing & Plans](/organization/billing).
+  Both count against the long-form posts quota of your plan, as described in [Billing and plans](/organization/billing).
 </Info>
 
-## Writing from Repository Activity
+## Writing from repository activity
 
 <Steps>
   <Step title="Open the create dialog">
-    Switch the sidebar to **Studio**, open **Content**, and click **New post**.
+    Switch the sidebar to **Studio**, open **Content** and click **New post**.
   </Step>
 
   <Step title="Formats">
-    Select **Blog post**. You can combine it with other formats in the same run. Pick the lookback window and toggle **Pull Requests**, **Commits**, and **Releases**.
+    Select **Blog post**, which you can combine with other formats in the same run. Pick the lookback window and toggle **Pull Requests**, **Commits** and **Releases**.
   </Step>
 
   <Step title="Activity">
-    Choose repositories and Linear integrations, then deselect anything you do not want in the post. Keeping the selection focused on one feature produces a much better article.
+    Choose repositories and Linear integrations, then deselect anything you do not want in the post, because a selection focused on one feature produces a better article.
   </Step>
 
   <Step title="Identity">
-    Choose the brand identity that should write the post. Notra creates a collection and generates the draft.
+    Choose the brand identity that should write the post, and Notra creates a collection and generates the draft.
   </Step>
 </Steps>
 
-The blog agent targets 400 to 800 words for the body, goes shorter when there is less to say, and includes code snippets, API examples, or before-and-after comparisons where they make the post more concrete.
+The blog agent targets 400 to 800 words for the body and goes shorter when there is less to say. It adds code snippets, API examples or before-and-after comparisons where they make the post more concrete.
 
-### Automating Blog Posts
+### Automating blog posts
 
-Blog posts can also be generated by schedules and event triggers. A release trigger is the most common setup:
+Schedules and event triggers can also generate blog posts, and a release trigger is the most common setup:
 
 ```json
 {
@@ -99,9 +105,9 @@ Blog posts can also be generated by schedules and event triggers. A release trig
 }
 ```
 
-Blog posts support **Auto-publish**: when it is on, generated posts are saved as `published` instead of `draft`. See [Event-Based Automation](/automation/event-based) and [Scheduled Automation](/automation/scheduled).
+Blog posts support **Auto-publish**, and when it is on, Notra saves generated posts as `published` instead of `draft`. See [Event-based automation](/automation/event-based) and [Scheduled automation](/automation/scheduled).
 
-## Writing from a Prompt (GEO Write)
+## Writing from a prompt (GEO Write)
 
 When you want an article that improves how AI answer engines describe your brand, use **Write** in the GEO sidebar.
 
@@ -111,19 +117,19 @@ When you want an article that improves how AI answer engines describe your brand
   </Step>
 
   <Step title="Format">
-    Choose **Guide** (a long article that answers the prompt directly), **Listicle** (a numbered list buyers can scan and cite), or **Comparison** (compares your brand with its alternatives).
+    Choose **Guide** (a long article that answers the prompt directly), **Listicle** (a numbered list buyers can scan and cite) or **Comparison** (compares your brand with its alternatives).
   </Step>
 
   <Step title="Context">
-    Optionally attach a brand identity, a sitemap so the writer can link to your existing pages, and competitors to position against.
+    Optionally attach a brand identity, competitors to position against and a sitemap so the writer can link to your existing pages.
   </Step>
 
   <Step title="Brief and draft">
-    Notra first writes a content brief, then drafts the article from it. The finished post opens in the editor with the brief available alongside it.
+    Notra first writes a content brief and then drafts the article from it. The finished post opens in the editor with the brief available alongside it.
   </Step>
 </Steps>
 
-## Editing with the Content Agent
+## Editing with the content agent
 
 Open any post and use the content agent in the right-hand panel. Select a passage to give it context, then ask for changes:
 
@@ -142,40 +148,45 @@ Open any post and use the content agent in the right-hand panel. Select a passag
 * "Add a section about migration steps"
 * "Add a conclusion with next steps"
 
-The agent edits the document directly. You can also edit the Markdown yourself at any time.
+The agent edits the document directly, and you can also edit the Markdown yourself at any time.
 
 ## Publishing
 
-Clicking **Publish** sets the post status to `published`. Notra does not push the post to a site by itself. Published posts are picked up by:
+Clicking **Publish** sets the post status to `published`, but Notra does not push the post to a site by itself. Published posts reach your site through:
 
-* **Framer**: the Notra plugin imports posts into a Framer site. See [Framer](/integrations/framer).
-* **Your own site or CMS**: fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API Getting Started](/api/getting-started).
-* **Manual**: copy the Markdown from the editor.
+* **Framer.** The Notra plugin imports posts into a Framer site, as described in [Framer](/integrations/framer).
+* **Manual.** Copy the Markdown from the editor.
+
+<Visibility for="agents">
+
+* **Your own site or CMS.** Fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API getting started](/api/getting-started).
+
+</Visibility>
 
 **Move to draft** takes a post back to `draft`.
 
-## Best Practices
+## Best practices
 
-### Focus on One Main Topic
+### Focus on one main topic
 
-Blog posts should have a clear narrative thread. Deselect unrelated activity in the Activity step instead of asking the writer to cover everything.
+Give each blog post one clear narrative by deselecting unrelated activity in the Activity step instead of asking the writer to cover everything.
 
 **Good**: "How We Reduced API Response Time by 60%"\
 **Poor**: "March 2026 Product Updates"
 
-### Include Context and Motivation
+### Include context and motivation
 
-Good posts explain the problem, the solution, the impact for users, and what you learned. The writer can only include what your PRs, commits, issues, and brand identity contain, so descriptive PR bodies matter.
+Good posts explain the problem, the solution, the impact for users and what you learned. The writer can only include what your PRs, commits, issues and brand identity contain, so descriptive PR bodies matter.
 
-### Keep Your Brand Identity Current
+### Keep your brand identity current
 
-The writer reads your company description, tone, target audience, custom instructions, and reference posts. See [Brand Voice](/concepts/brand-voice).
+The writer reads your company description, tone, target audience, custom instructions and reference posts, so keep them up to date in [Brand voice](/concepts/brand-voice).
 
-### Review Before Publishing
+### Review before publishing
 
-Check technical accuracy, add screenshots or diagrams on your site, and get a teammate to read it. Posts stay in `draft` until you publish them.
+Check technical accuracy, add screenshots or diagrams on your site and get a teammate to read it, since posts stay in `draft` until you publish them.
 
-## Example Blog Post Structure
+## Example blog post structure
 
 ````markdown
 # Introducing Email Link Verification: Secure, Seamless User Onboarding

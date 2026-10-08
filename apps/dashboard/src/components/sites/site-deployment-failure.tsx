@@ -1,0 +1,102 @@
+"use client";
+
+import {
+  Alert02Icon,
+  CancelCircleIcon,
+  InformationCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@notra/ui/components/ui/alert";
+import { useTranslations } from "use-intl";
+
+import { cn } from "@/lib/utils";
+import type { SiteDeploymentRecordProps } from "@/types/components/sites";
+import {
+  siteDiagnosticLocation,
+  sortSiteDiagnostics,
+  withDiagnosticKeys,
+} from "@/utils/site-diagnostics";
+
+export function SiteDeploymentFailure({
+  deployment,
+}: SiteDeploymentRecordProps) {
+  const t = useTranslations("sites.deploymentPage");
+  const tDiagnostics = useTranslations("sites.diagnostics");
+  const failed = deployment.status === "failed";
+  if (!failed && deployment.diagnostics.length === 0) {
+    return null;
+  }
+  const diagnostics = withDiagnosticKeys(
+    sortSiteDiagnostics(deployment.diagnostics)
+  );
+
+  return (
+    <Alert
+      role={failed ? "alert" : "status"}
+      variant={failed ? "destructive" : "warning"}
+    >
+      <HugeiconsIcon
+        aria-hidden="true"
+        icon={failed ? CancelCircleIcon : Alert02Icon}
+        strokeWidth={1.5}
+      />
+      <AlertTitle>
+        {failed ? t("notice.failed") : t("diagnostics.title")}
+      </AlertTitle>
+      <AlertDescription className="text-foreground space-y-2 [&_p:not(:last-child)]:mb-0">
+        {failed && deployment.errorMessage && diagnostics.length === 0 ? (
+          <p className="text-muted-foreground font-mono text-xs leading-5 [overflow-wrap:anywhere] whitespace-pre-wrap">
+            {deployment.errorMessage}
+          </p>
+        ) : null}
+        {diagnostics.length > 0 ? (
+          <ul aria-label={t("diagnostics.title")} className="space-y-2">
+            {diagnostics.map(({ diagnostic, key }) => {
+              const where = siteDiagnosticLocation(diagnostic);
+              const isError = diagnostic.severity === "error";
+              return (
+                <li
+                  className="grid grid-cols-[1rem_minmax(0,1fr)] gap-x-2"
+                  key={key}
+                >
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    className={cn(
+                      "mt-0.5 size-4",
+                      isError ? "text-destructive" : "text-warning"
+                    )}
+                    icon={isError ? CancelCircleIcon : InformationCircleIcon}
+                    strokeWidth={1.5}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-foreground text-pretty">
+                      <span className="sr-only">
+                        {isError
+                          ? tDiagnostics("error")
+                          : tDiagnostics("warning")}
+                        :{" "}
+                      </span>
+                      {diagnostic.message}
+                    </p>
+                    <p className="text-muted-foreground flex min-w-0 flex-wrap gap-x-3 font-mono text-xs">
+                      {where ? (
+                        <span className="[overflow-wrap:anywhere]">
+                          {where}
+                        </span>
+                      ) : null}
+                      <span>{diagnostic.code}</span>
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </AlertDescription>
+    </Alert>
+  );
+}

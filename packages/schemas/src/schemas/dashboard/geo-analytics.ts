@@ -3,7 +3,7 @@ import {
   GEO_MAX_ENGINES,
   GEO_SHORT_FIELD_MAX_LENGTH,
 } from "@notra/geo-core/constants/geo";
-import { geoOrganizationInputSchema } from "@notra/geo-core/schemas/geo";
+import { geoOrganizationInputSchema } from "@notra/geo-core/schemas/geo-scope";
 import { z } from "zod";
 
 import { GEO_SCAN_TRIGGERS } from "../../constants/dashboard/geo-analytics";

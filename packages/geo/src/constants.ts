@@ -4,6 +4,8 @@ export const DEFAULT_ENDPOINT = "https://ingest.usenotra.com";
 
 export const INGEST_PATH = "/api/geo/ingest";
 
+export const PREFETCH_PURPOSE_HEADERS = ["sec-purpose", "purpose", "x-moz"];
+
 export const INGEST_TIMEOUT_MS = 2000;
 
 export const DEFAULT_EXCLUDE: GeoExcludeRule[] = ["/api"];

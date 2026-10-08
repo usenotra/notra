@@ -1,4 +1,4 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { deleteStaleGeoOpenCodeBoxes } from "@notra/ai/utils/geo-opencode-box";
 import { db } from "@notra/db/drizzle";
 import { geoScans, geoSettings } from "@notra/db/schema";

@@ -419,6 +419,7 @@ export function buildGeoSampleTrafficEvents(input: {
           rows.push({
             organization_id: input.organizationId,
             project_id: input.projectId,
+            site_id: "",
             captured_at: toClickHouseDateTime(captured),
             visitor_type: "crawler",
             source: crawler.agent,
@@ -455,6 +456,7 @@ export function buildGeoSampleTrafficEvents(input: {
           rows.push({
             organization_id: input.organizationId,
             project_id: input.projectId,
+            site_id: "",
             captured_at: toClickHouseDateTime(captured),
             visitor_type: "ai_referral",
             source: referral.source,

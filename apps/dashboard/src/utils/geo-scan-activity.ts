@@ -7,9 +7,16 @@ import type {
 } from "@/types/geo-scan-activity";
 import { paginatedTableHeightFor } from "@/utils/table";
 
-/** A finished scan needs no status line; only live and failed runs show one. */
+/** Only a failed scan needs a sentence; a live one reports in the table. */
 export function hasScanActivityStatus(run: GeoScanRunSummary | undefined) {
-  return !run || run.status === "running" || run.status === "failed";
+  return run?.status === "failed";
+}
+
+/** Saved vs planned answers of a live scan, for the table footer. */
+export function runProgress(run: GeoScanRunSummary) {
+  return run.status === "running" && run.plan
+    ? { checks: run.checks, total: run.plan.totalChecks }
+    : null;
 }
 
 export function geoRunProgress(run: GeoScanRunSummary) {
@@ -29,18 +36,21 @@ export function scanRunDetailView(
   const pendingTotal = input.data?.pendingTotal ?? 0;
   const pending = input.data?.pending ?? [];
   const results = input.data?.results ?? [];
-  const activeView = pendingTotal > 0 ? input.view : "answers";
+  const running = input.run.status === "running";
+  // Answers fill in place while a scan runs; the missing list only exists once it ended.
+  const showsPending = pendingTotal > 0 && !running;
+  const activeView = showsPending ? input.view : "answers";
   const engines = input.run.plan?.engines ?? [];
   const rowCount = activeView === "pending" ? pending.length : results.length;
   return {
-    running: input.run.status === "running",
+    running,
     pendingTotal,
     pending,
     results,
     activeView,
     showLanguage: (input.run.plan?.languages.length ?? 0) > 1,
     loading: input.isPending || input.isPlaceholderData,
-    hasFilters: pendingTotal > 0 || engines.length > 1,
+    hasFilters: showsPending || engines.length > 1,
     engines,
     height: paginatedTableHeightFor(
       input.isPending ? GEO_SCAN_RESULTS_PAGE_SIZE / 2 : rowCount

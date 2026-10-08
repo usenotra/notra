@@ -1,0 +1,85 @@
+---
+title: "Components"
+sidebarTitle: "Overview"
+description: "Notra comes with MDX components for callouts, cards, tabs, steps, accordions, code and media, and this page also covers what plain Markdown supports."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/overview
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+You can use these components in any `.mdx` file without importing them. Names are case-sensitive, so `<YouTube>` works while `<Youtube>` stops the build with `Unknown component`.
+
+<Columns cols={2}>
+  <Card title="Callouts" icon="circle-info" href="/sites/components/callouts">
+    `Note`, `Tip`, `Info`, `Warning`, `Check`, `Danger`, `Callout`
+  </Card>
+  <Card title="Cards and columns" icon="table-cells-large" href="/sites/components/cards">
+    `Card`, `CardGroup`, `Columns`
+  </Card>
+  <Card title="Tabs" icon="folder" href="/sites/components/tabs">
+    `Tabs`, `Tab`
+  </Card>
+  <Card title="Steps" icon="list-ol" href="/sites/components/steps">
+    `Steps`, `Step`
+  </Card>
+  <Card title="Accordions" icon="chevron-down" href="/sites/components/accordions">
+    `Accordion`, `AccordionGroup`
+  </Card>
+  <Card title="Code" icon="code" href="/sites/components/code">
+    Code blocks, `CodeGroup`, syntax themes
+  </Card>
+  <Card title="Media" icon="image" href="/sites/components/media">
+    `Frame`, `Video`, `YouTube`
+  </Card>
+  <Card title="Badges and updates" icon="tag" href="/sites/components/badges-and-updates">
+    `Badge`, `Update`
+  </Card>
+</Columns>
+
+Two more built-ins, `<SiteAreas />` and `<ThemeToggle />`, are meant for your own header. See [Match your website](/sites/match-your-website#header-and-footer). To build your own components, see [Your own components](/sites/custom-components).
+
+## Markdown
+
+Both `.md` and `.mdx` files support GitHub-flavored Markdown:
+
+| Feature | Syntax |
+| --- | --- |
+| Headings | `## Section` and `### Subsection`, where every heading gets an anchor and on blog posts `##` and `###` headings appear in "On this page" |
+| Emphasis | `**bold**`, `_italic_`, `~~strikethrough~~` |
+| Links | `[text](https://acme.com)`, and bare URLs become links |
+| Lists and task lists | `- item`, `1. item`, `- [x] done` |
+| Tables | Pipes and a `---` row under the header |
+| Footnotes | `Text[^1]` and `[^1]: The note` |
+| Quotes | `> Quoted text` |
+| Images | `![Alt text](/images/file.png)` |
+| Code | Inline `` `code` `` and fenced code blocks, see [Code](/sites/components/code) |
+
+Notra typesets quotes and dashes automatically (`"..."` becomes "…", `--` becomes –), but doesn't support math or diagrams.
+
+### MDX differs from Markdown
+
+Notra parses `.mdx` files as MDX, which is stricter than Markdown:
+
+- Close every tag, including empty ones like `<br />` and `<img src="/a.png" />`.
+- Use `{/* comment */}` instead of `<!-- comment -->`.
+- Escape a literal `<` or `{` in text as `\<` and `\{`, or put it in backticks.
+
+The build points to the line of every MDX syntax error, and if a file has no components, name it `.md` so none of these rules apply.
+
+### Not allowed in content
+
+`<script>` tags stop the build in both `.md` and `.mdx`. Put JavaScript in [`script.js`](/sites/analytics-and-scripts#custom-scripts) or in a [component](/sites/custom-components).
+
+## Styling inside components
+
+Built-in components bring their own compact styles instead of the post's text styles, so keep to short paragraphs, **bold**, links and `inline code` inside them. Lists, headings and tables inside a callout, card, step, tab or accordion render without the post's styling, and code blocks inside them don't get the copy button.
+
+Each component carries a stable class name you can target from your own CSS, listed on each component's page. See [Design and CSS](/sites/customize/design#styling-hooks).

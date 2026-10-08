@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 
-import { processQueueBatch, runScheduledPass } from "./runtime/handler";
+import { sweep } from "./programs/recovery";
+import { processQueueBatch } from "./runtime/handler";
 import { workerLayer } from "./runtime/worker";
 import type { WorkerBindings } from "./types/worker";
 
@@ -12,7 +13,7 @@ export default {
   },
   scheduled(_controller: ScheduledController, bindings: WorkerBindings) {
     return Effect.runPromise(
-      runScheduledPass().pipe(Effect.provide(workerLayer(bindings)))
+      sweep().pipe(Effect.provide(workerLayer(bindings)), Effect.asVoid)
     );
   },
 } satisfies ExportedHandler<WorkerBindings, unknown>;
