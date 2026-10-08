@@ -1,0 +1,11 @@
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  ai_agent 173
+packages/ui/src/components/data-table/root.tsx
+  ai_agent 276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "846eabf9bc5ba1f6e8238c6cf76c0349887fbbac",
+  "prompts": {}
+}
