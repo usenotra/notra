@@ -866,9 +866,6 @@
     },
     "route": {
       "eyebrow": "Fehler",
-      "chunkTitle": "Ein Teil dieser Seite konnte nicht geladen werden",
-      "chunkDescription": "Ein App-Update oder ein Verbindungsproblem hat möglicherweise das Laden unterbrochen. Sichere ungesendete Änderungen, bevor du die aktuelle Version neu lädst.",
-      "reload": "App neu laden",
       "description": "Beim Laden dieser Seite ist ein unerwarteter Fehler aufgetreten. Du kannst es nochmal versuchen oder zur Startseite zurückkehren.",
       "reference": "Referenz {digest}"
     },

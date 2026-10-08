@@ -5,7 +5,6 @@
     "src/client.tsx",
     "src/router.tsx",
     "src/lib/framework/runtime.ts",
-    "src/lib/framework/client-update.ts",
     "src/routes/**/*.{ts,tsx}",
     "src/app/**/route.ts",
     "scripts/*.ts",

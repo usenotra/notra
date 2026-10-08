@@ -866,9 +866,6 @@
     },
     "route": {
       "eyebrow": "Error",
-      "chunkTitle": "Part of this page couldn't be loaded",
-      "chunkDescription": "An app update or connection problem may have interrupted loading. Save any unsent changes before reloading to get the latest version.",
-      "reload": "Reload app",
       "description": "We hit an unexpected problem loading this page. You can try again or head back home.",
       "reference": "Reference {digest}"
     },

@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { ComponentType } from "react";
 
-import { ChunkLoadBoundary } from "@/components/chunk-load-boundary";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import type { LazyComponentOptions } from "@/types/framework";
 
@@ -21,11 +20,9 @@ export default function lazyComponent<P extends object>(
       return fallback;
     }
     return (
-      <ChunkLoadBoundary>
-        <Suspense fallback={fallback}>
-          <Component {...props} />
-        </Suspense>
-      </ChunkLoadBoundary>
+      <Suspense fallback={fallback}>
+        <Component {...props} />
+      </Suspense>
     );
   };
 }

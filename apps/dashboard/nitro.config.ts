@@ -64,10 +64,6 @@ export default defineConfig({
   ],
   handlers: [
     {
-      route: "/api/client-update",
-      handler: "./src/lib/framework/client-update.ts",
-    },
-    {
       route: "/**",
       middleware: true,
       handler: "./src/lib/framework/runtime.ts",
