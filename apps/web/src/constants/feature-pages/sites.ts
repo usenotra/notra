@@ -48,7 +48,7 @@ export const SITES_PAGE: FeatureDetailCopy = {
       {
         title: "Restore in one click",
         description:
-          "Roll back to any earlier deployment from the dashboard without rebuilding.",
+          "Roll back to a recent deployment from the dashboard without rebuilding.",
       },
     ],
   },

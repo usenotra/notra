@@ -2,7 +2,7 @@ import { Tick02Icon, Undo02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Github } from "@notra/ui/components/ui/svgs/github";
 import { cn } from "@notra/ui/lib/utils";
-import { motion, useReducedMotion } from "motion/react";
+import { domAnimation, LazyMotion, m, useReducedMotion } from "motion/react";
 
 import { SitesCodeTokens } from "@/components/feature-pages/sites-code-tokens";
 import {
@@ -13,6 +13,11 @@ import {
   SITES_PIPELINE_PUSH_LINES,
 } from "@/constants/feature-pages/sites";
 import type { SitesPipelineCardProps } from "@/types/sites-page";
+
+const PUSH_ROWS = SITES_PIPELINE_PUSH_LINES.map((line, index) => ({
+  id: `push-${index}`,
+  line,
+}));
 
 const CARD_CLASS =
   "flex min-w-0 flex-1 flex-col overflow-clip rounded-2xl border border-[#ECECEC] bg-white shadow-[0_0.0625rem_0.125rem_#0A0D1408] dark:border-white/10 dark:bg-white/[0.03]";
@@ -44,20 +49,22 @@ function Connector() {
       aria-hidden="true"
       className="flex shrink-0 items-center justify-center max-lg:h-8 max-lg:rotate-90 lg:w-8"
     >
-      <svg className="h-2 w-8 overflow-visible" viewBox="0 0 32 8">
-        <motion.line
-          animate={reduceMotion ? undefined : { strokeDashoffset: [0, -12] }}
-          stroke="#B39CE4"
-          strokeDasharray="4 8"
-          strokeLinecap="round"
-          strokeWidth="2"
-          transition={{ duration: 0.9, ease: "linear", repeat: Infinity }}
-          x1="0"
-          x2="32"
-          y1="4"
-          y2="4"
-        />
-      </svg>
+      <LazyMotion features={domAnimation}>
+        <svg className="h-2 w-8 overflow-visible" viewBox="0 0 32 8">
+          <m.line
+            animate={reduceMotion ? undefined : { strokeDashoffset: [0, -12] }}
+            stroke="#B39CE4"
+            strokeDasharray="4 8"
+            strokeLinecap="round"
+            strokeWidth="2"
+            transition={{ duration: 0.9, ease: "linear", repeat: Infinity }}
+            x1="0"
+            x2="32"
+            y1="4"
+            y2="4"
+          />
+        </svg>
+      </LazyMotion>
     </div>
   );
 }
@@ -71,13 +78,9 @@ export function SitesPipeline() {
         title="You push"
       >
         <pre className="flex-1 bg-[#18151F] px-4 py-4 font-mono text-xs/5.5">
-          {SITES_PIPELINE_PUSH_LINES.map((line, index) => (
-            <span
-              className="block min-h-5.5"
-              // biome-ignore lint/suspicious/noArrayIndexKey: static code sample
-              key={index}
-            >
-              <SitesCodeTokens line={line} />
+          {PUSH_ROWS.map((row) => (
+            <span className="block min-h-5.5" key={row.id}>
+              <SitesCodeTokens line={row.line} />
             </span>
           ))}
         </pre>

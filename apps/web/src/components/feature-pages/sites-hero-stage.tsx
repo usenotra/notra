@@ -9,7 +9,13 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@notra/ui/lib/utils";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  domMax,
+  LazyMotion,
+  m,
+  useReducedMotion,
+} from "motion/react";
 import { useEffect, useState } from "react";
 
 import { SitesCodeTokens } from "@/components/feature-pages/sites-code-tokens";
@@ -36,7 +42,8 @@ import type {
   SitesEditorLineProps,
   SitesEditorWindowProps,
   SitesHeroPhaseProps,
-  SitesHeroStory,
+  SitesHeroPhase,
+  SitesTypingLineProps,
   SitesPostStepProps,
 } from "@/types/sites-page";
 
@@ -47,10 +54,11 @@ const NEW_LINE_LENGTH = SITES_EDITOR_NEW_LINE.reduce(
   0
 );
 
-const FINISHED_STORY: SitesHeroStory = {
-  phase: "live",
-  typed: NEW_LINE_LENGTH,
-};
+const EDITOR_ROWS = SITES_EDITOR_LINES.map((line, index) => ({
+  id: `line-${index + 1}`,
+  number: index + 1,
+  line,
+}));
 
 function sliceLine(line: SitesCodeLine, count: number): SitesCodeLine {
   const sliced: [SitesCodeTone, string][] = [];
@@ -67,56 +75,58 @@ function sliceLine(line: SitesCodeLine, count: number): SitesCodeLine {
   return sliced;
 }
 
-function useHeroStory() {
+const NEXT_PHASE: Record<
+  Exclude<SitesHeroPhase, "typing">,
+  { next: SitesHeroPhase; delay: number }
+> = {
+  live: { next: "typing", delay: SITES_HERO_TIMING.holdMs },
+  push: { next: "build", delay: SITES_HERO_TIMING.pushMs },
+  build: { next: "live", delay: SITES_HERO_TIMING.buildMs },
+};
+
+function useHeroPhase() {
   const reduceMotion = useReducedMotion();
-  const [story, setStory] = useState<SitesHeroStory>(FINISHED_STORY);
+  const [phase, setPhase] = useState<SitesHeroPhase>("live");
 
   useEffect(() => {
-    if (reduceMotion) {
-      setStory(FINISHED_STORY);
+    if (reduceMotion || phase === "typing") {
       return;
     }
 
-    const playback = { cancelled: false };
-    const timers: number[] = [];
-    const wait = (ms: number) =>
-      new Promise<void>((resolve) => {
-        timers.push(window.setTimeout(resolve, ms));
-      });
+    const { next, delay } = NEXT_PHASE[phase];
+    const timer = window.setTimeout(() => setPhase(next), delay);
 
-    const play = async () => {
-      await wait(SITES_HERO_TIMING.holdMs);
+    return () => window.clearTimeout(timer);
+  }, [phase, reduceMotion]);
 
-      while (!playback.cancelled) {
-        setStory({ phase: "typing", typed: 0 });
-        await wait(SITES_HERO_TIMING.typeDelayMs);
+  return {
+    phase: reduceMotion ? "live" : phase,
+    finishTyping: () => setPhase("push"),
+  } as const;
+}
 
-        for (let typed = 1; typed <= NEW_LINE_LENGTH; typed += 1) {
-          setStory({ phase: "typing", typed });
-          await wait(SITES_HERO_TIMING.charMs);
-        }
+function TypingLine({ onDone }: SitesTypingLineProps) {
+  const [typed, setTyped] = useState(0);
 
-        await wait(SITES_HERO_TIMING.pauseMs);
-        setStory({ phase: "push", typed: NEW_LINE_LENGTH });
-        await wait(SITES_HERO_TIMING.pushMs);
-        setStory({ phase: "build", typed: NEW_LINE_LENGTH });
-        await wait(SITES_HERO_TIMING.buildMs);
-        setStory(FINISHED_STORY);
-        await wait(SITES_HERO_TIMING.holdMs);
-      }
-    };
+  useEffect(() => {
+    if (typed >= NEW_LINE_LENGTH) {
+      const timer = window.setTimeout(onDone, SITES_HERO_TIMING.pauseMs);
+      return () => window.clearTimeout(timer);
+    }
 
-    play();
+    const delay =
+      typed === 0 ? SITES_HERO_TIMING.typeDelayMs : SITES_HERO_TIMING.charMs;
+    const timer = window.setTimeout(() => setTyped(typed + 1), delay);
 
-    return () => {
-      playback.cancelled = true;
-      for (const timer of timers) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [reduceMotion]);
+    return () => window.clearTimeout(timer);
+  }, [typed, onDone]);
 
-  return story;
+  return (
+    <EditorLine added={typed > 0} number={SITES_EDITOR_LINES.length + 1}>
+      <SitesCodeTokens line={sliceLine(SITES_EDITOR_NEW_LINE, typed)} />
+      <span className="ml-px inline-block h-4 w-0.5 translate-y-0.75 bg-[#C4B5FD]" />
+    </EditorLine>
+  );
 }
 
 function EditorLine({ number, added = false, children }: SitesEditorLineProps) {
@@ -137,7 +147,7 @@ function EditorLine({ number, added = false, children }: SitesEditorLineProps) {
   );
 }
 
-function EditorWindow({ typed, phase }: SitesEditorWindowProps) {
+function EditorWindow({ phase, onTypingDone }: SitesEditorWindowProps) {
   const isTyping = phase === "typing";
   const newLineNumber = SITES_EDITOR_LINES.length + 1;
 
@@ -201,23 +211,18 @@ function EditorWindow({ typed, phase }: SitesEditorWindowProps) {
           </div>
           <pre className="overflow-x-auto py-3.5 font-mono text-[0.8125rem]/5.5">
             <code className="grid">
-              {SITES_EDITOR_LINES.map((line, index) => (
-                <EditorLine
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static code sample
-                  key={index}
-                  number={index + 1}
-                >
-                  <SitesCodeTokens line={line} />
+              {EDITOR_ROWS.map((row) => (
+                <EditorLine key={row.id} number={row.number}>
+                  <SitesCodeTokens line={row.line} />
                 </EditorLine>
               ))}
-              <EditorLine added={typed > 0} number={newLineNumber}>
-                <SitesCodeTokens
-                  line={sliceLine(SITES_EDITOR_NEW_LINE, typed)}
-                />
-                {isTyping ? (
-                  <span className="ml-px inline-block h-4 w-0.5 translate-y-0.75 bg-[#C4B5FD]" />
-                ) : null}
-              </EditorLine>
+              {isTyping ? (
+                <TypingLine onDone={onTypingDone} />
+              ) : (
+                <EditorLine added number={newLineNumber}>
+                  <SitesCodeTokens line={SITES_EDITOR_NEW_LINE} />
+                </EditorLine>
+              )}
               <EditorLine number={newLineNumber + 1}>
                 <SitesCodeTokens line={SITES_EDITOR_CLOSING_LINE} />
               </EditorLine>
@@ -267,6 +272,8 @@ function PostStep({ index, title, body }: SitesPostStepProps) {
 }
 
 function BrowserWindow({ phase }: SitesHeroPhaseProps) {
+  const isLive = phase === "live";
+
   return (
     <div className="relative flex w-full flex-col overflow-clip rounded-2xl bg-white shadow-[0_2.5rem_5rem_-1.5rem_#05020FCC,0_0_0_0.0625rem_#FFFFFF59]">
       <div className="flex h-10 items-end gap-3 bg-[#F1F0F4] px-3">
@@ -346,31 +353,30 @@ function BrowserWindow({ phase }: SitesHeroPhaseProps) {
               <PostStep body={step.body} index={index} title={step.title} />
             </li>
           ))}
-          <AnimatePresence initial={false}>
-            {phase === "live" ? (
-              <motion.li
-                animate={{ height: "auto", opacity: 1 }}
-                className="overflow-hidden"
-                exit={{ height: 0, opacity: 0 }}
-                initial={{ height: 0, opacity: 0 }}
-                key="new-step"
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <motion.div
-                  animate={{ backgroundColor: "#16A34A00" }}
-                  className="-mx-2 rounded-lg px-2"
-                  initial={{ backgroundColor: "#16A34A1F" }}
-                  transition={{ delay: 0.6, duration: 1.2 }}
-                >
-                  <PostStep
-                    body={SITES_POST.newStep.body}
-                    index={SITES_POST.steps.length}
-                    title={SITES_POST.newStep.title}
-                  />
-                </motion.div>
-              </motion.li>
-            ) : null}
-          </AnimatePresence>
+          <li aria-hidden={!isLive}>
+            <m.div
+              animate={
+                isLive
+                  ? { opacity: 1, y: 0, backgroundColor: "#16A34A00" }
+                  : { opacity: 0, y: -6, backgroundColor: "#16A34A1F" }
+              }
+              className="-mx-2 rounded-lg px-2"
+              initial={false}
+              transition={{
+                opacity: { duration: 0.3, ease: EASE_OUT },
+                y: { duration: 0.35, ease: EASE_OUT },
+                backgroundColor: isLive
+                  ? { delay: 0.6, duration: 1.2 }
+                  : { duration: 0 },
+              }}
+            >
+              <PostStep
+                body={SITES_POST.newStep.body}
+                index={SITES_POST.steps.length}
+                title={SITES_POST.newStep.title}
+              />
+            </m.div>
+          </li>
         </ol>
       </article>
     </div>
@@ -398,12 +404,12 @@ function StatusIcon({ phase }: SitesHeroPhaseProps) {
 
 function StatusPill({ phase }: SitesHeroPhaseProps) {
   return (
-    <motion.div
+    <m.div
       className="flex h-10 items-center gap-2.5 rounded-full bg-white/95 py-1 pr-4 pl-1.5 shadow-[0_1rem_2.5rem_-0.5rem_#05020F99,0_0_0_0.0625rem_#FFFFFFB3] backdrop-blur"
       layout
       transition={{ duration: 0.3, ease: EASE_OUT }}
     >
-      <motion.span
+      <m.span
         className={cn(
           "flex size-7 items-center justify-center rounded-full transition-colors duration-300",
           phase === "live" ? "bg-[#EAF6EE]" : "bg-[#F4F4F5]"
@@ -411,9 +417,9 @@ function StatusPill({ phase }: SitesHeroPhaseProps) {
         layout
       >
         <StatusIcon phase={phase} />
-      </motion.span>
+      </m.span>
       <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
+        <m.span
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           className="flex items-center gap-2 whitespace-nowrap"
           exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
@@ -435,32 +441,34 @@ function StatusPill({ phase }: SitesHeroPhaseProps) {
               {SITES_HERO_BUILD_TIME}
             </span>
           ) : null}
-        </motion.span>
+        </m.span>
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   );
 }
 
 export function SitesHeroStage() {
-  const { phase, typed } = useHeroStory();
+  const { phase, finishTyping } = useHeroPhase();
 
   return (
-    <StageShell
-      className="bg-center lg:px-12 lg:pt-14 lg:pb-14"
-      credit={null}
-      image={SITES_STAGE_IMAGE}
-    >
-      <div className="relative mx-auto flex max-w-268 flex-col items-center gap-5 lg:block lg:h-[33rem]">
-        <div className="w-full lg:absolute lg:top-0 lg:left-0 lg:w-[58%]">
-          <EditorWindow phase={phase} typed={typed} />
+    <LazyMotion features={domMax}>
+      <StageShell
+        className="bg-center lg:px-12 lg:pt-14 lg:pb-14"
+        credit={null}
+        image={SITES_STAGE_IMAGE}
+      >
+        <div className="relative mx-auto flex max-w-268 flex-col items-center gap-5 lg:block lg:h-[33rem]">
+          <div className="w-full lg:absolute lg:top-0 lg:left-0 lg:w-[58%]">
+            <EditorWindow onTypingDone={finishTyping} phase={phase} />
+          </div>
+          <div className="relative z-20 lg:absolute lg:bottom-0 lg:left-[30%]">
+            <StatusPill phase={phase} />
+          </div>
+          <div className="relative z-10 w-full lg:absolute lg:top-12 lg:right-0 lg:w-[46%]">
+            <BrowserWindow phase={phase} />
+          </div>
         </div>
-        <div className="relative z-20 lg:absolute lg:bottom-0 lg:left-[30%]">
-          <StatusPill phase={phase} />
-        </div>
-        <div className="relative z-10 w-full lg:absolute lg:top-12 lg:right-0 lg:w-[46%]">
-          <BrowserWindow phase={phase} />
-        </div>
-      </div>
-    </StageShell>
+      </StageShell>
+    </LazyMotion>
   );
 }

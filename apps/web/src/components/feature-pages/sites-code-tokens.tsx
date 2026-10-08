@@ -9,16 +9,22 @@ const CODE_TONE_CLASS: Record<SitesCodeTone, string> = {
   attr: "text-[#FCD34D]",
 };
 
+function withKeys(line: SitesCodeTokensProps["line"]) {
+  let offset = 0;
+
+  return line.map(([tone, text]) => {
+    const key = `${offset}-${tone}`;
+    offset += text.length;
+    return { key, tone, text };
+  });
+}
+
 export function SitesCodeTokens({ line }: SitesCodeTokensProps) {
   return (
     <>
-      {line.map(([tone, text], index) => (
-        <span
-          className={CODE_TONE_CLASS[tone]}
-          // biome-ignore lint/suspicious/noArrayIndexKey: static code sample
-          key={index}
-        >
-          {text}
+      {withKeys(line).map((token) => (
+        <span className={CODE_TONE_CLASS[token.tone]} key={token.key}>
+          {token.text}
         </span>
       ))}
     </>

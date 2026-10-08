@@ -14,11 +14,6 @@ export type SitesCodeLine = readonly SitesCodeToken[];
 
 export type SitesHeroPhase = "typing" | "push" | "build" | "live";
 
-export interface SitesHeroStory {
-  phase: SitesHeroPhase;
-  typed: number;
-}
-
 export interface SitesEditorFile {
   name: string;
   depth: number;
@@ -93,8 +88,12 @@ export interface SitesHeroPhaseProps {
 }
 
 export interface SitesEditorWindowProps {
-  typed: number;
   phase: SitesHeroPhase;
+  onTypingDone: () => void;
+}
+
+export interface SitesTypingLineProps {
+  onDone: () => void;
 }
 
 export interface SitesLogoProps {

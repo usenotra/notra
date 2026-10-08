@@ -18,7 +18,7 @@ The GitHub check on the commit lists every build error with the file and line to
 
 ### Restore in one click
 
-Roll back to any earlier deployment from the dashboard without rebuilding.
+Roll back to a recent deployment from the dashboard without rebuilding.
 
 ## Everything a company blog needs
 
