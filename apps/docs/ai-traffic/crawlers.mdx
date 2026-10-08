@@ -15,7 +15,7 @@ docolin:
   status: stable
 ---
 
-Notra classifies every captured request at ingest. Notra stores requests that match one of the signatures below as **AI crawler** events and discards everything else that looks human.
+Notra classifies every captured request at ingest, stores requests that match one of the signatures below as **AI crawler** events and discards everything else that looks human.
 
 ## Purposes
 
@@ -25,7 +25,7 @@ Notra classifies every captured request at ingest. Notra stores requests that ma
 | Search index | `search-index` | Builds the index an AI answer engine searches |
 | Cited in answer | `assistant-browse` | Fetched live while an assistant answered someone |
 
-AI referrals (people clicking through from an answer) are a separate visitor type. Notra recognizes them by referrer host. See [Referrals and conversions](/ai-traffic/referrals).
+AI referrals, which are people clicking through from an answer, are a separate visitor type that Notra recognizes by referrer host. See [Referrals and conversions](/ai-traffic/referrals).
 
 ## Confidence
 
@@ -35,7 +35,7 @@ AI referrals (people clicking through from an answer) are a separate visitor typ
 | Reported | The user agent is documented by the operator or a maintained public list, with no verification method |
 | Heuristic | Detected from request patterns such as headers, not a declared user agent |
 
-User agents can be spoofed. Notra does not verify IPs at ingest. The links below point to the operator's own verification method.
+Anyone can spoof a user agent, and Notra doesn't verify IPs at ingest, so the links below point to the operator's own verification method.
 
 ## Directory
 
@@ -324,8 +324,8 @@ User agents can be spoofed. Notra does not verify IPs at ingest. The links below
   </Accordion>
 </AccordionGroup>
 
-Coding agents and HTTP clients that do not send a distinctive user agent, for example `curl` or `python-requests`, are recognized from request fingerprints where possible.
+Notra recognizes coding agents and HTTP clients that don't send a distinctive user agent, for example `curl` or `python-requests`, from request fingerprints where possible.
 
 <Note>
-  Missing an agent? Tell us in [Discord](https://www.usenotra.com/discord). The list is generated from the tracker's signature table.
+  If an agent is missing, tell us in [Discord](https://www.usenotra.com/discord), because Notra generates this list from the tracker's signature table.
 </Note>

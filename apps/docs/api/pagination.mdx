@@ -34,19 +34,19 @@ Notra uses page-based pagination on the list endpoints that can grow without bou
 | `GET /v1/feedback` | 25 | 100 | `feedback` |
 | `GET /v1/projects/{projectId}/geo/scans` | 20 | 100 | `scans` |
 
-Other list endpoints are not paginated. Brand identities, integrations, schedules, event triggers, chats, skills, GEO projects, prompts, sequences, competitors and briefs return the full list. GEO traffic endpoints (`traffic/log`, `traffic/journeys`, `traffic/pages`) and `GET /v2/agent-chats` accept a `limit` only and return the most recent items. Visibility and traffic reads use a `days` or `from`/`to` window instead.
+Other list endpoints are not paginated, so brand identities, integrations, schedules, event triggers, chats, skills, GEO projects, prompts, sequences, competitors and briefs return the full list. GEO traffic endpoints (`traffic/log`, `traffic/journeys`, `traffic/pages`) and `GET /v2/agent-chats` accept a `limit` only and return the most recent items. Visibility and traffic reads use a `days` or `from`/`to` window instead.
 
 ## Query parameters
 
 <ParamField query="limit" type="integer" default="10">
-  Items per page. **Range:** 1 to 100. The default depends on the endpoint (see the table above).
+  Items per page. **Range:** 1 to 100. The default depends on the endpoint, as the table above shows.
 </ParamField>
 
 <ParamField query="page" type="integer" default="1">
-  The page number to retrieve. Pages start at 1.
+  The page number to retrieve, starting at 1.
 </ParamField>
 
-The API rejects out-of-range values instead of clamping them. `limit=500` or `page=0` returns `400` with an `error` such as `limit: Too big: expected number to be <=100`.
+The API rejects out-of-range values instead of clamping them, so `limit=500` or `page=0` returns `400` with an `error` such as `limit: Too big: expected number to be <=100`.
 
 `GET /v1/posts` also accepts `sort` (`asc` or `desc` by creation date, default `desc`) and the comma-separated filters `status`, `contentType` and `brandIdentityId`. `GET /v1/feedback` accepts `status`, `kind` and `projectId`.
 
@@ -75,11 +75,11 @@ Every paginated response includes a `pagination` object:
     </ResponseField>
 
     <ResponseField name="totalPages" type="integer">
-      The total number of pages. Always at least `1`, even when there are no items.
+      The total number of pages, which is always at least `1`, even when there are no items.
     </ResponseField>
 
     <ResponseField name="totalItems" type="integer">
-      The total number of items across all pages after filters are applied.
+      The total number of items across all pages after the API applies filters.
     </ResponseField>
 
   </Expandable>
@@ -88,7 +88,7 @@ Every paginated response includes a `pagination` object:
 ## Request examples
 
 <Tabs>
-<Tab title="Default Pagination">
+<Tab title="Default pagination">
 Fetch the first page with the default limit (`10`):
 
 <CodeGroup>
@@ -104,7 +104,7 @@ const result = await notra.content.listPosts();
 
 </Tab>
 
-<Tab title="Custom Limit">
+<Tab title="Custom limit">
 Fetch 5 items per page:
 
 <CodeGroup>
@@ -122,7 +122,7 @@ const result = await notra.content.listPosts({
 
 </Tab>
 
-<Tab title="Specific Page">
+<Tab title="Specific page">
 Fetch page 2 with 5 items per page:
 
 <CodeGroup>
@@ -266,19 +266,19 @@ const itemCount = `${pagination.totalItems} total items`;
 </Tip>
 
 <Note>
-  Use `nextPage` and `previousPage` to enable or disable navigation buttons.
-  Each is `null` when there is no page in that direction.
+  Use `nextPage` and `previousPage` to enable or disable navigation buttons,
+  since each is `null` when there is no page in that direction.
 </Note>
 
 ## Edge cases
 
 <AccordionGroup>
 <Accordion title="Page past the end">
-  Requesting a page beyond `totalPages` is not an error. The API returns `200` with an empty items array, `nextPage: null` and `previousPage` set to the page before the one you asked for. Stop paging when `nextPage` is `null` instead of guessing page numbers.
+  Requesting a page beyond `totalPages` is not an error, and the API returns `200` with an empty items array, `nextPage: null` and `previousPage` set to the page before the one you asked for. Stop paging when `nextPage` is `null` instead of guessing page numbers.
 </Accordion>
 
 <Accordion title="Invalid limit or page">
-  The API rejects values outside the allowed range with `400` and an `error` message that names the parameter. Non-numeric values fail the same way. The API never clamps values.
+  The API rejects values outside the allowed range with `400` and an `error` message that names the parameter. Non-numeric values fail the same way, and the API never clamps values.
 </Accordion>
 
 <Accordion title="Empty datasets">
@@ -286,6 +286,6 @@ const itemCount = `${pagination.totalItems} total items`;
 </Accordion>
 
 <Accordion title="Filters and totals">
-  `totalItems` and `totalPages` reflect the filtered result set. On `GET /v1/posts`, omitting `status` returns only `published` posts; pass `status=draft,published` to count drafts too.
+  `totalItems` and `totalPages` reflect the filtered result set. On `GET /v1/posts`, omitting `status` returns only `published` posts, so pass `status=draft,published` to count drafts too.
 </Accordion>
 </AccordionGroup>

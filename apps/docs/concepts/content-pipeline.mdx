@@ -22,7 +22,7 @@ docolin:
   next: ./brand-voice.mdx
 ---
 
-The content pipeline is the Studio side of Notra. It turns activity from your connected tools into changelogs, blog posts, social posts and images. GEO Write reuses the last stages of the same pipeline to turn a content gap into an article. Knowing the stages helps you configure runs and find out why a draft does not match what you expected.
+The content pipeline is the Studio side of Notra, and it turns activity from your connected tools into changelogs, blog posts, social posts and images. GEO Write reuses the last stages of the same pipeline to turn a content gap into an article. Knowing the stages helps you configure runs and find out why a draft does not match what you expected.
 
 ## The five-step pipeline
 
@@ -62,13 +62,13 @@ It also has two skill tools:
 
 * `listAvailableSkills` and `getSkillByName`: load writing skills from the Skills page, including the built-in human-writer skill that polishes the final text
 
-For a 7-day changelog the agent usually calls `getCommitsByTimeframe` for every source repository, then `getPullRequests` for the PRs those commits reference. It builds a candidate list from the result.
+For a 7-day changelog the agent usually calls `getCommitsByTimeframe` for every source repository, then `getPullRequests` for the PRs those commits reference, and builds a candidate list from the result.
 
 The agent then filters the candidates:
 
 <Steps>
   <Step title="Audience relevance">
-    The agent checks every candidate against the audience in your brand identity. It drops internal-only work, such as small refactors, formatting and lint changes, dependency churn, test-only updates and routine infra chores.
+    The agent checks every candidate against the audience in your brand identity and drops internal-only work, such as small refactors, formatting and lint changes, dependency churn, test-only updates and routine infra chores.
   </Step>
 
   <Step title="Meaningful fixes stay">
@@ -80,12 +80,12 @@ The agent then filters the candidates:
   </Step>
 
   <Step title="Skip when empty">
-    If the agent filters out every candidate, it calls the skip tool and Notra creates no post. Notra never publishes filler.
+    If the agent filters out every candidate, it calls the skip tool and Notra creates no post, because Notra never publishes filler.
   </Step>
 </Steps>
 
 <Tip>
-  The audience field controls this stage. A developer-oriented audience ("developers", "engineers", "technical teams") gets verified PR links on every referenced change. Any other audience gets none.
+  The audience field controls this stage. A developer-oriented audience ("developers", "engineers", "technical teams") gets verified PR links on every referenced change, while any other audience gets none.
 </Tip>
 
 ### 3. Generate drafts
@@ -119,10 +119,10 @@ A changelog has this structure:
 - **[Change title]** [#140](https://github.com/org/repo/pull/140) - Description (Author: [@sam](https://github.com/sam/))
 ```
 
-Highlights holds up to five changes with clear user, customer, reliability, security or performance impact. Every change that passed filtering appears exactly once, either in Highlights or in More Updates. Both developer and non-developer audiences get author attribution. Only developer audiences get PR links.
+Highlights holds up to five changes with clear user, customer, reliability, security or performance impact. Every change that passed filtering appears exactly once, either in Highlights or in More Updates. Both developer and non-developer audiences get author attribution, but only developer audiences get PR links.
 
 <Note>
-  Each format has its own prompt template per tone. The same activity produces a separate changelog, blog post and tweet, not one text reformatted three times.
+  Each format has its own prompt template per tone, so the same activity produces a separate changelog, blog post and tweet, not one text reformatted three times.
 </Note>
 
 ### 4. Apply brand voice
@@ -147,7 +147,7 @@ The model receives it like this:
 </custom-instructions>
 ```
 
-The company block is the publishing identity. The agent treats source repositories as evidence only. Content about an upstream or open source repository describes your contribution and does not claim ownership of the whole project.
+The company block is the publishing identity, and the agent treats source repositories as evidence only. Content about an upstream or open source repository describes your contribution and does not claim ownership of the whole project.
 
 Each tone profile writes in a different style:
 
@@ -159,7 +159,7 @@ Each tone profile writes in a different style:
 | **Formal**         | Precise, traditional, structured      | "The engineering team has completed the following deliverables..." |
 
 <Info>
-  Brand identity changes apply to future runs. They do not modify existing drafts.
+  Brand identity changes apply to future runs and do not modify existing drafts.
 </Info>
 
 ### 5. Publish-ready output
@@ -178,12 +178,12 @@ In the editor you can:
 * Send published content to Framer if the integration is connected
 
 <Tip>
-  Leave auto-publish off until you have reviewed a few runs. Draft is the default for every path into the pipeline.
+  Leave auto-publish off until you have reviewed a few runs, since Draft is the default for every path into the pipeline.
 </Tip>
 
 ## GEO Write
 
-Write is the GEO entry point into the same pipeline. It starts from a target instead of activity. The target is a prompt where engines mention competitors but not you, a comparison against specific competitors or a custom topic.
+Write is the GEO entry point into the same pipeline, and it starts from a target instead of activity. The target is a prompt where engines mention competitors but not you, a comparison against specific competitors or a custom topic.
 
 <Steps>
   <Step title="Plan a brief">
@@ -191,11 +191,11 @@ Write is the GEO entry point into the same pipeline. It starts from a target ins
   </Step>
 
   <Step title="Approve">
-    The brief sits in **Draft** until you approve it. Edit it first if the angle is off.
+    The brief sits in **Draft** until you approve it, so edit it first if the angle is off.
   </Step>
 
   <Step title="Write">
-    The brief moves to **Queued**, then **Writing**. The writer uses your brand identity, the same skills as Studio and the brief as its outline.
+    The brief moves to **Queued**, then **Writing**, and the writer uses your brand identity, the same skills as Studio and the brief as its outline.
   </Step>
 
   <Step title="Done">
@@ -226,8 +226,8 @@ Event-based triggers set:
 ## Error handling
 
 * **GitHub API rate limits.** Notra detects rate limit errors and shows a clear message instead of a half-written post.
-* **Nothing worth publishing.** The agent calls the skip tool and the run ends without a post. This is expected for quiet weeks or maintenance-only windows.
-* **Missing data.** The agent omits details it cannot verify instead of guessing. It does not make up PR numbers or commit details.
+* **Nothing worth publishing.** The agent calls the skip tool and the run ends without a post, which is expected for quiet weeks or maintenance-only windows.
+* **Missing data.** The agent omits details it cannot verify instead of guessing, so it never makes up PR numbers or commit details.
 
 ## Monitoring pipeline health
 

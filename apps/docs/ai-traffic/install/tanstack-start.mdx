@@ -15,15 +15,15 @@ docolin:
   status: stable
 ---
 
-This guide adds the Notra tracker to a TanStack Start app. It takes about five minutes and one file: `src/start.ts`.
+This guide adds the Notra tracker to a TanStack Start app in about five minutes, and the only file you touch is `src/start.ts`.
 
 <Tip>
-  The Traffic page has a **Copy agent prompt** button. Paste it into Claude Code, Cursor or Codex and the agent will do these steps for you.
+  The Traffic page has a **Copy agent prompt** button, and if you paste its prompt into Claude Code, Cursor or Codex the agent will do these steps for you.
 </Tip>
 
 <Steps>
   <Step title="Get your token">
-    Open **Traffic** in the GEO sidebar. Until the first event arrives the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. The token is shown in the **Set your token** section. The panel also has a **Copy agent prompt** button that copies an instruction block you can paste into a coding agent.
+    Open **Traffic** in the GEO sidebar. Until the first event arrives, the page shows **No activity yet** with the full install panel, which has **Install the package**, **Set your token** and **Add the proxy** sections. Your token appears in the **Set your token** section, and the panel also has a **Copy agent prompt** button that copies an instruction block you can paste into a coding agent.
 
     <Visibility for="agents">
 
@@ -39,11 +39,11 @@ This guide adds the Notra tracker to a TanStack Start app. It takes about five m
       -H "Authorization: Bearer $NOTRA_API_KEY"
     ```
 
-    Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys. The token endpoint adds `token`. The ingest routes are organization-level. Pass `projectId` to bind the token to one project. Omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier.
+    Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys, and the token endpoint adds `token`. The ingest routes are organization-level, so pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier.
 
     </Visibility>
 
-    Install the same project token on every domain the project tracks. Add extra hostnames under **Tracked domains** in GEO settings.
+    Install the same project token on every domain the project tracks, and add extra hostnames under **Tracked domains** in GEO settings.
   </Step>
   <Step title="Install the package">
     <CodeGroup>
@@ -67,7 +67,7 @@ This guide adds the Notra tracker to a TanStack Start app. It takes about five m
     The package has zero dependencies and no Node APIs in the core, so it runs on edge runtimes. npm, pnpm and yarn work too.
   </Step>
   <Step title="Set the environment variable">
-    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, locally and at your hosting provider. Never hardcode or commit it.
+    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, both locally and at your hosting provider, and never hardcode or commit it.
   </Step>
   <Step title="Add the tracker">
     ```typescript src/start.ts
@@ -84,10 +84,10 @@ This guide adds the Notra tracker to a TanStack Start app. It takes about five m
     }));
     ```
 
-    The middleware captures requests alongside your route handler. It waits for the event to send before returning, so tracking completes on serverless hosts. It passes the downstream response and errors through unchanged. If `src/start.ts` already exists, add `geo` to its existing `requestMiddleware` array.
+    The middleware captures requests alongside your route handler and waits for the event to send before returning, so tracking completes on serverless hosts. It passes the downstream response and errors through unchanged. If `src/start.ts` already exists, add `geo` to its existing `requestMiddleware` array.
   </Step>
   <Step title="Deploy and verify">
-    Deploy your site. The Traffic page switches from the install panel to the dashboard as soon as Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
+    After you deploy your site, the Traffic page switches from the install panel to the dashboard as soon as Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
   </Step>
 </Steps>
 

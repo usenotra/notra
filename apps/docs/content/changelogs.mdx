@@ -23,15 +23,15 @@ docolin:
   next: ./blog-posts.mdx
 ---
 
-Notra generates changelogs from your GitHub pull requests, commits and releases, and optionally from Linear issues. Each changelog starts as a draft post. You review it, refine it with the content agent and publish it when ready.
+Notra generates changelogs from your GitHub pull requests, commits and releases, and optionally from Linear issues. Each changelog starts as a draft post that you review, refine it with the content agent and publish it when ready.
 
-Changelogs live in the Studio content pipeline. In the dashboard, switch the sidebar to **Studio** and open **Content**.
+Changelogs live in the Studio content pipeline, so in the dashboard you switch the sidebar to **Studio** and open **Content**.
 
 ## How it works
 
 <Steps>
   <Step title="Connect a source">
-    Install the Notra GitHub app on the repositories you want to cover. You can also connect Linear so issues show up as source material. See [GitHub](/integrations/github) and [Linear](/integrations/linear).
+    Install the Notra GitHub app on the repositories you want to cover, and optionally connect Linear so issues show up as source material. See [GitHub](/integrations/github) and [Linear](/integrations/linear).
   </Step>
 
   <Step title="Create on demand or automate">
@@ -55,15 +55,15 @@ Changelogs live in the Studio content pipeline. In the dashboard, switch the sid
   </Step>
 
   <Step title="Formats">
-    Pick **Changelog entry**. You can select several formats at once, for example a changelog plus a LinkedIn post. Notra generates all of them from the same activity. Choose a lookback window and toggle which data points to include: **Pull Requests**, **Commits** and **Releases**.
+    Pick **Changelog entry**. You can select several formats at once, for example a changelog plus a LinkedIn post, and Notra generates all of them from the same activity. Choose a lookback window and toggle which data points to include: **Pull Requests**, **Commits** and **Releases**.
   </Step>
 
   <Step title="Activity">
-    Pick the repositories and Linear integrations to draw from. Notra previews the releases, pull requests, commits and issues in the window. Deselect anything you do not want mentioned. You can search by title, author or label.
+    Pick the repositories and Linear integrations to draw from, and Notra previews the releases, pull requests, commits and issues in the window. Deselect anything you do not want mentioned, and search by title, author or label to find items.
   </Step>
 
   <Step title="Identity">
-    Choose which brand identity writes the post. Notra generates the posts into a new collection and opens each one in the editor when it is ready.
+    Choose which brand identity writes the post. Notra then generates the posts into a new collection and opens each one in the editor when it is ready.
   </Step>
 </Steps>
 
@@ -73,11 +73,11 @@ Every generated changelog follows the same shape.
 
 ### Summary
 
-The summary is a single paragraph directly under the title. The agent targets 120 to 180 words and goes shorter when there is less to cover.
+The summary is a single paragraph directly under the title, and the agent targets 120 to 180 words and goes shorter when there is less to cover.
 
 ### Highlights
 
-Highlights lists up to five changes, chosen by importance in this order: security, breaking changes, major features, reliability fixes, performance. If there are fewer than five high-impact changes, the list is shorter. The agent never pads it.
+Highlights lists up to five changes, chosen by importance in this order: security, breaking changes, major features, reliability fixes, performance. If there are fewer than five high-impact changes, the list is shorter, because the agent never pads it.
 
 <Note>
   The agent excludes low-signal work such as small refactors, dependency bumps, wording tweaks and test-only changes from Highlights. It leaves that work out of the changelog entirely unless it has a clear effect on your audience.
@@ -111,18 +111,18 @@ The lookback window controls how far back Notra looks for activity when it gener
 | `last_30_days` | Past month              | Monthly summaries       |
 
 <Info>
-  Event triggers do not use a lookback window. For a GitHub release event, Notra compares the new release with the previous one and uses that range.
+  Event triggers do not use a lookback window, so for a GitHub release event, Notra compares the new release with the previous one and uses that range.
 </Info>
 
 ## Tone
 
-The agent writes in the tone profile of the brand identity you pick: **Conversational**, **Professional**, **Casual** or **Formal**. Set it under **Studio > Brand Identity**, together with your target audience and custom instructions. See [Brand Voice](/concepts/brand-voice).
+The agent writes in the tone profile of the brand identity you pick: **Conversational**, **Professional**, **Casual** or **Formal**. You set it under **Studio > Brand Identity**, together with your target audience and custom instructions. See [Brand Voice](/concepts/brand-voice).
 
 ## Automation settings
 
 <Visibility for="agents">
 
-Schedules and event triggers that produce changelogs accept these options. The same fields are available in the dashboard and in the public API (`POST /v1/schedules` and `POST /v1/event-triggers`).
+Schedules and event triggers that produce changelogs accept these options, and the same fields are available in the dashboard and in the public API (`POST /v1/schedules` and `POST /v1/event-triggers`).
 
 **Scheduled generation**
 
@@ -164,11 +164,11 @@ Schedules and event triggers that produce changelogs accept these options. The s
 
 ### Auto-publish
 
-Changelogs and blog posts support **Auto-publish**. When it is on, Notra saves generated posts with the `published` status immediately instead of as drafts. Notra always saves social posts and images as drafts.
+Changelogs and blog posts support **Auto-publish**, and when it is on, Notra saves generated posts with the `published` status immediately instead of as drafts. Notra always saves social posts and images as drafts.
 
 ## Publishing
 
-Clicking **Publish** in the editor (or enabling auto-publish) sets the post status to `published`. It does not push the post anywhere by itself. Your publishing destinations pick up published posts:
+Clicking **Publish** in the editor (or enabling auto-publish) sets the post status to `published` but does not push the post anywhere by itself. Instead, your publishing destinations pick up published posts:
 
 * **Framer**: the Notra plugin imports your posts into a Framer site. See [Framer](/integrations/framer).
 * **Manual**: copy the Markdown from the editor.
@@ -189,13 +189,13 @@ Every post has a content agent in the right-hand panel. Select text in the edito
 * "Simplify the Highlights for a non-technical audience"
 * "Move the caching change into Performance Improvements"
 
-The agent edits the post in place. You can review the diff before it saves.
+The agent edits the post in place, and you can review the diff before it saves.
 
 ## Best practices
 
 ### Write clear PR titles and descriptions
 
-Notra uses your PR titles and descriptions as source material. Descriptive PRs produce better changelogs.
+Notra uses your PR titles and descriptions as source material, so descriptive PRs produce better changelogs.
 
 **Good PR title**\
 `Add email verification flow with expiration handling`
@@ -205,13 +205,13 @@ Notra uses your PR titles and descriptions as source material. Descriptive PRs p
 
 ### Match the lookback window to your release cadence
 
-* Ship daily? Use `yesterday` or `current_day`
-* Weekly releases? Use `last_7_days`
-* Monthly updates? Use `last_30_days`
+* If you ship daily, use `yesterday` or `current_day`
+* For weekly releases, use `last_7_days`
+* For monthly updates, use `last_30_days`
 
 ### Review before publishing
 
-Changelogs are drafts until you publish them. Use the review to:
+Changelogs stay drafts until you publish them, so use the review to:
 
 * Verify technical accuracy
 * Add context that GitHub activity does not capture
@@ -265,7 +265,7 @@ The lookback window may not cover the relevant timeframe, the activity may have 
 
 ### Nothing was generated
 
-Every plan includes a monthly quota of long-form posts, and changelogs and blog posts count against it. When the quota is used up, Notra falls back to AI credits. If none are available, Notra blocks the generation.
+Every plan includes a monthly quota of long-form posts, and changelogs and blog posts count against it. When the quota is used up, Notra falls back to AI credits, and if none are available, Notra blocks the generation.
 
 To fix it, check **Settings > Billing & Usage > Usage**, and top up credits under **Settings > Credits** or upgrade the plan. See [Billing & Plans](/organization/billing).
 

@@ -23,31 +23,31 @@ docolin:
   next: ./github.mdx
 ---
 
-Integrations live at **Integrations** in the dashboard sidebar (`app.usenotra.com/{org-slug}/integrations`). The page has four tabs: **All**, **Input**, **Output** and **Extensions**. Below the tabs, a section called **From the integration store** lists MCP servers published by the Notra community.
+Integrations live at **Integrations** in the dashboard sidebar (`app.usenotra.com/{org-slug}/integrations`). The page has four tabs (**All**, **Input**, **Output** and **Extensions**), and below them a section called **From the integration store** lists MCP servers published by the Notra community.
 
 ## Input sources
 
-Input sources feed data into Notra. GitHub and Linear supply the Studio content pipeline (changelogs, blog posts, social posts). Slack gives you a chat channel with the Notra agent. Granola brings meeting notes into chat and content workflows. Google Search Console feeds GEO prompt suggestions.
+Input sources feed data into Notra. GitHub and Linear supply the Studio content pipeline for changelogs, blog posts and social posts, while Slack gives you a chat channel with the Notra agent. Granola brings meeting notes into chat and content workflows, and Google Search Console feeds GEO prompt suggestions.
 
 <CardGroup cols={2}>
   <Card title="GitHub" icon="github" href="/integrations/github">
-    Install the Notra GitHub App and pick repositories. Notra turns commits, merged pull requests and releases into changelogs, blog posts and social posts.
+    Install the Notra GitHub App and pick repositories so Notra can turn commits, merged pull requests and releases into changelogs, blog posts and social posts.
   </Card>
 
   <Card title="Linear" icon="infinity" href="/integrations/linear" iconType="duotone">
-    Authorize a Linear workspace with OAuth. Notra reads completed issues as a data source next to GitHub activity.
+    Authorize a Linear workspace with OAuth so Notra can read completed issues as a data source next to GitHub activity.
   </Card>
 
   <Card title="Slack" icon="slack" href="/integrations/slack">
-    Install the Notra agent in your workspace. Mention it in a thread to chat, draft and approve content from Slack.
+    Install the Notra agent in your workspace, then mention it in a thread to chat, draft and approve content from Slack.
   </Card>
 
   <Card title="Granola" icon="microphone" href="/integrations/granola">
-    Connect Granola with an API key. The agent can read meeting notes, AI summaries and transcripts.
+    Connect Granola with an API key so the agent can read meeting notes, AI summaries and transcripts.
   </Card>
 
   <Card title="Google Search Console" icon="google" href="/integrations/google-search-console">
-    Turn the search queries you already rank for into suggested GEO prompts. You manage it from the GEO Prompts page.
+    Turn the search queries you already rank for into suggested GEO prompts, which you manage from the GEO Prompts page.
   </Card>
 </CardGroup>
 
@@ -60,14 +60,14 @@ Input sources feed data into Notra. GitHub and Linear supply the Studio content 
 </CardGroup>
 
 <Info>
-  Framer is the only output integration in the dashboard today. Other publishing paths run through Notra itself: social posts publish to X and LinkedIn from the Content page, and any CMS can read posts through the [API](/api/getting-started).
+  Framer is the only output integration in the dashboard today. Other publishing paths run through Notra itself. Social posts publish to X and LinkedIn from the Content page, and any CMS can read posts through the [API](/api/getting-started).
 </Info>
 
 ## Extensions
 
 <CardGroup cols={2}>
   <Card title="Raycast" icon="terminal" href="/devtools/raycast">
-    Search posts, copy content and manage workflows from Raycast. The Integrations page shows a setup guide. The extension needs a read and write API key.
+    Search posts, copy content and manage workflows from Raycast. The Integrations page shows a setup guide, and the extension needs a read and write API key.
   </Card>
 </CardGroup>
 
@@ -75,9 +75,9 @@ Input sources feed data into Notra. GitHub and Linear supply the Studio content 
 
 The **MCP Servers** card on the Integrations page opens `integrations/mcp`, where you connect external MCP servers so the Notra agent can use their tools and data.
 
-* **Custom servers**: add any remote MCP server by name and URL. Notra prepends `https://` for you. Authentication is one of **None** (public server), **Headers** (an API key, bearer token or custom headers) or **OAuth**. With OAuth, Notra redirects you to the server to approve access, then stores an encrypted refresh token and renews access automatically.
+* **Custom servers**: add any remote MCP server by name and URL, and Notra prepends `https://` for you. Authentication is one of **None** (public server), **Headers** (an API key, bearer token or custom headers) or **OAuth**. With OAuth, Notra redirects you to the server to approve access and then stores an encrypted refresh token and renews access automatically.
 * **Integration store**: servers published by the Notra community appear under **From the integration store**. Depending on how the listing was published, connecting one needs no credentials, asks for your own headers or starts an OAuth flow. Deep links of the form `app.usenotra.com/{org-slug}/integrations/{listing-slug}` open the connect dialog for a listing directly.
-* Notra tests the connection while you add a server. From each connected server's card you can enable, disable or delete it, or refresh its tool list.
+* Notra tests the connection while you add a server, and from each connected server's card you can enable, disable or delete it, or refresh its tool list.
 
 <Note>
   This is the reverse direction from Notra's own MCP server, which lets AI tools like Claude or Cursor call Notra. For that, see [MCP Server](/devtools/mcp).
@@ -105,7 +105,7 @@ When you create content from GitHub or Linear activity, Notra can generate:
   </Step>
 </Steps>
 
-Each repository you add through the GitHub App starts with changelog, blog post and X post outputs enabled. LinkedIn posts and images are available when you create content or schedules.
+Each repository you add through the GitHub App starts with changelog, blog post and X post outputs enabled, while LinkedIn posts and images are available when you create content or schedules.
 
 ## Getting started
 
@@ -115,7 +115,7 @@ Each repository you add through the GitHub App starts with changelog, blog post 
   </Step>
 
   <Step title="Generate content">
-    Open **Content** and create a changelog, blog post or social post from recent activity. Pick the repositories and Linear workspaces to include.
+    Open **Content** and create a changelog, blog post or social post from recent activity, picking the repositories and Linear workspaces to include.
   </Step>
 
   <Step title="Automate">
@@ -130,7 +130,7 @@ Each repository you add through the GitHub App starts with changelog, blog post 
 ## Permissions and security
 
 <Note>
-  * **Read access to your sources**: GitHub, Linear, Granola and Google Search Console are read-only connections. Slack needs write access to post replies in threads.
+  * **Read access to your sources**: GitHub, Linear, Granola and Google Search Console are read-only connections, while Slack needs write access to post replies in threads.
   * **Selective access**: you choose which repositories the GitHub App can see, which Search Console property to analyze and which Slack channels the agent may respond in.
   * **Encrypted credentials**: Notra encrypts access tokens, API keys, webhook secrets and MCP OAuth refresh tokens at rest.
   * **Remove anytime**: you can disable or delete any integration from its page in the dashboard.

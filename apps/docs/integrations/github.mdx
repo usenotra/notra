@@ -25,7 +25,7 @@ docolin:
   next: ./linear.mdx
 ---
 
-The GitHub integration reads activity from your repositories so Notra can generate changelogs, blog posts and social posts. It can also publish a draft pull request back to the repository. Since August 2026 the main way to connect is the Notra GitHub App. The older personal access token flow still works and is labelled **Legacy** in the dashboard.
+The GitHub integration reads activity from your repositories so Notra can generate changelogs, blog posts and social posts. It can also publish a draft pull request back to the repository. Since August 2026 the main way to connect is the Notra GitHub App, while the older personal access token flow still works and carries a **Legacy** label in the dashboard.
 
 ## What Notra accesses
 
@@ -33,33 +33,33 @@ The GitHub App asks for:
 
 * Read access to repository metadata, branches and releases
 * Write access to Contents and Pull requests, so Notra can open a draft pull request with the generated Markdown
-* Write access to Issues, so Notra can add and remove status reactions on PR conversation comments through GitHub's issue-comment API. Mentions on ordinary issues are ignored.
+* Write access to Issues, so Notra can add and remove status reactions on PR conversation comments through GitHub's issue-comment API. Notra ignores mentions on ordinary issues.
 * Webhook events for the repositories you choose
 * Access only to the repositories you grant during installation
 
-From that access Notra reads commits on the branch you track, merged pull requests and published releases. Publishing a changelog or blog post creates a branch and a draft pull request. It does not merge or change repository settings.
+From that access Notra reads commits on the branch you track, merged pull requests and published releases. Publishing a changelog or blog post creates a branch and a draft pull request, but it never merges or changes repository settings.
 
 <Note>
-  Existing installations stay read-only until you accept the updated permissions on GitHub. Reconnecting a repository in Notra does not grant write access. Open **Integrations**, then **GitHub** and choose **Review permissions on GitHub**.
+  Existing installations stay read-only until you accept the updated permissions on GitHub, because reconnecting a repository in Notra doesn't grant write access. Open **Integrations**, then **GitHub** and choose **Review permissions on GitHub**.
 </Note>
 
 ## Install the GitHub App
 
 <Steps>
   <Step title="Open the GitHub page">
-    In the dashboard, open **Settings**, then **Integrations**, then **GitHub**. You can also use the sidebar: **Integrations**, then the **GitHub** card. Click **Connect GitHub** (or press `C`).
+    In the dashboard, open **Settings**, then **Integrations**, then **GitHub**. You can also go through **Integrations** in the sidebar and then the **GitHub** card. Click **Connect GitHub** or press `C`.
   </Step>
 
   <Step title="Install on GitHub">
-    The dialog explains the permissions above. Click **Install on GitHub**. GitHub asks you to choose a personal account or organization and to select **All repositories** or specific repositories. You can change this selection later from GitHub.
+    The dialog explains the permissions above, and from there you click **Install on GitHub**. GitHub asks you to choose a personal account or organization and to select **All repositories** or specific repositories, and you can change this selection later from GitHub.
 
     <Note>
-      If your Notra login is not yet linked to a GitHub account, Notra first sends you through GitHub sign-in, then continues to the App installation. You must be an admin of the GitHub account that owns the installation.
+      If your Notra login isn't linked to a GitHub account yet, Notra first sends you through GitHub sign-in and then continues to the App installation. You must be an admin of the GitHub account that owns the installation.
     </Note>
   </Step>
 
   <Step title="Pick repositories in Notra">
-    Back in Notra, the **Select repositories** dialog opens automatically. It lists the repositories the installation can see, grouped by GitHub account. Tick the ones Notra should track and click save. Each selected repository becomes its own integration with changelog, blog post and X post outputs enabled by default.
+    Back in Notra, the **Select repositories** dialog opens automatically and lists the repositories the installation can see, grouped by GitHub account. Tick the ones Notra should track and click save. Each selected repository becomes its own integration with changelog, blog post and X post outputs enabled by default.
   </Step>
 
   <Step title="Add more accounts or repositories">
@@ -71,50 +71,50 @@ From that access Notra reads commits on the branch you track, merged pull reques
 
 Webhooks let event triggers react to activity in real time. Notra generates a secret per repository, but you register the webhook on GitHub yourself:
 
-1. Open the repository's page in Notra (click it from the GitHub page). The **Webhook** section shows the **Payload URL** and a **Secret**. Click the copy buttons.
+1. Open the repository's page in Notra by clicking it on the GitHub page, then use the copy buttons in the **Webhook** section to copy the **Payload URL** and the **Secret**.
 2. Open **Settings**, then **Webhooks**, in the repository on GitHub and click **Add webhook**.
 3. Paste the Payload URL, set **Content type** to `application/json` and paste the secret.
 4. Choose **Let me select individual events** and tick **Pushes**, **Releases** and **Pull requests**.
-5. Save. GitHub sends a `ping` event, which Notra answers with `Pong! Webhook configured successfully`.
+5. Save the webhook, and GitHub sends a `ping` event that Notra answers with `Pong! Webhook configured successfully`.
 
-The Payload URL has the form `https://app.usenotra.com/api/webhooks/github/{organizationId}/{integrationId}/{repositoryId}`. Notra verifies every delivery with the `X-Hub-Signature-256` header. You can regenerate the secret from the same section. Update GitHub afterwards.
+The Payload URL has the form `https://app.usenotra.com/api/webhooks/github/{organizationId}/{integrationId}/{repositoryId}`. Notra verifies every delivery with the `X-Hub-Signature-256` header. You can regenerate the secret from the same section, and then you need to update it on GitHub.
 
 <Note>
-  Without a webhook you can still generate content manually or on a schedule. Webhooks are only needed for [event-based automation](/automation/event-based).
+  Without a webhook you can still generate content manually or on a schedule, since you only need webhooks for [event-based automation](/automation/event-based).
 </Note>
 
 ### Webhook events Notra processes
 
 | GitHub event   | What Notra does                                                                  |
 | -------------- | -------------------------------------------------------------------------------- |
-| `push`         | Records commits pushed to the repository's default branch on GitHub. Pushes to other branches are ignored. |
+| `push`         | Records commits pushed to the repository's default branch on GitHub and ignores pushes to other branches. |
 | `release`      | Records published releases and their notes.                                      |
-| `pull_request` | Records pull requests when they are **closed and merged**. Other actions are ignored. |
+| `pull_request` | Records pull requests when they are **closed and merged** and ignores other actions. |
 | anything else  | Notra logs it as ignored and answers with `200`.                                 |
 
-Notra writes every delivery to the organization's webhook log (**Settings**, then **Logs**). See [Webhooks Overview](/api/webhooks/overview) for response shapes.
+Notra writes every delivery to the organization's webhook log (**Settings**, then **Logs**). See [Webhooks overview](/api/webhooks/overview) for response shapes.
 
 ## Mention Notra on pull requests
 
-Mention Notra in a pull request comment, for example `@usenotra shorten the intro`. Mentions on ordinary issues are ignored without a reply or reaction. You do not need the exact App name: `@usenotra`, `@notra`, `@notra-ai` and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done or 👎 when a safeguard declines the request. The reply and any commits come from the App's bot account.
+Mention Notra in a pull request comment, for example `@usenotra shorten the intro`, and note that Notra ignores mentions on ordinary issues without a reply or reaction. You don't need the exact App name, because `@usenotra`, `@notra`, `@notra-ai` and `@notrabot` all work. Notra reacts to your PR comment with 👀 while it works and swaps that for 👍 when it is done or 👎 when a safeguard declines the request. The reply and any commits come from the App's bot account.
 
-When your comment is about how something reads ("the intro feels heavy", "show me a punchier opening"), Notra does not commit. It answers with a GitHub suggestion on those lines. Apply it with **Commit suggestion**. To get another take, reply "shorter please". Nothing on the branch changes until you accept one. Applying that suggestion, or a commit Notra makes itself, updates the matching Notra post. Notra commits directly when you tell it to ("apply it", "go ahead"). It also commits directly for plain corrections, such as a typo or a wrong number. The same goes for changes a suggestion cannot express, like edits across several files.
+When your comment is about how something reads, such as "the intro feels heavy" or "show me a punchier opening", Notra doesn't commit and instead answers with a GitHub suggestion on those lines that you apply with **Commit suggestion**. To get another take, reply "shorter please", and nothing on the branch changes until you accept one. Applying that suggestion, or a commit Notra makes itself, updates the matching Notra post. Notra commits directly when you tell it to ("apply it", "go ahead"), for plain corrections such as a typo or a wrong number and for changes a suggestion can't express, like edits across several files.
 
 Notra writes in the brand voice the post was created with, and it reads the pull request description, so an edit from a comment sounds like the rest of the post.
 
-After a commit, Notra replies right at the lines it edited under **Files changed**, with a before and after of the text and a link to the commit. When you wrote in a review thread, the reply stays in that thread. You can also mention Notra in a review comment on specific lines or reply inside its thread ("shorter please"). It reads the earlier comments, so you do not have to repeat yourself.
+After a commit, Notra replies right at the lines it edited under **Files changed**, with a before and after of the text and a link to the commit, and when you wrote in a review thread, the reply stays in that thread. You can also mention Notra in a review comment on specific lines or reply inside its thread ("shorter please"), and because it reads the earlier comments, you don't have to repeat yourself.
 
-* **Questions** get an answer in the thread. Nothing is committed.
-* **Change requests** on a pull request Notra published commit the file onto that pull request, then synchronize the Notra post. The same happens when you apply a GitHub suggestion on that file.
-* **Separate pull request**: say so in the comment ("open a separate PR") and Notra commits to a new branch and opens a draft pull request stacked on the one you commented on. The Notra post stays as it is. Once you merge that pull request into the published one, the next change picks it up.
+* **Questions** get an answer in the thread, and Notra commits nothing.
+* **Change requests** on a pull request Notra published commit the file onto that pull request and then synchronize the Notra post, which also happens when you apply a GitHub suggestion on that file.
+* **Separate pull request**: say so in the comment ("open a separate PR") and Notra commits to a new branch and opens a draft pull request stacked on the one you commented on. The Notra post stays as it is until you merge that pull request into the published one, and then the next change picks it up.
 
-Notra only acts on comments from members of your Notra organization whose login is linked to the commenting GitHub account. Other mentions are ignored and logged as skipped. Mentions inside code, quotes or email addresses do not count.
+Notra only acts on comments from members of your Notra organization whose login is linked to the commenting GitHub account, and it logs other mentions as skipped. Mentions inside code, quotes or email addresses don't count.
 
-Comments written by bots never start Notra, so a review from Greptile or CodeRabbit is left alone. To have Notra act on such a finding, reply inside the bot's review thread and mention Notra ("@notra fix this"). Notra reads the finding you replied to and follows your instruction.
+Comments written by bots never start Notra, so a review from Greptile or CodeRabbit is left alone. To have Notra act on such a finding, reply inside the bot's review thread and mention Notra ("@notra fix this"), and Notra reads the finding you replied to and follows your instruction.
 
 ### What a mention costs
 
-Every mention runs an agent, so it is billed. Each plan includes a budget of pull request credits that only the bot spends:
+Every mention runs an agent, so Notra bills it, and each plan includes a budget of pull request credits that only the bot spends:
 
 | Plan | Included |
 | ----- | -------- |
@@ -123,33 +123,33 @@ Every mention runs an agent, so it is billed. Each plan includes a budget of pul
 | Growth | $15 per month |
 | Scale | $25 per month |
 
-A mention is charged what its model calls cost, the same way AI credits are charged elsewhere in Notra. The remaining budget is shown under **Settings → Billing → Usage**. Once it is used up, mentions keep working and fall back to your AI credits, so a busy week does not stop the bot. When both are empty, Notra replies once that there is nothing left to spend and does nothing else. Top up credits or move to a bigger plan, then mention it again.
+Notra charges a mention what its model calls cost, the same way it charges AI credits elsewhere, and shows the remaining budget under **Settings → Billing → Usage**. Once the budget is used up, mentions keep working and fall back to your AI credits, so a busy week doesn't stop the bot. When both are empty, Notra replies once that there is nothing left to spend and does nothing else, so top up credits or move to a bigger plan and then mention it again.
 
-One organization can start 20 mention runs in 10 minutes. Above that Notra replies that it paused and when to try again. Nothing is billed for a mention it refuses.
+One organization can start 20 mention runs in 10 minutes, and above that Notra replies that it paused and says when to try again. Notra bills nothing for a mention it refuses.
 
-If the GitHub App is missing a permission, Notra does not retry. It replies once with the permission that is missing and a link to the installation settings, and the mention shows up as failed in the webhook log. Mention Notra again after an owner has approved the permissions.
+If the GitHub App is missing a permission, Notra doesn't retry. It replies once with the missing permission and a link to the installation settings, and the mention shows up as failed in the webhook log, so mention Notra again after an owner has approved the permissions.
 
-Notra acknowledges a mention only after it queues a durable workflow. Notra needs Redis to stop competing deliveries from running the same mention. If processing is interrupted after it starts, Notra records a failure instead of repeating GitHub writes that may already have completed. Check the pull request for a commit or reply before posting a new mention. Redelivering the interrupted delivery does not start another agent run.
+Notra acknowledges a mention only after it queues a durable workflow, and it needs Redis to stop competing deliveries from running the same mention. If processing stops partway through, Notra records a failure instead of repeating GitHub writes that may already have completed, so check the pull request for a commit or reply before posting a new mention. Redelivering the interrupted delivery doesn't start another agent run.
 
-Notra never commits to the repository's default branch. Ask for a separate pull request instead. Fork pull requests support answers only, including when a separate pull request is requested.
+Notra never commits to the repository's default branch, so ask for a separate pull request instead. Fork pull requests support answers only, even when you request a separate pull request.
 
-Mentions edit content, not code. Notra commits Markdown, MDX and text files, plus the JSON, YAML, TOML or CSV data that sits next to them, such as a docs navigation file. Whatever the comment asks for, Notra never commits code, scripts, dot files and folders like `.github` or build and tool configuration such as `package.json` or `vercel.json`. If you ask for one of those, Notra tells you it needs a regular commit.
+Mentions edit content rather than code, so Notra commits Markdown, MDX and text files plus the JSON, YAML, TOML or CSV data that sits next to them, such as a docs navigation file. Whatever the comment asks for, Notra never commits code, scripts, dot files and folders like `.github` or build and tool configuration such as `package.json` or `vercel.json`. If you ask for one of those, Notra tells you it needs a regular commit.
 
-The same goes for active content inside Markdown and MDX. A mention can reword a page with unchanged standalone imports, but files containing exports or complex imports require a regular commit. It cannot add new `import` or `export` lines, MDX expressions such as `{props.value}` (plain literals like `width={600}` are fine), `<script>` tags, iframes, `javascript:` links or inline event handlers. Code samples in fenced blocks are fine. If the sandbox blocks any change, Notra rejects the entire patch. Deleting a linked publication is not supported.
+The same goes for active content inside Markdown and MDX. A mention can reword a page with unchanged standalone imports, but files containing exports or complex imports require a regular commit. It can't add new `import` or `export` lines, MDX expressions such as `{props.value}` (plain literals like `width={600}` are fine), `<script>` tags, iframes, `javascript:` links or inline event handlers. Code samples in fenced blocks are fine, but if the sandbox blocks any change, Notra rejects the entire patch. Mentions can't delete a linked publication.
 
 If someone pushed to the pull request after Notra's last commit, Notra continues from the file on the pull request, so edits made by hand are kept and flow back into the Notra post with the next change.
 
-Mentions arrive through the GitHub App, not the per-repository webhook above. The App must be subscribed to the **Issue comment**, **Pull request review comment** and **Pull request** events. GitHub uses **Issue comment** for ordinary PR conversation comments too, so this subscription is required even though Notra ignores issues. Closing or merging a pull request Notra published marks that publication as closed so the post can be published again.
+Mentions arrive through the GitHub App rather than the per-repository webhook above, so the App must subscribe to the **Issue comment**, **Pull request review comment** and **Pull request** events. GitHub uses **Issue comment** for ordinary PR conversation comments too, so you need this subscription even though Notra ignores issues. Closing or merging a pull request Notra published marks that publication as closed so the post can be published again.
 
 ## Legacy: personal access token
 
-If you cannot install the GitHub App, click **Use the legacy flow** at the bottom of the GitHub page.
+If you can't install the GitHub App, click **Use the legacy flow** at the bottom of the GitHub page.
 
-1. Enter the repository as `https://github.com/owner/repo`, `git@github.com:owner/repo.git` or `owner/repo`. Notra detects the default branch. You can change it.
-2. Public repositories work without a token. For private repositories, expand **Personal Access Token** and paste a classic token with the `repo` scope, or a fine-grained token with read access to the repository. Accepted prefixes are `ghp_`, `github_pat_`, `gho_`, `ghu_`, `ghs_` and `ghr_`.
-3. Save. Notra opens the **Setup Webhook** dialog with the Payload URL and secret described above.
+1. Enter the repository as `https://github.com/owner/repo`, `git@github.com:owner/repo.git` or `owner/repo`. Notra detects the default branch, and you can change it.
+2. Public repositories work without a token, but for private repositories expand **Personal Access Token** and paste a classic token with the `repo` scope, or a fine-grained token with read access to the repository. Accepted prefixes are `ghp_`, `github_pat_`, `gho_`, `ghu_`, `ghs_` and `ghr_`.
+3. Save, and Notra opens the **Setup Webhook** dialog with the Payload URL and secret described above.
 
-Legacy integrations are listed under **Personal access token (Legacy)** on the GitHub page. You can update the token from the legacy integration's card if it expires.
+The GitHub page lists legacy integrations under **Personal access token (Legacy)**, and you can update the token from the legacy integration's card if it expires.
 
 <Visibility for="agents">
 
@@ -165,7 +165,7 @@ Open a repository from the GitHub page to:
 * **Schedules** and **Events**: see and create the [schedules](/automation/scheduled) and [event triggers](/automation/event-based) that use this repository.
 * **Webhook**: copy the Payload URL, reveal or regenerate the secret and jump to GitHub's webhook settings.
 
-To remove a GitHub account, click **Disconnect** on its card. This disables the installation and every repository that belongs to it in Notra. Uninstall the app from GitHub as well to revoke access there.
+To remove a GitHub account, click **Disconnect** on its card, which disables the installation and every repository that belongs to it in Notra. Uninstall the app from GitHub as well to revoke access there.
 
 <Warning>
   Removing a repository or disconnecting an account stops every schedule and event trigger attached to those repositories.
@@ -175,14 +175,14 @@ To remove a GitHub account, click **Disconnect** on its card. This disables the 
 
 | Message in Notra                                                            | What it means                                                                       |
 | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| GitHub write access needed / GitHub still shows read-only | The GitHub App installation has not accepted Contents and Pull requests **write**. Reconnecting the repository is not enough. On GitHub, open the installation and accept any pending permission request. In Notra, open **Settings → Integrations → GitHub**, then **Review permissions on GitHub**. |
+| GitHub write access needed / GitHub still shows read-only | The GitHub App installation hasn't accepted Contents and Pull requests **write**, and reconnecting the repository isn't enough. On GitHub, open the installation and accept any pending permission request. In Notra, open **Settings → Integrations → GitHub**, then **Review permissions on GitHub**. |
 | The GitHub installation was cancelled.                                      | You left the GitHub install screen. Start again from **Connect GitHub**.            |
-| The GitHub installation link expired.                                       | Install links are valid for 30 minutes. Start again.                                |
+| The GitHub installation link expired.                                       | Install links are valid for 30 minutes, so start again.                             |
 | You need to be an admin of the GitHub account that owns this installation.  | Ask an owner of the GitHub organization to run the installation, or make you admin. |
 | GitHub needs to be reconnected to authorize organization access.            | Notra re-runs GitHub sign-in to read organization membership, then finishes the install. |
 | Too many GitHub connection attempts.                                        | Wait a moment and try again.                                                        |
 
-**Webhook not firing.** Check **Recent Deliveries** on the GitHub webhook. A `401` means the secret does not match; copy it again from Notra. A `403` means the integration is disabled in Notra. A `404` means the repository was removed from Notra.
+**Webhook not firing.** Check **Recent Deliveries** on the GitHub webhook. A `401` means the secret doesn't match, so copy it again from Notra. A `403` means the integration is disabled in Notra, and a `404` means someone removed the repository from Notra.
 
 **No content generated.** Confirm there was activity on the tracked branch in the lookback window, and that the schedule or trigger includes this repository.
 
@@ -190,7 +190,7 @@ To remove a GitHub account, click **Disconnect** on its card. This disables the 
 
 <Steps>
   <Step title="Use descriptive PR titles">
-    Notra reads pull request titles and descriptions. "Add dark mode to the dashboard" produces better content than "fix stuff".
+    Notra reads pull request titles and descriptions, so "Add dark mode to the dashboard" produces better content than "fix stuff".
   </Step>
 
   <Step title="Write release notes">
@@ -198,7 +198,7 @@ To remove a GitHub account, click **Disconnect** on its card. This disables the 
   </Step>
 
   <Step title="Ship from the default branch">
-    Notra only records webhook pushes on the repository's default branch on GitHub. The branch you set in Notra controls which branch activity is read from when content is generated.
+    Notra only records webhook pushes on the repository's default branch on GitHub, while the branch you set in Notra controls which branch Notra reads activity from when it generates content.
   </Step>
 </Steps>
 

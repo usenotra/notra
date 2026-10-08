@@ -14,7 +14,7 @@ docolin:
   status: stable
 ---
 
-The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, which you switch with the **Gap type** control, plus a text filter and an **All engines** filter. Results update after a GEO scan, a Search Console sync or a change to a gap or tracked prompt. A background job also refreshes older results so answers outside the rolling 30-day window expire without recalculating on page load.
+The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, which you switch with the **Gap type** control, along with a text filter and an **All engines** filter. Results update after a GEO scan, a Search Console sync or a change to a gap or tracked prompt. A background job also refreshes older results so answers outside the rolling 30-day window expire without recalculating on page load.
 
 ## Prompt gaps
 
@@ -29,11 +29,11 @@ The table columns are **Content** (the prompt, with its title when one exists), 
 
 ## Search gaps
 
-A search gap comes from either a Google Search Console query suggestion or a web search an AI engine ran while answering a tracked prompt. Both appear in one Search Gaps table, and a query that matches both shares one row with both signals. Console suggestions show Google impressions and a suggested action. AI searches show the number of uncovered scan answers and the engines that searched. Notra excludes AI searches from answers that mention your brand or cite your own site. Connect Search Console on the [Prompts page](/geo/prompts#search-console-suggestions) to add its suggestions.
+A search gap comes from either a Google Search Console query suggestion or a web search an AI engine ran while answering a tracked prompt. Both appear in one Search Gaps table, and a query that matches both shares one row with both signals. Console suggestions show Google impressions and a suggested action, while AI searches show the number of uncovered scan answers and the engines that searched. Notra excludes AI searches from answers that mention your brand or cite your own site. Connect Search Console on the [Prompts page](/geo/prompts#search-console-suggestions) to add its suggestions.
 
 ## Empty states
 
-- **No scan yet**: the project has no scan results. Press **Run scan**.
+- **No scan yet**: the project has no scan results, so press **Run scan**.
 - **No prompt gaps**: "Engines already mention you on the questions you track."
 - **Scanning engines**: gaps appear once the running scan finishes.
 

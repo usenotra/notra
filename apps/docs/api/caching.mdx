@@ -26,7 +26,7 @@ docolin:
   next: ./common-tasks.mdx
 ---
 
-The Notra API does not do HTTP caching for you. Every response has `Cache-Control: private, no-store` and no `ETag` or `Last-Modified` headers, so the API does not support conditional requests (`If-None-Match`). You cache in your application. This page shows how to do that safely for post data.
+The Notra API does not do HTTP caching for you. Every response has `Cache-Control: private, no-store` and no `ETag` or `Last-Modified` headers, so the API does not support conditional requests (`If-None-Match`). Caching happens in your application, and this page shows how to do that safely for post data.
 
 When caching post data, include every query input that changes the result set in the cache key. For `GET /v1/posts` that means:
 
@@ -37,7 +37,7 @@ When caching post data, include every query input that changes the result set in
 - `contentType`
 - `brandIdentityId`
 
-`status`, `contentType` and `brandIdentityId` are comma-separated lists in a single query parameter, for example `status=draft,published`. The API does not support repeating the parameter.
+`status`, `contentType` and `brandIdentityId` are comma-separated lists in a single query parameter, for example `status=draft,published`, because the API does not support repeating the parameter.
 
 ## Cache key design
 
@@ -77,7 +77,7 @@ function createPostsCacheKey(params: ListPostsParams) {
 Sorting array filters before building the key avoids duplicate cache entries for equivalent queries.
 
 <Note>
-  When `status` is omitted the API returns only `published` posts. Pass `status=draft,published` explicitly if you want both. The key above defaults an omitted `status` to `published`, so both spellings of the same query share one cache entry.
+  When you omit `status`, the API returns only `published` posts, so pass `status=draft,published` explicitly if you want both. The key above defaults an omitted `status` to `published`, so both spellings of the same query share one cache entry.
 </Note>
 
 ## Recommended strategy
@@ -215,8 +215,8 @@ Use it for read paths, but do not rely on it alone for mutation invalidation. Af
 
 ## Practical defaults
 
-- Use a short TTL for list caches if content changes often. Nothing in the response tells you it is stale.
+- Use a short TTL for list caches if content changes often, since nothing in the response tells you it is stale.
 - Use explicit invalidation after `update`, `delete` and completed generation jobs.
 - Prefer `sort=desc` plus page-1 refetch if your UI is a newest-first feed.
 - Cache individual posts separately from paginated lists.
-- Apply the same pattern to `GET /v1/feedback` and `GET /v1/projects/{projectId}/geo/scans`, which paginate the same way. See [Pagination](/api/pagination).
+- Apply the same pattern to `GET /v1/feedback` and `GET /v1/projects/{projectId}/geo/scans`, which paginate the same way, as [Pagination](/api/pagination) describes.

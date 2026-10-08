@@ -26,7 +26,7 @@ docolin:
 
 ## Using the SDK
 
-The `@usenotra/sdk` package includes its types. Import them directly:
+The `@usenotra/sdk` package includes its types, so you can import them directly:
 
 ```typescript
 import type {
@@ -37,10 +37,10 @@ import type {
 ```
 
 <Tip>
-  The SDK ships with full type definitions, so you do not need to maintain your own. You only need the types below if you call the API with raw `fetch`.
+  The SDK ships with full type definitions, so you do not need to maintain your own, and you only need the types below if you call the API with raw `fetch`.
 </Tip>
 
-For any endpoint, including the GEO group that the SDK does not cover yet, the [OpenAPI document](https://api.usenotra.com/openapi.json) is the source of truth. Tools such as `openapi-typescript` can turn it into a complete set of types.
+For any endpoint, including the GEO group that the SDK does not cover yet, the [OpenAPI document](https://api.usenotra.com/openapi.json) is the source of truth, and tools such as `openapi-typescript` can turn it into a complete set of types.
 
 ---
 
@@ -180,7 +180,7 @@ export type NotraRateLimitErrorResponse = {
 
 ### Zod schemas
 
-Use these Zod schemas for runtime validation. The request limits match the API:
+Use these Zod schemas for runtime validation. Their request limits match the API:
 
 - Titles up to 120 characters.
 - Slugs up to 160 characters of lowercase letters, numbers and hyphens.

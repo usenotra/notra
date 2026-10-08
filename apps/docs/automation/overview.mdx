@@ -21,7 +21,7 @@ docolin:
   next: ./event-based.mdx
 ---
 
-Notra can generate content without you starting each run by hand. In **Studio** mode the sidebar has an **Automation** section with **Schedules** and **Events**. Both are rule-based automations you configure once.
+Notra can generate content without you starting each run by hand. In **Studio** mode the sidebar has an **Automation** section with **Schedules** and **Events**, which are both rule-based automations you configure once.
 
 ## Automation modes
 
@@ -47,11 +47,11 @@ Notra can generate content without you starting each run by hand. In **Studio** 
   </Step>
 
   <Step title="Pick a brand identity">
-    Use the workspace default or pin a specific brand identity. It sets the tone, audience and custom instructions.
+    Use the workspace default or pin a specific brand identity, which sets the tone, audience and custom instructions.
   </Step>
 
   <Step title="Generate and review">
-    The run analyzes the activity, writes the content and saves it as a draft. With auto-publish on, it publishes the post instead. Review it under **Content**.
+    The run analyzes the activity, writes the content and saves it as a draft, or publishes the post instead when auto-publish is on. You can review the result under **Content**.
   </Step>
 </Steps>
 
@@ -75,7 +75,7 @@ Auto-publish marks changelogs and blog posts as published instead of saving them
 
 ## Billing
 
-Automated runs count against the same plan quotas as manual generation. Changelogs and blog posts use the long-form post quota. LinkedIn posts and tweets use the social post quota. Images use the image generation quota. When a quota is used up, AI credits cover the run if you have them. If neither is available, the run stops and workspace owners receive an email. Add credits or upgrade to resume. See [Billing](/organization/billing).
+Automated runs count against the same plan quotas as manual generation. Changelogs and blog posts use the long-form post quota, LinkedIn posts and tweets use the social post quota and images use the image generation quota. When a quota is used up, AI credits cover the run if you have them. If neither is available, the run stops and workspace owners receive an email, and adding credits or upgrading lets runs resume. For details, see [Billing](/organization/billing).
 
 ## Choosing the right mode
 
@@ -110,19 +110,19 @@ Automated runs count against the same plan quotas as manual generation. Changelo
 
 ## Managing automations
 
-Each schedule or event trigger can be:
+You can manage each schedule or event trigger in these ways:
 
-* **Enabled or paused**: the Schedules and Events pages split automations into **Active** and **Paused** tabs. Pausing keeps the configuration.
-* **Edited**: change sources, format, brand identity, timing or auto-publish.
-* **Run now**: you can run schedules on demand from the row menu. Event triggers only fire from GitHub.
-* **Deleted**: removed permanently.
+* **Enabled or paused.** The Schedules and Events pages split automations into **Active** and **Paused** tabs, and pausing keeps the configuration.
+* **Edited.** You can change sources, format, brand identity, timing or auto-publish.
+* **Run now.** You can run schedules on demand from the row menu, while event triggers only fire from GitHub.
+* **Deleted.** Deleting an automation removes it permanently.
 
 Notra rejects a second schedule or trigger with exactly the same configuration in the same workspace.
 
-**Notifications.** Under **Settings > Notifications** you can be emailed when automated content is created, when generation fails and when a run is skipped because there was nothing worth writing about. **Settings > Logs** lists integration events (such as GitHub webhook deliveries) with their delivery status.
+**Notifications.** Under **Settings > Notifications** you can get an email when Notra creates automated content, when generation fails and when Notra skips a run because there was nothing worth writing about. **Settings > Logs** lists integration events (such as GitHub webhook deliveries) with their delivery status.
 
 <Info>
-  You can combine modes. For example, use an event trigger for release announcements and a weekly schedule for a progress digest.
+  You can combine modes, for example by using an event trigger for release announcements and a weekly schedule for a progress digest.
 </Info>
 
 ## Next steps

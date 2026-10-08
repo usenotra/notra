@@ -28,7 +28,7 @@ docolin:
 
 ## Update an existing post
 
-Use `PATCH /v1/posts/{postId}` to update a post. Send at least one of these fields:
+Use `PATCH /v1/posts/{postId}` to update a post, and send at least one of these fields:
 
 - `title`, up to 120 characters
 - `slug`, up to 160 lowercase letters, numbers and hyphens, or `null` to clear it
@@ -125,11 +125,11 @@ console.log(updated.post);
 ```
 </CodeGroup>
 
-The limit for `PATCH /v1/posts/{postId}` is 60 requests per minute per key. Sending a body with none of the four fields returns `400`.
+The limit for `PATCH /v1/posts/{postId}` is 60 requests per minute per key, and sending a body with none of the four fields returns `400`.
 
 ## Create a new post
 
-There is no `POST /v1/posts` endpoint for creating a post with arbitrary fields. Notra creates posts through generation. Queue a job with `POST /v1/posts/generate`, then poll it until it reports a `postId`.
+There is no `POST /v1/posts` endpoint for creating a post with arbitrary fields, because Notra creates posts through generation. Queue a job with `POST /v1/posts/generate` and then poll it until it reports a `postId`.
 
 <Warning>
   If a guide or AI answer suggests `POST /v1/posts` or an `author` field for post creation, it is wrong for the current Notra API.
@@ -137,7 +137,7 @@ There is no `POST /v1/posts` endpoint for creating a post with arbitrary fields.
 
 ### Queue a generation job
 
-`contentType` is required (`changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`). `lookbackWindow` defaults to `last_7_days` (`current_day`, `yesterday`, `last_7_days`, `last_14_days`, `last_30_days`). Point the job at connected sources with `integrations.github` and `integrations.linear` (integration ids from `GET /v1/integrations`) or at public repositories with `github.repositories`. With no selector, the job uses every connected GitHub integration.
+`contentType` is required (`changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`). `lookbackWindow` defaults to `last_7_days` (`current_day`, `yesterday`, `last_7_days`, `last_14_days`, `last_30_days`). Point the job at connected sources with `integrations.github` and `integrations.linear` (integration ids from `GET /v1/integrations`) or at public repositories with `github.repositories`. When you pass no selector, the job uses every connected GitHub integration.
 
 ```bash
 curl -X POST "https://api.usenotra.com/v1/posts/generate" \
@@ -220,11 +220,11 @@ async function waitForPost(jobId: string): Promise<string> {
 }
 ```
 
-`skipped` means the job ended without creating a post. Notra does not send a webhook when a job finishes, so you have to poll. `POST /v1/posts/generate` allows 10 requests per minute per key and needs an active paid plan or AI credits.
+`skipped` means the job ended without creating a post. Because Notra does not send a webhook when a job finishes, you have to poll. `POST /v1/posts/generate` allows 10 requests per minute per key and needs an active paid plan or AI credits.
 
 ## Read GEO visibility for a project
 
-GEO data is scoped to a project. List projects first, then read the mention rate per engine for the last 30 days.
+Notra scopes GEO data to a project, so list projects first and then read the mention rate per engine for the last 30 days.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
@@ -262,13 +262,13 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 }
 ```
 
-Visibility and traffic reads accept either `days` (1 to 365, rolling window) or an explicit `from` and `to` (`YYYY-MM-DD`). When you set `from` and `to`, the API ignores `days`. `configured: false` means the project has no GEO settings yet. Configure it with `PATCH /v1/projects/{projectId}/geo/settings`.
+Visibility and traffic reads accept either `days` (1 to 365, rolling window) or an explicit `from` and `to` (`YYYY-MM-DD`). When you set `from` and `to`, the API ignores `days`. `configured: false` means the project has no GEO settings yet, and you can configure it with `PATCH /v1/projects/{projectId}/geo/settings`.
 
-These endpoints need `projects.read` and `visibility.read` plus a GEO plan. Without the plan the API returns `402`.
+These endpoints need `projects.read` and `visibility.read` plus a GEO plan, and without the plan the API returns `402`.
 
 ## Trigger a GEO scan
 
-A scan checks every tracked prompt against every enabled engine. It takes no request body.
+A scan checks every tracked prompt against every enabled engine and takes no request body.
 
 ```bash
 curl -X POST -H "Authorization: Bearer YOUR_API_KEY" \
@@ -287,7 +287,7 @@ Poll `statusUrl` until `scan.status` is `completed` or `failed`. Each organizati
 
 ## Submit feedback from an integration
 
-Agents post to your public feedback URL without a key. Server-side code that already holds a key with `feedback.write` can use `POST /v1/feedback` instead:
+Agents post to your public feedback URL without a key, while server-side code that already holds a key with `feedback.write` can use `POST /v1/feedback` instead:
 
 ```bash
 curl -X POST "https://api.usenotra.com/v1/feedback" \

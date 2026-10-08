@@ -15,7 +15,7 @@ docolin:
   status: stable
 ---
 
-This guide adds the Notra tracker to a SvelteKit app. It takes about five minutes and one file: `src/hooks.server.ts`.
+This guide adds the Notra tracker to a SvelteKit app in about five minutes, and you only touch one file, `src/hooks.server.ts`.
 
 <Tip>
   The Traffic page has a **Copy agent prompt** button. Paste the prompt into Claude Code, Cursor or Codex and the agent runs these steps for you.
@@ -23,7 +23,7 @@ This guide adds the Notra tracker to a SvelteKit app. It takes about five minute
 
 <Steps>
   <Step title="Get your token">
-    Open **Traffic** in the GEO sidebar. Until the first event arrives the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. The **Set your token** section shows the token. The **Copy agent prompt** button copies an instruction block you can paste into a coding agent.
+    Open **Traffic** in the GEO sidebar. Until the first event arrives the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. The token appears in the **Set your token** section, and the **Copy agent prompt** button copies an instruction block you can paste into a coding agent.
 
     <Visibility for="agents">
 
@@ -39,7 +39,7 @@ This guide adds the Notra tracker to a SvelteKit app. It takes about five minute
       -H "Authorization: Bearer $NOTRA_API_KEY"
     ```
 
-    Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys. The token endpoint also returns `token`. The ingest routes are organization-level. Pass `projectId` to bind the token to one project, or omit it to track the whole organization. Issuing a token does not invalidate tokens issued earlier.
+    Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `next`, `nuxt`, `tanstack`, `astro`, `sveltekit` and `netlify` keys. The token endpoint also returns `token`. The ingest routes are organization-level, so pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token doesn't invalidate tokens issued earlier.
 
     </Visibility>
 
@@ -67,7 +67,7 @@ This guide adds the Notra tracker to a SvelteKit app. It takes about five minute
     The package has zero dependencies and no Node APIs in the core, so it runs on edge runtimes. You can also install it with npm, pnpm or yarn.
   </Step>
   <Step title="Set the environment variable">
-    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, locally and at your hosting provider. Never hardcode or commit it.
+    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, both locally and at your hosting provider, and never hardcode or commit it.
   </Step>
   <Step title="Add the tracker">
     ```typescript src/hooks.server.ts
@@ -83,7 +83,7 @@ This guide adds the Notra tracker to a SvelteKit app. It takes about five minute
     The handle captures requests alongside `resolve` and waits for the send before returning. If `src/hooks.server.ts` already has a `handle`, compose with `sequence` from `@sveltejs/kit/hooks`.
   </Step>
   <Step title="Deploy and verify">
-    Deploy your site. The Traffic page switches from the install panel to the dashboard once Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
+    After you deploy your site, the Traffic page switches from the install panel to the dashboard once Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
   </Step>
 </Steps>
 

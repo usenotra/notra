@@ -12,7 +12,7 @@ docolin:
   applies_to:
     - notra
   language: en
-  status: draft
+  status: stable
 ---
 
 Developers ask Claude Code, Cursor and Codex which library or API to use, and those agents read your docs directly. For a developer tool, docs that agents can read matter as much as mentions.
@@ -20,16 +20,16 @@ Developers ask Claude Code, Cursor and Codex which library or API to use, and th
 ## Set up
 
 - **Prompts.** Write them the way a developer types into an agent: "how do i add rate limiting to a next.js api route", "best postgres hosting for a side project".
-- **Engines.** Add the main chat engines first. Coding-agent engines (Cursor, OpenCode, Claude Code and Codex) are available on request. See [Engines](/geo/engines).
-- **Tracker.** Install `@usenotra/geo` on your docs site, not only your marketing site. Add the docs domain under **Tracked domains**.
+- **Engines.** Add the main chat engines first, and see [Engines](/geo/engines) for the coding-agent engines (Cursor, OpenCode, Claude Code and Codex), which are available on request.
+- **Tracker.** Install `@usenotra/geo` on your docs site as well as your marketing site, and add the docs domain under **Tracked domains**.
 
 ## What to work on
 
-- **Agent readiness.** Serve Markdown to agents that ask for it. Claude Code sends `Accept: text/markdown` ([Vercel guide](https://vercel.com/kb/guide/make-your-documentation-readable-by-ai-agents)). Run [Agent readiness](/geo/agent-readiness) and fix the **Must do** items.
+- **Agent readiness.** Serve Markdown to agents that ask for it, since Claude Code sends `Accept: text/markdown` ([Vercel guide](https://vercel.com/kb/guide/make-your-documentation-readable-by-ai-agents)). Then run [Agent readiness](/geo/agent-readiness) and fix the **Must do** items.
 - **Keep `llms.txt` in perspective.** [Ahrefs found 97% of llms.txt files got no requests](https://searchenginejournal.com/97-of-llms-txt-files-got-no-requests-ahrefs-data-shows/579478) and Google does not use it. Coding agents do read it, so publish one, but don't expect it to move AI search.
-- **Watch coding agents.** The [crawler directory](/ai-traffic/crawlers) lists coding agents such as Claude Code, Cursor and OpenCode. Their visits show which docs pages agents actually read.
+- **Watch coding agents.** The [crawler directory](/ai-traffic/crawlers) lists coding agents such as Claude Code, Cursor and OpenCode, and their visits show which docs pages agents read.
 - **Follow journeys.** [Tag Markdown links](/ai-traffic/journeys) so you can see the path an agent takes through your docs and where it stops.
-- **Collect agent feedback.** Let agents report what broke with the [feedback inbox](/feedback/inbox). A `feedback.md` file also earns an agent readiness bonus.
+- **Collect agent feedback.** Let agents report what broke with the [feedback inbox](/feedback/inbox), and keep in mind that a `feedback.md` file also earns an agent readiness bonus.
 
 ## Metrics to watch
 

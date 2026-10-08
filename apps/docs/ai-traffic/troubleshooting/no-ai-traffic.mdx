@@ -17,19 +17,19 @@ docolin:
 
 <AccordionGroup>
   <Accordion title="The token is missing in production">
-    Set `NOTRA_GEO_TOKEN` at your hosting provider, not only locally. The tracker never throws, so a missing token fails silently. Pass `onError` to log problems.
+    Set `NOTRA_GEO_TOKEN` at your hosting provider as well as locally. The tracker never throws, so a missing token fails silently unless you pass `onError` to log problems.
   </Accordion>
   <Accordion title="The token was rotated">
-    Rotating the token invalidates every earlier token right away. Update the variable and redeploy.
+    Rotating the token invalidates every earlier token right away, so update the variable and redeploy.
   </Accordion>
   <Accordion title="Pages are served statically">
-    The tracker runs in middleware. It never sees pages that a CDN serves without hitting your app. On Astro, use a server adapter.
+    The tracker runs in middleware, so it never sees pages that a CDN serves without hitting your app. On Astro, use a server adapter.
   </Accordion>
   <Accordion title="The path is excluded">
     The tracker skips `/api`, framework asset paths and static files by default. See [Tracker reference](/ai-traffic/tracker-reference).
   </Accordion>
   <Accordion title="No AI agent has visited yet">
-    Notra discards human visits. Crawlers visit on their own schedule, so a new or quiet site can take days. Ask ChatGPT or Claude to read one of your pages to trigger an assistant fetch.
+    Notra discards human visits, and crawlers visit on their own schedule, so a new or quiet site can take days. To trigger an assistant fetch, ask ChatGPT or Claude to read one of your pages.
   </Accordion>
   <Accordion title="The domain is not on the project">
     List extra hostnames under **Tracked domains**. See [Brand and domains](/geo/brand-and-domains).

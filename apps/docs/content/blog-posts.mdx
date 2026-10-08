@@ -27,7 +27,7 @@ docolin:
 Notra writes blog posts in two ways:
 
 * **From your activity (Studio).** Turn pull requests, commits, releases and Linear issues into a narrative post about what you shipped.
-* **From a prompt (GEO Write).** Write an article that targets a prompt people ask AI answer engines. The writer uses your brand identity, sitemap and competitor data as context.
+* **From a prompt (GEO Write).** Write an article that targets a prompt people ask AI answer engines, with your brand identity, sitemap and competitor data as context for the writer.
 
 Both produce a post with the content type `blog_post` that you review and publish from **Content**.
 
@@ -51,7 +51,7 @@ The API also accepts `investor_update` as a filter value for older posts, but th
 
 </Visibility>
 
-Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`, `faq` or `alternatives`. Posts written through GEO Write get one of these. Posts generated from repository activity do not.
+Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`, `faq` or `alternatives`. Posts written through GEO Write get one of these, while posts generated from repository activity do not.
 
 ## How blog posts differ from changelogs
 
@@ -64,7 +64,7 @@ Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`
 | Quota         | Long-form post                | Long-form post                        |
 
 <Info>
-  Both count against the long-form posts quota of your plan. See [Billing & Plans](/organization/billing).
+  Both count against the long-form posts quota of your plan, as described in [Billing and plans](/organization/billing).
 </Info>
 
 ## Writing from repository activity
@@ -75,15 +75,15 @@ Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`
   </Step>
 
   <Step title="Formats">
-    Select **Blog post**. You can combine it with other formats in the same run. Pick the lookback window and toggle **Pull Requests**, **Commits** and **Releases**.
+    Select **Blog post**, which you can combine with other formats in the same run. Pick the lookback window and toggle **Pull Requests**, **Commits** and **Releases**.
   </Step>
 
   <Step title="Activity">
-    Choose repositories and Linear integrations, then deselect anything you do not want in the post. A selection focused on one feature produces a better article.
+    Choose repositories and Linear integrations, then deselect anything you do not want in the post, because a selection focused on one feature produces a better article.
   </Step>
 
   <Step title="Identity">
-    Choose the brand identity that should write the post. Notra creates a collection and generates the draft.
+    Choose the brand identity that should write the post, and Notra creates a collection and generates the draft.
   </Step>
 </Steps>
 
@@ -91,7 +91,7 @@ The blog agent targets 400 to 800 words for the body and goes shorter when there
 
 ### Automating blog posts
 
-Schedules and event triggers can also generate blog posts. A release trigger is the most common setup:
+Schedules and event triggers can also generate blog posts, and a release trigger is the most common setup:
 
 ```json
 {
@@ -105,7 +105,7 @@ Schedules and event triggers can also generate blog posts. A release trigger is 
 }
 ```
 
-Blog posts support **Auto-publish**. When it is on, Notra saves generated posts as `published` instead of `draft`. See [Event-Based Automation](/automation/event-based) and [Scheduled Automation](/automation/scheduled).
+Blog posts support **Auto-publish**, and when it is on, Notra saves generated posts as `published` instead of `draft`. See [Event-based automation](/automation/event-based) and [Scheduled automation](/automation/scheduled).
 
 ## Writing from a prompt (GEO Write)
 
@@ -125,7 +125,7 @@ When you want an article that improves how AI answer engines describe your brand
   </Step>
 
   <Step title="Brief and draft">
-    Notra first writes a content brief, then drafts the article from it. The finished post opens in the editor with the brief available alongside it.
+    Notra first writes a content brief and then drafts the article from it. The finished post opens in the editor with the brief available alongside it.
   </Step>
 </Steps>
 
@@ -148,18 +148,18 @@ Open any post and use the content agent in the right-hand panel. Select a passag
 * "Add a section about migration steps"
 * "Add a conclusion with next steps"
 
-The agent edits the document directly. You can also edit the Markdown yourself at any time.
+The agent edits the document directly, and you can also edit the Markdown yourself at any time.
 
 ## Publishing
 
-Clicking **Publish** sets the post status to `published`. Notra does not push the post to a site by itself. Published posts reach your site through:
+Clicking **Publish** sets the post status to `published`, but Notra does not push the post to a site by itself. Published posts reach your site through:
 
-* **Framer.** The Notra plugin imports posts into a Framer site. See [Framer](/integrations/framer).
+* **Framer.** The Notra plugin imports posts into a Framer site, as described in [Framer](/integrations/framer).
 * **Manual.** Copy the Markdown from the editor.
 
 <Visibility for="agents">
 
-* **Your own site or CMS.** Fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API Getting Started](/api/getting-started).
+* **Your own site or CMS.** Fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API getting started](/api/getting-started).
 
 </Visibility>
 
@@ -169,7 +169,7 @@ Clicking **Publish** sets the post status to `published`. Notra does not push th
 
 ### Focus on one main topic
 
-Give each blog post one clear narrative. Deselect unrelated activity in the Activity step instead of asking the writer to cover everything.
+Give each blog post one clear narrative by deselecting unrelated activity in the Activity step instead of asking the writer to cover everything.
 
 **Good**: "How We Reduced API Response Time by 60%"\
 **Poor**: "March 2026 Product Updates"
@@ -180,11 +180,11 @@ Good posts explain the problem, the solution, the impact for users and what you 
 
 ### Keep your brand identity current
 
-The writer reads your company description, tone, target audience, custom instructions and reference posts. See [Brand Voice](/concepts/brand-voice).
+The writer reads your company description, tone, target audience, custom instructions and reference posts, so keep them up to date in [Brand voice](/concepts/brand-voice).
 
 ### Review before publishing
 
-Check technical accuracy, add screenshots or diagrams on your site and get a teammate to read it. Posts stay in `draft` until you publish them.
+Check technical accuracy, add screenshots or diagrams on your site and get a teammate to read it, since posts stay in `draft` until you publish them.
 
 ## Example blog post structure
 

@@ -21,11 +21,11 @@ Open GEO settings from the settings menu (**Brand**, **Languages** and **Models*
 | --- | --- |
 | **Company name** | The primary name matched in answers |
 | **Aliases** | Up to 10 other spellings, product names or the bare domain |
-| **Tracked domains** | Extra sites besides the brand website, up to 20. Subdomains are included and all use the same ingest token |
-| **Conversion paths** | Paths that count as a conversion when an AI referral reaches them, for example `/signup`. Prefix match |
+| **Tracked domains** | Up to 20 extra sites besides the brand website. Notra includes their subdomains, and all of them use the same ingest token |
+| **Conversion paths** | Paths that count as a conversion when an AI referral reaches them, for example `/signup`. Notra matches them by prefix |
 
 <Tip>
-  Add your bare domain (for example `usenotra.com`) as an alias. Engines often name a product by its domain.
+  Add your bare domain (for example `usenotra.com`) as an alias, because engines often name a product by its domain.
 </Tip>
 
 You can also delete a project from this section. See [Projects](/geo/projects).
@@ -59,10 +59,10 @@ curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/settings \
   Up to 10 entries.
 </ParamField>
 <ParamField body="conversionPaths" type="string[]">
-  Paths that count as a conversion when an AI referral reaches them. Prefix match. Omit to keep the stored list.
+  Paths that count as a conversion when an AI referral reaches them, matched by prefix. Omit the field to keep the stored list.
 </ParamField>
 <ParamField body="domains" type="string[]">
-  Additional hostnames that send AI traffic to this project, besides the brand website. Up to 20. Subdomains of a listed domain are included. Omit to keep the stored list.
+  Up to 20 additional hostnames, besides the brand website, that send AI traffic to this project. The list covers subdomains of each listed domain, and omitting the field keeps the stored list.
 </ParamField>
 <ParamField body="languages" type="string[]" required>
   1 to 4 supported language codes. The API rejects an unknown code with `400`.
@@ -83,6 +83,6 @@ curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/settings \
   One of 24, 48, 72, 168, 336, 720.
 </ParamField>
 
-The response returns the stored `settings` plus `scanStartedAt`, `lastScanAt` and `isScanning`. It also includes a `competitors` array, which is read-only on this route. Both routes need the `geo-settings` scope.
+The response returns the stored `settings` plus `scanStartedAt`, `lastScanAt` and `isScanning`, along with a `competitors` array that is read-only on this route. Both routes need the `geo-settings` scope.
 
 </Visibility>

@@ -14,7 +14,7 @@ docolin:
   status: stable
 ---
 
-A conversation is a multi-turn exchange of up to five turns. It captures how an engine answers once a buyer has narrowed the question, for example "what tools automate changelogs" followed by "which of those integrate with linear". A project can hold up to ten conversations.
+A conversation is a multi-turn exchange of up to five turns that captures how an engine answers once a buyer has narrowed the question, for example "what tools automate changelogs" followed by "which of those integrate with linear". A project can hold up to ten conversations.
 
 <Visibility for="agents">
 
@@ -22,7 +22,7 @@ In the API a conversation is called a **prompt sequence**.
 
 </Visibility>
 
-The **Conversations** card on the Prompts page lists each sequence with its **Turns** count and whether it is **Included in scans** or paused. **New conversation** opens a dialog with **Name** and **Turns** fields. Every English scan replays conversations against the grounded engines. The per-turn results appear as a replay thread.
+The **Conversations** card on the Prompts page lists each sequence with its **Turns** count and whether it is **Included in scans** or paused. **New conversation** opens a dialog with **Name** and **Turns** fields. Every English scan replays conversations against the grounded engines and shows the per-turn results as a replay thread.
 
 ## Running a conversation now
 
@@ -69,7 +69,7 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences/$SEQ
 </ResponseField>
 
 <Warning>
-  The run is not queued. The request stays open for the whole run, which can take several minutes. Use a client timeout of at least five minutes. After four minutes the API stops waiting and answers `409` while the run finishes on its own. Do not retry. Read the result from the project's prompt results instead. This endpoint allows 10 requests per 10 minutes per organization.
+  The run isn't queued, so the request stays open for the whole run, which can take several minutes, and you should use a client timeout of at least five minutes. After four minutes the API stops waiting and answers `409` while the run finishes on its own, so don't retry and read the result from the project's prompt results instead. This endpoint allows 10 requests per 10 minutes per organization.
 </Warning>
 
 `PATCH /geo/sequences/{sequenceId}` accepts `name`, `steps` (1 to 5) and `enabled`. `DELETE` removes the sequence.

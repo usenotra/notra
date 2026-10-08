@@ -26,7 +26,7 @@ The **Agent Readiness** page answers one question: "How well AI agents can disco
 
 ## What the scan checks
 
-is-agentic.com, an open service by Vercel Labs, runs the scan. It only reads the public parts of your website and changes nothing. It returns a score from 0 to 100, a score label and a list of issues. Each issue has:
+is-agentic.com, an open service by Vercel Labs, runs the scan, which only reads the public parts of your website and changes nothing. It returns a score from 0 to 100, a score label and a list of issues, and each issue has:
 
 - `id` and `name`, the check that did not fully pass.
 - `tier`: `essential`, `recommended` or `bonus`.
@@ -34,7 +34,7 @@ is-agentic.com, an open service by Vercel Labs, runs the scan. It only reads the
 - `details`: what was found (called **Evidence** in the dashboard).
 - `recommendation`: the fix.
 
-The score breaks down into three tiers. The dashboard shows them as:
+The score breaks down into three tiers, which the dashboard labels as follows.
 
 | Tier | Dashboard label | Hint |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ On top of the external report, Notra adds one check of its own named **feedback.
 - **Partial** when the file exists but has no "Where to send it" heading, or is served with a content type other than `text/markdown`.
 - Passes when it is served as `text/markdown` and includes a "Where to send it" section that tells agents which MCP tool, HTTP endpoint, email address or issue tracker to use.
 
-Notra adds this check as a `bonus` issue. It does not alter the externally computed score or breakdown. [Agent Feedback](/feedback/send-feedback) documents Notra's own feedback endpoint.
+Notra adds this check as a `bonus` issue, so it does not alter the externally computed score or breakdown. [Agent Feedback](/feedback/send-feedback) documents Notra's own feedback endpoint.
 
 ## Score bands
 
@@ -76,31 +76,31 @@ When a previous completed scan exists, the card also shows the change against it
 
 ## Score history
 
-Notra keeps every completed scan for the current website URL. The page loads up to 60 completed scans, oldest first, to draw the trend. Each history point carries the `score`, the `scannedAt` time and the number of `failed` and `partial` issues. Changing the website URL in your brand identity starts a fresh history for the new URL. The old reports remain, but the page no longer shows them.
+Notra keeps every completed scan for the current website URL, and the page loads up to 60 completed scans, oldest first, to draw the trend. Each history point carries the `score`, the `scannedAt` time and the number of `failed` and `partial` issues. Changing the website URL in your brand identity starts a fresh history for the new URL, and the old reports remain even though the page no longer shows them.
 
 ## Start a scan in the dashboard
 
 <Steps>
   <Step title="Add a website URL">
-    The scan targets the website URL on the brand identity linked to the active project. If it is missing, the page says "Make sure your brand settings include a website URL". Set it under **Brand Identity** in Studio mode.
+    The scan targets the website URL on the brand identity linked to the active project. If it is missing, the page says "Make sure your brand settings include a website URL", and you can set it under **Brand Identity** in Studio mode.
   </Step>
   <Step title="Open Agent Readiness">
-    With no report yet the page shows **No scan yet** and a **Scan your website** button. With a report it shows the **Readiness score** card with a **Rescan** button and the **Checklist** below it.
+    With no report yet, the page shows **No scan yet** and a **Scan your website** button. Once a report exists, it shows the **Readiness score** card with a **Rescan** button and the **Checklist** below it.
   </Step>
   <Step title="Confirm the public scan">
-    A dialog titled **Run a public scan?** explains: "The scan runs through is-agentic.com, an open service by Vercel Labs. It only reads the public parts of your website and changes nothing. The resulting report is publicly retrievable on is-agentic.com by anyone who knows your domain." Press **Start scan**.
+    A dialog titled **Run a public scan?** explains: "The scan runs through is-agentic.com, an open service by Vercel Labs. It only reads the public parts of your website and changes nothing. The resulting report is publicly retrievable on is-agentic.com by anyone who knows your domain." Press **Start scan** to continue.
   </Step>
   <Step title="Wait a few minutes">
-    Scans usually finish in one to three minutes. The page polls every five seconds while the scan is running. If the scan fails, the page shows **Scan failed** with the reason and a **Try again** button. When a rescan fails after an earlier success, the last completed report stays visible with a notice above it.
+    Scans usually finish in one to three minutes, and the page polls every five seconds while the scan is running. If the scan fails, the page shows **Scan failed** with the reason and a **Try again** button. When a rescan fails after an earlier success, the last completed report stays visible with a notice above it.
   </Step>
 </Steps>
 
 ### Working through the checklist
 
-The **Checklist** groups issues under **Must do** and **Should do**, failed items first. Each item shows its evidence and recommendation with a **Copy fix** button. At the top, **Copy master prompt** copies a single instruction block for a coding agent. The block lists every open item with these rules:
+The **Checklist** groups issues under **Must do** and **Should do** with failed items first, and each item shows its evidence and recommendation with a **Copy fix** button. At the top, **Copy master prompt** copies a single instruction block for a coding agent that lists every open item with these rules:
 
 1. Finish every item in Must do before starting Should do.
-2. A failed check needs a complete implementation. A partial check already has some of the pieces; close the gap described in Evidence.
+2. A failed check needs a complete implementation. A partial check already has some of the pieces, so close the gap described in Evidence.
 3. Stay scoped: implement the recommended fix. Do not refactor unrelated code.
 4. After each item, note the files you changed in one line.
 
@@ -110,7 +110,7 @@ The **Checklist** groups issues under **Must do** and **Should do**, failed item
 
 ## Start a scan from the API
 
-Both routes are project-scoped. They need the `agent-readiness.read` scope to read reports and `agent-readiness.write` to start scans.
+Both routes are project-scoped and need the `agent-readiness.read` scope to read reports and `agent-readiness.write` to start scans.
 
 ```bash
 curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/agent-readiness/scan \
@@ -127,9 +127,9 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/agent-readines
 
 The response is `202 Accepted`. If a scan is already running against the same URL, Notra reuses it instead of starting a duplicate and sets `alreadyRunning` to `true`. Notra treats a running scan older than ten minutes as stuck and replaces it. If the brand identity has no website URL, the request fails with "Add a website URL in brand settings before scanning".
 
-Notra first asks is-agentic.com for a stored report of your URL. If that report is newer than the last one Notra has, Notra adopts it without a rescan. Otherwise Notra streams a fresh scan and fetches the finished report afterwards. Scans abort after eight minutes.
+Notra first asks is-agentic.com for a stored report of your URL. If that report is newer than the last one Notra has, Notra adopts it without a rescan, and otherwise it streams a fresh scan and fetches the finished report afterwards. Scans abort after eight minutes.
 
-Then poll the read route. It returns stored data only and never starts a scan:
+Then poll the read route, which returns stored data only and never starts a scan:
 
 ```typescript
 const response = await fetch(
@@ -164,7 +164,7 @@ if (scan?.status === "running") {
 
 ## Rate limits
 
-The dashboard does not throttle readiness scans. It relies on reusing an in-flight scan for the same URL.
+The dashboard does not throttle readiness scans and instead relies on reusing an in-flight scan for the same URL.
 
 <Visibility for="agents">
 

@@ -26,7 +26,7 @@ docolin:
   prev: ./types.mdx
 ---
 
-AI agents such as Claude Code, Cursor and ChatGPT now use your product through your MCP server. Agent Feedback gives those agents a `submit_feedback` tool inside your server. You get an inbox in the Notra dashboard to triage what comes in.
+AI agents such as Claude Code, Cursor and ChatGPT now use your product through your MCP server. Agent Feedback gives those agents a `submit_feedback` tool inside your server and gives you an inbox in the Notra dashboard to triage what comes in.
 
 ## How it works
 
@@ -42,7 +42,7 @@ Every organization has its own feedback URL:
 https://api.usenotra.com/v1/feedback/{organizationSlug}
 ```
 
-It needs no token or API key, so it can live directly in your server code. Notra rate limits submissions per source IP and per organization. See [Rate limits](#rate-limits).
+It needs no token or API key, so it can live directly in your server code. Notra rate limits submissions per source IP and per organization, as described in [Rate limits](#rate-limits).
 
 Reading and triaging feedback through the API requires an API key with `feedback.read` or `feedback.write`. `POST /v1/feedback` (without a slug) also accepts an API key with `feedback.write` for server-side integrations that already hold one.
 
@@ -78,7 +78,7 @@ registerFeedbackTool(server, {
 });
 ```
 
-`registerFeedbackTool` adds a `submit_feedback` tool that accepts `message`, `title`, `kind`, `sentiment` and `contextUrl`. The tool posts the input to Notra and returns a short confirmation the agent can relay to the user ("Thanks, the feedback was sent to the team." or "This feedback was already recorded."). Options:
+`registerFeedbackTool` adds a `submit_feedback` tool that accepts `message`, `title`, `kind`, `sentiment` and `contextUrl`. The tool posts the input to Notra and returns a short confirmation the agent can relay to the user ("Thanks, the feedback was sent to the team." or "This feedback was already recorded."). It takes these options:
 
 | Option | Notes |
 | --- | --- |
@@ -89,7 +89,7 @@ registerFeedbackTool(server, {
 | `fetch`, `timeoutMs` | Transport overrides for tests and custom runtimes. The default timeout is 10 seconds. |
 | `onError` | Called with the error when a submission fails. The tool still returns an `isError` result to the agent. |
 
-If you register tools yourself, the package also exports `createFeedbackToolHandler(options)` and `feedbackToolInputSchema`. For use outside MCP it exports `submitFeedback(input, { url })`, which posts a single entry and resolves with `{ id, deduplicated }`. Failures throw a `FeedbackSubmitError` with a `status` property.
+If you register tools yourself, the package also exports `createFeedbackToolHandler(options)` and `feedbackToolInputSchema`. For use outside MCP it exports `submitFeedback(input, { url })`, which posts a single entry and resolves with `{ id, deduplicated }`, and failures throw a `FeedbackSubmitError` with a `status` property.
 
 ## REST endpoint
 
@@ -131,11 +131,11 @@ The endpoint returns `202 Accepted` with the stored entry:
 }
 ```
 
-Pass an `idempotencyKey` to make retries safe. Submitting the same key twice for the same organization returns the original entry with `deduplicated: true`. An unknown organization slug returns `404`.
+Pass an `idempotencyKey` to make retries safe, because submitting the same key twice for the same organization returns the original entry with `deduplicated: true`. An unknown organization slug returns `404`.
 
 ### Automatic classification
 
-Only `message` is required. When `title`, `kind` or `sentiment` are missing, Notra fills them in with a small model before storing the feedback. The inbox stays readable and filterable even if the agent only sends free text. Notra always keeps values you pass explicitly. Classification runs through the same model gateway as the rest of Notra, so your organization's zero data retention setting applies to it. If classification fails or no eligible model is available, Notra still stores the feedback with `kind: "other"` and no title or sentiment.
+Only `message` is required. When `title`, `kind` or `sentiment` are missing, Notra fills them in with a small model before storing the feedback, so the inbox stays readable and filterable even if the agent only sends free text. Notra always keeps values you pass explicitly. Classification runs through the same model gateway as the rest of Notra, so your organization's zero data retention setting applies to it. If classification fails or no eligible model is available, Notra still stores the feedback with `kind: "other"` and no title or sentiment.
 
 ### Fields
 
@@ -156,7 +156,7 @@ Only `message` is required. When `title`, `kind` or `sentiment` are missing, Not
 
 ## Read and triage feedback
 
-With an API key that has `feedback.read`, list entries with optional `status`, `kind` and `projectId` filters. Results are newest first and paginate with `page` and `limit` (default 25, max 100). See [Pagination](/api/pagination).
+With an API key that has `feedback.read`, list entries with optional `status`, `kind` and `projectId` filters. Results come newest first and paginate with `page` and `limit` (default 25, max 100), as described in [Pagination](/api/pagination).
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
@@ -177,7 +177,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 }
 ```
 
-`GET /v1/feedback/{feedbackId}` returns one entry as `{ "feedback": ... }`. To move an item through triage, `PATCH /v1/feedback/{feedbackId}` with `feedback.write` and a `status` of `new`, `triaged`, `resolved` or `archived`. Setting `resolved` stamps `resolvedAt`.
+`GET /v1/feedback/{feedbackId}` returns one entry as `{ "feedback": ... }`. To move an item through triage, `PATCH /v1/feedback/{feedbackId}` with `feedback.write` and a `status` of `new`, `triaged`, `resolved` or `archived`, and setting `resolved` stamps `resolvedAt`.
 
 ```bash
 curl -X PATCH "https://api.usenotra.com/v1/feedback/fb_123" \
@@ -188,4 +188,4 @@ curl -X PATCH "https://api.usenotra.com/v1/feedback/fb_123" \
 
 ## Rate limits
 
-Notra limits submissions to your feedback URL to 30 requests per 10 minutes per IP address and 200 requests per hour per organization. Your MCP server is the one posting, so a hosted server that serves many users from a single IP shares the IP budget. Local (stdio) servers get a budget per user machine. `POST /v1/feedback` with an API key uses a limit of 120 requests per minute per key instead. Responses include the standard `RateLimit-*` headers described in [Rate limits](/api/rate-limits).
+Notra limits submissions to your feedback URL to 30 requests per 10 minutes per IP address and 200 requests per hour per organization. Your MCP server is the one posting, so a hosted server that serves many users from a single IP shares the IP budget, while local (stdio) servers get a budget per user machine. `POST /v1/feedback` with an API key uses a limit of 120 requests per minute per key instead, and responses include the standard `RateLimit-*` headers described in [Rate limits](/api/rate-limits).

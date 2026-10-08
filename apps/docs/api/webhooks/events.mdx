@@ -36,10 +36,10 @@ Notra accepts only four GitHub event types on its webhook endpoint: `ping`, `pus
 
 <Steps>
   <Step title="Route check">
-    The organization, integration and repository IDs in the payload URL must exist and belong together. The integration must be enabled.
+    The organization, integration and repository IDs in the payload URL must exist and belong together, and the integration must be enabled.
   </Step>
   <Step title="Event type">
-    `X-GitHub-Event` must be one of the four supported types. Otherwise Notra logs and ignores the delivery.
+    `X-GitHub-Event` must be one of the four supported types, otherwise Notra logs and ignores the delivery.
   </Step>
   <Step title="Duplicate check">
     Notra skips deliveries with an `X-GitHub-Delivery` ID it has seen in the last 24 hours.
@@ -48,10 +48,10 @@ Notra accepts only four GitHub event types on its webhook endpoint: `ping`, `pus
     Notra verifies the body against the repository's secret using `X-Hub-Signature-256`.
   </Step>
   <Step title="Filter">
-    Each event type has its own rules (below). Notra logs events that do not pass as filtered and returns `200`.
+    Each event type has its own rules, described below. Notra logs events that do not pass as filtered and returns `200`.
   </Step>
   <Step title="Dispatch">
-    Notra saves push and release events as context for chat and matches them against your event triggers. It records merged pull requests for internal use.
+    Notra saves push and release events as context for chat and matches them against your event triggers, while it records merged pull requests for internal use.
   </Step>
 </Steps>
 
@@ -186,7 +186,7 @@ Notra filters `created`, `edited`, `deleted`, `released` and `unpublished` actio
 
 ## Pull request
 
-GitHub sends this event when a pull request is opened, closed or updated. Notra only keeps merges.
+GitHub sends this event when a pull request is opened, closed or updated, but Notra only keeps merges.
 
 <ResponseField name="Event" type="string" required>
   `pull_request`
@@ -242,7 +242,7 @@ Notra filters opened, synchronized and closed-without-merge pull requests.
 </CodeGroup>
 
 <Note>
-  Notra does not store merged pull requests as chat context, and they do not fire event triggers. Event triggers can only subscribe to `push` and `release`.
+  Notra does not store merged pull requests as chat context, and they do not fire event triggers because event triggers can only subscribe to `push` and `release`.
 </Note>
 
 ## Ping
@@ -291,22 +291,22 @@ Notra matches push and release events against enabled event triggers whose targe
   ```
 </CodeGroup>
 
-* `eventTypes` accepts `push` and `release`. Triggers created through the API must list at least one.
-* `includePreReleases` defaults to `true`. When `false`, the trigger skips `prereleased` events.
-* Each matching trigger starts one generation run per delivery. The run is keyed by trigger ID and delivery ID, so a redelivered event does not start a second run.
+* `eventTypes` accepts `push` and `release`, and triggers created through the API must list at least one.
+* `includePreReleases` defaults to `true`, and when it is `false` the trigger skips `prereleased` events.
+* Each matching trigger starts one generation run per delivery. Notra keys the run by trigger ID and delivery ID, so a redelivered event does not start a second run.
 
 See [Event triggers](/automation/event-based) for creating and managing triggers in the dashboard.
 
 ## Log entries
 
-Each delivery writes one entry to **Settings**, then **Logs**. The `integrationType` is `github`, `direction` is `incoming` and `referenceId` is the `X-GitHub-Delivery` ID.
+Each delivery writes one entry to **Settings**, then **Logs**, where the `integrationType` is `github`, `direction` is `incoming` and `referenceId` is the `X-GitHub-Delivery` ID.
 
 <ResponseField name="title" type="string" required>
   What happened, for example `Processed release event`, `Filtered push event`, `Unsupported event type: issues`, `Invalid webhook signature` or `Webhook ping received`
 </ResponseField>
 
 <ResponseField name="status" type="string" required>
-  `success` for processed, filtered, ignored and ping deliveries. `failed` for rejected ones
+  `success` for processed, filtered, ignored and ping deliveries and `failed` for rejected ones
 </ResponseField>
 
 <ResponseField name="statusCode" type="number">
@@ -318,7 +318,7 @@ Each delivery writes one entry to **Settings**, then **Logs**. The `integrationT
 </ResponseField>
 
 <ResponseField name="payload" type="object">
-  For processed events: `event`, `action` and the processed `data`. For filtered events: `event`, `action` and `filtered: true`. For unsupported event types: `event` and `ignored: true`.
+  Processed events include `event`, `action` and the processed `data`, filtered events include `event`, `action` and `filtered: true`, and unsupported event types include `event` and `ignored: true`.
 </ResponseField>
 
 <CodeGroup>

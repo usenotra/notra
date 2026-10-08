@@ -37,7 +37,7 @@ Every endpoint except `GET /v1/status` and the public feedback URL (`POST /v1/fe
 | API key | `ntra_...`, created on the API Keys page | Scripts, backends, CI and any manual setup where you paste a secret once |
 | OAuth access token | A JWT issued by the Notra authorization server | CLIs, MCP clients and agents that sign a user in, get a token for that user's organization and refresh it without storing a long-lived secret |
 
-The API tells the two apart by shape. It verifies a value that parses as a JWT as an OAuth token and anything else as an API key.
+The API tells the two apart by shape, verifying a value that parses as a JWT as an OAuth token and anything else as an API key.
 
 ## How it works
 
@@ -70,7 +70,7 @@ console.log(result);
 ```
 </CodeGroup>
 
-The header format is `Authorization: Bearer <credential>`. The scheme name is case-insensitive. Keys created in the dashboard start with `ntra_`. OAuth access tokens go in the same header. See [OAuth](#oauth).
+The header format is `Authorization: Bearer <credential>`, and the scheme name is case-insensitive. Keys created in the dashboard start with `ntra_`, and OAuth access tokens go in the same header, as described in [OAuth](#oauth).
 
 <Note>
   The SDK reads the key from the `bearerAuth` option. Its generated README refers to a `NOTRA_BEARER_AUTH` environment variable, but any variable name works as long as you pass the value in.
@@ -83,13 +83,13 @@ The header format is `Authorization: Bearer <credential>`. The scheme name is ca
     In the [dashboard](https://app.usenotra.com), click **API Keys** at the bottom of the sidebar (`app.usenotra.com/{org-slug}/api-keys`). Keys belong to the organization you are viewing.
   </Step>
   <Step title="Start from a preset or a blank key">
-    The page offers three presets: **MCP Server** (read and write on every resource), **SDK** (read on every resource) and **CLI** (read and write on every resource). Each one prefills a name and permissions. **Create API Key** opens the same form with read access on every resource.
+    The page offers three presets: **MCP Server** (read and write on every resource), **SDK** (read on every resource) and **CLI** (read and write on every resource), and each one prefills a name and permissions. **Create API Key** opens the same form with read access on every resource.
   </Step>
   <Step title="Choose a name, expiration and permissions">
     Expiration is one of **No expiry**, **7 days**, **30 days**, **60 days** or **90 days**. Permissions use one of three access modes: **Full Access** (every scope), **GEO Access** (read and write on the GEO resources only) or **Restricted**, which shows a **None / Read / Write** selector for each resource.
   </Step>
   <Step title="Copy the key">
-    The dashboard shows the key once, right after creation. Store it server-side. Later you can rename a key, change its expiration or adjust its permissions from the same page, and you can delete it at any time.
+    The dashboard shows the key once, right after creation, so store it server-side. Later you can rename a key, change its expiration or adjust its permissions from the same page, and you can delete it at any time.
   </Step>
 </Steps>
 
@@ -133,20 +133,20 @@ Every resource has a `<resource>.read` and a `<resource>.write` scope. The API d
 
 ### Legacy scopes
 
-Keys created before granular scopes existed carry `api.read` or `api.write`. They keep working. `api.write` satisfies every scope and `api.read` satisfies every read scope. The API Keys page shows these keys with their expanded permissions. Saving a key from the editor converts it to granular scopes.
+Keys created before granular scopes existed carry `api.read` or `api.write`, and they keep working. `api.write` satisfies every scope and `api.read` satisfies every read scope. The API Keys page shows these keys with their expanded permissions, and saving a key from the editor converts it to granular scopes.
 
 ### Plan requirements
 
 The API checks scopes first, then the organization's plan:
 
-- `POST`, `PUT` and `PATCH` requests need an active paid plan or a positive AI credit balance. Otherwise the API returns `402` with `error: "Active subscription required"`. `GET` and `DELETE` always work so you can read and remove your data.
-- Every GEO endpoint (`/v1/projects/*` and `/v1/geo/ingest/*`), reads included, needs a GEO plan. Otherwise the API returns `402` with `error: "GEO requires a Starter, Growth, or Scale plan"`.
+- `POST`, `PUT` and `PATCH` requests need an active paid plan or a positive AI credit balance, and otherwise the API returns `402` with `error: "Active subscription required"`. `GET` and `DELETE` always work so you can read and remove your data.
+- Every GEO endpoint (`/v1/projects/*` and `/v1/geo/ingest/*`), reads included, needs a GEO plan, and otherwise the API returns `402` with `error: "GEO requires a Starter, Growth, or Scale plan"`.
 
 ## OAuth
 
-OAuth lets a CLI, MCP client or agent get a token for a signed-in user without that user creating and pasting an API key. The Notra authorization server at `https://oauth.usenotra.com` issues the tokens. Each token is bound to one organization and carries the scopes the user approved. You can refresh and revoke tokens. The Notra MCP server at `https://mcp.usenotra.com/mcp` accepts the same tokens.
+OAuth lets a CLI, MCP client or agent get a token for a signed-in user without that user creating and pasting an API key. The Notra authorization server at `https://oauth.usenotra.com` issues the tokens. Each token is bound to one organization and carries the scopes the user approved, and you can refresh and revoke tokens. The Notra MCP server at `https://mcp.usenotra.com/mcp` accepts the same tokens.
 
-Use OAuth when a person is present to approve access, when you want per-user identity on requests or when the credential should expire on its own. Use an API key for unattended server-to-server work.
+Use OAuth when a person is present to approve access, when you want per-user identity on requests or when the credential should expire on its own, and use an API key for unattended server-to-server work.
 
 ### Discovery
 
@@ -159,7 +159,7 @@ Notra publishes everything a client needs as standard metadata:
 | Authorization server metadata | `https://api.usenotra.com/.well-known/oauth-authorization-server` |
 | Human and agent readable guide | `https://www.usenotra.com/auth.md` |
 
-The protected resource metadata lists the authorization server, `scopes_supported` (`openid` and `offline_access`) and `bearer_methods_supported: ["header"]`. Any `401` from the API or the MCP server carries `WWW-Authenticate: Bearer resource_metadata="..."` with the URL of the matching document. A client that starts with an unauthenticated request can discover the rest from there.
+The protected resource metadata lists the authorization server, `scopes_supported` (`openid` and `offline_access`) and `bearer_methods_supported: ["header"]`. Any `401` from the API or the MCP server carries `WWW-Authenticate: Bearer resource_metadata="..."` with the URL of the matching document, so a client that starts with an unauthenticated request can discover the rest from there.
 
 The authorization server exposes:
 
@@ -190,7 +190,7 @@ curl -X POST https://oauth.usenotra.com/oauth2/register \
   }'
 ```
 
-Request `openid` and add `offline_access` for refresh tokens. WorkOS does not allow custom OAuth scopes on dynamically registered clients, including ChatGPT CIMD clients. Instead, the consent screen asks the user to select a workspace and one access level: Read only, Write only or Full access for all resources in the [scope table](#scopes). Notra signs these choices into access-token claims and maps them to the same granular permissions as API keys. Read only grants every read scope, Write only grants every write scope and Full access grants both. Missing choices grant no access, and broader role permissions cannot override these choices. The API checks current workspace membership on every request.
+Request `openid`, and add `offline_access` if you want refresh tokens. WorkOS does not allow custom OAuth scopes on dynamically registered clients, including ChatGPT CIMD clients. Instead, the consent screen asks the user to select a workspace and one access level: Read only, Write only or Full access for all resources in the [scope table](#scopes). Notra signs these choices into access-token claims and maps them to the same granular permissions as API keys. Read only grants every read scope, Write only grants every write scope and Full access grants both. Missing choices grant no access, broader role permissions cannot override these choices and the API checks current workspace membership on every request.
 
 ### Authorization code flow with PKCE
 
@@ -208,7 +208,7 @@ https://oauth.usenotra.com/oauth2/authorize
   &state=RANDOM_STATE
 ```
 
-3. The user signs in, picks the workspace and approves an access level. The browser then redirects to `redirect_uri` with `code` and `state`.
+3. The user signs in, picks the workspace and approves an access level, and the browser then redirects to `redirect_uri` with `code` and `state`.
 4. Exchange the code for tokens:
 
 ```bash
@@ -241,7 +241,7 @@ curl -X POST https://oauth.usenotra.com/oauth2/token \
   -d device_code=THE_DEVICE_CODE
 ```
 
-Until the user finishes, the token endpoint answers with `error: "authorization_pending"` or `slow_down`. Keep polling. After approval you get the same token response as the code flow.
+Until the user finishes, the token endpoint answers with `error: "authorization_pending"` or `slow_down`, so keep polling. After approval, you get the same token response as the code flow.
 
 ### Use the access token
 
@@ -252,7 +252,7 @@ curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   "https://api.usenotra.com/v1/posts"
 ```
 
-The API reads the organization from the token, so you pass nothing else. Access tokens are short-lived. When a request returns `401` with an expiry error, refresh and retry. For OAuth tokens, per-key [rate limits](/api/rate-limits) apply per user and organization, so two users in the same organization have separate budgets.
+The API reads the organization from the token, so you pass nothing else. Access tokens are short-lived, so when a request returns `401` with an expiry error, refresh and retry. For OAuth tokens, per-key [rate limits](/api/rate-limits) apply per user and organization, so two users in the same organization have separate budgets.
 
 ### Refresh with offline_access
 
@@ -265,7 +265,7 @@ curl -X POST https://oauth.usenotra.com/oauth2/token \
   -d refresh_token=YOUR_REFRESH_TOKEN
 ```
 
-Without `offline_access` there is no refresh token and the user must sign in again when the access token expires.
+Without `offline_access`, there is no refresh token and the user must sign in again when the access token expires.
 
 ### Revocation
 
@@ -293,7 +293,7 @@ OAuth tokens go through the same `{ error, code, recovery }` envelope. Besides t
 
 ## Error responses
 
-Authentication and authorization failures return a JSON body with three fields. This applies to API keys and OAuth tokens alike.
+Authentication and authorization failures return a JSON body with three fields, for API keys and OAuth tokens alike.
 
 ```json
 {
@@ -309,7 +309,7 @@ Authentication and authorization failures return a JSON body with three fields. 
 | `401` | `Invalid API key` | The key is unknown, disabled or expired. |
 | `403` | `Forbidden` | The key is valid but lacks the scope for this method and path. |
 | `403` | `Forbidden: API key must be scoped to an organization` | The key is not attached to an organization. Create a new key from the dashboard. |
-| `429` | `API key rate limit exceeded` | The key itself is throttled. Distinct from the per-endpoint limits in [Rate Limits](/api/rate-limits). |
+| `429` | `API key rate limit exceeded` | The key itself is throttled, which is separate from the per-endpoint limits in [Rate Limits](/api/rate-limits). |
 | `503` | `Service unavailable` | The key could not be verified. Retry with exponential backoff. |
 
 `code` is the `error` string upper-cased with non-alphanumeric runs replaced by `_`. `401` responses also include `WWW-Authenticate: Bearer resource_metadata="https://api.usenotra.com/.well-known/oauth-protected-resource"`, which is the entry point for [OAuth discovery](#discovery).
@@ -355,7 +355,7 @@ try {
 </Warning>
 
 <Tip>
-  Grant the smallest set of scopes a workflow needs. Set an expiration on keys used in CI or short-lived scripts. Create one key per integration so you can revoke it without affecting anything else.
+  Grant the smallest set of scopes a workflow needs and set an expiration on keys used in CI or short-lived scripts. Create one key per integration so you can revoke it without affecting anything else.
 </Tip>
 
-If a key is exposed, delete it from the **API Keys** page. Deletion takes effect immediately. For OAuth tokens, call the [revocation endpoint](#revocation).
+If a key is exposed, delete it from the **API Keys** page, where deletion takes effect immediately. For OAuth tokens, call the [revocation endpoint](#revocation).

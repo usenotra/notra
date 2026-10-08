@@ -24,7 +24,7 @@ docolin:
   next: ./framer.mdx
 ---
 
-The Google Search Console integration reads the queries your site ranks for and turns them into suggested prompts for [GEO tracking](/geo/how-scans-work). You manage it from the GEO **Prompts** page. The **Google Search Console** card on the Integrations page redirects there.
+The Google Search Console integration reads the queries your site ranks for and turns them into suggested prompts for [GEO tracking](/geo/how-scans-work). You manage it from the GEO **Prompts** page, and the **Google Search Console** card on the Integrations page redirects there.
 
 ## What Notra reads
 
@@ -38,7 +38,7 @@ Notra requests Google's `webmasters.readonly` scope plus `openid` and `email` (t
   </Step>
 
   <Step title="Sign in with Google">
-    Approve the request with the Google account that has access to your Search Console property. You have 10 minutes before the link expires.
+    Approve the request with the Google account that has access to your Search Console property within 10 minutes, before the link expires.
   </Step>
 
   <Step title="Choose a property">
@@ -46,7 +46,7 @@ Notra requests Google's `webmasters.readonly` scope plus `openid` and `email` (t
   </Step>
 
   <Step title="Review suggestions">
-    The first sync runs right away. Suggestions appear under **Suggested prompts** on the Prompts page with the search queries behind each one, their impressions and best position. Click **Track** on a suggestion or **Track all** to add them to your tracked prompts. Dismiss the ones you do not want.
+    The first sync runs right away, and suggestions appear under **Suggested prompts** on the Prompts page with the search queries behind each one, their impressions and best position. Click **Track** on a suggestion or **Track all** to add them to your tracked prompts, and dismiss the ones you do not want.
   </Step>
 </Steps>
 
@@ -55,12 +55,12 @@ Notra requests Google's `webmasters.readonly` scope plus `openid` and `email` (t
 * Notra pulls the last 28 days of query data for the property (Search Console data lags by about 3 days).
 * It reads up to 2000 queries. Google returns them sorted by clicks, so the wider pull keeps high-impression queries that get few clicks.
 * Notra drops branded queries and own-site lookups (login, careers, impressum). Category queries that only mention those words ("changelog generator") stay.
-* Up to 80 of the remaining queries go to the model. Notra prefers queries the site shows up for but does not win, and caps near-duplicate head terms.
+* Up to 80 of the remaining queries go to the model, with a preference for queries the site shows up for but does not win. Notra also caps near-duplicate head terms.
 * The model returns up to 15 prompt suggestions per sync, each citing up to 8 of your queries.
 * The sync repeats every Monday at 06:00 UTC while the property stays connected.
 
 <Note>
-  Suggestions only become tracked prompts when you click **Track**. The next sync replaces suggestions you have not tracked. Notra does not suggest prompts you already track or dismissed again.
+  Suggestions only become tracked prompts when you click **Track**, and the next sync replaces suggestions you have not tracked. Notra does not suggest prompts you already track or dismissed again.
 </Note>
 
 ## Managing the connection
@@ -68,10 +68,10 @@ Notra requests Google's `webmasters.readonly` scope plus `openid` and `email` (t
 From the card's menu on the Prompts page you can:
 
 * **Change Search Console property.** Your current property stays connected until you confirm a new one.
-* **Reconnect Google.** Shown when Google access expired. Reconnecting with a different Google account clears the selected property.
+* **Reconnect Google.** This appears when Google access expired, and reconnecting with a different Google account clears the selected property.
 * **Disconnect.** Removes the stored tokens and revokes Notra's access with Google.
-* **Dismiss the card.** Hides it on the Prompts page in this browser. The connection itself is unchanged.
+* **Dismiss the card.** Hides it on the Prompts page in this browser without changing the connection itself.
 
 <Info>
-  If the card shows "Not available on this workspace yet", Google sign-in is not configured for your workspace. Contact support.
+  If the card shows "Not available on this workspace yet", Google sign-in is not configured for your workspace, so contact support.
 </Info>

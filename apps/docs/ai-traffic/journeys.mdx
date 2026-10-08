@@ -17,8 +17,8 @@ docolin:
 
 A journey groups the pages one agent read in a session. There are two kinds:
 
-- **Tagged journey.** The agent followed a link with an `ntr` query parameter that your site minted. Tagged journeys are exact.
-- **Fingerprinted journey.** Notra matches requests with a heuristic. It hashes the source, a truncated IP prefix and a 30 minute time bucket with a salt that rotates daily. For assistant browsing it uses the full IP and a 10 minute bucket. Fingerprinted journeys are estimates.
+- **Tagged journey.** The agent followed a link with an `ntr` query parameter that your site minted, so the journey is exact.
+- **Fingerprinted journey.** Notra matches requests with a heuristic that hashes the source, a truncated IP prefix and a 30 minute time bucket with a salt that rotates daily. For assistant browsing it uses the full IP and a 10 minute bucket instead. Because the match is a heuristic, fingerprinted journeys are estimates.
 
 Journeys appear on the Overview page under the **Journeys** section and in the API. The **Agent journeys** table has **Journey**, **Source**, **Pages**, **Unique**, **Span**, **Last seen** and **Path** columns.
 
@@ -26,4 +26,4 @@ Journeys appear on the Overview page under the **Journeys** section and in the A
 
 `@usenotra/geo/markdown` exports `mintJourneyId`, `getJourneyId` and `tagMarkdownLinks`. Use them to add an `ntr` id to the links you hand an agent in Markdown, so every follow-up request lands in the same journey.
 
-On Next.js you can pass `tagLinks: true` to `createGeoProxy` instead. The proxy then tags Markdown responses (`.md`, `llms.txt`, `llms-full.txt`) as it serves them to known AI agents. Add `html: true` to also tag the anchors in HTML pages. Human visitors and search crawlers always get the untouched origin response. Tagging needs no token.
+On Next.js you can pass `tagLinks: true` to `createGeoProxy` instead, and the proxy then tags Markdown responses (`.md`, `llms.txt`, `llms-full.txt`) as it serves them to known AI agents. Add `html: true` to also tag the anchors in HTML pages. Human visitors and search crawlers always get the untouched origin response, and tagging needs no token.

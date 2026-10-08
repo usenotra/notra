@@ -15,7 +15,7 @@ docolin:
   status: stable
 ---
 
-This guide adds the Notra tracker to a Nuxt app. It takes about five minutes and touches one file, `server/middleware/geo.ts`.
+This guide adds the Notra tracker to a Nuxt app, which takes about five minutes and touches one file, `server/middleware/geo.ts`.
 
 <Tip>
   The Traffic page has a **Copy agent prompt** button. Paste it into Claude Code, Cursor or Codex and the agent does these steps for you.
@@ -23,7 +23,7 @@ This guide adds the Notra tracker to a Nuxt app. It takes about five minutes and
 
 <Steps>
   <Step title="Get your token">
-    Open **Traffic** in the GEO sidebar. Until the first event arrives, the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. Your token is in the **Set your token** section. The panel also has a **Copy agent prompt** button that copies an instruction block for a coding agent.
+    Open **Traffic** in the GEO sidebar. Until the first event arrives, the page shows **No activity yet** with the full install panel: **Install the package**, **Set your token** and **Add the proxy**. Your token is in the **Set your token** section, and the panel also has a **Copy agent prompt** button that copies an instruction block for a coding agent.
 
     <Visibility for="agents">
 
@@ -43,7 +43,7 @@ This guide adds the Notra tracker to a Nuxt app. It takes about five minutes and
 
     </Visibility>
 
-    The ingest routes are organization-level. Pass `projectId` to bind the token to one project, or omit it to track the whole organization. Issuing a token does not invalidate earlier tokens. Install the same project token on every domain the project tracks, and add extra hostnames under **Tracked domains** in GEO settings.
+    The ingest routes are organization-level, so pass `projectId` to bind the token to one project or omit it to track the whole organization. Issuing a token does not invalidate earlier tokens. Install the same project token on every domain the project tracks, and add extra hostnames under **Tracked domains** in GEO settings.
   </Step>
   <Step title="Install the package">
     <CodeGroup>
@@ -67,7 +67,7 @@ This guide adds the Notra tracker to a Nuxt app. It takes about five minutes and
     The package has zero dependencies and no Node APIs in the core, so it runs on edge runtimes. You can also install it with npm, pnpm or yarn.
   </Step>
   <Step title="Set the environment variable">
-    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, locally and at your hosting provider. Never hardcode or commit it.
+    Add the token as `NOTRA_GEO_TOKEN` in your site's environment variables, both locally and at your hosting provider, and never hardcode or commit it.
   </Step>
   <Step title="Add the tracker">
     ```typescript server/middleware/geo.ts
@@ -86,7 +86,7 @@ This guide adds the Notra tracker to a Nuxt app. It takes about five minutes and
     Nitro usually does not pass geo headers, so location fields stay undefined and ingest falls back to an IP-based lookup.
   </Step>
   <Step title="Deploy and verify">
-    Deploy your site. The Traffic page switches from the install panel to the dashboard once Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
+    Deploy your site, and the Traffic page switches from the install panel to the dashboard once Notra stores the first AI crawler visit or referral. Crawlers visit on their own schedule, so the first event can take a while on a quiet site.
   </Step>
 </Steps>
 

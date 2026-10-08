@@ -31,23 +31,23 @@ An AI referral is a person who clicked a link in an AI answer and landed on your
 | Qwen | chat.qwen.ai |
 | Meta AI | meta.ai |
 
-Subdomains of these hosts also count. Notra does not read `utm_source` parameters.
+Subdomains of these hosts also count, but Notra does not read `utm_source` parameters.
 
 ## Conversions
 
-Add **Conversion paths** in [Brand and domains](/geo/brand-and-domains), for example `/signup` or `/pricing`. You can add up to 20.
+Add **Conversion paths** in [Brand and domains](/geo/brand-and-domains), for example `/signup` or `/pricing`, up to 20 of them.
 
-A conversion is an AI referral that lands on one of those paths. Paths match by prefix, so `/pricing` also counts `/pricing/teams`. `/` only matches the home page.
+A conversion is an AI referral that lands on one of those paths. Paths match by prefix, so `/pricing` also counts `/pricing/teams`, while `/` only matches the home page.
 
 Conversions show up as the **Conversions** stage in the hero of the [Traffic](/ai-traffic/overview) page, for the selected date range.
 
 <Visibility for="agents">
 
-`GET /v1/projects/{projectId}/geo/traffic/overview` returns `totals.conversions`. It is `null` when the project has no conversion paths.
+`GET /v1/projects/{projectId}/geo/traffic/overview` returns `totals.conversions`, which is `null` when the project has no conversion paths.
 
 </Visibility>
 
 ## Limits
 
-- Notra only counts the page the referral landed on. A visitor who lands on a blog post and signs up later is not a conversion.
+- Notra only counts the page the referral landed on, so a visitor who lands on a blog post and signs up later is not a conversion.
 - Apps that strip the referrer header, and AI engines not in the table, are not counted as referrals.

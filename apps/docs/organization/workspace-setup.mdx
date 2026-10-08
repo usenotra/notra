@@ -29,15 +29,15 @@ docolin:
 
 ## Creating your first workspace
 
-Signing up for Notra starts a four-step onboarding flow. The first step creates your organization, which is the workspace where content, GEO tracking, automations, integrations and team members live. Every workspace URL starts with its slug: `app.usenotra.com/your-slug`.
+Signing up for Notra starts a four-step onboarding flow whose first step creates your organization, the workspace where content, GEO tracking, automations, integrations and team members live. Every workspace URL starts with its slug, as in `app.usenotra.com/your-slug`.
 
 <Steps>
   <Step title="Workspace">
-    Enter an organization name and a slug. The slug is generated from the name and you can edit it. Add your website so Notra can pick up your brand voice from it, and tell us where you heard about Notra.
+    Enter an organization name and a slug, which Notra generates from the name and you can edit. Add your website so Notra can pick up your brand voice from it, and tell us where you heard about Notra.
   </Step>
 
   <Step title="Visibility">
-    Notra asks ChatGPT, Claude and Gemini the questions your buyers ask. It shows whether you appear, who appears instead and how to fix it. Pick up to 20 prompts to track from the suggestions or add your own.
+    Notra asks ChatGPT, Claude and Gemini the questions your buyers ask and shows whether you appear, who appears instead and how to fix it. Pick up to 20 prompts to track from the suggestions or add your own.
   </Step>
 
   <Step title="Competitors">
@@ -45,17 +45,17 @@ Signing up for Notra starts a four-step onboarding flow. The first step creates 
   </Step>
 
   <Step title="Pricing">
-    Choose a plan. GEO tracking requires a Starter, Growth or Scale plan. If a plan offers a free trial the button reads **Start free trial**. See [Billing & Plans](/organization/billing).
+    Choose a plan, keeping in mind that GEO tracking requires a Starter, Growth or Scale plan. If a plan offers a free trial the button reads **Start free trial**. See [Billing & Plans](/organization/billing).
   </Step>
 </Steps>
 
 <Info>
-  While the visibility and competitor steps run, Notra also analyzes your website in the background to create a default brand identity. If you already have a workspace with a paid subscription, onboarding is skipped and you land in that workspace.
+  While the visibility and competitor steps run, Notra also analyzes your website in the background to create a default brand identity. If you already have a workspace with a paid subscription, Notra skips onboarding and you land in that workspace.
 </Info>
 
 ### Creating additional workspaces
 
-Click the organization name at the top of the sidebar and choose the option to create a new organization. The dialog asks for a name, a slug and an optional website. You can belong to as many organizations as you like, with a different role in each.
+Click the organization name at the top of the sidebar and choose the option to create a new organization. The dialog asks for a name, a slug and an optional website, and you can belong to as many organizations as you like, with a different role in each.
 
 ## Organization settings
 
@@ -64,32 +64,32 @@ Manage your workspace from **Settings > General**.
 ### Basic information
 
 <ParamField path="Name" type="string" required>
-  The display name of your organization. Must be between 2 and 100 characters.
+  The display name of your organization, between 2 and 100 characters long.
 </ParamField>
 
 <ParamField path="Slug" type="string" required>
-  A URL-friendly identifier used in workspace URLs. Must be 3 to 63 characters: lowercase letters, numbers and hyphens only.
+  A URL-friendly identifier for workspace URLs, 3 to 63 characters long and made of lowercase letters, numbers and hyphens only.
 
   <Warning>You cannot use these reserved slugs: `api`, `auth`, `login`, `signup`, `forgot-password`, `reset-password`, `invitation`, `callback`, `onboarding`, `dashboard`, `rpc`, `design-system`, `settings`, `admin`, `help`, `support`, `docs`, `blog`, `about`, `terms`, `privacy`, `contact`.</Warning>
 </ParamField>
 
 <ParamField path="Logo" type="image">
-  Click the logo to upload a new one. Accepted formats: JPEG, PNG, GIF, WebP, AVIF.
+  Click the logo to upload a new one in JPEG, PNG, GIF, WebP or AVIF format.
 </ParamField>
 
 <ParamField path="ID" type="string">
-  The organization ID. Read-only. Use it when a request or support ticket needs to identify the workspace.
+  The read-only organization ID, which you use when a request or support ticket needs to identify the workspace.
 </ParamField>
 
 ### Updating workspace settings
 
 1. Navigate to **Settings > General**
-2. Click the logo to upload a new image; it saves immediately
+2. Click the logo to upload a new image, which saves immediately
 3. Update the name or slug
 4. Click **Save Changes**
 
 <Note>
-  Changing the slug changes every workspace URL. Notra redirects you to the new slug after saving. Update bookmarks and any links you have shared.
+  Changing the slug changes every workspace URL, and Notra redirects you to the new slug after saving, so update bookmarks and any links you have shared.
 </Note>
 
 Only owners and admins can save organization settings.
@@ -103,8 +103,8 @@ Only owners and admins can save organization settings.
 | **Notifications**   | Email notifications for the organization, sent to owner email addresses                          |
 | **Attachments**     | Manage the files you have uploaded                                                                  |
 | **Billing & Usage** | Plans, add-ons, invoices and feature usage. See [Billing & Plans](/organization/billing)         |
-| **Credits**         | AI credit balance and top-ups. Shown when your plan includes AI credits                            |
-| **Logs**            | Automation and API activity for the workspace. Retention depends on your plan                     |
+| **Credits**         | AI credit balance and top-ups, shown when your plan includes AI credits                            |
+| **Logs**            | Automation and API activity for the workspace, with retention that depends on your plan           |
 
 ## Two-factor authentication
 
@@ -114,19 +114,19 @@ Notra supports two-factor authentication with any TOTP authenticator app such as
 
 <Steps>
   <Step title="Open Account settings">
-    Go to **Settings > Account** and find **Two-factor authentication**. Click **Set up**.
+    Go to **Settings > Account**, find **Two-factor authentication** and click **Set up**.
   </Step>
 
   <Step title="Scan the QR code">
-    Scan it with your authenticator app. If you cannot scan it, click **Can't scan it?** to copy the setup key instead.
+    Scan it with your authenticator app, and if you can't scan it, click **Can't scan it?** to copy the setup key instead.
   </Step>
 
   <Step title="Enter the code">
-    Type the 6-digit code your app shows. Two-factor authentication is on as soon as the code is accepted.
+    Type the 6-digit code your app shows, and two-factor authentication turns on as soon as Notra accepts the code.
   </Step>
 
   <Step title="Save your backup codes">
-    Notra shows 10 one-time backup codes. Store them somewhere safe. Each code works once and lets you sign in if you lose access to your authenticator app.
+    Notra shows 10 one-time backup codes that you should store somewhere safe. Each code works once and lets you sign in if you lose access to your authenticator app.
   </Step>
 </Steps>
 
@@ -136,19 +136,19 @@ On the code prompt during sign-in, choose the backup code option and enter one o
 
 ### Managing backup codes
 
-**Settings > Account** shows how many backup codes are left. Click **Regenerate** to get a fresh set. Confirm with a code from your authenticator app or an unused backup code. Regenerating invalidates every earlier code.
+**Settings > Account** shows how many backup codes are left. Click **Regenerate** to get a fresh set and confirm with a code from your authenticator app or an unused backup code, which invalidates every earlier code.
 
 ### Turning it off
 
-Under **Two-factor authentication**, click **Remove** next to your authenticator app and confirm with a code from the app or an unused backup code. This also deletes your backup codes.
+Under **Two-factor authentication**, click **Remove** next to your authenticator app and confirm with a code from the app or an unused backup code, which also deletes your backup codes.
 
 <Note>
-  Backup codes and a fresh code from your authenticator app are the only ways to turn two-factor authentication off or regenerate codes. Being signed in is not enough on its own.
+  Backup codes and a fresh code from your authenticator app are the only ways to turn two-factor authentication off or regenerate codes, because being signed in isn't enough on its own.
 </Note>
 
 ## Brand identity
 
-Notra writes content in your voice. Brand identities live under **Studio > Brand Identity** in the sidebar. A workspace can have several identities (for example Marketing, Technical, Internal), one of which is the default.
+Notra writes content in your voice using the brand identities under **Studio > Brand Identity** in the sidebar. A workspace can have several identities, for example Marketing, Technical and Internal, and one of them is the default.
 
 The page has four tabs:
 
@@ -165,11 +165,11 @@ The page has four tabs:
   </Step>
 
   <Step title="Wait for the analysis">
-    Notra scrapes the site, extracts the profile and saves it. The stepper shows **Scraping**, **Extracting** and **Saving**.
+    Notra scrapes the site, extracts the profile and saves it while the stepper shows **Scraping**, **Extracting** and **Saving**.
   </Step>
 
   <Step title="Review the result">
-    Notra fills in the company name, description and tone from your site. Adjust anything that is off.
+    Notra fills in the company name, description and tone from your site, and you can adjust anything that is off.
   </Step>
 </Steps>
 
@@ -182,15 +182,15 @@ To run it again later, open the identity menu and choose **Re-analyze**.
 </ParamField>
 
 <ParamField path="Website" type="url">
-  Your website. Used for analysis and as reference material.
+  Your website, which Notra uses for analysis and as reference material.
 </ParamField>
 
 <ParamField path="Description" type="string">
-  A short overview of your company: what you do and who you serve.
+  A short overview of what your company does and who you serve.
 </ParamField>
 
 <ParamField path="Tone Profile" type="enum">
-  One of **Conversational**, **Professional**, **Casual** or **Formal**. Switch to a custom tone to describe the voice in your own words instead.
+  One of **Conversational**, **Professional**, **Casual** or **Formal**, or switch to a custom tone to describe the voice in your own words instead.
 </ParamField>
 
 <ParamField path="Language" type="enum">
@@ -198,15 +198,15 @@ To run it again later, open the identity menu and choose **Re-analyze**.
 </ParamField>
 
 <ParamField path="Custom Instructions" type="string">
-  Rules the writer must follow: phrases to avoid, required terminology, formatting preferences.
+  Rules the writer must follow, such as phrases to avoid, required terminology and formatting preferences.
 </ParamField>
 
 <ParamField path="Who are you writing for?" type="string">
-  Your target audience: their interests, pain points and what matters to them.
+  Your target audience, including their interests, pain points and what matters to them.
 </ParamField>
 
 <Info>
-  Company Info auto-saves a few seconds after you stop typing. Changes apply to the next piece of content you generate.
+  Company Info auto-saves a few seconds after you stop typing, and changes apply to the next piece of content you generate.
 </Info>
 
 See [Brand Voice](/concepts/brand-voice) for how each setting affects the output.
@@ -219,18 +219,18 @@ From the identity selector you can add an identity (name and website), set one a
 
 ### Switching between workspaces
 
-Click the organization name at the top of the sidebar and pick another organization. Notra remembers the workspace you visited last and opens it on your next sign-in.
+Click the organization name at the top of the sidebar and pick another organization. Notra remembers the workspace you visited last and opens it when you next sign in.
 
 You can also switch from **Settings > Account**, where every organization you belong to is listed with a **View** button.
 
 ### Leaving a workspace
 
-In **Settings > Account**, use **Leave** next to an organization you do not own. Owners cannot leave. They delete the organization instead. You must always keep at least one organization.
+In **Settings > Account**, use **Leave** next to an organization you don't own. Owners can't leave and delete the organization instead, and you must always keep at least one organization.
 
 ### Deleting a workspace
 
 <Warning>
-  Deleting a workspace permanently removes all of its data: posts, GEO tracking, automations, integrations, uploaded files and memberships. Notra also cancels the subscription. This cannot be undone.
+  Deleting a workspace permanently removes all of its data: posts, GEO tracking, automations, integrations, uploaded files and memberships. Notra also cancels the subscription, and you can't undo the deletion.
 </Warning>
 
 To delete a workspace:
@@ -249,7 +249,7 @@ Requirements:
 ## Best practices
 
 <Tip>
-  **Choose a memorable slug.** It appears in every workspace URL. Pick something short and recognizable.
+  **Choose a memorable slug.** It appears in every workspace URL, so pick something short and recognizable.
 </Tip>
 
 <Tip>
