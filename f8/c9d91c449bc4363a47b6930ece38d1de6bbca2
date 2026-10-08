@@ -1,0 +1,108 @@
+apps/web/src/constants/feature-pages/paths.ts
+  s_a8f3f91612c851::t_5dd28ee394c297 5
+apps/web/public/features/sites/nextjs.svg
+  s_a8f3f91612c851::t_ac68d4f1e86e57 1
+apps/web/src/components/feature-pages/sites-card-previews.tsx
+  s_a8f3f91612c851::t_2652ec0c638c63 1-98
+apps/web/src/components/feature-pages/sites-card-agents.tsx
+  s_a8f3f91612c851::t_c2810f85832ee3 3-53
+  s_a8f3f91612c851::t_c921cb4bc78407 1-2
+apps/web/src/constants/landing/footer.ts
+  s_a8f3f91612c851::t_2b13262d3a51e6 47
+apps/web/src/components/feature-pages/sites-page-body.tsx
+  s_a8f3f91612c851::t_c921cb4bc78407 1-20,23-27,31-37,46-66,68-98
+  s_a8f3f91612c851::t_19fe1e88c7e06b 21-22,28-30,38-45,67
+apps/web/src/constants/feature-pages/sites.ts
+  s_a8f3f91612c851::t_960d42c785743e 12-13,88-91,93-102,118,120,145-156,160,166,169-174,176-177,180-187
+  s_a8f3f91612c851::t_56e831a1634afe 391-396
+  s_a8f3f91612c851::t_7097709a675a50 178-179
+  s_a8f3f91612c851::t_8aec26273eeb4c 5,21-26,28-30,32-33,35,37-38,45,47-48,50,52-55,57-63,65,67-68,70,72-81,84,87,103,143-144,168,188,206-207,215,219-221,224-225,230-231,233,280-281,285,390
+  s_a8f3f91612c851::t_66b028b8b80e1f 1-4,6,8-11,14-20,27,31,34,36,44,46,49,51,56,64,66,69,71,82-83,85-86,92,104-117,119,121-142,157-159,161-165,167,175,214,216-218,222-223,226-229,232,234-238,243-279,282-284,286-301,308-389
+  s_a8f3f91612c851::t_6789fda1cf233b 7,189-205,208-213
+  s_a8f3f91612c851::t_c921cb4bc78407 39-43
+  s_a8f3f91612c851::t_97e9b6b7c8fdcc 302-307
+  s_a8f3f91612c851::t_19fe1e88c7e06b 239-242
+apps/web/src/types/sites-page.ts
+  s_a8f3f91612c851::t_291cc731ab368a 59-60
+  s_a8f3f91612c851::t_7097709a675a50 104-119
+  s_a8f3f91612c851::t_6789fda1cf233b 120-124
+  s_a8f3f91612c851::t_305169c637f53a 1,82-91,97-102
+  s_a8f3f91612c851::t_0153549cadc92b 11
+  s_a8f3f91612c851::t_bd516b4a31362b 2-10,12-14,16,18,27-58,61-81,103
+  s_a8f3f91612c851::t_960d42c785743e 15,17,19-26,92-96
+apps/web/src/types/feature-detail-page.ts
+  s_a8f3f91612c851::t_d8c414c1727ba8 42,44
+  s_a8f3f91612c851::t_b5151cc0729b06 111-115,119-120
+  s_a8f3f91612c851::t_5dd28ee394c297 16
+  s_a8f3f91612c851::t_0153549cadc92b 110
+apps/web/public/features/sites/netlify.svg
+  s_a8f3f91612c851::t_ac68d4f1e86e57 1
+apps/web/src/components/feature-pages/sites-logo.tsx
+  s_a8f3f91612c851::t_56e831a1634afe 1-22
+apps/web/src/routes/_site/features/sites.tsx
+  s_a8f3f91612c851::t_c921cb4bc78407 4-9,18-19,23,26,28,31-33
+  s_a8f3f91612c851::t_9db5cc4e757c27 1-3,10-17,20-22,24-25,27,29-30,34-35
+apps/web/src/components/feature-pages/sites-card-domains.tsx
+  s_a8f3f91612c851::t_632537e2552938 1-75
+apps/web/src/components/feature-pages/sites-card-analytics.tsx
+  s_a8f3f91612c851::t_e4f923bc3d3b47 1-103
+apps/web/src/components/feature-pages/sites-pipeline.tsx
+  s_a8f3f91612c851::t_305169c637f53a 15
+  s_a8f3f91612c851::t_7b79f429119f47 2-4,6,8-14,16-19,21-22,24-39,42-44,46,61-68,70-72,74-75,79,81-100,102-106,111-165
+  s_a8f3f91612c851::t_78629a6a91c205 23
+  s_a8f3f91612c851::t_c921cb4bc78407 20
+  s_a8f3f91612c851::t_d6bbde92369a46 1,5,7,40-41,45,47-60,73,76-78,80,101,107-110
+  s_a8f3f91612c851::t_9ca9881d9a7d5b 69
+apps/web/src/components/feature-pages/sites-hero-stage.tsx
+  s_a8f3f91612c851::t_7ecea2935cc0aa 80,90,112
+  s_a8f3f91612c851::t_6bc47631d2d108 10-14,16-17,19,22,25,29-30,32,42,44,71,73-75,77-78,89,93,117,121,138-139,144,151,162,168,170,180,226-227,236,265-268,270,277,281-282,291,304,307-315,317-318,321-322,325-342,344,347-348,374-379,384,391,407-410,412,415-417,419-420,424,438-439,441-444,446-447,456,458-459,461-466
+  s_a8f3f91612c851::t_31d8c0f2af39ba 15,210,222
+  s_a8f3f91612c851::t_c921cb4bc78407 1-2,6,9
+  s_a8f3f91612c851::t_305169c637f53a 33,35,38,41,269
+  s_a8f3f91612c851::t_199514fd2aa73e 165-167
+  s_a8f3f91612c851::t_d6bbde92369a46 214-216
+  s_a8f3f91612c851::t_3ef355fd906f9c 159,231-234,245
+  s_a8f3f91612c851::t_3c9af89bb6a54a 3-5,7-8,18,20-21,23-24,26-28,31,34,36-37,39-40,43,45-70,72,76,79,81-88,91-92,94-111,113-116,118-120,122-137,140-143,145-150,152-158,160-161,163-164,169,171-179,181-209,211-213,217-221,223-225,228-230,235,237-244,246-264,271-276,278-280,283-290,292-303,305-306,316,319-320,323-324,343,345-346,349-373,380-383,385-390,392-406,411,413-414,418,421-423,425-437,440,445,448-455,457,460
+apps/web/src/constants/feature-pages/layout.ts
+  s_a8f3f91612c851::t_c9aac60504c75e 1-4
+apps/web/src/content/pages/features/sites.md
+  s_a8f3f91612c851::t_f1983db90fe371 1-2,4-6,8,10,27,44,46,48,50,52-56,58,60,62,64-67
+  s_a8f3f91612c851::t_9ca9881d9a7d5b 3,7,9,11-26,28-43,45,47,49,51,57,59,61,63
+apps/web/src/components/landing/features-section.tsx
+  s_a8f3f91612c851::t_af429345bf5efb 12
+apps/web/src/utils/navigation.ts
+  s_a8f3f91612c851::t_2b13262d3a51e6 9,73-77
+apps/web/src/components/landing/features-card.tsx
+  s_a8f3f91612c851::t_af429345bf5efb 1-36
+apps/web/src/components/feature-pages/feature-detail-page.tsx
+  s_a8f3f91612c851::t_d8c414c1727ba8 28,63-64,66-67,70-71,75-101
+  s_a8f3f91612c851::t_c9aac60504c75e 103-104
+  s_a8f3f91612c851::t_c921cb4bc78407 10-12,72-74
+apps/web/src/components/feature-pages/sites-code-tokens.tsx
+  s_a8f3f91612c851::t_31d8c0f2af39ba 1-26
+apps/web/src/components/feature-pages/stage-shell.tsx
+  s_a8f3f91612c851::t_b5151cc0729b06 9-14,21,24-45
+apps/web/src/components/feature-pages/sites-card-starter.tsx
+  s_a8f3f91612c851::t_68117c1b44e334 1-89
+apps/web/src/components/feature-pages/sites-card-components.tsx
+  s_a8f3f91612c851::t_79b375669ffb1f 1-10,13,15-25,27-60,62-65,67-102
+  s_a8f3f91612c851::t_97e9b6b7c8fdcc 11-12,14,26,61,66
+apps/web/public/features/sites/nginx.svg
+  s_a8f3f91612c851::t_ac68d4f1e86e57 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f8c9d91c449bc4363a47b6930ece38d1de6bbca2",
+  "prompts": {},
+  "sessions": {
+    "s_a8f3f91612c851": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6be8c5e-057e-4ceb-a1ad-1ab08ca855b7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
