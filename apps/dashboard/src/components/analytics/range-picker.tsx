@@ -9,31 +9,40 @@ import {
   PopoverTrigger,
 } from "@notra/ui/components/ui/popover";
 import { useState } from "react";
-import type { DateRange } from "react-day-picker";
 
 import { Calendar } from "@/components/calendar";
 import { ANALYTICS_RANGE_PRESETS } from "@/constants/analytics";
 import { localDayString, parseLocalDay } from "@/lib/analytics/date-range";
 import { useAnalyticsRangeLabels } from "@/lib/hooks/use-analytics-range-labels";
+import { useRangeSelection } from "@/lib/hooks/use-range-selection";
 import type { AnalyticsRangePickerProps } from "@/types/analytics";
 
 export function AnalyticsRangePicker({ control }: AnalyticsRangePickerProps) {
   const presetLabels = useAnalyticsRangeLabels();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<DateRange | undefined>();
 
-  const selected =
-    draft ??
-    (control.preset === "custom"
+  const committed =
+    control.preset === "custom"
       ? {
           from: parseLocalDay(control.range.dateFrom),
           to: parseLocalDay(control.range.dateTo),
         }
-      : undefined);
+      : undefined;
+
+  const { calendarProps, reset } = useRangeSelection({
+    committed,
+    disabled: { after: new Date() },
+    onCommit: (range) => {
+      control.setCustom({
+        dateFrom: localDayString(range.from),
+        dateTo: localDayString(range.to),
+      });
+    },
+  });
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setDraft(undefined);
+      reset();
     }
     setOpen(next);
   };
@@ -68,19 +77,9 @@ export function AnalyticsRangePicker({ control }: AnalyticsRangePickerProps) {
             ))}
           </div>
           <Calendar
-            defaultMonth={selected?.from}
-            disabled={{ after: new Date() }}
+            defaultMonth={committed?.from}
             mode="range"
-            onSelect={(next) => {
-              setDraft(next);
-              if (next?.from && next.to) {
-                control.setCustom({
-                  dateFrom: localDayString(next.from),
-                  dateTo: localDayString(next.to),
-                });
-              }
-            }}
-            selected={selected}
+            {...calendarProps}
           />
         </div>
       </PopoverContent>
