@@ -116,7 +116,10 @@ function TypingLine({ onDone }: SitesTypingLineProps) {
 
     const delay =
       typed === 0 ? SITES_HERO_TIMING.typeDelayMs : SITES_HERO_TIMING.charMs;
-    const timer = window.setTimeout(() => setTyped(typed + 1), delay);
+    const timer = window.setTimeout(
+      () => setTyped((current) => current + 1),
+      delay
+    );
 
     return () => window.clearTimeout(timer);
   }, [typed, onDone]);
