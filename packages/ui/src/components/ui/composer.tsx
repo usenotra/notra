@@ -15,12 +15,21 @@ import {
 } from "@notra/ui/components/ui/tooltip";
 import {
   COMPOSER_CHIP_ACTION,
-  COMPOSER_NUDGE_ENTER,
   COMPOSER_SEND_BUTTON,
   COMPOSER_TOOLBAR_BUTTON,
   COMPOSER_TRAY_TRANSITION,
 } from "@notra/ui/constants/composer";
+import { TRANSITION } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
+import {
+  AnimatePresence,
+  domAnimation,
+  LazyMotion,
+  m,
+  useReducedMotion,
+} from "motion/react";
+import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type {
   ComposerChipProps,
   ComposerFrameProps,
@@ -29,6 +38,37 @@ import type {
   ComposerToolbarButtonProps,
   ComposerToolbarProps,
 } from "@notra/ui/types/composer";
+
+// Animates the nudge in and out, and follows its height when chips are added
+// or removed while it is open, so the input card never snaps.
+function ComposerNudgeShell({ children }: { children: ReactNode }) {
+  const reduceMotion = useReducedMotion();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const element = contentRef.current;
+    if (!element) {
+      return;
+    }
+    setHeight(element.offsetHeight);
+    const observer = new ResizeObserver(() => setHeight(element.offsetHeight));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <m.div
+      animate={{ height, opacity: 1 }}
+      className="overflow-hidden"
+      exit={{ height: 0, opacity: 0 }}
+      initial={{ height: 0, opacity: 0 }}
+      transition={reduceMotion ? { duration: 0 } : TRANSITION.resize}
+    >
+      <div ref={contentRef}>{children}</div>
+    </m.div>
+  );
+}
 
 // A muted tray around the input card. The nudge (queue, chips, notices) sits
 // directly on the tray above the card. Flat composers only show the tray
@@ -54,7 +94,13 @@ function ComposerFrame({
         className
       )}
     >
-      {nudge}
+      <LazyMotion features={domAnimation} strict>
+        <AnimatePresence initial={false}>
+          {nudge ? (
+            <ComposerNudgeShell key="nudge">{nudge}</ComposerNudgeShell>
+          ) : null}
+        </AnimatePresence>
+      </LazyMotion>
       <div
         className={cn(
           "border-border/70 bg-background min-w-0 overflow-hidden border",
@@ -77,8 +123,7 @@ function ComposerNudge({ title, action, children }: ComposerNudgeProps) {
     <div
       className={cn(
         "flex min-w-0 items-center gap-2 px-1.5 pt-0.5 pb-1",
-        COMPOSER_NUDGE_ENTER,
-        hasChips && "flex-wrap"
+              hasChips && "flex-wrap"
       )}
     >
       {title && !hasChips ? (
