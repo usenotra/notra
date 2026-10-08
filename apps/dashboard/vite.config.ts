@@ -1,9 +1,8 @@
 import { fileURLToPath } from "node:url";
 
-import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 
@@ -21,6 +20,7 @@ export default defineConfig(({ mode }) => {
   );
 
   return {
+    build: { reportCompressedSize: false },
     define,
     environments: {
       client: {
@@ -73,11 +73,10 @@ export default defineConfig(({ mode }) => {
       dashboardWorkflow(),
       tailwindcss(),
       tanstackStart(),
-      react(),
       // Parity with the former Next `reactCompiler: true`: components rely on
       // its memoization (e.g. SettingsPane's titleAccessory effect loops
       // without it).
-      babel({ presets: [reactCompilerPreset()] }),
+      react({ compiler: true }),
       nitro(),
     ],
     ssr: {
