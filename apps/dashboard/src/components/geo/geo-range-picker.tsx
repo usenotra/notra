@@ -16,12 +16,12 @@ import {
 import { TRANSITION } from "@notra/ui/lib/motion";
 import { LazyMotion, m, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import type { DateRange } from "react-day-picker";
 import { useLocale, useTranslations } from "use-intl";
 
 import { Calendar } from "@/components/calendar";
 import { GEO_RANGE_PRESET_LABEL_KEYS } from "@/constants/geo-analytics";
 import { useAnimatedSize } from "@/lib/hooks/use-animated-size";
+import { useRangeSelection } from "@/lib/hooks/use-range-selection";
 import type { GeoRangePickerProps } from "@/types/geo";
 import {
   geoCalendarDefaultMonth,
@@ -39,22 +39,32 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
   const tLabels = useTranslations("common.labels");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<DateRange | undefined>();
   const reduceMotion = useReducedMotion();
   const { ref: contentRef, size } = useAnimatedSize();
 
-  const selected =
-    draft ??
-    (control.preset === "custom"
+  const committed =
+    control.preset === "custom"
       ? {
           from: parseLocalDay(control.range.dateFrom),
           to: parseLocalDay(control.range.dateTo),
         }
-      : undefined);
+      : undefined;
+
+  const { calendarProps, reset } = useRangeSelection({
+    committed,
+    disabled: { after: new Date() },
+    maxDays: GEO_MAX_RANGE_DAYS,
+    onCommit: (range) => {
+      control.setCustom({
+        dateFrom: localDayString(range.from),
+        dateTo: localDayString(range.to),
+      });
+    },
+  });
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setDraft(undefined);
+      reset();
     }
     setOpen(next);
   };
@@ -111,27 +121,10 @@ export function GeoRangePicker({ control }: GeoRangePickerProps) {
                 ))}
               </div>
               <Calendar
-                defaultMonth={geoCalendarDefaultMonth(selected?.from)}
-                disabled={{ after: new Date() }}
-                max={GEO_MAX_RANGE_DAYS - 1}
+                defaultMonth={geoCalendarDefaultMonth(committed?.from)}
                 mode="range"
                 numberOfMonths={2}
-                onSelect={(next, clicked) => {
-                  const selection = selectGeoCalendarDraft(
-                    draft,
-                    next,
-                    clicked
-                  );
-                  setDraft(selection);
-                  if (selection?.from && selection.to) {
-                    control.setCustom({
-                      dateFrom: localDayString(selection.from),
-                      dateTo: localDayString(selection.to),
-                    });
-                    handleOpenChange(false);
-                  }
-                }}
-                selected={selected}
+                {...calendarProps}
               />
             </div>
           </m.div>
