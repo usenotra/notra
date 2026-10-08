@@ -73,7 +73,7 @@ export function SiteDeploymentTimeline({
               <li
                 aria-current={phase.state === "active" ? "step" : undefined}
                 aria-label={`${label} · ${state}${duration ? ` · ${duration}` : ""}`}
-                className="min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
+                className="@container/phase min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
                 data-phase={phase.id}
                 data-state={phase.state}
                 key={phase.id}
@@ -83,8 +83,22 @@ export function SiteDeploymentTimeline({
                   } as CSSProperties
                 }
               >
-                <div className="text-muted-foreground truncate text-xs">
-                  {label}
+                <div
+                  className="text-muted-foreground truncate text-xs"
+                  title={label}
+                >
+                  {phase.id === "preparing" ? (
+                    <>
+                      <span className="@min-[8rem]/phase:hidden">
+                        {t("phases.preparingShort")}
+                      </span>
+                      <span className="hidden @min-[8rem]/phase:inline">
+                        {label}
+                      </span>
+                    </>
+                  ) : (
+                    label
+                  )}
                 </div>
                 <div
                   className={cn(

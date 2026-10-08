@@ -40,6 +40,14 @@ test.each([
   expect(phases).toHaveLength(4);
   expect(phases[0]).toContain('data-state="complete"');
   expect(phases[0]).toContain("border-geo-up/30 bg-geo-up/5 text-geo-up");
+  expect(phases[1]).toContain("@container/phase");
+  expect(phases[1]).toContain('title="Preparing source"');
+  expect(phases[1]).toContain(
+    '<span class="@min-[8rem]/phase:hidden">Preparing</span>'
+  );
+  expect(phases[1]).toContain(
+    '<span class="hidden @min-[8rem]/phase:inline">Preparing source</span>'
+  );
   expect(phases[2]).toContain(`data-state="${state}"`);
   expect(phases[2]).toContain(color);
   expect(phases[3]).toContain(
