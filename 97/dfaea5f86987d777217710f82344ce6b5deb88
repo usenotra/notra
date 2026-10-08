@@ -1,0 +1,9 @@
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  ai_agent 118-146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "97dfaea5f86987d777217710f82344ce6b5deb88",
+  "prompts": {}
+}
