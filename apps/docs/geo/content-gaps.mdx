@@ -16,6 +16,17 @@ docolin:
 
 The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, which you switch with the **Gap type** control, along with a text filter and an **All engines** filter. Results update after a GEO scan, a Search Console sync or a change to a gap or tracked prompt. A background job also refreshes older results so answers outside the rolling 30-day window expire without recalculating on page load.
 
+<img
+  src="/images/geo/content-gaps-light.webp"
+  alt="Content Gaps page listing prompt gaps by opportunity"
+  className="block dark:hidden rounded-lg border"
+/>
+<img
+  src="/images/geo/content-gaps-dark.webp"
+  alt="Content Gaps page listing prompt gaps by opportunity"
+  className="hidden dark:block rounded-lg border"
+/>
+
 ## Prompt gaps
 
 A prompt gap is a tracked prompt where competitors are mentioned and your brand is absent. Notra computes it from the latest answer per prompt and engine over the last 30 days (first turn only, up to 400 checks):
