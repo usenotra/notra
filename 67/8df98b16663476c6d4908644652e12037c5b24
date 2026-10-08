@@ -1,0 +1,138 @@
+apps/web/src/components/state-of-ai-search/report-view.tsx
+  s_cf35b4ac28f59d::t_681ee1669e6f08 21,111-125,128-138,161-164,167-170,175-192
+  s_cf35b4ac28f59d::t_aa162b1b23d209 1-2,8,12-17,24,35-40,63,65-67,69-72,148,150-151,153-156,208-218
+  s_cf35b4ac28f59d::t_ee79c550a6cc6c 74-75
+  s_cf35b4ac28f59d::t_5de3b569c14834 141,145
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 126-127,165-166,171-174
+apps/web/src/components/state-of-ai-search/report-cards.tsx
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 12-16
+  s_cf35b4ac28f59d::t_6cdd59c42a2958 7,38
+apps/web/src/content/state-of-ai-search/changelog/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-210,214-319,322,324,326-335,339-497,500,502,504-512,516-702,705,707,709-717,721-889,892,894,896-904,908-1140,1143,1145,1147-1155,1159-1285,1288,1290,1292-1300,1304-1450,1453,1455,1457-1464,1468-1639,1642,1644,1646-1653,1657-1799,1802,1804,1806-1812,1816-2003,2006,2008,2010-2014,2018-2191,2194,2196,2198-2200,2204-2369,2372,2374,2376-2378,2382-2581,2584,2586,2588-2589,2593-2771,2774,2780-2804,2811,2816,2821,2826,2831,2836,2841,2846,2851,2856,2867,2897,2923,2958-3171
+apps/web/src/content/state-of-ai-search/ai-visibility/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+packages/geo-core/scripts/state-of-ai-search/build.ts
+  s_cf35b4ac28f59d::t_b54991afbc81ec 445,448,592-597,609,614-626
+  s_cf35b4ac28f59d::t_b03176b1332eaa 16,22,53-57,259-283,286-288,292-298,300,310-312
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 284-285,289-291,612-613
+apps/dashboard/src/components/geo/persona-detail-dialog.tsx
+  ai_agent 41
+apps/web/src/lib/state-of-ai-search/reports.ts
+  s_cf35b4ac28f59d::t_c6aedb7cb72f2d 1-4,6-9,12-20,22-24,26,29-31,35-37,43-46,49-55
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 38
+apps/web/src/content/state-of-ai-search/app-hosting/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+apps/web/src/lib/state-of-ai-search/markdown.ts
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 15,26,35
+apps/dashboard/src/components/geo/traffic-source-sheet.tsx
+  ai_agent 24
+apps/web/src/styles/ui-sources.css
+  s_cf35b4ac28f59d::t_ee79c550a6cc6c 71,79-82,186
+apps/web/src/lib/sitemap/entries.ts
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 12,203,209
+packages/ui/src/components/geo/geo-prompt-answer-thread.tsx
+  s_cf35b4ac28f59d::t_85e288a92eb4b0 44-63,451-452,465-468,478-486
+  s_cf35b4ac28f59d::t_ec05ced3eef829 3
+apps/web/src/components/state-of-ai-search/report-section.tsx
+  s_cf35b4ac28f59d::t_0bccf0a54f6ee6 91-142
+  s_cf35b4ac28f59d::t_f839688affbafa 20,43,49-50,65-82,84-88
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 83
+apps/dashboard/src/components/geo/engine-family-sheet.tsx
+  ai_agent 31
+apps/web/src/content/state-of-ai-search/ai-visibility/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-211,215-409,412,419-430,434-637,640,642,644-654,658-877,880,882,884-894,898-1080,1083,1085,1087-1097,1101-1306,1309,1311,1313-1323,1327-1511,1514,1516,1518-1527,1531-1716,1719,1721,1723-1732,1736-1965,1968,1970,1972-1981,1985-2171,2174,2176,2178-2186,2190-2346,2349,2356-2364,2368-2562,2565,2567,2569-2576,2580-2742,2745,2747,2749-2754,2758-2912,2915,2917,2919-2922,2926-2955,2958,2960,2962-2963,2967-3163,3170,3175,3180,3185,3190,3195,3200,3205,3210,3215,3226,3316-3523
+apps/dashboard/src/components/geo/journey-group-sheet.tsx
+  ai_agent 26
+apps/web/src/routes/_site/state-of-ai-search/$category/index.tsx
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 3,8
+packages/ui/src/components/ui/detail-sheet.tsx
+  s_cf35b4ac28f59d::t_f0f5af5d9be34d 1-47
+apps/web/src/components/state-of-ai-search/ai-overview-card.tsx
+  s_cf35b4ac28f59d::t_275ec126adaff7 1-2,4-5,7-10,118-158
+apps/dashboard/src/components/geo/shelf/shelf-detail-dialog.tsx
+  ai_agent 13
+apps/web/src/content/state-of-ai-search/email-api/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-209,213-380,383,385,387-395,399-452,455,457,459-466,470-598,601,603,605-612,616-784,787,789,791-798,802-850,853,855,857-864,868-1006,1009,1011,1013-1019,1023-1170,1173,1175,1177-1183,1187-1369,1372,1374,1376-1382,1386-1574,1577,1579,1581-1586,1590-1632,1635,1637,1639-1644,1648-1794,1797,1799,1801-1806,1810-1994,1997,1999,2001-2005,2009-2184,2187,2189,2191-2195,2199-2370,2373,2375,2377-2380,2384-2544,2551,2556,2561,2566,2571,2576,2581,2586,2591,2596,2612,2677-2866
+apps/web/src/routes/_site/state-of-ai-search/$category/$edition/data[.]csv.ts
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 3,11
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 6-10
+apps/web/src/components/state-of-ai-search/brand-sheet.tsx
+  s_cf35b4ac28f59d::t_6de54b32e0f29a 25
+  s_cf35b4ac28f59d::t_81b69d2baed4ec 6,22-23,30-33,67-70,73,75,80,82-84,100-110,113,197,264-271,273
+  s_cf35b4ac28f59d::t_45dc3837a9f1c1 1-3,5,7-21,26-29,35-37,39-43,45,47-64,71-72,74,77-79,85-86,88-94,96-98,111-112,114-194,196,200,203-204,206-207,209-231,236,240-263,272,274
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 201,232-235,237-239
+  s_cf35b4ac28f59d::t_67c5201e0bed0c 87,95,195,198-199,202,205,208
+apps/dashboard/src/components/geo/prompt-detail-dialog.tsx
+  s_cf35b4ac28f59d::t_5cc63a27837103 659,665
+  s_cf35b4ac28f59d::t_6de54b32e0f29a 17,33
+apps/web/src/routes/_site/state-of-ai-search/index.tsx
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 16,33
+apps/dashboard/src/components/geo/prompt-suggestion-sheet.tsx
+  ai_agent 14
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  ai_agent 12
+apps/web/src/constants/state-of-ai-search.ts
+  s_cf35b4ac28f59d::t_67c5201e0bed0c 35-36
+  s_cf35b4ac28f59d::t_1340b7656cb4d5 28-31,33-34
+  s_cf35b4ac28f59d::t_0bccf0a54f6ee6 32
+apps/web/src/content/state-of-ai-search/app-hosting/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-213,217-360,363,365,367-380,384-669,672,674,676-689,693-868,871,873,875-886,890-1133,1136,1138,1140-1151,1155-1366,1369,1371,1373-1383,1387-1591,1594,1596,1598-1607,1611-1793,1796,1798,1800-1809,1813-2017,2020,2022,2024-2032,2036-2252,2255,2257,2259-2266,2270-2470,2473,2475,2477-2484,2488-2616,2619,2621,2623-2629,2633-2761,2764,2766,2768-2773,2777-2992,2995,2997,2999-3003,3007-3163,3166,3168,3170-3172,3176-3280,3287,3292,3297,3302,3307,3312,3317,3322,3327,3332,3343,3347-3351,3387-3652
+apps/web/src/routes/_site/state-of-ai-search/$category/$edition/opengraph-image.tsx
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 8,21-22
+apps/web/src/content/state-of-ai-search/postgres/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-209,217-372,375,377,379-388,392-588,591,593,595-598,603-607,611-862,865,867,869-878,882-1150,1153,1155,1157-1158,1163-1168,1172-1373,1376,1378,1380-1388,1392-1597,1600,1602,1604-1607,1612-1614,1618-1764,1767,1769,1771-1777,1781-1969,1972,1974,1976-1982,1986-2230,2233,2235,2237-2243,2247-2412,2415,2417,2419-2425,2429-2534,2537,2539,2541-2547,2551-2786,2789,2791,2793-2798,2802-2996,2999,3001,3003-3008,3012-3053,3056,3058,3060-3063,3067-3193,3200,3205,3210,3215,3220,3225,3230,3235,3240,3245,3256,3319-3564
+apps/web/src/utils/markdown-twins.ts
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 43,333-338
+apps/web/src/components/state-of-ai-search/report-tables.tsx
+  s_cf35b4ac28f59d::t_3bd4511f2a332d 17
+  s_cf35b4ac28f59d::t_cd14b203f69bcd 20,22-24,40-41,43-51,53,60-108,113-121,139,141,148-150,153-163,168,170,178,183,194,208,215-216,219-222,225,227-233,235-236,265,269,271-278,288,296-305,322,352,368,418-420
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 109-112,244,248,251-257,323,390
+  s_cf35b4ac28f59d::t_5de3b569c14834 295,311,314,331,346
+  s_cf35b4ac28f59d::t_d27c6198334ff0 270
+apps/web/src/content/state-of-ai-search/postgres/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+apps/web/src/components/state-of-ai-search/prompt-sheet.tsx
+  s_cf35b4ac28f59d::t_6de54b32e0f29a 200-203,258-260,311-315
+  s_cf35b4ac28f59d::t_848c027a881af7 1-5,7,12-25,27-29,31-35,37,41-46,55-65,67,86,107,124-125,127-128,131-132,135-139,141-144,146-150,153,164,184,212,247,302,362-364
+  s_cf35b4ac28f59d::t_0bccf0a54f6ee6 126
+  s_cf35b4ac28f59d::t_e4ecac184118b0 6,8-11,26,30,36,38-40,47-54,66,68-85,87-106,108-123,129-130,133-134,140,145,151-152,154-163,165-183,185-199,204-211,213-246,248-257,261-301,303-310,316-361
+apps/dashboard/src/components/geo/conversation-results-dialog.tsx
+  ai_agent 14
+apps/web/src/types/state-of-ai-search.ts
+  s_cf35b4ac28f59d::t_6f31cbb7442a6d 35-48,50,60-65,117-121,132
+  s_cf35b4ac28f59d::t_3d4ce7c3c8a89e 122-131
+apps/web/src/content/state-of-ai-search/changelog/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+apps/dashboard/src/components/geo/journey-detail-sheet.tsx
+  ai_agent 24
+apps/web/src/content/state-of-ai-search/email-api/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+apps/dashboard/src/components/geo/scan-answer-sheet.tsx
+  ai_agent 10
+apps/dashboard/src/components/geo/search-gap-detail.tsx
+  ai_agent 16
+apps/dashboard/src/components/logs/log-details-sheet.tsx
+  ai_agent 13
+apps/web/src/content/state-of-ai-search/auth/2026-10.json
+  ai_agent 50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,196,198,200-212,216-394,397,399,401-412,416-555,558,560,562-573,577-763,766,768,770-780,784-1000,1003,1005,1007-1017,1021-1171,1174,1176,1178-1187,1191-1370,1373,1375,1377-1386,1390-1587,1590,1592,1594-1601,1605-1775,1778,1785-1792,1796-1853,1856,1858,1860-1866,1870-2024,2027,2029,2031-2037,2041-2210,2213,2215,2217-2223,2227-2403,2406,2408,2410-2415,2419-2615,2618,2625-2629,2633-2827,2830,2832-2833,2836-2975,2982,2987,2992,2997,3002,3007,3012,3017,3022,3027,3038,3064,3076,3087,3128-3393
+apps/web/src/content/state-of-ai-search/auth/2026-10.summary.json
+  s_cf35b4ac28f59d::t_b54991afbc81ec 1-78
+apps/web/src/routes/_site/state-of-ai-search/$category/$edition/index.tsx
+  s_cf35b4ac28f59d::t_054a8d74cb5d58 9-10,28-29,33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "678df98b16663476c6d4908644652e12037c5b24",
+  "prompts": {},
+  "sessions": {
+    "s_cf35b4ac28f59d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e502f3a3-5a0e-4376-8178-b1e7ce7f0818",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
