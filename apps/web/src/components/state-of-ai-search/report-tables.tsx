@@ -2,7 +2,6 @@
 
 import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import {
   DataTable,
@@ -16,6 +15,12 @@ import {
 import { cn } from "@notra/ui/lib/utils";
 import { type CSSProperties, useState } from "react";
 
+import {
+  Brand,
+  LOGO_OUTLINE,
+  MutedText,
+  PercentBar,
+} from "@/components/state-of-ai-search/report-ui";
 import {
   BRANDS_PAGE_SIZE,
   HEATMAP_LIGHT_TEXT_TINT,
@@ -41,25 +46,6 @@ const PERCENT_MAX = 100;
 const INVERTED_ICON =
   "inline-flex [&_svg:first-child:not(:last-child)]:!hidden [&_svg:last-child:not(:first-child)]:!block dark:[&_svg:first-child:not(:last-child)]:!block dark:[&_svg:last-child:not(:first-child)]:!hidden";
 const BRAND_STACK_LIMIT = 6;
-const LOGO_OUTLINE =
-  "outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10";
-
-export function Brand({
-  name,
-  domain,
-  className,
-}: {
-  name: string;
-  domain: string;
-  className?: string;
-}) {
-  return (
-    <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
-      <CompetitorLogo className={LOGO_OUTLINE} domain={domain} name={name} />
-      <span className="truncate">{name}</span>
-    </span>
-  );
-}
 
 /** Same tint scale as the dashboard's recommendations-by-assistant heatmap. */
 function heatTint(rate: number, min: number, max: number): number {
@@ -181,9 +167,7 @@ export function RankingTable({
       key: "rank",
       header: "#",
       width: "3rem",
-      cell: (row) => (
-        <span className="text-muted-foreground tabular-nums">{row.rank}</span>
-      ),
+      cell: (row) => <MutedText>{row.rank}</MutedText>,
     },
     {
       key: "name",
@@ -210,17 +194,7 @@ export function RankingTable({
       header: "Visibility",
       width: "9.5rem",
       cell: (row) => (
-        <span className="flex w-full items-center gap-2.5">
-          <GeoBar
-            className="w-16"
-            fillColor={brandColor(row.rank)}
-            max={PERCENT_MAX}
-            value={row.visibility}
-          />
-          <span className="font-medium tabular-nums">
-            {formatPercent(row.visibility)}
-          </span>
-        </span>
+        <PercentBar color={brandColor(row.rank)} value={row.visibility} />
       ),
     },
   ];
@@ -440,14 +414,7 @@ export function SourcesTable({
       key: "share",
       header: "Cited in",
       width: "8.5rem",
-      cell: (row) => (
-        <span className="flex w-full items-center gap-2.5">
-          <GeoBar className="w-12" max={max} value={row.share} />
-          <span className="font-medium tabular-nums">
-            {formatPercent(row.share)}
-          </span>
-        </span>
-      ),
+      cell: (row) => <PercentBar max={max} value={row.share} />,
     },
   ];
   return (

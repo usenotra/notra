@@ -18,7 +18,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 
 import { GoogleAiOverview } from "@/components/state-of-ai-search/ai-overview-card";
 import { BrandSheet } from "@/components/state-of-ai-search/brand-sheet";
@@ -26,7 +26,12 @@ import {
   ReportBlock,
   ReportPanel,
 } from "@/components/state-of-ai-search/report-section";
-import { Brand } from "@/components/state-of-ai-search/report-tables";
+import {
+  Brand,
+  MutedText,
+  ReportList,
+  StatStrip,
+} from "@/components/state-of-ai-search/report-ui";
 import {
   MAX_SHEET_DEPTH,
   REPORT_SURFACE_LIFT,
@@ -150,35 +155,6 @@ export function AnswerViewer({
   );
 }
 
-/** Frame with a title row on the shell, like the app's receipt sections. */
-function OverviewSection({
-  title,
-  count,
-  children,
-}: {
-  title: string;
-  count?: number;
-  children: ReactNode;
-}) {
-  return (
-    <ReportPanel
-      bodyClassName="overflow-hidden"
-      header={
-        <>
-          <span className="text-foreground">{title}</span>
-          {typeof count === "number" ? (
-            <span className="ml-auto text-xs font-normal tabular-nums">
-              {count}
-            </span>
-          ) : null}
-        </>
-      }
-    >
-      {children}
-    </ReportPanel>
-  );
-}
-
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -219,95 +195,78 @@ function PromptOverview({
   response: StateOfAiSearchPromptAnswer;
   onSelectBrand?: (brand: StateOfAiSearchRankingRow) => void;
 }) {
-  const brandRow = (name: string) =>
-    report.ranking.find((row) => row.name === name);
-  const firstBrand = response.mentioned[0];
-  const stats = [
-    { label: "Brands named", value: String(response.mentioned.length) },
-    { label: "Named first", value: firstBrand ?? "–" },
-    { label: "Sources", value: String(response.sources.length) },
-  ];
+  const brands = response.mentioned.flatMap((name, index) => {
+    const row = report.ranking.find((item) => item.name === name);
+    const highlight = response.highlights.find((item) => item.brand === name);
+    return row ? [{ position: index + 1, row, highlight }] : [];
+  });
   return (
-    <SheetScrollArea className="bg-muted/20 flex min-h-full flex-col gap-4 p-4 sm:px-4">
-      <ReportPanel bodyClassName="divide-border/60 grid grid-cols-3 divide-x">
-        {stats.map((stat) => (
-          <div
-            className="flex min-w-0 flex-col gap-1 px-4 py-3"
-            key={stat.label}
-          >
-            <span className="text-muted-foreground text-xs">{stat.label}</span>
-            <span className="truncate text-base font-medium">{stat.value}</span>
-          </div>
-        ))}
-      </ReportPanel>
+    <SheetScrollArea className="flex flex-col gap-8">
+      <StatStrip
+        stats={[
+          { label: "Brands named", value: response.mentioned.length },
+          { label: "Named first", value: response.mentioned[0] ?? "–" },
+          { label: "Sources", value: response.sources.length },
+        ]}
+      />
 
-      <OverviewSection
-        count={response.mentioned.length}
+      <ReportBlock
+        description="Every tracked brand in the order the answer names it, and the line it uses for each."
         title="Brands in this answer"
       >
-        {response.mentioned.length > 0 ? (
-          <ol className="flex flex-wrap gap-1.5 p-3">
-            {response.mentioned.map((name, index) => {
-              const row = brandRow(name);
-              return (
-                <li key={name}>
-                  <button
-                    className="bg-muted/40 hover:bg-muted flex h-8 items-center gap-2 rounded-lg border pr-2.5 pl-1.5 text-sm transition-colors disabled:cursor-default"
-                    disabled={!(row && onSelectBrand)}
-                    onClick={() => row && onSelectBrand?.(row)}
-                    type="button"
-                  >
-                    <span className="text-muted-foreground w-4 text-center text-xs tabular-nums">
-                      {index + 1}
+        {brands.length > 0 ? (
+          <ReportList
+            columns={[
+              {
+                key: "position",
+                header: "#",
+                cell: (entry) => <MutedText>{entry.position}</MutedText>,
+              },
+              {
+                key: "brand",
+                header: "Brand",
+                cell: (entry) => (
+                  <Brand domain={entry.row.domain} name={entry.row.name} />
+                ),
+              },
+              {
+                key: "says",
+                header: "What it says",
+                grow: true,
+                cell: (entry) =>
+                  entry.highlight ? (
+                    <span className="text-muted-foreground">
+                      <HighlightText
+                        brand={entry.highlight.match}
+                        text={entry.highlight.text}
+                      />
                     </span>
-                    {row ? <Brand domain={row.domain} name={row.name} /> : name}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+                  ) : (
+                    <span className="text-muted-foreground">–</span>
+                  ),
+              },
+            ]}
+            getKey={(entry) => entry.row.name}
+            onSelect={
+              onSelectBrand ? (entry) => onSelectBrand(entry.row) : undefined
+            }
+            rows={brands}
+          />
         ) : (
-          <p className="text-muted-foreground px-4 py-3 text-sm">
+          <ReportPanel bodyClassName="text-muted-foreground px-4 py-3 text-sm">
             No tracked brand in this answer.
-          </p>
+          </ReportPanel>
         )}
-      </OverviewSection>
-
-      {response.highlights.length > 0 ? (
-        <OverviewSection
-          count={response.highlights.length}
-          title="What it says about them"
-        >
-          <ul className="divide-border/60 divide-y">
-            {response.highlights.map((highlight) => {
-              const row = brandRow(highlight.brand);
-              return (
-                <li className="flex gap-3 px-4 py-3" key={highlight.brand}>
-                  {row ? (
-                    <CompetitorLogo
-                      className="mt-0.5 size-5 shrink-0 rounded-md"
-                      domain={row.domain}
-                      name={row.name}
-                    />
-                  ) : null}
-                  <p className="text-muted-foreground text-sm/6 text-pretty">
-                    <HighlightText
-                      brand={highlight.match}
-                      text={highlight.text}
-                    />
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        </OverviewSection>
-      ) : null}
+      </ReportBlock>
 
       {response.searchQueries.length > 0 ? (
-        <OverviewSection count={response.searchQueries.length} title="Searches">
-          <ul className="flex flex-wrap gap-1.5 p-3">
+        <ReportBlock
+          description="What the assistant typed into its web search before answering."
+          title="Searches"
+        >
+          <ReportPanel bodyClassName="flex flex-wrap gap-1.5 p-3">
             {response.searchQueries.map((query) => (
-              <li
+              <span
                 className="bg-muted/40 text-muted-foreground flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2 text-xs"
                 key={query}
               >
@@ -323,42 +282,48 @@ function PromptOverview({
                 >
                   {query}
                 </span>
-              </li>
+              </span>
             ))}
-          </ul>
-        </OverviewSection>
+          </ReportPanel>
+        </ReportBlock>
       ) : null}
 
       {response.sources.length > 0 ? (
-        <OverviewSection count={response.sources.length} title="Sources">
-          <ul className="divide-border/60 divide-y">
-            {response.sources.map((source) => (
-              <li key={source.url}>
-                <a
-                  className="hover:bg-muted/50 flex h-10 min-w-0 items-center gap-3 px-4 text-sm transition-colors"
-                  href={source.url}
-                  rel="noopener noreferrer nofollow"
-                  target="_blank"
-                >
-                  <CompetitorLogo
-                    className="size-4 shrink-0 rounded-sm"
-                    domain={source.domain}
-                    name={source.domain}
-                  />
-                  <span
-                    className="min-w-0 flex-1 truncate"
-                    title={source.title ?? undefined}
-                  >
-                    {source.title ?? source.domain}
+        <ReportBlock
+          description="The pages this answer linked, in order."
+          title="Sources"
+        >
+          <ReportList
+            columns={[
+              {
+                key: "page",
+                header: "Page",
+                grow: true,
+                cell: (source) => (
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <CompetitorLogo
+                      className="size-5 shrink-0 rounded-sm"
+                      domain={source.domain}
+                      name={source.domain}
+                    />
+                    <span className="min-w-0">
+                      {source.title ?? source.domain}
+                    </span>
                   </span>
-                  <span className="text-muted-foreground max-w-[40%] shrink-0 truncate text-xs">
-                    {source.domain}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </OverviewSection>
+                ),
+              },
+              {
+                key: "domain",
+                header: "Domain",
+                align: "right",
+                cell: (source) => <MutedText>{source.domain}</MutedText>,
+              },
+            ]}
+            getHref={(source) => source.url}
+            getKey={(source) => source.url}
+            rows={response.sources}
+          />
+        </ReportBlock>
       ) : null}
     </SheetScrollArea>
   );

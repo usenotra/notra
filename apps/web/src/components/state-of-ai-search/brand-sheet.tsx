@@ -2,7 +2,6 @@
 
 import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { DetailSheetContent } from "@notra/ui/components/ui/detail-sheet";
 import {
   Sheet,
@@ -11,14 +10,6 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useState } from "react";
 
@@ -27,6 +18,13 @@ import {
   ReportBlock,
   ReportPanel,
 } from "@/components/state-of-ai-search/report-section";
+import {
+  EngineLabel,
+  MutedText,
+  PercentBar,
+  ReportList,
+  StatStrip,
+} from "@/components/state-of-ai-search/report-ui";
 import {
   BRAND_SHEET_PROMPTS,
   MAX_SHEET_DEPTH,
@@ -42,28 +40,6 @@ import {
   formatPercent,
   formatShortDate,
 } from "@/utils/state-of-ai-search";
-
-const PERCENT_MAX = 100;
-
-function StatStrip({ row }: { row: StateOfAiSearchRankingRow }) {
-  const stats = [
-    { label: "Visibility", value: formatPercent(row.visibility) },
-    { label: "Named first", value: formatPercent(row.topPick) },
-    { label: "Own site cited", value: formatPercent(row.ownSiteCited) },
-  ];
-  return (
-    <ReportPanel bodyClassName="grid grid-cols-3 divide-x divide-border/60">
-      {stats.map((stat) => (
-        <div className="flex flex-col gap-1 px-4 py-3" key={stat.label}>
-          <span className="text-muted-foreground text-xs">{stat.label}</span>
-          <span className="text-2xl font-semibold tracking-tight tabular-nums">
-            {stat.value}
-          </span>
-        </div>
-      ))}
-    </ReportPanel>
-  );
-}
 
 /**
  * The app's detail drawer for one brand. Prompts opened from here stack on
@@ -135,45 +111,46 @@ export function BrandSheet({
               </div>
             </SheetHeader>
             <SheetScrollArea className="flex flex-col gap-8">
-              <StatStrip row={brand} />
+              <StatStrip
+                stats={[
+                  {
+                    label: "Visibility",
+                    value: formatPercent(brand.visibility),
+                  },
+                  { label: "Named first", value: formatPercent(brand.topPick) },
+                  {
+                    label: "Own site cited",
+                    value: formatPercent(brand.ownSiteCited),
+                  },
+                ]}
+              />
 
               <ReportBlock
                 description="Share of each assistant's answers that name the brand."
                 title="By assistant"
               >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Assistant</TableHead>
-                      <TableHead>Mention rate</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {report.engines.map((engine) => (
-                      <TableRow key={engine.id}>
-                        <TableCell className="w-full">
-                          <span className="flex items-center gap-2.5">
-                            <EngineIcon engine={engine.model} />
-                            {engine.label}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-2.5">
-                            <GeoBar
-                              className="w-20"
-                              fillColor={brandColor(brand.rank)}
-                              max={PERCENT_MAX}
-                              value={brand.byEngine[engine.id] ?? 0}
-                            />
-                            <span className="w-9 text-right font-medium tabular-nums">
-                              {formatPercent(brand.byEngine[engine.id])}
-                            </span>
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <ReportList
+                  columns={[
+                    {
+                      key: "engine",
+                      header: "Assistant",
+                      grow: true,
+                      cell: (engine) => <EngineLabel engine={engine} />,
+                    },
+                    {
+                      key: "rate",
+                      header: "Mention rate",
+                      cell: (engine) => (
+                        <PercentBar
+                          color={brandColor(brand.rank)}
+                          value={brand.byEngine[engine.id]}
+                        />
+                      ),
+                    },
+                  ]}
+                  getKey={(engine) => engine.id}
+                  rows={report.engines}
+                />
               </ReportBlock>
 
               <ReportBlock
@@ -184,34 +161,37 @@ export function BrandSheet({
                 }
                 title="Where it shows up"
               >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Prompt</TableHead>
-                      <TableHead className="text-right">Named</TableHead>
-                      <TableHead className="text-right">First</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {prompts.slice(0, BRAND_SHEET_PROMPTS).map((row) => (
-                      <TableRow
-                        className={canStack ? "cursor-pointer" : undefined}
-                        key={row.id}
-                        onClick={canStack ? () => setPrompt(row) : undefined}
-                      >
-                        <TableCell className="w-full py-3 text-pretty whitespace-normal">
-                          {row.prompt}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                <ReportList
+                  columns={[
+                    {
+                      key: "prompt",
+                      header: "Prompt",
+                      grow: true,
+                      cell: (row) => row.prompt,
+                    },
+                    {
+                      key: "named",
+                      header: "Named",
+                      align: "right",
+                      cell: (row) => (
+                        <span className="tabular-nums">
                           {row.mentions[brand.name] ?? 0}/{row.answers}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-right tabular-nums">
-                          {row.firsts[brand.name] ?? 0}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "first",
+                      header: "First",
+                      align: "right",
+                      cell: (row) => (
+                        <MutedText>{row.firsts[brand.name] ?? 0}</MutedText>
+                      ),
+                    },
+                  ]}
+                  getKey={(row) => String(row.id)}
+                  onSelect={canStack ? setPrompt : undefined}
+                  rows={prompts.slice(0, BRAND_SHEET_PROMPTS)}
+                />
               </ReportBlock>
 
               {quotes.length > 0 ? (

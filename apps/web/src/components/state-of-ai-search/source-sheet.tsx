@@ -2,7 +2,6 @@
 
 import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { DetailSheetContent } from "@notra/ui/components/ui/detail-sheet";
 import {
   Sheet,
@@ -11,22 +10,18 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
 import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useState } from "react";
 
 import { PromptSheet } from "@/components/state-of-ai-search/prompt-sheet";
+import { ReportBlock } from "@/components/state-of-ai-search/report-section";
 import {
-  ReportBlock,
-  ReportPanel,
-} from "@/components/state-of-ai-search/report-section";
+  EngineLabel,
+  MutedText,
+  PercentBar,
+  ReportList,
+  StatStrip,
+} from "@/components/state-of-ai-search/report-ui";
 import {
   MAX_SHEET_DEPTH,
   REPORT_SURFACE_LIFT,
@@ -37,8 +32,6 @@ import type {
   StateOfAiSearchSource,
 } from "@/types/state-of-ai-search";
 import { formatPercent } from "@/utils/state-of-ai-search";
-
-const PERCENT_MAX = 100;
 
 /** Path of a cited page, for a compact second line under its title. */
 function pagePath(url: string): string {
@@ -70,6 +63,20 @@ export function SourceSheet({
   const promptEngine = source?.prompts.find((entry) => entry.id === prompt?.id)
     ?.engines[0];
   const canStack = depth < MAX_SHEET_DEPTH;
+  const citingPrompts = (source?.prompts ?? []).flatMap((entry) => {
+    const row = report.prompts.find((item) => item.id === entry.id);
+    return row
+      ? [
+          {
+            row,
+            citations: entry.citations,
+            engines: report.engines.filter((engine) =>
+              entry.engines.includes(engine.id)
+            ),
+          },
+        ]
+      : [];
+  });
   const rank = source
     ? report.sources.findIndex((item) => item.domain === source.domain) + 1
     : 0;
@@ -112,150 +119,117 @@ export function SourceSheet({
               </div>
             </SheetHeader>
             <SheetScrollArea className="flex flex-col gap-8">
-              <ReportPanel bodyClassName="grid grid-cols-3 divide-x divide-border/60">
-                {[
+              <StatStrip
+                stats={[
                   { label: "Cited in", value: formatPercent(source.share) },
-                  { label: "Answers", value: String(source.citations) },
-                  { label: "Pages", value: String(source.pages.length) },
-                ].map((stat) => (
-                  <div
-                    className="flex flex-col gap-1 px-4 py-3"
-                    key={stat.label}
-                  >
-                    <span className="text-muted-foreground text-xs">
-                      {stat.label}
-                    </span>
-                    <span className="text-2xl font-semibold tracking-tight tabular-nums">
-                      {stat.value}
-                    </span>
-                  </div>
-                ))}
-              </ReportPanel>
+                  { label: "Answers", value: source.citations },
+                  { label: "Pages", value: source.pages.length },
+                ]}
+              />
 
               <ReportBlock
                 description="Share of each assistant's answers that link to the domain."
                 title="By assistant"
               >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Assistant</TableHead>
-                      <TableHead>Cited in</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {report.engines.map((engine) => (
-                      <TableRow key={engine.id}>
-                        <TableCell className="w-full">
-                          <span className="flex items-center gap-2.5">
-                            <EngineIcon engine={engine.model} />
-                            {engine.label}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="flex items-center gap-2.5">
-                            <GeoBar
-                              className="w-20"
-                              max={PERCENT_MAX}
-                              value={source.byEngine[engine.id] ?? 0}
-                            />
-                            <span className="w-9 text-right font-medium tabular-nums">
-                              {formatPercent(source.byEngine[engine.id])}
-                            </span>
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <ReportList
+                  columns={[
+                    {
+                      key: "engine",
+                      header: "Assistant",
+                      grow: true,
+                      cell: (engine) => <EngineLabel engine={engine} />,
+                    },
+                    {
+                      key: "rate",
+                      header: "Cited in",
+                      cell: (engine) => (
+                        <PercentBar value={source.byEngine[engine.id]} />
+                      ),
+                    },
+                  ]}
+                  getKey={(engine) => engine.id}
+                  rows={report.engines}
+                />
               </ReportBlock>
 
               <ReportBlock
                 description="The pages the assistants linked, most-cited first."
                 title="Cited pages"
               >
-                <ReportPanel>
-                  <ul className="divide-border/60 divide-y">
-                    {source.pages.map((page) => (
-                      <li key={page.url}>
-                        <a
-                          className="hover:bg-muted/50 flex min-w-0 items-center gap-3 px-4 py-2.5 transition-colors"
-                          href={page.url}
-                          rel="noopener noreferrer nofollow"
-                          target="_blank"
-                        >
-                          <span className="flex min-w-0 flex-1 flex-col">
-                            <span className="truncate text-sm">
-                              {page.title ?? pagePath(page.url)}
-                            </span>
-                            <span className="text-muted-foreground truncate text-xs">
-                              {pagePath(page.url)}
-                            </span>
+                <ReportList
+                  columns={[
+                    {
+                      key: "page",
+                      header: "Page",
+                      grow: true,
+                      cell: (page) => (
+                        <span className="flex min-w-0 flex-col">
+                          <span>{page.title ?? pagePath(page.url)}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {pagePath(page.url)}
                           </span>
-                          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-                            {page.citations}×
-                          </span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </ReportPanel>
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "citations",
+                      header: "Answers",
+                      align: "right",
+                      cell: (page) => <MutedText>{page.citations}</MutedText>,
+                    },
+                  ]}
+                  getHref={(page) => page.url}
+                  getKey={(page) => page.url}
+                  rows={source.pages}
+                />
               </ReportBlock>
 
               <ReportBlock
                 description={`Linked in answers to ${source.prompts.length} of ${report.prompts.length} prompts.`}
                 title="Prompts that cite it"
               >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Prompt</TableHead>
-                      <TableHead className="text-right">Assistants</TableHead>
-                      <TableHead className="text-right">Answers</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {source.prompts.map((entry) => {
-                      const row = report.prompts.find(
-                        (item) => item.id === entry.id
-                      );
-                      if (!row) {
-                        return null;
-                      }
-                      return (
-                        <TableRow
-                          className={canStack ? "cursor-pointer" : undefined}
-                          key={entry.id}
-                          onClick={canStack ? () => setPrompt(row) : undefined}
-                        >
-                          <TableCell className="w-full py-3 text-pretty whitespace-normal">
-                            {row.prompt}
-                          </TableCell>
-                          <TableCell>
-                            <span className="flex justify-end gap-1.5">
-                              {entry.engines.map((engineId) => {
-                                const engine = report.engines.find(
-                                  (item) => item.id === engineId
-                                );
-                                return engine ? (
-                                  <span key={engineId} title={engine.label}>
-                                    <EngineIcon
-                                      className="size-3.5"
-                                      engine={engine.model}
-                                    />
-                                  </span>
-                                ) : null;
-                              })}
+                <ReportList
+                  columns={[
+                    {
+                      key: "prompt",
+                      header: "Prompt",
+                      grow: true,
+                      cell: (entry) => entry.row.prompt,
+                    },
+                    {
+                      key: "engines",
+                      header: "Assistants",
+                      align: "right",
+                      cell: (entry) => (
+                        <span className="inline-flex gap-1.5">
+                          {entry.engines.map((engine) => (
+                            <span key={engine.id} title={engine.label}>
+                              <EngineIcon
+                                className="size-3.5"
+                                engine={engine.model}
+                              />
                             </span>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-right tabular-nums">
-                            {entry.citations}/{row.answers}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                          ))}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "answers",
+                      header: "Answers",
+                      align: "right",
+                      cell: (entry) => (
+                        <MutedText>
+                          {entry.citations}/{entry.row.answers}
+                        </MutedText>
+                      ),
+                    },
+                  ]}
+                  getKey={(entry) => String(entry.row.id)}
+                  onSelect={
+                    canStack ? (entry) => setPrompt(entry.row) : undefined
+                  }
+                  rows={citingPrompts}
+                />
               </ReportBlock>
             </SheetScrollArea>
           </>

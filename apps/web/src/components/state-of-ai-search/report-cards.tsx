@@ -1,13 +1,12 @@
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { Link } from "@tanstack/react-router";
 
 import { ReportPanel } from "@/components/state-of-ai-search/report-section";
-import { Brand } from "@/components/state-of-ai-search/report-tables";
+import {
+  LeaderList,
+  ReadReportRow,
+} from "@/components/state-of-ai-search/report-ui";
 import { REPORT_LEADER_LOGOS } from "@/constants/state-of-ai-search";
 import type { StateOfAiSearchSummary } from "@/types/state-of-ai-search";
-import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
-
-const PERCENT_MAX = 100;
 
 export function ReportCards({
   reports,
@@ -34,33 +33,10 @@ export function ReportCards({
                 </>
               }
             >
-              <ol className="divide-border/60 divide-y">
-                {report.leaders.slice(0, REPORT_LEADER_LOGOS).map((row) => (
-                  <li
-                    className="flex h-12 items-center gap-3 px-4 text-sm tabular-nums"
-                    key={row.name}
-                  >
-                    <span className="text-muted-foreground w-3">
-                      {row.rank}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <Brand domain={row.domain} name={row.name} />
-                    </span>
-                    <GeoBar
-                      className="w-12"
-                      fillColor={brandColor(row.rank)}
-                      max={PERCENT_MAX}
-                      value={row.visibility}
-                    />
-                    <span className="w-9 text-right font-medium">
-                      {formatPercent(row.visibility)}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <span className="text-muted-foreground group-hover:text-foreground border-border/60 flex h-10 items-center border-t px-4 text-xs font-medium transition-colors">
-                Read the {report.subject} report →
-              </span>
+              <LeaderList
+                leaders={report.leaders.slice(0, REPORT_LEADER_LOGOS)}
+              />
+              <ReadReportRow subject={report.subject} />
             </ReportPanel>
           </Link>
         </li>
