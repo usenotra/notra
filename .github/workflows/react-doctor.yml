@@ -33,20 +33,37 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: millionco/react-doctor@v2
-        # Advisory by default: React Doctor reports findings on every PR — a
-        # sticky summary comment, inline review comments, and a commit status
-        # with the health score — but never fails the check, so it won't red-X
-        # a teammate's PR on day one. When your team trusts the signal, graduate
-        # the gate: uncomment the block below and set blocking to "error" (fail
-        # on new error-severity findings) or "warning" (fail on any finding).
-        # Full reference: https://www.react.doctor/ci
-        # with:
-        #   blocking: error          # Gate level: "none" (advisory, the default) | "warning" | "error"
-        #   scope: full              # On PRs, scan the whole project instead of just changed files
-        #   comment: false           # Disable the sticky PR summary comment
-        #   review-comments: false   # Disable inline review comments on changed lines
-        #   commit-status: false     # Disable the commit status (score + counts, links to the run)
-        #   version: "0.4.0"         # Pin to a specific react-doctor version instead of "latest"
-        #   directory: apps/web      # Scan a sub-directory (default: ".")
-        #   project: "web,admin"     # In a monorepo, scan specific workspace project(s)
+      - name: Check out React Doctor action
+        uses: actions/checkout@v7
+        with:
+          repository: millionco/react-doctor
+          ref: v2
+          path: .github/actions/react-doctor
+          persist-credentials: false
+          sparse-checkout: |
+            action.yml
+            scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Preserve full history for React Doctor
+        # v2's depth=1 fetch re-shallows the checkout and breaks PR merge bases.
+        # Remove this workaround when the upstream action preserves full history.
+        run: sed -i 's/fetch --no-tags --depth=1 origin/fetch --no-tags origin/' .github/actions/react-doctor/action.yml
+
+      - uses: ./.github/actions/react-doctor
+        with:
+          # Findings stay advisory; checkout/baseline failures must not look clean.
+          blocking: none
+          scope: changed
+          project: "*"
+          version: latest
+          node-version: "24"
+
+      - name: Verify React Doctor baseline history
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$(git rev-parse --is-shallow-repository)" = false
+          git merge-base "$BASE_SHA" "$HEAD_SHA" > /dev/null
