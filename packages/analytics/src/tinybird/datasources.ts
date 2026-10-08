@@ -233,6 +233,10 @@ export const geoTrafficEvents = defineDatasource("geo_traffic_events", {
     ttl: "captured_at + toIntervalDay(396)",
     settings: { ttl_only_drop_parts: 1 },
   }),
+  // One-off migration adding site_id to the live table (Notra Sites).
+  // Remove once the deployment carrying it is live.
+  forwardQuery:
+    "SELECT organization_id, project_id, defaultValueOfTypeName('LowCardinality(String)') AS site_id, captured_at, visitor_type, source, agent, category, confidence, path, host, method, referer, ua, country, language, request_id, journey_id, wants_markdown",
 });
 
 export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
@@ -264,6 +268,10 @@ export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
     ],
     partitionKey: "toYYYYMM(day)",
   }),
+  // One-off migration adding site_id to the live table (Notra Sites).
+  // Remove once the deployment carrying it is live.
+  forwardQuery:
+    "SELECT day, organization_id, project_id, defaultValueOfTypeName('LowCardinality(String)') AS site_id, visitor_type, source, visits_state, markdown_visits_state, paths_state, last_seen_state, agent_state, category_state, confidence_state",
   jsonPaths: false,
 });
 
@@ -297,6 +305,10 @@ export const geoTrafficPagesByHostDaily = defineDatasource(
       ],
       partitionKey: "toYYYYMM(day)",
     }),
+    // One-off migration adding site_id to the live table (Notra Sites).
+    // Remove once the deployment carrying it is live.
+    forwardQuery:
+      "SELECT day, organization_id, project_id, defaultValueOfTypeName('LowCardinality(String)') AS site_id, visitor_type, source, host, path, visits_state, last_seen_state",
     jsonPaths: false,
   }
 );
