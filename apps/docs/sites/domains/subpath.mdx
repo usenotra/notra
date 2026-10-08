@@ -89,7 +89,7 @@ Every platform guide meets these rules, so if you write your own proxy, check it
 | Don't redirect `/blog` to `/blog/` | The check fails on any redirect, so turn off trailing-slash redirects for these paths |
 | Leave Notra's response headers alone | Notra sends caching, `Content-Security-Policy` and `Vary` headers that fit each file, so don't add `noindex` and don't cache HTML longer than Notra says |
 
-Notra doesn't need cookies or `Authorization` headers, so where your platform lets you, don't forward them and your visitors' sessions never leave your domain. Keep `User-Agent` and `Referer`, and send the visitor's IP in `X-Forwarded-For`, so [site analytics](/sites/agents#ai-traffic-analytics) can tell visitors and countries apart. The nginx and Cloudflare guides set it explicitly.
+Notra doesn't need cookies or `Authorization` headers, so don't forward them where your platform lets you, which keeps your visitors' sessions on your domain. Keep `User-Agent` and `Referer`, and send the visitor's IP in `X-Forwarded-For`, so [site analytics](/sites/agents#ai-traffic-analytics) can tell visitors and countries apart. The nginx and Cloudflare guides set it explicitly.
 
 ## How the check works
 
@@ -123,9 +123,9 @@ When it passes, Notra rebuilds the site so that canonical URLs, feeds, sitemaps 
     Firewalls like Vercel's Attack Challenge Mode or Cloudflare's Bot Fight Mode can block `NotraSitesVerifier/1.0`, so allow it for your section paths or pause the protection while you check.
   </Accordion>
   <Accordion title="The blog link in the header goes to a 404">
-    Forward every section that's turned on, because the header links between the blog and the changelog, so both need a rewrite.
+    The header links between the blog and the changelog, so forward every section that's turned on.
   </Accordion>
   <Accordion title="An old URL from my blog.json redirects shows the new page under the old URL">
-    Your proxy follows redirects instead of passing them on. In a Cloudflare Worker, set `redirect: "manual"`, while the other guides already do this.
+    Your proxy follows redirects instead of passing them on. In a Cloudflare Worker, set `redirect: "manual"`, which the other platform guides already handle for you.
   </Accordion>
 </AccordionGroup>

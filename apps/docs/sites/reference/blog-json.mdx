@@ -1,7 +1,7 @@
 ---
 title: "blog.json reference"
 sidebarTitle: "blog.json"
-description: "Every setting in blog.json, with its type, limits and default."
+description: "This page lists every setting you can put in blog.json, along with its type, its limits and what it defaults to."
 authors:
   - handle: jan
 
@@ -43,7 +43,7 @@ Every build checks `blog.json` before it builds anything, and mistakes stop the 
 ```
 
 - Notra ignores an unknown top-level setting with a warning that suggests the closest match, like `Unknown setting "navBar" is ignored. Did you mean "navbar"?`.
-- Unknown keys inside `authors`, `integrations` and `security` stop the build, because a typo there would silently turn something off.
+- Unknown keys inside `authors`, `integrations` and `security` stop the build, because a typo there would turn something off without any warning.
 - Notra ignores other unknown nested keys.
 
 The tables below use these shared formats:
@@ -142,7 +142,7 @@ See [Layouts](/sites/customize/layouts#blog).
 
 ## Authors
 
-`authors` is an object of author id → author. See [Authors](/sites/posts#authors).
+`authors` is an object that maps each author id to an author. See [Authors](/sites/posts#authors).
 
 | Setting | Type | Description |
 | --- | --- | --- |
@@ -183,7 +183,7 @@ See [SEO, share images and redirects](/sites/customize/seo).
 
 ## Variables
 
-`variables` is an object of name → value, used as `{{ name }}` in posts. See [Variables](/sites/posts#variables).
+`variables` is an object that maps names to values, which you use as `{{ name }}` in posts. See [Variables](/sites/posts#variables).
 
 Names start with a letter and use letters, digits, `_` and `-`, up to 40 characters, and values are up to 500 characters. Variables also work in `description`, `banner.content` and the `title` and `description` of `blog` and `changelog`.
 

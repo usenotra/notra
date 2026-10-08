@@ -55,7 +55,7 @@ An inline component can't use anything imported in the same file, so move it int
 
 ## Rules
 
-- **React hooks without imports**: `useState`, `useEffect`, `useRef`, `useCallback`, `useMemo`, `useContext`, `useReducer`, `useId`, `useLayoutEffect`, `useTransition` and `useDeferredValue` are available without importing them, and in a `.jsx` snippet you can import anything else from `"react"`.
+- **React hooks need no import.** `useState`, `useEffect`, `useRef`, `useCallback`, `useMemo`, `useContext`, `useReducer`, `useId`, `useLayoutEffect`, `useTransition` and `useDeferredValue` are available without importing them, and in a `.jsx` snippet you can import anything else from `"react"`.
 - **Use named exports.** Notra doesn't support `export default` or `export *`.
 - **Import only from your repository.** Paths start with `/` (from the site root), `./` or `../`, and Notra doesn't support npm packages, JSON files or dynamic `import()`. A `.jsx` snippet can only import from `"react"`, so import every snippet you need in the MDX file.
 - **No Node.js.** `process`, `require`, `Buffer`, `eval`, `new Function` and `import.meta` stop the build.
