@@ -78,11 +78,23 @@ verification records, including the Notra TXT.
 Existing custom subdomains must also add their displayed Notra TXT record before
 re-verification. Missing TXT, DNS errors, or a temporary certificate failure do
 not release the existing routing record or silently change the old site's public
-origin. A provider replacement that succeeds before a database rollback can
-leave an unrecorded Cloudflare resource; refresh refuses to delete an unknown
-resource. An approved operator must reconcile that resource with the candidate
-before retrying. A lost R2 response with an already-recorded candidate provider ID
-can instead be retried through normal ownership and TLS verification.
+origin. Refresh commits the exact candidate's new provider ID and the replaced
+claim's stale-ID invalidation before checking provider status or activating R2.
+Later GET/R2 failures retain that binding and can be retried with normal TXT and
+TLS verification. The short binding transaction uses one lazy connection pool
+to the same database, capped at one additional connection per application
+runtime, so primary-pool admission waiters cannot starve the binding commit.
+Account for this connection in database capacity planning.
+
+ADD inserts its pending candidate before creating a provider resource and fills
+its ID and validation records in the same call. Insert failure therefore creates
+no provider resource. A known binding/callback failure compensates only a newly
+created, unreferenced resource. If creation succeeds but the API response is lost,
+or a commit/cleanup outcome cannot be established, automatic deletion is unsafe.
+Refresh refuses unknown resource IDs; an approved operator must reconcile the
+candidate and provider inventory before retrying. Single-site deletion uses the
+same organization-first, sorted-host admission as workspace deletion, so an
+admitted ADD must finish before deletion captures its provider IDs.
 
 Reference: [Workers as your fallback origin](https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/start/advanced-settings/worker-as-origin/).
 

@@ -47,6 +47,7 @@ if (!databaseUrl) {
   let failWrite = false;
   let failPrefix = false;
   let onWrite = async () => {};
+  let onRead = async (_key: string) => {};
   let onCreate = async () => {};
   let providerCreates = 0;
   let organizationId = "";
@@ -54,10 +55,12 @@ if (!databaseUrl) {
   let hosted: (typeof sites.$inferSelect)[] = [];
 
   mock.module("../src/r2", () => ({
-    r2GetText: async (key: string) =>
-      objects.has(key)
+    r2GetText: async (key: string) => {
+      await onRead(key);
+      return objects.has(key)
         ? { text: objects.get(key), etag: "synthetic-etag" }
-        : null,
+        : null;
+    },
     r2Put: async (key: string, text: string) => {
       await onWrite();
       if (failWrite) {
@@ -121,6 +124,7 @@ if (!databaseUrl) {
   }));
   const { deleteOrganizationSites } = await import("../src/organization");
   const { addSiteDomain } = await import("../src/domains");
+  const { deleteSite } = await import("../src/sites");
   const { releaseHostRecord } = await import("../src/state");
 
   beforeEach(async () => {
@@ -130,6 +134,7 @@ if (!databaseUrl) {
     failWrite = false;
     failPrefix = false;
     onWrite = async () => {};
+    onRead = async () => {};
     onCreate = async () => {};
     providerCreates = 0;
     process.env.SITES_HOSTING_DOMAIN = "notra.site";
@@ -191,6 +196,138 @@ if (!databaseUrl) {
   });
   afterAll(async () => {
     await Reflect.get(db, "$client").end();
+  });
+
+  test("single-site deletion waits for admitted creation and cleans the committed provider binding", async () => {
+    const own = hosted.find((site) => site.organizationId === organizationId);
+    if (!own) {
+      throw new Error("Expected synthetic site");
+    }
+    const entered = deferred();
+    const resume = deferred();
+    onCreate = async () => {
+      entered.resolve();
+      await resume.promise;
+    };
+    const addition = addSiteDomain(own, {
+      kind: "subdomain",
+      value: `${crypto.randomUUID()}.example.test`,
+    });
+    addition.catch(() => {});
+    await entered.promise;
+    const deletion = deleteSite(own);
+    deletion.catch(() => {});
+    try {
+      let blocked = false;
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        const result = await db.execute(
+          sql`select count(*)::int as count from pg_stat_activity where datname = current_database() and pid <> pg_backend_pid() and wait_event_type = 'Lock' and query like '%organization%'`
+        );
+        if (Number(result.rows[0]?.count) > 0) {
+          blocked = true;
+          break;
+        }
+        await delay(10);
+      }
+      expect(blocked).toBe(true);
+      expect(suspended).toEqual([]);
+      resume.resolve();
+      const added = await addition;
+      if (!added.cloudflareHostnameId) {
+        throw new Error("Expected synthetic provider binding");
+      }
+      await deletion;
+      expect(removedProviders).toContain(added.cloudflareHostnameId);
+      expect(
+        await db.select().from(sites).where(eq(sites.id, own.id))
+      ).toHaveLength(0);
+    } finally {
+      resume.resolve();
+      await Promise.allSettled([addition, deletion]);
+    }
+  });
+
+  test("single-site deletion blocks add before provider creation and a deleted parent fails insertion", async () => {
+    const own = hosted.find((site) => site.organizationId === organizationId);
+    if (!own) {
+      throw new Error("Expected synthetic site");
+    }
+    const entered = deferred();
+    const resume = deferred();
+    onWrite = async () => {
+      entered.resolve();
+      await resume.promise;
+    };
+    const deletion = deleteSite(own);
+    deletion.catch(() => {});
+    await entered.promise;
+    const addition = addSiteDomain(own, {
+      kind: "subdomain",
+      value: `${crypto.randomUUID()}.example.test`,
+    });
+    addition.catch(() => {});
+    try {
+      await delay(20);
+      expect(providerCreates).toBe(0);
+      resume.resolve();
+      await deletion;
+      await expect(addition).rejects.toThrow();
+      expect(providerCreates).toBe(0);
+    } finally {
+      resume.resolve();
+      await Promise.allSettled([addition, deletion]);
+    }
+  });
+
+  test("single-site deletion reads serving access on its admitted connection with a saturated primary pool", async () => {
+    const own = hosted.find((site) => site.organizationId === organizationId);
+    if (!own) {
+      throw new Error("Expected synthetic site");
+    }
+    const entered = deferred();
+    const resume = deferred();
+    onRead = async (key) => {
+      if (key === SITE_R2_KEYS.state(own.id)) {
+        entered.resolve();
+        await resume.promise;
+      }
+    };
+    const primary = Reflect.get(db, "$client");
+    const { withSiteHostLock } = await import("../src/utils/site-host-lock");
+    const deletion = deleteSite(own);
+    deletion.catch(() => {});
+    await entered.promise;
+    const waiters = Array.from({ length: primary.options.max - 1 }, () =>
+      withSiteHostLock(`${own.slug}.notra.site`, async () => {}, {
+        organizationId,
+      })
+    );
+    const results = Promise.allSettled(waiters);
+    try {
+      for (
+        let attempt = 0;
+        attempt < 100 &&
+        (primary.totalCount !== primary.options.max || primary.idleCount !== 0);
+        attempt += 1
+      ) {
+        await delay(10);
+      }
+      expect(primary.totalCount).toBe(primary.options.max);
+      expect(primary.idleCount).toBe(0);
+      resume.resolve();
+      await Promise.race([
+        deletion,
+        delay(2000).then(() => {
+          throw new Error("Deletion borrowed a starved connection");
+        }),
+      ]);
+      expect(
+        (await results).every((result) => result.status === "fulfilled")
+      ).toBe(true);
+    } finally {
+      resume.resolve();
+      await Promise.allSettled([deletion, ...waiters]);
+    }
   });
 
   test("both sites are offline and unbound before cascade, without touching another workspace", async () => {

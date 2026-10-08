@@ -232,22 +232,27 @@ export async function removePreviewDeployment(
 
 export async function setServingStatus(
   site: ServingSiteRef,
-  status: SiteServingState["status"]
+  status: SiteServingState["status"],
+  tx?: SiteStorageTransaction
 ) {
-  await mutateServingState(site, (state) => {
-    if (state.status === status && state.slug === site.slug) {
-      return { skip: true, result: undefined };
-    }
-    return {
-      write: {
-        ...state,
-        status,
-        slug: site.slug,
-        updatedAt: new Date().toISOString(),
-      },
-      result: undefined,
-    };
-  });
+  await mutateServingState(
+    site,
+    (state) => {
+      if (state.status === status && state.slug === site.slug) {
+        return { skip: true, result: undefined };
+      }
+      return {
+        write: {
+          ...state,
+          status,
+          slug: site.slug,
+          updatedAt: new Date().toISOString(),
+        },
+        result: undefined,
+      };
+    },
+    tx ?? db
+  );
 }
 
 export async function syncServingPreviewAccess(

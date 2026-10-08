@@ -168,6 +168,7 @@ if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
     },
   });
   mock.module("@notra/db/drizzle", () => ({
+    createDb: write,
     db: {
       select,
       update: write,

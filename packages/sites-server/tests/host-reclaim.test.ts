@@ -1,11 +1,13 @@
 import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import type { CloudflareCustomHostname } from "../src/types/cloudflare-saas";
 import type { SiteDomain } from "../src/types/domains";
 import type { R2PutOptions } from "../src/types/r2";
 import type { Site } from "../src/types/sites";
+import { deferred } from "./utils/deferred";
 
 const databaseUrl = process.env.SITES_TEST_DATABASE_URL;
 if (!databaseUrl) {
@@ -62,6 +64,9 @@ if (!databaseUrl) {
   let createResponseId = "";
   let providerExisting: CloudflareCustomHostname | null = null;
   let providerReads = 0;
+  let failNextGet = false;
+  let onCreate = async (_created: CloudflareCustomHostname) => {};
+  const providerCreates: string[] = [];
   const providerDeletes: string[] = [];
   mock.module("../src/utils/ids", () => ({
     prefixedId: () => crypto.randomUUID(),
@@ -122,6 +127,10 @@ if (!databaseUrl) {
     cloudflareSaasConfig: () => ({}),
     getCustomHostname: async (_config: unknown, id: string) => {
       providerReads += 1;
+      if (failNextGet) {
+        failNextGet = false;
+        throw new Error("Synthetic provider GET failure");
+      }
       return {
         id,
         hostname: proofHostname || candidate.hostname,
@@ -138,13 +147,21 @@ if (!databaseUrl) {
       if (createConflict) {
         throw new Error("Synthetic hostname already exists");
       }
+      const id = createResponseId || crypto.randomUUID();
       const created = {
-        id: createResponseId || crypto.randomUUID(),
+        id,
         hostname,
         status: "pending",
         ssl: { status: "pending" },
+        ownership_verification: {
+          type: "txt",
+          name: `_cf-custom-hostname.${hostname}`,
+          value: `synthetic-${id}`,
+        },
       };
       providerExisting = created;
+      providerCreates.push(created.id);
+      await onCreate(created);
       return created;
     },
     findCustomHostname: async () => {
@@ -172,6 +189,9 @@ if (!databaseUrl) {
   const { addSiteDomain, refreshSiteDomain, removeSiteDomain } =
     await import("../src/domains");
   const { claimHostRecord, releaseHostRecord } = await import("../src/state");
+  const { customHostnameBindingDatabase } =
+    await import("../src/utils/bind-custom-hostname");
+  const { withSiteHostLock } = await import("../src/utils/site-host-lock");
   process.env.SITES_HOSTING_DOMAIN = "notra.site";
   process.env.SITES_CNAME_TARGET = "cname.notra.site";
 
@@ -205,6 +225,9 @@ if (!databaseUrl) {
     createResponseId = "";
     providerExisting = null;
     providerReads = 0;
+    providerCreates.length = 0;
+    failNextGet = false;
+    onCreate = async () => {};
     await db.insert(organizations).values(
       [organizationId, otherOrganizationId].map((id) => ({
         id,
@@ -259,6 +282,7 @@ if (!databaseUrl) {
       .where(inArray(organizations.id, [organizationId, otherOrganizationId]));
   });
   afterAll(async () => {
+    await Reflect.get(customHostnameBindingDatabase(), "$client").end();
     await Reflect.get(db, "$client").end();
   });
 
@@ -721,7 +745,7 @@ if (!databaseUrl) {
     expect(mappedSite()).toBe(unrelated);
   });
 
-  test("a newly provisioned resource orphaned by rollback is not blindly deleted on retry", async () => {
+  test("a newly provisioned resource stays durably bound after R2 rollback and retries without recreating it", async () => {
     await db
       .update(siteDomains)
       .set({ cloudflareHostnameId: null })
@@ -745,12 +769,290 @@ if (!databaseUrl) {
       .select()
       .from(siteDomains)
       .where(eq(siteDomains.id, candidate.id));
-    expect(row?.cloudflareHostnameId).toBeNull();
+    expect(row?.cloudflareHostnameId).toBe(providerCreates[0]);
     expect(row?.status).toBe("pending");
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("active");
+    expect(providerDeletes).toEqual([oldHostnameId]);
+    expect(providerCreates).toHaveLength(1);
+    expect(mappedSite()).toBe(newSite.id);
+  });
+
+  test("provider GET failure preserves the new binding and invalidated old ID for a safe retry", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    const oldHostnameId = oldDomain.cloudflareHostnameId;
+    if (!oldHostnameId) {
+      throw new Error("Expected synthetic provider resource");
+    }
+    providerExisting = {
+      id: oldHostnameId,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    failNextGet = true;
     await expect(
       refreshSiteDomain(newSite, candidate.id, null)
-    ).rejects.toThrow("unrelated provider mapping");
+    ).rejects.toThrow("provider GET failure");
+    const [bound] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, candidate.id));
+    const [old] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, oldDomain.id));
+    expect(bound?.cloudflareHostnameId).toBe(providerCreates[0]);
+    expect(bound?.verificationRecords).toContainEqual(
+      expect.objectContaining({
+        name: `_cf-custom-hostname.${candidate.hostname}`,
+        value: `synthetic-${providerCreates[0]}`,
+      })
+    );
+    expect(bound?.status).toBe("pending");
+    expect(old?.cloudflareHostnameId).toBeNull();
+    expect(mappedSite()).toBe(oldSite.id);
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("active");
+    expect(providerCreates).toHaveLength(1);
     expect(providerDeletes).toEqual([oldHostnameId]);
-    expect(mappedSite()).toBe(newSite.id);
+  });
+
+  test("fresh provisioning survives an R2 failure before write without losing the old route", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    const oldHostnameId = oldDomain.cloudflareHostnameId;
+    if (!oldHostnameId) {
+      throw new Error("Expected synthetic provider resource");
+    }
+    providerExisting = {
+      id: oldHostnameId,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    onPut = async () => {
+      throw new Error("Synthetic R2 unavailable");
+    };
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("R2 unavailable");
+    const [bound] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, candidate.id));
+    expect(bound?.cloudflareHostnameId).toBe(providerCreates[0]);
+    expect(bound?.status).toBe("pending");
+    expect(mappedSite()).toBe(oldSite.id);
+    onPut = async () => {};
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("active");
+    expect(providerCreates).toHaveLength(1);
+    expect(providerDeletes).toEqual([oldHostnameId]);
+  });
+
+  test("refresh record-generation failure compensates its known unbound resource", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    onCreate = async () => {
+      delete process.env.SITES_PREVIEW_SECRET;
+    };
+    try {
+      await expect(
+        refreshSiteDomain(newSite, candidate.id, null)
+      ).rejects.toThrow("SITES_PREVIEW_SECRET is not set");
+      expect(providerCreates).toHaveLength(1);
+      expect(providerDeletes).toEqual(providerCreates);
+      const [row] = await db
+        .select()
+        .from(siteDomains)
+        .where(eq(siteDomains.id, candidate.id));
+      expect(row?.cloudflareHostnameId).toBeNull();
+      expect(mappedSite()).toBe(oldSite.id);
+    } finally {
+      process.env.SITES_PREVIEW_SECRET = "synthetic-host-ownership-secret";
+    }
+  });
+
+  test("a removed candidate compensates only its just-created unbound resource", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = null;
+    onCreate = async () => {
+      await db.delete(siteDomains).where(eq(siteDomains.id, candidate.id));
+    };
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("changed during verification");
+    expect(providerDeletes).toEqual(providerCreates);
+    expect(mappedSite()).toBe(oldSite.id);
+    expect(
+      await db
+        .select()
+        .from(siteDomains)
+        .where(eq(siteDomains.id, candidate.id))
+    ).toHaveLength(0);
+  });
+
+  test("a replaced candidate binding is preserved while the unbound fresh resource is compensated", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    const replacementId = crypto.randomUUID();
+    onCreate = async () => {
+      await db
+        .update(siteDomains)
+        .set({ cloudflareHostnameId: replacementId })
+        .where(eq(siteDomains.id, candidate.id));
+    };
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("changed during verification");
+    const [row] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, candidate.id));
+    expect(row?.cloudflareHostnameId).toBe(replacementId);
+    expect(providerDeletes).toEqual(providerCreates);
+    expect(providerDeletes).not.toContain(replacementId);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("binding failure never compensates a provider ID referenced by another existing claim", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    const foreignId = crypto.randomUUID();
+    await db
+      .update(siteDomains)
+      .set({
+        hostname: `${crypto.randomUUID()}.example.test`,
+        cloudflareHostnameId: foreignId,
+      })
+      .where(eq(siteDomains.id, oldDomain.id));
+    createResponseId = foreignId;
+    objects.delete(SITE_R2_KEYS.host(candidate.hostname));
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("belongs to another claim");
+    expect(providerDeletes).toEqual([]);
+    const [old] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, oldDomain.id));
+    expect(old?.cloudflareHostnameId).toBe(foreignId);
+  });
+
+  test("domain insert failure happens before provider creation and leaves other claims untouched", async () => {
+    await expect(
+      addSiteDomain(
+        { ...newSite, id: crypto.randomUUID() },
+        { kind: "subdomain", value: candidate.hostname }
+      )
+    ).rejects.toThrow();
+    expect(providerCreates).toEqual([]);
+    expect(providerDeletes).toEqual([]);
+    const [old] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, oldDomain.id));
+    expect(old?.cloudflareHostnameId).toBe(oldDomain.cloudflareHostnameId);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("ADD callback failure compensates only the known fresh provider resource", async () => {
+    await db.delete(siteDomains).where(eq(siteDomains.id, candidate.id));
+    onCreate = async () => {
+      delete process.env.SITES_PREVIEW_SECRET;
+    };
+    try {
+      await expect(
+        addSiteDomain(newSite, { kind: "subdomain", value: candidate.hostname })
+      ).rejects.toThrow("SITES_PREVIEW_SECRET is not set");
+      expect(providerCreates).toHaveLength(1);
+      expect(providerDeletes).toEqual(providerCreates);
+      expect(providerDeletes).not.toContain(oldDomain.cloudflareHostnameId);
+      const [old] = await db
+        .select()
+        .from(siteDomains)
+        .where(eq(siteDomains.id, oldDomain.id));
+      expect(old?.cloudflareHostnameId).toBe(oldDomain.cloudflareHostnameId);
+      expect(
+        await db
+          .select()
+          .from(siteDomains)
+          .where(eq(siteDomains.siteId, newSite.id))
+      ).toHaveLength(0);
+      expect(mappedSite()).toBe(oldSite.id);
+    } finally {
+      process.env.SITES_PREVIEW_SECRET = "synthetic-host-ownership-secret";
+    }
+  });
+
+  test("binding commits with a saturated primary pool and uses only one dedicated connection", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    verified = false;
+    const entered = deferred();
+    const resume = deferred();
+    onCreate = async () => {
+      entered.resolve();
+      await resume.promise;
+    };
+    const primary = Reflect.get(db, "$client");
+    const binding = customHostnameBindingDatabase();
+    expect(customHostnameBindingDatabase()).toBe(binding);
+    expect(Reflect.get(binding, "$client").options.max).toBe(1);
+    const owner = refreshSiteDomain(newSite, candidate.id, null);
+    owner.catch(() => {});
+    await entered.promise;
+    const waiters = Array.from({ length: primary.options.max - 1 }, () =>
+      withSiteHostLock(candidate.hostname, async () => {}, {
+        organizationId: newSite.organizationId,
+      })
+    );
+    try {
+      for (
+        let attempt = 0;
+        attempt < 100 &&
+        (primary.totalCount !== primary.options.max || primary.idleCount !== 0);
+        attempt += 1
+      ) {
+        await delay(10);
+      }
+      expect(primary.totalCount).toBe(primary.options.max);
+      expect(primary.idleCount).toBe(0);
+      resume.resolve();
+      const result = await Promise.race([
+        owner,
+        delay(2000).then(() => {
+          throw new Error("Binding starved behind hostname waiters");
+        }),
+      ]);
+      const createdId = providerCreates[0];
+      if (!createdId) {
+        throw new Error("Expected synthetic provider creation");
+      }
+      expect(result.domain.cloudflareHostnameId).toBe(createdId);
+      expect(result.domain.status).toBe("verifying");
+      expect(mappedSite()).toBe(oldSite.id);
+    } finally {
+      resume.resolve();
+      await Promise.allSettled([owner, ...waiters]);
+    }
   });
 }

@@ -71,6 +71,9 @@ if (process.env.NOTRA_SITES_DOMAIN_REQUEST_TEST_WORKER !== "1") {
   } as SiteDomain;
   let proxyDomain = { ...domain, kind: "proxy" as const, hostname: "127.1" };
   mock.module("@notra/db/drizzle", () => ({
+    createDb: () => {
+      throw new Error("Unexpected provider binding database");
+    },
     db: {
       select: () => ({
         from: () => ({ where: () => ({ limit: async () => [proxyDomain] }) }),
@@ -85,6 +88,9 @@ if (process.env.NOTRA_SITES_DOMAIN_REQUEST_TEST_WORKER !== "1") {
     },
   }));
   mock.module("../src/utils/site-host-lock", () => ({
+    acquireSiteHostLock: () => {
+      throw new Error("Unexpected hostname acquisition");
+    },
     withSiteHostLock: async (
       _hostname: string,
       run: (tx: unknown) => Promise<unknown>

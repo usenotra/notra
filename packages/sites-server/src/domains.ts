@@ -7,7 +7,7 @@ import {
   joinMountPath,
   listMountedAreas,
 } from "@notra/sites-core/utils/mounts";
-import { and, eq, isNull, ne } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import {
   cloudflareSaasConfig,
@@ -42,6 +42,7 @@ import type {
   SiteDomain,
 } from "./types/domains";
 import type { Site } from "./types/sites";
+import { bindCreatedCustomHostname } from "./utils/bind-custom-hostname";
 import {
   domainOwnershipRecord,
   verifyDomainOwnership,
@@ -149,62 +150,114 @@ export async function addSiteDomain(
     throw new SiteInputError("Enter a domain like blog.acme.com");
   }
   assertPublicHostname(hostname);
-  return await withSiteHostLock(
-    hostname,
-    async (tx) => {
-      const claims = await tx
-        .select()
-        .from(siteDomains)
-        .where(eq(siteDomains.hostname, hostname));
-      if (claims.some((claim) => claim.siteId === site.id)) {
-        throw new SiteInputError("This domain is already added");
-      }
-      if (claims.some((claim) => claim.status === "active")) {
-        throw new SiteInputError(
-          "This domain is already connected to another site"
-        );
-      }
+  let createdId: string | null = null;
+  let config: CloudflareSaasConfig | null = null;
+  let prepared = false;
+  try {
+    return await withSiteHostLock(
+      hostname,
+      async (tx) => {
+        const claims = await tx
+          .select()
+          .from(siteDomains)
+          .where(eq(siteDomains.hostname, hostname));
+        if (claims.some((claim) => claim.siteId === site.id)) {
+          throw new SiteInputError("This domain is already added");
+        }
+        if (claims.some((claim) => claim.status === "active")) {
+          throw new SiteInputError(
+            "This domain is already connected to another site"
+          );
+        }
 
-      const isSubdomain = input.kind === "subdomain";
-      const initialRecords = isSubdomain
-        ? recordsFor(site.id, hostname, null)
-        : [];
-      const config = isSubdomain ? cloudflareSaasConfig() : null;
-      const created = config
-        ? await claimCustomHostname(config, hostname)
-        : null;
-      if (created && created.hostname !== hostname) {
-        throw new SiteHostConflictError("Provider returned another hostname");
-      }
-      const custom =
-        created &&
-        !claims.some((claim) => claim.cloudflareHostnameId === created.id)
-          ? created
+        const isSubdomain = input.kind === "subdomain";
+        const initialRecords = isSubdomain
+          ? recordsFor(site.id, hostname, null)
+          : [];
+        config = isSubdomain ? cloudflareSaasConfig() : null;
+        const [domain] = await tx
+          .insert(siteDomains)
+          .values({
+            id: prefixedId("dom"),
+            siteId: site.id,
+            organizationId: site.organizationId,
+            hostname,
+            kind: input.kind,
+            status: "pending",
+            cloudflareHostnameId: null,
+            verificationRecords: initialRecords,
+            lastError:
+              isSubdomain && !config ? CLOUDFLARE_SAAS_MISSING_MESSAGE : null,
+          })
+          .returning();
+        if (!domain) {
+          throw new Error("Could not add domain");
+        }
+        const created = config
+          ? await claimCustomHostname(config, hostname)
           : null;
-      const [domain] = await tx
-        .insert(siteDomains)
-        .values({
-          id: prefixedId("dom"),
-          siteId: site.id,
-          organizationId: site.organizationId,
-          hostname,
-          kind: input.kind,
-          status: "pending",
-          cloudflareHostnameId: custom?.id ?? null,
-          verificationRecords: custom
-            ? recordsFor(site.id, hostname, custom)
-            : initialRecords,
-          lastError:
-            isSubdomain && !config ? CLOUDFLARE_SAAS_MISSING_MESSAGE : null,
-        })
-        .returning();
-      if (!domain) {
-        throw new Error("Could not add domain");
-      }
-      return domain;
-    },
-    { organizationId: site.organizationId }
-  );
+        if (created && created.hostname !== hostname) {
+          throw new SiteHostConflictError("Provider returned another hostname");
+        }
+        if (
+          !created ||
+          claims.some((claim) => claim.cloudflareHostnameId === created.id)
+        ) {
+          prepared = true;
+          return domain;
+        }
+        const [existing] = await tx
+          .select({ id: siteDomains.id })
+          .from(siteDomains)
+          .where(eq(siteDomains.cloudflareHostnameId, created.id))
+          .limit(1);
+        if (existing) {
+          prepared = true;
+          return domain;
+        }
+        createdId = created.id;
+        const [bound] = await tx
+          .update(siteDomains)
+          .set({
+            cloudflareHostnameId: created.id,
+            verificationRecords: recordsFor(site.id, hostname, created),
+          })
+          .where(
+            and(
+              eq(siteDomains.id, domain.id),
+              eq(siteDomains.siteId, site.id),
+              eq(siteDomains.organizationId, site.organizationId),
+              isNull(siteDomains.cloudflareHostnameId)
+            )
+          )
+          .returning();
+        if (!bound) {
+          throw new SiteInputError(
+            "Domain changed during verification. Retry verification."
+          );
+        }
+        prepared = true;
+        return bound;
+      },
+      { organizationId: site.organizationId }
+    );
+  } catch (error) {
+    const id = createdId;
+    const ownedConfig = config;
+    if (!prepared && id && ownedConfig) {
+      await withSiteHostLock(hostname, async (tx) => {
+        const references = await tx
+          .select({ id: siteDomains.id })
+          .from(siteDomains)
+          .where(eq(siteDomains.cloudflareHostnameId, id))
+          .limit(1);
+        if (references.length === 0) {
+          await deleteCustomHostname(ownedConfig, id);
+        }
+      }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 async function fetchWithTimeout(url: string): Promise<Response> {
@@ -299,43 +352,21 @@ async function checkSubdomain(
         );
       }
       await deleteCustomHostname(config, existing.id);
-      await tx
-        .update(siteDomains)
-        .set({
-          cloudflareHostnameId: null,
-          lastError:
-            "Another site proved ownership of this domain. Add it again to retry.",
-        })
-        .where(
-          and(
-            eq(siteDomains.hostname, domain.hostname),
-            eq(siteDomains.cloudflareHostnameId, existing.id),
-            ne(siteDomains.id, domain.id)
-          )
-        );
     }
     const created = await createCustomHostname(config, domain.hostname);
-    if (created.hostname !== domain.hostname) {
+    if (
+      created.hostname !== domain.hostname ||
+      claims.some((claim) => claim.cloudflareHostnameId === created.id)
+    ) {
       throw new SiteHostConflictError("Provider returned another hostname");
     }
-    const [claimed] = await tx
-      .update(siteDomains)
-      .set({ cloudflareHostnameId: created.id })
-      .where(
-        and(
-          eq(siteDomains.id, domain.id),
-          eq(siteDomains.siteId, site.id),
-          domain.cloudflareHostnameId === null
-            ? isNull(siteDomains.cloudflareHostnameId)
-            : eq(siteDomains.cloudflareHostnameId, domain.cloudflareHostnameId)
-        )
-      )
-      .returning();
-    if (!claimed) {
-      throw new SiteInputError(
-        "Domain changed during verification. Retry verification."
-      );
-    }
+    await bindCreatedCustomHostname(
+      domain,
+      created,
+      existing?.id ?? null,
+      config,
+      () => recordsFor(site.id, domain.hostname, created)
+    );
     hostnameId = created.id;
   }
   const custom = await getCustomHostname(config, hostnameId);

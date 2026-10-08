@@ -1,5 +1,11 @@
 import { db } from "@notra/db/drizzle";
-import { siteDomains, siteDrafts, siteJobs, sites } from "@notra/db/schema";
+import {
+  organizations,
+  siteDomains,
+  siteDrafts,
+  siteJobs,
+  sites,
+} from "@notra/db/schema";
 import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import {
   SITE_PREVIEW_PASSWORD_MAX_LENGTH,
@@ -41,6 +47,7 @@ import type {
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
 import { parseRootDirectory } from "./utils/root-directory";
+import { acquireSiteHostLock } from "./utils/site-host-lock";
 import { siteAliasOrigin } from "./utils/urls";
 
 function siteAliasHostname(slug: string): string {
@@ -325,8 +332,43 @@ export async function deleteSite(
   site: Site,
   tx?: SiteStorageTransaction
 ): Promise<void> {
+  if (!tx) {
+    await db.transaction(async (locked) => {
+      await locked
+        .select({ id: organizations.id })
+        .from(organizations)
+        .where(eq(organizations.id, site.organizationId))
+        .for("update");
+      const [current] = await locked
+        .select()
+        .from(sites)
+        .where(
+          and(
+            eq(sites.id, site.id),
+            eq(sites.organizationId, site.organizationId)
+          )
+        )
+        .limit(1);
+      if (!current) {
+        throw new SiteInputError("Site not found");
+      }
+      const domains = await locked
+        .select({ hostname: siteDomains.hostname })
+        .from(siteDomains)
+        .where(eq(siteDomains.siteId, site.id));
+      const hostnames = new Set([
+        siteAliasHostname(current.slug),
+        ...domains.map((domain) => domain.hostname),
+      ]);
+      for (const hostname of [...hostnames].sort()) {
+        await acquireSiteHostLock(locked, hostname);
+      }
+      await deleteSite(current, locked);
+    });
+    return;
+  }
   const executor = tx ?? db;
-  await setServingStatus(site, "suspended");
+  await setServingStatus(site, "suspended", tx);
   const subdomains = await executor
     .select({
       hostname: siteDomains.hostname,
