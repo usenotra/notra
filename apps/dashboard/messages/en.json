@@ -3275,11 +3275,7 @@
       }
     },
     "scanActivityStatus": {
-      "starting": "A scan is starting.",
-      "runningWithTotal": "Scanning now, {checks} of {total} answers saved.",
-      "running": "Scanning now, {checks} answers saved.",
       "failed": "The last scan stopped early {when}.",
-      "progressLabel": "Saved scan answers",
       "empty": {
         "title": "No answers yet",
         "description": "Answers from each AI engine show up here after the first scan runs."
@@ -3327,7 +3323,7 @@
       "unavailable": "This scan is no longer available.",
       "waiting": "Waiting for the first answers. They appear here as each batch finishes.",
       "empty": "No saved answers for this selection.",
-      "itemInProgress": "in progress",
+      "progress": "{checks} of {total} answers",
       "itemMissing": "missing",
       "itemAnswers": "answers",
       "viewLabel": "Scan result type",
@@ -3975,7 +3971,8 @@
       "loadScanResultsFailed": "Failed to load scan results",
       "loadTeamMembersFailed": "Failed to load team members",
       "loadShelfSpaceFailed": "Failed to load shelf space",
-      "scanStarted": "Scan started. It runs in the background, so you can leave this page.",
+      "scanStarted": "Scan started. You can leave this page.",
+      "viewScan": "View",
       "updatePromptFailed": "Failed to update prompt",
       "removePromptFailed": "Failed to remove prompt",
       "updateTagsFailed": "Failed to update tags",

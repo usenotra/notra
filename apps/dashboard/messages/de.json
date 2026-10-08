@@ -3275,11 +3275,7 @@
       }
     },
     "scanActivityStatus": {
-      "starting": "Ein Scan startet.",
-      "runningWithTotal": "Scan läuft, {checks} von {total} Antworten gespeichert.",
-      "running": "Scan läuft, {checks} Antworten gespeichert.",
       "failed": "Der letzte Scan wurde {when} vorzeitig beendet.",
-      "progressLabel": "Gespeicherte Scan-Antworten",
       "empty": {
         "title": "Noch keine Antworten",
         "description": "Die Antworten der KI-Engines erscheinen hier, sobald der erste Scan gelaufen ist."
@@ -3327,7 +3323,7 @@
       "unavailable": "Dieser Scan ist nicht mehr verfügbar.",
       "waiting": "Warte auf die ersten Antworten. Sie erscheinen hier, sobald ein Batch fertig ist.",
       "empty": "Keine gespeicherten Antworten für diese Auswahl.",
-      "itemInProgress": "in Bearbeitung",
+      "progress": "{checks} von {total} Antworten",
       "itemMissing": "fehlend",
       "itemAnswers": "Antworten",
       "viewLabel": "Scan-Ergebnistyp",
@@ -3975,7 +3971,8 @@
       "loadScanResultsFailed": "Scan-Ergebnisse konnten nicht geladen werden",
       "loadTeamMembersFailed": "Teammitglieder konnten nicht geladen werden",
       "loadShelfSpaceFailed": "Shelf Space konnte nicht geladen werden",
-      "scanStarted": "Scan gestartet. Er läuft im Hintergrund, du kannst diese Seite verlassen.",
+      "scanStarted": "Scan gestartet. Du kannst diese Seite verlassen.",
+      "viewScan": "Ansehen",
       "updatePromptFailed": "Prompt konnte nicht aktualisiert werden",
       "removePromptFailed": "Prompt konnte nicht entfernt werden",
       "updateTagsFailed": "Tags konnten nicht aktualisiert werden",
