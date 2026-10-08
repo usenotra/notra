@@ -28,6 +28,7 @@ export function PromptEngineSwitcher({
   active,
   onChange,
   labels,
+  transition,
 }: PromptEngineSwitcherProps) {
   const resolvedLabels = {
     ...DEFAULT_PROMPT_ENGINE_SWITCHER_LABELS,
@@ -36,7 +37,9 @@ export function PromptEngineSwitcher({
   const engines = items.map((item) => item.engine);
   const layoutId = useId();
   const reduceMotion = useReducedMotion();
-  const pillTransition = reduceMotion ? INSTANT : SPRING.indicatorFlat;
+  const pillTransition = reduceMotion
+    ? INSTANT
+    : (transition ?? SPRING.indicatorFlat);
   const activeIndex = engines.indexOf(active);
 
   return (

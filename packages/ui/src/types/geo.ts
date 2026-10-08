@@ -1,3 +1,4 @@
+import type { Transition } from "motion/react";
 import type { ReactNode } from "react";
 
 export type GeoPresenceStatus =
@@ -140,6 +141,8 @@ export interface PromptEngineSwitcherProps {
   active: string;
   onChange: (engine: string, direction: number) => void;
   labels?: Partial<PromptEngineSwitcherLabels>;
+  /** Pill slide between engines; defaults to the flat indicator spring. */
+  transition?: Transition;
 }
 
 export interface PromptEngineSwitcherLabels {
