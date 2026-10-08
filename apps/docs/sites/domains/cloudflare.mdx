@@ -43,6 +43,7 @@ This guide forwards `acme.com/blog` to Notra with a Cloudflare Worker, which wor
         return fetch(new URL(url.pathname + url.search, SITE_ORIGIN), {
           method: request.method,
           headers,
+          body: request.body,
           redirect: "manual",
         });
       },

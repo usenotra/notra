@@ -47,7 +47,7 @@ This guide forwards `acme.com/blog` to Notra with `rewrites` in `next.config.ts`
 
     ```typescript proxy.ts
     export const config = {
-      matcher: ["/((?!blog|changelog|_next/static|_next/image|favicon.ico).*)"],
+      matcher: ["/((?!blog(?:/|$)|changelog(?:/|$)|_next/static|_next/image|favicon.ico).*)"],
     };
     ```
   </Step>

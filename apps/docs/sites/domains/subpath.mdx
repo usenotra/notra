@@ -84,6 +84,7 @@ Every platform guide meets these rules, so if you write your own proxy, check it
 | Keep the path as it is | Notra builds the site for `/blog`, so forward `/blog/launch` to `https://acme.notra.site/blog/launch` rather than to `/launch` |
 | Send `Host: acme.notra.site` | Notra finds the site by its host, so a request with `Host: acme.com` gets a 404, and most rewrites set this for you |
 | Don't follow redirects | Return Notra's `307` and `308` responses to the browser, so your [redirects](/sites/reference/blog-json#redirects) change the URL |
+| Forward `POST` requests with their body | Site analytics sends time on page to `/blog/_notra/e` |
 | Keep the `Accept` header | AI agents ask for Markdown with `Accept: text/markdown`. See [AI agents](/sites/agents) |
 | Don't redirect `/blog` to `/blog/` | The check fails on any redirect, so turn off trailing-slash redirects for these paths |
 | Leave Notra's response headers alone | Notra sends caching, `Content-Security-Policy` and `Vary` headers that fit each file, so don't add `noindex` and don't cache HTML longer than Notra says |
