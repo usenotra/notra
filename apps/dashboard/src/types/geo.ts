@@ -30,6 +30,7 @@ import type {
   GeoPresenceStatus,
   GeoProject,
   GeoPromptHistoryCheck,
+  GeoResolvedModelCatalog,
   GeoPromptIntent,
   GeoPromptReceiptView,
   GeoPromptResult,
@@ -1066,7 +1067,7 @@ export type GeoSettingsFormSection = "brand" | "languages" | "models";
 export interface GeoSettingsFormProps {
   organizationId: string;
   settings: GeoSettings | null;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   promptCount?: number;
   hideHeader?: boolean;
   section?: GeoSettingsFormSection;
@@ -1095,7 +1096,7 @@ export interface GeoLanguagesSectionProps {
 
 export interface GeoModelsSectionProps {
   id: string;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   engines: string[];
   onEnginesChange: (values: string[]) => void;
   enforceZdr: boolean;
@@ -1126,7 +1127,7 @@ export interface GeoSettingsAutosaveInput {
   scanIntervalHours: number;
   canEnforceZdr: boolean;
   planLoading: boolean;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   settings: GeoSettings | null;
   brandDomain: string | null;
 }
@@ -1147,7 +1148,7 @@ export interface GeoTagListProps {
 }
 
 export interface GeoEnginePickerProps {
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   selected: string[];
   onChange: (values: string[]) => void;
   enforceZdr: boolean;
@@ -1165,7 +1166,7 @@ export interface GeoEnginePickerProps {
 }
 
 export interface GeoEngineProviderListProps {
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   expanded: ReadonlySet<string>;
   id: string;
@@ -1188,7 +1189,7 @@ export interface GeoEngineProviderListProps {
 
 export interface GeoEngineProviderRowProps {
   approvedNonZdrIds: ReadonlySet<string>;
-  catalog: GeoModelCatalog;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   expanded: boolean;
   hiddenCount: number;
@@ -1212,6 +1213,7 @@ export interface GeoEngineProviderRowProps {
 export interface GeoEngineProviderModelsProps {
   additionalModels: readonly GeoModelCatalogEntry[];
   approvedNonZdrIds: ReadonlySet<string>;
+  catalog: GeoResolvedModelCatalog;
   disabled: boolean;
   id: string;
   lastSelected: boolean;

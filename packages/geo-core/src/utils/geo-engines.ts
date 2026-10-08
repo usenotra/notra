@@ -1,13 +1,19 @@
-import { GEO_DIRECT_GROUNDED_PROVIDERS } from "../constants/geo";
+import {
+  GEO_AI_OVERVIEW_ENGINE_ID,
+  GEO_DIRECT_GROUNDED_PROVIDERS,
+  GEO_OPENCODE_ENGINE_ID,
+} from "../constants/geo";
 import { GEO_MODEL_REPLACED_IDS } from "../constants/geo-model-catalog";
 import type {
   GeoGroundedEngine,
   GeoModelCatalog,
   GeoModelGateway,
+  GeoResolvedModelCatalog,
   GeoScanSkipReason,
   GeoZdrMode,
   GeoZdrPolicy,
 } from "../types/geo";
+import { isGeoBoxCodingAgent } from "./geo-coding-agents";
 import { engineModelOf } from "./geo-engine-family";
 import {
   geoDefaultEngines,
@@ -84,22 +90,43 @@ export function isGeoNativeSearchEngine(
   return gateway === "serpapi" || gateway === "box";
 }
 
+/** Whether a catalog model runs with web search: grounded route or native search. */
+export function isGeoWebSearchEngine(
+  catalog: GeoResolvedModelCatalog,
+  engine: string
+): boolean {
+  return (
+    catalog.models.some(
+      (model) => model.id === engine && model.supportsGroundedChecks
+    ) || isGeoNativeSearchEngine(catalog, engine)
+  );
+}
+
+/** Whether a stored check's engine id answered with web search. */
+export function geoEngineUsedWebSearch(engine: string): boolean {
+  return (
+    engineModelOf(engine) !== engine ||
+    engine === GEO_AI_OVERVIEW_ENGINE_ID ||
+    engine === GEO_OPENCODE_ENGINE_ID ||
+    isGeoBoxCodingAgent(engine)
+  );
+}
+
 /**
  * Empty engine scope must not become a successful zero-check scan. A requested
- * selection with no catalog model left, a set that ZDR rejects in full, or a
- * set with no web-search route is a skip — not a completed pollable run.
+ * selection with no catalog model left, or a set that ZDR rejects in full, is
+ * a skip — not a completed pollable run.
  */
 export function geoScanEmptyEngineSkipReason(
   scanEngines: readonly string[],
   runnableEngineCount: number,
-  requestedEngines?: readonly string[],
-  zdrPassedCount = 0
+  requestedEngines?: readonly string[]
 ): GeoScanSkipReason | null {
   if (requestedEngines !== undefined && scanEngines.length === 0) {
     return "scoped_engines_missing";
   }
   if (scanEngines.length > 0 && runnableEngineCount === 0) {
-    return zdrPassedCount > 0 ? "no_search_engines" : "zdr";
+    return "zdr";
   }
   return null;
 }
