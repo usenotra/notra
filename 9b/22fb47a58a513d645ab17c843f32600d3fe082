@@ -1,0 +1,19 @@
+packages/ui/src/components/ui/sheet.tsx
+  s_cf35b4ac28f59d::t_d157f1b6b85ee8 117-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9b22fb47a58a513d645ab17c843f32600d3fe082",
+  "prompts": {},
+  "sessions": {
+    "s_cf35b4ac28f59d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e502f3a3-5a0e-4376-8178-b1e7ce7f0818",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
