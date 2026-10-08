@@ -56,7 +56,7 @@ const MAX_QUOTES_PER_ENGINE = 1;
 const MAX_PROMPT_SOURCES = 12;
 const HIGHLIGHT_MAX_LENGTH = 320;
 const MAX_RESPONSE_LENGTH = 6000;
-const SUMMARY_LEADERS = 3;
+const SUMMARY_LEADERS = 5;
 const QUOTE_MIN_LENGTH = 50;
 const QUOTE_MAX_LENGTH = 260;
 /** "Profound, a competitor, calls it…" quotes someone about another brand. */

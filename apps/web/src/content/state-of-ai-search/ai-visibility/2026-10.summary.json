@@ -73,6 +73,34 @@
         "ai-overview": 57
       },
       "delta": null
+    },
+    {
+      "name": "Semrush",
+      "domain": "semrush.com",
+      "rank": 4,
+      "visibility": 60,
+      "topPick": 9,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 83,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Ahrefs",
+      "domain": "ahrefs.com",
+      "rank": 5,
+      "visibility": 59,
+      "topPick": 8,
+      "ownSiteCited": 20,
+      "byEngine": {
+        "chatgpt": 43,
+        "claude": 90,
+        "ai-overview": 43
+      },
+      "delta": null
     }
   ]
 }

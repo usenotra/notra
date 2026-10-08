@@ -14,7 +14,6 @@ import {
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
 import { cn } from "@notra/ui/lib/utils";
-import { useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, useState } from "react";
 
 import {
@@ -30,7 +29,6 @@ import type {
   StateOfAiSearchPromptRow,
   StateOfAiSearchRankingRow,
   StateOfAiSearchSource,
-  StateOfAiSearchSummary,
 } from "@/types/state-of-ai-search";
 import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
 
@@ -459,69 +457,6 @@ export function SourcesTable({
       getRowId={(row) => row.domain}
       onRowClick={onSelect}
       {...pagedTableProps(rows.length, rows.length)}
-    />
-  );
-}
-
-/** Other categories as one table: leader and runners-up per report. */
-export function ReportsTable({
-  reports,
-}: {
-  reports: StateOfAiSearchSummary[];
-}) {
-  const navigate = useNavigate();
-  const columns: TableColumn<StateOfAiSearchSummary>[] = [
-    {
-      key: "subject",
-      header: "Category",
-      width: "10rem",
-      cell: (row) => <span className="font-medium">{row.subject}</span>,
-    },
-    ...[0, 1, 2].map((index): TableColumn<StateOfAiSearchSummary> => ({
-      key: `leader-${index}`,
-      header: `#${index + 1}`,
-      width: "1fr",
-      minWidth: "9rem",
-      collapsePriority: index,
-      cell: (row) => {
-        const leader = row.leaders[index];
-        return leader ? (
-          <span className="flex w-full min-w-0 items-center gap-2.5">
-            <Brand
-              className="flex-1"
-              domain={leader.domain}
-              name={leader.name}
-            />
-            <span className="text-muted-foreground tabular-nums">
-              {formatPercent(leader.visibility)}
-            </span>
-          </span>
-        ) : null;
-      },
-    })),
-    {
-      key: "edition",
-      header: "Edition",
-      width: "8rem",
-      align: "right",
-      collapsePriority: 3,
-      cell: (row) => (
-        <span className="text-muted-foreground">{row.editionLabel}</span>
-      ),
-    },
-  ];
-  return (
-    <DataTable
-      columns={columns}
-      data={reports}
-      getRowId={(row) => row.slug}
-      onRowClick={(row) =>
-        navigate({
-          to: "/state-of-ai-search/$category/$edition",
-          params: { category: row.slug, edition: row.edition },
-        })
-      }
-      {...pagedTableProps(reports.length, reports.length)}
     />
   );
 }

@@ -33,6 +33,7 @@ export function buildStateOfAiSearchIndexMarkdown(): string {
     "",
     ...reports.map((report) => {
       const leaders = report.leaders
+        .slice(0, 3)
         .map((row) => `${row.name} (${row.visibility}%)`)
         .join(", ");
       return `- [${report.subject}, ${report.editionLabel}](${SITE_URL}${reportPath(report.slug, report.edition)}): ${leaders}`;

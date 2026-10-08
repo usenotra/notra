@@ -73,6 +73,34 @@
         "ai-overview": 43
       },
       "delta": null
+    },
+    {
+      "name": "Supabase Auth",
+      "domain": "supabase.com",
+      "rank": 4,
+      "visibility": 53,
+      "topPick": 9,
+      "ownSiteCited": 16,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 70,
+        "ai-overview": 36
+      },
+      "delta": null
+    },
+    {
+      "name": "Firebase Authentication",
+      "domain": "firebase.google.com",
+      "rank": 5,
+      "visibility": 47,
+      "topPick": 7,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 60,
+        "ai-overview": 43
+      },
+      "delta": null
     }
   ]
 }

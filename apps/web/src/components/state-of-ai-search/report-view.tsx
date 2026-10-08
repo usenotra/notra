@@ -17,6 +17,7 @@ import {
   AnswerViewer,
   PromptSheet,
 } from "@/components/state-of-ai-search/prompt-sheet";
+import { ReportCarousel } from "@/components/state-of-ai-search/report-carousel";
 import {
   ReportBlock,
   ReportPair,
@@ -25,7 +26,6 @@ import {
   EngineHeatmap,
   PromptsTable,
   RankingTable,
-  ReportsTable,
   SourcesTable,
 } from "@/components/state-of-ai-search/report-tables";
 import { SourceSheet } from "@/components/state-of-ai-search/source-sheet";
@@ -254,11 +254,10 @@ export function ReportView({
 
         {otherReports.length > 0 ? (
           <ReportBlock
-            description="The top three in every other category. Open a row for the full report."
-            readout={`${otherReports.length} categories`}
+            description="The leaders in every other category. Swipe through or open a report."
             title="More reports"
           >
-            <ReportsTable reports={otherReports} />
+            <ReportCarousel reports={otherReports} />
           </ReportBlock>
         ) : null}
       </div>

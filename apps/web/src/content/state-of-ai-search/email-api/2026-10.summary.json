@@ -73,6 +73,34 @@
         "ai-overview": 67
       },
       "delta": null
+    },
+    {
+      "name": "SendGrid",
+      "domain": "sendgrid.com",
+      "rank": 4,
+      "visibility": 72,
+      "topPick": 11,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 60,
+        "claude": 80,
+        "ai-overview": 75
+      },
+      "delta": null
+    },
+    {
+      "name": "Mailgun",
+      "domain": "mailgun.com",
+      "rank": 5,
+      "visibility": 47,
+      "topPick": 0,
+      "ownSiteCited": 4,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 67,
+        "ai-overview": 33
+      },
+      "delta": null
     }
   ]
 }

@@ -73,6 +73,34 @@
         "ai-overview": 53
       },
       "delta": null
+    },
+    {
+      "name": "Fly.io",
+      "domain": "fly.io",
+      "rank": 4,
+      "visibility": 52,
+      "topPick": 3,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 77,
+        "ai-overview": 40
+      },
+      "delta": null
+    },
+    {
+      "name": "Vercel",
+      "domain": "vercel.com",
+      "rank": 5,
+      "visibility": 50,
+      "topPick": 24,
+      "ownSiteCited": 17,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 60,
+        "ai-overview": 40
+      },
+      "delta": null
     }
   ]
 }

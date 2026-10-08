@@ -73,6 +73,34 @@
         "ai-overview": 79
       },
       "delta": null
+    },
+    {
+      "name": "Google Cloud SQL",
+      "domain": "cloud.google.com",
+      "rank": 4,
+      "visibility": 44,
+      "topPick": 4,
+      "ownSiteCited": 12,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 53,
+        "ai-overview": 50
+      },
+      "delta": null
+    },
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 5,
+      "visibility": 39,
+      "topPick": 0,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 57,
+        "ai-overview": 29
+      },
+      "delta": null
     }
   ]
 }

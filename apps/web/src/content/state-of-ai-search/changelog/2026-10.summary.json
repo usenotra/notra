@@ -73,6 +73,34 @@
         "ai-overview": 29
       },
       "delta": null
+    },
+    {
+      "name": "LaunchNotes",
+      "domain": "launchnotes.com",
+      "rank": 4,
+      "visibility": 34,
+      "topPick": 0,
+      "ownSiteCited": 14,
+      "byEngine": {
+        "chatgpt": 30,
+        "claude": 50,
+        "ai-overview": 21
+      },
+      "delta": null
+    },
+    {
+      "name": "Featurebase",
+      "domain": "featurebase.app",
+      "rank": 5,
+      "visibility": 31,
+      "topPick": 8,
+      "ownSiteCited": 24,
+      "byEngine": {
+        "chatgpt": 27,
+        "claude": 67,
+        "ai-overview": 0
+      },
+      "delta": null
     }
   ]
 }
