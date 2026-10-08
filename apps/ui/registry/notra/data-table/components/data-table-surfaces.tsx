@@ -1,6 +1,11 @@
 import { cn } from "cn";
+import { useRef } from "react";
 
-import { TABLE_BODY_CLASS, TABLE_FRAME_CLASS } from "../constants/data-table";
+import {
+  CORNER_SCROLLBAR_VARS,
+  TABLE_BODY_CLASS,
+  TABLE_FRAME_CLASS,
+} from "../constants/data-table";
 import type {
   TableBodySurfaceProps,
   TableFrameProps,
@@ -8,6 +13,7 @@ import type {
   TableHeaderSurfaceProps,
   TableScrollFadeProps,
 } from "../types/data-table";
+import { TableCornerScrollbar } from "./data-table-corner-scrollbar";
 
 /**
  * Grey shell that wraps header, body and footer with a 2px rim. A flush edge
@@ -24,8 +30,13 @@ export function TableFrame({
       className={cn(
         TABLE_FRAME_CLASS,
         flushTop && "rounded-t-none border-t-0",
-        flushBottom && "rounded-b-none border-b-0"
+        flushBottom && "rounded-b-none border-b-0",
+        // When the body is the last section (no footer) and its bottom corner
+        // wraps the scrollbar, follow it to stay concentric.
+        !flushBottom &&
+          "transition-[border-radius] duration-200 ease-out has-[>[data-corner-end=true]:last-child]:rounded-br-(--corner-shell-radius) motion-reduce:transition-none"
       )}
+      style={CORNER_SCROLLBAR_VARS}
     >
       {children}
     </div>
@@ -84,12 +95,17 @@ export function TableBodySurface({
   onScroll,
   scrollRef,
   style,
+  cornerScrollbar,
   children,
 }: TableBodySurfaceProps) {
-  return (
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const body = (
     <div
       className={cn(
-        "scrollbar-floating relative -mt-5 box-content outline-none",
+        "relative box-content outline-none",
+        cornerScrollbar
+          ? "transition-[border-radius] duration-200 ease-out [scrollbar-width:none] group-data-[corner-end=true]/table-body:rounded-br-(--corner-card-radius) group-data-[corner-start=true]/table-body:rounded-tr-(--corner-card-radius) motion-reduce:transition-none [&::-webkit-scrollbar]:hidden"
+          : "scrollbar-floating -mt-5",
         TABLE_BODY_CLASS,
         isEmpty ? "overflow-hidden" : overflowClass,
         dimRows &&
@@ -102,6 +118,18 @@ export function TableBodySurface({
       style={style}
     >
       {children}
+    </div>
+  );
+  if (!cornerScrollbar) {
+    return body;
+  }
+  // The thumb sits over the card instead of inside the scroller, so it stays
+  // put while the rows move. When it reaches a corner, the card's radius
+  // tightens to wrap the thumb's round end.
+  return (
+    <div className="group/table-body relative -mt-5" ref={wrapperRef}>
+      {body}
+      <TableCornerScrollbar scrollRef={scrollRef} wrapperRef={wrapperRef} />
     </div>
   );
 }

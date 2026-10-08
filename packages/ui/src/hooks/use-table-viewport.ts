@@ -184,5 +184,6 @@ export function useTableViewport<T>({
     paddingBottom,
     atEnd,
     atStart,
+    overflowsX,
   };
 }
