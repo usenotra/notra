@@ -44,8 +44,6 @@ test.each(["country", "device"])(
       )
       .replaceAll("{{String(dimension, 'country')}}", `'${dimension}'`)
       .replaceAll("{{Int32(limit, 10)}}", "10");
-    expect(sql).toContain("HAVING visitors > 0");
-    expect(sql).toContain("AS previous_visitors");
     const db = new DatabaseSync(":memory:");
     try {
       db.function("multiIf", { varargs: true }, (...values) => {

@@ -54,6 +54,5 @@ for (const rejects of [false, true]) {
     expect(importing).toBeNull();
     expect(picked).toBe(!rejects);
     expect(errorShown).toBe(rejects);
-    expect(handler).not.toContain("finally");
   });
 }

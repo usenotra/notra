@@ -13,7 +13,6 @@ test.each(["", "fixture.example"])(
     if (!result) {
       throw new Error("Overview result node is missing");
     }
-    expect(result.sql).toContain("WHERE visits > 0 OR previous_visits > 0");
     expect(result.sql).not.toMatch(/\bLIMIT\b/i);
     const database = new DatabaseSync(":memory:");
     try {

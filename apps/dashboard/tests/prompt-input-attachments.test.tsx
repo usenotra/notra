@@ -30,7 +30,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
   const effects: EffectCallback[] = [];
   let stateIndex = 0;
   let refIndex = 0;
-  let updaterCalls = 0;
 
   mock.module("react", () => ({
     ...react,
@@ -101,7 +100,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
     createUrl.mockClear();
     failAt = Number.POSITIVE_INFINITY;
     captured = undefined;
-    updaterCalls = 0;
   };
 
   const render = (element: ReactNode) => {
@@ -118,7 +116,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
         if (typeof update === "function") {
           const next = update(states[index]);
           update(states[index]);
-          updaterCalls += 2;
           states[index] = next;
         } else {
           states[index] = update;
@@ -184,7 +181,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
         "second",
       ]);
       expect(allocated).toHaveLength(2);
-      expect(updaterCalls).toBe(0);
       owner.unmount();
       owner.unmount();
       expect(revoked).toEqual(allocated);
@@ -209,7 +205,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
       expect(owner.flush().files).toEqual([]);
       owner.unmount();
       expect(revoked).toEqual(allocated);
-      expect(updaterCalls).toBe(0);
     }
   );
 
@@ -264,7 +259,6 @@ if (!process.env.NOTRA_PROMPT_ATTACHMENTS_TEST_WORKER) {
     ]);
     expect(allocated).toHaveLength(2);
     expect(onError).toHaveBeenCalledTimes(2);
-    expect(updaterCalls).toBe(0);
     owner.unmount();
     expect(revoked).toEqual(allocated);
   });

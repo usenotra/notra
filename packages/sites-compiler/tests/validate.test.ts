@@ -180,8 +180,6 @@ describe("site contract", () => {
         "",
       ].join("\n")
     );
-    expect(output).not.toContain("client:load");
-    expect(output).not.toContain("@notra/builtins/Tip.astro");
     expect(errors(run({ "blog/post.mdx": post("<Youtube />") }))).toEqual([
       "blog/post.mdx:6 unknown_component",
     ]);

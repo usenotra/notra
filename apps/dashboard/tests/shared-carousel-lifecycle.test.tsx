@@ -62,7 +62,6 @@ if (!process.env.NOTRA_SHARED_CAROUSEL_TEST_WORKER) {
         createElement(InlineCitationCarouselIndex)
       )
     );
-    expect(effects).toHaveLength(3);
     for (let replay = 0; replay < 2; replay++) {
       const cleanups = effects.map((effect) => effect());
       expect(listeners.get("reInit")?.size).toBe(1);

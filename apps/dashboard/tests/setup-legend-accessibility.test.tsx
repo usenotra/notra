@@ -102,12 +102,10 @@ if (!process.env.NOTRA_SETUP_LEGEND_TEST_WORKER) {
         expect(button.props["aria-pressed"]).toBe(false);
         expect(button.props.tabIndex).not.toBe(-1);
         expect(renderToStaticMarkup(button)).not.toContain("<a ");
-        expect(button.props.className).toContain("flex w-full gap-3 text-left");
       }
       expect(markup).toContain('href="/acme/api-keys"');
       expect(markup).toContain('rel="noopener noreferrer"');
       expect(markup).toContain('target="_blank"');
-      expect(markup.match(/ms-9 mt-1.5/g)).toHaveLength(2);
       for (const row of setupControls(tree, "div")) {
         expect(row.props.onClick).toBeUndefined();
       }

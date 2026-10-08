@@ -17,12 +17,10 @@ test("post preview icon controls have accessible names", () => {
         const props = { author: { name: "Fixture Author" }, content: "Synthetic preview" };
         const twitter = renderToStaticMarkup(createElement(TwitterPostPreview, props));
         const linkedin = renderToStaticMarkup(createElement(LinkedInPostPreview, props));
-        for (const label of ["More options", "Comment", "Repost", "Like", "Bookmark", "Share"]) {
-          assert.ok(twitter.includes('aria-label="' + label + '"'), label);
-        }
-        assert.ok(linkedin.includes('aria-label="More options"'));
-        assert.equal([...twitter.matchAll(/<button\b/g)].length, 6);
-        assert.equal([...twitter.matchAll(/aria-label="/g)].length, 6);
+        const buttons = [...twitter.matchAll(/<button\b[^>]*>/g)];
+        assert.deepEqual(buttons.map(([tag]) => tag.match(/aria-label="([^"]+)"/)?.[1]).sort(),
+          ["More options", "Comment", "Repost", "Like", "Bookmark", "Share"].sort());
+        assert.match(linkedin, /<button\b[^>]*aria-label="More options"/);
         console.log("Seven preview icon controls have explicit accessible names");
       `,
     ],
