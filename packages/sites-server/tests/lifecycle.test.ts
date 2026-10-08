@@ -12,6 +12,7 @@ import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import { createInitialServingState } from "@notra/sites-core/utils/serving-state";
 import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
+import { Effect } from "effect";
 
 import type { SiteDeployment } from "../src/types/deployments";
 import type { SiteJob } from "../src/types/jobs";
@@ -224,7 +225,7 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
     failDeployment: async () => {},
     runDeploymentPipeline: async () => ({ kind: "live" }),
   }));
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2GetText: async (key: string) =>
       objects.has(key) ? { text: objects.get(key), etag: "etag" } : null,
     r2Put: async (key: string, text: string) => {
@@ -249,6 +250,19 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
         }
       }
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2GetTextEffect: (...args: Parameters<typeof r2.r2GetText>) =>
+      Effect.tryPromise({
+        try: () => r2.r2GetText(...args),
+        catch: (error) => error,
+      }),
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
 
   const { claimSiteJob, completeSiteJob, failSiteJob } =

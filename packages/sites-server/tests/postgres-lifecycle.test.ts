@@ -11,6 +11,8 @@ import { spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
+import { Effect } from "effect";
+
 const databaseUrl = process.env.SITES_TEST_DATABASE_URL;
 if (!databaseUrl) {
   test.skip("PostgreSQL lifecycle regressions require SITES_TEST_DATABASE_URL", () => {});
@@ -73,7 +75,7 @@ if (!databaseUrl) {
       };
     },
   }));
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2GetText: async (key: string) =>
       objects.has(key)
         ? { text: objects.get(key), etag: "synthetic-etag" }
@@ -96,6 +98,19 @@ if (!databaseUrl) {
     r2ListPrefixes: () => {
       throw new Error("Unexpected storage listing");
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2GetTextEffect: (...args: Parameters<typeof r2.r2GetText>) =>
+      Effect.tryPromise({
+        try: () => r2.r2GetText(...args),
+        catch: (error) => error,
+      }),
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
   mock.module("@notra/geo-core/geo/ingest", () => ({
     buildGeoIngestSiteToken: () => null,

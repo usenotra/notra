@@ -2,6 +2,8 @@ import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { Effect } from "effect";
+
 import type { EnqueueDeploymentInput } from "../src/types/deployments";
 import { deferred } from "./utils/deferred";
 import { waitForPgBlocker } from "./utils/wait-for-pg-blocker";
@@ -49,7 +51,7 @@ if (!databaseUrl) {
   let siteId = "";
   let jobId = "";
   const effects: string[] = [];
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2GetText: async () => null,
     r2Put: async (key: string) => {
       effects.push(key);
@@ -61,6 +63,19 @@ if (!databaseUrl) {
     r2DeletePrefix: async (key: string) => {
       effects.push(key);
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2GetTextEffect: (...args: Parameters<typeof r2.r2GetText>) =>
+      Effect.tryPromise({
+        try: () => r2.r2GetText(...args),
+        catch: (error) => error,
+      }),
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
   const cloudflare = await import("../src/cloudflare-saas");
   mock.module("../src/cloudflare-saas", () => ({

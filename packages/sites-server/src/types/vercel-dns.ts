@@ -1,4 +1,7 @@
 import type { SiteDomainVerificationRecord } from "@notra/db/types/sites";
+import type { Schema } from "effect";
+
+import type { VercelTokenResponse as VercelTokenResponseSchema } from "../schemas/vercel-dns";
 
 export interface VercelDnsConfig {
   slug: string;
@@ -7,7 +10,7 @@ export interface VercelDnsConfig {
 }
 
 export interface VercelDnsDeps {
-  resolveNs: (name: string) => Promise<string[]>;
+  resolveNs: (name: string, signal?: AbortSignal) => Promise<string[]>;
   fetch: typeof fetch;
 }
 
@@ -24,8 +27,6 @@ export interface ApplyVercelDnsRecordsParams {
   deps?: Pick<VercelDnsDeps, "fetch">;
 }
 
-export interface VercelTokenResponse {
-  access_token?: string;
-  team_id?: string | null;
-  installation_id?: string;
-}
+export type VercelTokenResponse = Schema.Schema.Type<
+  typeof VercelTokenResponseSchema
+>;

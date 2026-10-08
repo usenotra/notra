@@ -50,8 +50,11 @@ export interface LiveDeployments {
 }
 
 export interface PublishDeploymentFilesParams {
-  site: Site;
-  deployment: SiteDeployment;
+  site: Pick<Site, "id">;
+  deployment: Pick<
+    SiteDeployment,
+    "id" | "commitSha" | "target" | "configHash"
+  >;
   archive: Uint8Array<ArrayBuffer>;
   result: SiteBuildResult;
   toolchainVersion: string | null;

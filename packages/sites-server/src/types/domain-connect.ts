@@ -36,7 +36,7 @@ export interface DomainConnectCallbackClaims {
 }
 
 export interface DomainConnectDeps {
-  resolveTxt: (name: string) => Promise<string[][]>;
+  resolveTxt: (name: string, signal?: AbortSignal) => Promise<string[][]>;
   fetch: typeof fetch;
 }
 

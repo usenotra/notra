@@ -8,6 +8,7 @@ import {
 } from "@notra/db/schema";
 import { SITE_CONFIG_FILENAME } from "@notra/sites-core/constants/sites";
 import { and, eq } from "drizzle-orm";
+import { Effect } from "effect";
 
 import {
   BRANCH_SUGGESTION_LIMIT,
@@ -15,10 +16,12 @@ import {
   CONTENT_FILE,
   EMPTY_TREE_SCAN,
   GITHUB_API_VERSION_HEADER,
+  GITHUB_ARCHIVE_TIMEOUT_MS,
   GITHUB_PAGE_SIZE,
   MAX_TARBALL_BYTES,
 } from "./constants/github";
 import { SitePermanentBuildError } from "./errors";
+import { SiteProviderRequestError } from "./schemas/provider-error";
 import type {
   BranchHead,
   CompleteCheckRunParams,
@@ -31,7 +34,8 @@ import type {
   SiteRepositoryColumns,
   SiteRepositoryPermissions,
 } from "./types/github";
-import { readBodyUpTo } from "./utils/read-body";
+import { readBodyUpToEffect } from "./utils/read-body";
+import { runSitesEffect } from "./utils/run-sites-effect";
 
 export function requireSiteRepository(
   site: SiteRepositoryColumns
@@ -131,36 +135,104 @@ export async function siteRepositoryToken(
   );
 }
 
-export async function downloadRepositoryTarball(
+export const downloadRepositoryTarballEffect = Effect.fn(
+  "Sites.GitHub.downloadArchive"
+)(
+  function* (repository: SiteRepository, token: string, commitSha: string) {
+    const controller = yield* Effect.acquireRelease(
+      Effect.sync(() => new AbortController()),
+      (owned) => Effect.sync(() => owned.abort())
+    );
+    const response = yield* Effect.tryPromise({
+      try: async (signal) => {
+        const result = await fetch(
+          `https://api.github.com/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}/tarball/${encodeURIComponent(commitSha)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+              ...GITHUB_API_VERSION_HEADER,
+            },
+            redirect: "follow",
+            signal: AbortSignal.any([controller.signal, signal]),
+          }
+        );
+        if (signal.aborted) {
+          void result.body?.cancel().catch(() => undefined);
+        }
+        return result;
+      },
+      catch: () =>
+        new SiteProviderRequestError({
+          provider: "github",
+          operation: "downloadArchive",
+          status: null,
+          message: "Downloading the GitHub source archive failed",
+        }),
+    });
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        void response.body?.cancel().catch(() => undefined);
+      })
+    );
+    if (!response.ok) {
+      return yield* Effect.fail(
+        new SiteProviderRequestError({
+          provider: "github",
+          operation: "downloadArchive",
+          status: response.status,
+          message: `Downloading ${repository.owner}/${repository.repo}@${commitSha.slice(0, 7)} failed (${response.status})`,
+        })
+      );
+    }
+    const declared = Number(response.headers.get("content-length") ?? 0);
+    const body =
+      declared > MAX_TARBALL_BYTES
+        ? null
+        : yield* readBodyUpToEffect(response, MAX_TARBALL_BYTES).pipe(
+            Effect.mapError(
+              () =>
+                new SiteProviderRequestError({
+                  provider: "github",
+                  operation: "downloadArchive",
+                  status: response.status,
+                  message: "The GitHub source archive could not be read",
+                })
+            )
+          );
+    if (!body || body.exceeded) {
+      return yield* Effect.fail(
+        new SitePermanentBuildError("The repository is too large to build")
+      );
+    }
+    return body.bytes;
+  },
+  (program) =>
+    program.pipe(
+      Effect.scoped,
+      Effect.timeoutOrElse({
+        duration: GITHUB_ARCHIVE_TIMEOUT_MS,
+        orElse: () =>
+          Effect.fail(
+            new SiteProviderRequestError({
+              provider: "github",
+              operation: "downloadArchive",
+              status: null,
+              message: "Downloading the GitHub source archive timed out",
+            })
+          ),
+      })
+    )
+);
+
+export function downloadRepositoryTarball(
   repository: SiteRepository,
   token: string,
   commitSha: string
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const response = await fetch(
-    `https://api.github.com/repos/${repository.owner}/${repository.repo}/tarball/${commitSha}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        ...GITHUB_API_VERSION_HEADER,
-      },
-      redirect: "follow",
-    }
+  return runSitesEffect(
+    downloadRepositoryTarballEffect(repository, token, commitSha)
   );
-  if (!response.ok) {
-    throw new Error(
-      `Downloading ${repository.owner}/${repository.repo}@${commitSha.slice(0, 7)} failed (${response.status})`
-    );
-  }
-  const declared = Number(response.headers.get("content-length") ?? 0);
-  const body =
-    declared > MAX_TARBALL_BYTES
-      ? null
-      : await readBodyUpTo(response, MAX_TARBALL_BYTES);
-  if (!body || body.exceeded) {
-    throw new SitePermanentBuildError("The repository is too large to build");
-  }
-  return body.bytes;
 }
 
 export async function getBranchHead(

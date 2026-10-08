@@ -25,18 +25,27 @@ import {
   setPreviewVisibilityInState,
 } from "@notra/sites-core/utils/serving-state";
 import { and, eq, isNotNull, lte } from "drizzle-orm";
+import { Effect } from "effect";
 
 import { JSON_CONTENT_TYPE } from "./constants/content-types";
-import { CAS_ATTEMPTS, CAS_BACKOFF_MS } from "./constants/state";
+import { SERVING_STATE_RETRY_SCHEDULE } from "./constants/state";
 import { R2PreconditionFailedError, SiteHostConflictError } from "./errors";
-import { r2DeleteKey, r2GetText, r2Put } from "./r2";
+import {
+  r2DeleteKey,
+  r2GetText,
+  r2GetTextEffect,
+  r2Put,
+  r2PutEffect,
+} from "./r2";
 import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   ServingPreviewAccess,
   ServingSiteRef,
   ServingStateMutation,
   ServingStateObject,
+  ServingStateAttemptFailure,
 } from "./types/state";
+import { runSitesEffect } from "./utils/run-sites-effect";
 import { withSiteHostLock } from "./utils/site-host-lock";
 
 function samePreviewPassword(
@@ -74,29 +83,43 @@ async function readPreviewAccessFromDb(
   };
 }
 
+export const readServingStateEffect = Effect.fn("Sites.readServingState")(
+  function* (siteId: string) {
+    const object = yield* r2GetTextEffect(SITE_R2_KEYS.state(siteId));
+    if (!object) {
+      return null;
+    }
+    return yield* Effect.try({
+      try: () => ({
+        state: siteServingStateSchema.parse(JSON.parse(object.text)),
+        etag: object.etag,
+      }),
+      catch: (error) => error,
+    });
+  }
+);
+
 export async function readServingState(
   siteId: string
 ): Promise<ServingStateObject | null> {
-  const object = await r2GetText(SITE_R2_KEYS.state(siteId));
-  if (!object) {
-    return null;
-  }
-  return {
-    state: siteServingStateSchema.parse(JSON.parse(object.text)),
-    etag: object.etag,
-  };
+  return runSitesEffect(readServingStateEffect(siteId));
 }
 
-export async function mutateServingState<T>(
-  site: ServingSiteRef,
-  mutate: (
-    state: SiteServingState,
-    access: Pick<ServingPreviewAccess, "previewVisibility">
-  ) => ServingStateMutation<T>,
-  executor: Pick<typeof db, "select"> = db
-): Promise<T> {
-  for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt += 1) {
-    const current = await readServingState(site.id);
+export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
+  function* <T>(
+    site: ServingSiteRef,
+    mutate: (
+      state: SiteServingState,
+      access: Pick<ServingPreviewAccess, "previewVisibility">
+    ) => ServingStateMutation<T>,
+    executor: Pick<typeof db, "select"> = db
+  ) {
+    const current = yield* readServingStateEffect(site.id).pipe(
+      Effect.mapError((error): ServingStateAttemptFailure => ({
+        _tag: "OperationFailure",
+        error,
+      }))
+    );
     const state =
       current?.state ??
       createInitialServingState({
@@ -104,8 +127,13 @@ export async function mutateServingState<T>(
         slug: site.slug,
         now: new Date(),
       });
-    const { previewPassword, previewVisibility } =
-      await readPreviewAccessFromDb(site.id, executor);
+    const { previewPassword, previewVisibility } = yield* Effect.tryPromise({
+      try: () => readPreviewAccessFromDb(site.id, executor),
+      catch: (error): ServingStateAttemptFailure => ({
+        _tag: "OperationFailure",
+        error,
+      }),
+    });
     const outcome = mutate(state, { previewVisibility });
     const trafficToken = buildGeoIngestSiteToken(site.id);
     const derivedInSync =
@@ -119,27 +147,47 @@ export async function mutateServingState<T>(
       previewPassword,
       trafficToken,
     };
-    try {
-      await r2Put(SITE_R2_KEYS.state(site.id), JSON.stringify(write), {
-        contentType: JSON_CONTENT_TYPE,
-        cacheControl: "no-store",
-        ...(current
-          ? { ifMatch: current.etag }
-          : { ifNoneMatch: "*" as const }),
-      });
-      return outcome.result;
-    } catch (error) {
-      if (!(error instanceof R2PreconditionFailedError)) {
-        throw error;
-      }
-      await new Promise((resolve) =>
-        setTimeout(resolve, CAS_BACKOFF_MS * 2 ** attempt)
-      );
-    }
-  }
-  throw new Error(
-    `Could not update serving state for ${site.id}: too much contention`
-  );
+    const body = JSON.stringify(write);
+    yield* r2PutEffect(SITE_R2_KEYS.state(site.id), body, {
+      contentType: JSON_CONTENT_TYPE,
+      cacheControl: "no-store",
+      ...(current ? { ifMatch: current.etag } : { ifNoneMatch: "*" }),
+    }).pipe(
+      Effect.mapError((error): ServingStateAttemptFailure => ({
+        _tag:
+          error instanceof R2PreconditionFailedError
+            ? "CasConflict"
+            : "OperationFailure",
+        error,
+      }))
+    );
+    return outcome.result;
+  },
+  (effect, site) =>
+    effect.pipe(
+      Effect.retry({
+        schedule: SERVING_STATE_RETRY_SCHEDULE,
+        while: (error) => error._tag === "CasConflict",
+      }),
+      Effect.mapError((failure) =>
+        failure._tag === "CasConflict"
+          ? new Error(
+              `Could not update serving state for ${site.id}: too much contention`
+            )
+          : failure.error
+      )
+    )
+);
+
+export async function mutateServingState<T>(
+  site: ServingSiteRef,
+  mutate: (
+    state: SiteServingState,
+    access: Pick<ServingPreviewAccess, "previewVisibility">
+  ) => ServingStateMutation<T>,
+  executor: Pick<typeof db, "select"> = db
+): Promise<T> {
+  return runSitesEffect(mutateServingStateEffect(site, mutate, executor));
 }
 
 function writeIfActivated<

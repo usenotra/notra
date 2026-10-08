@@ -15,6 +15,7 @@ import type { Site } from "@notra/sites-server/types/sites";
 import { call } from "@orpc/server";
 import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
+import { Effect } from "effect";
 
 if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
   test("Sites GET is read-only and retains 100 history records plus live pins", () => {
@@ -179,13 +180,17 @@ if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
     },
   }));
   const r2 = await import("@notra/sites-server/r2");
+  const readR2 = async (key: string) => {
+    expect(key).toBe(SITE_R2_KEYS.state(site.id));
+    return { text: JSON.stringify(state), etag: "synthetic-etag" };
+  };
   mock.module("@notra/sites-server/r2", () => ({
     ...r2,
-    r2GetText: async (key: string) => {
-      expect(key).toBe(SITE_R2_KEYS.state(site.id));
-      return { text: JSON.stringify(state), etag: "synthetic-etag" };
-    },
+    r2GetText: readR2,
+    r2GetTextEffect: (key: string) =>
+      Effect.tryPromise({ try: () => readR2(key), catch: (error) => error }),
     r2Put: write,
+    r2PutEffect: () => Effect.sync(write),
     r2DeleteKey: write,
     r2DeleteKeyIfMatch: write,
   }));

@@ -23,3 +23,4 @@ export const EMPTY_TREE_SCAN: RepositoryTreeScan = {
   contentCounts: {},
   truncated: false,
 };
+export const GITHUB_ARCHIVE_TIMEOUT_MS = 60_000;

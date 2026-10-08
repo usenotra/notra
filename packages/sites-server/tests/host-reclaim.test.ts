@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
+import { Effect } from "effect";
+
 import type { CloudflareCustomHostname } from "../src/types/cloudflare-saas";
 import type { SiteDomain } from "../src/types/domains";
 import type { R2PutOptions } from "../src/types/r2";
@@ -99,7 +101,7 @@ if (!databaseUrl) {
   }));
   const { domainOwnershipRecord } =
     await import("../src/utils/domain-ownership");
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2GetText: async (key: string) => objects.get(key) ?? null,
     r2Put: async (key: string, text: string, options: R2PutOptions) => {
       await onPut();
@@ -122,6 +124,19 @@ if (!databaseUrl) {
       await onDelete();
       objects.delete(key);
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2GetTextEffect: (...args: Parameters<typeof r2.r2GetText>) =>
+      Effect.tryPromise({
+        try: () => r2.r2GetText(...args),
+        catch: (error) => error,
+      }),
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
   mock.module("../src/cloudflare-saas", () => ({
     cloudflareSaasConfig: () => ({}),

@@ -1,3 +1,10 @@
+import { Effect, Schema } from "effect";
+import * as FetchHttpClient from "effect/http/FetchHttpClient";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
+import type * as HttpClientResponse from "effect/http/HttpClientResponse";
+
+import { DNS_RESOLVER_TIMEOUT_MS } from "./constants/domains";
 import {
   VERCEL_API_URL,
   VERCEL_DNS_CALLBACK_PATH,
@@ -8,13 +15,14 @@ import {
   VERCEL_NAMESERVER_SUFFIX,
 } from "./constants/vercel-dns";
 import { getDashboardUrl } from "./env";
+import { SiteProviderRequestError } from "./schemas/provider-error";
+import { VercelTokenResponse } from "./schemas/vercel-dns";
 import type { DomainConnectCallbackClaims } from "./types/domain-connect";
 import type {
   ApplyVercelDnsRecordsParams,
   VercelDnsConfig,
   VercelDnsDeps,
   VercelDnsGrant,
-  VercelTokenResponse,
 } from "./types/vercel-dns";
 import {
   createDnsResolver,
@@ -26,12 +34,22 @@ import {
   signDomainConnectCallback,
   verifyDomainConnectCallback,
 } from "./utils/domain-connect-callback";
-import { errorMessage } from "./utils/errors";
+import { readBodyUpToEffect } from "./utils/read-body";
+import { runSitesEffect } from "./utils/run-sites-effect";
 
 function defaultDeps(): VercelDnsDeps {
   const resolver = createDnsResolver();
   return {
-    resolveNs: (name) => resolver.resolveNs(name),
+    resolveNs: async (name, signal) => {
+      signal?.throwIfAborted();
+      const abort = () => resolver.cancel();
+      signal?.addEventListener("abort", abort, { once: true });
+      try {
+        return await resolver.resolveNs(name);
+      } finally {
+        signal?.removeEventListener("abort", abort);
+      }
+    },
     fetch: globalThis.fetch,
   };
 }
@@ -50,17 +68,35 @@ function vercelDnsRedirectUri(): string {
   return `${getDashboardUrl()}${VERCEL_DNS_CALLBACK_PATH}`;
 }
 
-export async function findVercelZone(
+export const findVercelZoneEffect = Effect.fn("VercelDns.findZone")(function* (
   hostname: string,
   deps: Pick<VercelDnsDeps, "resolveNs"> = defaultDeps()
-): Promise<string | null> {
+) {
   for (const zone of zoneCandidates(hostname)) {
-    let nameservers: string[];
-    try {
-      nameservers = await deps.resolveNs(zone);
-    } catch {
-      continue;
-    }
+    const nameservers = yield* Effect.tryPromise({
+      try: (signal) => deps.resolveNs(zone, signal),
+      catch: () =>
+        new SiteProviderRequestError({
+          provider: "vercel",
+          operation: "discover",
+          status: null,
+          message: "Vercel nameserver lookup failed",
+        }),
+    }).pipe(
+      Effect.timeoutOrElse({
+        duration: DNS_RESOLVER_TIMEOUT_MS * 2,
+        orElse: () =>
+          Effect.fail(
+            new SiteProviderRequestError({
+              provider: "vercel",
+              operation: "discover",
+              status: null,
+              message: "Vercel nameserver lookup timed out",
+            })
+          ),
+      }),
+      Effect.catchTag("SiteProviderRequestError", () => Effect.succeed([]))
+    );
     if (nameservers.length === 0) {
       continue;
     }
@@ -71,6 +107,13 @@ export async function findVercelZone(
       : null;
   }
   return null;
+});
+
+export function findVercelZone(
+  hostname: string,
+  deps: Pick<VercelDnsDeps, "resolveNs"> = defaultDeps()
+): Promise<string | null> {
+  return runSitesEffect(findVercelZoneEffect(hostname, deps));
 }
 
 export function vercelInstallUrl(
@@ -97,89 +140,203 @@ function withTeam(path: string, teamId: string | null): string {
     : `${VERCEL_API_URL}${path}`;
 }
 
-export async function exchangeVercelCode(
+const vercelRequest = Effect.fn("VercelDns.request")(function* <A>(
+  request: HttpClientRequest.HttpClientRequest,
+  operation: string,
+  deps: Pick<VercelDnsDeps, "fetch">,
+  use: (
+    response: HttpClientResponse.HttpClientResponse,
+    native: Response
+  ) => Effect.Effect<A, SiteProviderRequestError>
+) {
+  let nativeResponse: Response | undefined;
+  let status: number | null = null;
+  const failure = (message: string) =>
+    new SiteProviderRequestError({
+      provider: "vercel",
+      operation,
+      status,
+      message,
+    });
+  const transport: typeof fetch = async (input, init) => {
+    const response = await deps.fetch(input, init);
+    if (init?.signal?.aborted) {
+      void response.body?.cancel().catch(() => undefined);
+      return response;
+    }
+    nativeResponse = response;
+    return response;
+  };
+  const cleanup = Effect.tryPromise({
+    try: async () => {
+      if (nativeResponse?.body && !nativeResponse.body.locked) {
+        await nativeResponse.body.cancel();
+      }
+    },
+    catch: () => failure("Vercel response cleanup failed"),
+  }).pipe(
+    Effect.timeoutOrElse({
+      duration: VERCEL_DNS_HTTP_TIMEOUT_MS,
+      orElse: () => Effect.fail(failure("Vercel response cleanup timed out")),
+    })
+  );
+  return yield* Effect.scoped(
+    Effect.gen(function* () {
+      yield* Effect.addFinalizer(() =>
+        cleanup.pipe(
+          Effect.catchTag("SiteProviderRequestError", () => Effect.void),
+          Effect.interruptible
+        )
+      );
+      const client = yield* HttpClient.HttpClient;
+      const response = yield* HttpClient.withScope(client)
+        .execute(request)
+        .pipe(Effect.mapError(() => failure("Vercel request failed")));
+      status = response.status;
+      if (!nativeResponse) {
+        return yield* Effect.fail(failure("Vercel response unavailable"));
+      }
+      const result = yield* use(response, nativeResponse);
+      yield* cleanup;
+      nativeResponse = undefined;
+      return result;
+    })
+  ).pipe(
+    Effect.timeoutOrElse({
+      duration: VERCEL_DNS_HTTP_TIMEOUT_MS,
+      orElse: () => Effect.fail(failure("Vercel request timed out")),
+    }),
+    Effect.provide(FetchHttpClient.layer),
+    Effect.provideService(FetchHttpClient.Fetch, transport)
+  );
+});
+
+export const exchangeVercelCodeEffect = Effect.fn("VercelDns.exchangeCode")(
+  function* (
+    config: VercelDnsConfig,
+    code: string,
+    deps: Pick<VercelDnsDeps, "fetch"> = defaultDeps()
+  ) {
+    const request = HttpClientRequest.post(
+      `${VERCEL_API_URL}/v2/oauth/access_token`
+    ).pipe(
+      HttpClientRequest.bodyUrlParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        code,
+        redirect_uri: vercelDnsRedirectUri(),
+      })
+    );
+    const body = yield* vercelRequest(
+      request,
+      "exchange",
+      deps,
+      (response, native) => {
+        const error = new SiteProviderRequestError({
+          provider: "vercel",
+          operation: "exchange",
+          status: response.status,
+          message: `Vercel token exchange failed (${response.status})`,
+        });
+        if (response.status < 200 || response.status >= 300) {
+          return Effect.fail(error);
+        }
+        return readBodyUpToEffect(native, 64 * 1024).pipe(
+          Effect.flatMap((body) =>
+            body.exceeded
+              ? Effect.fail(error)
+              : Schema.decodeUnknownEffect(
+                  Schema.fromJsonString(VercelTokenResponse)
+                )(new TextDecoder().decode(body.bytes)).pipe(
+                  Effect.mapError(() => error)
+                )
+          ),
+          Effect.mapError(() => error)
+        );
+      }
+    );
+    return {
+      accessToken: body.access_token,
+      teamId: body.team_id ?? null,
+      configurationId: body.installation_id,
+    };
+  }
+);
+
+export function exchangeVercelCode(
   config: VercelDnsConfig,
   code: string,
   deps: Pick<VercelDnsDeps, "fetch"> = defaultDeps()
 ): Promise<VercelDnsGrant> {
-  const response = await deps.fetch(`${VERCEL_API_URL}/v2/oauth/access_token`, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: config.clientId,
-      client_secret: config.clientSecret,
-      code,
-      redirect_uri: vercelDnsRedirectUri(),
-    }),
-    signal: AbortSignal.timeout(VERCEL_DNS_HTTP_TIMEOUT_MS),
-  });
-  const body = (await response
-    .json()
-    .catch(() => null)) as VercelTokenResponse | null;
-  if (!(response.ok && body?.access_token && body.installation_id)) {
-    throw new Error(`Vercel token exchange failed (${response.status})`);
-  }
-  return {
-    accessToken: body.access_token,
-    teamId: body.team_id ?? null,
-    configurationId: body.installation_id,
-  };
+  return runSitesEffect(exchangeVercelCodeEffect(config, code, deps));
 }
 
-export async function applyVercelDnsRecords({
-  grant,
-  zone,
-  records,
-  deps = defaultDeps(),
-}: ApplyVercelDnsRecordsParams): Promise<void> {
-  for (const record of records) {
-    const response = await deps.fetch(
-      withTeam(`/v2/domains/${encodeURIComponent(zone)}/records`, grant.teamId),
-      {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${grant.accessToken}`,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
+export const applyVercelDnsRecordsEffect = Effect.fn("VercelDns.applyRecords")(
+  function* ({
+    grant,
+    zone,
+    records,
+    deps = defaultDeps(),
+  }: ApplyVercelDnsRecordsParams) {
+    for (const record of records) {
+      const request = HttpClientRequest.post(
+        withTeam(
+          `/v2/domains/${encodeURIComponent(zone)}/records`,
+          grant.teamId
+        )
+      ).pipe(
+        HttpClientRequest.bearerToken(grant.accessToken),
+        HttpClientRequest.bodyJsonUnsafe({
           name: relativeDnsName(record.name, zone),
           type: record.type,
           value: record.value,
           ttl: VERCEL_DNS_RECORD_TTL_SECONDS,
           comment: VERCEL_DNS_RECORD_COMMENT,
-        }),
-        signal: AbortSignal.timeout(VERCEL_DNS_HTTP_TIMEOUT_MS),
-      }
-    );
-    await response.body?.cancel();
-    if (!response.ok && response.status !== 409) {
-      throw new Error(
-        `Vercel rejected the ${record.type} record for ${record.name} (${response.status})`
+        })
+      );
+      yield* vercelRequest(request, "apply", deps, (response) =>
+        (response.status >= 200 && response.status < 300) ||
+        response.status === 409
+          ? Effect.void
+          : Effect.fail(
+              new SiteProviderRequestError({
+                provider: "vercel",
+                operation: "apply",
+                status: response.status,
+                message: `Vercel rejected the ${record.type} record for ${record.name} (${response.status})`,
+              })
+            )
       );
     }
   }
+);
+
+export function applyVercelDnsRecords(
+  params: ApplyVercelDnsRecordsParams
+): Promise<void> {
+  return runSitesEffect(applyVercelDnsRecordsEffect(params));
 }
 
-export async function removeVercelInstallation(
+export const removeVercelInstallationEffect = Effect.fn(
+  "VercelDns.removeInstallation"
+)(function* (
+  grant: VercelDnsGrant,
+  deps: Pick<VercelDnsDeps, "fetch"> = defaultDeps()
+) {
+  const request = HttpClientRequest.delete(
+    withTeam(
+      `/v1/integrations/configuration/${encodeURIComponent(grant.configurationId)}`,
+      grant.teamId
+    )
+  ).pipe(HttpClientRequest.bearerToken(grant.accessToken));
+  yield* vercelRequest(request, "uninstall", deps, () => Effect.void).pipe(
+    Effect.catchTag("SiteProviderRequestError", () => Effect.void)
+  );
+});
+
+export function removeVercelInstallation(
   grant: VercelDnsGrant,
   deps: Pick<VercelDnsDeps, "fetch"> = defaultDeps()
 ): Promise<void> {
-  try {
-    const response = await deps.fetch(
-      withTeam(
-        `/v1/integrations/configuration/${encodeURIComponent(grant.configurationId)}`,
-        grant.teamId
-      ),
-      {
-        method: "DELETE",
-        headers: { authorization: `Bearer ${grant.accessToken}` },
-        signal: AbortSignal.timeout(VERCEL_DNS_HTTP_TIMEOUT_MS),
-      }
-    );
-    await response.body?.cancel();
-  } catch (error) {
-    console.warn("sites.vercel_dns_uninstall_failed", {
-      error: errorMessage(error),
-    });
-  }
+  return runSitesEffect(removeVercelInstallationEffect(grant, deps));
 }

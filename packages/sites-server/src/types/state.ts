@@ -22,3 +22,7 @@ export interface ServingPreviewAccess {
   previewPassword: SitePreviewPassword | null;
   previewVisibility: SitePreviewPointer["visibility"] | null;
 }
+export type ServingStateAttemptFailure = {
+  readonly _tag: "CasConflict" | "OperationFailure";
+  readonly error: unknown;
+};

@@ -1,6 +1,7 @@
 import { createPrivateKey, type KeyObject, sign } from "node:crypto";
 
 import { fetchPublicUrl } from "@notra/ai/utils/public-fetch";
+import { Effect } from "effect";
 
 import {
   DOMAIN_CONNECT_CALLBACK_PATH,
@@ -13,12 +14,16 @@ import {
   DOMAIN_CONNECT_RESERVED_PARAMS,
   OWNERSHIP_RECORD_PREFIX,
 } from "./constants/domain-connect";
-import { DOMAIN_OWNERSHIP_RECORD_PREFIX } from "./constants/domains";
+import {
+  DOMAIN_OWNERSHIP_RECORD_PREFIX,
+  DNS_RESOLVER_TIMEOUT_MS,
+} from "./constants/domains";
 import { getDashboardUrl, siteCnameTarget } from "./env";
 import {
   domainConnectSettingsSchema,
   domainConnectTemplateSchema,
 } from "./schemas/domain-connect";
+import { SiteProviderRequestError } from "./schemas/provider-error";
 import type {
   BuildApplyUrlParams,
   DomainConnectConfig,
@@ -37,12 +42,24 @@ import {
 import { signDomainConnectCallback } from "./utils/domain-connect-callback";
 import { errorMessage } from "./utils/errors";
 import { safeJson } from "./utils/json";
-import { readBodyUpTo } from "./utils/read-body";
+import { readBodyUpToEffect } from "./utils/read-body";
+import { runSitesEffect } from "./utils/run-sites-effect";
 
 function defaultDeps(): DomainConnectDeps {
   const resolver = createDnsResolver();
   return {
-    resolveTxt: (name) => resolver.resolveTxt(name),
+    resolveTxt: async (name, signal) => {
+      if (signal?.aborted) {
+        throw signal.reason;
+      }
+      const cancel = () => resolver.cancel();
+      signal?.addEventListener("abort", cancel, { once: true });
+      try {
+        return await resolver.resolveTxt(name);
+      } finally {
+        signal?.removeEventListener("abort", cancel);
+      }
+    },
     fetch: (input, init) =>
       fetchPublicUrl(input, init, {
         maxRedirects: 3,
@@ -73,12 +90,20 @@ export function getDomainConnectConfig(): DomainConnectConfig | null {
   };
 }
 
-async function lookupDiscoveryHost(
-  zone: string,
-  deps: DomainConnectDeps
-): Promise<string | null> {
-  try {
-    const records = await deps.resolveTxt(`_domainconnect.${zone}`);
+const lookupDiscoveryHostEffect = Effect.fn(
+  "Sites.DomainConnect.lookupDiscovery"
+)(
+  function* (zone: string, deps: DomainConnectDeps) {
+    const records = yield* Effect.tryPromise({
+      try: (signal) => deps.resolveTxt(`_domainconnect.${zone}`, signal),
+      catch: () =>
+        new SiteProviderRequestError({
+          provider: "domain_connect",
+          operation: "lookupDiscovery",
+          status: null,
+          message: "Domain Connect DNS lookup failed",
+        }),
+    });
     for (const chunks of records) {
       const value = chunks
         .join("")
@@ -89,100 +114,181 @@ async function lookupDiscoveryHost(
         return value;
       }
     }
-  } catch {
     return null;
-  }
-  return null;
-}
+  },
+  (program) =>
+    program.pipe(
+      Effect.timeoutOrElse({
+        duration: DNS_RESOLVER_TIMEOUT_MS * 2,
+        orElse: () =>
+          Effect.fail(
+            new SiteProviderRequestError({
+              provider: "domain_connect",
+              operation: "lookupDiscovery",
+              status: null,
+              message: "Domain Connect DNS lookup timed out",
+            })
+          ),
+      }),
+      Effect.catchTag("SiteProviderRequestError", () => Effect.succeed(null))
+    )
+);
 
-async function fetchJson(
-  url: string,
-  deps: Pick<DomainConnectDeps, "fetch">
-): Promise<DomainConnectJsonResponse> {
-  const response = await deps.fetch(url, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(DOMAIN_CONNECT_HTTP_TIMEOUT_MS),
-  });
-  if (!response.ok) {
-    await response.body?.cancel();
-    return { status: response.status, body: null };
-  }
-  const { bytes, exceeded } = await readBodyUpTo(
-    response,
-    DOMAIN_CONNECT_MAX_SETTINGS_BYTES
-  );
-  const body: unknown = exceeded
-    ? null
-    : safeJson(new TextDecoder().decode(bytes));
-  return { status: response.status, body };
-}
+const fetchJsonEffect = Effect.fn("Sites.DomainConnect.fetchJson")(
+  function* (url: string, deps: Pick<DomainConnectDeps, "fetch">) {
+    const controller = yield* Effect.acquireRelease(
+      Effect.sync(() => new AbortController()),
+      (owned) => Effect.sync(() => owned.abort())
+    );
+    const response = yield* Effect.tryPromise({
+      try: async (signal) => {
+        const result = await deps.fetch(url, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.any([controller.signal, signal]),
+        });
+        if (signal.aborted) {
+          void result.body?.cancel().catch(() => undefined);
+        }
+        return result;
+      },
+      catch: () =>
+        new SiteProviderRequestError({
+          provider: "domain_connect",
+          operation: "fetchJson",
+          status: null,
+          message: "Domain Connect request failed",
+        }),
+    });
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        void response.body?.cancel().catch(() => undefined);
+      })
+    );
+    if (!response.ok) {
+      return {
+        status: response.status,
+        body: null,
+      } satisfies DomainConnectJsonResponse;
+    }
+    const { bytes, exceeded } = yield* readBodyUpToEffect(
+      response,
+      DOMAIN_CONNECT_MAX_SETTINGS_BYTES
+    ).pipe(
+      Effect.mapError(
+        () =>
+          new SiteProviderRequestError({
+            provider: "domain_connect",
+            operation: "fetchJson",
+            status: response.status,
+            message: "Domain Connect response could not be read",
+          })
+      )
+    );
+    const body: unknown = exceeded
+      ? null
+      : safeJson(new TextDecoder().decode(bytes));
+    return {
+      status: response.status,
+      body,
+    } satisfies DomainConnectJsonResponse;
+  },
+  (program) =>
+    program.pipe(
+      Effect.scoped,
+      Effect.timeoutOrElse({
+        duration: DOMAIN_CONNECT_HTTP_TIMEOUT_MS,
+        orElse: () =>
+          Effect.fail(
+            new SiteProviderRequestError({
+              provider: "domain_connect",
+              operation: "fetchJson",
+              status: null,
+              message: "Domain Connect request timed out",
+            })
+          ),
+      })
+    )
+);
 
-export async function discoverDomainConnect(
-  hostname: string,
-  deps: DomainConnectDeps = defaultDeps()
-): Promise<DomainConnectSettings | null> {
+export const discoverDomainConnectEffect = Effect.fn(
+  "Sites.DomainConnect.discover"
+)(function* (hostname: string, providedDeps?: DomainConnectDeps) {
+  const deps = providedDeps ?? defaultDeps();
   const normalized = normalizeDnsName(hostname);
   for (const zone of zoneCandidates(normalized)) {
-    const discoveryHost = await lookupDiscoveryHost(zone, deps);
+    const discoveryHost = yield* lookupDiscoveryHostEffect(zone, deps);
     if (!discoveryHost) {
       continue;
     }
-    try {
-      const { body } = await fetchJson(
-        `https://${discoveryHost}/v2/${zone}/settings`,
-        deps
-      );
-      const parsed = domainConnectSettingsSchema.safeParse(body);
-      if (parsed.success) {
-        return {
-          ...parsed.data,
-          domain: zone,
-          host: normalized.slice(0, -(zone.length + 1)),
-        };
-      }
-    } catch {
+    const result = yield* fetchJsonEffect(
+      `https://${discoveryHost}/v2/${zone}/settings`,
+      deps
+    ).pipe(
+      Effect.catchTag("SiteProviderRequestError", () => Effect.succeed(null))
+    );
+    if (!result) {
       continue;
+    }
+    const { body } = result;
+    const parsed = domainConnectSettingsSchema.safeParse(body);
+    if (parsed.success) {
+      return {
+        ...parsed.data,
+        domain: zone,
+        host: normalized.slice(0, -(zone.length + 1)),
+      };
     }
   }
   return null;
+});
+
+export function discoverDomainConnect(
+  hostname: string,
+  deps?: DomainConnectDeps
+): Promise<DomainConnectSettings | null> {
+  return runSitesEffect(discoverDomainConnectEffect(hostname, deps));
 }
 
-async function isTemplateSupported(
+const isTemplateSupportedEffect = Effect.fn(
+  "Sites.DomainConnect.supportsTemplate"
+)(function* (
   settings: Pick<DomainConnectSettings, "urlAPI">,
   template: Pick<DomainConnectConfig, "providerId" | "serviceId">,
   deps: Pick<DomainConnectDeps, "fetch">
-): Promise<boolean> {
+) {
   const url = `${settings.urlAPI.replace(/\/+$/, "")}/v2/domainTemplates/providers/${encodeURIComponent(template.providerId)}/services/${encodeURIComponent(template.serviceId)}`;
-  try {
-    const { body } = await fetchJson(url, deps);
-    const parsed = domainConnectTemplateSchema.safeParse(body);
-    if (!parsed.success) {
-      return false;
-    }
-    return (
-      parsed.data.records.some(
-        (record) =>
-          record.type === "CNAME" &&
-          record.host === "@" &&
-          record.pointsTo === DOMAIN_CONNECT_CNAME_TARGET
-      ) &&
-      parsed.data.records.some(
-        (record) =>
-          record.type === "TXT" &&
-          record.host === "_cf-custom-hostname" &&
-          record.data === `%${DOMAIN_CONNECT_OWNERSHIP_VARIABLE}%`
-      ) &&
-      parsed.data.records.some(
-        (record) =>
-          record.type === "TXT" &&
-          record.host === "_notra" &&
-          record.data === `%${DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE}%`
-      )
-    );
-  } catch {
+  const result = yield* fetchJsonEffect(url, deps).pipe(
+    Effect.catchTag("SiteProviderRequestError", () => Effect.succeed(null))
+  );
+  if (!result) {
     return false;
   }
-}
+  const { body } = result;
+  const parsed = domainConnectTemplateSchema.safeParse(body);
+  if (!parsed.success) {
+    return false;
+  }
+  return (
+    parsed.data.records.some(
+      (record) =>
+        record.type === "CNAME" &&
+        record.host === "@" &&
+        record.pointsTo === DOMAIN_CONNECT_CNAME_TARGET
+    ) &&
+    parsed.data.records.some(
+      (record) =>
+        record.type === "TXT" &&
+        record.host === "_cf-custom-hostname" &&
+        record.data === `%${DOMAIN_CONNECT_OWNERSHIP_VARIABLE}%`
+    ) &&
+    parsed.data.records.some(
+      (record) =>
+        record.type === "TXT" &&
+        record.host === "_notra" &&
+        record.data === `%${DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE}%`
+    )
+  );
+});
 
 export function buildApplyUrl(params: BuildApplyUrlParams): string {
   const { settings, config } = params;
@@ -227,19 +333,27 @@ function settingsName(
   return settings?.providerDisplayName ?? settings?.providerName;
 }
 
-export async function domainConnectForDomain({
-  siteId,
-  domain,
-  deps = defaultDeps(),
-}: DomainConnectForDomainParams): Promise<DomainConnectResult> {
+export const domainConnectForDomainEffect = Effect.fn(
+  "Sites.DomainConnect.forDomain"
+)(function* ({ siteId, domain, deps }: DomainConnectForDomainParams) {
   if (domain.kind !== "subdomain") {
-    return { status: "unavailable", reason: "not_subdomain" };
+    return {
+      status: "unavailable",
+      reason: "not_subdomain",
+    } satisfies DomainConnectResult;
   }
   if (domain.status === "active") {
-    return { status: "unavailable", reason: "already_active" };
+    return {
+      status: "unavailable",
+      reason: "already_active",
+    } satisfies DomainConnectResult;
   }
 
-  const settings = await discoverDomainConnect(domain.hostname, deps);
+  const dependencies = deps ?? defaultDeps();
+  const settings = yield* discoverDomainConnectEffect(
+    domain.hostname,
+    dependencies
+  );
   const manual: DomainConnectResult = {
     status: "unsupported",
     providerName: settingsName(settings),
@@ -260,9 +374,11 @@ export async function domainConnectForDomain({
   );
   if (
     !(config && ownership && notraOwnership && settings?.urlSyncUX) ||
-    siteCnameTarget() !== DOMAIN_CONNECT_CNAME_TARGET ||
-    !(await isTemplateSupported(settings, config, deps))
+    siteCnameTarget() !== DOMAIN_CONNECT_CNAME_TARGET
   ) {
+    return manual;
+  }
+  if (!(yield* isTemplateSupportedEffect(settings, config, dependencies))) {
     return manual;
   }
   const token = signDomainConnectCallback({ siteId, domainId: domain.id });
@@ -281,5 +397,11 @@ export async function domainConnectForDomain({
       variables,
       redirectUri: `${getDashboardUrl()}${DOMAIN_CONNECT_CALLBACK_PATH}/${token}`,
     }),
-  };
+  } satisfies DomainConnectResult;
+});
+
+export function domainConnectForDomain(
+  params: DomainConnectForDomainParams
+): Promise<DomainConnectResult> {
+  return runSitesEffect(domainConnectForDomainEffect(params));
 }

@@ -7,6 +7,7 @@ import {
   SITE_BUILD_LIMITS,
   SITE_R2_KEYS,
 } from "@notra/sites-core/constants/sites";
+import { Effect } from "effect";
 
 import type {
   SandboxBuildParams,
@@ -42,7 +43,7 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
   let build: SandboxBuildResult;
   const tail = "x".repeat(SITE_BUILD_LIMITS.maxBuildLogBytes);
 
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2Put: (key: string, log: string) => {
       expect(key).toBe(SITE_R2_KEYS.buildLog(site.id, deployment.id));
       writes.push(log);
@@ -50,6 +51,14 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
         ? Promise.reject(new Error("telemetry unavailable"))
         : Promise.resolve();
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
   mock.module("../src/deployments", () => ({
     getDeployment: async () => deployment,

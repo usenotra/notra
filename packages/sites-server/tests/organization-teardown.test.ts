@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
+import { Effect } from "effect";
+
 import { deferred } from "./utils/deferred";
 
 const databaseUrl = process.env.SITES_TEST_DATABASE_URL;
@@ -54,7 +56,7 @@ if (!databaseUrl) {
   let otherOrganizationId = "";
   let hosted: (typeof sites.$inferSelect)[] = [];
 
-  mock.module("../src/r2", () => ({
+  const r2 = {
     r2GetText: async (key: string) => {
       await onRead(key);
       return objects.has(key)
@@ -92,6 +94,19 @@ if (!databaseUrl) {
         }
       }
     },
+  };
+  mock.module("../src/r2", () => ({
+    ...r2,
+    r2GetTextEffect: (...args: Parameters<typeof r2.r2GetText>) =>
+      Effect.tryPromise({
+        try: () => r2.r2GetText(...args),
+        catch: (error) => error,
+      }),
+    r2PutEffect: (...args: Parameters<typeof r2.r2Put>) =>
+      Effect.tryPromise({
+        try: () => r2.r2Put(...args),
+        catch: (error) => error,
+      }),
   }));
   const cloudflare = await import("../src/cloudflare-saas");
   mock.module("../src/cloudflare-saas", () => ({

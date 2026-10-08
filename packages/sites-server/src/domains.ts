@@ -85,7 +85,11 @@ function recordsFor(
       purpose: "routing",
     },
   ];
-  if (custom?.ownership_verification?.type === "txt") {
+  if (
+    custom?.ownership_verification?.type === "txt" &&
+    custom.ownership_verification.name &&
+    custom.ownership_verification.value
+  ) {
     records.push({
       type: "TXT",
       name: custom.ownership_verification.name,
