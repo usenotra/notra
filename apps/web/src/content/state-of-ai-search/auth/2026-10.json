@@ -243,7 +243,56 @@
             "Supabase Auth",
             "Amazon Cognito"
           ],
-          "sources": ["workos.com", "clerk.com", "stytch.com", "auth0.com"],
+          "sources": [
+            {
+              "url": "https://workos.com/pricing?utm_source=openai",
+              "title": "Pricing — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://workos.com/docs/authkit/roles-and-permissions?utm_source=openai",
+              "title": "Roles and Permissions – AuthKit – WorkOS Docs",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://clerk.com/pricing?utm_source=openai",
+              "title": "Pricing — Free Up to 50K Users | Plans from $0/mo",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://stytch.com/pricing?utm_source=openai",
+              "title": "Modern authentication pricing | Stytch",
+              "domain": "stytch.com"
+            },
+            {
+              "url": "https://auth0.com/pricing?utm_source=openai",
+              "title": "Pricing - Auth0",
+              "domain": "auth0.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "For most new B2B SaaS products, I’d choose WorkOS AuthKit.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk has first-class organizations, memberships, roles, permissions, invitations and SAML/OIDC connections.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Cost-sensitive B2B startup: Stytch",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 currently offers up to 25,000 MAUs, one enterprise connection, self-service SSO and SCIM on its free plan.",
+              "match": "Auth0"
+            }
+          ],
           "collectedAt": "2026-10-07T15:25:57.476Z"
         },
         {
@@ -264,13 +313,114 @@
             "Better Auth"
           ],
           "sources": [
-            "securityboulevard.com",
-            "kinde.com",
-            "frontegg.com",
-            "clerk.com",
-            "ssojet.com",
-            "ogblocks.dev",
-            "opensourcealternatives.to"
+            {
+              "url": "https://securityboulevard.com/2026/04/b2b-authentication-provider-comparison-features-pricing-sso-support-2026/",
+              "title": "B2B Authentication Provider Comparison: Features, Pricing & SSO Support (2026) - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://www.kinde.com/comparisons/top-10-authentication-providers-for-b2b-software-2026/",
+              "title": "Kinde Top 10 Authentication Providers for B2B Software 2026",
+              "domain": "kinde.com"
+            },
+            {
+              "url": "https://frontegg.com/blog/top-sso-providers",
+              "title": "Top 10 SSO Providers for B2B SaaS in 2026",
+              "domain": "frontegg.com"
+            },
+            {
+              "url": "https://www.kinde.com/comparisons/what-are-the-top-10-enterprise-authentication-providers-in-2026/",
+              "title": "Kinde What are the top 10 enterprise authentication providers in 2026?",
+              "domain": "kinde.com"
+            },
+            {
+              "url": "https://clerk.com/articles/best-sso-and-mfa-providers-for-b2b-saas",
+              "title": "Best SSO and MFA Providers for B2B SaaS in 2026",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://ssojet.com/blog/best-identity-management-providers-for-saas",
+              "title": "Best Identity Management Providers for SaaS (2026 Comparison)",
+              "domain": "ssojet.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/05/authentication-services-in-2026-how-they-work-top-providers-compared-and-how-to-choose/",
+              "title": "Authentication Services in 2026: How They Work, Top Providers Compared, and How to Choose - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://ogblocks.dev/blog/5-best-authentication-provider-for-saas",
+              "title": "How to Secure Your App Without the Headache, 5 Best ...",
+              "domain": "ogblocks.dev"
+            },
+            {
+              "url": "https://www.opensourcealternatives.to/blog/best-open-source-authentication-tools",
+              "title": "Best Open Source Authentication Tools in 2026",
+              "domain": "opensourcealternatives.to"
+            },
+            {
+              "url": "https://securityboulevard.com/2025/08/top-15-sso-providers-2025-secure-your-systems-confidently/",
+              "title": "Top 15 SSO Providers 2026 - Secure Your Systems Confidently - Security Boulevard",
+              "domain": "securityboulevard.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Kinde",
+              "text": "Kinde ranks Kinde first, Clerk ranks Clerk first, and SSOJet ranks SSOJet first.",
+              "match": "Kinde"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Kinde ranks Kinde first, Clerk ranks Clerk first, and SSOJet ranks SSOJet first.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "B2B SaaS that needs organizations and roles built in → Kinde, Frontegg, PropelAuth, or Stytch",
+              "match": "Stytch"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "You already have auth and need enterprise SSO to close deals → WorkOS (or Scalekit / SSOJet)",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Mixed B2C and B2B, or complex requirements → Auth0",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Already using a platform → Supabase Auth, Firebase, Cognito, or Entra",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Already using a platform → Supabase Auth, Firebase, Cognito, or Entra",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Already using a platform → Supabase Auth, Firebase, Cognito, or Entra",
+              "match": "Cognito"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "Self-hosted or open source → FusionAuth, Keycloak, ZITADEL, or Better Auth",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Self-hosted or open source → FusionAuth, Keycloak, ZITADEL, or Better Auth",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Self-hosted or open source → FusionAuth, Keycloak, ZITADEL, or Better Auth",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:50.170Z"
         },
@@ -383,11 +533,59 @@
           },
           "mentioned": ["Clerk", "Auth0", "Okta", "Supabase Auth", "WorkOS"],
           "sources": [
-            "auth0.com",
-            "boilerplatehub.com",
-            "reddit.com",
-            "community.plone.org",
-            "securityboulevard.com"
+            {
+              "url": "https://auth0.com/blog/auth0-launches-organizations-transforming-the-way-enterprises-manage-business-customer-identity/",
+              "title": "Auth0 Launches Organizations, Transforming the Way ...",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://boilerplatehub.com/best/auth-for-nextjs",
+              "title": "Best Authentication for Next.js SaaS in 2026 | BoilerplateHub",
+              "domain": "boilerplatehub.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/AZURE/comments/16zlxau/dynamic_identity_providers_for_saas_azure_b2c_vs/",
+              "title": "Dynamic Identity Providers for SaaS (Azure B2C vs. Duende ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://community.plone.org/t/saml-or-oauth2-best-bet-for-sso-and-plone-6-in-2022/15659",
+              "title": "Saml or Oauth2 - Best bet for SSO and Plone 6 in 2022",
+              "domain": "community.plone.org"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/03/top-scim-providers-for-b2b-saas-apps-automated-user-provisioning-platforms/",
+              "title": "Top SCIM Providers for B2B SaaS Apps: Automated User ...",
+              "domain": "securityboulevard.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Best overall for modern B2C and early-to-mid stage B2B SaaS.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 (by Okta): Best for enterprise-grade B2B SaaS.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 (by Okta): Best for enterprise-grade B2B SaaS.",
+              "match": "Okta"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth: Best if you are building on PostgreSQL.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Selling to Enterprise (1,000+ employees): Choose or WorkOS for native SAML, SCIM provisioning, and audit logs.",
+              "match": "WorkOS"
+            }
           ],
           "collectedAt": "2026-10-07T15:40:50.610Z"
         }
@@ -443,7 +641,56 @@
             "Amazon Cognito",
             "FusionAuth"
           ],
-          "sources": ["supabase.com", "auth0.com"],
+          "sources": [
+            {
+              "url": "https://supabase.com/pricing",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://auth0.com/pricing",
+              "title": "Pricing - Auth0",
+              "domain": "auth0.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Auth0",
+              "text": "Yes—several Auth0 alternatives can be substantially cheaper.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Cheapest general-purpose option: Supabase Auth",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Cheapest for B2B SaaS: WorkOS AuthKit, unless you need many SSO connections",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Best for millions of consumer users: Firebase Identity Platform",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Best developer experience for React/Next.js: Clerk",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Best if you already run everything on AWS: Cognito Lite",
+              "match": "Cognito"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "Lowest vendor bill: FusionAuth Community/self-hosted, but account for infrastructure, upgrades, monitoring and security work",
+              "match": "FusionAuth"
+            }
+          ],
           "collectedAt": "2026-10-07T15:27:37.081Z"
         },
         {
@@ -463,14 +710,109 @@
             "FusionAuth"
           ],
           "sources": [
-            "hideez.com",
-            "mojoauth.com",
-            "supertokens.com",
-            "seliseblocks.com",
-            "securityboulevard.com",
-            "auth0.alternative.to",
-            "toolradar.com",
-            "aisotools.com"
+            {
+              "url": "https://hideez.com/blogs/news/auth0-alternatives",
+              "title": "Auth0 Alternatives 2025: Lower Cost, Higher Control",
+              "domain": "hideez.com"
+            },
+            {
+              "url": "https://mojoauth.com/blog/12-best-auth0-alternatives-passwordless",
+              "title": "13 Best Auth0 Alternatives for Passwordless Authentication in 2026",
+              "domain": "mojoauth.com"
+            },
+            {
+              "url": "https://supertokens.com/blog/cheapest-auth-alternatives",
+              "title": "Looking for the cheapest Auth0 alternatives? See free and low-cost options (OSS + managed), pricing gotchas, and when SuperTokens is the better fit.",
+              "domain": "supertokens.com"
+            },
+            {
+              "url": "https://seliseblocks.com/blog/auth0-alternatives-6-options-compared-including-open-source",
+              "title": "Auth0 Alternatives: 6 Options Compared (Including Open Source)",
+              "domain": "seliseblocks.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/05/12-best-auth0-alternatives-for-passwordless-authentication-in-2026/",
+              "title": "12 Best Auth0 Alternatives for Passwordless Authentication in 2026 - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://auth0.alternative.to/",
+              "title": "8 Best Auth0 Alternatives (2026), Compared Honestly",
+              "domain": "auth0.alternative.to"
+            },
+            {
+              "url": "https://toolradar.com/tools/auth0/pricing",
+              "title": "Auth0 Pricing 2026: Plans, Hidden Costs & Alternatives",
+              "domain": "toolradar.com"
+            },
+            {
+              "url": "https://aisotools.com/alternatives/auth0",
+              "title": "Best Auth0 Alternatives (2026) — Top 2 Competitors",
+              "domain": "aisotools.com"
+            },
+            {
+              "url": "https://www.saasworthy.com/product-alternative/2935/auth0",
+              "title": "10 Best Auth0 Alternatives & Competitors in 2026",
+              "domain": "saasworthy.com"
+            },
+            {
+              "url": "https://comparetiers.com/tools/auth0",
+              "title": "Auth0 Pricing Plans and Tiers Compared (2026)",
+              "domain": "comparetiers.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Auth0",
+              "text": "Baseline (Auth0): Essentials costs $35/month for B2C or $150/month for B2B.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Good for React/Next.js apps.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth: Good if you already use Postgres. 50,000 MAU on the free tier, 100,000 included on the $25/month Pro tier, then $0.00325 per MAU.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Kinde",
+              "text": "Kinde: Aimed at B2B startups.",
+              "match": "Kinde"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Auth: 50,000 MAU free for tier-1 providers (email, social, phone, anonymous), then $0.0055 per MAU.",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "AWS Cognito: Cheapest managed per-MAU: Lite from $0.0055/MAU (10k free), Essentials $0.015, Plus $0.020.",
+              "match": "AWS Cognito"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS: Best for B2B apps that need enterprise SSO.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak: The most feature-complete OSS IAM: OIDC, SAML 2.0, LDAP/AD federation, fine-grained authz.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "SuperTokens",
+              "text": "SuperTokens: Free (self-hosted), managed cloud starts at $0.02/MAU after free tier.",
+              "match": "SuperTokens"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "FusionAuth: No per-MAU pricing on the Community Edition, so a 1M user deployment costs the same as a 1,000 user one.",
+              "match": "FusionAuth"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:21.370Z"
         },
@@ -549,7 +891,51 @@
             "FusionAuth",
             "Descope"
           ],
-          "sources": ["guptadeepak.com", "stackshare.io", "vioscale.ai"],
+          "sources": [
+            {
+              "url": "https://guptadeepak.com/ciam-compass/compare/auth0-vs-cognito/",
+              "title": "Auth0 vs Amazon Cognito: Which CIAM Wins in 2026?, CIAM Compass",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://stackshare.io/auth0/alternatives",
+              "title": "Best Auth0 Alternatives in 2025",
+              "domain": "stackshare.io"
+            },
+            {
+              "url": "https://www.vioscale.ai/alternatives/auth0",
+              "title": "12 best Auth0 alternatives, independently scored - Vioscale",
+              "domain": "vioscale.ai"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon Cognito",
+              "text": "Amazon Cognito is a cheaper and scalable alternative to Auth0, especially for high-volume applications or those deeply integrated into AWS.",
+              "match": "Amazon Cognito"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Amazon Cognito is a cheaper and scalable alternative to Auth0, especially for high-volume applications or those deeply integrated into AWS.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Authentication: Completely free for basic email/password and federated logins (Google, Apple, etc.), making it ideal for mobile and web apps on a tight budget.",
+              "match": "Firebase Authentication"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "FusionAuth: Built for developers who want self-hosted or flexible cloud deployment with predictable pricing that doesn't scale up aggressively per monthly active user.",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Descope",
+              "text": "Descope: A modern authentication platform with robust visual workflows and a developer-friendly free tier that undercuts Auth0's enterprise pricing scale.",
+              "match": "Descope"
+            }
+          ],
           "collectedAt": "2026-10-07T15:28:15.024Z"
         }
       ]
@@ -597,11 +983,59 @@
           "overview": null,
           "mentioned": ["WorkOS", "Stytch", "Clerk", "Auth0", "Descope"],
           "sources": [
-            "workos.com",
-            "stytch.com",
-            "clerk.com",
-            "auth0.com",
-            "descope.com"
+            {
+              "url": "https://workos.com/pricing",
+              "title": "Pricing — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://stytch.com/pricing?utm_source=openai",
+              "title": "Modern authentication pricing | Stytch",
+              "domain": "stytch.com"
+            },
+            {
+              "url": "https://clerk.com/pricing?utm_source=openai",
+              "title": "Pricing — Free Up to 50K Users | Plans from $0/mo",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://auth0.com/startups?utm_source=openai",
+              "title": "Auth0 for Startups | Enjoy One Year Free | Auth0",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://www.descope.com/pricing?hsa_acc=22419231&hsa_cam=518486153&hsa_grp=1326012668233532&hsa_kw=passkeys&hsa_mt=e&hsa_net=bing&hsa_src=o&hsa_tgt=kwd-82876715071830%3Aloc-190&hsa_ver=3&utm_source=openai",
+              "title": "Pricing | Descope",
+              "domain": "descope.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "Best overall for most B2B startups: WorkOS.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Best value for a greenfield application: Stytch.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk’s additional Directory Sync billing is scheduled to begin January 1, 2027; its Pro plan currently includes one SSO and one Directory Sync connection.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0’s startup program includes one free year, up to 100,000 MAUs, five enterprise connections and inbound SCIM for qualifying startups.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Descope",
+              "text": "Descope puts SCIM provisioning in its $799/month Growth tier.",
+              "match": "Descope"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:55.149Z"
         },
@@ -621,14 +1055,104 @@
             "Amazon Cognito"
           ],
           "sources": [
-            "securityboulevard.com",
-            "workos.com",
-            "ssojet.com",
-            "frontegg.com",
-            "guptadeepak.com",
-            "pkgpulse.com",
-            "doolpa.com",
-            "clerk.com"
+            {
+              "url": "https://securityboulevard.com/2026/05/enterprise-authentication-for-developers-10-tools-compared-2026/",
+              "title": "Enterprise Authentication for Developers: 10 Tools Compared (2026) - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://workos.com/blog/best-scim-providers-for-automated-user-provisioning-in-2026",
+              "title": "Best SCIM providers for automated user provisioning in 2026 — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://ssojet.com/blog/7-best-stytch-alternatives-for-b2b-saas-enterprise-auth",
+              "title": "7 Best Stytch Alternatives for B2B SaaS Enterprise Auth in 2026",
+              "domain": "ssojet.com"
+            },
+            {
+              "url": "https://frontegg.com/blog/top-sso-providers",
+              "title": "Top 10 SSO Providers for B2B SaaS in 2026",
+              "domain": "frontegg.com"
+            },
+            {
+              "url": "https://guptadeepak.com/auth0-vs-okta-vs-stytch-vs-workos-vs-ssojet-2026-a-buyer-stage-framework/",
+              "title": "Auth0 vs Okta vs Stytch vs WorkOS: CIAM Buyer-Stage Guide, guptadeepak.com",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://guptadeepak.com/tools/top-5-developer-first-ciam-platforms-2026/",
+              "title": "Top 5 Developer-First CIAM Platforms: Frontegg, SSOJet, Stytch, Clerk, and WorkOS Compared",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://www.pkgpulse.com/guides/workos-vs-stytch-vs-fusionauth-enterprise-identity-sso-2026",
+              "title": "WorkOS vs Stytch vs FusionAuth: Auth 2026 — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://doolpa.com/article/workos",
+              "title": "WorkOS - Enterprise SSO, SCIM & AuthKit Done Right - Doolpa",
+              "domain": "doolpa.com"
+            },
+            {
+              "url": "https://clerk.com/articles/oidc-vs-saml-for-enterprise-sso-a-2026-decision-guide-4",
+              "title": "OIDC vs SAML for Enterprise SSO: A 2026 Decision Guide - Part 4",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://dev.to/ssojet/7-best-stytch-alternatives-for-b2b-saas-enterprise-auth-in-2026-16oj",
+              "title": "7 Best Stytch Alternatives for B2B SaaS Enterprise Auth in 2026 - DEV Community",
+              "domain": "dev.to"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Okta",
+              "text": "If you actually want an identity provider for your own employees, that's a different list (Google Workspace, Okta, JumpCloud, and similar), so tell me and I'll cover that instead.",
+              "match": "Okta"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "One caveat first: most of the comparison articles online are written by the vendors themselves (WorkOS, SSOJet, Frontegg, Clerk), so treat their rankings with some skepticism.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Clerk",
+              "text": "One caveat first: most of the comparison articles online are written by the vendors themselves (WorkOS, SSOJet, Frontegg, Clerk), so treat their rankings with some skepticism.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Stytch: best if you want a full auth platform with a free starting allowance",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Free, self-hosted options: Keycloak and FusionAuth Community cost nothing beyond your servers.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "Free, self-hosted options: Keycloak and FusionAuth Community cost nothing beyond your servers.",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Auth0",
+              "text": "You already have auth (Auth0, Firebase, Cognito, or custom) and just need SSO/SCIM to close deals: WorkOS for polish, or Scalekit/SSOJet to save money.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "You already have auth (Auth0, Firebase, Cognito, or custom) and just need SSO/SCIM to close deals: WorkOS for polish, or Scalekit/SSOJet to save money.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "You already have auth (Auth0, Firebase, Cognito, or custom) and just need SSO/SCIM to close deals: WorkOS for polish, or Scalekit/SSOJet to save money.",
+              "match": "Cognito"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:44.078Z"
         },
@@ -750,13 +1274,89 @@
           },
           "mentioned": ["WorkOS", "Okta", "Auth0", "Keycloak"],
           "sources": [
-            "startupik.com",
-            "workos.com",
-            "startwithidentity.com",
-            "javascript.plainenglish.io",
-            "scalekit.com",
-            "securityboulevard.com",
-            "phasetwo.io"
+            {
+              "url": "https://startupik.com/auth0-vs-workos-enterprise-authentication-platforms-compared/",
+              "title": "Auth0 vs WorkOS: Enterprise Authentication Platforms ...",
+              "domain": "startupik.com"
+            },
+            {
+              "url": "https://workos.com/compare/auth0",
+              "title": "WorkOS vs Auth0: Clear pricing, SCIM, IT-admin self-serve UI",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://workos.com/blog/best-scim-providers-for-automated-user-provisioning-in-2026",
+              "title": "Best SCIM providers for automated user provisioning in 2026 — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://workos.com/blog/auth0-pricing-how-it-works-and-compares-to-workos",
+              "title": "Auth0 pricing: how it works and compares to WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://startwithidentity.com/rankings/best-sso-scim-platforms-b2b-saas/",
+              "title": "Best Enterprise SSO & SCIM Platforms for B2B SaaS: Top 5",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://javascript.plainenglish.io/i-evaluated-enterprise-auth-for-a-saas-app-and-heres-my-honest-take-on-workos-authkit-radar-57405d0ecd1e",
+              "title": "I Evaluated Enterprise Auth for a SaaS App and Here's My Honest Take ...",
+              "domain": "javascript.plainenglish.io"
+            },
+            {
+              "url": "https://startupik.com/workos-vs-auth0-enterprise-authentication-tools-compared/",
+              "title": "WorkOS vs Auth0: Enterprise Authentication Tools Compared",
+              "domain": "startupik.com"
+            },
+            {
+              "url": "https://www.scalekit.com/compare/workos-alternative",
+              "title": "WorkOS Alternatives for B2B SaaS & AI Apps",
+              "domain": "scalekit.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2025/08/top-15-sso-providers-2025-secure-your-systems-confidently/",
+              "title": "Top 15 SSO Providers 2026",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://phasetwo.io/keycloak-alternatives/auth0/",
+              "title": "Keycloak vs. Auth0 - Phase Two",
+              "domain": "phasetwo.io"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/02/best-enterprise-sso-platforms-for-startups-in-2026-technical-guide-comparison/",
+              "title": "Best Enterprise SSO Platforms for Startups in 2026 (Technical Guide ...",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/03/enterprise-sso-platforms-compared-ssojet-vs-auth0-vs-workos-vs-okta-for-saas/",
+              "title": "Enterprise SSO Platforms Compared: SSOJet vs Auth0 vs ...",
+              "domain": "securityboulevard.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "Choose WorkOS if: You already have a login/auth system (or built-in multi-tenancy) and enterprise customers are suddenly blocking deals until you support Okta or Microsoft Entra ID SSO and SCIM.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Okta",
+              "text": "Choose WorkOS if: You already have a login/auth system (or built-in multi-tenancy) and enterprise customers are suddenly blocking deals until you support Okta or Microsoft Entra ID SSO and SCIM.",
+              "match": "Okta"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Choose Auth0 if: You are building a new application and want a unified platform to manage consumer (B2C) social logins alongside enterprise (B2B) SAML connections.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Choose Keycloak if: You have the DevOps bandwidth to run, patch, and scale an open-source identity stack in-house to avoid vendor lock-in.",
+              "match": "Keycloak"
+            }
           ],
           "collectedAt": "2026-10-07T15:41:10.849Z"
         }
@@ -808,7 +1408,46 @@
             "Firebase Authentication",
             "Supabase Auth"
           ],
-          "sources": ["cheatsheetseries.owasp.org", "pages.nist.gov"],
+          "sources": [
+            {
+              "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Patterns_Cheat_Sheet.html?utm_source=openai",
+              "title": "Authentication Patterns - OWASP Cheat Sheet Series",
+              "domain": "cheatsheetseries.owasp.org"
+            },
+            {
+              "url": "https://pages.nist.gov/800-63-4/sp800-63b/authenticators/?utm_source=openai",
+              "title": "Authenticators",
+              "domain": "pages.nist.gov"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Examples include Clerk, Auth0, Cognito, Firebase Auth, and Supabase Auth.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Examples include Clerk, Auth0, Cognito, Firebase Auth, and Supabase Auth.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Examples include Clerk, Auth0, Cognito, Firebase Auth, and Supabase Auth.",
+              "match": "Cognito"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Examples include Clerk, Auth0, Cognito, Firebase Auth, and Supabase Auth.",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Examples include Clerk, Auth0, Cognito, Firebase Auth, and Supabase Auth.",
+              "match": "Supabase Auth"
+            }
+          ],
           "collectedAt": "2026-10-07T15:26:37.237Z"
         },
         {
@@ -828,6 +1467,59 @@
             "Auth.js"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "AWS Cognito"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Examples: Clerk, Auth0, Firebase Auth, Supabase Auth, AWS Cognito, WorkOS (if you sell to businesses and need SSO)",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Examples: Keycloak, Ory, SuperTokens, Authentik, or framework libraries like Better Auth, Auth.js (NextAuth), Devise (Rails), Django's built-in auth",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "SuperTokens",
+              "text": "Examples: Keycloak, Ory, SuperTokens, Authentik, or framework libraries like Better Auth, Auth.js (NextAuth), Devise (Rails), Django's built-in auth",
+              "match": "SuperTokens"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Examples: Keycloak, Ory, SuperTokens, Authentik, or framework libraries like Better Auth, Auth.js (NextAuth), Devise (Rails), Django's built-in auth",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "Examples: Keycloak, Ory, SuperTokens, Authentik, or framework libraries like Better Auth, Auth.js (NextAuth), Devise (Rails), Django's built-in auth",
+              "match": "Auth.js"
+            }
+          ],
           "collectedAt": "2026-10-07T15:26:38.831Z"
         },
         {
@@ -987,13 +1679,79 @@
             "Better Auth"
           ],
           "sources": [
-            "news.ycombinator.com",
-            "dev.to",
-            "youtube.com",
-            "reddit.com",
-            "propelauth.com",
-            "linkedin.com",
-            "duendesoftware.com"
+            {
+              "url": "https://news.ycombinator.com/item?id=25848349",
+              "title": "Why outsource your auth system? - Hacker News",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://dev.to/thegdsks/ive-built-auth-six-times-heres-the-system-i-would-build-today-5cpf",
+              "title": "I've built auth six times. Here's the system I would build today",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Q1g12OjIozs&t=9",
+              "title": "Mark Robustelli – Auth: Build vs Open Source vs Buy",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/softwarearchitecture/comments/gh4oxh/authentication_service_selfmade_vs_already_made/",
+              "title": "Authentication service self-made vs already made solution",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.propelauth.com/post/build-v-buy-auth",
+              "title": "Build or Buy: User Authentication",
+              "domain": "propelauth.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=VA2RS9WN9us&t=14",
+              "title": "This is Why You Don't Roll Your Own Auth",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=r8Td2nawjEc",
+              "title": "STOP Writing Your Own Authentication! (Here's Why You're ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.linkedin.com/pulse/why-you-should-stop-building-your-own-authentication-systems-gouff",
+              "title": "Why You Should Stop Building Your Own Authentication ...",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://duendesoftware.com/compare/self-host-vs-custom-build",
+              "title": "Build vs. Buy Authentication: Custom Build or Identity Server?",
+              "domain": "duendesoftware.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Hh_kiZTTBr0&t=6",
+              "title": "Should you Implement Authentication Yourself?",
+              "domain": "youtube.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Auth0",
+              "text": "Use a managed provider (such as Auth0, Clerk, or Firebase) or a solid open-source library (such as Better Auth or Devise) when:",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Use a managed provider (such as Auth0, Clerk, or Firebase) or a solid open-source library (such as Better Auth or Devise) when:",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Use a managed provider (such as Auth0, Clerk, or Firebase) or a solid open-source library (such as Better Auth or Devise) when:",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Use a managed provider (such as Auth0, Clerk, or Firebase) or a solid open-source library (such as Better Auth or Devise) when:",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:59.872Z"
         }
@@ -1039,7 +1797,41 @@
           "text": "## Short answer\n\n- **B2B SaaS:** **WorkOS AuthKit**\n- **Consumer apps / fastest integration:** **Clerk**\n- **Maximum control over passkey + step-up MFA flows:** **Stytch**\n\n### My default recommendation: WorkOS AuthKit\n\nChoose **WorkOS** if you’re building SaaS for businesses. It supports passkeys, hosted TOTP MFA, per-organization MFA policies, SSO, organizations, and enterprise features in one stack. Its hosted MFA uses authenticator apps rather than SMS, which is generally the better security default. \n\n### Choose Clerk when developer experience matters most\n\nClerk has excellent prebuilt components and straightforward framework integrations. Production passkeys and MFA are available on its paid plan, with MFA supporting TOTP, SMS, and recovery codes. \n\n**Important Clerk caveat:** For Clerk instances created on or after **July 8, 2026**, passkey authentication automatically satisfies the MFA requirement and this cannot be disabled. Therefore, Clerk may not fit a requirement for **passkey followed by a separate TOTP challenge**. \n\n### Choose Stytch for custom security flows\n\nStytch is the strongest option when you need API-level control, per-tenant authentication policies, fraud/device signals, or explicit step-up authentication after passkey login. Its current self-service tier includes 10,000 active users and does not gate core authentication features. \n\n| Requirement | Best choice |\n|---|---|\n| Next.js startup needing auth quickly | **Clerk** |\n| B2B SaaS with organizations and future SSO/SCIM | **WorkOS** |\n| Passkey plus separate MFA/step-up flows | **Stytch** |\n| Visual workflow builder | **Descope** |\n| Existing large-enterprise identity deployment | **Auth0** |\n\n**Bottom line:** I’d use **WorkOS for B2B** and **Clerk for B2C**. If “passkeys and MFA” means you must require two distinct authentication steps, use **Stytch** rather than Clerk.",
           "overview": null,
           "mentioned": ["WorkOS", "Clerk", "Stytch", "Descope", "Auth0"],
-          "sources": ["workos.com", "clerk.com", "stytch.com"],
+          "sources": [
+            {
+              "url": "https://workos.com/docs?utm_source=openai",
+              "title": "WorkOS Docs",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options?utm_source=openai",
+              "title": "Sign-up and sign-in options - Authentication strategies | Clerk Docs",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://stytch.com/pricing?utm_source=openai",
+              "title": "Modern authentication pricing | Stytch",
+              "domain": "stytch.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "B2B SaaS: WorkOS AuthKit",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Consumer apps / fastest integration: Clerk",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Maximum control over passkey + step-up MFA flows: Stytch",
+              "match": "Stytch"
+            }
+          ],
           "collectedAt": "2026-10-07T15:27:14.484Z"
         },
         {
@@ -1058,14 +1850,104 @@
             "Okta"
           ],
           "sources": [
-            "workos.com",
-            "descope.com",
-            "mojoauth.com",
-            "guptadeepak.com",
-            "kinde.com",
-            "identitychallengecard.avatier.com",
-            "miniorange.com",
-            "gbhackers.com"
+            {
+              "url": "https://workos.com/blog/top-mfa-providers-2026",
+              "title": "Top 5 MFA providers for securing your app in 2026 — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://www.descope.com/blog/post/passwordless-authentication-solutions",
+              "title": "Top 9 Passwordless Authentication Solutions for 2026",
+              "domain": "descope.com"
+            },
+            {
+              "url": "https://mojoauth.com/blog/passkeys-vs-passwords-vs-mfa-comparison-2026",
+              "title": "Passkeys vs Passwords vs MFA: The Definitive Security, UX, and Cost Comparison",
+              "domain": "mojoauth.com"
+            },
+            {
+              "url": "https://guptadeepak.com/top-5-passwordless-authentication-solutions-in-2026-enterprise-and-saas-comparison/",
+              "title": "Top 5 Passwordless Authentication Platforms 2026, guptadeepak.com",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://www.kinde.com/comparisons/what-are-the-top-10-enterprise-authentication-providers-in-2026/",
+              "title": "Kinde What are the top 10 enterprise authentication providers in 2026?",
+              "domain": "kinde.com"
+            },
+            {
+              "url": "https://identitychallengecard.avatier.com/en/blog/best-passwordless-authentication-solutions-2026",
+              "title": "Best Passwordless Authentication Solutions for Enterprises in 2026",
+              "domain": "identitychallengecard.avatier.com"
+            },
+            {
+              "url": "https://www.miniorange.com/blog/best-passwordless-authentication-solutions/",
+              "title": "14 Best Passwordless Authentication Solutions in 2026",
+              "domain": "miniorange.com"
+            },
+            {
+              "url": "https://mojoauth.com/blog/best-passwordless-authentication-solutions",
+              "title": "15 Best Passwordless Authentication Solutions 2026",
+              "domain": "mojoauth.com"
+            },
+            {
+              "url": "https://gbhackers.com/best-multi-factor-authentication-providers/",
+              "title": "Top 10 Best Multi-Factor Authentication (MFA) Providers in 2026",
+              "domain": "gbhackers.com"
+            },
+            {
+              "url": "https://cybersecuritynews.com/best-mfa-solutions-2026/",
+              "title": "Top 10 Best Multi-Factor Authentication (MFA) Solutions in 2026 [Ranked & Scored]",
+              "domain": "cybersecuritynews.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "Also, most \"top 10\" lists are written by the vendors themselves (WorkOS, Descope, Kinde and MojoAuth each rank themselves first), so take rankings with a grain of salt.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Descope",
+              "text": "Also, most \"top 10\" lists are written by the vendors themselves (WorkOS, Descope, Kinde and MojoAuth each rank themselves first), so take rankings with a grain of salt.",
+              "match": "Descope"
+            },
+            {
+              "brand": "Kinde",
+              "text": "Also, most \"top 10\" lists are written by the vendors themselves (WorkOS, Descope, Kinde and MojoAuth each rank themselves first), so take rankings with a grain of salt.",
+              "match": "Kinde"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0: the safe, mature choice.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: a good fit for modern web apps.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Stytch: built for teams that put passwordless and passkeys first, with magic links, passkeys, biometrics, SCIM, RBAC, session management and fraud detection.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Self-hosted options: Keycloak (open source, no license cost) or FusionAuth (self-hosted is free with unlimited users).",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "Self-hosted options: Keycloak (open source, no license cost) or FusionAuth (self-hosted is free with unlimited users).",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Okta",
+              "text": "Okta: best if you use many different SaaS apps (7,000+ app integrations).",
+              "match": "Okta"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:07.975Z"
         },
@@ -1165,7 +2047,56 @@
             "WorkOS",
             "Keycloak"
           ],
-          "sources": ["frontegg.com", "reddit.com", "youtube.com"],
+          "sources": [
+            {
+              "url": "https://frontegg.com/guides/multi-factor-authentication-solutions",
+              "title": "Multi-Factor Authentication Solutions: 10 Providers Compared - Frontegg",
+              "domain": "frontegg.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/nextjs/comments/1aqfstj/best_auth_system/",
+              "title": "Best auth system : r/nextjs - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=veymMLObJgQ&t=276",
+              "title": "MFA, Passwordless Authentication and the Lost Phone by Niko ...",
+              "domain": "youtube.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Auth0",
+              "text": "Auth0 (by Okta): Industry-standard customer auth platform with extensive WebAuthn, passkey, and adaptive MFA flows (including SMS, TOTP, and push).",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 (by Okta): Industry-standard customer auth platform with extensive WebAuthn, passkey, and adaptive MFA flows (including SMS, TOTP, and push).",
+              "match": "Okta"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Modern, fast developer experience with pre-built UI components and out-of-the-box passkey support (though higher-tier MFA features may require paid plans).",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Stytch: API-first authentication platform specializing in passwordless flows, passkeys, and customizable B2B/B2C MFA logic.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS AuthKit: Best for B2B applications needing enterprise-ready SSO, directory sync, and environment-level MFA enforcement.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak: Open-source, self-hosted identity and access management (IAM) server with built-in WebAuthn/passkey and multi-factor support (no SaaS license fees).",
+              "match": "Keycloak"
+            }
+          ],
           "collectedAt": "2026-10-07T15:27:32.170Z"
         }
       ]
@@ -1209,11 +2140,54 @@
           "overview": null,
           "mentioned": ["Stytch", "WorkOS", "Clerk", "Okta", "Auth0"],
           "sources": [
-            "stytch.com",
-            "workos.com",
-            "clerk.com",
-            "auth0.com",
-            "frontegg.com"
+            {
+              "url": "https://stytch.com/pricing?utm_source=openai",
+              "title": "Modern authentication pricing | Stytch",
+              "domain": "stytch.com"
+            },
+            {
+              "url": "https://workos.com/pricing?utm_source=openai",
+              "title": "Pricing — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://clerk.com/docs/guides/configure/auth-strategies/enterprise-connections/overview?utm_source=openai",
+              "title": "Enterprise Single Sign-On (SSO) - Enterprise connections | Clerk Docs",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://auth0.com/pricing?utm_source=openai",
+              "title": "Pricing - Auth0",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://frontegg.com/pricing?utm_source=openai",
+              "title": "Pricing | Frontegg",
+              "domain": "frontegg.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Stytch",
+              "text": "For a new B2B SaaS, I’d currently start with Stytch.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS is particularly strong as an enterprise-readiness layer: SAML/OIDC SSO, Directory Sync and a self-service admin portal.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk has excellent organization primitives, roles, permissions and polished components, and supports SAML and OIDC enterprise connections.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 is the mature, highly customizable option.",
+              "match": "Auth0"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:27.183Z"
         },
@@ -1230,14 +2204,89 @@
             "FusionAuth"
           ],
           "sources": [
-            "workos.com",
-            "futurepicker.com",
-            "buildmvpfast.com",
-            "thesaaspodium.com",
-            "guptadeepak.com",
-            "securityboulevard.com",
-            "frontegg.com",
-            "ssojet.com"
+            {
+              "url": "https://workos.com/blog/workos-vs-auth0-vs-clerk-the-best-auth-platform-for-b2b-saas-in-2026",
+              "title": "WorkOS vs. Auth0 vs. Clerk: The best auth platform for B2B SaaS in 2026 — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://futurepicker.com/en/best-identity-provider-saas-2026/",
+              "title": "Best Identity Provider for SaaS in 2026: Clerk vs Auth0 vs WorkOS vs Descope",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/blog/best-auth-providers-2026-clerk-supabase-comparison",
+              "title": "Best Auth Providers 2026: Clerk, Auth0, Supabase Compared",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://futurepicker.com/en/saas-authentication-tool-comparison-2026/",
+              "title": "SaaS Authentication Tool Comparison 2026: Clerk vs Auth0 ...",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://thesaaspodium.com/b2b-saas-sso-guide/",
+              "title": "WorkOS Vs Auth0 Vs Clerk For B2B SaaS SSO In 2026 - The SAAS Podium",
+              "domain": "thesaaspodium.com"
+            },
+            {
+              "url": "https://guptadeepak.com/ciam-compass/guides/workos-vs-auth0-vs-clerk/",
+              "title": "WorkOS vs Auth0 vs Clerk in 2026: Which CIAM for B2B SaaS, CIAM Compass",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/05/best-developer-tools-for-enterprise-authentication-2026/",
+              "title": "Best Developer Tools for Enterprise Authentication (2026) - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://frontegg.com/blog/top-sso-providers",
+              "title": "Top 10 SSO Providers for B2B SaaS in 2026",
+              "domain": "frontegg.com"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/05/enterprise-authentication-for-developers-10-tools-compared-2026/",
+              "title": "Enterprise Authentication for Developers: 10 Tools Compared (2026) - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://ssojet.com/blog/7-best-stytch-alternatives-for-b2b-saas-enterprise-auth",
+              "title": "7 Best Stytch Alternatives for B2B SaaS Enterprise Auth in 2026",
+              "domain": "ssojet.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "If you're selling to enterprises that require SSO, WorkOS is the best default for most B2B SaaS teams.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0: Choose it if you serve both consumers and businesses or have complicated identity needs.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Choose it if you're starting fresh on Next.js/React, want polished login UI fast, and only need a few SSO connections at first.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Others worth checking: Frontegg and Stytch (both include several SSO/SCIM connections in their base plans), Scalekit, and PropelAuth.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Self-hosting (Keycloak or FusionAuth): Go this way if you need data sovereignty or full control and have the DevOps staff to run it.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "Self-hosting (Keycloak or FusionAuth): Go this way if you need data sovereignty or full control and have the DevOps staff to run it.",
+              "match": "FusionAuth"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:17.411Z"
         },
@@ -1357,13 +2406,79 @@
             "Keycloak"
           ],
           "sources": [
-            "starterpick.com",
-            "nhimg.org",
-            "startwithidentity.com",
-            "reddit.com",
-            "news.ycombinator.com",
-            "auth0.com",
-            "linkedin.com"
+            {
+              "url": "https://starterpick.com/guides/clerk-vs-auth0-vs-workos-b2b-saas-auth-2026",
+              "title": "Clerk vs Auth0 vs WorkOS for B2B SaaS 2026 - StarterPick",
+              "domain": "starterpick.com"
+            },
+            {
+              "url": "https://nhimg.org/community/nhi-support-guidance-forum/b2b-saas-auth-platforms-what-actually-gets-teams-enterprise-ready/",
+              "title": "B2B SaaS auth platforms: what actually gets teams enterprise...",
+              "domain": "nhimg.org"
+            },
+            {
+              "url": "https://startwithidentity.com/articles/b2b-saas-enterprise-readiness/",
+              "title": "B2B SaaS Enterprise Readiness: SSO, SCIM, Audit Logs (2026)",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1qfqzz9/overwhelmed_by_b2b_auth_requirements_what_are_you/",
+              "title": "Overwhelmed by B2B Auth requirements. What are you using? : r/SaaS - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=44117059",
+              "title": "Show HN: Tesseral – Open-Source Auth",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://auth0.com/blog/enterprise-ready-identity-2-0-how-saas-builders-stand-out-with-auth0/",
+              "title": "Enterprise-Ready Identity 2.0: How SaaS Builders Stand Out ...",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/asjad2001_a-few-days-ago-i-spent-time-comparing-b2b-activity-7407030736274456577-yQwx",
+              "title": "A few days ago, I spent time comparing B2B authentication providers.",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://nhimg.org/community/nhi-best-practices/firebase-auth-alternatives-what-b2b-saas-teams-need-next/",
+              "title": "Firebase Auth alternatives: what B2B SaaS teams need next",
+              "domain": "nhimg.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "For a B2B SaaS with Enterprise Single Sign-On (SSO), WorkOS and Auth0 are the leading choices, depending on whether you want an add-on or a complete identity stack.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "For a B2B SaaS with Enterprise Single Sign-On (SSO), WorkOS and Auth0 are the leading choices, depending on whether you want an add-on or a complete identity stack.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 (by Okta): Best for an enterprise-grade, all-in-one platform from day one.",
+              "match": "Okta"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Best for early-stage, modern web stacks (like Next.js) where you want rapid development speed, native multi-tenancy (organizations), and built-in UI components, though enterprise provisioning can get costly.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "FusionAuth or Keycloak: Best for teams requiring self-hosted, highly compliant, or open-source infrastructure with zero cloud vendor lock-in, at the cost of higher operational overhead.",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "FusionAuth or Keycloak: Best for teams requiring self-hosted, highly compliant, or open-source infrastructure with zero cloud vendor lock-in, at the cost of higher operational overhead.",
+              "match": "Keycloak"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:41.550Z"
         }
@@ -1416,10 +2531,64 @@
             "Better Auth"
           ],
           "sources": [
-            "workos.com",
-            "supabase.com",
-            "firebase.google.com",
-            "aws.amazon.com"
+            {
+              "url": "https://workos.com/pricing?utm_source=openai",
+              "title": "Pricing — WorkOS",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://supabase.com/pricing",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://firebase.google.com/docs/auth?authuser=0",
+              "title": "Firebase Authentication",
+              "domain": "firebase.google.com"
+            },
+            {
+              "url": "https://aws.amazon.com/cognito/pricing/?c=cog&p=pm&z=4",
+              "title": "Amazon Cognito - Pricing",
+              "domain": "aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS AuthKit is currently the cheapest managed auth provider for a high-user startup.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase’s Pro plan includes 100,000 MAU for $25, then charges $0.00325 per additional MAU.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase includes 50,000 MAU and charges tiered rates beyond that.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "AWS’s own example prices 950,000 Cognito Lite MAU at $4,405 before messaging or advanced-security charges.",
+              "match": "Cognito"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Best polished React/Next.js developer experience: Clerk, but it is not the cheapest at scale.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Over one million MAU with a capable security/platform team: consider self-hosting something like Keycloak or Better Auth—but operational and security costs can outweigh vendor savings.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Over one million MAU with a capable security/platform team: consider self-hosting something like Keycloak or Better Auth—but operational and security costs can outweigh vendor savings.",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:41.924Z"
         },
@@ -1439,14 +2608,114 @@
             "Amazon Cognito"
           ],
           "sources": [
-            "merginit.com",
-            "designrevision.com",
-            "agentdeals.dev",
-            "zuplo.com",
-            "buildmvpfast.com",
-            "designkey.studio",
-            "clerk.com",
-            "devtoolreviews.com"
+            {
+              "url": "https://merginit.com/blog/13062026-free-auth-identity-providers-comparison",
+              "title": "Free Auth Providers 2026: Clerk, Supabase & WorkOS",
+              "domain": "merginit.com"
+            },
+            {
+              "url": "https://designrevision.com/blog/auth-providers-compared",
+              "title": "Clerk vs Auth0 vs Supabase: Pricing & DX Compared",
+              "domain": "designrevision.com"
+            },
+            {
+              "url": "https://agentdeals.dev/auth-comparison-2026",
+              "title": "Auth & Identity Comparison 2026 — Auth0 vs Clerk vs Supabase Auth vs Firebase Auth",
+              "domain": "agentdeals.dev"
+            },
+            {
+              "url": "https://zuplo.com/learning-center/api-authentication-pricing",
+              "title": "Auth Pricing Wars: Cognito vs Auth0 vs Firebase vs Supabase - Zuplo",
+              "domain": "zuplo.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/api-costs/authentication",
+              "title": "Authentication Pricing Comparison (July 2026)",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://www.designkey.studio/post/saas-auth-comparison-clerk-vs-auth0-vs-supabase",
+              "title": "SaaS Auth in 2026: Clerk vs Auth0 vs Supabase",
+              "domain": "designkey.studio"
+            },
+            {
+              "url": "https://clerk.com/articles/complete-guide-to-embeddable-uis-for-user-management",
+              "title": "Best Embeddable UIs for Auth",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://www.devtoolreviews.com/reviews/clerk-vs-auth0-vs-supabase-auth-2026",
+              "title": "Clerk vs Auth0 vs Supabase Auth (2026)",
+              "domain": "devtoolreviews.com"
+            },
+            {
+              "url": "https://guptadeepak.com/top-6-alternatives-to-google-firebase-customer-identity/",
+              "title": "Firebase Auth Alternatives 2026: 8 Platforms Compared, guptadeepak.com",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://yashveerlabs.vercel.app/blog/auth0-vs-clerk-vs-supabase-auth-vs-build-your-own",
+              "title": "Auth0 vs Clerk vs Supabase Auth vs Build Your Own",
+              "domain": "yashveerlabs.vercel.app"
+            },
+            {
+              "url": "https://checkthat.ai/brands/clerk/pricing",
+              "title": "Clerk Pricing 2026: Plans, Costs & Cost Calculator - Clerk",
+              "domain": "checkthat.ai"
+            },
+            {
+              "url": "https://clerk.com/blog/new-pricing-plans",
+              "title": "Updated Pricing: 10,000 MAUs Free, and a new “Pro Plan”",
+              "domain": "clerk.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "Short answer: For a managed service, WorkOS AuthKit is the cheapest once you have a lot of users.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth has the lowest per-user price after its free tier.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Auth.",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Self-hosted (Better Auth, Keycloak, Authentik, SuperTokens).",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Self-hosted (Better Auth, Keycloak, Authentik, SuperTokens).",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "SuperTokens",
+              "text": "Self-hosted (Better Auth, Keycloak, Authentik, SuperTokens).",
+              "match": "SuperTokens"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk has the nicest developer experience, but costs climb fast.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 is free up to 25K MAU, but it doesn't publish prices above 30,000 MAU, and estimates run into the thousands per month at scale.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "AWS Cognito used to be the budget pick, but AWS cut the free tier from 50K to 10K MAU for new user pools and raised prices.",
+              "match": "AWS Cognito"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:35.515Z"
         },
@@ -1574,13 +2843,74 @@
             "Clerk"
           ],
           "sources": [
-            "startwithidentity.com",
-            "buildmvpfast.com",
-            "zuplo.com",
-            "justinmckelvey.com",
-            "weweb.io",
-            "merginit.com",
-            "github.com"
+            {
+              "url": "https://startwithidentity.com/articles/enterprise-authentication-pricing-2026/",
+              "title": "Enterprise Authentication Pricing 2026: Real Cost Comparison",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/api-costs/authentication",
+              "title": "Authentication Pricing Comparison (July 2026) | Clerk, Auth0 ...",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://zuplo.com/learning-center/api-authentication-pricing",
+              "title": "Auth Pricing Wars: Cognito vs Auth0 vs Firebase vs Supabase - Zuplo",
+              "domain": "zuplo.com"
+            },
+            {
+              "url": "https://justinmckelvey.com/blog/supabase-vs-firebase",
+              "title": "Supabase vs Firebase 2026: The Honest Backend Verdict",
+              "domain": "justinmckelvey.com"
+            },
+            {
+              "url": "https://www.weweb.io/blog/supabase-vs-firebase-comparison-for-web-apps",
+              "title": "Supabase vs Firebase in 2026: Best Backend for Web Apps - WeWeb",
+              "domain": "weweb.io"
+            },
+            {
+              "url": "https://merginit.com/blog/13062026-free-auth-identity-providers-comparison",
+              "title": "Free Auth Providers 2026: Clerk, Supabase & WorkOS",
+              "domain": "merginit.com"
+            },
+            {
+              "url": "https://github.com/hbmartin/comparison-web-app-authentication-providers",
+              "title": "Comparison of Auth Providers (primarily for Web Apps)",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth (Best for Cost & Predictability)",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Auth (Best for Mobile & Google Stack)",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "AWS Cognito (Best for AWS Ecosystem)",
+              "match": "AWS Cognito"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak (Zero Cost / Self-Hosted)",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0: Generous free tier (up to 25K MAUs), but pricing escalates rapidly past that ($5,250+ per month for 100K users on retail/enterprise tiers).",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: Best-in-class developer experience and UI components, but gets expensive quickly at high user volumes (~$1,825/month for 100K users).",
+              "match": "Clerk"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:44.571Z"
         }
@@ -1620,7 +2950,46 @@
           "text": "## Best overall: **Better Auth**\n\nFor a new **TypeScript/JavaScript** application, I’d choose **Better Auth**. It is framework-agnostic, MIT-licensed, type-safe, actively maintained, and supports Next.js, Nuxt, SvelteKit, React Router, Express, Hono, Cloudflare Workers and others. \n\nIt includes or supports:\n\n- Email/password and social login\n- Email verification and password resets\n- Sessions and database adapters\n- Passkeys, magic links and 2FA\n- Organizations, members and roles\n- OAuth/OIDC, SSO and SCIM\n- React, Vue, Svelte, Solid and vanilla clients \n\n```bash\nnpm install better-auth\n```\n\n### Alternatives by use case\n\n| Use case | Recommendation |\n|---|---|\n| TypeScript application | **Better Auth** |\n| Full self-hosted identity server | **Keycloak** |\n| Headless, API-first identity infrastructure | **Ory Kratos** |\n| Existing Next.js app using stateless sessions | **Auth.js** |\n| Python/Django | **django-allauth** |\n| Ruby on Rails | **Devise** |\n| Java/Spring | **Spring Security** |\n\n**Keycloak** is preferable when you need centralized SSO, identity federation, an administration console, or authentication shared across many applications—but it requires significantly more operational work. \n\nFor new JavaScript projects, I would generally pick Better Auth over Auth.js: Auth.js’s own repository now recommends Better Auth for new projects, except for specific gaps such as stateless sessions without a database. \n\n**Bottom line:** Choose **Better Auth** unless you need an independent enterprise identity server, in which case choose **Keycloak**.",
           "overview": null,
           "mentioned": ["Better Auth", "Keycloak", "Auth.js"],
-          "sources": ["github.com", "better-auth.com", "keycloak.org"],
+          "sources": [
+            {
+              "url": "https://github.com/better-auth/better-auth?ref=toolshelf&utm_source=openai",
+              "title": "GitHub - better-auth/better-auth at toolshelf · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://better-auth.com/docs/concepts/email?utm_source=openai",
+              "title": "Email | Better Auth",
+              "domain": "better-auth.com"
+            },
+            {
+              "url": "https://www.keycloak.org/docs/?utm_source=openai",
+              "title": "Documentation - Keycloak",
+              "domain": "keycloak.org"
+            },
+            {
+              "url": "https://github.com/nextauthjs/next-auth?utm_source=openai",
+              "title": "GitHub - nextauthjs/next-auth: Authentication for the Web. · GitHub",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Better Auth",
+              "text": "For a new TypeScript/JavaScript application, I’d choose Better Auth.",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak is preferable when you need centralized SSO, identity federation, an administration console, or authentication shared across many applications—but it requires significantly more operational work.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "For new JavaScript projects, I would generally pick Better Auth over Auth.js: Auth.js’s own repository now recommends Better Auth for new projects, except for specific gaps such as stateless sessions without a database.",
+              "match": "Auth.js"
+            }
+          ],
           "collectedAt": "2026-10-07T15:26:51.753Z"
         },
         {
@@ -1636,14 +3005,84 @@
             "FusionAuth"
           ],
           "sources": [
-            "better-stack.ai",
-            "opensourcealternatives.to",
-            "skycloak.io",
-            "securityboulevard.com",
-            "authjs.dev",
-            "startwithidentity.com",
-            "nucamp.co",
-            "supertokens.com"
+            {
+              "url": "https://www.better-stack.ai/p/blog/open-source-auth-libraries-in-2026",
+              "title": "Comparing Top Open-Source Auth Libraries in 2026",
+              "domain": "better-stack.ai"
+            },
+            {
+              "url": "https://www.opensourcealternatives.to/blog/best-open-source-authentication-tools",
+              "title": "Best Open Source Authentication Tools in 2026",
+              "domain": "opensourcealternatives.to"
+            },
+            {
+              "url": "https://skycloak.io/blog/open-source-authentication-comparison-2026/",
+              "title": "Open Source Authentication in 2026: Complete Comparison",
+              "domain": "skycloak.io"
+            },
+            {
+              "url": "https://securityboulevard.com/2026/05/9-open-source-libraries-and-sdks-for-building-passwordless-auth-in-a-weekend/",
+              "title": "9 Open-Source Libraries and SDKs for Building Passwordless Auth in a Weekend - Security Boulevard",
+              "domain": "securityboulevard.com"
+            },
+            {
+              "url": "https://authjs.dev/",
+              "title": "Auth.js",
+              "domain": "authjs.dev"
+            },
+            {
+              "url": "https://startwithidentity.com/articles/top-7-open-source-authorization-tools/",
+              "title": "Open-Source Authorization Service: 7 Tools Compared (2026)",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://www.nucamp.co/blog/top-10-authentication-services-and-libraries-in-2026-from-free-to-enterprise",
+              "title": "Top 10 Authentication Services and Libraries in 2026: From Free to Enterprise",
+              "domain": "nucamp.co"
+            },
+            {
+              "url": "https://startwithidentity.com/articles/top-10-open-source-iam-solutions/",
+              "title": "Top 10 Open-Source IAM Solutions in 2026",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://supertokens.com/blog/auth0-open-source",
+              "title": "Is Auth0 open source? What's actually OSS, and which open-source Auth0 alternatives (Keycloak, Ory, SuperTokens) fit your stack in 2026?",
+              "domain": "supertokens.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Better Auth",
+              "text": "Better Auth (TypeScript/JavaScript): the best default for most new web apps",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "Auth.js (NextAuth) has joined Better Auth.",
+              "match": "Auth.js"
+            },
+            {
+              "brand": "SuperTokens",
+              "text": "SuperTokens: Consumer app, auth embedded in your product.",
+              "match": "SuperTokens"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth: a good fit if you already use Supabase.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak: the enterprise standard.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "FusionAuth is free to download but Commercial (not open source).",
+              "match": "FusionAuth"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:52.877Z"
         },
@@ -1765,10 +3204,54 @@
             "SuperTokens"
           ],
           "sources": [
-            "startwithidentity.com",
-            "kitploit.com",
-            "reddit.com",
-            "news.ycombinator.com"
+            {
+              "url": "https://startwithidentity.com/articles/top-5-cloud-native-iam-platforms/",
+              "title": "Top 5 Cloud-Native IAM Platforms in 2026 | StartWithIdentity",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://kitploit.com/2019/05/hydra-90-fast-and-flexible-network.html/",
+              "title": "hydra",
+              "domain": "kitploit.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/nextjs/comments/1kytjp1/authentication_with_an_external_backend_and/",
+              "title": "Authentication (with an external backend) and Caching issues : r/nextjs",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/node/comments/decyc6/best_express_and_react_native_authentication/",
+              "title": "Best Express and React Native authentication library : r/node",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=34184669",
+              "title": "Auth.js Authentication for the Web - Hacker News",
+              "domain": "news.ycombinator.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Auth0",
+              "text": "If you want to move authentication completely out of your application code—similar to how Auth0 or Firebase work—but keep your data open-source and self-hosted, use a dedicated Identity and Access Management (IAM) platform:",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "If you want to move authentication completely out of your application code—similar to how Auth0 or Firebase work—but keep your data open-source and self-hosted, use a dedicated Identity and Access Management (IAM) platform:",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak: Developed by Red Hat, this is the most robust, enterprise-grade open-source IAM tool available.",
+              "match": "Keycloak"
+            },
+            {
+              "brand": "SuperTokens",
+              "text": "Logto / SuperTokens: Great modern open-source alternatives to Auth0.",
+              "match": "SuperTokens"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:36.244Z"
         }
@@ -1817,10 +3300,49 @@
             "Auth0"
           ],
           "sources": [
-            "clerk.com",
-            "firebase.google.com",
-            "supabase.com",
-            "auth0.com"
+            {
+              "url": "https://clerk.com/docs/expo/getting-started/quickstart?utm_source=openai",
+              "title": "Expo Quickstart - Getting started | Clerk Docs",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://firebase.google.com/docs/auth/?utm_source=openai",
+              "title": "Firebase Authentication",
+              "domain": "firebase.google.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/auth/native-mobile-deep-linking?platform=swift&utm_source=openai",
+              "title": "Native Mobile Deep Linking | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://auth0.com/docs/get-started/auth0-overview/create-applications/native-apps?utm_source=openai",
+              "title": "Register Native Applications - Auth0 Docs",
+              "domain": "auth0.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "React Native / Expo: Clerk hosted authentication — probably the fastest setup, with prebuilt UI and secure token storage.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Already using Firebase: Firebase Authentication + FirebaseUI — supports email/password, phone, Google, Apple, and other providers through drop-in flows.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Already using Supabase: Supabase Auth — convenient, but mobile email links and OAuth require deep-link configuration.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Enterprise requirements or complex SSO: Auth0 — robust, but usually more configuration than Clerk or Firebase.",
+              "match": "Auth0"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:36.664Z"
         },
@@ -1839,14 +3361,89 @@
             "Descope"
           ],
           "sources": [
-            "techradar.com",
-            "descope.com",
-            "mojoauth.com",
-            "cloudwards.net",
-            "itechguides.com",
-            "top5soft.com",
-            "mobileappdaily.com",
-            "haznos.org"
+            {
+              "url": "https://www.techradar.com/best/best-authenticator-apps",
+              "title": "Best Authenticator App for 2026: Reviewed, Ranked & Compared",
+              "domain": "techradar.com"
+            },
+            {
+              "url": "https://www.descope.com/blog/post/passwordless-authentication-solutions",
+              "title": "Top 9 Passwordless Authentication Solutions for 2026",
+              "domain": "descope.com"
+            },
+            {
+              "url": "https://mojoauth.com/blog/authentication-services-2026-providers-compared",
+              "title": "Authentication Services in 2026: How They Work, Top Providers Compared, and How to Choose",
+              "domain": "mojoauth.com"
+            },
+            {
+              "url": "https://www.cloudwards.net/best-2fa-apps/",
+              "title": "5 Best Authenticator App Picks 2026: FREE iPhone & Android",
+              "domain": "cloudwards.net"
+            },
+            {
+              "url": "https://www.itechguides.com/the-best-authenticator-apps-weve-tested-for-2026/",
+              "title": "The Best Authenticator Apps We've Tested for 2026",
+              "domain": "itechguides.com"
+            },
+            {
+              "url": "https://top5soft.com/privacy-security/best-2fa-authenticator-apps-2026/",
+              "title": "Best 2FA Authenticator Apps 2026: 5 Source-Verified Picks",
+              "domain": "top5soft.com"
+            },
+            {
+              "url": "https://www.mobileappdaily.com/products/best-authenticator-apps",
+              "title": "Best Authenticator Apps of 2026 to Boost Online Safety",
+              "domain": "mobileappdaily.com"
+            },
+            {
+              "url": "https://haznos.org/2026/best-authenticator-apps-2026/",
+              "title": "12 Best Two-Factor Authentication Apps in 2026",
+              "domain": "haznos.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Firebase Authentication",
+              "text": "For most mobile apps that means Firebase Authentication.",
+              "match": "Firebase Authentication"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase: good if you also want a database.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Amazon Cognito: makes sense if you're already built on AWS.",
+              "match": "Amazon Cognito"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 / Okta: a bigger enterprise option.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 / Okta: a bigger enterprise option.",
+              "match": "Okta"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk, Stytch, Descope: newer, developer-friendly services.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Stytch",
+              "text": "Clerk, Stytch, Descope: newer, developer-friendly services.",
+              "match": "Stytch"
+            },
+            {
+              "brand": "Descope",
+              "text": "Clerk, Stytch, Descope: newer, developer-friendly services.",
+              "match": "Descope"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:43.111Z"
         }
@@ -1890,7 +3487,46 @@
             "Supabase Auth",
             "Auth.js"
           ],
-          "sources": ["nextjs.org", "better-auth.com", "clerk.com"],
+          "sources": [
+            {
+              "url": "https://nextjs.org/docs/app/guides/authentication?utm_source=openai",
+              "title": "Guides: Authentication | Next.js",
+              "domain": "nextjs.org"
+            },
+            {
+              "url": "https://better-auth.com/docs/installation?utm_source=openai",
+              "title": "Installation | Better Auth",
+              "domain": "better-auth.com"
+            },
+            {
+              "url": "https://clerk.com/docs/nextjs/getting-started/quickstart?utm_source=openai",
+              "title": "Next.js Quickstart (App Router) - Getting started | Clerk Docs",
+              "domain": "clerk.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Better Auth",
+              "text": "Better Auth if you want open-source, your own database, and long-term control.",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk if you want the quickest, most polished implementation with hosted user management.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS AuthKit if you’re building B2B software that will need enterprise SSO.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth if the rest of your backend already uses Supabase.",
+              "match": "Supabase Auth"
+            }
+          ],
           "collectedAt": "2026-10-07T15:25:56.953Z"
         },
         {
@@ -1906,14 +3542,89 @@
             "Auth.js"
           ],
           "sources": [
-            "pkgpulse.com",
-            "blog.logrocket.com",
-            "makerkit.dev",
-            "buildmvpfast.com",
-            "novasphereailab.com",
-            "clerk.com",
-            "getnextjstemplates.com",
-            "iloveblogs.blog"
+            {
+              "url": "https://www.pkgpulse.com/guides/best-nextjs-auth-solutions-2026",
+              "title": "Best Next.js Authentication Solutions in 2026 — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://blog.logrocket.com/best-auth-library-nextjs-2026/",
+              "title": "I tested every major auth library for Next.js in 2026: Here’s what you should use - LogRocket Blog",
+              "domain": "blog.logrocket.com"
+            },
+            {
+              "url": "https://makerkit.dev/blog/tutorials/better-auth-vs-clerk",
+              "title": "Better Auth vs Clerk vs NextAuth vs Supabase Auth: Which Authentication for Next.js SaaS in 2026",
+              "domain": "makerkit.dev"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/blog/better-auth-vs-clerk-vs-authjs-nextjs-decision-tree-2026",
+              "title": "Better Auth vs Clerk vs Auth.js for Next.js 2026",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://novasphereailab.com/blog/auth0-vs-clerk",
+              "title": "Auth0 vs Clerk: Best Auth for Next.js in 2026",
+              "domain": "novasphereailab.com"
+            },
+            {
+              "url": "https://clerk.com/articles/clerk-vs-auth0-for-nextjs",
+              "title": "Clerk vs Auth0 for Next.js",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://www.pkgpulse.com/guides/better-auth-vs-nextauth-v5-vs-clerk-2026",
+              "title": "better-auth vs NextAuth v5 vs Clerk 2026 — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://www.pkgpulse.com/guides/better-auth-vs-clerk-vs-authjs-2026",
+              "title": "Better Auth vs Clerk vs Auth.js 2026 — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://getnextjstemplates.com/blogs/best-nextjs-user-authentication-resources",
+              "title": "Best Next.js Authentication Libraries and Tools for 2026",
+              "domain": "getnextjstemplates.com"
+            },
+            {
+              "url": "https://www.iloveblogs.blog/post/nextjs-authentication-comparison-2026",
+              "title": "Clerk vs Better Auth vs Supabase: Next.js Auth in 2026",
+              "domain": "iloveblogs.blog"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Better Auth",
+              "text": "For a new Next.js app in 2026 it usually comes down to Better Auth if you want to run it yourself, or Clerk if you want to pay a service to handle it.",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Clerk",
+              "text": "For a new Next.js app in 2026 it usually comes down to Better Auth if you want to run it yourself, or Clerk if you want to pay a service to handle it.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Already using Supabase?",
+              "match": "Supabase"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS is the right fit when enterprise SSO is part of the roadmap.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 is the more established option for heavy compliance needs.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "Avoid for new projects: Auth.js / NextAuth",
+              "match": "Auth.js"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:00.409Z"
         },
@@ -2010,15 +3721,59 @@
             "Firebase Authentication"
           ],
           "sources": [
-            "reddit.com",
-            "youtube.com",
-            "getnextjstemplates.com",
-            "authjs.dev",
-            "freecodecamp.org",
-            "contentful.com",
-            "buttercms.com",
-            "github.com"
+            {
+              "url": "https://www.reddit.com/r/nextjs/comments/1rv1q0e/learning_nextjs_whats_the_best_authentication/",
+              "title": "Learning Next.js: What's the best authentication library for a beginner? : r/nextjs - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=TDzfWm0Tn8U&t=38",
+              "title": "Best Authentication for Next.js Apps in 2025?",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://getnextjstemplates.com/blogs/best-nextjs-user-authentication-resources",
+              "title": "Best Next.js Authentication Libraries and Tools for 2026",
+              "domain": "getnextjstemplates.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=LMUsWY5alY0&t=83",
+              "title": "NextJS Authentication Full Course 2025 | Learn Better Auth in 1 ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://authjs.dev/getting-started",
+              "title": "Auth.js | Getting Started",
+              "domain": "authjs.dev"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=ngzLhaT3IzQ&t=74",
+              "title": "Better Auth with Next.js: A very good introduction",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.freecodecamp.org/news/how-to-choose-the-right-nextjs-authentication-library/",
+              "title": "Clerk vs Kinde vs Better Auth: How to Choose the Right Next ...",
+              "domain": "freecodecamp.org"
+            },
+            {
+              "url": "https://www.contentful.com/blog/nextjs-authentication/",
+              "title": "Next.js authentication with Auth.js (formerly NextAuth) and Contentful",
+              "domain": "contentful.com"
+            },
+            {
+              "url": "https://buttercms.com/blog/nextjs-authentication-tutorial/",
+              "title": "Next.js Authentication Guide: Secure Your App with NextAuth.js | ButterCMS",
+              "domain": "buttercms.com"
+            },
+            {
+              "url": "https://github.com/nextauthjs/next-auth",
+              "title": "GitHub - nextauthjs/next",
+              "domain": "github.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:41:04.379Z"
         }
       ]
@@ -2062,7 +3817,61 @@
             "WorkOS",
             "Amazon Cognito"
           ],
-          "sources": ["supabase.com", "firebase.google.com"],
+          "sources": [
+            {
+              "url": "https://supabase.com/docs/guides/auth?utm_source=openai",
+              "title": "Auth | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://firebase.google.com/docs/auth/web/start?utm_source=openai",
+              "title": "Get Started with Firebase Authentication on Websites",
+              "domain": "firebase.google.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/auth/third-party/overview?utm_source=openai",
+              "title": "Third-party auth | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/auth/third-party/firebase-auth?utm_source=openai",
+              "title": "Firebase Auth | Supabase Docs",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase backend → Supabase Auth.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase backend → Firebase Authentication.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Supabase can currently accept JWTs from Clerk, Firebase Auth, Auth0, Cognito, and WorkOS, but that adds another service, cost, and integration layer.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Supabase can currently accept JWTs from Clerk, Firebase Auth, Auth0, Cognito, and WorkOS, but that adds another service, cost, and integration layer.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Supabase can currently accept JWTs from Clerk, Firebase Auth, Auth0, Cognito, and WorkOS, but that adds another service, cost, and integration layer.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Amazon Cognito",
+              "text": "Supabase can currently accept JWTs from Clerk, Firebase Auth, Auth0, Cognito, and WorkOS, but that adds another service, cost, and integration layer.",
+              "match": "Cognito"
+            }
+          ],
           "collectedAt": "2026-10-07T15:27:23.522Z"
         },
         {
@@ -2078,14 +3887,89 @@
             "Better Auth"
           ],
           "sources": [
-            "designrevision.com",
-            "ai.networkershome.com",
-            "agentdeals.dev",
-            "zuplo.com",
-            "merginit.com",
-            "vibeorigin.dev",
-            "buildmvpfast.com",
-            "guptadeepak.com"
+            {
+              "url": "https://designrevision.com/blog/auth-providers-compared",
+              "title": "Clerk vs Auth0 vs Supabase: Pricing & DX Compared",
+              "domain": "designrevision.com"
+            },
+            {
+              "url": "https://ai.networkershome.com/blog/auth-compared",
+              "title": "Authentication in 2026: Supabase vs Clerk vs Auth.js vs Firebase Auth — NETWORKERS HOME",
+              "domain": "ai.networkershome.com"
+            },
+            {
+              "url": "https://agentdeals.dev/auth-comparison-2026",
+              "title": "Auth & Identity Comparison 2026 — Auth0 vs Clerk vs Supabase Auth vs Firebase Auth",
+              "domain": "agentdeals.dev"
+            },
+            {
+              "url": "https://zuplo.com/learning-center/api-authentication-pricing",
+              "title": "Auth Pricing Wars: Cognito vs Auth0 vs Firebase vs Supabase - Zuplo",
+              "domain": "zuplo.com"
+            },
+            {
+              "url": "https://merginit.com/blog/13062026-free-auth-identity-providers-comparison",
+              "title": "Free Auth Providers 2026: Clerk, Supabase & WorkOS",
+              "domain": "merginit.com"
+            },
+            {
+              "url": "https://vibeorigin.dev/auth-stack-guide",
+              "title": "Clerk vs Supabase Auth vs NextAuth vs Firebase — 2026 Auth Stack Guide",
+              "domain": "vibeorigin.dev"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/api-costs/authentication",
+              "title": "Authentication Pricing Comparison (July 2026)",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/blog/best-auth-providers-2026-clerk-supabase-comparison",
+              "title": "Best Auth Providers 2026: Clerk, Auth0, Supabase Compared",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://guptadeepak.com/top-6-alternatives-to-google-firebase-customer-identity/",
+              "title": "Firebase Auth Alternatives 2026: 8 Platforms Compared, guptadeepak.com",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://www.shipnative.dev/blog/react-native-authentication-2026",
+              "title": "React Native Authentication 2026: Clerk vs Supabase vs Firebase",
+              "domain": "shipnative.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth goes with Supabase, and Firebase Auth goes with Firebase.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Supabase Auth goes with Supabase, and Firebase Auth goes with Firebase.",
+              "match": "Firebase Auth"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk: good if you want polished pre-built login screens or features for business customers, like organizations.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS or Auth0: pick these if enterprise SSO/SAML is on your roadmap.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "WorkOS or Auth0: pick these if enterprise SSO/SAML is on your roadmap.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Better Auth: pick this if you want full control without vendor lock-in.",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:30.219Z"
         },
@@ -2197,13 +4081,59 @@
           },
           "mentioned": ["Supabase Auth", "Firebase Authentication"],
           "sources": [
-            "mydba.dev",
-            "veldsystems.com",
-            "linkedin.com",
-            "maxmy.business",
-            "community.flutterflow.io",
-            "reddit.com",
-            "instagram.com"
+            {
+              "url": "https://mydba.dev/blog/supabase-vs-firebase",
+              "title": "Supabase vs Firebase in 2026: Which Backend Should You ...",
+              "domain": "mydba.dev"
+            },
+            {
+              "url": "https://veldsystems.com/blog/supabase-vs-firebase",
+              "title": "Supabase vs Firebase: Which Backend Should You Choose?",
+              "domain": "veldsystems.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/saad-arif-1855b52b5_webdevelopment-fullstack-backend-activity-7386457320613961729-5jOb",
+              "title": "Firebase vs Supabase — Which Backend Should You Choose?",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/mani-shankar-a71198186_database-firebase-dbms-activity-7311009466563338240-ivj1",
+              "title": "Firebase vs Supabase: Which One Should You Choose?",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://maxmy.business/en/blog/supabase-vs-firebase",
+              "title": "Supabase vs. Firebase 2026: Pricing, Auth & GDPR Compared",
+              "domain": "maxmy.business"
+            },
+            {
+              "url": "https://community.flutterflow.io/discussions/post/supabase-introduces-third-party-auth-including-firebase-authentication-FgLlcpEEwC4JHqT",
+              "title": "Supabase introduces third",
+              "domain": "community.flutterflow.io"
+            },
+            {
+              "url": "https://www.reddit.com/r/FlutterFlow/comments/1b7gr68/using_firebase_supabase/",
+              "title": "Using Firebase & Supabase : r/FlutterFlow",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.instagram.com/reel/Dcz9RugSJjg/",
+              "title": "Supabase vs Firebase which one is better for your app? ...",
+              "domain": "instagram.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase Auth",
+              "text": "Use Supabase Auth if your database is PostgreSQL and you want secure, built-in Row Level Security (RLS), or use Firebase Auth if you need a battle-tested, highly mature system with dozens of out-of-the-box social providers.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Use Supabase Auth if your database is PostgreSQL and you want secure, built-in Row Level Security (RLS), or use Firebase Auth if you need a battle-tested, highly mature system with dozens of out-of-the-box social providers.",
+              "match": "Firebase Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:16.201Z"
         }
@@ -2249,12 +4179,69 @@
             "Auth0"
           ],
           "sources": [
-            "clerk.com",
-            "workos.com",
-            "better-auth.com",
-            "supabase.com",
-            "firebase.google.com",
-            "auth0.com"
+            {
+              "url": "https://clerk.com/docs/getting-started/quickstart/overview?utm_source=openai",
+              "title": "Quickstarts | Clerk Docs",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://workos.com/docs/authkit/users-organizations?utm_source=openai",
+              "title": "Users and Organizations – AuthKit – WorkOS Docs",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://better-auth.com/docs/plugins?utm_source=openai",
+              "title": "Plugins | Better Auth",
+              "domain": "better-auth.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/auth?utm_source=openai",
+              "title": "Auth | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://firebase.google.com/docs/auth/?utm_source=openai",
+              "title": "Firebase Authentication",
+              "domain": "firebase.google.com"
+            },
+            {
+              "url": "https://auth0.com/docs/manage-users/organizations/create-first-organization?utm_source=openai",
+              "title": "Create Your First Organization - Auth0 Docs",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://clerk.com/pricing?utm_source=openai",
+              "title": "Pricing — Free Up to 50K Users | Plans from $0/mo",
+              "domain": "clerk.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Clerk has the best overall developer experience, especially for a greenfield React, Next.js, Expo, or modern TypeScript application.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "B2B SaaS: WorkOS AuthKit, with Clerk as a close alternative",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "You strongly dislike vendor lock-in: Better Auth",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase application: Supabase Auth",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Large enterprise with complicated legacy identity requirements: Auth0",
+              "match": "Auth0"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:02.248Z"
         },
@@ -2271,14 +4258,89 @@
             "Firebase Authentication"
           ],
           "sources": [
-            "buildmvpfast.com",
-            "designkey.studio",
-            "gautamkhorana.com",
-            "designrevision.com",
-            "dev.to",
-            "yashveerlabs.vercel.app",
-            "navanathjadhav.medium.com",
-            "veldsystems.com"
+            {
+              "url": "https://www.buildmvpfast.com/blog/best-auth-providers-2026-clerk-supabase-comparison",
+              "title": "Best Auth Providers 2026: Clerk, Auth0, Supabase Compared",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://www.designkey.studio/post/saas-auth-comparison-clerk-vs-auth0-vs-supabase",
+              "title": "SaaS Auth in 2026: Clerk vs Auth0 vs Supabase",
+              "domain": "designkey.studio"
+            },
+            {
+              "url": "https://gautamkhorana.com/blog/authentication-services-2026-clerk-auth0-supabase-workos/",
+              "title": "Clerk vs Auth0 vs Supabase Auth vs WorkOS 2026: real take",
+              "domain": "gautamkhorana.com"
+            },
+            {
+              "url": "https://designrevision.com/blog/auth-providers-compared",
+              "title": "Clerk vs Auth0 vs Supabase: Pricing & DX Compared",
+              "domain": "designrevision.com"
+            },
+            {
+              "url": "https://dev.to/libme/build-vs-buy-authentication-in-2026-auth0-clerk-supabase-auth-or-roll-your-own-3mc8",
+              "title": "Build vs Buy: Authentication in 2026 (Auth0, Clerk, Supabase Auth, or Roll Your Own) - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://yashveerlabs.vercel.app/blog/auth0-vs-clerk-vs-supabase-auth-vs-build-your-own",
+              "title": "Auth0 vs Clerk vs Supabase Auth vs Build Your Own",
+              "domain": "yashveerlabs.vercel.app"
+            },
+            {
+              "url": "https://navanathjadhav.medium.com/i-implemented-auth0-supabase-auth-and-clerk-heres-what-i-learned-3c19f0f7338d",
+              "title": "I Implemented Auth0, Supabase Auth, and Clerk (Here’s What I Learned)",
+              "domain": "navanathjadhav.medium.com"
+            },
+            {
+              "url": "https://veldsystems.com/blog/clerk-vs-auth0-vs-supabase-auth",
+              "title": "Clerk vs Auth0 vs Supabase Auth: Which Authentication to Choose",
+              "domain": "veldsystems.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/api-costs/authentication",
+              "title": "Authentication Pricing Comparison (July 2026)",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://devtoolpicks.com/blog/clerk-vs-auth0-vs-supabase-auth-indie-hackers-2026",
+              "title": "Clerk vs Auth0 vs Supabase Auth for Indie Hackers in 2026: Which One Should You Use?",
+              "domain": "devtoolpicks.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Clerk is the most common answer, especially if you're building with React or Next.js.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "One developer who tried Clerk, Auth0 and Supabase Auth said this saved me ~40 hours of development.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "One developer who tried Clerk, Auth0 and Supabase Auth said this saved me ~40 hours of development.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "You need enterprise SSO (SAML/SCIM) soon: pair Clerk with WorkOS, or use Auth0.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "You want to own your auth and avoid lock-in: Better Auth is the community favorite for self-hosted open-source auth.",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Auth is generally rated the Weakest developer experience for modern React and Next.js stacks.",
+              "match": "Firebase Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:54.481Z"
         },
@@ -2392,11 +4454,64 @@
             "Better Auth"
           ],
           "sources": [
-            "reddit.com",
-            "supertokens.com",
-            "ysoft.com",
-            "workos.com",
-            "noorix.com.au"
+            {
+              "url": "https://www.reddit.com/r/reactjs/comments/1ilmfdr/need_help_in_choosing_authentication_frameworks/",
+              "title": "Need Help in choosing Authentication Frameworks for my project",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://supertokens.com/blog/stytch-vs-auth0",
+              "title": "Stytch vs Auth0 (2025): Pricing, Features, and More",
+              "domain": "supertokens.com"
+            },
+            {
+              "url": "https://www.ysoft.com/safeq/blog/auth0-authorization-authentication",
+              "title": "Auth0 Driving the Future of Authentication | SAFEQ Blog",
+              "domain": "ysoft.com"
+            },
+            {
+              "url": "https://workos.com/blog/top-authentication-solutions-react-router-2026",
+              "title": "Top 5 authentication solutions for secure React Router apps in 2026",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://www.noorix.com.au/blog/self-hosted-nodejs-authentication-comparison-2026/",
+              "title": "Self-hosted NodeJS Authentication in 2026 — Noorix Blog",
+              "domain": "noorix.com.au"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Clerk is widely regarded by modern web developers as having the best overall developer experience for rapid application development, thanks to its deeply integrated pre-built UI components, stellar documentation, and native framework hooks.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Auth0 (by Okta): Best for enterprise breadth and flexibility.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 (by Okta): Best for enterprise breadth and flexibility.",
+              "match": "Okta"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth: Best for SQL-centric and open-source stacks.",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS: Best for B2B SaaS building enterprise features.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "Better Auth: Best open-source/self-hosted typescript choice.",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:53.241Z"
         }
@@ -2432,7 +4547,56 @@
           "text": "## Short answer\n\n- **Choose Clerk** for the fastest implementation and best developer/product experience.\n- **Choose WorkOS** for B2B SaaS where enterprise SSO, SCIM, audit logs, and IT-admin workflows matter.\n- **Choose Auth0** for complex identity architectures, extensive customization, unusual protocols, or strict enterprise deployment requirements.\n\n## Comparison\n\n| | Clerk | Auth0 | WorkOS AuthKit |\n|---|---|---|---|\n| **Best for** | Modern SaaS, especially React/Next.js | Complex or highly regulated identity | Enterprise-focused B2B SaaS |\n| **Developer experience** | Excellent; strongest prebuilt UI | Powerful but configuration-heavy | Clean APIs, hosted UI and widgets |\n| **Organizations/tenancy** | Excellent product-level organizations | Powerful, but plan limits apply | First-class B2B organizations |\n| **Enterprise SSO** | Good | Very mature | Core specialty |\n| **SCIM/directory sync** | Available | Available, packaging varies | Core specialty |\n| **Customization** | Great visual/product customization | Deepest workflow extensibility | Good API-level customization |\n| **Consumer/B2C** | Excellent | Excellent | Capable, but B2B-oriented |\n| **Enterprise admin tooling** | Good | Strong | Excellent |\n| **Pricing model** | Retained users + organizations | MAU tiers and add-ons | Users mostly free; pay per enterprise connection |\n\n### Clerk\n\n**Pick Clerk when product velocity is the priority.** It offers polished sign-in, profile and organization components, while its organization model directly supports memberships, roles, permissions and active-organization switching. \n\nCurrent public pricing includes:\n\n- Free for the first **50,000 monthly retained users**\n- Pro at **$25/month**, or $20/month annually\n- One enterprise connection on Pro\n- Enhanced B2B features at **$100/month**\n- Additional enterprise connections starting at **$75/month each** \n\n**Downsides:** advanced organization features require the B2B add-on, and costs can increase significantly beyond 50,000 retained users. Clerk is also more opinionated—you benefit most when you adopt its components and organization model.\n\n### Auth0\n\n**Pick Auth0 when your identity requirements are unusually complex.** It has broad framework support, Actions, Forms, a marketplace, advanced security options, private deployments and enterprise features such as FAPI profiles. \n\nCurrent advertised entry pricing includes:\n\n- Free up to **25,000 MAU**, with five organizations and one enterprise connection\n- Essentials from **$35/month for 500 MAU**\n- Professional from **$240/month for 500 MAU**\n- Larger user, SSO and enterprise configurations may require custom tiers or sales involvement \n\n**Downsides:** generally the most complicated to configure and reason about. Pricing can become difficult to predict once you need B2B organizations, multiple enterprise connections, machine-to-machine usage or advanced security.\n\n### WorkOS AuthKit\n\n**Pick WorkOS when enterprise readiness is central to your sales motion.** AuthKit covers normal authentication, while WorkOS also provides SAML/OIDC SSO, Directory Sync, organization policies, JIT provisioning, RBAC, audit logs and a customer-facing Admin Portal. \n\nCurrent public pricing includes:\n\n- AuthKit user management free for up to **1 million MAU**\n- **$2,500/month** per additional million users\n- Enterprise SSO at **$125/month per connection**\n- Directory Sync at **$125/month per connection**\n- Custom domain at **$99/month** \n\n**Downsides:** each enterprise connection costs money from the first connection, and its ecosystem is less centered on highly polished consumer-facing components than Clerk’s. Its economics are best when ordinary user volume is high but the number of enterprise customers requiring SSO/SCIM is manageable.\n\n## My practical recommendation\n\n- **Typical Next.js startup or SaaS:** **Clerk**\n- **B2B startup actively selling to enterprises:** **WorkOS**\n- **Banking, healthcare, legacy systems, multiple applications, unusual identity workflows:** **Auth0**\n- **Mostly consumer authentication:** **Clerk**, unless Auth0-specific extensibility is required\n- **Millions of B2B users with relatively few SSO customers:** **WorkOS**\n- **You’re uncertain between Clerk and WorkOS:** choose **Clerk** if login and account UX are the primary concern; choose **WorkOS** if enterprise IT requirements are the primary concern.\n\nFor most greenfield SaaS applications, I would start with **Clerk**. If enterprise SSO, SCIM and security questionnaires are already part of your sales pipeline, I would start with **WorkOS** instead. Auth0 is the choice when the additional complexity buys capabilities you know you need.",
           "overview": null,
           "mentioned": ["Clerk", "WorkOS", "Auth0"],
-          "sources": ["clerk.com", "auth0.com", "workos.com"],
+          "sources": [
+            {
+              "url": "https://clerk.com/docs/guides/organizations/overview?utm_source=openai",
+              "title": "Organizations - Build multi-tenant B2B applications - Organization management | Clerk Docs",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://clerk.com/pricing?utm_source=openai",
+              "title": "Pricing — Free Up to 50K Users | Plans from $0/mo",
+              "domain": "clerk.com"
+            },
+            {
+              "url": "https://auth0.com/docs/microsites/add-login/add-login-regular-web-app?utm_source=openai",
+              "title": "Auth0 Regular Web App Quickstarts",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://auth0.com/pricing?trk=public_post-text",
+              "title": "Pricing - Auth0",
+              "domain": "auth0.com"
+            },
+            {
+              "url": "https://workos.com/docs/authkit/overview?utm_source=openai",
+              "title": "AuthKit – WorkOS Docs",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://workos.com/pricing?utm_source=openai",
+              "title": "Pricing — WorkOS",
+              "domain": "workos.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Choose Clerk for the fastest implementation and best developer/product experience.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Choose WorkOS for B2B SaaS where enterprise SSO, SCIM, audit logs, and IT-admin workflows matter.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Choose Auth0 for complex identity architectures, extensive customization, unusual protocols, or strict enterprise deployment requirements.",
+              "match": "Auth0"
+            }
+          ],
           "collectedAt": "2026-10-07T15:26:31.565Z"
         },
         {
@@ -2448,14 +4612,99 @@
             "Better Auth"
           ],
           "sources": [
-            "merginit.com",
-            "guptadeepak.com",
-            "apiscout.dev",
-            "buildmvpfast.com",
-            "noizz.io",
-            "gautamkhorana.com",
-            "futurepicker.com",
-            "checkthat.ai"
+            {
+              "url": "https://merginit.com/blog/13062026-free-auth-identity-providers-comparison",
+              "title": "Free Auth Providers 2026: Clerk, Supabase & WorkOS",
+              "domain": "merginit.com"
+            },
+            {
+              "url": "https://guptadeepak.com/ciam-compass/compare/clerk-vs-workos/",
+              "title": "Clerk vs WorkOS: Which CIAM Wins in 2026?, CIAM Compass",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/workos-vs-auth0-vs-clerk-enterprise-sso-2026",
+              "title": "WorkOS vs Auth0 vs Clerk Enterprise SSO 2026",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/alternatives/workos",
+              "title": "Best WorkOS Alternatives (2026): Enterprise Auth, SSO",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://noizz.io/compare/workos-vs-clerk",
+              "title": "WorkOS vs Clerk 2026: Auth Pricing and Features - Noizz",
+              "domain": "noizz.io"
+            },
+            {
+              "url": "https://guptadeepak.com/ciam-compass/compare/auth0-vs-clerk/",
+              "title": "Auth0 vs Clerk: Which CIAM Wins in 2026?, CIAM Compass",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://gautamkhorana.com/blog/authentication-services-2026-clerk-auth0-supabase-workos/",
+              "title": "Clerk vs Auth0 vs Supabase Auth vs WorkOS 2026: real take",
+              "domain": "gautamkhorana.com"
+            },
+            {
+              "url": "https://futurepicker.com/en/best-identity-provider-saas-2026/",
+              "title": "Best Identity Provider for SaaS in 2026: Clerk vs Auth0 vs WorkOS vs Descope",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://futurepicker.com/en/okta-alternatives-clerk-auth0-workos-descope-fusionauth-2026-en/",
+              "title": "Okta Alternatives 2026: Clerk vs Auth0 vs WorkOS vs Descope vs FusionAuth Compared",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/api-costs/authentication",
+              "title": "Authentication Pricing Comparison (July 2026)",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/tools/api-pricing-estimator/clerk",
+              "title": "Clerk Pricing Calculator (2026)",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://checkthat.ai/brands/clerk/pricing",
+              "title": "Clerk Pricing 2026: Plans, Costs & Cost Calculator - Clerk",
+              "domain": "checkthat.ai"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Clerk",
+              "text": "Short version: pick Clerk for the quickest React/Next.js setup, WorkOS if you're B2B SaaS selling to companies whose IT teams require SSO, and Auth0 if you need the broadest set of features and identity standards and can pay for it.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "WorkOS",
+              "text": "Short version: pick Clerk for the quickest React/Next.js setup, WorkOS if you're B2B SaaS selling to companies whose IT teams require SSO, and Auth0 if you need the broadest set of features and identity standards and can pay for it.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Short version: pick Clerk for the quickest React/Next.js setup, WorkOS if you're B2B SaaS selling to companies whose IT teams require SSO, and Auth0 if you need the broadest set of features and identity standards and can pay for it.",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Okta",
+              "text": "Auth0 (owned by Okta): the do-everything option",
+              "match": "Okta"
+            },
+            {
+              "brand": "FusionAuth",
+              "text": "If you expect hundreds of thousands of users but few enterprise customers, an open-source option you run yourself (like FusionAuth or Better Auth) may cost much less.",
+              "match": "FusionAuth"
+            },
+            {
+              "brand": "Better Auth",
+              "text": "If you expect hundreds of thousands of users but few enterprise customers, an open-source option you run yourself (like FusionAuth or Better Auth) may cost much less.",
+              "match": "Better Auth"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:17.136Z"
         },
@@ -2602,13 +4851,75 @@
           },
           "mentioned": ["WorkOS", "Clerk", "Auth0", "Okta"],
           "sources": [
-            "workos.com",
-            "apiscout.dev",
-            "reddit.com",
-            "infisign.ai",
-            "supertokens.com",
-            "youtube.com",
-            "stackfyi.com"
+            {
+              "url": "https://workos.com/blog/workos-vs-auth0-vs-clerk",
+              "title": "WorkOS vs. Auth0 vs. Clerk: Which should you choose?",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/workos-vs-auth0-vs-clerk-enterprise-sso-2026",
+              "title": "WorkOS vs Auth0 vs Clerk Enterprise SSO 2026",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://workos.com/blog/workos-vs-auth0-vs-clerk-the-best-auth-platform-for-b2b-saas-in-2026",
+              "title": "WorkOS vs. Auth0 vs. Clerk: The best auth platform for B2B SaaS in 2026",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/nextjs/comments/1fsnyed/clerk_vs_workos_vs_kinde/",
+              "title": "Clerk vs WorkOS vs Kinde : r/nextjs - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://workos.com/blog/workos-vs-betterauth-vs-clerk",
+              "title": "WorkOS vs. Better Auth vs. Clerk: Which should you choose?",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://www.infisign.ai/blog/workos-vs-clerk",
+              "title": "WorkOS vs Clerk: The Honest Evaluation Before You Build On Either",
+              "domain": "infisign.ai"
+            },
+            {
+              "url": "https://supertokens.com/blog/auth0-vs-clerk",
+              "title": "AuthO Vs. Clerk: Features, Pricing, And Pros & Cons",
+              "domain": "supertokens.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=9L0HmNk9fg4",
+              "title": "Better Auth Vs Clerk | Which Authentication Solution Is BETTER ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://workos.com/compare/auth0",
+              "title": "WorkOS vs Auth0: Clear pricing, SCIM, IT-admin self-serve UI",
+              "domain": "workos.com"
+            },
+            {
+              "url": "https://www.stackfyi.com/guides/auth-platforms-clerk-vs-auth0-vs-workos-2026",
+              "title": "Auth Platforms 2026: Clerk vs Auth0 vs WorkOS",
+              "domain": "stackfyi.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "WorkOS",
+              "text": "WorkOS is built for B2B enterprise features like single sign-on (SSO), Clerk focuses on fast setup and polished consumer UI components, and Auth0 is a large, highly customizable identity platform for complex multi-protocol needs.",
+              "match": "WorkOS"
+            },
+            {
+              "brand": "Clerk",
+              "text": "WorkOS is built for B2B enterprise features like single sign-on (SSO), Clerk focuses on fast setup and polished consumer UI components, and Auth0 is a large, highly customizable identity platform for complex multi-protocol needs.",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth0",
+              "text": "WorkOS is built for B2B enterprise features like single sign-on (SSO), Clerk focuses on fast setup and polished consumer UI components, and Auth0 is a large, highly customizable identity platform for complex multi-protocol needs.",
+              "match": "Auth0"
+            },
+            { "brand": "Okta", "text": "Auth0 (by Okta)", "match": "Okta" }
           ],
           "collectedAt": "2026-10-07T15:25:58.594Z"
         }
@@ -2645,7 +4956,35 @@
           "text": "The current recommended approach is **Google Identity Services (GIS)**. Avoid older tutorials using `gapi.auth2` or the deprecated Google Sign-In library. GIS returns a Google ID token, which your backend must verify before creating an application session. \n\n## 1. Create a Google OAuth client\n\nIn Google Cloud Console:\n\n1. Create or select a project.\n2. Configure the **OAuth consent screen/branding**.\n3. Create an **OAuth client ID** with application type **Web application**.\n4. Add your frontend URLs under **Authorized JavaScript origins**, for example:\n   - `http://localhost:5173` for Vite\n   - `http://localhost:3000` for Create React App\n   - Your production domain\n\nCopy the resulting client ID. It should look like:\n\n```text\n1234567890-abc123.apps.googleusercontent.com\n```\n\nA web client ID is required both to initialize Google Sign-In and to verify the returned token on your backend. \n\n---\n\n## 2. Add the Google script\n\nAdd this inside your React app’s `index.html`:\n\n```html\n<script src=\"https://accounts.google.com/gsi/client\" async></script>\n```\n\nGoogle recommends loading this script directly from its URL rather than self-hosting it. \n\n---\n\n## 3. Add your client ID to the environment\n\nFor a Vite app, create `.env`:\n\n```env\nVITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nFor Create React App, use:\n\n```env\nREACT_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nRestart your development server after changing environment variables.\n\n---\n\n## 4. Create the React login component\n\n```jsx\nimport { useEffect, useRef } from \"react\";\n\nexport default function GoogleLogin() {\n  const buttonRef = useRef(null);\n\n  useEffect(() => {\n    function initializeGoogle() {\n      if (!window.google || !buttonRef.current) return;\n\n      window.google.accounts.id.initialize({\n        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,\n        callback: handleGoogleResponse,\n      });\n\n      // Prevent duplicate buttons during React Strict Mode development.\n      buttonRef.current.innerHTML = \"\";\n\n      window.google.accounts.id.renderButton(buttonRef.current, {\n        theme: \"outline\",\n        size: \"large\",\n        text: \"signin_with\",\n        shape: \"rectangular\",\n      });\n    }\n\n    if (window.google) {\n      initializeGoogle();\n    } else {\n      const interval = setInterval(() => {\n        if (window.google) {\n          clearInterval(interval);\n          initializeGoogle();\n        }\n      }, 100);\n\n      return () => clearInterval(interval);\n    }\n  }, []);\n\n  async function handleGoogleResponse(response) {\n    try {\n      const result = await fetch(\"http://localhost:3001/auth/google\", {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n        },\n        credentials: \"include\",\n        body: JSON.stringify({\n          credential: response.credential,\n        }),\n      });\n\n      if (!result.ok) {\n        throw new Error(\"Google login failed\");\n      }\n\n      const data = await result.json();\n      console.log(\"Logged in user:\", data.user);\n    } catch (error) {\n      console.error(error);\n    }\n  }\n\n  return <div ref={buttonRef} />;\n}\n```\n\nThen use it:\n\n```jsx\nimport GoogleLogin from \"./GoogleLogin\";\n\nfunction App() {\n  return (\n    <main>\n      <h1>Sign in</h1>\n      <GoogleLogin />\n    </main>\n  );\n}\n\nexport default App;\n```\n\nIf you use Create React App, replace:\n\n```js\nimport.meta.env.VITE_GOOGLE_CLIENT_ID\n```\n\nwith:\n\n```js\nprocess.env.REACT_APP_GOOGLE_CLIENT_ID\n```\n\nGoogle requires the official button to be rendered by its library rather than implementing a custom button that programmatically starts the flow. \n\n---\n\n## 5. Verify the token on your backend\n\nNever trust a token merely because the frontend received it. Send it to your backend and verify its signature, audience, issuer, and expiration. \n\nFor an Express backend:\n\n```bash\nnpm install express cors express-session google-auth-library dotenv\n```\n\nCreate `server.js`:\n\n```js\nimport \"dotenv/config\";\nimport express from \"express\";\nimport cors from \"cors\";\nimport session from \"express-session\";\nimport { OAuth2Client } from \"google-auth-library\";\n\nconst app = express();\nconst googleClient = new OAuth2Client();\n\napp.use(\n  cors({\n    origin: \"http://localhost:5173\",\n    credentials: true,\n  })\n);\n\napp.use(express.json());\n\napp.use(\n  session({\n    secret: process.env.SESSION_SECRET,\n    resave: false,\n    saveUninitialized: false,\n    cookie: {\n      httpOnly: true,\n      secure: false, // Set true when using HTTPS in production.\n      sameSite: \"lax\",\n      maxAge: 1000 * 60 * 60 * 24 * 7,\n    },\n  })\n);\n\napp.post(\"/auth/google\", async (req, res) => {\n  try {\n    const { credential } = req.body;\n\n    if (!credential) {\n      return res.status(400).json({ error: \"Missing Google credential\" });\n    }\n\n    const ticket = await googleClient.verifyIdToken({\n      idToken: credential,\n      audience: process.env.GOOGLE_CLIENT_ID,\n    });\n\n    const payload = ticket.getPayload();\n\n    const googleUser = {\n      googleId: payload.sub,\n      email: payload.email,\n      name: payload.name,\n      picture: payload.picture,\n    };\n\n    /*\n      Find or create the user in your database here.\n\n      Important: use payload.sub as the stable Google account ID,\n      rather than using the email as the primary identifier.\n    */\n\n    req.session.user = googleUser;\n\n    res.json({\n      user: googleUser,\n    });\n  } catch (error) {\n    console.error(error);\n    res.status(401).json({ error: \"Invalid Google credential\" });\n  }\n});\n\napp.get(\"/auth/me\", (req, res) => {\n  if (!req.session.user) {\n    return res.status(401).json({ user: null });\n  }\n\n  res.json({ user: req.session.user });\n});\n\napp.post(\"/auth/logout\", (req, res) => {\n  req.session.destroy(() => {\n    res.clearCookie(\"connect.sid\");\n    res.status(204).end();\n  });\n});\n\napp.listen(3001, () => {\n  console.log(\"API running on port 3001\");\n});\n```\n\nBackend `.env`:\n\n```env\nGOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\nSESS",
           "overview": null,
           "mentioned": [],
-          "sources": ["developers.google.com"],
+          "sources": [
+            {
+              "url": "https://developers.google.com/identity/gsi/web/guides/overview?utm_source=openai",
+              "title": "Overview  |  Web guides  |  Google for Developers",
+              "domain": "developers.google.com"
+            },
+            {
+              "url": "https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid?utm_source=openai",
+              "title": "Setup  |  Web guides  |  Google for Developers",
+              "domain": "developers.google.com"
+            },
+            {
+              "url": "https://developers.google.com/identity/gsi/web/guides/offerings?hl=en&utm_source=openai",
+              "title": "Sign in with Google features  |  Web guides  |  Google for Developers",
+              "domain": "developers.google.com"
+            },
+            {
+              "url": "https://developers.google.com/identity/gsi/web/guides/verify-google-id-token?trk=article-ssr-frontend-pulse_little-text-block&utm_source=openai",
+              "title": "Verify the Google ID token on your server side  |  Web guides  |  Google for Developers",
+              "domain": "developers.google.com"
+            },
+            {
+              "url": "https://developers.google.com/identity/gsi/web/guides/integrate?utm_source=openai",
+              "title": "Integration considerations  |  Web guides  |  Google for Developers",
+              "domain": "developers.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:27:11.724Z"
         },
         {
@@ -2660,6 +4999,34 @@
             "Auth.js"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Firebase Authentication",
+              "text": "Firebase Authentication: signInWithPopup(auth, new GoogleAuthProvider())",
+              "match": "Firebase Authentication"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "Supabase Auth, Auth0, Clerk: these come with ready-made React components",
+              "match": "Supabase Auth"
+            },
+            {
+              "brand": "Auth0",
+              "text": "Supabase Auth, Auth0, Clerk: these come with ready-made React components",
+              "match": "Auth0"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Supabase Auth, Auth0, Clerk: these come with ready-made React components",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "NextAuth / Auth.js: a good choice if you're on Next.js",
+              "match": "NextAuth"
+            }
+          ],
           "collectedAt": "2026-10-07T15:27:02.209Z"
         },
         {
@@ -2813,15 +5180,59 @@
           },
           "mentioned": [],
           "sources": [
-            "developers.google.com",
-            "github.com",
-            "youtube.com",
-            "marmelab.com",
-            "npmjs.com",
-            "cybrosys.com",
-            "medium.com",
-            "stackoverflow.com"
+            {
+              "url": "https://developers.google.com/identity/sign-in/web/sign-in",
+              "title": "Integrating Google Sign-In into your web app | Web guides",
+              "domain": "developers.google.com"
+            },
+            {
+              "url": "https://github.com/MomenSherif/react-oauth",
+              "title": "MomenSherif/react-oauth: Google OAuth2 using the ... - GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=GuHN_ZqHExs&t=11",
+              "title": "React Google Login: Easy Authentication Tutorial",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://marmelab.com/blog/2024/11/18/google-authentication-react.html",
+              "title": "Google OAuth in React: A Beginner’s Guide to Authentication",
+              "domain": "marmelab.com"
+            },
+            {
+              "url": "https://www.npmjs.com/package/@react-oauth/google",
+              "title": "@react-oauth/google - npm",
+              "domain": "npmjs.com"
+            },
+            {
+              "url": "https://www.cybrosys.com/blog/how-to-implement-google-sign-in-in-react",
+              "title": "How to Implement Google Sign-In in React",
+              "domain": "cybrosys.com"
+            },
+            {
+              "url": "https://medium.com/@dhananjay_yadav/implementing-google-authentication-with-react-js-and-node-js-f72e306f26c9",
+              "title": "Implementing Google Authentication with React JS and Node.js",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=xW4OFVPQxTg&t=314",
+              "title": "Build a React.js Google OAuth2 One Tap JWT Login Using @ ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://stackoverflow.com/questions/77718144/oauth2-0-integration-via-google-in-a-reactspring-application",
+              "title": "OAuth2.0 integration via Google in a React+Spring application",
+              "domain": "stackoverflow.com"
+            },
+            {
+              "url": "https://medium.com/@sohail_saifii/integrating-google-oauth-in-react-and-node-js-a-step-by-step-guide-37d853199686",
+              "title": "Integrating Google OAuth in React and Node.js: A Step-by-Step Guide | by Sohail x Codes | Medium",
+              "domain": "medium.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:27:05.542Z"
         }
       ]
@@ -2843,12 +5254,44 @@
           "overview": null,
           "mentioned": ["Keycloak"],
           "sources": [
-            "docs.goauthentik.io",
-            "main.goauthentik.io",
-            "keycloak.org",
-            "zitadel.com",
-            "pocket-id.org",
-            "github.com"
+            {
+              "url": "https://docs.goauthentik.io/?utm_source=openai",
+              "title": "Welcome to authentik | authentik",
+              "domain": "docs.goauthentik.io"
+            },
+            {
+              "url": "https://main.goauthentik.io/add-secure-apps/providers/?utm_source=openai",
+              "title": "Providers | authentik",
+              "domain": "main.goauthentik.io"
+            },
+            {
+              "url": "https://www.keycloak.org/documentation?utm_source=openai",
+              "title": "Documentation - Keycloak",
+              "domain": "keycloak.org"
+            },
+            {
+              "url": "https://zitadel.com/docs/guides/integrate/identity-providers/ldap?utm_source=openai",
+              "title": "Configure LDAP as an Identity Provider in ZITADEL | ZITADEL Docs",
+              "domain": "zitadel.com"
+            },
+            {
+              "url": "https://pocket-id.org/docs/introduction?utm_source=openai",
+              "title": "What is Pocket ID? A self-hosted OIDC provider for passkeys",
+              "domain": "pocket-id.org"
+            },
+            {
+              "url": "https://github.com/authelia/authelia/blob/master/docs/content/integration/openid-connect/introduction.md?utm_source=openai",
+              "title": "authelia/docs/content/integration/openid-connect/introduction.md at master · authelia/authelia · GitHub",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Keycloak",
+              "text": "Choose Keycloak if you have experienced IAM/platform engineers or need:",
+              "match": "Keycloak"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:06.662Z"
         },
@@ -2858,14 +5301,64 @@
           "overview": null,
           "mentioned": ["Keycloak"],
           "sources": [
-            "cloudzy.com",
-            "devhandbook.io",
-            "skycloak.io",
-            "stribog.com",
-            "blog.elest.io",
-            "startwithidentity.com",
-            "use-apify.com",
-            "github.com"
+            {
+              "url": "https://cloudzy.com/blog/authentik-vs-zitadel-vs-keycloak/",
+              "title": "Authentik vs ZITADEL vs Keycloak: Self-Hosted SSO Comparison · Cloudzy Blog",
+              "domain": "cloudzy.com"
+            },
+            {
+              "url": "https://devhandbook.io/blog/2026-08-08-self-hosted-auth-sso-showdown/",
+              "title": "Self-Hosted Auth/SSO Showdown: Authentik vs Keycloak vs Zitadel vs Kratos — devhandbook.io",
+              "domain": "devhandbook.io"
+            },
+            {
+              "url": "https://skycloak.io/blog/open-source-authentication-comparison-2026/",
+              "title": "Open Source Authentication in 2026: Complete Comparison",
+              "domain": "skycloak.io"
+            },
+            {
+              "url": "https://stribog.com/blog/keycloak-authentik-zitadel-self-hosted-identity-okta-exit",
+              "title": "Keycloak vs Authentik vs Zitadel: Self-Hosted SSO After Okta",
+              "domain": "stribog.com"
+            },
+            {
+              "url": "https://blog.elest.io/authentik-vs-authelia-vs-keycloak-choosing-the-right-self-hosted-identity-provider-in-2026/",
+              "title": "Authentik vs Authelia vs Keycloak: Choosing the Right Self-Hosted Identity Provider in 2026",
+              "domain": "blog.elest.io"
+            },
+            {
+              "url": "https://startwithidentity.com/articles/top-10-open-source-iam-solutions/",
+              "title": "Top 10 Open-Source IAM Solutions in 2026",
+              "domain": "startwithidentity.com"
+            },
+            {
+              "url": "https://use-apify.com/blog/auth0-alternatives-2026",
+              "title": "5 Open-Source Auth0 Alternatives You Can Self-Host (2026)",
+              "domain": "use-apify.com"
+            },
+            {
+              "url": "https://github.com/aicrafted/research/blob/main/Auth%20servers/Auth%20servers%20comparison.md",
+              "title": "research/Auth servers/Auth servers comparison.md at main · aicrafted/research",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.zluri.com/eye-on-identity/self-hosted-iam-tools-small-business-keycloak-alternative",
+              "title": "Modern Self-Hosted IAM Tools for Small Business: Beyond OpenLDAP and Keycloak",
+              "domain": "zluri.com"
+            },
+            {
+              "url": "https://danubedata.ro/blog/self-host-authentik-keycloak-auth0-alternative-2026",
+              "title": "Self-Host Authentik or Keycloak: Open-Source Auth0 Alternatives for SSO (2026)",
+              "domain": "danubedata.ro"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Keycloak",
+              "text": "Its admin workflow is easier to approach than Keycloak's, it supports several integration methods, and its official Docker Compose setup starts at 2 CPU cores and 2 GB of RAM.",
+              "match": "Keycloak"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:53.025Z"
         },
@@ -2964,11 +5457,39 @@
           },
           "mentioned": ["Keycloak"],
           "sources": [
-            "use-apify.com",
-            "youtube.com",
-            "reddit.com",
-            "dev.to",
-            "aboutauth.com"
+            {
+              "url": "https://use-apify.com/blog/auth0-alternatives-2026",
+              "title": "5 Open-Source Auth0 Alternatives You Can Self",
+              "domain": "use-apify.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Sc6ndLD2BfY",
+              "title": "Best Self",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/selfhosted/comments/1im9cxp/best_self_hosted_authentication_solution_for/",
+              "title": "Best self hosted authentication solution for platform? : r/selfhosted - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://dev.to/supertokens/self-hosted-authentication-2bl2",
+              "title": "Self-hosted Authentication - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://aboutauth.com/best-open-source-identity-and-access-management-iam-software/",
+              "title": "Best Open Source Identity & Access Management Solutions in 2025",
+              "domain": "aboutauth.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Keycloak",
+              "text": "Keycloak: Best for enterprise-grade scalability and advanced features.",
+              "match": "Keycloak"
+            }
           ],
           "collectedAt": "2026-10-07T15:41:13.079Z"
         }
@@ -2979,52 +5500,558 @@
     {
       "domain": "workos.com",
       "share": 34,
-      "byEngine": { "chatgpt": 50, "claude": 23, "ai-overview": 21 }
+      "byEngine": { "chatgpt": 50, "claude": 23, "ai-overview": 21 },
+      "citations": 25,
+      "pages": [
+        {
+          "url": "https://workos.com/pricing",
+          "title": "Pricing — WorkOS",
+          "citations": 11
+        },
+        {
+          "url": "https://workos.com/docs/authkit/overview",
+          "title": "AuthKit – WorkOS Docs",
+          "citations": 3
+        },
+        {
+          "url": "https://workos.com/blog/workos-vs-auth0-vs-clerk-the-best-auth-platform-for-b2b-saas-in-2026",
+          "title": "WorkOS vs. Auth0 vs. Clerk: The best auth platform for B2B SaaS in 2026 — WorkOS",
+          "citations": 3
+        },
+        {
+          "url": "https://workos.com/blog/top-mfa-providers-2026",
+          "title": "Top 5 MFA providers for securing your app in 2026 — WorkOS",
+          "citations": 2
+        },
+        {
+          "url": "https://workos.com/blog/best-scim-providers-for-automated-user-provisioning-in-2026",
+          "title": "Best SCIM providers for automated user provisioning in 2026 — WorkOS",
+          "citations": 2
+        },
+        {
+          "url": "https://workos.com/compare/auth0",
+          "title": "WorkOS vs Auth0: Clear pricing, SCIM, IT-admin self-serve UI",
+          "citations": 2
+        },
+        {
+          "url": "https://workos.com/docs/authkit/roles-and-permissions",
+          "title": "Roles and Permissions – AuthKit – WorkOS Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://workos.com/docs/admin-portal",
+          "title": "Admin Portal – WorkOS Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        {
+          "id": 11,
+          "citations": 5,
+          "engines": ["chatgpt", "claude", "ai-overview"]
+        },
+        { "id": 3, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 8, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 2, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 4, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 14, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "clerk.com",
       "share": 34,
-      "byEngine": { "chatgpt": 57, "claude": 27, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 57, "claude": 27, "ai-overview": 0 },
+      "citations": 25,
+      "pages": [
+        {
+          "url": "https://clerk.com/pricing",
+          "title": "Pricing — Free Up to 50K Users | Plans from $0/mo",
+          "citations": 8
+        },
+        {
+          "url": "https://clerk.com/articles/best-sso-and-mfa-providers-for-b2b-saas",
+          "title": "Best SSO and MFA Providers for B2B SaaS in 2026",
+          "citations": 4
+        },
+        {
+          "url": "https://clerk.com/docs/nextjs/getting-started/quickstart",
+          "title": "Next.js Quickstart (App Router) - Getting started | Clerk Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://clerk.com/docs/guides/configure/auth-strategies/enterprise-connections/overview",
+          "title": "Enterprise Single Sign-On (SSO) - Enterprise connections | Clerk Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options",
+          "title": "Sign-up and sign-in options - Authentication strategies | Clerk Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://clerk.com/docs/expo/getting-started/quickstart",
+          "title": "Expo Quickstart - Getting started | Clerk Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://clerk.com/docs/guides/organizations/overview",
+          "title": "Organizations - Build multi-tenant B2B applications - Organization management | Clerk Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://clerk.com/docs/nextjs/guides/organizations/getting-started",
+          "title": "Get started with Organizations - Organization management - Next.js | Clerk Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 1, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 3, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 11, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 2, "engines": ["chatgpt", "claude"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "auth0.com",
       "share": 22,
-      "byEngine": { "chatgpt": 47, "claude": 0, "ai-overview": 14 }
+      "byEngine": { "chatgpt": 47, "claude": 0, "ai-overview": 14 },
+      "citations": 16,
+      "pages": [
+        {
+          "url": "https://auth0.com/pricing",
+          "title": "Pricing - Auth0",
+          "citations": 5
+        },
+        {
+          "url": "https://auth0.com/pricing?trk=public_post-text",
+          "title": "Pricing - Auth0",
+          "citations": 3
+        },
+        {
+          "url": "https://auth0.com/docs/get-started/auth0-overview/create-applications/native-apps",
+          "title": "Register Native Applications - Auth0 Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://auth0.com/docs/manage-users/organizations/configure-organizations/create-organizations",
+          "title": "Create Organizations - Auth0 Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://auth0.com/docs/microsites/add-login/add-login-regular-web-app",
+          "title": "Auth0 Regular Web App Quickstarts",
+          "citations": 1
+        },
+        {
+          "url": "https://auth0.com/platform/extensibility",
+          "title": "Extensibility - Adapt and Extend Authentication | Auth0",
+          "citations": 1
+        },
+        {
+          "url": "https://auth0.com/docs/secure/multi-factor-authentication/webauthn-as-mfa",
+          "title": "WebAuthn as Multi-Factor Authentication - Auth0 Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://auth0.com/startups",
+          "title": "Auth0 for Startups | Enjoy One Year Free | Auth0",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 3, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "guptadeepak.com",
       "share": 18,
-      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 },
+      "citations": 13,
+      "pages": [
+        {
+          "url": "https://guptadeepak.com/top-6-alternatives-to-google-firebase-customer-identity/",
+          "title": "Firebase Auth Alternatives 2026: 8 Platforms Compared, guptadeepak.com",
+          "citations": 4
+        },
+        {
+          "url": "https://guptadeepak.com/ciam-compass/compare/clerk-vs-workos/",
+          "title": "Clerk vs WorkOS: Which CIAM Wins in 2026?, CIAM Compass",
+          "citations": 3
+        },
+        {
+          "url": "https://guptadeepak.com/ciam-compass/compare/auth0-vs-clerk/",
+          "title": "Auth0 vs Clerk: Which CIAM Wins in 2026?, CIAM Compass",
+          "citations": 2
+        },
+        {
+          "url": "https://guptadeepak.com/ciam-compass/guides/workos-vs-auth0-vs-clerk/",
+          "title": "WorkOS vs Auth0 vs Clerk in 2026: Which CIAM for B2B SaaS, CIAM Compass",
+          "citations": 2
+        },
+        {
+          "url": "https://guptadeepak.com/top-5-passwordless-authentication-solutions-in-2026-enterprise-and-saas-comparison/",
+          "title": "Top 5 Passwordless Authentication Platforms 2026, guptadeepak.com",
+          "citations": 2
+        },
+        {
+          "url": "https://guptadeepak.com/tools/top-5-developer-first-ciam-platforms-2026/",
+          "title": "Top 5 Developer-First CIAM Platforms: Frontegg, SSOJet, Stytch, Clerk, and WorkOS Compared",
+          "citations": 2
+        },
+        {
+          "url": "https://guptadeepak.com/auth0-vs-okta-vs-stytch-vs-workos-vs-ssojet-2026-a-buyer-stage-framework/",
+          "title": "Auth0 vs Okta vs Stytch vs WorkOS: CIAM Buyer-Stage Guide, guptadeepak.com",
+          "citations": 1
+        },
+        {
+          "url": "https://guptadeepak.com/ciam-compass/compare/auth0-vs-cognito/",
+          "title": "Auth0 vs Amazon Cognito: Which CIAM Wins in 2026?, CIAM Compass",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 11, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "supabase.com",
       "share": 16,
-      "byEngine": { "chatgpt": 40, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 40, "claude": 0, "ai-overview": 0 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://supabase.com/docs/guides/auth",
+          "title": "Auth | Supabase Docs",
+          "citations": 6
+        },
+        {
+          "url": "https://supabase.com/pricing",
+          "title": "Pricing & Fees | Supabase",
+          "citations": 2
+        },
+        {
+          "url": "https://supabase.com/docs/guides/platform/manage-your-usage/monthly-active-users",
+          "title": "Manage Monthly Active Users usage | Supabase Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://supabase.com/docs/guides/auth/passkeys",
+          "title": "Passkey authentication | Supabase Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://supabase.com/docs/guides/auth/third-party/overview",
+          "title": "Third-party auth | Supabase Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://supabase.com/docs/guides/auth/third-party/firebase-auth",
+          "title": "Firebase Auth | Supabase Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://supabase.com/docs/guides/auth/native-mobile-deep-linking?platform=swift",
+          "title": "Native Mobile Deep Linking | Supabase Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 4, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 0, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "securityboulevard.com",
       "share": 16,
-      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 14 }
+      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 14 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://securityboulevard.com/2026/05/enterprise-authentication-for-developers-10-tools-compared-2026/",
+          "title": "Enterprise Authentication for Developers: 10 Tools Compared (2026) - Security Boulevard",
+          "citations": 3
+        },
+        {
+          "url": "https://securityboulevard.com/2026/04/b2b-authentication-provider-comparison-features-pricing-sso-support-2026/",
+          "title": "B2B Authentication Provider Comparison: Features, Pricing & SSO Support (2026) - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2026/05/authentication-services-in-2026-how-they-work-top-providers-compared-and-how-to-choose/",
+          "title": "Authentication Services in 2026: How They Work, Top Providers Compared, and How to Choose - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2025/08/top-15-sso-providers-2025-secure-your-systems-confidently/",
+          "title": "Top 15 SSO Providers 2026 - Secure Your Systems Confidently - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2026/05/best-developer-tools-for-enterprise-authentication-2026/",
+          "title": "Best Developer Tools for Enterprise Authentication (2026) - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2026/05/9-open-source-libraries-and-sdks-for-building-passwordless-auth-in-a-weekend/",
+          "title": "9 Open-Source Libraries and SDKs for Building Passwordless Auth in a Weekend - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2026/05/12-best-auth0-alternatives-for-passwordless-authentication-in-2026/",
+          "title": "12 Best Auth0 Alternatives for Passwordless Authentication in 2026 - Security Boulevard",
+          "citations": 2
+        },
+        {
+          "url": "https://securityboulevard.com/2026/03/top-scim-providers-for-b2b-saas-apps-automated-user-provisioning-platforms/",
+          "title": "Top SCIM Providers for B2B SaaS Apps: Automated User ...",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 11, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "buildmvpfast.com",
       "share": 16,
-      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 7 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://www.buildmvpfast.com/api-costs/authentication",
+          "title": "Authentication Pricing Comparison (July 2026)",
+          "citations": 8
+        },
+        {
+          "url": "https://www.buildmvpfast.com/blog/best-auth-providers-2026-clerk-supabase-comparison",
+          "title": "Best Auth Providers 2026: Clerk, Auth0, Supabase Compared",
+          "citations": 5
+        },
+        {
+          "url": "https://www.buildmvpfast.com/blog/better-auth-vs-clerk-vs-authjs-nextjs-decision-tree-2026",
+          "title": "Better Auth vs Clerk vs Auth.js for Next.js 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://www.buildmvpfast.com/alternatives/workos",
+          "title": "Best WorkOS Alternatives (2026): Enterprise Auth, SSO",
+          "citations": 2
+        },
+        {
+          "url": "https://www.buildmvpfast.com/tools/api-pricing-estimator/clerk",
+          "title": "Clerk Pricing Calculator (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.buildmvpfast.com/alternatives/clerk",
+          "title": "Best Clerk Alternatives (2026): Pricing & Comparison",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 4, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 14, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "reddit.com",
       "share": 14,
-      "byEngine": { "chatgpt": 0, "claude": 0, "ai-overview": 71 }
+      "byEngine": { "chatgpt": 0, "claude": 0, "ai-overview": 71 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://www.reddit.com/r/AZURE/comments/16zlxau/dynamic_identity_providers_for_saas_azure_b2c_vs/",
+          "title": "Dynamic Identity Providers for SaaS (Azure B2C vs. Duende ...",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/nextjs/comments/1rv1q0e/learning_nextjs_whats_the_best_authentication/",
+          "title": "Learning Next.js: What's the best authentication library for a beginner? : r/nextjs - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/nextjs/comments/1fsnyed/clerk_vs_workos_vs_kinde/",
+          "title": "Clerk vs WorkOS vs Kinde : r/nextjs - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/SaaS/comments/1qfqzz9/overwhelmed_by_b2b_auth_requirements_what_are_you/",
+          "title": "Overwhelmed by B2B Auth requirements. What are you using? : r/SaaS - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/softwarearchitecture/comments/gh4oxh/authentication_service_selfmade_vs_already_made/",
+          "title": "Authentication service self-made vs already made solution",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/nextjs/comments/1kytjp1/authentication_with_an_external_backend_and/",
+          "title": "Authentication (with an external backend) and Caching issues : r/nextjs",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/node/comments/decyc6/best_express_and_react_native_authentication/",
+          "title": "Best Express and React Native authentication library : r/node",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/nextjs/comments/1aqfstj/best_auth_system/",
+          "title": "Best auth system : r/nextjs - Reddit",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 1, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 2, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 3, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 5, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 6, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 8, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 10, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 13, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 14, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "github.com",
       "share": 12,
-      "byEngine": { "chatgpt": 13, "claude": 7, "ai-overview": 21 }
+      "byEngine": { "chatgpt": 13, "claude": 7, "ai-overview": 21 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://github.com/nextauthjs/next-auth",
+          "title": "GitHub - nextauthjs/next-auth: Authentication for the Web. · GitHub",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/aicrafted/research/blob/main/Auth%20servers/Auth%20servers%20comparison.md",
+          "title": "research/Auth servers/Auth servers comparison.md at main · aicrafted/research",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/better-auth/better-auth?ref=toolshelf",
+          "title": "GitHub - better-auth/better-auth at toolshelf · GitHub",
+          "citations": 1
+        },
+        {
+          "url": "https://github.com/better-auth/better-auth/blob/main/README.md",
+          "title": "better-auth/README.md at main · better-auth/better-auth · GitHub",
+          "citations": 1
+        },
+        {
+          "url": "https://github.com/authelia/authelia/blob/master/docs/content/integration/openid-connect/introduction.md",
+          "title": "authelia/docs/content/integration/openid-connect/introduction.md at master · authelia/authelia · GitHub",
+          "citations": 1
+        },
+        {
+          "url": "https://github.com/pocket-id/pocket-id",
+          "title": "GitHub - pocket-id/pocket-id: The most user-friendly OpenID Connect Certified™ and OAuth 2.0 provider that lets users sign in to your applications with passkeys. · GitHub",
+          "citations": 1
+        },
+        {
+          "url": "https://github.com/hbmartin/comparison-web-app-authentication-providers",
+          "title": "Comparison of Auth Providers (primarily for Web Apps)",
+          "citations": 1
+        },
+        {
+          "url": "https://github.com/MomenSherif/react-oauth",
+          "title": "MomenSherif/react-oauth: Google OAuth2 using the ... - GitHub",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 13, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 6, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 4, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 7, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "startwithidentity.com",
       "share": 12,
-      "byEngine": { "chatgpt": 0, "claude": 17, "ai-overview": 29 }
+      "byEngine": { "chatgpt": 0, "claude": 17, "ai-overview": 29 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://startwithidentity.com/articles/top-10-open-source-iam-solutions/",
+          "title": "Top 10 Open-Source IAM Solutions in 2026",
+          "citations": 4
+        },
+        {
+          "url": "https://startwithidentity.com/articles/top-7-open-source-authorization-tools/",
+          "title": "Open-Source Authorization Service: 7 Tools Compared (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://startwithidentity.com/articles/top-6-open-source-mfa-passwordless-tools/",
+          "title": "Top 6 Open-Source MFA & Passwordless Tools (2026) · Start with Identity",
+          "citations": 1
+        },
+        {
+          "url": "https://startwithidentity.com/articles/b2b-saas-enterprise-readiness/",
+          "title": "B2B SaaS Enterprise Readiness: SSO, SCIM, Audit Logs (2026)",
+          "citations": 1
+        },
+        {
+          "url": "https://startwithidentity.com/articles/enterprise-authentication-pricing-2026/",
+          "title": "Enterprise Authentication Pricing 2026: Real Cost Comparison",
+          "citations": 1
+        },
+        {
+          "url": "https://startwithidentity.com/articles/top-5-cloud-native-iam-platforms/",
+          "title": "Top 5 Cloud-Native IAM Platforms in 2026 | StartWithIdentity",
+          "citations": 1
+        },
+        {
+          "url": "https://startwithidentity.com/rankings/best-sso-scim-platforms-b2b-saas/",
+          "title": "Best Enterprise SSO & SCIM Platforms for B2B SaaS: Top 5",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 6, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 1, "engines": ["claude"] },
+        { "id": 3, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 4, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 11, "citations": 1, "engines": ["ai-overview"] }
+      ]
     }
   ],
   "overview": {

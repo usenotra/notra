@@ -246,12 +246,69 @@
             "DigitalOcean"
           ],
           "sources": [
-            "render.com",
-            "vercel.com",
-            "docs.railway.com",
-            "developers.cloudflare.com",
-            "fly.io",
-            "docs.digitalocean.com"
+            {
+              "url": "https://render.com/docs/service-types?utm_source=openai",
+              "title": "Services and Service Types – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://vercel.com/docs/plans/hobby?utm_source=openai",
+              "title": "Vercel Hobby Plan",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://docs.railway.com/pricing/plans?utm_source=openai",
+              "title": "Pricing Plans | Railway Docs",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/workers/platform/pricing/?ref=renewalrecord.com&utm_source=openai",
+              "title": "Pricing · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://www.fly.io/docs/about/pricing/?utm_source=openai",
+              "title": "Fly.io Resource Pricing · Fly Docs",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://docs.digitalocean.com/products/app-platform/details/pricing/?utm_source=openai",
+              "title": "App Platform Pricing | DigitalOcean Documentation",
+              "domain": "docs.digitalocean.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Best overall: Render",
+              "match": "Render"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Next.js or frontend application: Vercel — excellent framework integration, PR previews and automatic scaling.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Railway",
+              "text": "Prototype or hackathon: Railway — simple deployment with a $5 Hobby subscription that counts toward resource usage; there is also a limited free plan.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Low-latency global API: Cloudflare Workers — paid accounts start at $5 monthly and do not charge additional bandwidth/egress fees.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Docker and multi-region workloads: Fly.io — flexible VM-based deployment with usage-based pricing.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Straightforward, predictable pricing: DigitalOcean App Platform — paid containers start at $5 monthly.",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:09.362Z"
         },
@@ -276,14 +333,129 @@
             "Azure"
           ],
           "sources": [
-            "appwrite.io",
-            "blogwolf.com",
-            "v2cloud.com",
-            "thesoftwarescout.com",
-            "appypieautomate.ai",
-            "blog.back4app.com",
-            "citehawk.com",
-            "azin.run"
+            {
+              "url": "https://appwrite.io/blog/post/free-hosting-platform",
+              "title": "Best free hosting platforms in 2026 · Appwrite",
+              "domain": "appwrite.io"
+            },
+            {
+              "url": "https://blogwolf.com/top-scalable-hosting-platforms-for-developers-in-2026/",
+              "title": "Top Scalable Hosting Platforms for Developers in 2026 - BlogWolf",
+              "domain": "blogwolf.com"
+            },
+            {
+              "url": "https://v2cloud.com/blog/top-6-application-hosting-services",
+              "title": "Top Application Hosting Services for 2026 - V2 Cloud",
+              "domain": "v2cloud.com"
+            },
+            {
+              "url": "https://thesoftwarescout.com/best-hosting-platforms-for-developers-2026-where-to-deploy-your-next-project/",
+              "title": "Best Hosting Platforms for Developers 2026: Where to Deploy Your Next Project",
+              "domain": "thesoftwarescout.com"
+            },
+            {
+              "url": "https://appwrite.io/blog/post/best-free-hosting-platforms-you-probably-havent-tried-in-2026",
+              "title": "Best free hosting platforms you probably haven't tried in 2026 · Appwrite",
+              "domain": "appwrite.io"
+            },
+            {
+              "url": "https://www.appypieautomate.ai/blog/best-hosting-platforms",
+              "title": "5 Best Hosting Platforms in 2026",
+              "domain": "appypieautomate.ai"
+            },
+            {
+              "url": "https://blog.back4app.com/mobile-app-hosting/",
+              "title": "Top 10 Mobile App Hosting Providers: A 2026 Complete Guide",
+              "domain": "blog.back4app.com"
+            },
+            {
+              "url": "https://www.citehawk.com/leaderboards/app-hosting-platforms",
+              "title": "Best app hosting platforms according to AI (2026)",
+              "domain": "citehawk.com"
+            },
+            {
+              "url": "https://azin.run/blog/best-cloud-hosting-platforms",
+              "title": "Best Cloud Hosting Platforms for Developers in 2026 — Azin Blog",
+              "domain": "azin.run"
+            },
+            {
+              "url": "https://visionvix.com/best-cloud-hosting-platforms/",
+              "title": "14 Best Cloud Hosting Platforms for Developers in 2026",
+              "domain": "visionvix.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Next.js / React frontends: Vercel.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Railway",
+              "text": "Backend APIs and full-stack apps: Railway or Render.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Backend APIs and full-stack apps: Railway or Render.",
+              "match": "Render"
+            },
+            {
+              "brand": "Heroku",
+              "text": "A simple way to decide: pick Railway if you love visual tooling; pick Render if you want Heroku's workflow with better pricing.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Static sites and docs: Netlify or Cloudflare Pages.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Static sites and docs: Netlify or Cloudflare Pages.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Docker containers: Google Cloud Run or Fly.io.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Docker containers: Google Cloud Run or Fly.io.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Fly.io is good for global, low-latency apps and has the most regions of the simple platforms: Fly.io leads with 18 regions, followed by DigitalOcean (8), Render (5), and Railway (4).",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Firebase",
+              "text": "Mobile apps that need a backend: Firebase or Supabase.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "Lowest cost, if you can manage a server: Hetzner + Coolify.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Coolify",
+              "text": "Lowest cost, if you can manage a server: Hetzner + Coolify.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "AWS",
+              "text": "Enterprise scale and compliance: AWS, Azure, or GCP.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Azure",
+              "text": "Enterprise scale and compliance: AWS, Azure, or GCP.",
+              "match": "Azure"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:08.578Z"
         },
@@ -354,7 +526,49 @@
             "AWS",
             "Google Cloud"
           ],
-          "sources": ["instagram.com", "reddit.com", "hostinger.com"],
+          "sources": [
+            {
+              "url": "https://www.instagram.com/reel/DZK39ALtG_c/",
+              "title": "Vercel is a cloud platform for hosting web applications! Here's ...",
+              "domain": "instagram.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1jsshau/recommend_a_hostingstackservice_solution_for/",
+              "title": "Recommend a hosting/stack/service solution for building a ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.hostinger.com/au/tutorials/heroku-alternatives/",
+              "title": "9 best Heroku alternatives for easy app deployment - Hostinger",
+              "domain": "hostinger.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1955lfe/where_to_host_a_web_app/",
+              "title": "Where to host a web app? : r/webdev - Reddit",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            { "brand": "Vercel", "text": "Vercel", "match": "Vercel" },
+            { "brand": "Coolify", "text": "Coolify", "match": "Coolify" },
+            { "brand": "Render", "text": "Render", "match": "Render" },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean (App Platform)",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS / Google Cloud Platform (GCP)",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "AWS / Google Cloud Platform (GCP)",
+              "match": "Google Cloud"
+            }
+          ],
           "collectedAt": "2026-10-07T15:28:10.373Z"
         }
       ]
@@ -414,11 +628,79 @@
             "Azure"
           ],
           "sources": [
-            "docs.railway.com",
-            "render.com",
-            "vercel.com",
-            "supabase.com",
-            "fly.io"
+            {
+              "url": "https://docs.railway.com/pricing/plans?utm_source=openai",
+              "title": "Pricing Plans | Railway Docs",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://render.com/docs/postgresql?utm_source=openai",
+              "title": "Render Postgres – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://render.com/pricing?trk=article-ssr-frontend-pulse_little-text-block&utm_source=openai",
+              "title": "Pricing | Render",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://render.com/docs/free?utm_source=openai",
+              "title": "Deploy for Free – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://vercel.com/docs?utm_source=openai",
+              "title": "Vercel Documentation",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://supabase.com/solutions/hosted-postgres?utm_source=openai",
+              "title": "Hosted Postgres | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://fly.io/web-app-with-postgres/?utm_source=openai",
+              "title": "The easy way to deploy a web app with Postgres · Fly",
+              "domain": "fly.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Railway",
+              "text": "If you have no special requirements, start with Railway and PostgreSQL.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Render supports web services, background workers, static sites, and managed PostgreSQL.",
+              "match": "Render"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Vercel: frontend, Next.js server actions, and API routes",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io can deploy your application and provision managed PostgreSQL from its CLI:",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS App Runner/ECS + RDS",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Run + Cloud SQL",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "Azure",
+              "text": "Azure App Service/Container Apps + Azure Database",
+              "match": "Azure"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:53.951Z"
         },
@@ -439,14 +721,109 @@
             "Coolify"
           ],
           "sources": [
-            "pkgpulse.com",
-            "techsy.io",
-            "blog.railway.com",
-            "speedtesthq.com",
-            "render.com",
-            "kuberns.com",
-            "kunalganglani.com",
-            "insforge.dev"
+            {
+              "url": "https://www.pkgpulse.com/guides/railway-vs-render-vs-fly-io-app-hosting-platforms-2026",
+              "title": "Railway vs Render vs Fly.io (2026) — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://techsy.io/en/blog/railway-vs-render-vs-fly-io",
+              "title": "Railway vs Render vs Fly.io: Benchmarks & Pricing (2026)",
+              "domain": "techsy.io"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-cloud-hosting-platforms-2026",
+              "title": "The Best Cloud Hosting Platforms in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://speedtesthq.com/compare/fly-io-vs-railway-vs-render",
+              "title": "Fly.io vs Railway vs Render in 2026: App Platforms Compared",
+              "domain": "speedtesthq.com"
+            },
+            {
+              "url": "https://render.com/articles/railway-vs-fly-io",
+              "title": "Railway vs Fly.io (2026): Pricing & Platform Comparison",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/fly-io-alternatives/",
+              "title": "Top 10 Fly.io Alternatives for Full-Stack Apps in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://www.kunalganglani.com/blog/fly-io-vs-railway",
+              "title": "7 Fly.io vs Railway Tradeoffs (2026 PaaS Guide)",
+              "domain": "kunalganglani.com"
+            },
+            {
+              "url": "https://insforge.dev/blog/where-to-host-a-full-stack-app-2026",
+              "title": "Where to Host a Full-Stack App in 2026",
+              "domain": "insforge.dev"
+            },
+            {
+              "url": "https://f3fundit.com/micro-saas-hosting-infrastructure-vercel-vs-railway-vs-render-vs-fly-io-2026/",
+              "title": "Micro-SaaS Hosting & Infrastructure: Vercel vs Railway vs Render vs Fly.io (2026) - F³ Fund It",
+              "domain": "f3fundit.com"
+            },
+            {
+              "url": "https://thesoftwarescout.com/heroku-vs-railway-vs-render-vs-fly-io-2026-which-platform-should-you-deploy-on/",
+              "title": "Heroku vs Railway vs Render vs Fly.io 2026: Which Platform Should You Deploy On?",
+              "domain": "thesoftwarescout.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Railway",
+              "text": "The three main choices right now are Railway, Render and Fly.io.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "The three main choices right now are Railway, Render and Fly.io.",
+              "match": "Render"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "The three main choices right now are Railway, Render and Fly.io.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Split it up: Host the frontend on Vercel, Netlify, or Cloudflare.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Split it up: Host the frontend on Vercel, Netlify, or Cloudflare.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Split it up: Host the frontend on Vercel, Netlify, or Cloudflare.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Firebase",
+              "text": "Backend-as-a-service: Supabase or Firebase give you the database, user logins, file storage and server functions in one place.",
+              "match": "Firebase"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Your own server: a $5–10/month server (DigitalOcean, Hetzner) with a tool like Coolify is the cheapest option, but you handle updates and backups yourself.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "Your own server: a $5–10/month server (DigitalOcean, Hetzner) with a tool like Coolify is the cheapest option, but you handle updates and backups yourself.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Coolify",
+              "text": "Your own server: a $5–10/month server (DigitalOcean, Hetzner) with a tool like Coolify is the cheapest option, but you handle updates and backups yourself.",
+              "match": "Coolify"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:55.023Z"
         },
@@ -655,14 +1032,99 @@
             "Azure"
           ],
           "sources": [
-            "render.com",
-            "youtube.com",
-            "uncodemy.com",
-            "medium.com",
-            "digitalocean.com",
-            "dev.to",
-            "reddit.com",
-            "builder.aws.com"
+            {
+              "url": "https://render.com/articles/how-to-deploy-full-stack-applications-without-devops-expertise",
+              "title": "How to deploy full stack applications without DevOps expertise",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=nrG0tKSYMHc&t=171",
+              "title": "How to Deploy a Full-Stack Web Application - React Frontend",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://uncodemy.com/blog/step-by-step-guide-to-deploy-a-full-stack-app",
+              "title": "Step-by-step guide to deploy a full stack app",
+              "domain": "uncodemy.com"
+            },
+            {
+              "url": "https://medium.com/write-a-catalyst/top-5-free-full-stack-web-hosting-platforms-2026-3bf2c89c2f8f",
+              "title": "Top 5 Free Full-Stack Web Hosting Platforms 2026",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://www.digitalocean.com/community/questions/fullstack-architecture-deployments-recomendations",
+              "title": "Fullstack Architecture Deployments Recomendations",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://dev.to/truptpatel21/how-to-build-a-full-stack-web-application-a-complete-guide-for-beginners-2h67",
+              "title": "🚀 How to Build a Full",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=ZHskJVMH5fM",
+              "title": "Coding a new full stack project - setting up the database ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1atzn37/looking_for_some_help_deploying_fullstack_app/",
+              "title": "Looking for some help deploying fullstack app :( : r/webdev",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://dev.to/gruheshkurra/from-zero-to-hero-build-and-deploy-a-full-stack-web-app-in-minutes-272n",
+              "title": "From Zero to Hero: Build and Deploy a Full",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.reddit.com/r/aws/comments/1gbcafp/hosting_full_stack_app_on_aws/",
+              "title": "Hosting full stack app on aws - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://builder.aws.com/content/3JPeFF9N7SyMUzm7Q6fvnpxdBE2/host-a-full-stack-web-app-on-aws",
+              "title": "Host a Full",
+              "domain": "builder.aws.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1k4mluc/where_should_i_host_my_full_stack_website/",
+              "title": "Where should I host my full stack Website : r/webdev",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: Converts your application into a Docker container and deploys it globally close to your users.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "They also offer an automated App Platform if you prefer a managed environment.",
+              "match": "App Platform"
+            },
+            {
+              "brand": "Vercel",
+              "text": "You can then host your frontend on lightweight edge networks like Vercel or Netlify.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "You can then host your frontend on lightweight edge networks like Vercel or Netlify.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "AWS",
+              "text": "Amazon Web Services: The market leader.",
+              "match": "Amazon Web Services"
+            },
+            {
+              "brand": "Azure",
+              "text": "Microsoft Azure: An excellent ecosystem especially if you are working with.NET, C#, or enterprise infrastructures.",
+              "match": "Azure"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:59.426Z"
         }
@@ -715,11 +1177,54 @@
           "overview": null,
           "mentioned": ["Render", "Railway", "Google Cloud", "AWS"],
           "sources": [
-            "render.com",
-            "docs.railway.com",
-            "docs.cloud.google.com",
-            "docs.aws.amazon.com",
-            "inngest.com"
+            {
+              "url": "https://render.com/docs/background-workers?utm_source=openai",
+              "title": "Background Workers – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://docs.railway.com/guides/cron-workers-queues?utm_source=openai",
+              "title": "Choose Between Cron Jobs, Background Workers, and Queues | Railway Guides",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/execute/jobs?hl=en&utm_source=openai",
+              "title": "Execute jobs  |  Cloud Run  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html?utm_source=openai",
+              "title": "Schedule your containers on Amazon ECS - Amazon Elastic Container Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://www.inngest.com/docs/guides/background-jobs?utm_source=openai",
+              "title": "Background Jobs with Inngest | Setup Guide - Inngest Docs",
+              "domain": "inngest.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "For most small-to-medium applications, I’d choose Render because it supports both:",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: Very easy to deploy, but its scheduled runs are skipped when the previous run overlaps.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Cloud Run: Better for bursty or compute-heavy container jobs.",
+              "match": "Cloud Run"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS Fargate: Highly flexible and appropriate if you already use AWS, but ECS, task definitions, IAM and EventBridge make it more operationally complex.",
+              "match": "AWS"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:38.292Z"
         },
@@ -742,14 +1247,114 @@
             "Hetzner"
           ],
           "sources": [
-            "hostadvice.com",
-            "raidframe.com",
-            "kuberns.com",
-            "digitalocean.com",
-            "northflank.com",
-            "medium.com",
-            "nodechef.com",
-            "clankercloud.ai"
+            {
+              "url": "https://hostadvice.com/linux-hosting/cron-job-hosting/",
+              "title": "10 Best Cron Job Hosting Services in Sep 2026",
+              "domain": "hostadvice.com"
+            },
+            {
+              "url": "https://raidframe.com/articles/free-background-jobs-no-url-pinging",
+              "title": "Free Background Jobs Without URL Pinging Hacks — RaidFrame Blog",
+              "domain": "raidframe.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-tools-to-deploy-backend-apps/",
+              "title": "7 Best Tools to Deploy Backend Applications in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-paas-providers/",
+              "title": "Best PaaS Platforms for Developers and Startups in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://www.digitalocean.com/resources/articles/platform-as-a-service-providers",
+              "title": "10 Platform-as-a-Service Providers for App Dev in 2026",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-paas-providers",
+              "title": "We tried the top PaaS providers so you don’t have to",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://medium.com/net-code-chronicles/background-jobs-schedulers-dotnet-abfbf49aa79f",
+              "title": "Background Jobs in .NET: Hangfire, Quartz, Temporal in 2026",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://www.nodechef.com/background-cron-jobs-hosting",
+              "title": "Cron Jobs Service",
+              "domain": "nodechef.com"
+            },
+            {
+              "url": "https://clankercloud.ai/blog/best-paas-platforms-2026-devops-ide-comparison",
+              "title": "Best PaaS Platforms 2026: Pricing, Scalability, Developer Experience, and the DevOps IDE Layer",
+              "domain": "clankercloud.ai"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "For most teams, I'd start with Render.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: Quick to set up and good for prototypes and small apps with several services.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Heroku: Still works fine, with web dynos, worker dynos, scheduled tasks and containers, but it costs more as you grow.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: For Docker-first teams.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean App Platform: Lets you combine static sites, services, workers, and jobs within a single application configuration.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Northflank",
+              "text": "Northflank: For bigger teams that want Kubernetes power or to run on their own cloud account.",
+              "match": "Northflank"
+            },
+            {
+              "brand": "Coolify",
+              "text": "A VPS with Coolify (cheapest): The Coolify software is free and you only pay for the server, but your team owns backups, security and incidents.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Vercel",
+              "text": "On Vercel's free tier you get 1 cron job, 1 execution per day maximum, and the Pro tier allows 10 jobs.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "AWS",
+              "text": "Already on AWS or GCP: Use their own tools (ECS/Fargate scheduled tasks, or Cloud Run Jobs with Cloud Scheduler)",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Already on AWS or GCP: Use their own tools (ECS/Fargate scheduled tasks, or Cloud Run Jobs with Cloud Scheduler)",
+              "match": "GCP"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Your app is on Vercel or Netlify: Add a managed job service like Trigger.dev or Inngest instead of moving everything",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "Lowest cost, and you're fine managing a server: Hetzner or DigitalOcean VPS plus Coolify or plain systemd/cron",
+              "match": "Hetzner"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:44.613Z"
         },
@@ -855,13 +1460,65 @@
           },
           "mentioned": ["Render", "Railway", "Northflank"],
           "sources": [
-            "modelence.com",
-            "upsun.com",
-            "render.com",
-            "northflank.com",
-            "blog.railway.com",
-            "launchtry.com",
-            "cadence.withremote.ai"
+            {
+              "url": "https://modelence.com/compare/vercel-alternatives",
+              "title": "11 Best Vercel Alternatives for Full-Stack App Development ...",
+              "domain": "modelence.com"
+            },
+            {
+              "url": "https://upsun.com/blog/best-digitalocean-app-platform-alternatives-2026/",
+              "title": "Best DigitalOcean App Platform Alternatives 2026 - Upsun",
+              "domain": "upsun.com"
+            },
+            {
+              "url": "https://render.com/articles/firebase-alternatives-production-backend",
+              "title": "Best Firebase Alternatives for Production Backends",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://northflank.com/blog/dokploy-alternatives",
+              "title": "Top Dokploy alternatives for deploying applications in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://blog.railway.com/p/nodejs-hosting-options-compared",
+              "title": "Node.js Hosting Options Compared - Railway Blog",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://launchtry.com/tools/hosting-platforms-for-freelancers",
+              "title": "Best Hosting Platforms Tools for Startups in 2026",
+              "domain": "launchtry.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-tools-for-deploying-internal-ai-apps",
+              "title": "Best tools for deploying internal AI apps in 2026 | Blog",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://cadence.withremote.ai/blog/trigger-dev-review",
+              "title": "Trigger.dev review: serverless background jobs | Cadence blog",
+              "domain": "cadence.withremote.ai"
+            },
+            {
+              "url": "https://northflank.com/blog/northflank-vs-render",
+              "title": "Northflank vs Render: which deployment platform should you choose?",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Render is the best overall platform for hosting continuous background workers and native scheduled cron jobs alongside your primary application.",
+              "match": "Render"
+            },
+            { "brand": "Railway", "text": "Railway:", "match": "Railway" },
+            {
+              "brand": "Northflank",
+              "text": "Northflank:",
+              "match": "Northflank"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:08.550Z"
         }
@@ -920,11 +1577,64 @@
             "Netlify"
           ],
           "sources": [
-            "examples.vercel.com",
-            "nextjs.org",
-            "developers.cloudflare.com",
-            "docs.aws.amazon.com",
-            "render.com"
+            {
+              "url": "https://examples.vercel.com/academy/optimize-your-vercel-account/fluid-compute?utm_source=openai",
+              "title": "Fluid Compute | Vercel Academy",
+              "domain": "examples.vercel.com"
+            },
+            {
+              "url": "https://nextjs.org/docs/15/app/getting-started/deploying?utm_source=openai",
+              "title": "Getting Started: Deploying | Next.js",
+              "domain": "nextjs.org"
+            },
+            {
+              "url": "https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/?utm_source=openai",
+              "title": "Next.js · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/amplify/latest/userguide/ssr-amplify-support.html?utm_source=openai",
+              "title": "Amplify support for Next.js - AWS Amplify Hosting",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://render.com/docs/deploy-nextjs-app?utm_source=openai",
+              "title": "Deploy a Next.js App – Render Docs",
+              "domain": "render.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "For most Next.js apps, deploy to Vercel.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare: attractive for globally distributed workloads, but its recommended deployment path now uses vinext, which reimplements the Next.js API surface.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS Amplify: convenient inside AWS, but its documented support currently stops at Next.js 15 and excludes features including streaming, Edge API routes, and on-demand ISR.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Render",
+              "text": "Render/Railway/Fly: good when you want predictable Node.js behavior, WebSockets, background processes, or fewer serverless constraints.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Render/Railway/Fly: good when you want predictable Node.js behavior, WebSockets, background processes, or fewer serverless constraints.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Render/Railway/Fly: good when you want predictable Node.js behavior, WebSockets, background processes, or fewer serverless constraints.",
+              "match": "Fly"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:09.110Z"
         },
@@ -944,14 +1654,104 @@
             "AWS"
           ],
           "sources": [
-            "ip-trackers.com",
-            "luckymedia.dev",
-            "makerkit.dev",
-            "pandastack.ai",
-            "thesoftwarescout.com",
-            "pandastack.io",
-            "cloudhosting.io",
-            "temps.sh"
+            {
+              "url": "https://www.ip-trackers.com/blog/best-nextjs-hosting",
+              "title": "Best Next.js Hosting 2026: 10 Providers Compared - IP Trackers",
+              "domain": "ip-trackers.com"
+            },
+            {
+              "url": "https://www.luckymedia.dev/guides/best-nextjs-hosting",
+              "title": "Best Hosting for Next.js in 2026",
+              "domain": "luckymedia.dev"
+            },
+            {
+              "url": "https://makerkit.dev/blog/tutorials/best-hosting-nextjs",
+              "title": "10 Best Next.js Hosting Providers in 2026",
+              "domain": "makerkit.dev"
+            },
+            {
+              "url": "https://www.pandastack.ai/blog/best-nextjs-hosting-platforms-2026/",
+              "title": "Best Next.js Hosting Platforms in 2026 · PandaStack",
+              "domain": "pandastack.ai"
+            },
+            {
+              "url": "https://thesoftwarescout.com/best-hosting-for-next-js-apps-in-2026-where-to-deploy-your-project/",
+              "title": "Best Hosting for Next.js Apps in 2026: Where to Deploy Your Project",
+              "domain": "thesoftwarescout.com"
+            },
+            {
+              "url": "https://pandastack.io/blog/best-nextjs-hosting-2026",
+              "title": "Best Next.js Hosting Platforms in 2026 — PandaStack Blog",
+              "domain": "pandastack.io"
+            },
+            {
+              "url": "https://cloudhosting.io/guides/where-to-host-nextjs",
+              "title": "Where to Host a Next.js App in 2026",
+              "domain": "cloudhosting.io"
+            },
+            {
+              "url": "https://temps.sh/blog/10-vercel-alternatives-for-nextjs-2026",
+              "title": "10 Best Vercel Alternatives for Next.js in 2026",
+              "domain": "temps.sh"
+            },
+            {
+              "url": "https://www.techplained.com/best-hosting-nextjs",
+              "title": "Best Next.js Hosting 2026: 8 Platforms Benchmarked",
+              "domain": "techplained.com"
+            },
+            {
+              "url": "https://hostadvice.com/nextjs-hosting/free/",
+              "title": "9 Best Free Next.js Hosting Providers (Sep 2026)",
+              "domain": "hostadvice.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Short answer: use Vercel unless you have a reason not to.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Mostly static site or content site: Netlify or Cloudflare.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Mostly static site or content site: Netlify or Cloudflare.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Railway",
+              "text": "SaaS app with a database: Railway or Render.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "SaaS app with a database: Railway or Render.",
+              "match": "Render"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Render, Railway, and Fly.io all run Next.js as a plain Node.js server (next start) at flat, predictable prices.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "For the lowest cost, self-host with Docker on a Hetzner VPS for about €5.50/month.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Coolify",
+              "text": "Tools like Coolify make deploys easier.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "AWS",
+              "text": "Big company or strict compliance rules: AWS with OpenNext or Amplify.",
+              "match": "AWS"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:15.209Z"
         },
@@ -1120,13 +1920,99 @@
             "Hetzner"
           ],
           "sources": [
-            "flaviocopes.com",
-            "youtube.com",
-            "pages.edgeone.ai",
-            "konabos.com",
-            "oneuptime.com",
-            "reddit.com",
-            "levelup.gitconnected.com"
+            {
+              "url": "https://flaviocopes.com/nextjs-deploy-to-production/",
+              "title": "Deploying a Next.js app in production - Flavio Copes",
+              "domain": "flaviocopes.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=UoT2OdkpeR0&t=303",
+              "title": "🚀 Deploy Your Next.js App to Vercel with GitHub",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://pages.edgeone.ai/id/use-cases/deploy-nextjs",
+              "title": "Deploy NextJS Apps in Seconds",
+              "domain": "pages.edgeone.ai"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=7PoKyVCTcS8",
+              "title": "How to Host a Next.js App on AWS",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=YL2feD9ws9k",
+              "title": "How To Deploy A Next.js App On AWS With CDK",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://konabos.com/blog/how-to-set-up-and-deploy-a-basic-next-js-app-on-aws-amplify",
+              "title": "How to Set Up and Deploy a Basic Next.js App on AWS Amplify",
+              "domain": "konabos.com"
+            },
+            {
+              "url": "https://oneuptime.com/blog/post/2026-02-12-deploy-nextjs-app-to-aws-with-amplify/view",
+              "title": "How to Deploy a Next.js App to AWS with Amplify",
+              "domain": "oneuptime.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/googlecloud/comments/xkxjuo/best_services_to_deploy_nextjs_frontend_app_and/",
+              "title": "Best services to deploy Nextjs frontend app and express ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://levelup.gitconnected.com/how-to-deploy-your-nextjs-app-on-a-vps-f9e70d9a6b67",
+              "title": "How to Deploy your NextJS App on a VPS | by Md Faizan Alam",
+              "domain": "levelup.gitconnected.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Kzuwo-NCQeU",
+              "title": "How to Deploy NextJS in VPS Ubuntu",
+              "domain": "youtube.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "The absolute best place to deploy your Next.js application is Vercel, as they are the creators of Next.js and design it specifically to support every feature (like Server-Side Rendering, Incremental Static Regeneration, and Middleware) with zero configuration.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Netlify: A direct competitor to Vercel that offers strong automated Git workflows, excellent preview features, and native plugin support for Next.js features.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway or Render: Excellent choices if you have a full-stack application and want a platform that can host your Next.js app while easily spinning up a companion database (PostgreSQL, Redis, etc.) on the same dashboard.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Railway or Render: Excellent choices if you have a full-stack application and want a platform that can host your Next.js app while easily spinning up a companion database (PostgreSQL, Redis, etc.) on the same dashboard.",
+              "match": "Render"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS Amplify: Automatically detects Next.js configurations and deploys it natively using AWS's serverless compute and cloud distribution network.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Run: Excellent if you choose to containerize your application using Docker.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean, Linode, or Hetzner: If you want total control over your infrastructure and want to avoid serverless function execution limits or hidden costs, you can buy a Virtual Private Server (VPS).",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "DigitalOcean, Linode, or Hetzner: If you want total control over your infrastructure and want to avoid serverless function execution limits or hidden costs, you can buy a Virtual Private Server (VPS).",
+              "match": "Hetzner"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:17.660Z"
         }
@@ -1175,12 +2061,59 @@
           "overview": null,
           "mentioned": ["Cloudflare", "Render", "Google Cloud", "Railway"],
           "sources": [
-            "koyeb.com",
-            "developers.cloudflare.com",
-            "render.com",
-            "cloud.google.com",
-            "docs.oracle.com",
-            "docs.railway.com"
+            {
+              "url": "https://www.koyeb.com/docs/reference/instances?utm_source=openai",
+              "title": "Instances | Koyeb",
+              "domain": "koyeb.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/workers/platform/pricing/?ref=renewalrecord.com&utm_source=openai",
+              "title": "Pricing · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://render.com/docs/free?utm_source=openai",
+              "title": "Deploy for Free – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://cloud.google.com/run/pricing?utm_source=openai",
+              "title": "Cloud Run pricing | Google Cloud",
+              "domain": "cloud.google.com"
+            },
+            {
+              "url": "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm?trk=public_post_comment-text&utm_source=openai",
+              "title": "Always Free Resources",
+              "domain": "docs.oracle.com"
+            },
+            {
+              "url": "https://docs.railway.com/pricing/plans?utm_source=openai",
+              "title": "Pricing Plans | Railway Docs",
+              "domain": "docs.railway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare’s free plan includes 100,000 requests per day, but only a subset of Node.js APIs is supported.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Render",
+              "text": "Render provides 512 MB free instances but spins them down after 15 minutes without traffic.",
+              "match": "Render"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Cloud Run includes monthly free CPU and memory allocations and charges based on actual use.",
+              "match": "Cloud Run"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway’s free plan includes $1 monthly credit, while Hobby has a $5 monthly minimum.",
+              "match": "Railway"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:46.466Z"
         },
@@ -1199,14 +2132,99 @@
             "Heroku"
           ],
           "sources": [
-            "wpshout.com",
-            "runcloud.io",
-            "websiteplanet.com",
-            "bonto.dev",
-            "codeless.co",
-            "dev.to",
-            "hostgage.com",
-            "hostadvice.com"
+            {
+              "url": "https://wpshout.com/best-nodejs-hosting/",
+              "title": "13 of the Best Node.js Hosting Platforms for 2026 (Free and Paid)",
+              "domain": "wpshout.com"
+            },
+            {
+              "url": "https://runcloud.io/blog/best-node-js-hosting",
+              "title": "The 7 Best Node.js Hosting Platforms for 2026 (Free + Paid)",
+              "domain": "runcloud.io"
+            },
+            {
+              "url": "https://www.websiteplanet.com/blog/best-nodejs-hosting-services/",
+              "title": "7 Best Node.js Web Hosts",
+              "domain": "websiteplanet.com"
+            },
+            {
+              "url": "https://bonto.dev/best/free-node-hosting",
+              "title": "10 Best Free Node.js Hosting Platforms in 2026",
+              "domain": "bonto.dev"
+            },
+            {
+              "url": "https://codeless.co/best-nodejs-hosting/",
+              "title": "10 Best Node.js Hosting Providers of 2026 (Cheap & Free)",
+              "domain": "codeless.co"
+            },
+            {
+              "url": "https://dev.to/sparrowhawk705/seven-free-nodejs-hosting-platforms-worth-trying-in-2026-25c1",
+              "title": "Seven Free Node.js Hosting Platforms Worth Trying in 2026 - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://hostgage.com/best-free-nodejs-hosting/",
+              "title": "Best Free Node.js Hosting in 2026: Where to Deploy",
+              "domain": "hostgage.com"
+            },
+            {
+              "url": "https://hostadvice.com/nodejs-hosting/free/",
+              "title": "9 Best Free Node.js Hosting Providers (Sep 2026)",
+              "domain": "hostadvice.com"
+            },
+            {
+              "url": "https://bonto.dev/best/cheap-hosting",
+              "title": "10 Cheapest Web App Hosting Platforms in 2026",
+              "domain": "bonto.dev"
+            },
+            {
+              "url": "https://www.thecrazyprogrammer.com/2026/01/free-node-js-hosting.html",
+              "title": "9 Best Free Node.js Hosting 2026",
+              "domain": "thecrazyprogrammer.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Render: This is the easiest free option.",
+              "match": "Render"
+            },
+            {
+              "brand": "Northflank",
+              "text": "Northflank / Koyeb: If you need a free server that never sleeps, these are the picks, but both ask for a card to verify your identity even though the free tier itself costs nothing.",
+              "match": "Northflank"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare Workers (if your API is stateless): Workers runs your code in a lightweight JavaScript sandbox instead of a full Node.js runtime.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: The cheapest always-on option at about $1.94/mo.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "A cheap VPS (Hetzner, DigitalOcean, InterServer, etc.): DigitalOcean starts at $4.00/month.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "A cheap VPS (Hetzner, DigitalOcean, InterServer, etc.): DigitalOcean starts at $4.00/month.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: around $5–7/mo for a basic Node.js app, and it has the smoothest deploy process.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Heroku if you want free: its free tier is discontinued.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:27.160Z"
         },
@@ -1360,7 +2378,36 @@
             ]
           },
           "mentioned": ["Google Cloud", "AWS", "DigitalOcean"],
-          "sources": ["reddit.com"],
+          "sources": [
+            {
+              "url": "https://www.reddit.com/r/node/comments/1bklg3q/actual_cheap_nodejs_compatible_hosting_service/",
+              "title": "ACTUAL cheap nodejs compatible hosting service : r/node - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/node/comments/13epvp7/how_to_host_a_dynamic_nodejs_website_for_as_cheap/",
+              "title": "How to host a dynamic node.js website for as cheap as possible - Reddit",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Run: You can deploy your Node.js app as a Docker container.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS Lambda: Offers a highly generous perpetual free tier of 1 million free requests per month.",
+              "match": "AWS"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean Droplets: Their smallest entry-level virtual machines start at $4 to $6/month, providing a highly reliable and heavily documented environment.",
+              "match": "DigitalOcean"
+            }
+          ],
           "collectedAt": "2026-10-07T15:41:31.802Z"
         }
       ]
@@ -1406,10 +2453,54 @@
           "overview": null,
           "mentioned": ["Vercel", "Cloudflare", "Render", "Railway", "AWS"],
           "sources": [
-            "vercel.com",
-            "developers.cloudflare.com",
-            "render.com",
-            "docs.railway.com"
+            {
+              "url": "https://vercel.com/docs/git?utm_source=openai",
+              "title": "Deploying Git Repositories with Vercel",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/pages/configuration/git-integration/?utm_source=openai",
+              "title": "Git integration · Cloudflare Pages docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://render.com/docs/deploys?utm_source=openai",
+              "title": "Deploying on Render – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://docs.railway.com/guides/docker-compose?utm_source=openai",
+              "title": "Deploy a Docker Compose App to Production | Railway Guides",
+              "domain": "docs.railway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Next.js: Vercel — usually the smoothest option, with automatic production and preview deployments.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "React/Vite, Astro, or another static frontend: Cloudflare Pages/Workers — Git-based deployments, preview URLs, and automatic builds.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Render",
+              "text": "Node, Python, Rails, Laravel, or a full-stack app: Render — probably the easiest general-purpose choice.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "App plus Postgres, Redis, workers, or multiple services: Railway — particularly convenient for provisioning related infrastructure alongside your application.",
+              "match": "Railway"
+            },
+            {
+              "brand": "AWS",
+              "text": "Avoid starting with AWS EC2, Kubernetes, or a hand-built CI/CD pipeline unless you specifically need infrastructure-level control.",
+              "match": "AWS"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:00.485Z"
         },
@@ -1426,14 +2517,89 @@
             "Coolify"
           ],
           "sources": [
-            "nucamp.co",
-            "starterpick.com",
-            "futurepicker.com",
-            "thesoftwarescout.com",
-            "northflank.com",
-            "remery.ai",
-            "designrevision.com",
-            "techbuzzview.com"
+            {
+              "url": "https://www.nucamp.co/blog/deploying-full-stack-apps-in-2026-vercel-netlify-railway-and-cloud-options",
+              "title": "Deploying Full Stack Apps in 2026: Vercel, Netlify, Railway, and Cloud Options",
+              "domain": "nucamp.co"
+            },
+            {
+              "url": "https://starterpick.com/guides/vercel-vs-railway-vs-render-deployment-2026",
+              "title": "Vercel vs Railway vs Render (2026) — StarterPick Guides",
+              "domain": "starterpick.com"
+            },
+            {
+              "url": "https://futurepicker.com/en/vercel-alternatives-netlify-cloudflare-railway-render-fly-2026-en/",
+              "title": "Vercel Alternatives 2026: 5 Deployment Platforms Compared",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://thesoftwarescout.com/railway-vs-render-2026-best-platform-for-deploying-apps/",
+              "title": "Railway vs Render 2026: Pricing & Speed Tested - The Software Scout",
+              "domain": "thesoftwarescout.com"
+            },
+            {
+              "url": "https://northflank.com/blog/railway-vs-vercel-vs-render",
+              "title": "Railway vs Vercel vs Render: which platform should you choose?",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://remery.ai/blog/vercel-vs-railway-vs-render-ai-deployment",
+              "title": "Vercel vs Railway vs Render: Deploying AI Applications in 2026",
+              "domain": "remery.ai"
+            },
+            {
+              "url": "https://designrevision.com/blog/saas-hosting-compared",
+              "title": "How to Host a SaaS Application: Vercel vs Railway vs Render (2026)",
+              "domain": "designrevision.com"
+            },
+            {
+              "url": "https://techbuzzview.com/best-free-deployment-platforms-2026-vercel-netlify-railway-render-indian-developers/",
+              "title": "Best Free Deployment Platforms in 2026: Vercel vs Netlify vs Railway vs Render for Indian Developers - TechBuzzView",
+              "domain": "techbuzzview.com"
+            },
+            {
+              "url": "https://www.digitalocean.com/resources/articles/vercel-alternatives",
+              "title": "10 Vercel Alternatives for Deploying Apps in 2026",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://encore.dev/articles/render-vs-railway",
+              "title": "Render vs Railway 2026 - Pricing, DX & When to Use Each",
+              "domain": "encore.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Frontend or Next.js app → Vercel",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Netlify and Cloudflare Pages work much the same way for static sites.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Netlify and Cloudflare Pages work much the same way for static sites.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Railway",
+              "text": "Full-stack app with a backend and database → Railway",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Want a fixed monthly bill → Render",
+              "match": "Render"
+            },
+            {
+              "brand": "Coolify",
+              "text": "If you'd rather run your own cheap server, open-source tools like Coolify and Dokploy give you a similar dashboard on a VPS you control.",
+              "match": "Coolify"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:52.786Z"
         },
@@ -1577,14 +2743,79 @@
           },
           "mentioned": ["Vercel", "Cloudflare", "Render", "Railway", "Fly.io"],
           "sources": [
-            "youtube.com",
-            "digitalocean.com",
-            "reddit.com",
-            "dev.to",
-            "freecodecamp.org",
-            "medium.com",
-            "blog.railway.com",
-            "deployhq.com"
+            {
+              "url": "https://www.youtube.com/watch?v=WXvNUTbKDC0&t=63",
+              "title": "How to Deploy Your Web App for FREE in 2026 (GitHub & ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.digitalocean.com/resources/articles/choose-app-deployment-platform",
+              "title": "How to Choose the Right App Deployment Platform for Your ...",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/softwaredevelopment/comments/x2v1g3/what_services_are_yall_using_to_deploy_your/",
+              "title": "What services are y'all using to deploy your full-stack personal ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://dev.to/fareedmunawar00/deploying-your-first-web-app-a-beginners-guide-276l",
+              "title": "Deploying Your First Web App: A Beginner’s Guide",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.freecodecamp.org/news/how-to-deploy-websites-and-applications/",
+              "title": "How to Deploy Your Websites and Apps – User",
+              "domain": "freecodecamp.org"
+            },
+            {
+              "url": "https://medium.com/@sunil17bbmp/12-best-free-website-deployment-platforms-in-2026-pros-cons-best-use-cases-85937e026795",
+              "title": "12 Best Free Website Deployment Platforms in 2026 (Pros ...",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-cloud-application-deployment-platforms-2026",
+              "title": "The Best Cloud Application Deployment Platforms in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://www.deployhq.com/blog/beginners-guide-website-deployment",
+              "title": "How to Deploy a Website: 6 Simple Steps for Beginners",
+              "domain": "deployhq.com"
+            },
+            {
+              "url": "https://github.com/marketplace/actions/deploy-your-app-to-github-pages",
+              "title": "Deploy your app to GitHub Pages · Actions · GitHub Marketplace",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Vercel: The gold standard for React and Next.js apps.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare Pages: Offers fast, free deployment straight from GitHub with unlimited bandwidth and no commercial use restrictions.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: A modern, easy-to-use cloud platform that handles web services, background workers, and databases without the complex server setup of traditional cloud providers.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: A developer-favorite platform that provisions full-stack apps, databases (PostgreSQL, Redis), and custom environments directly from a GitHub push with minimal configuration.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: Ideal if you need to run your app or Docker container close to users across multiple global regions for low latency.",
+              "match": "Fly.io"
+            }
           ],
           "collectedAt": "2026-10-07T15:31:30.800Z"
         }
@@ -1635,10 +2866,54 @@
             "Google Cloud"
           ],
           "sources": [
-            "render.com",
-            "railway.com",
-            "fly.io",
-            "docs.cloud.google.com"
+            {
+              "url": "https://render.com/docs/compute-plans?utm_source=openai",
+              "title": "Render Compute Plans – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://railway.com/pricing?utm_source=openai",
+              "title": "Pricing | Railway",
+              "domain": "railway.com"
+            },
+            {
+              "url": "https://www.fly.io/docs/about/pricing/?utm_source=openai",
+              "title": "Fly.io Resource Pricing · Fly Docs",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/about-instance-autoscaling?utm_source=openai",
+              "title": "About instance autoscaling in Cloud Run services  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Heroku",
+              "text": "Render is the closest replacement if you want Heroku’s straightforward Git-based deployment without managing infrastructure.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Render",
+              "text": "Render is the closest replacement if you want Heroku’s straightforward Git-based deployment without managing infrastructure.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Hobby project or prototype → Railway",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Globally distributed Docker service → Fly.io",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Spiky stateless API → Cloud Run",
+              "match": "Cloud Run"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:23.414Z"
         },
@@ -1659,14 +2934,109 @@
             "Northflank"
           ],
           "sources": [
-            "northflank.com",
-            "digitalocean.com",
-            "qovery.com",
-            "back4app.com",
-            "danubedata.ro",
-            "smashingapps.com",
-            "bonto.dev",
-            "bunnyshell.com"
+            {
+              "url": "https://northflank.com/blog/top-heroku-alternatives",
+              "title": "Top Heroku alternatives in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://www.digitalocean.com/resources/articles/heroku-alternatives",
+              "title": "Top 11 Heroku Alternatives for Cloud Deployment in 2026",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://www.qovery.com/blog/best-heroku-alternatives",
+              "title": "Top 10 Heroku Alternatives in 2026: When Simplicity Hits the Scaling Wall - Qovery Blog",
+              "domain": "qovery.com"
+            },
+            {
+              "url": "https://www.back4app.com/heroku-alternatives",
+              "title": "Best Heroku Alternatives in 2026 — Compared & Ranked",
+              "domain": "back4app.com"
+            },
+            {
+              "url": "https://danubedata.ro/blog/heroku-alternatives-2026",
+              "title": "Heroku Alternatives in 2026: Where to Deploy After the Free Tier Ended",
+              "domain": "danubedata.ro"
+            },
+            {
+              "url": "https://www.smashingapps.com/heroku-alternatives-in-2026/",
+              "title": "Heroku Alternatives in 2026 - 7 Free and Paid Options That Actually Work - SmashingApps.com",
+              "domain": "smashingapps.com"
+            },
+            {
+              "url": "https://bonto.dev/best/heroku-alternatives",
+              "title": "10 Best Heroku Alternatives in 2026 (Free & Paid)",
+              "domain": "bonto.dev"
+            },
+            {
+              "url": "https://www.bunnyshell.com/comparisons/heroku-alternatives/",
+              "title": "Top 14 Heroku Alternatives (2026)",
+              "domain": "bunnyshell.com"
+            },
+            {
+              "url": "https://selfhost.dev/blog/the-10-best-heroku-alternatives-in-2026/",
+              "title": "The 10 Best Heroku Alternatives in 2026 (Free, Paid, and Predictable)",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://ecommercelauncher.com/build/best-heroku-alternatives",
+              "title": "13 Best Heroku Alternatives for 2026 - Ecommerce Launcher",
+              "domain": "ecommercelauncher.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "My pick for most people is Render, with Railway a close second.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "My pick for most people is Render, with Railway a close second.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Why people are leaving Heroku now: In February 2026, it moved to a \"sustaining engineering\" model.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Global, low-latency apps: Fly.io.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Simple, predictable pricing: DigitalOcean App Platform.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Frontend or Next.js: Vercel.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Coolify",
+              "text": "Self-hosted and cheap: Coolify (or Dokku).",
+              "match": "Coolify"
+            },
+            {
+              "brand": "AWS",
+              "text": "Running on your own AWS/GCP account: Northflank, Porter, or Qovery.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Running on your own AWS/GCP account: Northflank, Porter, or Qovery.",
+              "match": "GCP"
+            },
+            {
+              "brand": "Northflank",
+              "text": "Running on your own AWS/GCP account: Northflank, Porter, or Qovery.",
+              "match": "Northflank"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:22.038Z"
         },
@@ -1779,14 +3149,69 @@
           },
           "mentioned": ["Heroku", "Render", "Railway", "Fly.io"],
           "sources": [
-            "freecodecamp.org",
-            "quora.com",
-            "dev.to",
-            "youtube.com",
-            "github.com",
-            "blog.logrocket.com",
-            "honeybadger.io",
-            "northflank.com"
+            {
+              "url": "https://www.freecodecamp.org/news/top-heroku-alternatives-for-deployment/",
+              "title": "Top Heroku Alternatives for Deployment in 2026",
+              "domain": "freecodecamp.org"
+            },
+            {
+              "url": "https://www.quora.com/What-are-alternatives-or-competitors-to-Heroku",
+              "title": "What are alternatives or competitors to Heroku? - Quora",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://dev.to/jaainil/7-fantastic-heroku-alternatives-4jf8",
+              "title": "7 Fantastic Heroku Alternatives",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=MusIvEKjqsc&t=215",
+              "title": "3 Alternatives for Heroku's Free Tier - Full Stack & API Hosting",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://github.com/DmitryScaletta/free-heroku-alternatives",
+              "title": "Comparison of free Heroku alternatives for backend applications",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://blog.logrocket.com/heroku-alternatives-deploy-node-js-app/",
+              "title": "Exploring Heroku alternatives for deploying Node.js apps",
+              "domain": "blog.logrocket.com"
+            },
+            {
+              "url": "https://www.honeybadger.io/blog/heroku-vs-vercel/",
+              "title": "Heroku vs Vercel: Choosing the right platform for your app",
+              "domain": "honeybadger.io"
+            },
+            {
+              "url": "https://northflank.com/heroku-alternative",
+              "title": "The #1 Heroku alternative - Northflank",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Heroku",
+              "text": "The best Heroku alternative depends on your project type, but and are the top overall choices for a similar easy-to-use, cloud deployment experience.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: A multi-cloud platform that functions very much like Heroku.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: A modern, developer-friendly platform focused on high developer ergonomics.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: A powerful choice for global, performance-sensitive systems.",
+              "match": "Fly.io"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:39.852Z"
         }
@@ -1831,10 +3256,54 @@
           "overview": null,
           "mentioned": ["Google Cloud", "AWS", "Render", "Azure", "Vercel"],
           "sources": [
-            "docs.cloud.google.com",
-            "docs.aws.amazon.com",
-            "render.com",
-            "vercel.com"
+            {
+              "url": "https://docs.cloud.google.com/run/docs/about-instance-autoscaling?utm_source=openai",
+              "title": "About instance autoscaling in Cloud Run services  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/configuring/max-instances?utm_source=openai",
+              "title": "Set maximum instances for services  |  Cloud Run  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html?utm_source=openai",
+              "title": "Use a target metric to scale Amazon ECS services - Amazon Elastic Container Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://render.com/docs/scaling?utm_source=openai",
+              "title": "Scaling Render Services – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://vercel.com/docs/functions/limitations?utm_source=openai",
+              "title": "Vercel Functions Limits",
+              "domain": "vercel.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud",
+              "text": "For most growing SaaS companies, Google Cloud Run offers the best balance of scalability and operational simplicity.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "AWS",
+              "text": "Choose AWS ECS on Fargate if you anticipate complex networking, strict enterprise requirements, many specialized infrastructure services, or want maximum control.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: Great early-stage platform, but common paid compute plans currently have a 100-instance maximum per service, and autoscaling requires Pro or higher.",
+              "match": "Render"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Frontend: Cloud Run or Vercel",
+              "match": "Vercel"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:22.812Z"
         },
@@ -1854,14 +3323,104 @@
             "Heroku"
           ],
           "sources": [
-            "sistemascorepro.com",
-            "deploywise.dev",
-            "syndelltech.com",
-            "kloudbean.com",
-            "instawp.com",
-            "exalohosting.com",
-            "codeless.co",
-            "inmotionhosting.com"
+            {
+              "url": "https://sistemascorepro.com/en/best-hosting-for-saas-startups/",
+              "title": "Best Hosting for SaaS Startups in 2026: Fast, Scalable & Growth-Ready Solutions",
+              "domain": "sistemascorepro.com"
+            },
+            {
+              "url": "https://deploywise.dev/blog/best-hosting-for-saas",
+              "title": "Best Hosting for SaaS Startups in 2026 (Ranked)",
+              "domain": "deploywise.dev"
+            },
+            {
+              "url": "https://syndelltech.com/best-cloud-hosting-platforms-for-saas-apps-in/",
+              "title": "Best Cloud Hosting Platforms for SaaS Apps in 2026",
+              "domain": "syndelltech.com"
+            },
+            {
+              "url": "https://www.kloudbean.com/blog/best-managed-cloud-hosting-for-saas-companies-in/",
+              "title": "Best Managed Cloud Hosting for SaaS Companies in 2026 - Kloudbean",
+              "domain": "kloudbean.com"
+            },
+            {
+              "url": "https://instawp.com/best-cloud-hosting-options-for-startups/",
+              "title": "Best Cloud Hosting for Startups (2026): 16 Options Compared",
+              "domain": "instawp.com"
+            },
+            {
+              "url": "https://exalohosting.com/blog/best-hosting-for-saas-2026-8/",
+              "title": "Best Hosting for SaaS in 2026: Your Guide to Scalable, Fast, and Reliable Solutions",
+              "domain": "exalohosting.com"
+            },
+            {
+              "url": "https://codeless.co/saas-hosting-providers/",
+              "title": "7 Best SAAS Hosting Providers 2026 - Codeless",
+              "domain": "codeless.co"
+            },
+            {
+              "url": "https://exalohosting.com/blog/best-hosting-for-saas/",
+              "title": "Best Hosting for SaaS in 2026: Scalability, Performance & Pricing Explained",
+              "domain": "exalohosting.com"
+            },
+            {
+              "url": "https://www.inmotionhosting.com/blog/best-scalable-web-hosting/",
+              "title": "Best Scalable Web Hosting: 5 Providers Compared 2026",
+              "domain": "inmotionhosting.com"
+            },
+            {
+              "url": "https://geekflare.com/hosting/best-cloud-hosting-platforms/",
+              "title": "Best Cloud Hosting Services of 2026 Compared",
+              "domain": "geekflare.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AWS",
+              "text": "Short answer: AWS can handle the most growth.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Render",
+              "text": "For most growing SaaS teams, though, the better choice is a simple managed platform (Render, Railway, Fly.io, or DigitalOcean) that you can move off later.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "For most growing SaaS teams, though, the better choice is a simple managed platform (Render, Railway, Fly.io, or DigitalOcean) that you can move off later.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "For most growing SaaS teams, though, the better choice is a simple managed platform (Render, Railway, Fly.io, or DigitalOcean) that you can move off later.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "For most growing SaaS teams, though, the better choice is a simple managed platform (Render, Railway, Fly.io, or DigitalOcean) that you can move off later.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Room to grow: AWS, Google Cloud, and Azure.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "Azure",
+              "text": "Room to grow: AWS, Google Cloud, and Azure.",
+              "match": "Azure"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "Cheapest per server: a VPS such as Hetzner.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Also skip Heroku for new projects.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:13.133Z"
         },
@@ -2003,14 +3562,79 @@
             "Fly.io"
           ],
           "sources": [
-            "artsyltech.com",
-            "hostingb2b.com",
-            "webdock.io",
-            "digitalocean.com",
-            "sistemascorepro.com",
-            "reddit.com",
-            "tilaa.com",
-            "layerstack.com"
+            {
+              "url": "https://www.artsyltech.com/blog/hosting-providers-for-scalable-saas-and-workflow-automation-platforms",
+              "title": "Best Hosting Platforms for SaaS and Automation Tools",
+              "domain": "artsyltech.com"
+            },
+            {
+              "url": "https://hostingb2b.com/blog/compute/best-hosting-for-saas-applications-how-to-choose-scalable-infrastructure/",
+              "title": "Best Hosting for SaaS Applications",
+              "domain": "hostingb2b.com"
+            },
+            {
+              "url": "https://webdock.io/blog/saas-hosting",
+              "title": "Build Your Application with Professional SaaS Hosting",
+              "domain": "webdock.io"
+            },
+            {
+              "url": "https://www.digitalocean.com/solutions/saas",
+              "title": "SaaS Hosting | DigitalOcean",
+              "domain": "digitalocean.com"
+            },
+            {
+              "url": "https://sistemascorepro.com/en/best-hosting-for-saas-startups/",
+              "title": "Best Hosting for SaaS Startups in 2026: Fast, Scalable & Growth",
+              "domain": "sistemascorepro.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1b153q8/cost_effective_way_to_host_my_saas/",
+              "title": "Cost effective way to host my Saas - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1pukmei/best_hosting_setup_for_an_earlystage_saas_in_2026/",
+              "title": "Best hosting setup for an early-stage SaaS in 2026? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.tilaa.com/blog/articles/choosing-the-best-hosting-provider-for-your-saas-company",
+              "title": "Choosing the best hosting provider for your SaaS company",
+              "domain": "tilaa.com"
+            },
+            {
+              "url": "https://www.layerstack.com/blog/key-factors-to-consider-when-choosing-a-saas-hosting-provider/",
+              "title": "Good SaaS Hosting Provider? 4 KEY Factors to Consider",
+              "domain": "layerstack.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AWS",
+              "text": "For a growing Software-as-a-Service (SaaS), Amazon Web Services (AWS) scales the best overall due to its unmatched depth of managed services, global infrastructure, and granular auto-scaling capabilities.",
+              "match": "Amazon Web Services"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Platform (GCP): Excels in data analytics, machine learning pipelines, and containerization with Google Kubernetes Engine (GKE) Autopilot.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean / Cloudways: Ideal for lean teams, startups, and early-to-mid growth stages.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Specialized Managed Stacks (Vercel, Supabase, Fly.io): Perfect for modern jamstack frontends, serverless backends, and rapid MVP development.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Specialized Managed Stacks (Vercel, Supabase, Fly.io): Perfect for modern jamstack frontends, serverless backends, and rapid MVP development.",
+              "match": "Fly.io"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:28.224Z"
         }
@@ -2053,9 +3677,49 @@
           "overview": null,
           "mentioned": ["Render", "Google Cloud", "Railway", "AWS", "Fly.io"],
           "sources": [
-            "render.com",
-            "docs.cloud.google.com",
-            "docs.railway.com"
+            {
+              "url": "https://render.com/docs/web-services?from=finddev.tools&utm_source=openai",
+              "title": "Web Services – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-python-fastapi-service?utm_source=openai",
+              "title": "Quickstart: Deploy a Python (FastAPI) web app to Google Cloud with Cloud Run  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.railway.com/guides/fastapi?utm_source=openai",
+              "title": "Deploy a FastAPI App | Railway Guides",
+              "domain": "docs.railway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "For most Python APIs—especially FastAPI, Flask, or Django REST Framework—I’d choose Render because it offers:",
+              "match": "Render"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Cloud Run is my choice when scalability and cost efficiency under bursty traffic matter.",
+              "match": "Cloud Run"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway is excellent for prototypes: it automatically detects Python frameworks and supports GitHub, CLI, and Docker deployments.",
+              "match": "Railway"
+            },
+            {
+              "brand": "AWS",
+              "text": "Existing AWS environment: AWS App Runner",
+              "match": "AWS"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Need global regional placement: Fly.io",
+              "match": "Fly.io"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:39.591Z"
         },
@@ -2074,14 +3738,99 @@
             "Hetzner"
           ],
           "sources": [
-            "ai.exoticaitsolutions.com",
-            "openpython.org",
-            "quartzdevs.com",
-            "fly.io",
-            "pandastack.ai",
-            "uvik.net",
-            "moesif.com",
-            "dokploy.com"
+            {
+              "url": "https://ai.exoticaitsolutions.com/blog/top-cloud-platforms-for-python-application-deployment-in-2026/",
+              "title": "Top Cloud Platforms for Python Application Deployment in 2026",
+              "domain": "ai.exoticaitsolutions.com"
+            },
+            {
+              "url": "https://openpython.org/articles/free-python-hosting",
+              "title": "Free Python Hosting: The Best Platforms for Deploying Your Python App (2026)",
+              "domain": "openpython.org"
+            },
+            {
+              "url": "https://quartzdevs.com/resources/best-devops-deployment-cloud-platforms-2026",
+              "title": "Best DevOps, Deployment & Cloud Platforms in 2026 for Web and Full-Stack Developers",
+              "domain": "quartzdevs.com"
+            },
+            {
+              "url": "https://fly.io/learn/python-hosting/",
+              "title": "Best Python Hosting Providers in 2026 (Compared) · Learn",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://www.pandastack.ai/blog/best-fastapi-hosting-platforms-2026/",
+              "title": "Best FastAPI Hosting Platforms in 2026 · PandaStack",
+              "domain": "pandastack.ai"
+            },
+            {
+              "url": "https://uvik.net/blog/python-api-framework/",
+              "title": "Best Python API Framework in 2026: FastAPI, Django or Flask?",
+              "domain": "uvik.net"
+            },
+            {
+              "url": "https://www.moesif.com/blog/python-rest-api-frameworks/",
+              "title": "5 Best Python REST API Frameworks in 2026 (Tested & Compared)",
+              "domain": "moesif.com"
+            },
+            {
+              "url": "https://dokploy.com/blog/ai-app-deployment-platforms",
+              "title": "The Best AI App Deployment Platforms for 2026",
+              "domain": "dokploy.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-tools-to-deploy-backend-apps/",
+              "title": "7 Best Tools to Deploy Backend Applications in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://dasroot.net/posts/2026/03/deploying-python-ai-tools-production-2026-guide/",
+              "title": "Deploying Python AI Tools in Production: A 2026 Technical Guide · Technical news about AI, coding and all",
+              "domain": "dasroot.net"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Render: supports every major Python framework, provides a free managed PostgreSQL database, auto-deploys from GitHub on every push, and handles HTTPS automatically.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: Deployments take under two minutes from a GitHub push.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Move to Cloud Run when you want production scaling and low cost when it's idle.",
+              "match": "Cloud Run"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io runs Docker containers at edge locations globally.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS is good for projects that need reliability, geographic redundancy, and fine-grained infrastructure control.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Azure",
+              "text": "Azure makes sense for organizations already using Microsoft ecosystems.",
+              "match": "Azure"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "A plain server from DigitalOcean, Hetzner and similar providers works well for a hobby project, total control, near-zero budget.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "A plain server from DigitalOcean, Hetzner and similar providers works well for a hobby project, total control, near-zero budget.",
+              "match": "Hetzner"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:38.930Z"
         },
@@ -2239,13 +3988,84 @@
             "Hetzner"
           ],
           "sources": [
-            "blog.teclado.com",
-            "starr.hashnode.dev",
-            "reddit.com",
-            "quora.com",
-            "wiki.python.org",
-            "facebook.com",
-            "levelup.gitconnected.com"
+            {
+              "url": "https://blog.teclado.com/how-to-deploy-your-first-rest-api-with-flask-for-free/",
+              "title": "How to deploy your first REST API with Flask for free",
+              "domain": "blog.teclado.com"
+            },
+            {
+              "url": "https://starr.hashnode.dev/6-free-sites-to-deploy-your-backend-applications",
+              "title": "6 Free sites to deploy your Backend Applications",
+              "domain": "starr.hashnode.dev"
+            },
+            {
+              "url": "https://www.reddit.com/r/Backend/comments/1ne2zar/any_free_places_to_deploy_backend_database/",
+              "title": "Any free places to deploy backend + database? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.quora.com/Best-Python-PaaS-In-This-Situation-Im-Outgrowing-PythonAnywhere",
+              "title": "Best Python PaaS In This Situation [I'm Outgrowing ...",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://wiki.python.org/moin/FreeHosts.html",
+              "title": "FreeHosts - Python Wiki",
+              "domain": "wiki.python.org"
+            },
+            {
+              "url": "https://www.facebook.com/groups/vibecodinglife/posts/1978025846119276/",
+              "title": "Is anyone using pythonanywhere.com to deploy python apps. I ...",
+              "domain": "facebook.com"
+            },
+            {
+              "url": "https://levelup.gitconnected.com/deploy-python-api-as-serverless-with-azure-functions-e0cc2b3deda2",
+              "title": "Deploy Python API as Serverless with Azure Functions",
+              "domain": "levelup.gitconnected.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/Python/comments/yqxr2s/best_ways_to_deploy_a_computationally_heavy/",
+              "title": "Best ways to deploy a computationally heavy application? : r/Python",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Render: Highly regarded as one of the best spiritual successors to Heroku.",
+              "match": "Render"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Render: Highly regarded as one of the best spiritual successors to Heroku.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Run: Widely considered the gold standard for serverless container deployment.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS Lambda / AWS Amplify: Ideal if your API consists of discrete event-driven tasks.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Azure",
+              "text": "Azure Functions: A strong serverless choice if your stack is integrated into the Microsoft ecosystem, supporting direct Python runtimes.",
+              "match": "Azure"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean Droplets / Linode / Hetzner: You get a blank Linux server.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "DigitalOcean Droplets / Linode / Hetzner: You get a blank Linux server.",
+              "match": "Hetzner"
+            }
           ],
           "collectedAt": "2026-10-07T15:42:41.652Z"
         }
@@ -2286,10 +4106,44 @@
           "overview": null,
           "mentioned": ["Cloudflare", "Vercel", "Render"],
           "sources": [
-            "developers.cloudflare.com",
-            "vercel.com",
-            "render.com",
-            "supabase.com"
+            {
+              "url": "https://developers.cloudflare.com/workers/platform/pricing/?ref=renewalrecord.com&utm_source=openai",
+              "title": "Pricing · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://vercel.com/docs/plans/hobby?utm_source=openai",
+              "title": "Vercel Hobby Plan",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://render.com/docs/free?utm_source=openai",
+              "title": "Deploy for Free – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/platform/billing-on-supabase?utm_source=openai",
+              "title": "About billing on Supabase | Supabase Docs",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Cloudflare",
+              "text": "My default recommendation: Cloudflare Pages + Workers.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Vercel — best developer experience for Next.js",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Render",
+              "text": "Render — easiest for a traditional backend",
+              "match": "Render"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:58.782Z"
         },
@@ -2307,14 +4161,89 @@
             "Railway"
           ],
           "sources": [
-            "appwrite.io",
-            "pickuma.com",
-            "klymentiev.com",
-            "github.com",
-            "techplained.com",
-            "misar.blog",
-            "space-node.net",
-            "snapdeploy.dev"
+            {
+              "url": "https://appwrite.io/blog/post/best-free-hosting-platforms-you-probably-havent-tried-in-2026",
+              "title": "Best free hosting platforms you probably haven't tried in 2026 · Appwrite",
+              "domain": "appwrite.io"
+            },
+            {
+              "url": "https://pickuma.com/for-dev/best-free-tiers-developers-2026/",
+              "title": "Best Free Tiers for Developers in 2026: SaaS, PaaS & IaaS — Pickuma",
+              "domain": "pickuma.com"
+            },
+            {
+              "url": "https://appwrite.io/blog/post/free-hosting-platform",
+              "title": "Best free hosting platforms in 2026 · Appwrite",
+              "domain": "appwrite.io"
+            },
+            {
+              "url": "https://klymentiev.com/blog/free-website-hosting",
+              "title": "Free Website Hosting in 2026: 8 Platforms Compared",
+              "domain": "klymentiev.com"
+            },
+            {
+              "url": "https://github.com/p32929/Awesome-Web-Hosting-2026",
+              "title": "GitHub - p32929/Awesome-Web-Hosting-2026: The Ultimate Guide to Free Cloud Hosting. Compare 100+ Free Tier vs Paid platforms: Vercel, Netlify, Heroku, AWS, & VPS. Deploy Node.js, Python, Docker, Databases (SQL/NoSQL), & AI Models for free. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.techplained.com/best-free-hosting",
+              "title": "Best Free Hosting 2026: 7 Platforms with Always-Free Tiers",
+              "domain": "techplained.com"
+            },
+            {
+              "url": "https://www.misar.blog/@mrgulshanyadav/articles/best-free-website-hosting-with-custom-domain-in-2026",
+              "title": "Best Free Website Hosting with Custom Domain in 2026",
+              "domain": "misar.blog"
+            },
+            {
+              "url": "https://space-node.net/blog/best-free-hosting-personal-projects-2026",
+              "title": "Best Free Hosting for Personal Projects in 2026",
+              "domain": "space-node.net"
+            },
+            {
+              "url": "https://snapdeploy.dev/blog/deploy-website-free-2026-complete-guide",
+              "title": "How to Deploy a Website for Free in 2026: 8 Hosts Compared",
+              "domain": "snapdeploy.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare Pages is my top pick.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Netlify",
+              "text": "It serves up to 100 projects with unlimited bandwidth and requests on the free plan, free SSL, and up to 100 custom domains, which removes the traffic cap that limits the Netlify and Vercel free tiers.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Vercel",
+              "text": "It serves up to 100 projects with unlimited bandwidth and requests on the free plan, free SSL, and up to 100 custom domains, which removes the traffic cap that limits the Netlify and Vercel free tiers.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: 750 free hours per month for web services, which is enough to keep one service running full-time.",
+              "match": "Render"
+            },
+            {
+              "brand": "Coolify",
+              "text": "You manage the server yourself, though tools like Coolify can make that easier.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "For example, Fly.io quietly replaced its always-free allowance with a $5 monthly credit, and Railway now only gives trial credit.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Railway",
+              "text": "For example, Fly.io quietly replaced its always-free allowance with a $5 monthly credit, and Railway now only gives trial credit.",
+              "match": "Railway"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:59.831Z"
         },
@@ -2456,14 +4385,64 @@
           },
           "mentioned": ["Fly.io", "Cloudflare"],
           "sources": [
-            "refine.dev",
-            "youtube.com",
-            "quora.com",
-            "freecodecamp.org",
-            "devchallenges.io",
-            "medium.com",
-            "dev.to",
-            "reddit.com"
+            {
+              "url": "https://refine.dev/blog/5-top-free-react-hosting-platforms/",
+              "title": "5 Best Free Platforms for Hosting Hobby Web Projects | Refine",
+              "domain": "refine.dev"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=huIFoVn8xMg&t=33",
+              "title": "Best FREE Hosting in 2025 (Step-by-Step Guide)",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.quora.com/What-is-the-best-free-web-host-that-can-host-HTML-CSS-JavaScript-PHP-python-c++-etc-that-doesnt-have-something-like-Wix-com-at-the-end",
+              "title": "What is the best free web host that can host HTML, CSS ...",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://www.freecodecamp.org/news/top-hosting-platforms-for-indie-hackers/",
+              "title": "Top Hosting Platforms for Indie Hackers",
+              "domain": "freecodecamp.org"
+            },
+            {
+              "url": "https://devchallenges.io/learn/1-fundamentals/free-hosting-for-web-projects",
+              "title": "Free Platforms for Hosting Web Projects",
+              "domain": "devchallenges.io"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=GnoKN48PA6k",
+              "title": "10 Free Hosting Options For Web Developers (Heroku ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://medium.com/buildnextgen/best-free-backend-hosting-platforms-in-2026-989b67f5d8cb",
+              "title": "Best Free Backend Hosting Platforms in 2026",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://dev.to/casualcoders/my-favorite-free-hosting-services-of-2023-4da4",
+              "title": "My Favorite Free Hosting Services of 2023 - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.reddit.com/r/developersIndia/comments/1pxxg5n/i_compiled_a_list_of_100_free_hosting_tiers/",
+              "title": "I compiled a list of 100+ Free Hosting Tiers (Static, VPS, AI & Databases) so we can stop paying for side projects! : r/developersIndia - Reddit",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io: Deploys your code as lightweight global micro-virtual machines (VMs) close to users, with support for Docker and custom backends.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare Workers: Offers a free tier of 100,000 requests per day running at the edge, perfect for lightweight serverless APIs.",
+              "match": "Cloudflare"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:15.839Z"
         }
@@ -2504,11 +4483,49 @@
           "overview": null,
           "mentioned": ["Coolify", "Vercel", "Render", "Heroku"],
           "sources": [
-            "coolify.io",
-            "docs.dokploy.com",
-            "caprover.com",
-            "dokku.com",
-            "docs.kubero.dev"
+            {
+              "url": "https://coolify.io/docs/core/what-is-coolify?utm_source=openai",
+              "title": "What is Coolify | Coolify Docs",
+              "domain": "coolify.io"
+            },
+            {
+              "url": "https://coolify.io/docs/core/selfhosted-cloud-comparison?utm_source=openai",
+              "title": "Self Hosted vs Coolify Cloud | Coolify Docs",
+              "domain": "coolify.io"
+            },
+            {
+              "url": "https://docs.dokploy.com/docs/core/features?utm_source=openai",
+              "title": "Features | Dokploy",
+              "domain": "docs.dokploy.com"
+            },
+            {
+              "url": "https://caprover.com/docs/app-scaling-and-cluster.html?utm_source=openai",
+              "title": "App Scaling & Cluster | CapRover",
+              "domain": "caprover.com"
+            },
+            {
+              "url": "https://dokku.com/docs/deployment/application-deployment/?utm_source=openai",
+              "title": "Deploying an Application - Dokku Documentation",
+              "domain": "dokku.com"
+            },
+            {
+              "url": "https://docs.kubero.dev/?utm_source=openai",
+              "title": "Open-source Solution for Kubernetes Deployments | Kubero",
+              "domain": "docs.kubero.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "For most developers and small teams, Coolify is the best overall choice.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Choose Kubero if Kubernetes is already part of your infrastructure and you want a Heroku-like developer experience on top of it.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:13.982Z"
         },
@@ -2518,14 +4535,69 @@
           "overview": null,
           "mentioned": ["Coolify", "Heroku"],
           "sources": [
-            "servercompass.app",
-            "perlod.com",
-            "deployhandbook.com",
-            "temps.sh",
-            "appstackbuilder.com",
-            "wz-it.com",
-            "qovery.com",
-            "dev.to"
+            {
+              "url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026",
+              "title": "Best Self-Hosted PaaS Platforms in 2026: Coolify vs CapRover vs Dokploy vs Server Compass",
+              "domain": "servercompass.app"
+            },
+            {
+              "url": "https://perlod.com/tutorials/best-self-hosted-paas/",
+              "title": "Compare the Best Self-Hosted PaaS Platforms for 2026",
+              "domain": "perlod.com"
+            },
+            {
+              "url": "https://deployhandbook.com/best/self-hosted-paas",
+              "title": "Best Self-Hosted PaaS (2026): Coolify, Dokploy, CapRover, ServerCompass - Deploy Handbook",
+              "domain": "deployhandbook.com"
+            },
+            {
+              "url": "https://temps.sh/blog/5-best-coolify-alternatives-self-hosted-paas-2026",
+              "title": "Coolify Alternatives 2026: 5 Self-Hosted PaaS",
+              "domain": "temps.sh"
+            },
+            {
+              "url": "https://appstackbuilder.com/blog/coolify-vs-dokploy-vs-caprover-2026",
+              "title": "Coolify vs Dokploy vs CapRover vs Kamal (2026): Self-Hosted PaaS Compared",
+              "domain": "appstackbuilder.com"
+            },
+            {
+              "url": "https://wz-it.com/en/blog/self-hosted-paas-comparison-coolify-dokploy-caprover/",
+              "title": "Self-hosted PaaS compared 2026: Coolify, Dokploy, CapRover, Dokku and Kamal",
+              "domain": "wz-it.com"
+            },
+            {
+              "url": "https://servercompass.app/blog/coolify-vs-dokploy-self-hosted-paas-comparison",
+              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS Should You Use?",
+              "domain": "servercompass.app"
+            },
+            {
+              "url": "https://www.qovery.com/blog/coolify-alternatives-compared",
+              "title": "9 Coolify Alternatives Worth Considering in 2026 (and When Each One Makes Sense) - Qovery Blog",
+              "domain": "qovery.com"
+            },
+            {
+              "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
+              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://deploynix.io/blog/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix",
+              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix",
+              "domain": "deploynix.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "If you just want one answer, Coolify is the best choice for most people.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Highly reliable, minimal resource consumption, and classic Heroku-style git push deployments.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:04.206Z"
         },
@@ -2606,10 +4678,30 @@
             "Azure"
           ],
           "sources": [
-            "virtua.cloud",
-            "noizz.io",
-            "giovannimastellone.it",
-            "qovery.com"
+            {
+              "url": "https://www.virtua.cloud/learn/en/concepts/coolify-vs-dokploy-self-hosted-paas",
+              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS for Your VPS?",
+              "domain": "virtua.cloud"
+            },
+            {
+              "url": "https://noizz.io/best/best-open-source-deployment-for-privacy-focused",
+              "title": "Best Open Source Deployment and Self-Hosted PaaS ...",
+              "domain": "noizz.io"
+            },
+            {
+              "url": "https://giovannimastellone.it/blog/coolify-and-open-source-alternatives-to-paas-a-complete-guide/",
+              "title": "Coolify and Open-Source Alternatives to PaaS",
+              "domain": "giovannimastellone.it"
+            },
+            {
+              "url": "https://www.qovery.com/blog/paas-platforms-like-heroku-compared",
+              "title": "5 PaaS Platforms Like Heroku, Compared (And When Each ...",
+              "domain": "qovery.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            { "brand": "Coolify", "text": "Coolify", "match": "Coolify" }
           ],
           "collectedAt": "2026-10-07T15:30:22.289Z"
         }
@@ -2655,9 +4747,49 @@
             "Fly.io"
           ],
           "sources": [
-            "docs.cloud.google.com",
-            "docs.aws.amazon.com",
-            "learn.microsoft.com"
+            {
+              "url": "https://docs.cloud.google.com/run/docs/quickstarts/deploy-container?utm_source=openai",
+              "title": "Quickstart: Deploy to Cloud Run  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/container-contract",
+              "title": "Container runtime contract  |  Cloud Run  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/run/docs/deploying?utm_source=openai",
+              "title": "Deploy container images to Cloud Run services  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/apprunner/latest/dg/service-source-image.html?utm_source=openai",
+              "title": "App Runner service based on a source image - AWS App Runner",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://learn.microsoft.com/en-us/azure/container-apps/overview?utm_source=openai",
+              "title": "Azure Container Apps overview | Microsoft Learn",
+              "domain": "learn.microsoft.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud",
+              "text": "Cloud Run is one of the simplest options for an HTTP API or web application.",
+              "match": "Cloud Run"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS App Runner manages starting, scaling, running, and load-balancing services from images stored in Amazon ECR.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Azure",
+              "text": "Azure Container Apps similarly manages the infrastructure and supports HTTP, background jobs, event-driven workloads, and scale-to-zero configurations.",
+              "match": "Azure"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:18.052Z"
         },
@@ -2675,14 +4807,89 @@
             "DigitalOcean"
           ],
           "sources": [
-            "x.com",
-            "paragagrawal.hashnode.dev",
-            "codecycle.com.br",
-            "encore.dev",
-            "docs.aws.amazon.com",
-            "tech-insider.org",
-            "comparedge.com",
-            "turbodeploy.dev"
+            {
+              "url": "https://x.com/AWSSupport/status/2043243058402046237",
+              "title": "@SammyBo65288122 Hi! 👋 AWS App Runner will no ...",
+              "domain": "x.com"
+            },
+            {
+              "url": "https://paragagrawal.hashnode.dev/aws-app-runner-dead-what-to-use-instead",
+              "title": "AWS App Runner Is Dead — Here's What You Should Use Instead",
+              "domain": "paragagrawal.hashnode.dev"
+            },
+            {
+              "url": "https://codecycle.com.br/en/news/aws-app-runner-is-dead-here-s-what-you-should-use-instead-2026",
+              "title": "AWS App Runner Is Dead — Here's What You Should Use Instead (2026)",
+              "domain": "codecycle.com.br"
+            },
+            {
+              "url": "https://encore.dev/articles/end-of-app-runner",
+              "title": "The End of AWS App Runner: What It Means for Your Apps",
+              "domain": "encore.dev"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html",
+              "title": "AWS App Runner availability change - AWS App Runner",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://tech-insider.org/aws-app-runner-vs-cloud-run-vs-container-apps-2026/",
+              "title": "AWS App Runner vs Cloud Run vs Container Apps [2026]",
+              "domain": "tech-insider.org"
+            },
+            {
+              "url": "https://comparedge.com/tools/aws/performance",
+              "title": "AWS Performance: Benchmarks, Latency & Limits 2026",
+              "domain": "comparedge.com"
+            },
+            {
+              "url": "https://www.turbodeploy.dev/blog/aws-app-runner-dead-what-to-use-instead",
+              "title": "Turbodeploy",
+              "domain": "turbodeploy.dev"
+            },
+            {
+              "url": "https://www.threads.com/@tpschmidt_/post/DXEA9LeFCnC/aws-just-deprecated-app-runner-again-the-announcement-was-quietly-pulled-a-few",
+              "title": "AWS just deprecated App Runner. Again. The announcement was quietly pulled a few weeks ago: now it's official. App Runner moves to maintenance on April 30, 2026. No new customers after that. Honestly? Not surprised.",
+              "domain": "threads.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Azure",
+              "text": "Build the image and push it to a registry, such as Docker Hub, Google Artifact Registry, Amazon ECR, or Azure Container Registry.",
+              "match": "Azure"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Google Cloud Run is usually the easiest place to start.",
+              "match": "Google Cloud"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS: One update here: starting April 30, 2026, App Runner no longer accepts new customers, so don't start new projects on it.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Simpler hosting services like Fly.io, Render, Railway, and DigitalOcean App Platform take a Dockerfile or image, need less cloud setup, and have friendly dashboards.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Render",
+              "text": "Simpler hosting services like Fly.io, Render, Railway, and DigitalOcean App Platform take a Dockerfile or image, need less cloud setup, and have friendly dashboards.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Simpler hosting services like Fly.io, Render, Railway, and DigitalOcean App Platform take a Dockerfile or image, need less cloud setup, and have friendly dashboards.",
+              "match": "Railway"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Simpler hosting services like Fly.io, Render, Railway, and DigitalOcean App Platform take a Dockerfile or image, need less cloud setup, and have friendly dashboards.",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:15.179Z"
         },
@@ -2755,7 +4962,31 @@
             ]
           },
           "mentioned": ["Google Cloud"],
-          "sources": ["youtube.com", "scaleway.com", "sliplane.io"],
+          "sources": [
+            {
+              "url": "https://www.youtube.com/watch?v=cw34KMPSt4k&t=237",
+              "title": "How I deploy serverless containers for free",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.scaleway.com/en/docs/serverless-containers/how-to/deploy-container/",
+              "title": "How to deploy a container | Scaleway Documentation",
+              "domain": "scaleway.com"
+            },
+            {
+              "url": "https://sliplane.io/blog/5-cheap-ways-to-deploy-docker-containers",
+              "title": "5 Cheap Ways to Deploy Docker Containers - Sliplane",
+              "domain": "sliplane.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud",
+              "text": "Step-by-Step Example using Google Cloud Run",
+              "match": "Google Cloud"
+            }
+          ],
           "collectedAt": "2026-10-07T15:29:19.315Z"
         }
       ]
@@ -2791,10 +5022,74 @@
           "overview": null,
           "mentioned": ["Railway", "Render", "Fly.io", "Heroku"],
           "sources": [
-            "render.com",
-            "docs.railway.com",
-            "railway.com",
-            "fly.io"
+            {
+              "url": "https://render.com/docs?utm_source=openai",
+              "title": "Docs + Quickstarts | Render",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://render.com/articles/render-vs-railway?utm_source=openai",
+              "title": "Render vs Railway | Render",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://render.com/docs/regions?utm_source=openai",
+              "title": "Regions – Render Docs",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://docs.railway.com/deployments/scaling?utm_source=openai",
+              "title": "Scaling | Railway Docs",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://docs.railway.com/guides/postgres-backups-restores?utm_source=openai",
+              "title": "Back Up and Restore Postgres | Railway Guides",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://railway.com/pricing?utm_source=openai",
+              "title": "Pricing | Railway",
+              "domain": "railway.com"
+            },
+            {
+              "url": "https://docs.railway.com/deployments/regions?utm_source=openai",
+              "title": "Regions | Railway Docs",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://fly.io/blog/the-region-consolidation-project/?utm_source=openai",
+              "title": "The Region Consolidation Project · The Fly Blog",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://fly.io/pricing-update/?utm_source=openai",
+              "title": "Updated pricing, effective October 1, 2026 · Fly",
+              "domain": "fly.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Railway",
+              "text": "Railway — best for fast MVPs, side projects, and simple full-stack deployments",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Render — best for predictable, low-operations production hosting",
+              "match": "Render"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Fly.io — best for global deployment, Docker/VM control, and infrastructure-heavy workloads",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Render behaves like a modern Heroku: connect GitHub, choose a service type, add Postgres or Redis-compatible Key Value, and deploy.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:07.010Z"
         },
@@ -2811,14 +5106,89 @@
             "Coolify"
           ],
           "sources": [
-            "techsy.io",
-            "dev.to",
-            "hostim.dev",
-            "tech-insider.org",
-            "bex.co",
-            "devtoolpicks.com",
-            "speedtesthq.com",
-            "devopsboys.com"
+            {
+              "url": "https://techsy.io/en/blog/railway-vs-render-vs-fly-io",
+              "title": "Railway vs Render vs Fly.io: Benchmarks & Pricing (2026)",
+              "domain": "techsy.io"
+            },
+            {
+              "url": "https://dev.to/pavel-hostim/render-vs-railway-vs-flyio-pricing-compared-2026-2e5p",
+              "title": "Render vs Railway vs Fly.io: Pricing Compared (2026) - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://hostim.dev/blog/render-vs-railway-vs-fly-pricing/",
+              "title": "Render vs Railway vs Fly.io: Pricing Compared and When Each Wins (2026)",
+              "domain": "hostim.dev"
+            },
+            {
+              "url": "https://tech-insider.org/render-vs-railway-vs-fly-io-2026/",
+              "title": "Render vs Railway vs Fly.io: 18 Regions, 8-Hr Outage [2026]",
+              "domain": "tech-insider.org"
+            },
+            {
+              "url": "https://bex.co/blog/2026/09/25/railway-render-flyio-solo-dev-fourth-option",
+              "title": "Railway vs Render vs Fly.io for Solo Devs: What the 'Cheapest' Verdicts Miss About the Fourth Option",
+              "domain": "bex.co"
+            },
+            {
+              "url": "https://devtoolpicks.com/blog/railway-vs-render-vs-fly-io-solo-developers-2026",
+              "title": "Railway vs Render vs Fly.io for Solo Developers in 2026",
+              "domain": "devtoolpicks.com"
+            },
+            {
+              "url": "https://bex.co/blog/2026/09/06/railway-vs-render-vs-flyio-reaudit",
+              "title": "Railway vs Render vs Fly.io, Re-Priced: Where the 5x Bill Spread Actually Comes From",
+              "domain": "bex.co"
+            },
+            {
+              "url": "https://bex.co/blog/2026/09/18/railway-render-flyio-pricing-census-hetzner-flat-rate",
+              "title": "Railway vs Render vs Fly.io vs a €4 Hetzner Box: A Line-by-Line Bill for the Same Node.js + Postgres App",
+              "domain": "bex.co"
+            },
+            {
+              "url": "https://speedtesthq.com/compare/fly-io-vs-railway-vs-render",
+              "title": "Fly.io vs Railway vs Render in 2026: App Platforms Compared",
+              "domain": "speedtesthq.com"
+            },
+            {
+              "url": "https://devopsboys.com/blog/render-vs-railway-vs-fly-io-paas-2026",
+              "title": "Render vs Railway vs Fly.io: Which PaaS for DevOps in 2026?",
+              "domain": "devopsboys.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Railway",
+              "text": "Short version: Railway is the easiest to use, Render gives the most predictable bills and is the closest thing to Heroku, and Fly.io costs the least to run and covers the most of the world, but you have to set more up yourself.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Short version: Railway is the easiest to use, Render gives the most predictable bills and is the closest thing to Heroku, and Fly.io costs the least to run and covers the most of the world, but you have to set more up yourself.",
+              "match": "Render"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Short version: Railway is the easiest to use, Render gives the most predictable bills and is the closest thing to Heroku, and Fly.io costs the least to run and covers the most of the world, but you have to set more up yourself.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Short version: Railway is the easiest to use, Render gives the most predictable bills and is the closest thing to Heroku, and Fly.io costs the least to run and covers the most of the world, but you have to set more up yourself.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "One more option: if cost matters most and you can manage a server yourself, a ~$5/mo Hetzner VPS (often paired with Coolify or Dokku) beats all three on price.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Coolify",
+              "text": "One more option: if cost matters most and you can manage a server yourself, a ~$5/mo Hetzner VPS (often paired with Coolify or Dokku) beats all three on price.",
+              "match": "Coolify"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:39.798Z"
         },
@@ -2978,14 +5348,79 @@
           },
           "mentioned": ["Render", "Railway", "Fly.io", "Heroku"],
           "sources": [
-            "reddit.com",
-            "blog.boltops.com",
-            "expresstech.io",
-            "render.com",
-            "enterprisedna.co",
-            "birjob.com",
-            "news.ycombinator.com",
-            "encore.dev"
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1j8vace/price_comparison_calculator_for_flyio_heroku/",
+              "title": "Price comparison calculator for Fly.io, Heroku, Render, and Railway - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://blog.boltops.com/2025/05/01/heroku-vs-render-vs-vercel-vs-fly-io-vs-railway-meet-blossom-an-alternative/",
+              "title": "Heroku vs Render vs Vercel vs Fly.io vs Railway: Meet Blossom, an Alternative - BoltOps Blog",
+              "domain": "blog.boltops.com"
+            },
+            {
+              "url": "https://expresstech.io/render-vs-railway-vs-fly-io-2026-pricing-showdown/",
+              "title": "Render vs Railway vs Fly.io: 2026 Pricing Showdown - ExpressTech",
+              "domain": "expresstech.io"
+            },
+            {
+              "url": "https://render.com/articles/railway-vs-fly-io",
+              "title": "Railway vs Fly.io (2026): Pricing & Platform Comparison - Render",
+              "domain": "render.com"
+            },
+            {
+              "url": "https://enterprisedna.co/directories/compare/fly-io-vs-railway-vs-render/",
+              "title": "Fly.io vs Railway vs Render",
+              "domain": "enterprisedna.co"
+            },
+            {
+              "url": "https://www.birjob.com/blog/paas-comparison-railway-render-fly-vercel-2026",
+              "title": "PaaS Comparison 2026: Railway, Render, Fly.io vs Vercel for Indie ...",
+              "domain": "birjob.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=32956831",
+              "title": "Render is very good. People seem to prefer us (Fly) if they like using a ...",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://encore.dev/articles/render-vs-railway",
+              "title": "Render vs Railway 2026",
+              "domain": "encore.dev"
+            },
+            {
+              "url": "https://fly.io/learn/fly-vs-railway/",
+              "title": "Fly.io vs Railway: Deploys, Idle Apps, Databases and Scaling ...",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://docs.railway.com/platform/compare-to-fly",
+              "title": "Railway vs Fly.io: Technical Comparison and Migration Guide | Railway Docs",
+              "domain": "docs.railway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "Render, Railway, and Fly.io are top platform-as-a-service (PaaS) providers that deploy apps from a Git push or Docker container, but they differ significantly in pricing, developer experience, and infrastructure control.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Render, Railway, and Fly.io are top platform-as-a-service (PaaS) providers that deploy apps from a Git push or Docker container, but they differ significantly in pricing, developer experience, and infrastructure control.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Render, Railway, and Fly.io are top platform-as-a-service (PaaS) providers that deploy apps from a Git push or Docker container, but they differ significantly in pricing, developer experience, and infrastructure control.",
+              "match": "Fly.io"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Render is a reliable, dashboard-driven platform that offers a traditional hosting experience similar to Heroku.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:30:16.969Z"
         }
@@ -3020,10 +5455,44 @@
           "overview": null,
           "mentioned": ["Hetzner", "Cloudflare"],
           "sources": [
-            "docs.hetzner.com",
-            "scaleway.com",
-            "ovhcloud.com",
-            "upcloud.com"
+            {
+              "url": "https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/?utm_source=openai",
+              "title": "Hetzner Price Adjustment 15 June 2026 - Hetzner Docs",
+              "domain": "docs.hetzner.com"
+            },
+            {
+              "url": "https://docs.hetzner.com/cloud/servers/overview/?utm_source=openai",
+              "title": "Overview - Hetzner Docs",
+              "domain": "docs.hetzner.com"
+            },
+            {
+              "url": "https://www.scaleway.com/en/product-availability-by-region/?categories=bare-metal&utm_source=openai",
+              "title": "Product Availability by region | Scaleway",
+              "domain": "scaleway.com"
+            },
+            {
+              "url": "https://www.ovhcloud.com/en/public-cloud/regions-availability/?utm_source=openai",
+              "title": "Availability of Public Cloud products | OVHcloud Worldwide",
+              "domain": "ovhcloud.com"
+            },
+            {
+              "url": "https://upcloud.com/global/blog/introducing-starter-and-premium-plans/?utm_source=openai",
+              "title": "Introducing Starter and Premium Plans - UpCloud Global",
+              "domain": "upcloud.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Hetzner",
+              "text": "For most bootstrapped startups, I’d choose Hetzner.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "For a typical early-stage SaaS, I’d start with Hetzner in Nuremberg or Helsinki, use Cloudflare in front, deploy with Docker, and keep automated off-provider database backups.",
+              "match": "Cloudflare"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:38.716Z"
         },
@@ -3033,14 +5502,74 @@
           "overview": null,
           "mentioned": ["Hetzner", "AWS", "Google Cloud"],
           "sources": [
-            "freelance-stack.io",
-            "innowise.com",
-            "simplyblock.io",
-            "databaas.eu",
-            "portalzine.de",
-            "bolet.io",
-            "infoswitch.fr",
-            "sliplane.io"
+            {
+              "url": "https://www.freelance-stack.io/en/blog/6-best-european-cloud-providers-for-startups-to-keep-data-in-europe/",
+              "title": "The 6 best european cloud services for startups that want to keep their data in Europe.",
+              "domain": "freelance-stack.io"
+            },
+            {
+              "url": "https://innowise.com/blog/top-cloud-providers-in-europe/",
+              "title": "Top largest cloud providers in Europe",
+              "domain": "innowise.com"
+            },
+            {
+              "url": "https://simplyblock.io/blog/top-european-ai-cloud-providers/",
+              "title": "Top 5 European AI Cloud Providers in 2026",
+              "domain": "simplyblock.io"
+            },
+            {
+              "url": "https://www.databaas.eu/blog/european-cloud-for-startups",
+              "title": "European Cloud for Startups · Databaas",
+              "domain": "databaas.eu"
+            },
+            {
+              "url": "https://simplyblock.io/blog/top-european-cloud-infrastructure-providers/",
+              "title": "Top 5 European Cloud Infrastructure Providers in 2026",
+              "domain": "simplyblock.io"
+            },
+            {
+              "url": "https://portalzine.de/best-server-hosts-in-europe-2026-the-ultimate-guide/",
+              "title": "Best Server Hosts in Europe 2026: The Ultimate Guide - portalZINE.DE",
+              "domain": "portalzine.de"
+            },
+            {
+              "url": "https://bolet.io/posts/european-cloud-providers-2026",
+              "title": "The European Cloud Providers That Actually Exist in 2026 · bolet.io",
+              "domain": "bolet.io"
+            },
+            {
+              "url": "https://infoswitch.fr/en/blog/best-european-hosting-providers-2026",
+              "title": "Best European Hosting Providers in 2026…",
+              "domain": "infoswitch.fr"
+            },
+            {
+              "url": "https://sliplane.io/blog/best-european-paas-provider",
+              "title": "Best European PaaS Providers in 2026",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://northflank.com/blog/best-european-paas-providers",
+              "title": "Best European-based PaaS providers in 2026",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Hetzner",
+              "text": "Hetzner (Germany): cheapest for raw compute.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "AWS",
+              "text": "Scaleway (France): closest to the AWS experience.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "If you've already worked with AWS or GCP and are looking for a European alternative without having to start from scratch, Scaleway is likely the most natural choice.",
+              "match": "GCP"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:30.651Z"
         },
@@ -3152,11 +5681,44 @@
           },
           "mentioned": ["Hetzner", "AWS"],
           "sources": [
-            "innowise.com",
-            "quora.com",
-            "ovhcloud.com",
-            "civo.com",
-            "techradar.com"
+            {
+              "url": "https://innowise.com/blog/top-cloud-providers-in-europe/",
+              "title": "Top largest cloud providers in Europe - Innowise",
+              "domain": "innowise.com"
+            },
+            {
+              "url": "https://www.quora.com/Which-hosting-company-do-you-recommend-for-2018-I-would-like-the-servers-to-be-located-in-Europe",
+              "title": "Which hosting company do you recommend for 2018? I would like ...",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://www.ovhcloud.com/en-ie/about-us/",
+              "title": "About us | OVHcloud Ireland",
+              "domain": "ovhcloud.com"
+            },
+            {
+              "url": "https://www.civo.com/uk-sovereign-cloud",
+              "title": "Civo UK Sovereign Cloud – Total control, zero compromise",
+              "domain": "civo.com"
+            },
+            {
+              "url": "https://www.techradar.com/pro/aws-brings-sovereign-cloud-to-europe-you-can-pause-your-geopatriation-plans-for-now",
+              "title": "AWS brings ‘Sovereign’ cloud to Europe",
+              "domain": "techradar.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Hetzner",
+              "text": "Hetzner: Best overall for price-to-performance ratio.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "AWS",
+              "text": "AWS European Sovereign Cloud: Best if your startup requires full AWS tooling and architecture while keeping data physically and logically isolated inside the EU under EU jurisdiction.",
+              "match": "AWS"
+            }
           ],
           "collectedAt": "2026-10-07T15:41:49.096Z"
         }
@@ -3183,10 +5745,59 @@
           "overview": null,
           "mentioned": ["Vercel", "Netlify", "Cloudflare"],
           "sources": [
-            "developers.cloudflare.com",
-            "vercel.com",
-            "docs.netlify.com",
-            "netlify.com"
+            {
+              "url": "https://developers.cloudflare.com/pages/framework-guides/?ref=fossengineer.com&utm_source=openai",
+              "title": "Framework guides · Cloudflare Pages docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://vercel.com/docs/frameworks?utm_source=openai",
+              "title": "Frameworks on Vercel",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://vercel.com/pricing?sid=3bd84c71-f35f-4ec7-bc4f-901ad033fe80&utm_source=openai",
+              "title": "Vercel Pricing: Hobby, Pro, and Enterprise plans",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://docs.netlify.com/frameworks/?utm_source=openai",
+              "title": "Overview | Netlify Docs",
+              "domain": "docs.netlify.com"
+            },
+            {
+              "url": "https://www.netlify.com/pricing/?utm_source=openai",
+              "title": "Pricing and Plans | Netlify",
+              "domain": "netlify.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/pages/functions/pricing/?utm_source=openai",
+              "title": "Pricing · Cloudflare Pages docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/?utm_source=openai",
+              "title": "Next.js · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Choose Vercel for Next.js, polished developer experience, preview environments, and minimal configuration.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Choose Netlify for framework-neutral frontend projects, straightforward CI/CD, built-in platform features, and collaborative teams.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Choose Cloudflare for the lowest-cost global delivery, edge-first applications, and tight integration with Workers, D1, R2, KV, Durable Objects, and Cloudflare’s network.",
+              "match": "Cloudflare"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:52.506Z"
         },
@@ -3196,14 +5807,84 @@
           "overview": null,
           "mentioned": ["Vercel", "Netlify", "Cloudflare"],
           "sources": [
-            "devtoolreviews.com",
-            "blog.vibecoder.me",
-            "pristren.com",
-            "siliconbased.dev",
-            "stackfyi.com",
-            "toolchase.com",
-            "saasoffers.tech",
-            "remogrid.com"
+            {
+              "url": "https://www.devtoolreviews.com/reviews/vercel-vs-netlify-vs-cloudflare-pages-pricing-comparison-2026",
+              "title": "Vercel vs Netlify vs Cloudflare Pages Pricing 2026",
+              "domain": "devtoolreviews.com"
+            },
+            {
+              "url": "https://blog.vibecoder.me/vercel-vs-netlify-vs-cloudflare-pages",
+              "title": "Vercel vs Netlify vs Cloudflare Pages, 2026 Real Test - An honest comparison of the three most popular hosting platforms for AI-built web apps — Vibe Coder Blog",
+              "domain": "blog.vibecoder.me"
+            },
+            {
+              "url": "https://pristren.com/blog/vercel-vs-cloudflare-pages-vs-netlify/",
+              "title": "Vercel vs Cloudflare Pages vs Netlify: 2026 Hosting Showdown",
+              "domain": "pristren.com"
+            },
+            {
+              "url": "https://siliconbased.dev/vercel-vs-netlify",
+              "title": "Vercel vs Netlify vs Cloudflare Pages (2026 Guide)",
+              "domain": "siliconbased.dev"
+            },
+            {
+              "url": "https://www.stackfyi.com/guides/vercel-vs-netlify-vs-cloudflare-pages-2026",
+              "title": "Vercel vs Netlify vs Cloudflare Pages 2026",
+              "domain": "stackfyi.com"
+            },
+            {
+              "url": "https://toolchase.com/blog/netlify-vs-vercel-vs-cloudflare/",
+              "title": "Netlify vs Vercel vs Cloudflare Pages: The Honest 2026 Comparison",
+              "domain": "toolchase.com"
+            },
+            {
+              "url": "https://saasoffers.tech/blog/vercel-vs-netlify-vs-cloudflare-pages-2026",
+              "title": "Vercel vs Netlify vs Cloudflare Pages. Honest Comparison (2026)",
+              "domain": "saasoffers.tech"
+            },
+            {
+              "url": "https://www.remogrid.com/blog/website-hosting/cloudflare-pages-vs-vercel-vs-netlify-comparison-2026",
+              "title": "Cloudflare Pages vs Vercel vs Netlify: 2026 Static & Edge Hosting Guide",
+              "domain": "remogrid.com"
+            },
+            {
+              "url": "https://khimananda.com/blog/cloudflare-pages-vs-netlify-vs-vercel-for-static-sites",
+              "title": "Cloudflare Pages vs Netlify vs Vercel for Static Sites",
+              "domain": "khimananda.com"
+            },
+            {
+              "url": "https://www.devtoolreviews.com/reviews/vercel-vs-netlify-vs-cloudflare-pages-2026",
+              "title": "Vercel vs Netlify vs Cloudflare Pages (2026 Update)",
+              "domain": "devtoolreviews.com"
+            },
+            {
+              "url": "https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/",
+              "title": "Migrate from Pages to Workers · Cloudflare Workers docs",
+              "domain": "developers.cloudflare.com"
+            },
+            {
+              "url": "https://cogley.jp/articles/cloudflare-pages-to-workers-migration",
+              "title": "Cloudflare Pages vs Workers 2026: Updates, Pricing, Free Plan — cogley.jp",
+              "domain": "cogley.jp"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Vercel: Best for Next.js.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Netlify: Best if you want everything in one place.",
+              "match": "Netlify"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Cloudflare: Cheapest at scale, with the biggest edge network.",
+              "match": "Cloudflare"
+            }
           ],
           "collectedAt": "2026-10-07T15:28:37.752Z"
         },
@@ -3271,9 +5952,44 @@
           },
           "mentioned": ["Vercel", "Cloudflare", "Netlify"],
           "sources": [
-            "blog.vibecoder.me",
-            "youtube.com",
-            "news.ycombinator.com"
+            {
+              "url": "https://blog.vibecoder.me/vercel-vs-netlify-vs-cloudflare-pages",
+              "title": "Vercel vs Netlify vs Cloudflare Pages, 2026 Real Test - Vibe Coder Blog",
+              "domain": "blog.vibecoder.me"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=MvRYNZoAVag&t=348",
+              "title": "Cloudflare Pages Vs Netlify",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=25455603",
+              "title": "Cloudflare Pages: the best way to build JAMstack websites",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=30299786",
+              "title": "Migrating from Netlify to Cloudflare Workers Sites for 2x Performance ...",
+              "domain": "news.ycombinator.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Vercel",
+              "text": "Vercel excels at developer experience for Next.js applications, Cloudflare Pages wins on performance and pricing at scale, and provides a simple, mature option for static sites and Jamstack projects.",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Cloudflare",
+              "text": "Vercel excels at developer experience for Next.js applications, Cloudflare Pages wins on performance and pricing at scale, and provides a simple, mature option for static sites and Jamstack projects.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Netlify",
+              "text": "Netlify: Offers polished UI workflows, atomic deployments, form handling, and robust split testing, but high bandwidth usage can incur steep overage costs.",
+              "match": "Netlify"
+            }
           ],
           "collectedAt": "2026-10-07T15:29:26.182Z"
         }
@@ -3284,52 +6000,558 @@
     {
       "domain": "render.com",
       "share": 32,
-      "byEngine": { "chatgpt": 67, "claude": 3, "ai-overview": 20 }
+      "byEngine": { "chatgpt": 67, "claude": 3, "ai-overview": 20 },
+      "citations": 24,
+      "pages": [
+        {
+          "url": "https://render.com/docs/free",
+          "title": "Deploy for Free – Render Docs",
+          "citations": 7
+        },
+        {
+          "url": "https://render.com/pricing?trk=article-ssr-frontend-pulse_little-text-block",
+          "title": "Pricing | Render",
+          "citations": 3
+        },
+        {
+          "url": "https://render.com/docs/service-types",
+          "title": "Services and Service Types – Render Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://render.com/docs/compute-plans",
+          "title": "Render Compute Plans – Render Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://render.com/docs/web-services",
+          "title": "Web Services – Render Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://render.com/docs/background-workers",
+          "title": "Background Workers – Render Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://render.com/articles/railway-vs-fly-io",
+          "title": "Railway vs Fly.io (2026): Pricing & Platform Comparison",
+          "citations": 2
+        },
+        {
+          "url": "https://render.com/docs/faq",
+          "title": "Render FAQ – Render Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        {
+          "id": 6,
+          "citations": 4,
+          "engines": ["chatgpt", "claude", "ai-overview"]
+        },
+        { "id": 11, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 12, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 7, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "developers.cloudflare.com",
       "share": 19,
-      "byEngine": { "chatgpt": 40, "claude": 7, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 40, "claude": 7, "ai-overview": 0 },
+      "citations": 14,
+      "pages": [
+        {
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/?ref=renewalrecord.com",
+          "title": "Pricing · Cloudflare Workers docs",
+          "citations": 6
+        },
+        {
+          "url": "https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/",
+          "title": "Next.js · Cloudflare Workers docs",
+          "citations": 3
+        },
+        {
+          "url": "https://developers.cloudflare.com/pages/functions/pricing/",
+          "title": "Pricing · Cloudflare Pages docs",
+          "citations": 2
+        },
+        {
+          "url": "https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/",
+          "title": "Migrate from Pages to Workers · Cloudflare Workers docs",
+          "citations": 2
+        },
+        {
+          "url": "https://developers.cloudflare.com/workers/platform/pricing/?ref=amarjanica.com",
+          "title": "Pricing · Cloudflare Workers docs",
+          "citations": 1
+        },
+        {
+          "url": "https://developers.cloudflare.com/pages/framework-guides/?ref=fossengineer.com",
+          "title": "Framework guides · Cloudflare Pages docs",
+          "citations": 1
+        },
+        {
+          "url": "https://developers.cloudflare.com/pages/",
+          "title": "Overview · Cloudflare Pages docs",
+          "citations": 1
+        },
+        {
+          "url": "https://developers.cloudflare.com/pages/platform/limits/?ref=aienabledpm.com",
+          "title": "Limits · Cloudflare Pages docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 4, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 7, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "dev.to",
       "share": 19,
-      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 27 }
+      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 27 },
+      "citations": 14,
+      "pages": [
+        {
+          "url": "https://dev.to/sparrowhawk705/seven-free-nodejs-hosting-platforms-worth-trying-in-2026-25c1",
+          "title": "Seven Free Node.js Hosting Platforms Worth Trying in 2026 - DEV Community",
+          "citations": 2
+        },
+        {
+          "url": "https://dev.to/rickcogley/cloudflare-pages-vs-workers-in-2026-migration-guide-ka7",
+          "title": "Cloudflare Pages vs Workers in 2026: Migration Guide - DEV Community",
+          "citations": 2
+        },
+        {
+          "url": "https://dev.to/pavel-hostim/render-vs-railway-vs-flyio-pricing-compared-2026-2e5p",
+          "title": "Render vs Railway vs Fly.io: Pricing Compared (2026) - DEV Community",
+          "citations": 2
+        },
+        {
+          "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
+          "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix - DEV Community",
+          "citations": 2
+        },
+        {
+          "url": "https://dev.to/kkibet/where-to-host-your-web-app-a-complete-guide-to-platforms-3hc",
+          "title": "Where to Host Your Web App: A Complete Guide to Platforms - DEV Community",
+          "citations": 1
+        },
+        {
+          "url": "https://dev.to/lucasmdevdev/how-to-deploy-your-app-for-free-in-2026-complete-stack-4pef",
+          "title": "How to Deploy Your App for Free in 2026 (Complete Stack) - DEV Community",
+          "citations": 1
+        },
+        {
+          "url": "https://dev.to/jaainil/7-fantastic-heroku-alternatives-4jf8",
+          "title": "7 Fantastic Heroku Alternatives",
+          "citations": 1
+        },
+        {
+          "url": "https://dev.to/truptpatel21/how-to-build-a-full-stack-web-application-a-complete-guide-for-beginners-2h67",
+          "title": "🚀 How to Build a Full",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 11, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 14, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 7, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "docs.railway.com",
       "share": 16,
-      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 7 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://docs.railway.com/pricing/plans",
+          "title": "Pricing Plans | Railway Docs",
+          "citations": 5
+        },
+        {
+          "url": "https://docs.railway.com/guides/fastapi",
+          "title": "Deploy a FastAPI App | Railway Guides",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.railway.com/deployments/scaling",
+          "title": "Scaling | Railway Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.railway.com/guides/postgres-backups-restores",
+          "title": "Back Up and Restore Postgres | Railway Guides",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.railway.com/deployments/regions",
+          "title": "Regions | Railway Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.railway.com/guides/cron-workers-queues",
+          "title": "Choose Between Cron Jobs, Background Workers, and Queues | Railway Guides",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.railway.com/guides/docker-compose",
+          "title": "Deploy a Docker Compose App to Production | Railway Guides",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.railway.com/quick-start",
+          "title": "Quick Start Tutorial | Railway Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 11, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 6, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "vercel.com",
       "share": 15,
-      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 0 },
+      "citations": 11,
+      "pages": [
+        {
+          "url": "https://vercel.com/docs/plans/hobby",
+          "title": "Vercel Hobby Plan",
+          "citations": 3
+        },
+        {
+          "url": "https://vercel.com/pricing?sid=3bd84c71-f35f-4ec7-bc4f-901ad033fe80",
+          "title": "Vercel Pricing: Hobby, Pro, and Enterprise plans",
+          "citations": 2
+        },
+        {
+          "url": "https://vercel.com/docs/git",
+          "title": "Deploying Git Repositories with Vercel",
+          "citations": 2
+        },
+        {
+          "url": "https://vercel.com/pricing",
+          "title": "Vercel Pricing: Hobby, Pro, and Enterprise plans",
+          "citations": 1
+        },
+        {
+          "url": "https://vercel.com/docs/frameworks/nextjs",
+          "title": "Next.js on Vercel",
+          "citations": 1
+        },
+        {
+          "url": "https://vercel.com/docs/frameworks",
+          "title": "Frameworks on Vercel",
+          "citations": 1
+        },
+        {
+          "url": "https://vercel.com/kb/guide/next-js-on-vercel-vs-cloudflare",
+          "title": "Next.js on Vercel vs Cloudflare | Vercel Knowledge Base",
+          "citations": 1
+        },
+        {
+          "url": "https://vercel.com/docs",
+          "title": "Vercel Documentation",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 7, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 6, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "fly.io",
       "share": 15,
-      "byEngine": { "chatgpt": 27, "claude": 7, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 27, "claude": 7, "ai-overview": 7 },
+      "citations": 11,
+      "pages": [
+        {
+          "url": "https://www.fly.io/docs/about/pricing/",
+          "title": "Fly.io Resource Pricing · Fly Docs",
+          "citations": 4
+        },
+        {
+          "url": "https://fly.io/docs/about/pricing/",
+          "title": "Fly.io Resource Pricing · Fly Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://fly.io/learn/python-hosting/",
+          "title": "Best Python Hosting Providers in 2026 (Compared) · Learn",
+          "citations": 2
+        },
+        {
+          "url": "https://fly.io/web-app-with-postgres/",
+          "title": "The easy way to deploy a web app with Postgres · Fly",
+          "citations": 1
+        },
+        {
+          "url": "https://fly.io/blog/the-region-consolidation-project/",
+          "title": "The Region Consolidation Project · The Fly Blog",
+          "citations": 1
+        },
+        {
+          "url": "https://fly.io/pricing-update/",
+          "title": "Updated pricing, effective October 1, 2026 · Fly",
+          "citations": 1
+        },
+        {
+          "url": "https://fly.io/learn/fly-vs-railway/",
+          "title": "Fly.io vs Railway: Deploys, Idle Apps, Databases and Scaling ...",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 11, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 6, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "docs.cloud.google.com",
       "share": 12,
-      "byEngine": { "chatgpt": 30, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 30, "claude": 0, "ai-overview": 0 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://docs.cloud.google.com/run/docs/about-instance-autoscaling",
+          "title": "About instance autoscaling in Cloud Run services  |  Google Cloud Documentation",
+          "citations": 4
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/quickstarts/deploy-container",
+          "title": "Quickstart: Deploy to Cloud Run  |  Google Cloud Documentation",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/deploying",
+          "title": "Deploy container images to Cloud Run services  |  Google Cloud Documentation",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/execute/jobs?hl=en",
+          "title": "Execute jobs  |  Cloud Run  |  Google Cloud Documentation",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-python-fastapi-service",
+          "title": "Quickstart: Deploy a Python (FastAPI) web app to Google Cloud with Cloud Run  |  Google Cloud Documentation",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/configuring/max-instances",
+          "title": "Set maximum instances for services  |  Cloud Run  |  Google Cloud Documentation",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs/container-contract",
+          "title": "Container runtime contract  |  Cloud Run  |  Google Cloud Documentation",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.cloud.google.com/run/docs",
+          "title": "Cloud Run documentation  |  Google Cloud Documentation",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "northflank.com",
       "share": 12,
-      "byEngine": { "chatgpt": 0, "claude": 23, "ai-overview": 13 }
+      "byEngine": { "chatgpt": 0, "claude": 23, "ai-overview": 13 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://northflank.com/blog/top-heroku-alternatives",
+          "title": "Top Heroku alternatives in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://northflank.com/blog/best-european-paas-providers",
+          "title": "Best European-based PaaS providers in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://northflank.com/blog/best-paas-providers",
+          "title": "We tried the top PaaS providers so you don’t have to",
+          "citations": 2
+        },
+        {
+          "url": "https://northflank.com/blog/railway-vs-vercel-vs-render",
+          "title": "Railway vs Vercel vs Render: which platform should you choose?",
+          "citations": 1
+        },
+        {
+          "url": "https://northflank.com/heroku-alternative",
+          "title": "The #1 Heroku alternative - Northflank",
+          "citations": 1
+        },
+        {
+          "url": "https://northflank.com/blog/dokploy-alternatives",
+          "title": "Top Dokploy alternatives for deploying applications in 2026",
+          "citations": 1
+        },
+        {
+          "url": "https://northflank.com/blog/best-tools-for-deploying-internal-ai-apps",
+          "title": "Best tools for deploying internal AI apps in 2026 | Blog",
+          "citations": 1
+        },
+        {
+          "url": "https://northflank.com/blog/northflank-vs-render",
+          "title": "Northflank vs Render: which deployment platform should you choose?",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 2, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 12, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "reddit.com",
       "share": 12,
-      "byEngine": { "chatgpt": 0, "claude": 0, "ai-overview": 60 }
+      "byEngine": { "chatgpt": 0, "claude": 0, "ai-overview": 60 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://www.reddit.com/r/webdev/comments/1jsshau/recommend_a_hostingstackservice_solution_for/",
+          "title": "Recommend a hosting/stack/service solution for building a ...",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/webdev/comments/1955lfe/where_to_host_a_web_app/",
+          "title": "Where to host a web app? : r/webdev - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/googlecloud/comments/xkxjuo/best_services_to_deploy_nextjs_frontend_app_and/",
+          "title": "Best services to deploy Nextjs frontend app and express ...",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/node/comments/1bklg3q/actual_cheap_nodejs_compatible_hosting_service/",
+          "title": "ACTUAL cheap nodejs compatible hosting service : r/node - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/node/comments/13epvp7/how_to_host_a_dynamic_nodejs_website_for_as_cheap/",
+          "title": "How to host a dynamic node.js website for as cheap as possible - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/Backend/comments/1ne2zar/any_free_places_to_deploy_backend_database/",
+          "title": "Any free places to deploy backend + database? - Reddit",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/Python/comments/yqxr2s/best_ways_to_deploy_a_computationally_heavy/",
+          "title": "Best ways to deploy a computationally heavy application? : r/Python",
+          "citations": 1
+        },
+        {
+          "url": "https://www.reddit.com/r/webdev/comments/1atzn37/looking_for_some_help_deploying_fullstack_app/",
+          "title": "Looking for some help deploying fullstack app :( : r/webdev",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 1, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 3, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 5, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 6, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 7, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 8, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 11, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 13, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "docs.aws.amazon.com",
       "share": 11,
-      "byEngine": { "chatgpt": 20, "claude": 7, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 20, "claude": 7, "ai-overview": 0 },
+      "citations": 8,
+      "pages": [
+        {
+          "url": "https://docs.aws.amazon.com/amplify/latest/userguide/ssr-amplify-support.html",
+          "title": "Amplify support for Next.js - AWS Amplify Hosting",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html",
+          "title": "AWS App Runner availability change - AWS App Runner",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html",
+          "title": "Use a target metric to scale Amazon ECS services - Amazon Elastic Container Service",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/predictive-auto-scaling.html",
+          "title": "Use historical patterns to scale Amazon ECS services with predictive scaling - Amazon Elastic Container Service",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.aws.amazon.com/apprunner/latest/dg/service-source-image.html",
+          "title": "App Runner service based on a source image - AWS App Runner",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html",
+          "title": "Schedule your containers on Amazon ECS - Amazon Elastic Container Service",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 9, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 1, "engines": ["chatgpt"] }
+      ]
     }
   ],
   "overview": {

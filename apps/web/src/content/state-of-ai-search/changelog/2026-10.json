@@ -232,7 +232,31 @@
           "text": "Most startups keep changelogs current by making them part of the **shipping workflow**, rather than relying on someone to remember afterward.\n\n### A common workflow\n\n1. **Add release-note metadata to every PR**\n   - Require a label such as `feature`, `improvement`, `fix`, or `internal`.\n   - Include a PR field: “What should customers know?”\n   - Use `skip-changelog` for changes that aren’t customer-facing.\n\n2. **Automatically create a draft**\n   - When a release or production deployment happens, automation gathers merged PRs since the previous release.\n   - GitHub can generate release notes and categorize them using PR labels and a `.github/release.yml` configuration. \n   - Some teams also schedule an agent or workflow to open a weekly release-notes PR. \n\n3. **Have a human rewrite it**\n   Raw engineering notes like:\n\n   > Refactored auth middleware and added Redis session caching\n\n   become:\n\n   > **Faster sign-in:** We improved session handling so returning users can access their workspace more quickly.\n\n   Product marketing, support, or the product manager usually owns this final edit.\n\n4. **Publish from one source of truth**\n   Common options:\n   - Markdown in the product repository\n   - GitHub Releases\n   - A CMS collection\n   - A dedicated changelog service connected to GitHub or GitLab\n\n   Git-connected tools can generate drafts from commits and PRs whenever the product is deployed. \n\n5. **Distribute the same entry everywhere**\n   The published update can feed:\n   - `/changelog` or `/updates`\n   - An in-app “What’s new” panel\n   - Customer email\n   - Slack or Discord\n   - RSS\n   - Social posts\n\n### A lightweight setup for an early-stage startup\n\nUse this process:\n\n```text\nPR opened\n  → author adds customer-facing summary\n  → PR receives changelog label\n  → PR merged\n  → weekly workflow collects labeled PRs\n  → AI creates first draft\n  → product owner reviews for 10 minutes\n  → changelog entry is published\n```\n\nA useful PR template field is:\n\n```markdown\n## Customer-facing change\n\n<!-- Explain the outcome in one or two sentences. Write \"None\" if internal. -->\n\n## Changelog category\n\n- [ ] New\n- [ ] Improved\n- [ ] Fixed\n- [ ] Internal / don't publish\n```\n\n### The key rule\n\n**Automate collection, not editorial judgment.**\n\nAutomation is good at finding merged work, grouping changes, and generating drafts. A person should still decide:\n\n- Whether the change matters to customers\n- How to explain the benefit\n- Whether it exposes sensitive information\n- Whether several small changes should become one coherent update\n\nFor most startups, a **weekly or biweekly publishing cadence** works better than posting every tiny deployment. Major launches can still receive standalone entries.",
           "overview": null,
           "mentioned": ["GitHub Releases"],
-          "sources": ["docs.github.com", "github.blog", "autochangelog.com"],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/enterprise-cloud%40latest/repositories/releasing-projects-on-github/automatically-generated-release-notes?utm_source=openai",
+              "title": "Automatically generated release notes - GitHub Enterprise Cloud Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://github.blog/changelog/2026-06-02-schedule-and-automate-tasks-with-copilot-cloud-agent/?utm_source=openai",
+              "title": "Schedule and automate tasks with Copilot cloud agent - GitHub Changelog",
+              "domain": "github.blog"
+            },
+            {
+              "url": "https://autochangelog.com/docs/getting-started?utm_source=openai",
+              "title": "Getting Started | Documentation | AutoChangelog",
+              "domain": "autochangelog.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases",
+              "match": "GitHub Releases"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:22.959Z"
         },
         {
@@ -250,6 +274,49 @@
             "Mintlify"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Headway",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "Headway"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Canny",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Productlane",
+              "text": "Changelog tools: Beamer, LaunchNotes, Headway, AnnounceKit, Featurebase, Canny, and Productlane host the page, add an in-app widget or \"what's new\" badge, and send email digests.",
+              "match": "Productlane"
+            },
+            {
+              "brand": "Mintlify",
+              "text": "Docs platforms: Mintlify, GitBook, and Docusaurus support changelog pages written in Markdown.",
+              "match": "Mintlify"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:27.546Z"
         },
         {
@@ -313,7 +380,31 @@
             ]
           },
           "mentioned": ["Changelogfy"],
-          "sources": ["notion.com", "featurebase.app", "betalist.com"],
+          "sources": [
+            {
+              "url": "https://www.notion.com/nb/help/guides/how-tech-startups-build-their-company-operating-systems-in-notion",
+              "title": "How tech startups build their company operating systems in ...",
+              "domain": "notion.com"
+            },
+            {
+              "url": "https://www.featurebase.app/alternative/launchnotes",
+              "title": "The best LaunchNotes alternative - Featurebase",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://betalist.com/startups/changelogfy",
+              "title": "Changelogfy: Changelog as service - BetaList",
+              "domain": "betalist.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Changelogfy",
+              "text": "Use Dedicated Changelog Tools: Platforms like or Changelogfy let teams publish public updates, send automated emails, and embed widgets right inside the app so updates never go unseen.",
+              "match": "Changelogfy"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:54.635Z"
         }
       ]
@@ -357,11 +448,54 @@
           "overview": null,
           "mentioned": ["Beamer", "Sleekplan", "Headway", "Canny", "Frill"],
           "sources": [
-            "getbeamer.com",
-            "sleekplan.com",
-            "headwayapp.co",
-            "productlift.dev",
-            "feedback.canny.io"
+            {
+              "url": "https://www.getbeamer.com/pricing?utm_source=openai",
+              "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://sleekplan.com/pricing?utm_source=openai",
+              "title": "Pricing — Boost your feedback, not your budget | Sleekplan",
+              "domain": "sleekplan.com"
+            },
+            {
+              "url": "https://headwayapp.co/?utm_source=openai",
+              "title": "Headway - Keep customers in the loop about your product.",
+              "domain": "headwayapp.co"
+            },
+            {
+              "url": "https://www.productlift.dev/pricing/?utm_source=openai",
+              "title": "ProductLift - Pricing",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://feedback.canny.io/changelog/new-pricing-lower-entry-points-fewer-limits-more-features?utm_source=openai",
+              "title": "New pricing: lower entry points, fewer limits, more features | Canny Changelog",
+              "domain": "feedback.canny.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "Assuming you mean Beamer, the changelog/in-app announcement tool, these are cheaper options:",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Sleekplan",
+              "text": "Cheapest overall: Sleekplan — its free plan includes a feedback board and changelog; $13/month annually adds three seats, NPS, API access and integrations.",
+              "match": "Sleekplan"
+            },
+            {
+              "brand": "Headway",
+              "text": "Closest simple replacement: Headway — free for public changelogs and widgets; Pro is $29/month for custom domains, white-labeling, integrations and private changelogs.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Canny",
+              "text": "Best feedback-first option: Canny — free up to 25 tracked users, then paid plans start at $19/month for 100 tracked users.",
+              "match": "Canny"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:11.654Z"
         },
@@ -381,14 +515,104 @@
             "LaunchNotes"
           ],
           "sources": [
-            "releasepad.io",
-            "worknotes.ai",
-            "releaseglow.com",
-            "quackback.io",
-            "ideaplan.io",
-            "userorbit.com",
-            "produktly.com",
-            "featurebase.app"
+            {
+              "url": "https://www.releasepad.io/blog/7-best-beamer-alternatives-for-changelog-and-release-notes/",
+              "title": "7 Best Beamer Alternatives for Changelog & Release Notes in 2026",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/best-beamer-alternatives-in-2026",
+              "title": "7 Best Beamer Alternatives for Changelogs in 2026 - Worknotes",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://releaseglow.com/blog/beamer-alternatives",
+              "title": "10 Best Beamer Alternatives in 2026 — Free & Paid Options Compared",
+              "domain": "releaseglow.com"
+            },
+            {
+              "url": "https://quackback.io/blog/best-beamer-alternatives",
+              "title": "7 Best Beamer Alternatives for Changelogs and Product Updates in 2026",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.ideaplan.io/alternatives/getbeamer",
+              "title": "7 Best Beamer Alternatives for 2026 (Free Options)",
+              "domain": "ideaplan.io"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-beamer-alternatives",
+              "title": "Best Beamer Alternatives in 2026",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://produktly.com/beamer-alternative",
+              "title": "Beamer Alternative",
+              "domain": "produktly.com"
+            },
+            {
+              "url": "https://www.featurebase.app/blog/getbeamer-alternatives",
+              "title": "Top 9 Beamer Alternatives for Changelogs & Feedba...",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://userguiding.com/blog/beamer-alternatives",
+              "title": "5 Beamer Alternatives That Product Marketers Love (incl. free tools)",
+              "domain": "userguiding.com"
+            },
+            {
+              "url": "https://featureos.com/blog/beamer-replacement",
+              "title": "Top 5 Beamer Alternatives & Replacement Apps (2026)",
+              "domain": "featureos.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "I'm guessing you mean Beamer the changelog and in-app announcement tool (getbeamer.com).",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway: The simplest direct swap.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase: It has a free plan (1 seat, limited features), but per-seat pricing ($29–99/seat/month on paid plans) means costs grow with your team.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Sleekplan",
+              "text": "Sleekplan: Starter at $13/mo.",
+              "match": "Sleekplan"
+            },
+            {
+              "brand": "Noticeable",
+              "text": "Noticeable: Starts at $19/month, but the base plan doesn't let you invite collaborators.",
+              "match": "Noticeable"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny Core: Core at $19/month billed yearly, while Pro starts at $79/month billed yearly.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Frill",
+              "text": "Frill: The Startup plan at $25/mo covers 50 ideas.",
+              "match": "Frill"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "Usually not cheaper: AnnounceKit (about $89/mo) and LaunchNotes ($249/mo) often get listed as Beamer alternatives, but they tend to cost more.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Usually not cheaper: AnnounceKit (about $89/mo) and LaunchNotes ($249/mo) often get listed as Beamer alternatives, but they tend to cost more.",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:16.345Z"
         },
@@ -487,11 +711,49 @@
           },
           "mentioned": [],
           "sources": [
-            "empireonline.com",
-            "rtings.com",
-            "cnet.com",
-            "youtube.com"
+            {
+              "url": "https://www.empireonline.com/tv/hardware/best-budget-projectors/",
+              "title": "A Bigger Screen For Less: Best Budget Projectors Of 2026",
+              "domain": "empireonline.com"
+            },
+            {
+              "url": "https://www.rtings.com/projector/reviews/best/projector",
+              "title": "The 8 Best Projectors of 2026 - RTINGS.com",
+              "domain": "rtings.com"
+            },
+            {
+              "url": "https://www.rtings.com/projector/reviews/best/cheap",
+              "title": "The 5 Best Budget And Cheap Projectors of 2026 - RTINGS.com",
+              "domain": "rtings.com"
+            },
+            {
+              "url": "https://www.cnet.com/tech/home-entertainment/best-portable-projector/",
+              "title": "Best Portable Projector for Movies and Gaming Anywhere in ...",
+              "domain": "cnet.com"
+            },
+            {
+              "url": "https://www.rtings.com/projector/reviews/best/under-500",
+              "title": "The 5 Best Projectors Under $500 of 2026 - RTINGS.com",
+              "domain": "rtings.com"
+            },
+            {
+              "url": "https://www.empireonline.com/tv/hardware/best-budget-projectors-us/",
+              "title": "10 Best Budget Projectors Of 2026, Chosen By The Experts",
+              "domain": "empireonline.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=fn9JITwua6Y&t=422",
+              "title": "Cheap Projectors Are Confusing - What I'd Buy Under $500",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=RxEzgxhxySY&t=94",
+              "title": "🚨Don't Buy a Projector Under $250 Until You Watch This",
+              "domain": "youtube.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:20:18.537Z"
         }
       ]
@@ -539,11 +801,59 @@
             "LaunchNotes"
           ],
           "sources": [
-            "headwayapp.co",
-            "docs.github.com",
-            "getbeamer.com",
-            "help.canny.io",
-            "launchnotes.com"
+            {
+              "url": "https://headwayapp.co/?utm_source=openai",
+              "title": "Headway - Keep customers in the loop about your product.",
+              "domain": "headwayapp.co"
+            },
+            {
+              "url": "https://docs.github.com/en/repositories/releasing-projects-on-github?apiVersion=2022-11-28&utm_source=openai",
+              "title": "Releasing projects on GitHub - GitHub Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://www.getbeamer.com/release-notes?utm_source=openai",
+              "title": "Release notes tool for product changes updates | Beamer",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://help.canny.io/en/articles/3006399-changelog?utm_source=openai",
+              "title": "Changelog | Canny Help Center",
+              "domain": "help.canny.io"
+            },
+            {
+              "url": "https://www.launchnotes.com/features?utm_source=openai",
+              "title": "Features | LaunchNotes",
+              "domain": "launchnotes.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "My default recommendation: use Headway if you’re a small-to-mid-sized SaaS company.",
+              "match": "Headway"
+            },
+            {
+              "brand": "GitHub Releases",
+              "text": "Developer tool or open-source project: GitHub Releases — best when releases correspond to Git tags.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Need targeted in-app announcements: Beamer — stronger segmentation, localization, reactions and analytics.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Canny",
+              "text": "Already manage feedback in Canny: Canny Changelog — connects shipped features to customer requests and publishes them through an embedded widget.",
+              "match": "Canny"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Large organization with formal release communications: LaunchNotes — supports approval workflows, audience cohorts, email, Slack, RSS, roadmaps and detailed analytics.",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:19:36.573Z"
         },
@@ -563,14 +873,104 @@
             "LaunchNotes"
           ],
           "sources": [
-            "userorbit.com",
-            "productlift.dev",
-            "usenotra.com",
-            "frill.co",
-            "guideflow.com",
-            "quackback.io",
-            "releaserocket.io",
-            "rajeshkumar.xyz"
+            {
+              "url": "https://userorbit.com/blog/best-product-changelog-and-release-notes-software",
+              "title": "10 Best Changelog & Release Notes Tools for SaaS (2026)",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://www.productlift.dev/best-release-notes-tool/",
+              "title": "7 Best Release Notes Tools & Software Compared (2026 Pricing)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://www.usenotra.com/blog/best-automated-changelog-tools-in-2026",
+              "title": "Best Automated Changelog Tools in 2026: A Developer's Guide",
+              "domain": "usenotra.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://quackback.io/blog/best-changelog-tools",
+              "title": "Best Changelog Tools and Software in 2026 (7 Compared)",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.releaserocket.io/blog/app-changelog",
+              "title": "Best App Changelog Tools & Examples (2026)",
+              "domain": "releaserocket.io"
+            },
+            {
+              "url": "https://www.rajeshkumar.xyz/blog/changelog-and-release-notes-tools/",
+              "title": "Top 10 Changelog and Release Notes Tools: Features, Pros, Cons & Comparison",
+              "domain": "rajeshkumar.xyz"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-release-notes-tools-2026",
+              "title": "Best Release Notes Tools for SaaS Teams in 2026",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://gitnux.org/best/change-log-software/",
+              "title": "Best Change Log Software",
+              "domain": "gitnux.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "Use GitHub Releases (or GitLab Releases).",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Release Drafter",
+              "text": "If you want to stop writing notes by hand, release-please and git-cliff are excellent free options, and Release Drafter works well if your team labels its pull requests.",
+              "match": "Release Drafter"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway comes up again and again.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer is good for in-app announcements, with in-app widgets, segmentation, modal popups for about $49-99/mo.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "AnnounceKit is good for spreading announcements across several channels, and is a strong pick for mobile apps that need a native in-app panel.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "Canny",
+              "text": "Get a feedback tool that includes a changelog: Canny, Featurebase, or Frill.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Get a feedback tool that includes a changelog: Canny, Featurebase, or Frill.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Frill",
+              "text": "Get a feedback tool that includes a changelog: Canny, Featurebase, or Frill.",
+              "match": "Frill"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes is built for teams that want more formal release communication, but it's pricier, listed from $249/mo billed annually.",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:19:39.948Z"
         },
@@ -691,11 +1091,44 @@
           },
           "mentioned": ["Headway"],
           "sources": [
-            "appcues.com",
-            "frill.co",
-            "prodpad.com",
-            "featureos.com",
-            "servicenow.com"
+            {
+              "url": "https://www.appcues.com/blog/release-notes-examples",
+              "title": "13 release notes examples (+ free template and writing tips) - Appcues",
+              "domain": "appcues.com"
+            },
+            {
+              "url": "https://frill.co/blog/release-notes-software",
+              "title": "5 Best Release Notes Software to Streamline Product Updates",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://www.prodpad.com/blog/release-notes-examples/",
+              "title": "Best Release Notes Examples to Inspire You (And Your Users)",
+              "domain": "prodpad.com"
+            },
+            {
+              "url": "https://frill.co/blog/mastering-release-notes-best-practices-and-examples",
+              "title": "7 Release Notes Best Practices With Prompts & Examples",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://featureos.com/blog/best-changelog-and-release-notes-software-featureos",
+              "title": "Best Changelog Tools & Release Notes Software (2026)",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://www.servicenow.com/community/virtual-agent-forum/best-practices-for-release-notes-documentation-in-the-washington/m-p/3020378",
+              "title": "Solved: Best practices for release notes documentation in ...",
+              "domain": "servicenow.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "or Headway are great options for lightweight in-app notification center widgets and user announcements.",
+              "match": "Headway"
+            }
           ],
           "collectedAt": "2026-10-07T15:43:40.266Z"
         }
@@ -744,11 +1177,59 @@
             "Featurebase"
           ],
           "sources": [
-            "announcekit.app",
-            "noticeable.io",
-            "canny.io",
-            "featurebase.app",
-            "getbeamer.com"
+            {
+              "url": "https://announcekit.app/pricing?utm_source=openai",
+              "title": "Pricing - AnnounceKit | Changelog, Widgets & In-App Notifications",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://www.noticeable.io/?utm_source=openai",
+              "title": "Product updates and company announcements made easy and effective - Noticeable",
+              "domain": "noticeable.io"
+            },
+            {
+              "url": "https://canny.io/features/product-changelog?utm_source=openai",
+              "title": "Product Changelog Software and Release Notes Tool | Canny",
+              "domain": "canny.io"
+            },
+            {
+              "url": "https://www.featurebase.app/pricing?utm_source=openai",
+              "title": "Featurebase – Pricing",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://www.getbeamer.com/pricing?utm_source=openai",
+              "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+              "domain": "getbeamer.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AnnounceKit",
+              "text": "Best overall: AnnounceKit",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Its Essentials plan is $79/month billed annually and includes email notifications without Beamer’s MAU-based pricing.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Noticeable",
+              "text": "Noticeable is a good lightweight alternative, offering a public newspage, in-app widget, email sending and unlimited visitors on paid plans.",
+              "match": "Noticeable"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny is the best choice when changelog posts should connect directly to feature requests and roadmaps.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase provides changelogs alongside feedback, surveys and customer support.",
+              "match": "Featurebase"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:49.341Z"
         },
@@ -768,14 +1249,104 @@
             "Headway"
           ],
           "sources": [
-            "guideflow.com",
-            "quackback.io",
-            "releasepad.io",
-            "vantageos.tech",
-            "productbridge.io",
-            "productlift.dev",
-            "productlogz.com",
-            "featurebase.app"
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://quackback.io/blog/best-changelog-tools",
+              "title": "Best Changelog Tools and Software in 2026 (7 Compared)",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/best-changelog-tools/",
+              "title": "The 10 Best Changelog Tools in 2026 (Compared Honestly, by Category)",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.vantageos.tech/blog/best-tools-for-changelog-management-2026",
+              "title": "Best Changelog Management Tools for Product Teams (2026)",
+              "domain": "vantageos.tech"
+            },
+            {
+              "url": "https://productbridge.io/blog/best-changelog-software-for-saas",
+              "title": "Best Changelog Software for SaaS in 2026: Top 9 Tools",
+              "domain": "productbridge.io"
+            },
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://www.productlogz.com/blog/best-changelog-tools-for-saas",
+              "title": "13 best Changelog tools for SaaS in 2026",
+              "domain": "productlogz.com"
+            },
+            {
+              "url": "https://www.featurebase.app/blog/customer-feedback/free-changelog-tools",
+              "title": "Top 11 Free Changelog Tools for SaaS in 2026",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://votefirst.app/en/best/best-changelog-tools",
+              "title": "Top changelog tools with email delivery, checked - VoteFirst",
+              "domain": "votefirst.app"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/product-update-software",
+              "title": "7 best product update software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AnnounceKit",
+              "text": "AnnounceKit: The strongest option for sending one update to many places.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes: Good for larger companies.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Noticeable",
+              "text": "Noticeable: It helps SaaS teams communicate product updates, announcements, and releases through websites, emails, Slack, and social media.",
+              "match": "Noticeable"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny: Mark a feature complete, publish the update, and the users who requested it get notified automatically.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase: You can link entries to the feature requests they resolve, and users who voted receive a notification when the changelog entry goes live.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Frill",
+              "text": "Frill: A good value pick.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Sleekplan",
+              "text": "Sleekplan: Users receive notifications when new entries are published, and you can track who has read each update.",
+              "match": "Sleekplan"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer is mainly an in-app widget tool.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway is simple and has a free tier, but one comparison rated its email feature ⚠️ Basic.",
+              "match": "Headway"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:35.046Z"
         },
@@ -878,11 +1449,39 @@
           },
           "mentioned": ["Sleekplan"],
           "sources": [
-            "sleekplan.com",
-            "featureos.com",
-            "changecrab.com",
-            "changelogtool.com",
-            "releasesapp.com"
+            {
+              "url": "https://sleekplan.com/changelog",
+              "title": "Changelog Software: Release notes that write themselves | Sleekplan",
+              "domain": "sleekplan.com"
+            },
+            {
+              "url": "https://featureos.com/release-notes",
+              "title": "Changelog & Release Notes Software for SaaS Teams",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://changecrab.com/changelog-software",
+              "title": "Changelog Software for Product Updates & Release Notes",
+              "domain": "changecrab.com"
+            },
+            {
+              "url": "https://changelogtool.com/",
+              "title": "Changelog Tool - AI",
+              "domain": "changelogtool.com"
+            },
+            {
+              "url": "https://releasesapp.com/",
+              "title": "Releases | Changelog software and release notes tool",
+              "domain": "releasesapp.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Sleekplan",
+              "text": "Sleekplan: Best all-in-one product marketing and changelog tool featuring automated subscriber emails, in-app widgets, AI-powered draft writing from PRs/tickets, and roadmaps.",
+              "match": "Sleekplan"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:46.533Z"
         }
@@ -924,7 +1523,51 @@
           "text": "Most developer tools use a combination of:\n\n1. **`CHANGELOG.md` in the repository**\n2. **GitHub Releases** for each published version\n3. **Semantic Versioning** (`1.4.2`)\n4. Automation tied to pull requests or commits\n\n### Common options\n\n- **Changesets** — Best default for npm packages and monorepos. Each PR includes a short, user-facing change description and whether it is a major, minor, or patch change. It later generates versions and changelogs. \n- **Release Please** — Good general-purpose option. It reads Conventional Commits, maintains a release PR, updates `CHANGELOG.md`, creates a tag, and publishes a GitHub Release when merged. \n- **semantic-release** — Best when you want releases completely automated from commit messages, including version calculation, tags, notes, and package publishing. \n- **Release Drafter** — Builds draft GitHub release notes from merged PRs and labels. Good if you want to review and edit notes before publishing. \n- **GitHub-generated release notes** — Simplest option. GitHub lists merged PRs and contributors and can organize entries using labels. \n\n### My recommendation\n\nFor a typical developer tool:\n\n- **Single package/repository:** Release Please\n- **JavaScript/TypeScript monorepo:** Changesets\n- **Maximum hands-off automation:** semantic-release\n- **Small project:** manually maintained `CHANGELOG.md` plus GitHub Releases\n\nUse the **Keep a Changelog** structure, focusing on notable user-facing changes rather than dumping every commit. \n\n```md\n# Changelog\n\n## [Unreleased]\n\n### Added\n- Added JSON output to the `build` command.\n\n### Changed\n- Improved startup performance for large projects.\n\n### Fixed\n- Fixed configuration loading on Windows.\n\n## [1.2.0] - 2026-10-07\n\n### Added\n- Added support for custom plugins.\n\n### Changed\n- Deprecated the `--legacy` option.\n\n### Fixed\n- Fixed authentication when using environment variables.\n```\n\n**Best low-friction setup:** use PR labels such as `feature`, `fix`, `breaking`, and `skip-changelog`, then let Release Drafter or Release Please produce the first draft. Have a human edit it so entries explain the impact to users—not merely the implementation details.",
           "overview": null,
           "mentioned": ["GitHub Releases", "Release Drafter"],
-          "sources": ["github.com", "docs.github.com", "keepachangelog.com"],
+          "sources": [
+            {
+              "url": "https://github.com/changesets/changesets/blob/main/README.md?utm_source=openai",
+              "title": "changesets/README.md at main · changesets/changesets · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/googleapis/release-please?utm_source=openai",
+              "title": "GitHub - googleapis/release-please: generate release PRs based on the conventionalcommits.org spec · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/semantic-release/semantic-release?utm_source=openai",
+              "title": "GitHub - semantic-release/semantic-release: 📦🚀 Fully automated version management and package publishing · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/release-drafter/release-drafter?utm_source=openai",
+              "title": "GitHub - release-drafter/release-drafter: Drafts your next release notes as pull requests are merged into master. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://docs.github.com/en/enterprise-cloud%40latest/repositories/releasing-projects-on-github/automatically-generated-release-notes?utm_source=openai",
+              "title": "Automatically generated release notes - GitHub Enterprise Cloud Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://keepachangelog.com/en/2.0.0/?utm_source=openai",
+              "title": "Keep a Changelog",
+              "domain": "keepachangelog.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases for each published version",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Release Drafter",
+              "text": "Release Drafter — Builds draft GitHub release notes from merged PRs and labels.",
+              "match": "Release Drafter"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:45.910Z"
         },
         {
@@ -943,14 +1586,104 @@
             "Mintlify"
           ],
           "sources": [
-            "guideflow.com",
-            "frill.co",
-            "vantageos.tech",
-            "productlift.dev",
-            "personabox.app",
-            "usenotra.com",
-            "quackback.io",
-            "featurask.com"
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://www.vantageos.tech/blog/best-tools-for-changelog-management-2026",
+              "title": "Best Changelog Management Tools for Product Teams (2026)",
+              "domain": "vantageos.tech"
+            },
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://personabox.app/blog/best-changelog-tools",
+              "title": "7 Best Changelog Automation Tools (2026) - PersonaBox",
+              "domain": "personabox.app"
+            },
+            {
+              "url": "https://www.usenotra.com/blog/best-automated-changelog-tools-in-2026",
+              "title": "Best Automated Changelog Tools in 2026: A Developer's Guide",
+              "domain": "usenotra.com"
+            },
+            {
+              "url": "https://quackback.io/blog/best-changelog-tools",
+              "title": "Best Changelog Tools and Software in 2026 (7 Compared)",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://featurask.com/blog/free-changelog-tools",
+              "title": "Top 11 Free Changelog Tools for Developers and Founders",
+              "domain": "featurask.com"
+            },
+            {
+              "url": "https://www.clevera.ai/blog/best-ai-changelog-generators",
+              "title": "Best AI changelog generators in 2026: 8 tools compared - Clevera",
+              "domain": "clevera.ai"
+            },
+            {
+              "url": "https://wifitalents.com/best/change-log-software/",
+              "title": "Best Change Log Software",
+              "domain": "wifitalents.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases: when you cut a release, GitHub can automatically generate release notes from merged pull requests, list contributors, and attach tags.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Release Drafter",
+              "text": "Release Drafter: a GitHub Action that groups merged PRs into a draft release by label (feature, bug, documentation, etc.).",
+              "match": "Release Drafter"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer: its widget sits in your product and shows a notification badge when new updates are available.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway: small teams that want a simple, low-cost changelog with minimal setup.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny / Featurebase / Frill: these link the changelog to feedback boards and a roadmap, so voters notified when entries publish.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Canny / Featurebase / Frill: these link the changelog to feedback boards and a roadmap, so voters notified when entries publish.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Frill",
+              "text": "Canny / Featurebase / Frill: these link the changelog to feedback boards and a roadmap, so voters notified when entries publish.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Notra",
+              "text": "Newer tools like AutoChangelog, Notra and Olvy turn PRs and commits into release notes that customers can read.",
+              "match": "Notra"
+            },
+            {
+              "brand": "Mintlify",
+              "text": "SaaS or API product: do the same thing in the repo, then add a /changelog page to your docs site (Docusaurus, Mintlify, GitBook, etc.).",
+              "match": "Mintlify"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:47.105Z"
         },
@@ -1126,14 +1859,84 @@
           },
           "mentioned": ["GitHub Releases", "Frill", "Headway"],
           "sources": [
-            "releasepad.io",
-            "usenotra.com",
-            "frill.co",
-            "keepachangelog.com",
-            "dev.to",
-            "quackback.io",
-            "announcekit.app",
-            "common-changelog.org"
+            {
+              "url": "https://www.releasepad.io/blog/free-changelog-tools/",
+              "title": "7 Free Changelog Tools in 2026 | Honest Comparison",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/changelog-or-change-log/",
+              "title": "Changelog or Change Log: One Word or Two? - ReleasePad",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.usenotra.com/blog/best-automated-changelog-tools-in-2026",
+              "title": "Best Automated Changelog Tools in 2026: A Developer's Guide",
+              "domain": "usenotra.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://keepachangelog.com/en/1.1.0/",
+              "title": "Keep a Changelog",
+              "domain": "keepachangelog.com"
+            },
+            {
+              "url": "https://dev.to/marcoieni/keep-a-changelog-hf0",
+              "title": "Keep a changelog! - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://keepachangelog.com/en/0.3.0/",
+              "title": "Don't let your friends dump git logs into changelogs.",
+              "domain": "keepachangelog.com"
+            },
+            {
+              "url": "https://quackback.io/blog/keep-a-changelog",
+              "title": "Keep a Changelog: The Definitive Guide for Product Teams",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/keep-a-changelog/",
+              "title": "Keep a Changelog Format Explained - ReleasePad",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://announcekit.app/blog/keep-a-changelog/",
+              "title": "How to Keep a Changelog: Format, Examples, Best Practices",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://keepachangelog.com/en/1.0.0/",
+              "title": "Don't let your friends dump git logs into changelogs.",
+              "domain": "keepachangelog.com"
+            },
+            {
+              "url": "https://common-changelog.org/",
+              "title": "Common Changelog",
+              "domain": "common-changelog.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "Best paired with GitHub Releases or GitLab notes.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Frill",
+              "text": "Hosted/SaaS Feed Tools: Tools like Frill or Headway work well if you want a public product feed, widgets, or user feedback loops.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Headway",
+              "text": "Hosted/SaaS Feed Tools: Tools like Frill or Headway work well if you want a public product feed, widgets, or user feedback loops.",
+              "match": "Headway"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:46.528Z"
         }
@@ -1183,12 +1986,69 @@
             "Productlane"
           ],
           "sources": [
-            "announcekit.app",
-            "getbeamer.com",
-            "launchnotes.com",
-            "help.featurebase.app",
-            "headwayapp.co",
-            "productlane.com"
+            {
+              "url": "https://announcekit.app/?utm_source=openai",
+              "title": "AnnounceKit: Changelog, In-App Widgets & Feature Requests",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://www.getbeamer.com/pricing?utm_source=openai",
+              "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://www.launchnotes.com/pricing?utm_source=openai",
+              "title": "Plans & Pricing | LaunchNotes",
+              "domain": "launchnotes.com"
+            },
+            {
+              "url": "https://help.featurebase.app/help/articles/5954038-updates-overview?utm_source=openai",
+              "title": "Updates overview - Featurebase",
+              "domain": "help.featurebase.app"
+            },
+            {
+              "url": "https://headwayapp.co/?utm_source=openai",
+              "title": "Headway - Keep customers in the loop about your product.",
+              "domain": "headwayapp.co"
+            },
+            {
+              "url": "https://productlane.com/pricing?utm_source=openai",
+              "title": "Pricing | Productlane",
+              "domain": "productlane.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AnnounceKit",
+              "text": "For most B2B SaaS companies, I’d choose AnnounceKit.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer is the stronger choice when the primary goal is in-product engagement.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes fits larger organizations with formal release workflows, internal stakeholders, multiple audiences and enterprise security requirements.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase is compelling if you also need a feedback board, support inbox and outbound messaging.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway is the budget pick: its free plan includes unlimited changelogs and an in-product widget, while the $29 Pro plan adds white-labeling, a custom domain, integrations, private changelogs and scheduled publishing.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Productlane",
+              "text": "Your product operation revolves around Linear: Productlane",
+              "match": "Productlane"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:09.988Z"
         },
@@ -1206,14 +2066,94 @@
             "Noticeable"
           ],
           "sources": [
-            "productlift.dev",
-            "userorbit.com",
-            "productbridge.io",
-            "userguiding.com",
-            "rightfeature.com",
-            "productlogz.com",
-            "releaseglow.com",
-            "guideflow.com"
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-product-changelog-and-release-notes-software",
+              "title": "10 Best Changelog & Release Notes Tools for SaaS (2026)",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://productbridge.io/blog/best-changelog-software-for-saas",
+              "title": "Best Changelog Software for SaaS in 2026: Top 9 Tools",
+              "domain": "productbridge.io"
+            },
+            {
+              "url": "https://userguiding.com/blog/changelog-tools",
+              "title": "Top 7 Changelog Tools for SaaS Companies in 2026",
+              "domain": "userguiding.com"
+            },
+            {
+              "url": "https://rightfeature.com/blog/best-changelog-tools-for-saas/",
+              "title": "Best Changelog Tool 2026: Top 6 for SaaS (AI, Pricing, Canny Migration)",
+              "domain": "rightfeature.com"
+            },
+            {
+              "url": "https://www.productlogz.com/blog/best-changelog-tools-for-saas",
+              "title": "13 best Changelog tools for SaaS in 2026",
+              "domain": "productlogz.com"
+            },
+            {
+              "url": "https://productbridge.io/changelog",
+              "title": "Product Changelog Tool & Release Notes Software for SaaS",
+              "domain": "productbridge.io"
+            },
+            {
+              "url": "https://releaseglow.com/blog/best-changelog-tools",
+              "title": "12 Best Changelog Tools for SaaS in 2026 — Compared & Ranked",
+              "domain": "releaseglow.com"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-release-notes-tools-2026",
+              "title": "Best Release Notes Tools for SaaS Teams in 2026",
+              "domain": "userorbit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "In-app announcements (the most common B2B need): Beamer",
+              "match": "Beamer"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "Sending updates through several channels at once: AnnounceKit",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Enterprise or formal release communication: LaunchNotes",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Canny",
+              "text": "Telling customers when their requests ship: Canny, Featurebase, or ProductLift",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Telling customers when their requests ship: Canny, Featurebase, or ProductLift",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Headway",
+              "text": "By contrast, standalone changelog tools (Beamer, AnnounceKit, Headway, Noticeable) only handle the announcement layer and require Zapier or manual work to close the feedback loop.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Noticeable",
+              "text": "By contrast, standalone changelog tools (Beamer, AnnounceKit, Headway, Noticeable) only handle the announcement layer and require Zapier or manual work to close the feedback loop.",
+              "match": "Noticeable"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:02.235Z"
         },
@@ -1279,7 +2219,41 @@
             ]
           },
           "mentioned": ["Beamer", "Canny", "LaunchNotes", "Headway"],
-          "sources": ["vantageos.tech", "revalign.io"],
+          "sources": [
+            {
+              "url": "https://www.vantageos.tech/blog/best-tools-for-changelog-management-2026",
+              "title": "Best Changelog Management Tools for Product Teams (2026)",
+              "domain": "vantageos.tech"
+            },
+            {
+              "url": "https://revalign.io/best/best-product-intelligence-tools-for-saas-companies",
+              "title": "Best Product Intelligence Tools for SaaS Companies",
+              "domain": "revalign.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "Beamer: Best for rich in-app changelogs, push notifications, and news feeds starting at $49/month.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny: Best if you want to combine public product roadmaps and customer feature requests with your changelog (Free tier available, or paid from $79/month).",
+              "match": "Canny"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes: Best for structured, multi-channel release communications at scale for product and engineering teams.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway: Best lightweight, budget-friendly changelog widget for early-stage startups (Free tier available, or paid from $29/month).",
+              "match": "Headway"
+            }
+          ],
           "collectedAt": "2026-10-07T15:36:37.593Z"
         }
       ]
@@ -1321,11 +2295,39 @@
           "overview": null,
           "mentioned": ["Canny"],
           "sources": [
-            "canny.io",
-            "notion.com",
-            "versiontap.com",
-            "tryreleaselog.com",
-            "github.com"
+            {
+              "url": "https://canny.io/features/product-changelog?utm_source=openai",
+              "title": "Product Changelog Software and Release Notes Tool | Canny",
+              "domain": "canny.io"
+            },
+            {
+              "url": "https://www.notion.com/en-gb/help/public-pages-and-web-publishing?nxtPslug=public-pages-and-web-publishing&utm_source=openai",
+              "title": "Publish a website with Notion Sites | Notion Help – Notion Help Centre",
+              "domain": "notion.com"
+            },
+            {
+              "url": "https://www.versiontap.com/?utm_source=openai",
+              "title": "VersionTap — Beautiful changelogs your users will actually read",
+              "domain": "versiontap.com"
+            },
+            {
+              "url": "https://tryreleaselog.com/?utm_source=openai",
+              "title": "ReleaseLog",
+              "domain": "tryreleaselog.com"
+            },
+            {
+              "url": "https://github.com/pricing?locale=en-US&utm_source=openai",
+              "title": "Pricing · Plans for every developer · GitHub",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Canny",
+              "text": "For a small startup, Canny provides:",
+              "match": "Canny"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:12.274Z"
         },
@@ -1345,14 +2347,104 @@
             "Release Drafter"
           ],
           "sources": [
-            "featureos.com",
-            "quickhunt.app",
-            "featurebase.app",
-            "productlift.dev",
-            "productbridge.io",
-            "releasepad.io",
-            "personabox.app",
-            "noorahq.com"
+            {
+              "url": "https://featureos.com/blog/best-free-changelog-tools-for-startups-or-small-teams",
+              "title": "Best Free Changelog Tools for Startups and Small Teams",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://quickhunt.app/blog/free-changelog-tools",
+              "title": "Best 12 Free Changelog Tools for Modern SaaS Teams (2026)",
+              "domain": "quickhunt.app"
+            },
+            {
+              "url": "https://www.featurebase.app/blog/free-changelog-tools",
+              "title": "Top 11 Free Changelog Tool for SaaS in 2026",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://productbridge.io/blog/best-changelog-software-for-saas",
+              "title": "Best Changelog Software for SaaS in 2026: Top 9 Tools",
+              "domain": "productbridge.io"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/best-changelog-tools/",
+              "title": "The 10 Best Changelog Tools in 2026 (Compared Honestly, by Category)",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://personabox.app/blog/best-changelog-tools",
+              "title": "7 Best Changelog Automation Tools (2026) - PersonaBox",
+              "domain": "personabox.app"
+            },
+            {
+              "url": "https://noorahq.com/blog/best-changelog-tools/",
+              "title": "The best changelog tools and software in 2026",
+              "domain": "noorahq.com"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://www.productlogz.com/blog/best-changelog-tools-for-saas",
+              "title": "13 best Changelog tools for SaaS in 2026",
+              "domain": "productlogz.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "Headway: the quickest standalone page",
+              "match": "Headway"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase: good if you also want feedback collection",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny: fine while you're very small",
+              "match": "Canny"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer: good for in-app announcements",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Sleekplan",
+              "text": "Other options with free plans: ChangeCrab (custom domains for branded pages and email notifications for subscribers), Sleekplan, ProductBridge, Noticeable, Changelogfy and Olvy.",
+              "match": "Sleekplan"
+            },
+            {
+              "brand": "Noticeable",
+              "text": "Other options with free plans: ChangeCrab (custom domains for branded pages and email notifications for subscribers), Sleekplan, ProductBridge, Noticeable, Changelogfy and Olvy.",
+              "match": "Noticeable"
+            },
+            {
+              "brand": "Changelogfy",
+              "text": "Other options with free plans: ChangeCrab (custom domains for branded pages and email notifications for subscribers), Sleekplan, ProductBridge, Noticeable, Changelogfy and Olvy.",
+              "match": "Changelogfy"
+            },
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases: for developer products, it's versioned, dated, Markdown-formatted, RSS-subscribable, and machine-readable via API — free forever.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Release Drafter",
+              "text": "Auto-generated from commits: tools like git-cliff, Release Drafter and release-please write the notes for you.",
+              "match": "Release Drafter"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:16.729Z"
         },
@@ -1440,10 +2532,44 @@
           },
           "mentioned": ["Headway", "Canny", "GitHub Releases"],
           "sources": [
-            "frill.co",
-            "worknotes.ai",
-            "releasepad.io",
-            "vantageos.tech"
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/best-free-changelog-tools",
+              "title": "Best Free Changelog Tools in 2026 - Worknotes",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/free-changelog-tools/",
+              "title": "7 Free Changelog Tools in 2026 - ReleasePad",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.vantageos.tech/blog/best-tools-for-release-notes-2026",
+              "title": "7 Best Tools for Release Notes in 2026 | Vantage",
+              "domain": "vantageos.tech"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "Headway: Offers a simple, clean free public changelog and a notification badge widget.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny: Includes a free tier for public roadmaps and changelogs, capped at 25 tracked users and 5 admin seats.",
+              "match": "Canny"
+            },
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases: Best if your target audience is technical.",
+              "match": "GitHub Releases"
+            }
           ],
           "collectedAt": "2026-10-07T15:36:21.787Z"
         }
@@ -1491,11 +2617,59 @@
             "GitHub Releases"
           ],
           "sources": [
-            "getbeamer.com",
-            "headwayapp.co",
-            "frill.co",
-            "help.canny.io",
-            "launchnotes.com"
+            {
+              "url": "https://www.getbeamer.com/pricing?utm_source=openai",
+              "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://headwayapp.co/?utm_source=openai",
+              "title": "Headway - Keep customers in the loop about your product.",
+              "domain": "headwayapp.co"
+            },
+            {
+              "url": "https://frill.co/pricing?utm_source=openai",
+              "title": "Frill pricing - simple plans for product feedback teams",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://help.canny.io/en/articles/9131812-canny-s-billing-plans?utm_source=openai",
+              "title": "Canny's billing plans | Canny Help Center",
+              "domain": "help.canny.io"
+            },
+            {
+              "url": "https://www.launchnotes.com/pricing?utm_source=openai",
+              "title": "Plans & Pricing | LaunchNotes",
+              "domain": "launchnotes.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "For most SaaS products, I’d choose Beamer because it goes beyond hosting release notes:",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Headway",
+              "text": "Early-stage SaaS: Headway or Frill",
+              "match": "Headway"
+            },
+            {
+              "brand": "Frill",
+              "text": "Early-stage SaaS: Headway or Frill",
+              "match": "Frill"
+            },
+            {
+              "brand": "Canny",
+              "text": "Feedback-driven product team: Canny",
+              "match": "Canny"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Large product organization: LaunchNotes",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:19:24.378Z"
         },
@@ -1514,14 +2688,99 @@
             "Frill"
           ],
           "sources": [
-            "productlift.dev",
-            "productbridge.io",
-            "userorbit.com",
-            "rightfeature.com",
-            "userguiding.com",
-            "quickhunt.app",
-            "guideflow.com",
-            "featurebase.app"
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://productbridge.io/blog/best-changelog-software-for-saas",
+              "title": "Best Changelog Software for SaaS in 2026: Top 9 Tools",
+              "domain": "productbridge.io"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-product-changelog-and-release-notes-software",
+              "title": "10 Best Changelog & Release Notes Tools for SaaS (2026)",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://rightfeature.com/blog/best-changelog-tools-for-saas/",
+              "title": "Best Changelog Tool 2026: Top 6 for SaaS (AI, Pricing, Canny Migration)",
+              "domain": "rightfeature.com"
+            },
+            {
+              "url": "https://userguiding.com/blog/changelog-tools",
+              "title": "Top 7 Changelog Tools for SaaS Companies in 2026",
+              "domain": "userguiding.com"
+            },
+            {
+              "url": "https://quickhunt.app/blog/free-changelog-tools",
+              "title": "Best 12 Free Changelog Tools for Modern SaaS Teams (2026)",
+              "domain": "quickhunt.app"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://www.featurebase.app/blog/customer-feedback/free-changelog-tools",
+              "title": "Top 11 Free Changelog Tools for SaaS in 2026",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://www.productlogz.com/blog/best-changelog-tools-for-saas",
+              "title": "13 best Changelog tools for SaaS in 2026",
+              "domain": "productlogz.com"
+            },
+            {
+              "url": "https://announcify.app/blog/best-changelog-tools",
+              "title": "6 Best Changelog Tools for SaaS in 2026 (Compared)",
+              "domain": "announcify.app"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Featurebase",
+              "text": "One warning first: almost every \"best changelog tool\" list is written by a vendor that puts itself at #1 (ProductLift, ProductBridge, RightFeature, Userorbit, Quickhunt, Featurebase and Announcify all do this).",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Changelog only, with strong in-app announcements → Beamer.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Canny",
+              "text": "Changelog plus feedback and roadmap in one → Canny or Featurebase.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Headway",
+              "text": "Small team or tight budget → Headway.",
+              "match": "Headway"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "Announcements across several channels (email, Slack, in-app) → AnnounceKit.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Enterprise or formal release communication → LaunchNotes.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "GitHub Releases",
+              "text": "Developer or API products → ReadMe or GitHub Releases.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Frill",
+              "text": "If no, look at the all-in-ones (Canny, Featurebase, Frill at about $25/mo).",
+              "match": "Frill"
+            }
           ],
           "collectedAt": "2026-10-07T15:19:28.222Z"
         },
@@ -1629,10 +2888,49 @@
           },
           "mentioned": ["Frill", "Canny", "Beamer", "LaunchNotes"],
           "sources": [
-            "myhospitalnow.com",
-            "frill.co",
-            "featureos.com",
-            "reddit.com"
+            {
+              "url": "https://www.myhospitalnow.com/blog/top-10-changelog-release-notes-tools-features-pros-cons-comparison-2/",
+              "title": "Top 10 Changelog & Release Notes Tools: Features, Pros ...",
+              "domain": "myhospitalnow.com"
+            },
+            {
+              "url": "https://frill.co/blog/release-notes-software",
+              "title": "5 Best Release Notes Software to Streamline Product Updates",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://featureos.com/blog/best-free-changelog-tools-for-startups-or-small-teams",
+              "title": "Best Free Changelog Tools for Startups and Small Teams",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1rckbln/built_a_changelogrelease_notes_tool_looking_for/",
+              "title": "Built a changelog/release notes tool",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Frill",
+              "text": "Frill: Best for startups wanting an all-in-one suite.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny: Best for product-led teams already using it for feature voting and user feedback, though the free/lower tiers have strict user caps.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer: Best for in-app notifications and newsfeeds that pop up right inside your web application to drive high visibility.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes: Best for enterprise SaaS companies needing advanced audience segmentation, stakeholder updates, and strict access controls.",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:33:25.511Z"
         }
@@ -1672,7 +2970,36 @@
           "text": "You have two good approaches:\n\n1. **Use a hosted changelog widget** — fastest.\n2. **Build a small native widget** — more control and better visual integration.\n\n## Option 1: Use a hosted widget\n\nServices such as **Headway**, **Beamer**, **LaunchNotes**, and **Canny** provide an embeddable script, unread badge, announcement panel, and publishing dashboard.\n\n- **Headway:** lightweight “What’s new” badge and popup.\n- **Beamer:** announcements, targeting, user identification, and analytics.\n- **LaunchNotes:** richer release notes, segmentation, roadmaps, and feedback.\n- **Canny:** useful if you also want feedback boards and feature requests.\n\nHeadway and Beamer are generally installed by defining a configuration object and loading their JavaScript SDK. LaunchNotes supports in-app embeds, while Canny can surface changelog entries and identify signed-in users. \n\nA typical hosted installation looks like this:\n\n```html\n<button class=\"changelog-trigger\">What's new</button>\n\n<script>\n  window.WIDGET_CONFIG = {\n    selector: \".changelog-trigger\",\n    account: \"YOUR_ACCOUNT_ID\"\n  };\n</script>\n\n<script async src=\"https://provider.example/widget.js\"></script>\n```\n\nUse the exact script and configuration supplied by your provider.\n\n---\n\n## Option 2: Build your own React widget\n\nThe basic architecture is:\n\n1. Store changelog entries in your database or CMS.\n2. Expose them through `/api/changelog`.\n3. Add a “What’s new” button to your app header or sidebar.\n4. Store the last-read entry ID in `localStorage` or your user database.\n5. Display an unread dot when a newer entry exists.\n\n### Expected API response\n\n```json\n[\n  {\n    \"id\": \"release-2026-10-01\",\n    \"title\": \"New reporting dashboard\",\n    \"summary\": \"Reports are now faster and can be exported as CSV.\",\n    \"publishedAt\": \"2026-10-01T15:00:00Z\",\n    \"url\": \"/changelog/reporting-dashboard\"\n  }\n]\n```\n\nReturn entries newest-first.\n\n### React component\n\n```tsx\nimport { useEffect, useState } from \"react\";\n\ntype ChangelogEntry = {\n  id: string;\n  title: string;\n  summary: string;\n  publishedAt: string;\n  url?: string;\n};\n\nexport function ChangelogWidget() {\n  const [entries, setEntries] = useState<ChangelogEntry[]>([]);\n  const [open, setOpen] = useState(false);\n  const [lastReadId, setLastReadId] = useState<string | null>(() =>\n    localStorage.getItem(\"changelog:last-read\")\n  );\n\n  useEffect(() => {\n    fetch(\"/api/changelog\")\n      .then((response) => {\n        if (!response.ok) {\n          throw new Error(\"Could not load changelog\");\n        }\n\n        return response.json();\n      })\n      .then(setEntries)\n      .catch(console.error);\n  }, []);\n\n  const latestEntry = entries[0];\n  const hasUnread = Boolean(\n    latestEntry && latestEntry.id !== lastReadId\n  );\n\n  function openWidget() {\n    setOpen(true);\n\n    if (latestEntry) {\n      localStorage.setItem(\"changelog:last-read\", latestEntry.id);\n      setLastReadId(latestEntry.id);\n    }\n  }\n\n  return (\n    <div className=\"changelog\">\n      <button\n        type=\"button\"\n        className=\"changelog__trigger\"\n        onClick={openWidget}\n        aria-expanded={open}\n        aria-controls=\"changelog-panel\"\n      >\n        What’s new\n        {hasUnread && (\n          <span className=\"changelog__badge\" aria-label=\"New updates\" />\n        )}\n      </button>\n\n      {open && (\n        <aside\n          id=\"changelog-panel\"\n          className=\"changelog__panel\"\n          role=\"dialog\"\n          aria-modal=\"true\"\n          aria-labelledby=\"changelog-title\"\n        >\n          <header className=\"changelog__header\">\n            <h2 id=\"changelog-title\">What’s new</h2>\n\n            <button\n              type=\"button\"\n              onClick={() => setOpen(false)}\n              aria-label=\"Close changelog\"\n            >\n              ×\n            </button>\n          </header>\n\n          <div className=\"changelog__entries\">\n            {entries.map((entry) => (\n              <article key={entry.id} className=\"changelog__entry\">\n                <time dateTime={entry.publishedAt}>\n                  {new Intl.DateTimeFormat(undefined, {\n                    dateStyle: \"medium\"\n                  }).format(new Date(entry.publishedAt))}\n                </time>\n\n                <h3>{entry.title}</h3>\n                <p>{entry.summary}</p>\n\n                {entry.url && <a href={entry.url}>Learn more</a>}\n              </article>\n            ))}\n\n            {entries.length === 0 && <p>No updates yet.</p>}\n          </div>\n        </aside>\n      )}\n    </div>\n  );\n}\n```\n\n### Basic CSS\n\n```css\n.changelog {\n  position: relative;\n}\n\n.changelog__trigger {\n  position: relative;\n}\n\n.changelog__badge {\n  position: absolute;\n  top: -3px;\n  right: -6px;\n  width: 9px;\n  height: 9px;\n  border: 2px solid white;\n  border-radius: 999px;\n  background: #ef4444;\n}\n\n.changelog__panel {\n  position: fixed;\n  z-index: 1000;\n  top: 0;\n  right: 0;\n  width: min(420px, 100%);\n  height: 100vh;\n  padding: 20px;\n  overflow-y: auto;\n  background: white;\n  border-left: 1px solid #e5e7eb;\n  box-shadow: -12px 0 40px rgb(0 0 0 / 12%);\n}\n\n.changelog__header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n\n.changelog__entry {\n  padding: 20px 0;\n  border-bottom: 1px solid #e5e7eb;\n}\n\n.changelog__entry time {\n  color: #6b7280;\n  font-size: 0.875rem;\n}\n```\n\n## Production improvements\n\n- **Store read state server-side** for signed-in users so it syncs across devices.\n- Track `opened_changelog` and `clicked_changelog_entry` analytics events.\n- Add audience fields such as plan, role, feature flags, or account ID.\n- Support categories such as `new`, `improvement`, and `fix`.\n- Sanitize HTML if entries contain rich text; never render untrusted content directly with `dangerouslySetInnerHTML`.\n- Add focus trapping and Escape-key handling to the panel.\n- Publish only customer-relevant changes—not every internal commit.\n- Use stable, ordered release IDs or timestamps to determine unread status.\n\n**Practical recommendation:** use Headway or",
           "overview": null,
           "mentioned": ["Headway", "Beamer", "LaunchNotes", "Canny"],
-          "sources": ["docs.headwayapp.co"],
+          "sources": [
+            {
+              "url": "https://docs.headwayapp.co/widget?utm_source=openai",
+              "title": "Basic Widget usage | Headway",
+              "domain": "docs.headwayapp.co"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "Services such as Headway, Beamer, LaunchNotes, and Canny provide an embeddable script, unread badge, announcement panel, and publishing dashboard.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Services such as Headway, Beamer, LaunchNotes, and Canny provide an embeddable script, unread badge, announcement panel, and publishing dashboard.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Services such as Headway, Beamer, LaunchNotes, and Canny provide an embeddable script, unread badge, announcement panel, and publishing dashboard.",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Canny",
+              "text": "Services such as Headway, Beamer, LaunchNotes, and Canny provide an embeddable script, unread badge, announcement panel, and publishing dashboard.",
+              "match": "Canny"
+            }
+          ],
           "collectedAt": "2026-10-07T15:19:55.181Z"
         },
         {
@@ -1688,14 +3015,89 @@
             "Frill"
           ],
           "sources": [
-            "productlift.dev",
-            "announcekit.app",
-            "produktly.com",
-            "frill.co",
-            "guideflow.com",
-            "quackback.io",
-            "releaserocket.io",
-            "userguiding.com"
+            {
+              "url": "https://www.productlift.dev/best-changelog-tool/",
+              "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://announcekit.app/",
+              "title": "AnnounceKit: Changelog, In-App Widgets & Feature Requests",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://produktly.com/best/changelog-software",
+              "title": "Best Changelog Software & Tools in 2026",
+              "domain": "produktly.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://quackback.io/blog/best-changelog-tools",
+              "title": "Best Changelog Tools and Software in 2026 (7 Compared)",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.releaserocket.io/blog/app-changelog",
+              "title": "Best App Changelog Tools & Examples (2026)",
+              "domain": "releaserocket.io"
+            },
+            {
+              "url": "https://userguiding.com/blog/changelog-tools",
+              "title": "Top 7 Changelog Tools for SaaS Companies in 2026",
+              "domain": "userguiding.com"
+            },
+            {
+              "url": "https://saas.toolsinfo.com/c/changelog-tools",
+              "title": "Essential Changelog Tools Tools 2026 - Compare 97+ Options",
+              "domain": "saas.toolsinfo.com"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/best-changelog-tools/",
+              "title": "The 10 Best Changelog Tools in 2026 (Compared Honestly, by Category)",
+              "domain": "releasepad.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AnnounceKit",
+              "text": "With AnnounceKit, for example, you create a project, add the widget snippet (or use the React, Vue, Angular, iOS, Flutter or React Native SDKs), and your changelog page and in-app widget are live.",
+              "match": "AnnounceKit"
+            },
+            {
+              "brand": "Headway",
+              "text": "Here's roughly what Headway's looks like:",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer: the in-app-focused choice.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Canny",
+              "text": "Canny, Featurebase, Frill: worth it if you also want feature voting and a roadmap.",
+              "match": "Canny"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Canny, Featurebase, Frill: worth it if you also want feature voting and a roadmap.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Frill",
+              "text": "Canny, Featurebase, Frill: worth it if you also want feature voting and a roadmap.",
+              "match": "Frill"
+            }
           ],
           "collectedAt": "2026-10-07T15:19:57.649Z"
         },
@@ -1794,6 +3196,19 @@
           },
           "mentioned": ["Headway", "Beamer"],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "You can add an in-app changelog widget to your web app either by using a dedicated third-party service (like Headway, Beamer, or Changefeed) or by building a custom component using a markdown parser and local or remote JSON data.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "You can add an in-app changelog widget to your web app either by using a dedicated third-party service (like Headway, Beamer, or Changefeed) or by building a custom component using a markdown parser and local or remote JSON data.",
+              "match": "Beamer"
+            }
+          ],
           "collectedAt": "2026-10-07T15:34:18.116Z"
         }
       ]
@@ -1831,10 +3246,49 @@
           "overview": null,
           "mentioned": ["Frill", "Canny", "Sleekplan", "Featurebase"],
           "sources": [
-            "frill.co",
-            "help.canny.io",
-            "sleekplan.com",
-            "featurebase.app"
+            {
+              "url": "https://frill.co/product?utm_source=openai",
+              "title": "Product Overview - Frill",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://help.canny.io/en/articles/9131812-canny-s-billing-plans?utm_source=openai",
+              "title": "Canny's billing plans | Canny Help Center",
+              "domain": "help.canny.io"
+            },
+            {
+              "url": "https://sleekplan.com/pricing?utm_source=openai",
+              "title": "Pricing — Boost your feedback, not your budget | Sleekplan",
+              "domain": "sleekplan.com"
+            },
+            {
+              "url": "https://www.featurebase.app/pricing?utm_source=openai",
+              "title": "Featurebase – Pricing",
+              "domain": "featurebase.app"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Frill",
+              "text": "As of October 2026, I’d pick Frill for most SaaS companies.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Canny",
+              "text": "Feedback-heavy product organization: Canny",
+              "match": "Canny"
+            },
+            {
+              "brand": "Sleekplan",
+              "text": "Sleekplan is especially compelling if price matters: its Starter plan is $13/month annually, while Business is $38/month annually with ten seats, custom domain and branding removal.",
+              "match": "Sleekplan"
+            },
+            {
+              "brand": "Featurebase",
+              "text": "Featurebase is the better choice if you want to consolidate customer support and product feedback.",
+              "match": "Featurebase"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:21.642Z"
         },
@@ -1851,14 +3305,89 @@
             "AnnounceKit"
           ],
           "sources": [
-            "quackback.io",
-            "productlift.dev",
-            "featurebase.app",
-            "announcekit.app",
-            "storyflow.so",
-            "guideflow.com",
-            "frill.co",
-            "userguiding.com"
+            {
+              "url": "https://quackback.io/blog/best-public-roadmap-tools",
+              "title": "Best Public Roadmap Tools in 2026 (Free and Paid, Ranked)",
+              "domain": "quackback.io"
+            },
+            {
+              "url": "https://www.productlift.dev/best-public-roadmap-tool/",
+              "title": "Best Public Roadmap Tools 2026: Share Progress, Get Votes",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://www.featurebase.app/blog/public-roadmap-tools",
+              "title": "Top 7 Public Roadmap Tools for SaaS Companies in 2026",
+              "domain": "featurebase.app"
+            },
+            {
+              "url": "https://www.productlift.dev/best-product-roadmap-software/",
+              "title": "Best SaaS Product Roadmap Software: 12 Tools Compared (2026)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://announcekit.app/blog/public-roadmap-examples/",
+              "title": "15 Best Public Roadmap Examples For SaaS (2026)",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://storyflow.so/blog/best-roadmap-tools-2026",
+              "title": "The 12 Best Roadmap Tools in 2026 (We Tested Them All)",
+              "domain": "storyflow.so"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/changelog-software",
+              "title": "8 best changelog software for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://userguiding.com/blog/best-product-roadmap-tools-in-2026",
+              "title": "Best Product Roadmap Tools in 2026",
+              "domain": "userguiding.com"
+            },
+            {
+              "url": "https://cpoclub.com/tools/best-product-management-roadmap-tools/",
+              "title": "What is the best product management roadmap tool? 2026 Recommendations & Reviews",
+              "domain": "cpoclub.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Featurebase",
+              "text": "ProductLift, Featurebase and Quackback each rank themselves #1 on their own blogs.",
+              "match": "Featurebase"
+            },
+            {
+              "brand": "Canny",
+              "text": "Safe default: Canny",
+              "match": "Canny"
+            },
+            {
+              "brand": "Frill",
+              "text": "Frill: public roadmap, voting boards, and changelog starting at $25/mo.",
+              "match": "Frill"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer: best for announcements inside your app.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "Headway",
+              "text": "Headway: a simple public changelog page, free or $29/month for Pro.",
+              "match": "Headway"
+            },
+            {
+              "brand": "AnnounceKit",
+              "text": "AnnounceKit: host public roadmaps and changelogs in one place, from $79/month.",
+              "match": "AnnounceKit"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:18.137Z"
         },
@@ -1991,12 +3520,64 @@
           },
           "mentioned": ["Canny"],
           "sources": [
-            "featureos.com",
-            "reddit.com",
-            "canny.io",
-            "ventureharbour.com",
-            "productplan.com",
-            "appcues.com"
+            {
+              "url": "https://featureos.com/blog/best-changelog-and-release-notes-software-featureos",
+              "title": "Best Changelog Tools & Release Notes Software (2026)",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://featureos.com/blog/best-free-changelog-tools-for-startups-or-small-teams",
+              "title": "Best Free Changelog Tools for Startups and Small Teams",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/ProductManagement/comments/1o76ybv/what_software_tool_do_you_use_to_visualize_your/",
+              "title": "What software tool do you use to visualize your product ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://canny.io/features/product-changelog",
+              "title": "Product Changelog Software and Release Notes Tool | Canny",
+              "domain": "canny.io"
+            },
+            {
+              "url": "https://canny.io/blog/best-changelog-tools/",
+              "title": "Choosing the best changelog tool + 11 options (with features + prices)",
+              "domain": "canny.io"
+            },
+            {
+              "url": "https://featureos.com/release-notes",
+              "title": "Changelog & Release Notes Software for SaaS Teams",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://featureos.com/blog/hellonext-is-now-featureos",
+              "title": "Hellonext Is Now FeatureOS: Our Rebrand Story and Vision",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://ventureharbour.com/product-management-software/",
+              "title": "5 Best Product Management & Roadmap Tools for 2026",
+              "domain": "ventureharbour.com"
+            },
+            {
+              "url": "https://www.productplan.com/blog/best-product-roadmap-software",
+              "title": "The 12 best product roadmap software tools for 2026, ranked",
+              "domain": "productplan.com"
+            },
+            {
+              "url": "https://www.appcues.com/blog/the-15-best-product-roadmap-tools-to-keep-your-plans-on-track",
+              "title": "15 Best Product Roadmap Tools (2026): Free and Paid Compared",
+              "domain": "appcues.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Canny",
+              "text": "Choose Canny or if your main goal is collecting user feedback, letting users vote on ideas, and automatically announcing what you shipped.",
+              "match": "Canny"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:52.942Z"
         }
@@ -2030,7 +3611,20 @@
           "text": "The best approach is a **targeted, multi-channel announcement—not one mass email**.\n\n### Recommended playbook\n\n1. **Segment the audience**\n   Announce the feature primarily to users who have access to it and a reason to use it. Exclude brand-new users if it would distract from onboarding.\n\n2. **Lead with the outcome**\n   Don’t start with “We launched Feature X.” Use:\n   > **You can now [achieve outcome] without [previous frustration].**\n\n3. **Announce it inside the product**\n   Show a short tooltip, banner, or modal when users are near the relevant workflow. Contextual in-app messaging is generally the strongest way to reach active users at the moment they can try the feature. \n\n4. **Show, don’t just describe**\n   Include a screenshot, GIF, or 30–60-second demonstration. Keep the announcement focused on one primary benefit. \n\n5. **Provide one clear action**\n   Examples:\n   - **Try it now**\n   - **Create your first report**\n   - **Watch the demo**\n   - **Turn it on**\n\n6. **Use email selectively**\n   Email inactive users, decision-makers, or customers affected by a major release. Avoid emailing everyone about every minor improvement.\n\n7. **Maintain a changelog**\n   Put all meaningful releases in a searchable “What’s new” page. Bundle smaller, related updates into periodic roundups to avoid announcement fatigue. \n\n8. **Measure adoption—not opens**\n   Track whether recipients activate and repeatedly use the feature. Compare adoption between exposed and unexposed users, or A/B-test the message. \n\n### Simple announcement template\n\n**Headline:**  \n> Finish reports in half the time\n\n**Message:**  \n> You can now automatically combine weekly reports, eliminating manual copying and formatting.\n\n**Visual:**  \nA short GIF showing the workflow.\n\n**CTA:**  \n> Create an automated report\n\n**Secondary link:**  \n> See how it works\n\n### Match the campaign to the release\n\n- **Small improvement:** Changelog entry + contextual tooltip  \n- **Important feature:** In-app announcement + targeted email + help article  \n- **Major launch:** All of the above, plus landing page, webinar/demo, sales enablement, and coordinated social promotion  \n\nThe key rule: **announce the user benefit at the moment the user can experience it.**",
           "overview": null,
           "mentioned": [],
-          "sources": ["intercom.com"],
+          "sources": [
+            {
+              "url": "https://www.intercom.com/help/en/articles/231-a-guide-to-announcing-your-new-features?utm_source=openai",
+              "title": "A guide to announcing your new features | Intercom Help",
+              "domain": "intercom.com"
+            },
+            {
+              "url": "https://www.intercom.com/blog/the-secret-to-scaling-product-announcements?utm_source=openai",
+              "title": "Secret To Scaling Product Announcements: A Changelog",
+              "domain": "intercom.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:19:46.260Z"
         },
         {
@@ -2039,6 +3633,29 @@
           "overview": null,
           "mentioned": ["Beamer", "LaunchNotes", "Headway", "Canny"],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Beamer",
+              "text": "Changelogs: Beamer, LaunchNotes, Headway, Canny",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "Changelogs: Beamer, LaunchNotes, Headway, Canny",
+              "match": "LaunchNotes"
+            },
+            {
+              "brand": "Headway",
+              "text": "Changelogs: Beamer, LaunchNotes, Headway, Canny",
+              "match": "Headway"
+            },
+            {
+              "brand": "Canny",
+              "text": "Changelogs: Beamer, LaunchNotes, Headway, Canny",
+              "match": "Canny"
+            }
+          ],
           "collectedAt": "2026-10-07T15:19:52.838Z"
         },
         {
@@ -2177,14 +3794,69 @@
           },
           "mentioned": ["AnnounceKit"],
           "sources": [
-            "linkedin.com",
-            "reddit.com",
-            "ux.stackexchange.com",
-            "boldare.com",
-            "userlist.com",
-            "medium.com",
-            "guideflow.com",
-            "youtube.com"
+            {
+              "url": "https://www.linkedin.com/pulse/how-announce-new-features-so-people-actually-notice-use-farmaha-avsvc",
+              "title": "How to Announce New Features So People Actually Notice ...",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1hoqqmb/how_do_you_share_your_users_new_features/",
+              "title": "How do you share your users new features ? : r/SaaS - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://ux.stackexchange.com/questions/54928/what-is-the-best-approach-to-informing-users-of-new-features-on-a-web-based-prod",
+              "title": "What is the best approach to informing users of new features ...",
+              "domain": "ux.stackexchange.com"
+            },
+            {
+              "url": "https://www.boldare.com/blog/new-product-features-announcement-part-2/",
+              "title": "Part 2: How to announce new product features? - Boldare",
+              "domain": "boldare.com"
+            },
+            {
+              "url": "https://userlist.com/blog/new-feature-announcement-emails/",
+              "title": "How to Write SaaS Product Update Emails + Examples",
+              "domain": "userlist.com"
+            },
+            {
+              "url": "https://medium.com/@shreelekha_34559/new-feature-announcement-checklist-6-tips-to-make-each-feature-release-successful-3b19bd5773ef",
+              "title": "New Feature Announcement Checklist: 6 Tips to Make Each ...",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/showcase-new-features",
+              "title": "Best 9 ways to showcase new features in 2026",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=5AzXHfWNJxU&t=16",
+              "title": "How to Announce Product Updates (the Right Way)",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.quora.com/What-are-the-best-ways-to-introduce-new-features-to-your-users",
+              "title": "What are the best ways to introduce new features to your users?",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=3Zk4nx4wIsI&t=3",
+              "title": "How to create product release announcement posts using ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.quora.com/Whats-the-best-way-for-consumer-products-to-tell-existing-users-about-new-features",
+              "title": "What's the best way for consumer products to tell existing ...",
+              "domain": "quora.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "AnnounceKit",
+              "text": "Explore alternative strategies on AnnounceKit.",
+              "match": "AnnounceKit"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:07.512Z"
         }
@@ -2210,7 +3882,51 @@
           "text": "Here are the strongest options for automatically generating release notes from GitHub commits or merged PRs:\n\n| Tool | Best for | How it works |\n|---|---|---|\n| **GitHub Generated Release Notes** | Simplest setup | GitHub generates notes from merged PRs when creating a release. Supports categories and excluded labels through `.github/release.yml`. You can also use `gh release create --generate-notes`.  |\n| **Release Drafter** | Reviewable draft notes | Maintains a draft GitHub release as PRs merge. Groups changes using labels such as `feature`, `bug`, and `maintenance`.  |\n| **Release Please** | Automated changelog + version bump | Reads Conventional Commits, maintains a release PR, updates `CHANGELOG.md` and version files, then creates a tag and GitHub release when merged.  |\n| **semantic-release** | Completely automated releases | Determines the next semantic version from commits, generates notes, tags the release, and can publish packages—all from CI.  |\n| **git-cliff** | Highly customized commit-based notes | Generates changelogs directly from Git history using Conventional Commits or custom regex parsers and templates. Available as a CLI and GitHub Action.  |\n| **Conventional Changelog** | Lightweight Node.js projects | Generates changelogs and release notes from Git metadata and structured commit messages.  |\n| **Changesets** | JavaScript/TypeScript monorepos | Contributors add short change descriptions alongside code. It then handles package versions and changelogs, including GitHub PR and author links.  |\n\n### Quick recommendation\n\n- **Zero-fuss:** GitHub Generated Release Notes  \n- **Want humans to review notes before publishing:** Release Drafter  \n- **Want version bumps and changelogs through a release PR:** Release Please  \n- **Want fully automatic package publishing:** semantic-release  \n- **Want notes directly from arbitrary commit history with custom formatting:** git-cliff  \n- **Managing an npm/pnpm monorepo:** Changesets  \n\nFor most GitHub projects, I’d start with **Release Please** if you use Conventional Commits, or **Release Drafter** if your workflow is organized around PR labels rather than commit-message conventions.",
           "overview": null,
           "mentioned": ["Release Drafter"],
-          "sources": ["docs.github.com", "github.com"],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/enterprise-cloud%40latest/repositories/releasing-projects-on-github/automatically-generated-release-notes?utm_source=openai",
+              "title": "Automatically generated release notes - GitHub Enterprise Cloud Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://github.com/release-drafter/release-drafter?utm_source=openai",
+              "title": "GitHub - release-drafter/release-drafter: Drafts your next release notes as pull requests are merged into master. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/googleapis/release-please?utm_source=openai",
+              "title": "GitHub - googleapis/release-please: generate release PRs based on the conventionalcommits.org spec · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/semantic-release/semantic-release?utm_source=openai",
+              "title": "GitHub - semantic-release/semantic-release: 📦🚀 Fully automated version management and package publishing · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/orhun/git-cliff?utm_source=openai",
+              "title": "GitHub - orhun/git-cliff: A highly customizable Changelog Generator that follows Conventional Commit specifications ⛰️ · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/conventional-changelog/conventional-changelog?utm_source=openai",
+              "title": "GitHub - conventional-changelog/conventional-changelog: Generate changelogs and release notes from a project's commit messages and metadata. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/changesets/changesets/blob/main/README.md?utm_source=openai",
+              "title": "changesets/README.md at main · changesets/changesets · GitHub",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Release Drafter",
+              "text": "Want humans to review notes before publishing: Release Drafter",
+              "match": "Release Drafter"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:01.103Z"
         },
         {
@@ -2218,7 +3934,66 @@
           "text": "Here are the main options, grouped by how they work:\n\n## 1. Built into GitHub (no setup)\n- **GitHub's \"Generate release notes\" button.** When you draft a release on GitHub, it can list the merged PRs and contributors for you. You can sort entries into sections using a `.github/release.yml` file that maps labels to categories. You can also run it from CI. For example, `ncipollo/release-action` has a `generateReleaseNotes: true` option that auto-generates release notes from the commits in the release each time you push a version tag.\n\n## 2. Tools that read Conventional Commits (`feat:`, `fix:`, etc.)\nThese work best if your team writes structured commit messages.\n- **semantic-release.** It automates versioning, the changelog and publishing. `@semantic-release/commit-analyzer` analyzes the commits and generates the tag version number, `@semantic-release/release-notes-generator` is responsible for generating the release notes, and `@semantic-release/changelog` is responsible for generating the CHANGELOG.md file.\n- **release-please (Google).** It opens a \"release PR\" that bumps the version and updates CHANGELOG.md. Merging that PR creates the GitHub release. It works well for monorepos.\n- **git-cliff.** A fast, highly configurable changelog generator written in Rust. It runs as a CLI or a GitHub Action and uses templates for output.\n- **conventional-changelog / conventional-github-releaser.** The original Node tools. For best results, your commits should follow the Conventional Commit standard, and a CLI tool can guide developers to write them that way.\n- **Changesets.** Popular for JS monorepos. Contributors write short notes about their changes as they go, and those become the release notes.\n\n## 3. Tools based on PRs and labels\n- **Release Drafter.** A GitHub Action that keeps a draft release up to date as PRs merge, sorted into sections by label.\n- **AbsaOSS/generate-release-notes.** It scans issues, pull requests, and commits to create categorized release notes and groups changes by labels (e.g., \"Bugfixes 🛠\", \"New Features 🎉\").\n- **gren (github-release-notes).** It can create a release from a tag and compile the release notes using issues or commits, and can also generate a CHANGELOG.md file based on the release notes. It hasn't been actively maintained for a while.\n- **github-changelog-generator (Ruby)** and **Intuit's `auto`.** Both are older but mature tools that work from labels and PRs.\n- **GoReleaser.** Mainly for Go projects. It builds a changelog from commits as part of a release.\n\n## 4. AI-powered tools (good for notes aimed at users)\n- **AI Release Notes (GitHub Marketplace app).** It uses OpenAI's APIs to automatically generate release notes for each new release, summarizing new features, bug fixes, and other significant changes from commit messages and pull request descriptions.\n- **Freshfield CLI.** A CLI for AI-generated changelogs & release notes from git commits.\n- **Build your own.** A short script in a GitHub Action can pull commits through the GitHub API and send them to an LLM. One tutorial puts the cost at less than $0.0001 per generation with a small model. Its downside: commit messages alone miss the context in PR descriptions.\n\n## Which to pick\n- **Easiest:** GitHub's built-in notes plus a `release.yml` label config.\n- **Fully automated versioning and changelog:** release-please or semantic-release, but only if you use Conventional Commits.\n- **Most control over formatting:** git-cliff.\n- **Team works through PRs with labels:** Release Drafter.\n- **Readable notes for customers:** an AI tool, ideally one that reads PR descriptions and not just commit messages.\n\nIf you tell me your language, whether it's a monorepo, and whether you use Conventional Commits, I can recommend one and sketch the workflow file.",
           "overview": null,
           "mentioned": ["Release Drafter"],
-          "sources": ["github.com", "dev.to", "batsov.com", "medium.com"],
+          "sources": [
+            {
+              "url": "https://github.com/topics/release-notes-generator",
+              "title": "release-notes-generator · GitHub Topics · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/marketplace/ai-github-release-notes",
+              "title": "AI Release Notes · GitHub Marketplace",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/github-tools/github-release-notes",
+              "title": "GitHub - github-tools/github-release-notes: Node module to create a release or a changelog from a tag and uses issues or commits to creating the release notes. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/AbsaOSS/generate-release-notes",
+              "title": "GitHub - AbsaOSS/generate-release-notes: Efficiently automate your release note generation with 'generate-release-notes'. This GH action scans your target GitHub repository's issues, sorting and organizing them into well-formatted release notes. Perfect for maintaining a streamlined and organized release process. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://dev.to/shiplogbot/auto-generate-release-notes-from-github-commits-using-openai-free-script-4clc",
+              "title": "Auto-Generate Release Notes from GitHub Commits Using OpenAI (Free Script) - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://batsov.com/articles/2025/02/27/automate-the-creation-of-github-releases/",
+              "title": "Automate the Creation of GitHub Releases",
+              "domain": "batsov.com"
+            },
+            {
+              "url": "https://github.com/foodkit/automated-release-notes",
+              "title": "GitHub - foodkit/automated-release-notes: Automatically generate release notes from Git commit history and your ticketing system.",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/samkelleher/conventional-github-releaser",
+              "title": "GitHub - samkelleher/conventional-github-releaser: Node utility to auto generate GitHub Release Notes from git commits using latest ECMAScript · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/Abdellox/github-release-notes-generator",
+              "title": "GitHub - Abdellox/github-release-notes-generator: Auto-generate release notes from PRs and commits - never write release notes again · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://medium.com/@natrajrams4/automatic-management-of-release-notes-from-git-commits-ddc0ef491e4d",
+              "title": "Automatic Management Of Release Notes From Git Commits",
+              "domain": "medium.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Release Drafter",
+              "text": "Release Drafter.",
+              "match": "Release Drafter"
+            }
+          ],
           "collectedAt": "2026-10-07T15:20:05.535Z"
         },
         {
@@ -2356,13 +4131,59 @@
           },
           "mentioned": ["GitHub Releases", "Release Drafter"],
           "sources": [
-            "announcekit.app",
-            "stefanzweifel.dev",
-            "github.blog",
-            "github.com",
-            "discourse.julialang.org",
-            "linkedin.com",
-            "releasepad.io"
+            {
+              "url": "https://announcekit.app/blog/how-to-automate-release-notes/",
+              "title": "How to Automate Release Notes: 8 Steps, Tools and AI - AnnounceKit",
+              "domain": "announcekit.app"
+            },
+            {
+              "url": "https://stefanzweifel.dev/posts/2021/11/13/introducing-the-changelog-updater-action/",
+              "title": "Introducing the changelog",
+              "domain": "stefanzweifel.dev"
+            },
+            {
+              "url": "https://github.blog/news-insights/product-news/beta-github-releases-improving-release-experience/",
+              "title": "A new public beta of GitHub Releases: How we’re improving the ...",
+              "domain": "github.blog"
+            },
+            {
+              "url": "https://github.com/UncleRus/esp-idf-lib/discussions/334",
+              "title": "Introduce release note automation · UncleRus esp-idf-lib",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://discourse.julialang.org/t/ann-easier-release-automation-with-release-please-ci-tool/136452/16",
+              "title": "[ANN] Easier release automation with \"Release Please\" CI tool",
+              "domain": "discourse.julialang.org"
+            },
+            {
+              "url": "https://github.com/conventional-commits/conventionalcommits.org/blob/master/content/next/index.md",
+              "title": "Conventional Commits 1.0.0-next",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/marko-builds_deploylog-turns-your-raw-commits-into-a-changelog-activity-7505535663904108545-16Dh",
+              "title": "DeployLog turns your raw commits into a changelog your ...",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://www.releasepad.io/blog/7-best-beamer-alternatives-for-changelog-and-release-notes/",
+              "title": "7 Best Beamer Alternatives for Changelogs in 2026",
+              "domain": "releasepad.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "GitHub Releases",
+              "text": "GitHub Releases (Native): GitHub features a built-in \"Automatically generate release notes\" button.",
+              "match": "GitHub Releases"
+            },
+            {
+              "brand": "Release Drafter",
+              "text": "Release Drafter: A highly popular GitHub Action that automatically updates a draft release every time a pull request merges into your main branch.",
+              "match": "Release Drafter"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:20.814Z"
         }
@@ -2388,7 +4209,41 @@
           "text": "## Quick verdict\n\n- **Headway** — best for a **simple, inexpensive changelog**\n- **Beamer** — best for **in-app announcements and user engagement**\n- **LaunchNotes** — best for **mature product communications, roadmaps, and feedback workflows**\n\n| | Headway | Beamer | LaunchNotes |\n|---|---|---|---|\n| **Best for** | Startups needing basic release notes | SaaS teams driving feature adoption | Larger product/PMM organizations |\n| **Starting price** | Free; Pro **$29/month** | Free under 1,000 MAUs; paid from **$49/month annually** | Growth **$249/month, billed annually** |\n| **Pricing basis** | Flat | Monthly active users | Workspace/package |\n| **Changelog page + widget** | Yes | Yes | Yes |\n| **In-app announcements** | Basic changelog widget | Excellent: feed, pop-ups, top bars, snippets and tooltips | Widget-based announcements |\n| **Targeting** | Minimal | Strong segmentation, especially Scale | Strong category, label and cohort segmentation |\n| **Roadmap and feedback** | No meaningful native suite | Available through Feedback; paid tier is an additional **$99/month** | Included in Growth |\n| **NPS** | No | Native add-on, paid tier **$99/month** | Not a core feature |\n| **Workflow automation** | Limited | API, webhooks, Zapier and Segment, depending on plan | Strong Jira, Confluence, Slack, Loom, APIs and AI drafting |\n| **Enterprise readiness** | Limited | Scale/Custom plans | Strongest of the three |\n\nPricing and packaging are current as of **October 7, 2026**. \n\n### Choose **Headway** if…\n\nYou want a clean public changelog and embeddable widget without much complexity. Its $29 Pro plan adds white-labeling, a custom domain, private changelogs, team management and scheduled publishing. Its official product history appears relatively quiet, though, and its integrations and targeting are much less extensive than the alternatives. \n\n### Choose **Beamer** if…\n\nYour primary goal is making sure users **notice and adopt** new features. Beamer has the strongest in-product delivery options: targeted feeds, pop-ups, top bars, snippets, tooltips, email and push notifications. It also offers comments, reactions, analytics and increasingly sophisticated segmentation as you move up plans. \n\nThe downside is pricing complexity: plans are MAU-based, and advanced feedback/roadmap and NPS capabilities are separate products. For example, annual Pro changelog plus paid Feedback would be approximately **$198/month** before any NPS add-on. \n\n### Choose **LaunchNotes** if…\n\nYou need a complete release-communication operation rather than just an announcement widget. Growth bundles announcements, an in-app widget, roadmap, feedback management, AI drafting, SSO/JWT and 5,000 monthly emails. It also connects release communications to Jira, Confluence, Slack, Loom and other workflows. \n\nLaunchNotes is the strongest option for coordinating product, engineering and product marketing—but it starts at **$249/month billed annually**, includes only two users on Growth, and may be excessive for a small startup. \n\n## My recommendation\n\n- **Solo founder or early startup:** **Headway**\n- **Typical growth-stage SaaS wanting in-app adoption:** **Beamer**\n- **Product-led SaaS needing changelog + roadmap + feedback:** **LaunchNotes**\n- **Enterprise product-marketing/release-communications team:** **LaunchNotes**\n- **If I had to pick one for most SaaS companies:** **Beamer**, unless the roadmap/feedback workflow is central—then **LaunchNotes**.",
           "overview": null,
           "mentioned": ["Headway", "Beamer", "LaunchNotes"],
-          "sources": ["headwayapp.co", "getbeamer.com", "launchnotes.com"],
+          "sources": [
+            {
+              "url": "https://headwayapp.co/?utm_source=openai",
+              "title": "Headway - Keep customers in the loop about your product.",
+              "domain": "headwayapp.co"
+            },
+            {
+              "url": "https://www.getbeamer.com/pricing?utm_source=openai",
+              "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://www.launchnotes.com/pricing?utm_source=openai",
+              "title": "Plans & Pricing | LaunchNotes",
+              "domain": "launchnotes.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "Headway — best for a simple, inexpensive changelog",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "Beamer — best for in-app announcements and user engagement",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes — best for mature product communications, roadmaps, and feedback workflows",
+              "match": "LaunchNotes"
+            }
+          ],
           "collectedAt": "2026-10-07T15:21:20.726Z"
         },
         {
@@ -2397,14 +4252,84 @@
           "overview": null,
           "mentioned": ["Headway", "Beamer", "LaunchNotes"],
           "sources": [
-            "worknotes.ai",
-            "productlift.dev",
-            "releaseglow.com",
-            "rapidr.io",
-            "featureos.com",
-            "userorbit.com",
-            "votefirst.app",
-            "updates.launchnotes.com"
+            {
+              "url": "https://www.worknotes.ai/blog/best-beamer-alternatives-in-2026",
+              "title": "7 Best Beamer Alternatives for Changelogs in 2026 - Worknotes",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/changelog-tools-pricing-comparison",
+              "title": "Changelog Tools Pricing Comparison 2026 - Worknotes",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://www.productlift.dev/best-release-notes-tool/",
+              "title": "7 Best Release Notes Tools & Software Compared (2026 Pricing)",
+              "domain": "productlift.dev"
+            },
+            {
+              "url": "https://releaseglow.com/blog/beamer-alternatives",
+              "title": "10 Best Beamer Alternatives in 2026 — Free & Paid Options Compared",
+              "domain": "releaseglow.com"
+            },
+            {
+              "url": "https://rapidr.io/blog/best-changelog-tools/",
+              "title": "10 Best Changelog Tools for SaaS Companies(With Free Tools & Examples)",
+              "domain": "rapidr.io"
+            },
+            {
+              "url": "https://featureos.com/blog/beamer-replacement",
+              "title": "Top 5 Beamer Alternatives & Replacement Apps (2026)",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://userorbit.com/blog/best-beamer-alternatives",
+              "title": "Best Beamer Alternatives in 2026",
+              "domain": "userorbit.com"
+            },
+            {
+              "url": "https://rapidr.io/blog/beamer-alternatives/",
+              "title": "Top 7 Beamer Alternatives & Competitors For Publishing Changelog",
+              "domain": "rapidr.io"
+            },
+            {
+              "url": "https://rapidr.io/blog/headway-alternatives/",
+              "title": "7 Best Headway Alternatives & Competitors For Publishing Changelog",
+              "domain": "rapidr.io"
+            },
+            {
+              "url": "https://votefirst.app/en/best/best-changelog-tools",
+              "title": "Top changelog tools with email delivery, checked - VoteFirst",
+              "domain": "votefirst.app"
+            },
+            {
+              "url": "https://updates.launchnotes.com/",
+              "title": "Product Updates",
+              "domain": "updates.launchnotes.com"
+            },
+            {
+              "url": "https://www.capterra.com/p/208546/LaunchNotes/",
+              "title": "LaunchNotes Software Pricing, Alternatives & More 2026",
+              "domain": "capterra.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "These three tools sit at three different price points: Headway is the cheap, simple option, Beamer is the mid-range in-app announcement tool, and LaunchNotes is an expensive platform for coordinating product communication across teams.",
+              "match": "Headway"
+            },
+            {
+              "brand": "Beamer",
+              "text": "These three tools sit at three different price points: Headway is the cheap, simple option, Beamer is the mid-range in-app announcement tool, and LaunchNotes is an expensive platform for coordinating product communication across teams.",
+              "match": "Beamer"
+            },
+            {
+              "brand": "LaunchNotes",
+              "text": "These three tools sit at three different price points: Headway is the cheap, simple option, Beamer is the mid-range in-app announcement tool, and LaunchNotes is an expensive platform for coordinating product communication across teams.",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:11.486Z"
         },
@@ -2567,14 +4492,75 @@
           },
           "mentioned": ["Headway", "Beamer", "LaunchNotes"],
           "sources": [
-            "canny.io",
-            "worknotes.ai",
-            "featureos.com",
-            "frill.co",
-            "sendherald.com",
-            "getbeamer.com",
-            "changeloggenerator.com",
-            "youtube.com"
+            {
+              "url": "https://canny.io/blog/best-changelog-tools/",
+              "title": "Choosing the best changelog tool + 11 options (with features + prices)",
+              "domain": "canny.io"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/beamer-vs-headway",
+              "title": "Beamer vs Headway: Which Changelog Tool Is Better in 2026?",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://featureos.com/compare/headway-vs-launchnotes",
+              "title": "Headway vs LaunchNotes (2026)",
+              "domain": "featureos.com"
+            },
+            {
+              "url": "https://frill.co/blog/free-changelog-tools",
+              "title": "Top 8 Free Changelog Tools for Developers and Founders",
+              "domain": "frill.co"
+            },
+            {
+              "url": "https://sendherald.com/compare/headway/",
+              "title": "The Best Headway Alternative with GitHub & AI",
+              "domain": "sendherald.com"
+            },
+            {
+              "url": "https://www.getbeamer.com/blog/the-best-alternative-to-headway",
+              "title": "The Best Alternative to Headway (Headwayapp)",
+              "domain": "getbeamer.com"
+            },
+            {
+              "url": "https://www.changeloggenerator.com/blog/changelog-tools-comparison",
+              "title": "Changelog Generator, Headway, Canny, Beamer, and GitHub ...",
+              "domain": "changeloggenerator.com"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/beamer-vs-launchnotes",
+              "title": "Beamer vs LaunchNotes: Startup Budget vs Enterprise Platform",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=bmFfp5V1l_4&t=58",
+              "title": "LaunchNotes vs GetBeamer: Which Tool Is Best for Product ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://sourceforge.net/software/compare/Beamer-vs-Headway-Changelog/",
+              "title": "Beamer vs. Headway Comparison - SourceForge",
+              "domain": "sourceforge.net"
+            },
+            {
+              "url": "https://slashdot.org/software/comparison/Headway-Changelog-vs-LaunchNotes/",
+              "title": "Compare Headway vs. LaunchNotes in 2026",
+              "domain": "slashdot.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Headway",
+              "text": "Headway,, and are all product update and changelog tools, but they target different team sizes, budgets, and feature sets.",
+              "match": "Headway"
+            },
+            { "brand": "Beamer", "text": "Beamer", "match": "Beamer" },
+            {
+              "brand": "LaunchNotes",
+              "text": "LaunchNotes",
+              "match": "LaunchNotes"
+            }
           ],
           "collectedAt": "2026-10-07T15:36:08.225Z"
         }
@@ -2600,12 +4586,34 @@
           "overview": null,
           "mentioned": [],
           "sources": [
-            "gorilli.io",
-            "penned.dev",
-            "releasenote.co",
-            "itslive.dev",
-            "changesummary.com"
+            {
+              "url": "https://www.gorilli.io/products/engammo?utm_source=openai",
+              "title": "Engammo: Automatic Release Notes from GitHub PRs",
+              "domain": "gorilli.io"
+            },
+            {
+              "url": "https://penned.dev/?utm_source=openai",
+              "title": "Penned — AI-generated changelogs for modern software teams",
+              "domain": "penned.dev"
+            },
+            {
+              "url": "https://www.releasenote.co/?utm_source=openai",
+              "title": "Ship features. We'll tell the world. | ReleaseNote AI",
+              "domain": "releasenote.co"
+            },
+            {
+              "url": "https://www.itslive.dev/?utm_source=openai",
+              "title": "ItsLive — Auto-Changelog from GitHub PRs",
+              "domain": "itslive.dev"
+            },
+            {
+              "url": "https://www.changesummary.com/?utm_source=openai",
+              "title": "Change Summary - AI Changelog Generator",
+              "domain": "changesummary.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:20:51.010Z"
         },
         {
@@ -2614,13 +4622,64 @@
           "overview": null,
           "mentioned": ["Release Drafter"],
           "sources": [
-            "personabox.app",
-            "changeloggenerator.com",
-            "changelogit.com",
-            "github.com",
-            "worknotes.ai",
-            "shiplog.arksoft.xyz",
-            "aiopsschool.com"
+            {
+              "url": "https://personabox.app/blog/best-changelog-tools",
+              "title": "7 Best Changelog Automation Tools (2026) - PersonaBox",
+              "domain": "personabox.app"
+            },
+            {
+              "url": "https://www.changeloggenerator.com/",
+              "title": "AI Changelog Generator for GitHub PRs",
+              "domain": "changeloggenerator.com"
+            },
+            {
+              "url": "https://changelogit.com/",
+              "title": "Changelogit - AI Changelog Generator",
+              "domain": "changelogit.com"
+            },
+            {
+              "url": "https://github.com/github-changelog-generator/github-changelog-generator",
+              "title": "GitHub - github-changelog-generator/github-changelog-generator: Automatically generate change log from your tags, issues, labels and pull requests on GitHub. · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/ofershap/ai-changelog",
+              "title": "GitHub - ofershap/ai-changelog: GitHub Action that generates AI-powered changelogs from merged PRs · GitHub",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.worknotes.ai/blog/ai-changelog-generator-how-to-automate-your-release-notes",
+              "title": "Worknotes",
+              "domain": "worknotes.ai"
+            },
+            {
+              "url": "https://shiplog.arksoft.xyz/",
+              "title": "Shiplog — AI Changelog Generator",
+              "domain": "shiplog.arksoft.xyz"
+            },
+            {
+              "url": "https://github.com/marketplace/ai-github-release-notes",
+              "title": "AI Release Notes · GitHub Marketplace",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://github.com/marketplace/actions/generate-changelog",
+              "title": "Generate changelog · Actions · GitHub Marketplace",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://aiopsschool.com/blog/top-10-ai-release-notes-changelog-generators-features-pros-cons-comparison/",
+              "title": "Top 10 AI Release Notes & Changelog Generators: Features, Pros, Cons & Comparison",
+              "domain": "aiopsschool.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Release Drafter",
+              "text": "Non-AI options: If a CHANGELOG.md for engineers is enough, Release Drafter, release-please, and GitHub Changelog Generator are free.",
+              "match": "Release Drafter"
+            }
           ],
           "collectedAt": "2026-10-07T15:20:57.097Z"
         },
@@ -2757,15 +4816,59 @@
           },
           "mentioned": [],
           "sources": [
-            "sendherald.com",
-            "releasepad.io",
-            "reddit.com",
-            "docs.github.com",
-            "deployhq.com",
-            "getshiplog.site",
-            "releasenotes.io",
-            "personabox.app"
+            {
+              "url": "https://sendherald.com/guides/ai-release-notes/",
+              "title": "AI release notes — what they are, how the good ones ... - Herald",
+              "domain": "sendherald.com"
+            },
+            {
+              "url": "https://www.releasepad.io/features/github-integration/",
+              "title": "AI Changelog Generator for GitHub Commits",
+              "domain": "releasepad.io"
+            },
+            {
+              "url": "https://www.reddit.com/r/SideProject/comments/1mzxkwy/i_built_a_tool_that_converts_git_commits_into_a/",
+              "title": "I built a tool that converts git commits into a full Changelog",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes",
+              "title": "Automatically generated release notes - GitHub Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://www.deployhq.com/git/generating-changelogs-with-ai",
+              "title": "Generating Changelogs and Release Notes with AI",
+              "domain": "deployhq.com"
+            },
+            {
+              "url": "https://www.getshiplog.site/docs",
+              "title": "Docs",
+              "domain": "getshiplog.site"
+            },
+            {
+              "url": "https://www.getshiplog.site/features",
+              "title": "Features - ShipLog",
+              "domain": "getshiplog.site"
+            },
+            {
+              "url": "https://www.releasenotes.io/",
+              "title": "ReleaseNotes - Product ReleaseNotes & Changelog software",
+              "domain": "releasenotes.io"
+            },
+            {
+              "url": "https://personabox.app/blog/best-changelog-tools",
+              "title": "7 Best Changelog Automation Tools (2026) - PersonaBox",
+              "domain": "personabox.app"
+            },
+            {
+              "url": "https://github.com/entro314-labs/AI-Changelog-Generator",
+              "title": "GitHub - entro314-labs/ai-changelog-generator: AI-powered changelog generator with MCP server support - works with most providers, online and local models · GitHub",
+              "domain": "github.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:43:50.241Z"
         }
       ]
@@ -2787,10 +4890,34 @@
           "overview": null,
           "mentioned": [],
           "sources": [
-            "docs.github.com",
-            "docs.fastlane.tools",
-            "developers.google.com"
+            {
+              "url": "https://docs.github.com/en/enterprise-cloud%40latest/repositories/releasing-projects-on-github/automatically-generated-release-notes",
+              "title": "Automatically generated release notes - GitHub Enterprise Cloud Docs",
+              "domain": "docs.github.com"
+            },
+            {
+              "url": "https://docs.fastlane.tools/actions/appstore/",
+              "title": "appstore - fastlane docs",
+              "domain": "docs.fastlane.tools"
+            },
+            {
+              "url": "https://docs.fastlane.tools/actions/set_changelog/?utm_source=openai",
+              "title": "set_changelog - fastlane docs",
+              "domain": "docs.fastlane.tools"
+            },
+            {
+              "url": "https://docs.fastlane.tools/actions/supply/?utm_source=openai",
+              "title": "supply - fastlane docs",
+              "domain": "docs.fastlane.tools"
+            },
+            {
+              "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/edits.tracks",
+              "title": "REST Resource: edits.tracks  |  Google Play Developer API  |  Google for Developers",
+              "domain": "developers.google.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:21:39.445Z"
         },
         {
@@ -2799,6 +4926,8 @@
           "overview": null,
           "mentioned": [],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:21:30.293Z"
         }
       ]
@@ -2808,52 +4937,457 @@
     {
       "domain": "productlift.dev",
       "share": 28,
-      "byEngine": { "chatgpt": 7, "claude": 63, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 7, "claude": 63, "ai-overview": 0 },
+      "citations": 21,
+      "pages": [
+        {
+          "url": "https://www.productlift.dev/best-changelog-tool/",
+          "title": "10 Best Changelog Tools & Software for SaaS in 2026 (Free & Paid)",
+          "citations": 12
+        },
+        {
+          "url": "https://www.productlift.dev/best-release-notes-tool/",
+          "title": "7 Best Release Notes Tools & Software Compared (2026 Pricing)",
+          "citations": 4
+        },
+        {
+          "url": "https://www.productlift.dev/pricing/",
+          "title": "ProductLift - Pricing",
+          "citations": 2
+        },
+        {
+          "url": "https://www.productlift.dev/best-public-roadmap-tool/",
+          "title": "Best Public Roadmap Tools 2026: Share Progress, Get Votes",
+          "citations": 2
+        },
+        {
+          "url": "https://www.productlift.dev/best-product-roadmap-software/",
+          "title": "Best SaaS Product Roadmap Software: 12 Tools Compared (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.productlift.dev/compare/beamer-alternatives/",
+          "title": "Top 8 Beamer Alternatives in 2026 (Compared)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 5, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] },
+        { "id": 11, "citations": 2, "engines": ["claude"] },
+        { "id": 12, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "frill.co",
       "share": 23,
-      "byEngine": { "chatgpt": 13, "claude": 27, "ai-overview": 36 }
+      "byEngine": { "chatgpt": 13, "claude": 27, "ai-overview": 36 },
+      "citations": 17,
+      "pages": [
+        {
+          "url": "https://frill.co/blog/free-changelog-tools",
+          "title": "Top 8 Free Changelog Tools for Developers and Founders - Frill Blog",
+          "citations": 11
+        },
+        {
+          "url": "https://frill.co/pricing",
+          "title": "Frill pricing - simple plans for product feedback teams",
+          "citations": 3
+        },
+        {
+          "url": "https://frill.co/blog/release-notes-software",
+          "title": "5 Best Release Notes Software to Streamline Product Updates",
+          "citations": 2
+        },
+        {
+          "url": "https://frill.co/product",
+          "title": "Product Overview - Frill",
+          "citations": 1
+        },
+        {
+          "url": "https://frill.co/blog/mastering-release-notes-best-practices-and-examples",
+          "title": "7 Release Notes Best Practices With Prompts & Examples",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 6, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 0, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 1, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 9, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 12, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 13, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "guideflow.com",
       "share": 23,
-      "byEngine": { "chatgpt": 0, "claude": 53, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 0, "claude": 53, "ai-overview": 7 },
+      "citations": 17,
+      "pages": [
+        {
+          "url": "https://www.guideflow.com/blog/changelog-software",
+          "title": "8 best changelog software for 2026 - Guideflow Blog",
+          "citations": 16
+        },
+        {
+          "url": "https://www.guideflow.com/blog/product-update-software",
+          "title": "7 best product update software for 2026 - Guideflow Blog",
+          "citations": 2
+        },
+        {
+          "url": "https://www.guideflow.com/blog/showcase-new-features",
+          "title": "Best 9 ways to showcase new features in 2026",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] },
+        { "id": 11, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "featurebase.app",
       "share": 22,
-      "byEngine": { "chatgpt": 17, "claude": 33, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 17, "claude": 33, "ai-overview": 7 },
+      "citations": 16,
+      "pages": [
+        {
+          "url": "https://www.featurebase.app/pricing",
+          "title": "Featurebase – Pricing",
+          "citations": 4
+        },
+        {
+          "url": "https://www.featurebase.app/blog/customer-feedback/free-changelog-tools",
+          "title": "Top 11 Free Changelog Tools for SaaS in 2026",
+          "citations": 4
+        },
+        {
+          "url": "https://www.featurebase.app/blog/getbeamer-alternatives",
+          "title": "Top 9 Beamer Alternatives for Changelogs & Feedba...",
+          "citations": 2
+        },
+        {
+          "url": "https://www.featurebase.app/blog/public-roadmap-tools",
+          "title": "Top 7 Public Roadmap Tools for SaaS Companies in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://www.featurebase.app/blog/free-changelog-tools",
+          "title": "Top 11 Free Changelog Tool for SaaS in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://www.featurebase.app/features/announce-updates",
+          "title": "Featurebase – Beautiful changelog tool for release notes that drive adoption",
+          "citations": 1
+        },
+        {
+          "url": "https://www.featurebase.app/alternative/launchnotes",
+          "title": "The best LaunchNotes alternative - Featurebase",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 6, "citations": 4, "engines": ["chatgpt", "claude"] },
+        { "id": 5, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 8, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 13, "citations": 3, "engines": ["chatgpt", "claude"] },
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 7, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "github.com",
       "share": 18,
-      "byEngine": { "chatgpt": 20, "claude": 13, "ai-overview": 21 }
+      "byEngine": { "chatgpt": 20, "claude": 13, "ai-overview": 21 },
+      "citations": 13,
+      "pages": [
+        {
+          "url": "https://github.com/release-drafter/release-drafter",
+          "title": "GitHub - release-drafter/release-drafter: Drafts your next release notes as pull requests are merged into master. · GitHub",
+          "citations": 4
+        },
+        {
+          "url": "https://github.com/semantic-release/semantic-release",
+          "title": "GitHub - semantic-release/semantic-release: 📦🚀 Fully automated version management and package publishing · GitHub",
+          "citations": 4
+        },
+        {
+          "url": "https://github.com/marketplace/ai-github-release-notes",
+          "title": "AI Release Notes · GitHub Marketplace",
+          "citations": 4
+        },
+        {
+          "url": "https://github.com/googleapis/release-please",
+          "title": "GitHub - googleapis/release-please: generate release PRs based on the conventionalcommits.org spec · GitHub",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/conventional-changelog/conventional-changelog",
+          "title": "GitHub - conventional-changelog/conventional-changelog: Generate changelogs and release notes from a project's commit messages and metadata. · GitHub",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/changesets/changesets/blob/main/README.md",
+          "title": "changesets/README.md at main · changesets/changesets · GitHub",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/topics/release-notes-generator",
+          "title": "release-notes-generator · GitHub Topics · GitHub",
+          "citations": 2
+        },
+        {
+          "url": "https://github.com/github-tools/github-release-notes",
+          "title": "GitHub - github-tools/github-release-notes: Node module to create a release or a changelog from a tag and uses issues or commits to creating the release notes. · GitHub",
+          "citations": 2
+        }
+      ],
+      "prompts": [
+        {
+          "id": 4,
+          "citations": 5,
+          "engines": ["chatgpt", "claude", "ai-overview"]
+        },
+        { "id": 9, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 10, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 13, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "quackback.io",
       "share": 18,
-      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 },
+      "citations": 13,
+      "pages": [
+        {
+          "url": "https://quackback.io/blog/best-changelog-tools",
+          "title": "Best Changelog Tools and Software in 2026 (7 Compared)",
+          "citations": 8
+        },
+        {
+          "url": "https://quackback.io/blog/best-beamer-alternatives",
+          "title": "7 Best Beamer Alternatives for Changelogs and Product Updates in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://quackback.io/blog/best-public-roadmap-tools",
+          "title": "Best Public Roadmap Tools in 2026 (Free and Paid, Ranked)",
+          "citations": 2
+        },
+        {
+          "url": "https://quackback.io/blog/keep-a-changelog",
+          "title": "Keep a Changelog: The Definitive Guide for Product Teams",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 9, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "getbeamer.com",
       "share": 16,
-      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 7 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://www.getbeamer.com/pricing",
+          "title": "Beamer Pricing & Plans | 14-Day Free Trial | Beamer",
+          "citations": 9
+        },
+        {
+          "url": "https://www.getbeamer.com/release-notes",
+          "title": "Release notes tool for product changes updates | Beamer",
+          "citations": 1
+        },
+        {
+          "url": "https://www.getbeamer.com/",
+          "title": "Customer Communication Platform for Product Releases | Beamer",
+          "citations": 1
+        },
+        {
+          "url": "https://www.getbeamer.com/blog/the-best-alternative-to-headway",
+          "title": "The Best Alternative to Headway (Headwayapp)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 12, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "releasepad.io",
       "share": 16,
-      "byEngine": { "chatgpt": 0, "claude": 27, "ai-overview": 29 }
+      "byEngine": { "chatgpt": 0, "claude": 27, "ai-overview": 29 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://www.releasepad.io/blog/best-changelog-tools/",
+          "title": "The 10 Best Changelog Tools in 2026 (Compared Honestly, by Category)",
+          "citations": 6
+        },
+        {
+          "url": "https://www.releasepad.io/blog/7-best-beamer-alternatives-for-changelog-and-release-notes/",
+          "title": "7 Best Beamer Alternatives for Changelog & Release Notes in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://www.releasepad.io/blog/free-changelog-tools/",
+          "title": "7 Free Changelog Tools in 2026 | Honest Comparison",
+          "citations": 2
+        },
+        {
+          "url": "https://www.releasepad.io/blog/how-to-automate-release-notes-from-github-commits/",
+          "title": "How to Automate Release Notes from GitHub Commits (3 Methods Compared)",
+          "citations": 1
+        },
+        {
+          "url": "https://www.releasepad.io/blog/changelog-or-change-log/",
+          "title": "Changelog or Change Log: One Word or Two? - ReleasePad",
+          "citations": 1
+        },
+        {
+          "url": "https://www.releasepad.io/blog/keep-a-changelog/",
+          "title": "Keep a Changelog Format Explained - ReleasePad",
+          "citations": 1
+        },
+        {
+          "url": "https://www.releasepad.io/features/github-integration/",
+          "title": "AI Changelog Generator for GitHub Commits",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 13, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 1, "engines": ["claude"] },
+        { "id": 9, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 10, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "featureos.com",
       "share": 15,
-      "byEngine": { "chatgpt": 0, "claude": 20, "ai-overview": 36 }
+      "byEngine": { "chatgpt": 0, "claude": 20, "ai-overview": 36 },
+      "citations": 11,
+      "pages": [
+        {
+          "url": "https://featureos.com/blog/best-free-changelog-tools-for-startups-or-small-teams",
+          "title": "Best Free Changelog Tools for Startups and Small Teams",
+          "citations": 4
+        },
+        {
+          "url": "https://featureos.com/blog/beamer-replacement",
+          "title": "Top 5 Beamer Alternatives & Replacement Apps (2026)",
+          "citations": 3
+        },
+        {
+          "url": "https://featureos.com/blog/best-changelog-and-release-notes-software-featureos",
+          "title": "Best Changelog Tools & Release Notes Software (2026)",
+          "citations": 3
+        },
+        {
+          "url": "https://featureos.com/release-notes",
+          "title": "Changelog & Release Notes Software for SaaS Teams",
+          "citations": 2
+        },
+        {
+          "url": "https://featureos.com/blog/hellonext-is-now-featureos",
+          "title": "Hellonext Is Now FeatureOS: Our Rebrand Story and Vision",
+          "citations": 1
+        },
+        {
+          "url": "https://featureos.com/compare/headway-vs-launchnotes",
+          "title": "Headway vs LaunchNotes (2026)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 12, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 1, "engines": ["claude"] },
+        { "id": 11, "citations": 1, "engines": ["claude"] },
+        { "id": 0, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 1, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 6, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 8, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "announcekit.app",
       "share": 14,
-      "byEngine": { "chatgpt": 13, "claude": 13, "ai-overview": 14 }
+      "byEngine": { "chatgpt": 13, "claude": 13, "ai-overview": 14 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://announcekit.app/",
+          "title": "AnnounceKit: Changelog, In-App Widgets & Feature Requests",
+          "citations": 3
+        },
+        {
+          "url": "https://announcekit.app/pricing",
+          "title": "Pricing - AnnounceKit | Changelog, Widgets & In-App Notifications",
+          "citations": 2
+        },
+        {
+          "url": "https://announcekit.app/blog/public-roadmap-examples/",
+          "title": "15 Best Public Roadmap Examples For SaaS (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://announcekit.app/pricing/changelog",
+          "title": "Changelog Pricing - AnnounceKit",
+          "citations": 1
+        },
+        {
+          "url": "https://announcekit.app/blog/how-to-automate-release-notes/",
+          "title": "How to Automate Release Notes: 8 Steps, Tools and AI - AnnounceKit",
+          "citations": 1
+        },
+        {
+          "url": "https://announcekit.app/blog/keep-a-changelog/",
+          "title": "How to Keep a Changelog: Format, Examples, Best Practices",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 6, "citations": 2, "engines": ["claude"] },
+        { "id": 0, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 9, "citations": 1, "engines": ["ai-overview"] }
+      ]
     }
   ],
   "overview": {

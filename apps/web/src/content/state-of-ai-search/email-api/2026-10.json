@@ -238,10 +238,49 @@
             "MailerSend"
           ],
           "sources": [
-            "postmarkapp.com",
-            "resend.com",
-            "docs.aws.amazon.com",
-            "support.google.com"
+            {
+              "url": "https://postmarkapp.com/support/article/how-to-create-and-send-through-message-streams?utm_source=openai",
+              "title": "How to create and send through Message Streams | Postmark Support Center",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://resend.com/features/dedicated-ips?utm_source=openai",
+              "title": "Dedicated IPs · Fully managed · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/en_en/ses/latest/dg/dedicated-ip.html?utm_source=openai",
+              "title": "Dedicated IP addresses for Amazon SES - Amazon Simple Email Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://support.google.com/mail/answer/14229414?hl=en&utm_source=openai",
+              "title": "Email sender guidelines FAQ - Gmail Help",
+              "domain": "support.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "Bottom line: For most SaaS transactional email, I’d migrate from SendGrid to Postmark, using a separate provider or stream for newsletters and promotions.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Transactional email: Choose Postmark.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Modern developer experience: Choose Resend.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Hundreds of thousands or millions per month: Consider Amazon SES, provided someone owns deliverability operations.",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:09.236Z"
         },
@@ -261,14 +300,104 @@
             "Bird"
           ],
           "sources": [
-            "mailtrap.io",
-            "mailercloud.com",
-            "benchmarkemail.com",
-            "gautamkhorana.com",
-            "sender.net",
-            "saasswitcher.com",
-            "hackceleration.com",
-            "worksbuddy.ai"
+            {
+              "url": "https://mailtrap.io/blog/sendgrid-alternative/",
+              "title": "6 Best SendGrid Alternatives Tested & Compared [2026]",
+              "domain": "mailtrap.io"
+            },
+            {
+              "url": "https://www.mailercloud.com/blog/sendgrid-alternatives",
+              "title": "12 Best SendGrid Alternatives in 2026 (Deliverability & Pricing)",
+              "domain": "mailercloud.com"
+            },
+            {
+              "url": "https://www.benchmarkemail.com/blog/best-sendgrid-alternatives/",
+              "title": "Best SendGrid alternatives for transactional email in 2026",
+              "domain": "benchmarkemail.com"
+            },
+            {
+              "url": "https://gautamkhorana.com/blog/sendgrid-alternatives/",
+              "title": "SendGrid Alternatives in 2026 (Dev-First Picks)",
+              "domain": "gautamkhorana.com"
+            },
+            {
+              "url": "https://www.sender.net/blog/sendgrid-alternative/",
+              "title": "8 Best SendGrid Alternatives, Tested (2026): Free & Paid Picks",
+              "domain": "sender.net"
+            },
+            {
+              "url": "https://www.saasswitcher.com/blog/sendgrid-alternatives",
+              "title": "10 SendGrid alternatives: Free Tiers, Stronger Deliverability, Faster Support",
+              "domain": "saasswitcher.com"
+            },
+            {
+              "url": "https://hackceleration.com/labs/alternatives/sendgrid-alternatives",
+              "title": "6 Best SendGrid Alternatives in 2026, Tested & Ranked",
+              "domain": "hackceleration.com"
+            },
+            {
+              "url": "https://worksbuddy.ai/blogs/what-are-the-best-sendgrid-alternatives-for-email-marketing",
+              "title": "7 Best SendGrid Alternatives for Email Marketing in 2026",
+              "domain": "worksbuddy.ai"
+            },
+            {
+              "url": "https://www.infraforge.ai/blog/sendgrid-alternatives",
+              "title": "I Tested 7 Best SendGrid Alternatives for Cold Email in 2026",
+              "domain": "infraforge.ai"
+            },
+            {
+              "url": "https://www.migomail.com/blog/post/sendgrid-alternatives",
+              "title": "Best SendGrid Alternative in 2026: 7 Platforms Compared",
+              "domain": "migomail.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "The provider that shows up most often for better deliverability is Postmark, especially if you send transactional email.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "In Mailtrap's tests on free plans and shared IPs, SendGrid reached 61% inbox placement with 20.9% of emails missing.",
+              "match": "Mailtrap"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "In Mailtrap's tests on free plans and shared IPs, SendGrid reached 61% inbox placement with 20.9% of emails missing.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Postmark had 83.3%, Mailtrap 78.8%, Amazon SES 77.1%, and Mailgun 71.4%.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Postmark had 83.3%, Mailtrap 78.8%, Amazon SES 77.1%, and Mailgun 71.4%.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: modern developer experience",
+              "match": "Resend"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: good if you want email, SMS, and transactional sending in one tool on a budget.",
+              "match": "Brevo"
+            },
+            {
+              "brand": "SparkPost",
+              "text": "SparkPost/Bird: worth comparing for enterprise volumes with fully dedicated infrastructure and customer success support.",
+              "match": "SparkPost"
+            },
+            {
+              "brand": "Bird",
+              "text": "SparkPost/Bird: worth comparing for enterprise volumes with fully dedicated infrastructure and customer success support.",
+              "match": "Bird"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:00.370Z"
         },
@@ -369,11 +498,59 @@
             "Brevo"
           ],
           "sources": [
-            "thefrontkit.com",
-            "activepieces.com",
-            "techjockey.com",
-            "wraps.dev",
-            "buildmvpfast.com"
+            {
+              "url": "https://thefrontkit.com/blogs/sendgrid-alternatives-2026",
+              "title": "SendGrid Alternatives: 7 Email APIs for Developers 2026",
+              "domain": "thefrontkit.com"
+            },
+            {
+              "url": "https://www.activepieces.com/blog/comparing-sendgrid-alternatives-for-transactional-email",
+              "title": "Comparing SendGrid Alternatives for Transactional Email",
+              "domain": "activepieces.com"
+            },
+            {
+              "url": "https://www.techjockey.com/question/26273/which-sendgrid-alternative-has-the-best-email-deliverability?srsltid=AU7gw4W9sVV_nww4SdaodCiYJQJYEVdSguDUTlmrKym_XX7jfcpBU2VQ",
+              "title": "Which SendGrid alternative has the best email deliverability?",
+              "domain": "techjockey.com"
+            },
+            {
+              "url": "https://wraps.dev/alternatives/sendgrid",
+              "title": "13 SendGrid Alternatives, Ranked",
+              "domain": "wraps.dev"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/alternatives/sendgrid",
+              "title": "Best SendGrid Alternatives (2026): Pricing & Migration",
+              "domain": "buildmvpfast.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "The best SendGrid alternatives with superior deliverability are for transactional emails, for modern developer workflows, and Amazon SES for high-volume cost efficiency.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "The best SendGrid alternatives with superior deliverability are for transactional emails, for modern developer workflows, and Amazon SES for high-volume cost efficiency.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: Widely considered the gold standard for transactional delivery.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: The top choice for modern developer experience, especially for React and Next.js applications.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo (formerly Sendinblue): An optimal, budget-friendly all-in-one marketing and transactional suite that includes built-in CRM, SMS, and chat capabilities.",
+              "match": "Brevo"
+            }
           ],
           "collectedAt": "2026-10-07T15:37:11.749Z"
         }
@@ -416,10 +593,54 @@
           "overview": null,
           "mentioned": ["Postmark", "Amazon SES", "Resend", "SendGrid"],
           "sources": [
-            "postmarkapp.com",
-            "docs.djangoproject.com",
-            "aws.amazon.com",
-            "resend.com"
+            {
+              "url": "https://postmarkapp.com/pricing/?utm_source=openai",
+              "title": "Postmark Pricing and Free Trial",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://www.postmarkapp.com/developer/user-guide/send-email-with-smtp?utm_source=openai",
+              "title": "Sending email with SMTP | Postmark Developer Documentation",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://docs.djangoproject.com/en/6.0/topics/email/?utm_source=openai",
+              "title": "Sending email | Django documentation | Django",
+              "domain": "docs.djangoproject.com"
+            },
+            {
+              "url": "https://aws.amazon.com/about-aws/whats-new/2026/07/amazon-ses-pricing-plans/?utm_source=openai",
+              "title": "Amazon SES introduces pricing plans - AWS",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://resend.com/django?utm_source=openai",
+              "title": "Send emails with Django · Resend",
+              "domain": "resend.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "For most Django apps sending transactional email—password resets, verification links, receipts, and notifications—I’d choose Postmark.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Choose SES if minimizing cost is the priority.",
+              "match": "SES"
+            },
+            {
+              "brand": "Resend",
+              "text": "Choose Resend if you value a clean dashboard and developer-friendly setup.",
+              "match": "Resend"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Need transactional and marketing tools under one provider: SendGrid",
+              "match": "SendGrid"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:22.407Z"
         },
@@ -439,13 +660,94 @@
             "SparkPost"
           ],
           "sources": [
-            "sequenzy.com",
-            "boilerplatehub.com",
-            "djangopackages.org",
-            "sendx.io",
-            "mailtoolscout.com",
-            "smtp2go.com",
-            "dev.to"
+            {
+              "url": "https://www.sequenzy.com/blog/best-transactional-email-services",
+              "title": "The 24 Best Transactional Email Services in 2026 (Tested & Compared)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://boilerplatehub.com/best/email-for-django",
+              "title": "Best Transactional Email for Django SaaS in 2026",
+              "domain": "boilerplatehub.com"
+            },
+            {
+              "url": "https://www.djangopackages.org/grids/g/email/",
+              "title": "Django Packages : Reusable apps, sites and tools directory for Django",
+              "domain": "djangopackages.org"
+            },
+            {
+              "url": "https://www.sendx.io/blog/best-transactional-email-api-for-saas",
+              "title": "Best Transactional Email APIs for SaaS in 2026",
+              "domain": "sendx.io"
+            },
+            {
+              "url": "https://mailtoolscout.com/blog/best-transactional-email-services",
+              "title": "Best Transactional Email Services 2026 (API Tested)",
+              "domain": "mailtoolscout.com"
+            },
+            {
+              "url": "https://www.smtp2go.com/blog/best-transactional-email-services/",
+              "title": "Best Transactional Email Services in 2026 (Tested Top 5)",
+              "domain": "smtp2go.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-transactional-email-apis-for-ai-agents",
+              "title": "10 Best Transactional Email APIs for AI Agents (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://dev.to/desphixs/send-email-using-django-mailgun-easy-and-free-4cc9",
+              "title": "Send Email using Django & Mailgun - Easy and Free - DEV Community",
+              "domain": "dev.to"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Most Django apps should use Postmark if getting emails delivered matters most, or Amazon SES if cost matters most.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Most Django apps should use Postmark if getting emails delivered matters most, or Amazon SES if cost matters most.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: nicest developer experience.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun: worth picking if you also need to *receive* email.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: fine on a tight budget (300 emails/day free), but it scored much lower in inbox-placement testing (79.8% avg) than Postmark (93.8%).",
+              "match": "Brevo"
+            },
+            {
+              "brand": "MailerSend",
+              "text": "It's actively maintained and supports Amazon SES, Brevo, MailerSend, Mailgun, Mailjet, Mailtrap, Postmark, Postal, Resend, Scaleway TEM, SendGrid, SparkPost and more.",
+              "match": "MailerSend"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "It's actively maintained and supports Amazon SES, Brevo, MailerSend, Mailgun, Mailjet, Mailtrap, Postmark, Postal, Resend, Scaleway TEM, SendGrid, SparkPost and more.",
+              "match": "Mailtrap"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "It's actively maintained and supports Amazon SES, Brevo, MailerSend, Mailgun, Mailjet, Mailtrap, Postmark, Postal, Resend, Scaleway TEM, SendGrid, SparkPost and more.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "SparkPost",
+              "text": "It's actively maintained and supports Amazon SES, Brevo, MailerSend, Mailgun, Mailjet, Mailtrap, Postmark, Postal, Resend, Scaleway TEM, SendGrid, SparkPost and more.",
+              "match": "SparkPost"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:21.122Z"
         }
@@ -492,10 +794,49 @@
             "Mailgun"
           ],
           "sources": [
-            "aws.amazon.com",
-            "postmarkapp.com",
-            "resend.com",
-            "zoho.com"
+            {
+              "url": "https://aws.amazon.com/ses/pricing/?nc2=type_a&utm_source=openai",
+              "title": "Pricing",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://postmarkapp.com/pricing/?utm_source=openai",
+              "title": "Postmark Pricing and Free Trial",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://resend.com/pricing?contacts=100000&product=marketing&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://www.zoho.com/zeptomail/pricing.html?src=ft&utm_source=openai",
+              "title": "Zoho ZeptoMail Pricing",
+              "domain": "zoho.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES is the cheapest reliable email API for most startups—especially if you already use AWS.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "ZeptoMail",
+              "text": "Consider ZeptoMail for inexpensive, low-volume transactional sending without a monthly subscription.",
+              "match": "ZeptoMail"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Choose Postmark if password resets, login codes and receipts are mission-critical and you want simpler operations.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Choose Resend if your priority is integrating quickly with Node.js, Next.js or React Email.",
+              "match": "Resend"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:04.089Z"
         },
@@ -513,14 +854,94 @@
             "Mailgun"
           ],
           "sources": [
-            "photonconsole.com",
-            "emailvendorselection.com",
-            "instantly.ai",
-            "bavimail.com",
-            "sendx.io",
-            "brevo.com",
-            "deadsimple.email",
-            "fileproinfo.com"
+            {
+              "url": "https://photonconsole.com/blog/transactional-email-api-pricing-in-2026-9-providers-compared-for-true-cost-not-just-send-fees/",
+              "title": "Transactional Email API Pricing In 2026: 9 Providers Compared For True Cost, Not Just Send Fees",
+              "domain": "photonconsole.com"
+            },
+            {
+              "url": "https://www.emailvendorselection.com/transactional-email-services/",
+              "title": "12 Best Transactional Email Services in 2026 (Reviewed)",
+              "domain": "emailvendorselection.com"
+            },
+            {
+              "url": "https://instantly.ai/blog/top-email-sending-apis-in-2026-complete-comparison-guide/",
+              "title": "Top Email Sending APIs 2026: Full Comparison",
+              "domain": "instantly.ai"
+            },
+            {
+              "url": "https://bavimail.com/blog/transactional-email-api-comparison-2026",
+              "title": "Transactional Email API Comparison (2026): 7 Providers Reviewed - Bavimail",
+              "domain": "bavimail.com"
+            },
+            {
+              "url": "https://instantly.ai/blog/email-api-pricing-guide-compare-costs-calculate-your-roi/",
+              "title": "Email API Pricing Guide: Compare Costs & ROI",
+              "domain": "instantly.ai"
+            },
+            {
+              "url": "https://www.sendx.io/blog/best-transactional-email-api-for-saas",
+              "title": "Best Transactional Email APIs for SaaS in 2026",
+              "domain": "sendx.io"
+            },
+            {
+              "url": "https://www.brevo.com/blog/best-email-api/",
+              "title": "Best Email API Services 2026: 8 Providers Compared",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://deadsimple.email/blog/email-api-cost-comparison-ai-agents-2026.html",
+              "title": "Complete Cost Comparison: Email APIs for AI Agents in 2026 — Dead Simple Email",
+              "domain": "deadsimple.email"
+            },
+            {
+              "url": "https://fileproinfo.com/blog/which-is-the-best-transactional-email-api-in-2026-six-options-compared/2026/",
+              "title": "Which is the Best Transactional Email API in 2026? Six Options Compared",
+              "domain": "fileproinfo.com"
+            },
+            {
+              "url": "https://www.authencio.com/blog/smtpcom-pricing-compare-enterprise-email-api-costs",
+              "title": "SMTP.com Pricing 2026: Is It Cheaper Than SendGrid & Mailgun?",
+              "domain": "authencio.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "For most startups the answer is Amazon SES if you're comfortable doing some setup work, or Resend if you want something managed with a usable free plan.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Resend",
+              "text": "For most startups the answer is Amazon SES if you're comfortable doing some setup work, or Resend if you want something managed with a usable free plan.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: Known for the best deliverability, which matters for password resets and receipts.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "MailerSend",
+              "text": "MailerSend: The lowest entry price. $7 a month for 5,000 emails, with a free plan covering 500 a month.",
+              "match": "MailerSend"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: The most generous free tier (300 emails/day, no credit card required).",
+              "match": "Brevo"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "SendGrid has no permanent free tier anymore.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun has raised prices.",
+              "match": "Mailgun"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:48.834Z"
         },
@@ -588,10 +1009,44 @@
           },
           "mentioned": ["Amazon SES", "Mailgun", "SendGrid"],
           "sources": [
-            "resources.mailertogo.com",
-            "mailtani.com",
-            "reddit.com",
-            "apiscout.dev"
+            {
+              "url": "https://resources.mailertogo.com/comparisons/best-email-api-simplest-setup-free-tier-developers-2025",
+              "title": "Best Email API for Developers 2025: Zero-Config Setup",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://mailtani.com/blog/email-providers-list",
+              "title": "The 2026 Email Providers List: Top 10 for Developers",
+              "domain": "mailtani.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdevelopment/comments/1rv7q28/what_email_api_is_the_easiest_to_set_up/",
+              "title": "What email API is the easiest to set up? : r/webdevelopment - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/best-email-apis-2026",
+              "title": "Best Email APIs in 2026",
+              "domain": "apiscout.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES (Simple Email Service) is the cheapest reliable email API for a startup, costing just $0.10 per 1,000 emails sent.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun / SendGrid:",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Mailgun / SendGrid:",
+              "match": "SendGrid"
+            }
           ],
           "collectedAt": "2026-10-07T15:37:01.382Z"
         }
@@ -631,7 +1086,31 @@
           "text": "## Best choice: **Resend + React Email**\n\nResend is the strongest default because it has native React Email support—you can pass a React component directly to the API without manually rendering HTML. Resend’s team also maintains React Email, so the integration is particularly polished. \n\n### Install\n\n```bash\nnpm install resend @react-email/components\n```\n\n### Email template\n\n```tsx\n// emails/welcome-email.tsx\nimport {\n  Body,\n  Button,\n  Container,\n  Head,\n  Heading,\n  Html,\n  Preview,\n  Text,\n} from '@react-email/components';\n\ninterface WelcomeEmailProps {\n  name: string;\n}\n\nexport function WelcomeEmail({ name }: WelcomeEmailProps) {\n  return (\n    <Html>\n      <Head />\n      <Preview>Welcome to Acme</Preview>\n\n      <Body style={{ backgroundColor: '#f6f9fc', fontFamily: 'Arial' }}>\n        <Container style={{ backgroundColor: '#fff', padding: '32px' }}>\n          <Heading>Welcome, {name}!</Heading>\n\n          <Text>Your account is ready.</Text>\n\n          <Button\n            href=\"https://example.com/dashboard\"\n            style={{\n              backgroundColor: '#000',\n              color: '#fff',\n              padding: '12px 20px',\n              borderRadius: '6px',\n            }}\n          >\n            Open dashboard\n          </Button>\n        </Container>\n      </Body>\n    </Html>\n  );\n}\n```\n\n### Next.js API route\n\n```tsx\n// app/api/email/route.tsx\nimport { Resend } from 'resend';\nimport { WelcomeEmail } from '@/emails/welcome-email';\n\nconst resend = new Resend(process.env.RESEND_API_KEY);\n\nexport async function POST() {\n  const { data, error } = await resend.emails.send({\n    from: 'Acme <hello@yourdomain.com>',\n    to: ['customer@example.com'],\n    subject: 'Welcome to Acme',\n    react: <WelcomeEmail name=\"Ada\" />,\n  });\n\n  if (error) {\n    return Response.json({ error }, { status: 400 });\n  }\n\n  return Response.json(data);\n}\n```\n\nKeep the API key and sending logic server-side—never call the email provider directly from browser React code.\n\n### Alternatives\n\n| Provider | Best for |\n|---|---|\n| **Resend** | Best overall developer experience and React Email integration |\n| **Postmark** | Transactional email where deliverability is the main priority |\n| **Amazon SES** | Very high volume and infrastructure teams optimizing cost |\n| **SendGrid** | Existing Twilio/SendGrid environments and broad legacy features |\n\nReact Email can also render HTML or plain text for any provider, so you are not permanently tied to Resend. \n\n**Recommendation:** Start with **Resend + React Email** unless you already operate AWS SES or have specific enterprise-deliverability requirements.",
           "overview": null,
           "mentioned": ["Resend", "Postmark", "Amazon SES", "SendGrid"],
-          "sources": ["resend.com", "react.email"],
+          "sources": [
+            {
+              "url": "https://resend.com/nextjs?utm_source=openai",
+              "title": "Send emails with Next.js · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://react.email/?trk=article-ssr-frontend-pulse_little-text-block&utm_source=openai",
+              "title": "React Email",
+              "domain": "react.email"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Resend is the strongest default because it has native React Email support—you can pass a React component directly to the API without manually rendering HTML.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Recommendation: Start with Resend + React Email unless you already operate AWS SES or have specific enterprise-deliverability requirements.",
+              "match": "AWS SES"
+            }
+          ],
           "collectedAt": "2026-10-07T15:22:53.939Z"
         },
         {
@@ -648,14 +1127,94 @@
             "Brevo"
           ],
           "sources": [
-            "agentmail.to",
-            "marketingemailtools.com",
-            "sequenzy.com",
-            "nitrosend.com",
-            "fileproinfo.com",
-            "brevo.com",
-            "atomicmail.io",
-            "sendpigeon.dev"
+            {
+              "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+              "title": "6 Best Email API For Developers Compared [2026]",
+              "domain": "agentmail.to"
+            },
+            {
+              "url": "https://www.marketingemailtools.com/for/react-developers",
+              "title": "Best Email Tools for React Developers in 2026 - JSX Templates, TypeScript SDKs & Modern DX",
+              "domain": "marketingemailtools.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-email-tools-with-react-email-support",
+              "title": "21 Best Email Tools With React Email Support (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://nitrosend.com/best-email-api-for-react-and-nextjs",
+              "title": "Best Email API for React and Next.js in 2026",
+              "domain": "nitrosend.com"
+            },
+            {
+              "url": "https://fileproinfo.com/blog/which-is-the-best-transactional-email-api-in-2026-six-options-compared/2026/",
+              "title": "Which is the Best Transactional Email API in 2026? Six Options Compared",
+              "domain": "fileproinfo.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-api-first-email-platforms",
+              "title": "21 Best API-First Email Platforms for Developers (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.brevo.com/blog/best-email-api/",
+              "title": "Best Email API Services 2026: 8 Providers Compared",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://atomicmail.io/blog/best-email-apis-2026",
+              "title": "Best Email APIs for Developers in 2026",
+              "domain": "atomicmail.io"
+            },
+            {
+              "url": "https://sendpigeon.dev/blog/best-email-api-for-developers",
+              "title": "Best Email API for Developers in 2026",
+              "domain": "sendpigeon.dev"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-html-email-builders-for-developers",
+              "title": "21 Best HTML Email Builders for Developers in 2026",
+              "domain": "sequenzy.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Short answer: Resend.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: best for getting emails delivered reliably.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES: cheapest at high volume.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "SendGrid: best for large companies with marketing needs.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun: best if your app also receives email.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Loops",
+              "text": "Loops or Brevo: if you also want marketing tools.",
+              "match": "Loops"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Loops or Brevo: if you also want marketing tools.",
+              "match": "Brevo"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:48.827Z"
         },
@@ -770,14 +1329,74 @@
           },
           "mentioned": ["Resend", "Postmark", "Mailgun", "Amazon SES"],
           "sources": [
-            "youtube.com",
-            "apiscout.dev",
-            "react.email",
-            "resend.com",
-            "nylas.com",
-            "reddit.com",
-            "freecodecamp.org",
-            "github.com"
+            {
+              "url": "https://www.youtube.com/watch?v=pHXHBHdTzrM&t=31",
+              "title": "You Can Create Beautiful Modern Emails With React!",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/how-to-build-email-templates-react-email-resend-2026",
+              "title": "How to Build Email Templates with React Email + 2026",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://react.email/",
+              "title": "React Email",
+              "domain": "react.email"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=IVy0Yb8bHOc",
+              "title": "React Email 6: Open Source Email Editor",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://resend.com/docs/knowledge-base/template-emails-with-react-email",
+              "title": "Template emails with React Email - Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://react.email/docs/integrations/resend",
+              "title": "Send email using Resend - React Email",
+              "domain": "react.email"
+            },
+            {
+              "url": "https://www.nylas.com/blog/how-to-build-email-templates-with-react/",
+              "title": "How to build email templates with React | Nylas",
+              "domain": "nylas.com"
+            },
+            {
+              "url": "https://react.email/docs/introduction",
+              "title": "Build and send emails using React and TypeScript",
+              "domain": "react.email"
+            },
+            {
+              "url": "https://www.reddit.com/r/reactjs/comments/1raesf2/anyone_using_react_for_email_templates/",
+              "title": "Anyone using React for email templates? : r/reactjs - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.freecodecamp.org/news/create-and-send-email-templates-using-react-email-and-resend-in-nextjs/",
+              "title": "How to Create and Send Email Templates Using React ...",
+              "domain": "freecodecamp.org"
+            },
+            {
+              "url": "https://github.com/resend/react-email",
+              "title": "resend/react-email: 💌 Build and send emails using React",
+              "domain": "github.com"
+            },
+            {
+              "url": "https://www.htmlemailbuilders.com/for/react-developers",
+              "title": "Best HTML Email Builders for React Developers in 2026",
+              "domain": "htmlemailbuilders.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "The undisputed best email API for working with React email templates is Resend.",
+              "match": "Resend"
+            }
           ],
           "collectedAt": "2026-10-07T15:37:38.364Z"
         }
@@ -818,9 +1437,34 @@
           "overview": null,
           "mentioned": ["Postmark", "Amazon SES", "SendGrid", "Resend"],
           "sources": [
-            "postmarkapp.com",
-            "docs.aws.amazon.com",
-            "support.google.com"
+            {
+              "url": "https://postmarkapp.com/support/article/how-to-create-and-send-through-message-streams?utm_source=openai",
+              "title": "How to create and send through Message Streams | Postmark Support Center",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/ses/latest/dg/dedicated-ip.html?utm_source=openai",
+              "title": "Dedicated IP addresses for Amazon SES - Amazon Simple Email Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://support.google.com/mail/answer/81126?hl=en&utm_source=openai",
+              "title": "Email sender guidelines - Gmail Help",
+              "domain": "support.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "For transactional email—password resets, login codes, receipts, notifications—I’d choose Postmark for Gmail deliverability.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "SES is cost-effective and offers deliverability monitoring plus automatically warmed managed dedicated IPs, but it requires more configuration and reputation management.",
+              "match": "SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:08.564Z"
         },
@@ -836,14 +1480,84 @@
             "SendGrid"
           ],
           "sources": [
-            "mailtrap.io",
-            "infobip.com",
-            "messageflow.com",
-            "resources.mailertogo.com",
-            "warmforge.ai",
-            "inboxarmy.com",
-            "smtp2go.com",
-            "omnisend.com"
+            {
+              "url": "https://mailtrap.io/blog/email-deliverability-tools/",
+              "title": "17 Best Email Deliverability Tools: Tested & Compared [2026]",
+              "domain": "mailtrap.io"
+            },
+            {
+              "url": "https://www.infobip.com/blog/best-email-api",
+              "title": "Best email APIs in 2026 (for developers and enterprise teams)",
+              "domain": "infobip.com"
+            },
+            {
+              "url": "https://messageflow.com/blog/email-deliverability-2026/",
+              "title": "Email Deliverability 2026: Best Practices, Updates & Guide",
+              "domain": "messageflow.com"
+            },
+            {
+              "url": "https://resources.mailertogo.com/listicle/best-email-deliverability-monitoring-tools-developers",
+              "title": "7 Email Deliverability Monitoring Tools for Developers 2026",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://www.warmforge.ai/blog/gmail-vs-outlook-email-deliverability-comparison",
+              "title": "Gmail vs Outlook: Email Deliverability Comparison",
+              "domain": "warmforge.ai"
+            },
+            {
+              "url": "https://www.inboxarmy.com/blog/12-best-email-deliverability-tools/",
+              "title": "12 Best Email Deliverability Tools (Tested & Reviewed)",
+              "domain": "inboxarmy.com"
+            },
+            {
+              "url": "https://www.smtp2go.com/blog/best-transactional-email-services/",
+              "title": "Best Transactional Email Services in 2026 (Tested Top 5)",
+              "domain": "smtp2go.com"
+            },
+            {
+              "url": "https://www.omnisend.com/blog/email-deliverability/",
+              "title": "Email deliverability: A complete guide for ecommerce [2026]",
+              "domain": "omnisend.com"
+            },
+            {
+              "url": "https://www.emailvendorselection.com/email-deliverability-guide/",
+              "title": "The Ultimate Guide to Email Deliverability in 2026",
+              "domain": "emailvendorselection.com"
+            },
+            {
+              "url": "https://prospeo.io/s/email-deliverability-services",
+              "title": "Best Email Deliverability Services in 2026",
+              "domain": "prospeo.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Postmark is the usual pick for transactional email like password resets, receipts and sign-in links.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "An Infobip comparison lists it as best for \"Transactional speed and inbox placement\", and Mailtrap reports 83.3% inbox placement in independent testing.",
+              "match": "Mailtrap"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES is the cheapest at high volume.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun and SendGrid are solid all-rounders if you send both transactional and marketing mail.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Mailgun and SendGrid are solid all-rounders if you send both transactional and marketing mail.",
+              "match": "SendGrid"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:10.806Z"
         }
@@ -883,7 +1597,46 @@
           "text": "## Best overall: **Resend**\n\nFor a software product that needs both **transactional/product emails**—password resets, receipts, notifications—and **marketing emails**—newsletters, launches, lifecycle sequences—Resend is currently the strongest developer-first option in one platform.\n\n### Why Resend\n\n- Clean API and good SDK support\n- Transactional email, broadcasts, contacts, segments and automations in one dashboard\n- Marketing unsubscribe handling is built in\n- Strong debugging, webhooks and deliverability tooling\n- Free tier: 3,000 transactional emails/month and up to 1,000 marketing contacts\n- Transactional Pro starts at $20/month for 50,000 emails; marketing pricing is contact-based. \n\nIts main limitation is that the marketing suite is still less sophisticated than a dedicated customer-engagement platform.\n\n## Alternatives by use case\n\n| Platform | Best for | Main drawback |\n|---|---|---|\n| **Resend** | Developer-first SaaS and startups | Less advanced segmentation/journey tooling |\n| **Customer.io** | Complex onboarding, lifecycle and behavioral campaigns | Starts at $100/month |\n| **Brevo** | Budget-conscious SMBs wanting a visual marketing suite | API/developer experience is less polished |\n| **SendGrid** | Very high-volume, established infrastructure | Email API and Marketing Campaigns are treated as separate plans/products |\n\n### Choose **Customer.io** if marketing automation matters most\n\nCustomer.io combines transactional API messages, newsletters, API-triggered broadcasts and sophisticated event-driven journeys. Its Essentials plan currently starts at $100/month for 5,000 profiles and includes up to one million monthly emails. \n\nThis is the better choice when you need workflows such as:\n\n- User signed up but didn’t finish onboarding\n- Trial expires in three days\n- User performed event X but not event Y\n- Branching sequences across email, push, SMS or in-app messages\n\n### Choose **Brevo** if price and visual tools matter most\n\nBrevo includes transactional API/SMTP, campaigns, contact management and marketing automation. Plans start at $9/month, while the Standard automation plan starts at $18/month. \n\n## My practical recommendation\n\n- **Early-stage SaaS, technical team:** Resend\n- **Growth-stage SaaS with a lifecycle marketer:** Customer.io\n- **Small business/e-commerce with limited budget:** Brevo\n\nWhichever platform you choose, use separate sending subdomains—such as `transactional.example.com` and `updates.example.com`—so marketing engagement does not damage delivery of password resets and receipts.",
           "overview": null,
           "mentioned": ["Resend", "Customer.io", "Brevo", "SendGrid"],
-          "sources": ["resend.com", "customer.io", "help.brevo.com"],
+          "sources": [
+            {
+              "url": "https://www.resend.com/pricing?product=transactional&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://customer.io/pricing?utm_source=openai",
+              "title": "Pricing + Plans | Customer.io",
+              "domain": "customer.io"
+            },
+            {
+              "url": "https://help.brevo.com/hc/en-us/articles/208589409-About-Brevo-s-pricing-plans?utm_source=openai",
+              "title": "About Brevo's pricing plans – Home",
+              "domain": "help.brevo.com"
+            },
+            {
+              "url": "https://resend.com/changelog/three-domains-on-the-free-tier?utm_source=openai",
+              "title": "More Domains on the Free Tier · Resend",
+              "domain": "resend.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "For a software product that needs both transactional/product emails—password resets, receipts, notifications—and marketing emails—newsletters, launches, lifecycle sequences—Resend is currently the strongest developer-first option in one platform.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Customer.io",
+              "text": "Customer.io combines transactional API messages, newsletters, API-triggered broadcasts and sophisticated event-driven journeys.",
+              "match": "Customer.io"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo includes transactional API/SMTP, campaigns, contact management and marketing automation.",
+              "match": "Brevo"
+            }
+          ],
           "collectedAt": "2026-10-07T15:23:39.658Z"
         },
         {
@@ -901,14 +1654,99 @@
             "Amazon SES"
           ],
           "sources": [
-            "mailtrap.io",
-            "sequenzy.com",
-            "maestra.io",
-            "guideflow.com",
-            "brevo.com",
-            "agentmail.to",
-            "infobip.com",
-            "sender.net"
+            {
+              "url": "https://mailtrap.io/blog/best-email-api/",
+              "title": "8 Best Email API For Developers Compared [2026]",
+              "domain": "mailtrap.io"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-email-platforms-transactional-and-marketing",
+              "title": "21 Best Email Platforms for Both Transactional and Marketing (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://maestra.io/blog/comparisons/best-transactional-email-platforms",
+              "title": "Best Transactional Email Platforms for 2026: Features & Pricing",
+              "domain": "maestra.io"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/transactional-email-software",
+              "title": "11 best transactional email software platforms for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://www.brevo.com/blog/best-email-api/",
+              "title": "Best Email API Services 2026: 8 Providers Compared",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+              "title": "6 Best Email API For Developers Compared [2026]",
+              "domain": "agentmail.to"
+            },
+            {
+              "url": "https://www.infobip.com/blog/best-email-api",
+              "title": "Best email APIs in 2026 (for developers and enterprise teams)",
+              "domain": "infobip.com"
+            },
+            {
+              "url": "https://www.sender.net/blog/transactional-email-services/",
+              "title": "12 Best Transactional Email Services (Free & Paid) 2026",
+              "domain": "sender.net"
+            },
+            {
+              "url": "https://sendlayer.com/blog/best-transactional-email-services/",
+              "title": "7 Best Transactional Email Services for 2026",
+              "domain": "sendlayer.com"
+            },
+            {
+              "url": "https://mailtrap.io/blog/best-email-api-for-nodejs-developers/",
+              "title": "6 Best Email API For Node.js Developers Compared [2026]",
+              "domain": "mailtrap.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Brevo",
+              "text": "Most of these \"best of\" lists are written by the email companies themselves (Brevo, Mailtrap, Sequenzy and others), so each one tends to rank itself first.",
+              "match": "Brevo"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "Most of these \"best of\" lists are written by the email companies themselves (Brevo, Mailtrap, Sequenzy and others), so each one tends to rank itself first.",
+              "match": "Mailtrap"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "SendGrid (Twilio): the safe enterprise choice.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: the best developer experience.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Loops",
+              "text": "Loops or Sequenzy: built for SaaS lifecycle email.",
+              "match": "Loops"
+            },
+            {
+              "brand": "Customer.io",
+              "text": "Customer.io: for advanced automation.",
+              "match": "Customer.io"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark offers separate streams for product and bulk email, with strong inbox delivery.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Lowest cost, and you'll build your own marketing tools → Amazon SES",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:38.341Z"
         },
@@ -995,11 +1833,45 @@
           },
           "mentioned": ["SendGrid", "Brevo", "Resend"],
           "sources": [
-            "coldiq.com",
-            "labnify.com",
-            "quora.com",
-            "worksbuddy.ai",
-            "expressa.io"
+            {
+              "url": "https://coldiq.com/category/email-marketing-apis",
+              "title": "Best Email Marketing APIs in 2026 for GTM Teams by ColdIQ",
+              "domain": "coldiq.com"
+            },
+            {
+              "url": "https://labnify.com/blog/20-best-email-platforms-for-marketing-agencies/",
+              "title": "20 Best Email Platforms for Marketing Agencies",
+              "domain": "labnify.com"
+            },
+            {
+              "url": "https://www.quora.com/What-is-the-best-email-marketing-service-with-an-API",
+              "title": "What is the best email marketing service with an API?",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://worksbuddy.ai/blogs/best-email-marketing-platforms-for-high-volume-campaigns-deliverability-automation-roi-breakdown",
+              "title": "Best Email Marketing Platforms for Large",
+              "domain": "worksbuddy.ai"
+            },
+            {
+              "url": "https://www.expressa.io/blog/best-email-api-provider-saas",
+              "title": "What Is the Best Email API Provider for SaaS? Must",
+              "domain": "expressa.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "The best options that handle both product (transactional) and marketing emails in a single platform via API include Twilio SendGrid, Brevo (formerly Sendinblue), and.",
+              "match": "Twilio SendGrid"
+            },
+            {
+              "brand": "Brevo",
+              "text": "The best options that handle both product (transactional) and marketing emails in a single platform via API include Twilio SendGrid, Brevo (formerly Sendinblue), and.",
+              "match": "Brevo"
+            },
+            { "brand": "Resend", "text": "Resend", "match": "Resend" }
           ],
           "collectedAt": "2026-10-07T15:23:37.651Z"
         }
@@ -1043,7 +1915,51 @@
             "Mailgun",
             "SendGrid"
           ],
-          "sources": ["postmarkapp.com", "resend.com", "aws.amazon.com"],
+          "sources": [
+            {
+              "url": "https://postmarkapp.com/pricing",
+              "title": "postmarkapp.com",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://resend.com/pricing?product=transactional&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://aws.amazon.com/ses/pricing/?nc2=type_a&utm_source=openai",
+              "title": "Pricing",
+              "domain": "aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Best overall: Postmark",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend is particularly attractive for new TypeScript applications: clean SDKs, React Email support, inbound email, webhooks and excellent local-development ergonomics.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES is the economical choice at scale—its à-la-carte outbound rate is $0.10 per 1,000 emails—but expect more setup around IAM, event processing, templates, monitoring and deliverability operations.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Complex inbound routing: Mailgun",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Already embedded in Twilio/SendGrid: Stay with SendGrid",
+              "match": "SendGrid"
+            }
+          ],
           "collectedAt": "2026-10-07T15:21:34.068Z"
         },
         {
@@ -1059,14 +1975,84 @@
             "Mailtrap"
           ],
           "sources": [
-            "nitrosend.com",
-            "maestra.io",
-            "mailtoolscout.com",
-            "sendx.io",
-            "instantly.ai",
-            "twilio.com",
-            "infobip.com",
-            "sequenzy.com"
+            {
+              "url": "https://nitrosend.com/best-transactional-email-api",
+              "title": "9 Best Transactional Email APIs for AI Agents (2026): Ranked - Nitrosend",
+              "domain": "nitrosend.com"
+            },
+            {
+              "url": "https://maestra.io/blog/comparisons/best-transactional-email-platforms",
+              "title": "Best Transactional Email Platforms for 2026: Features & Pricing",
+              "domain": "maestra.io"
+            },
+            {
+              "url": "https://mailtoolscout.com/blog/best-transactional-email-services",
+              "title": "Best Transactional Email Services 2026 (API Tested)",
+              "domain": "mailtoolscout.com"
+            },
+            {
+              "url": "https://www.sendx.io/blog/best-transactional-email-api-for-saas",
+              "title": "Best Transactional Email APIs for SaaS in 2026",
+              "domain": "sendx.io"
+            },
+            {
+              "url": "https://instantly.ai/blog/top-email-sending-apis-in-2026-complete-comparison-guide/",
+              "title": "Top Email Sending APIs 2026: Full Comparison",
+              "domain": "instantly.ai"
+            },
+            {
+              "url": "https://www.twilio.com/en-us/blog/insights/best-email-api",
+              "title": "The 5 top email API services for developers in 2026",
+              "domain": "twilio.com"
+            },
+            {
+              "url": "https://www.infobip.com/blog/best-email-api",
+              "title": "Best email APIs in 2026 (for developers and enterprise teams)",
+              "domain": "infobip.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-transactional-email-apis-for-ai-agents",
+              "title": "10 Best Transactional Email APIs for AI Agents (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+              "title": "6 Best Email API For Developers Compared [2026]",
+              "domain": "agentmail.to"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "Many of these rankings are written by email companies that put themselves first (Twilio ranks SendGrid #1, Nitrosend ranks Nitrosend #1), so I've stuck to the points where independent reviews agree.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "For most teams in 2026, the best transactional email providers are Postmark (best-in-class deliverability, strict transactional-only policy), Amazon SES (cheapest at scale, AWS-native), and Resend (best developer experience for modern React/Next.js stacks).",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "For most teams in 2026, the best transactional email providers are Postmark (best-in-class deliverability, strict transactional-only policy), Amazon SES (cheapest at scale, AWS-native), and Resend (best developer experience for modern React/Next.js stacks).",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Resend",
+              "text": "For most teams in 2026, the best transactional email providers are Postmark (best-in-class deliverability, strict transactional-only policy), Amazon SES (cheapest at scale, AWS-native), and Resend (best developer experience for modern React/Next.js stacks).",
+              "match": "Resend"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Inbound email or address validation: Mailgun.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "Deliverability analytics: Mailtrap.",
+              "match": "Mailtrap"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:31.350Z"
         },
@@ -1159,11 +2145,59 @@
             "Amazon SES"
           ],
           "sources": [
-            "alternative.tools",
-            "coldiq.com",
-            "coldletter.com",
-            "resources.mailertogo.com",
-            "reddit.com"
+            {
+              "url": "https://alternative.tools/guides/email-apis",
+              "title": "Best Transactional Email APIs for SaaS in 2026",
+              "domain": "alternative.tools"
+            },
+            {
+              "url": "https://coldiq.com/category/transactional-email-apis",
+              "title": "Best Transactional Email APIs in 2026 for GTM Teams by ColdIQ",
+              "domain": "coldiq.com"
+            },
+            {
+              "url": "https://coldletter.com/blog/transactional-email-api/",
+              "title": "Best Transactional Email APIs for Developers (2026)",
+              "domain": "coldletter.com"
+            },
+            {
+              "url": "https://resources.mailertogo.com/comparisons/best-transactional-email-service-startups-2025",
+              "title": "Best Transactional Email Service for Startups 2025",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1rjwnit/best_transactional_email_service_for_highvolume/",
+              "title": "Best transactional email service for high-volume login ... - Reddit",
+              "domain": "reddit.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Postmark is widely considered the best transactional email API for reliable delivery and fast setup.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: Best for modern developer experiences and React/Next.js stacks, offering clean APIs and a generous free starting tier.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: Best for budget-conscious startups that want to bundle marketing and transactional triggers under a single roof with a high daily free limit.",
+              "match": "Brevo"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "SendGrid: Best for large companies that need proven scale and a single vendor across multiple communication channels.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES: Best for high-volume enterprise sending where cost control and raw infrastructure management are top priorities.",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:41.427Z"
         }
@@ -1202,12 +2236,54 @@
           "overview": null,
           "mentioned": ["Postmark", "Resend", "Amazon SES"],
           "sources": [
-            "postmarkapp.com",
-            "resend.com",
-            "aws.amazon.com",
-            "onesignal.com",
-            "twilio.com",
-            "docs.stripe.com"
+            {
+              "url": "https://postmarkapp.com/pricing/?utm_source=openai",
+              "title": "Postmark Pricing and Free Trial",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://www.resend.com/pricing?product=transactional&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://aws.amazon.com/ses/pricing/?nc2=type_a&utm_source=openai",
+              "title": "Pricing",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://onesignal.com/pricing?utm_source=openai",
+              "title": "Pricing - OneSignal",
+              "domain": "onesignal.com"
+            },
+            {
+              "url": "https://www.twilio.com/en-us/sms/pricing/us?rd=1&utm_source=openai",
+              "title": "SMS Pricing in United States for Text Messaging | Twilio",
+              "domain": "twilio.com"
+            },
+            {
+              "url": "https://docs.stripe.com/api/payment_intents/create?__=&utm_source=openai",
+              "title": "Create a PaymentIntent | Stripe API Reference",
+              "domain": "docs.stripe.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Postmark — best “just works” choice for important transactional email.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend — best developer experience, especially for React/Next.js apps.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES — cheapest at scale, but requires more configuration. À-la-carte outbound email is $0.10 per 1,000 emails, excluding extras such as attachment data.",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:03.841Z"
         },
@@ -1217,14 +2293,79 @@
           "overview": null,
           "mentioned": ["Postmark", "Resend", "Amazon SES", "Brevo"],
           "sources": [
-            "mailtrap.io",
-            "smtp2go.com",
-            "brevo.com",
-            "sequenzy.com",
-            "courier.com",
-            "ventureharbour.com",
-            "blogs.blueyemail.com",
-            "guideflow.com"
+            {
+              "url": "https://mailtrap.io/blog/transactional-email-services/",
+              "title": "6 Best Transactional Email Services Compared [2026]",
+              "domain": "mailtrap.io"
+            },
+            {
+              "url": "https://www.smtp2go.com/blog/best-transactional-email-services/",
+              "title": "Best Transactional Email Services in 2026 (Tested Top 5)",
+              "domain": "smtp2go.com"
+            },
+            {
+              "url": "https://www.brevo.com/blog/best-transactional-email-services/",
+              "title": "10 Best Transactional Email Services Compared (2026)",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-transactional-email-services",
+              "title": "The 24 Best Transactional Email Services in 2026 (Tested & Compared)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.courier.com/blog/transactional-email-services",
+              "title": "Best Transactional Email Services (2026)",
+              "domain": "courier.com"
+            },
+            {
+              "url": "https://ventureharbour.com/transactional-email-service-best-mandrill-vs-sendgrid-vs-mailjet/",
+              "title": "7 Best Transactional Email Services in 2026 (Compared)",
+              "domain": "ventureharbour.com"
+            },
+            {
+              "url": "https://blogs.blueyemail.com/best-transactional-email-services/",
+              "title": "Best Transactional Email Services in 2026, Priced and Compared - Blogs Bluey Email",
+              "domain": "blogs.blueyemail.com"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/transactional-email-software",
+              "title": "11 best transactional email software platforms for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://mailtoolscout.com/blog/best-transactional-email-services",
+              "title": "Best Transactional Email Services 2026 (API Tested)",
+              "domain": "mailtoolscout.com"
+            },
+            {
+              "url": "https://lettr.com/blog/best-transactional-email-services/",
+              "title": "Best transactional email services in 2026, compared",
+              "domain": "lettr.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Postmark",
+              "text": "Postmark: best if the emails have to arrive fast.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend: best for developers.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES: cheapest at scale.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: if you'll also send marketing emails.",
+              "match": "Brevo"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:00.325Z"
         },
@@ -1355,14 +2496,69 @@
           },
           "mentioned": ["SendGrid", "Postmark"],
           "sources": [
-            "courier.com",
-            "leadscrape.com",
-            "twilio.com",
-            "plainenglish.io",
-            "dreamlit.ai",
-            "ahoy.sendgrid.com",
-            "pushwoosh.com",
-            "businessofapps.com"
+            {
+              "url": "https://www.courier.com/blog/top-push-notification-providers",
+              "title": "Top 10 Push Notification Providers in 2026 (Compared)",
+              "domain": "courier.com"
+            },
+            {
+              "url": "https://www.leadscrape.com/top-5-transactional-email-services.html",
+              "title": "Top 5 Transactional Email Services in 2026",
+              "domain": "leadscrape.com"
+            },
+            {
+              "url": "https://www.twilio.com/en-us/products/email-api",
+              "title": "Twilio SendGrid Email API | Twilio",
+              "domain": "twilio.com"
+            },
+            {
+              "url": "https://plainenglish.io/apis/best-transactional-email-apis-for-saas-product-notifications-2026",
+              "title": "7 Best Transactional Email APIs for SaaS Product Notifications ...",
+              "domain": "plainenglish.io"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/postmark-vs-sendgrid",
+              "title": "Postmark vs SendGrid: Which Transactional Email Tool to Choose ...",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "http://ahoy.sendgrid.com/A_perfect_match_sms_and_email_On_Demand",
+              "title": "A Perfect Match: SMS & Email",
+              "domain": "ahoy.sendgrid.com"
+            },
+            {
+              "url": "https://www.pushwoosh.com/blog/mobile-push-notification-services/",
+              "title": "11 best mobile push notification services for 2026 - Pushwoosh",
+              "domain": "pushwoosh.com"
+            },
+            {
+              "url": "https://www.businessofapps.com/marketplace/push-notifications/",
+              "title": "Top Push Notification Services (2026)",
+              "domain": "businessofapps.com"
+            },
+            {
+              "url": "https://pushpilot.ai/best-push-notification-services",
+              "title": "Best Push Notification Services in 2026 — 6 Platforms Compared",
+              "domain": "pushpilot.ai"
+            },
+            {
+              "url": "https://www.trustradius.com/compare-products/onesignal-vs-twilio-sendgrid",
+              "title": "Compare OneSignal vs Twilio SendGrid 2026 - TrustRadius",
+              "domain": "trustradius.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "Twilio SendGrid Email API: Best for sending high-volume transactional receipts, alerts, and dynamic templates with robust developer tools.",
+              "match": "Twilio SendGrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: A specialized alternative focused purely on fast, reliable transactional email delivery and clear isolation from marketing mail.",
+              "match": "Postmark"
+            }
           ],
           "collectedAt": "2026-10-07T15:38:10.762Z"
         }
@@ -1400,7 +2596,36 @@
           "text": "The easiest approach is to use a **transactional email service over HTTPS**, rather than running an SMTP server or opening SMTP connections from your function.\n\nFor most JavaScript/TypeScript projects, **Resend** is probably the quickest setup. Postmark and SendGrid work similarly; if everything already runs on AWS, SES is a natural alternative. Resend provides a small Node SDK, while Postmark and SendGrid also provide HTTP APIs and official libraries. \n\n### Example with Resend\n\n```bash\nnpm install resend\n```\n\nStore the API key as a serverless environment variable:\n\n```text\nRESEND_API_KEY=re_xxxxxxxxx\n```\n\nThen call it from your function:\n\n```ts\nimport { Resend } from \"resend\";\n\nconst resend = new Resend(process.env.RESEND_API_KEY);\n\nexport async function handler(event: unknown) {\n  const { data, error } = await resend.emails.send({\n    from: \"My App <notifications@example.com>\",\n    to: [\"user@example.com\"],\n    subject: \"Hello\",\n    text: \"This email came from a serverless function.\",\n    html: \"<p>This email came from a <strong>serverless function</strong>.</p>\",\n  });\n\n  if (error) {\n    console.error(error);\n\n    return {\n      statusCode: 500,\n      body: JSON.stringify({ error: \"Email could not be sent\" }),\n    };\n  }\n\n  return {\n    statusCode: 200,\n    body: JSON.stringify({ emailId: data?.id }),\n  };\n}\n```\n\nYou’ll need to verify your sending domain before sending from your own address. \n\n### Practical recommendations\n\n- Keep the API key in your platform’s secrets/environment-variable system.\n- Validate and restrict recipient addresses if the function is publicly callable.\n- Never accept an unrestricted `from` address from the client.\n- For password resets or receipts, wait for the API response and handle errors.\n- For noncritical notifications or high volume, place a job on a queue and send asynchronously.\n- Configure SPF and DKIM through the provider’s domain-verification process.\n- Use webhooks to track delivery, bounces, and complaints.\n\n**Short answer:** use Resend’s HTTP API for the simplest developer experience; use Postmark if you want a transactional-email-focused alternative; use SES if you’re already heavily invested in AWS.",
           "overview": null,
           "mentioned": ["Resend", "Postmark", "SendGrid", "Amazon SES"],
-          "sources": ["npmjs.com"],
+          "sources": [
+            {
+              "url": "https://www.npmjs.com/package/resend?utm_source=openai",
+              "title": "resend - npm",
+              "domain": "npmjs.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "For most JavaScript/TypeScript projects, Resend is probably the quickest setup.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark and SendGrid work similarly; if everything already runs on AWS, SES is a natural alternative.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Postmark and SendGrid work similarly; if everything already runs on AWS, SES is a natural alternative.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Postmark and SendGrid work similarly; if everything already runs on AWS, SES is a natural alternative.",
+              "match": "SES"
+            }
+          ],
           "collectedAt": "2026-10-07T15:23:27.823Z"
         },
         {
@@ -1416,14 +2641,89 @@
             "Brevo"
           ],
           "sources": [
-            "agentmail.to",
-            "sequenzy.com",
-            "dev.to",
-            "resources.mailertogo.com",
-            "courier.com",
-            "fileproinfo.com",
-            "guideflow.com",
-            "ventureharbour.com"
+            {
+              "url": "https://www.agentmail.to/blog/free-email-api-for-developers",
+              "title": "11 Free Email APIs Compared: Send Limits, Inbound, and Retention (2026)",
+              "domain": "agentmail.to"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-free-email-apis",
+              "title": "23 Best Free Email APIs in 2026",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://dev.to/apmedev/transactional-email-apis-with-great-free-tiers-52l1",
+              "title": "Transactional Email APIs with Great Free Tiers - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-transactional-email-services",
+              "title": "The 24 Best Transactional Email Services in 2026 (Tested & Compared)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://resources.mailertogo.com/listicle/best-email-apis-serverless-edge-platforms",
+              "title": "Best Email APIs for Serverless & Edge (2026)",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://www.courier.com/integrations/list/transactional-email",
+              "title": "Top 13 transactional email API providers [2026] - Courier",
+              "domain": "courier.com"
+            },
+            {
+              "url": "https://fileproinfo.com/blog/which-is-the-best-transactional-email-api-in-2026-six-options-compared/2026/",
+              "title": "Which is the Best Transactional Email API in 2026? Six Options Compared",
+              "domain": "fileproinfo.com"
+            },
+            {
+              "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+              "title": "6 Best Email API For Developers Compared [2026]",
+              "domain": "agentmail.to"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/transactional-email-software",
+              "title": "11 best transactional email software platforms for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://ventureharbour.com/transactional-email-service-best-mandrill-vs-sendgrid-vs-mailjet/",
+              "title": "7 Best Transactional Email Services in 2026 (Compared)",
+              "domain": "ventureharbour.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "For most people the easiest option is a transactional email HTTP API, and Resend in particular.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: good when deliverability matters most.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES: the cheapest at scale, especially if you already use Lambda.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun, Mailtrap or Brevo: worth a look if you also need to receive email or want a bigger free tier.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Mailtrap",
+              "text": "Mailgun, Mailtrap or Brevo: worth a look if you also need to receive email or want a bigger free tier.",
+              "match": "Mailtrap"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Mailgun, Mailtrap or Brevo: worth a look if you also need to receive email or want a bigger free tier.",
+              "match": "Brevo"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:29.257Z"
         },
@@ -1561,13 +2861,64 @@
           },
           "mentioned": ["Resend", "SendGrid", "Postmark", "Amazon SES"],
           "sources": [
-            "youtube.com",
-            "resources.mailertogo.com",
-            "dev.to",
-            "repost.aws",
-            "builder.aws.com",
-            "oneuptime.com",
-            "medium.com"
+            {
+              "url": "https://www.youtube.com/watch?v=QrVYLLpoyMw",
+              "title": "Send Emails with SendGrid & Next.js Serverless Functions",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://resources.mailertogo.com/listicle/best-email-apis-serverless-edge-platforms",
+              "title": "Best Email APIs for Serverless & Edge (2026)",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://dev.to/kennymark/how-to-send-serverless-emails-with-next-js-and-sengrid-40lj",
+              "title": "How to send serverless emails with Next.js and Sengrid.",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://repost.aws/knowledge-center/lambda-send-email-ses",
+              "title": "How do I use Lambda and Amazon SES to send email? - AWS re:Post",
+              "domain": "repost.aws"
+            },
+            {
+              "url": "https://builder.aws.com/content/3JdgUAUdQ3Yx4pcj3DQmf07ukLc/deploying-a-serverless-contact-form-with-aws-lambda-and-amazon-ses",
+              "title": "Deploying a Serverless Contact Form with AWS Lambda and ...",
+              "domain": "builder.aws.com"
+            },
+            {
+              "url": "https://oneuptime.com/blog/post/2026-02-12-use-lambda-for-sending-emails-via-ses/view",
+              "title": "How to Use Lambda for Sending Emails via SES - OneUptime",
+              "domain": "oneuptime.com"
+            },
+            {
+              "url": "https://medium.com/launchmetrics-tech-product-blog/sending-emails-with-react-email-and-aws-lambda-a66614f6838f",
+              "title": "Sending emails with React Email and AWS Lambda",
+              "domain": "medium.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "The easiest way to send emails from a serverless function is to use a developer-friendly transactional email API like Resend, SendGrid, or Postmark via a simple HTTPS fetch request or lightweight SDK, rather than configuring traditional SMTP.",
+              "match": "Resend"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "The easiest way to send emails from a serverless function is to use a developer-friendly transactional email API like Resend, SendGrid, or Postmark via a simple HTTPS fetch request or lightweight SDK, rather than configuring traditional SMTP.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "The easiest way to send emails from a serverless function is to use a developer-friendly transactional email API like Resend, SendGrid, or Postmark via a simple HTTPS fetch request or lightweight SDK, rather than configuring traditional SMTP.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Alternative: Native Cloud Provider (AWS Lambda + Amazon SES)",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:39:20.409Z"
         }
@@ -1609,7 +2960,46 @@
             "Loops",
             "Customer.io"
           ],
-          "sources": ["resend.com", "postmarkapp.com", "docs.aws.amazon.com"],
+          "sources": [
+            {
+              "url": "https://resend.com/nextjs?utm_source=openai",
+              "title": "Send emails with Next.js · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://resend.com/changelog/domain-claim?utm_source=openai",
+              "title": "Domain Claim · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://www.postmarkapp.com/developer/get-started?utm_source=openai",
+              "title": "Get started | Postmark Developer Documentation",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/ses/latest/dg/setting-up.html?utm_source=openai",
+              "title": "Setting up Amazon Simple Email Service - Amazon Simple Email Service",
+              "domain": "docs.aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "For most Next.js apps, use Resend + React Email.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "It integrates cleanly with Next.js Route Handlers and Server Actions, supports React-based templates, and requires less configuration than AWS SES.",
+              "match": "AWS SES"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark has an official TypeScript SDK and explicitly separates transactional and broadcast traffic through message streams.",
+              "match": "Postmark"
+            }
+          ],
           "collectedAt": "2026-10-07T15:21:37.587Z"
         },
         {
@@ -1618,14 +3008,84 @@
           "overview": null,
           "mentioned": ["Resend", "Postmark", "Amazon SES", "Brevo", "Loops"],
           "sources": [
-            "plainenglish.io",
-            "sendpigeon.dev",
-            "nitrosend.com",
-            "agentmail.to",
-            "messyfounder.com",
-            "brevo.com",
-            "elasticemail.com",
-            "spotler.com"
+            {
+              "url": "https://plainenglish.io/nextjs/top-5-email-apis-for-nextjs-apps",
+              "title": "Top 5 Email APIs for Next.js Apps in 2026",
+              "domain": "plainenglish.io"
+            },
+            {
+              "url": "https://sendpigeon.dev/blog/best-email-api-nextjs",
+              "title": "Best Email API for Next.js (2026)",
+              "domain": "sendpigeon.dev"
+            },
+            {
+              "url": "https://nitrosend.com/best-email-api-for-react-and-nextjs",
+              "title": "Best Email API for React and Next.js in 2026",
+              "domain": "nitrosend.com"
+            },
+            {
+              "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+              "title": "6 Best Email API For Developers Compared [2026]",
+              "domain": "agentmail.to"
+            },
+            {
+              "url": "https://www.messyfounder.com/blog/what-email-api-should-i-use-for-nextjs",
+              "title": "I’m Building a Next.js App. What Email API Should I Use?",
+              "domain": "messyfounder.com"
+            },
+            {
+              "url": "https://www.brevo.com/blog/best-email-api/",
+              "title": "Best Email API Services 2026: 8 Providers Compared",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://elasticemail.com/blog/best-email-api-for-ai-built-apps-2026-comparison",
+              "title": "Best email API for AI-built apps (2026 comparison) - Elastic Email",
+              "domain": "elasticemail.com"
+            },
+            {
+              "url": "https://spotler.com/guides/best-email-sending-api-2026",
+              "title": "The best email sending APIs in 2026",
+              "domain": "spotler.com"
+            },
+            {
+              "url": "https://sendpigeon.dev/blog/best-email-api-for-developers",
+              "title": "Best Email API for Developers in 2026",
+              "domain": "sendpigeon.dev"
+            },
+            {
+              "url": "https://www.courier.com/blog/best-email-api-providers-for-developers",
+              "title": "Best Email API for Developers in 2026: A Technical Comparison",
+              "domain": "courier.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Short answer: use Resend unless you have a specific reason not to.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Reliable delivery is critical (password codes, fintech, healthcare): Postmark.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "You're on AWS and send a lot of email: Amazon SES.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Brevo",
+              "text": "You also need marketing emails or newsletters: Brevo or Loops handle both kinds of email in one place.",
+              "match": "Brevo"
+            },
+            {
+              "brand": "Loops",
+              "text": "You also need marketing emails or newsletters: Brevo or Loops handle both kinds of email in one place.",
+              "match": "Loops"
+            }
           ],
           "collectedAt": "2026-10-07T15:21:46.484Z"
         }
@@ -1667,7 +3127,46 @@
             "Mailgun",
             "SendGrid"
           ],
-          "sources": ["resend.com", "postmarkapp.com", "docs.aws.amazon.com"],
+          "sources": [
+            {
+              "url": "https://resend.com/docs/introduction",
+              "title": "Introduction - Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://www.postmarkapp.com/developer/api/email-api?utm_source=openai",
+              "title": "Email API | Postmark Developer Documentation",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/ses/latest/dg/send-email.html?utm_source=openai",
+              "title": "Set up email sending with Amazon SES - Amazon Simple Email Service",
+              "domain": "docs.aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "As of October 7, 2026, Resend offers the best overall developer experience—especially for TypeScript, Node.js, Next.js, and React projects.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark is the closest alternative.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES is substantially cheaper at scale—its à-la-carte outbound price is currently $0.10 per 1,000 emails—but AWS credentials, IAM, sandbox restrictions, regions, configuration sets, and event infrastructure make it less pleasant to integrate directly.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Complex inbound email workflows: Mailgun",
+              "match": "Mailgun"
+            }
+          ],
           "collectedAt": "2026-10-07T15:22:15.417Z"
         },
         {
@@ -1682,14 +3181,84 @@
             "SendGrid"
           ],
           "sources": [
-            "brevo.com",
-            "sequenzy.com",
-            "courier.com",
-            "infobip.com",
-            "blog.sendblaster.com",
-            "unipile.com",
-            "generect.com",
-            "usecarly.com"
+            {
+              "url": "https://www.brevo.com/blog/best-email-api/",
+              "title": "Best Email API Services 2026: 8 Providers Compared",
+              "domain": "brevo.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-api-first-email-platforms",
+              "title": "21 Best API-First Email Platforms for Developers (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.courier.com/blog/best-email-api-providers-for-developers",
+              "title": "Best Email API for Developers in 2026: A Technical Comparison",
+              "domain": "courier.com"
+            },
+            {
+              "url": "https://www.infobip.com/blog/best-email-api",
+              "title": "Best email APIs in 2026 (for developers and enterprise teams)",
+              "domain": "infobip.com"
+            },
+            {
+              "url": "https://blog.sendblaster.com/2026/03/24/the-6-best-email-api-services-for-developers-comparison/",
+              "title": "6 Best Email API Services for Developers [2026 Comparison]",
+              "domain": "blog.sendblaster.com"
+            },
+            {
+              "url": "https://www.unipile.com/email-api-providers/",
+              "title": "Best Email API Providers in 2026: Compare 6 Sync APIs - Unipile",
+              "domain": "unipile.com"
+            },
+            {
+              "url": "https://generect.com/blog/best-email-api/",
+              "title": "Top 12 Best Email APIs for Seamless Sending in 2026",
+              "domain": "generect.com"
+            },
+            {
+              "url": "https://www.usecarly.com/blog/best-email-api/",
+              "title": "9 Best Email APIs in 2026 (Free Tiers Compared)",
+              "domain": "usecarly.com"
+            },
+            {
+              "url": "https://tomba.io/blog/best-email-apis",
+              "title": "The 9 Best Email APIs in 2026 for Developers & Teams - Tomba Blog",
+              "domain": "tomba.io"
+            },
+            {
+              "url": "https://forwardemail.net/en/blog/best-email-api-developer-service",
+              "title": "44 Best Email APIs for Developers - Complete Comparison 2026",
+              "domain": "forwardemail.net"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "For sending email from your own app (password resets, receipts, notifications), most people pick Resend, and Postmark is the main alternative.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "For sending email from your own app (password resets, receipts, notifications), most people pick Resend, and Postmark is the main alternative.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "The common summary is that Resend has the best developer experience, Postmark the strongest deliverability reputation, and Amazon SES the lowest price per email.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Mailgun: best if you need to receive and parse incoming email.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "SendGrid: has the most features, but its docs are described as comprehensive but sprawling, and it sits at 1.2 out of 5 on Trustpilot, with 2026 reviews about weekend suspensions and unanswered tickets.",
+              "match": "SendGrid"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:05.666Z"
         },
@@ -1782,12 +3351,59 @@
           },
           "mentioned": ["Resend", "Mailgun", "Postmark"],
           "sources": [
-            "tomba.io",
-            "reply.io",
-            "resources.mailertogo.com",
-            "emailplatformreview.com",
-            "reddit.com",
-            "nitrosend.com"
+            {
+              "url": "https://tomba.io/blog/best-email-apis",
+              "title": "9 Best Email APIs in 2026: Sending, Verifying & Finding - Tomba",
+              "domain": "tomba.io"
+            },
+            {
+              "url": "https://reply.io/blog/best-email-apis/",
+              "title": "Best Email APIs in 2026 for Sending at Scale",
+              "domain": "reply.io"
+            },
+            {
+              "url": "https://resources.mailertogo.com/listicle/best-email-apis-nodejs-developers",
+              "title": "Best Email APIs for Node.js: Top 6 Compared (2025)",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://resources.mailertogo.com/comparisons/best-email-apis-for-developers-2025-comparison",
+              "title": "Best Email APIs 2025: SendGrid vs Postmark vs Mailer To Go",
+              "domain": "resources.mailertogo.com"
+            },
+            {
+              "url": "https://www.emailplatformreview.com/blog/best-email-infrastructure-for-developer-experience-2025/",
+              "title": "Best Email Infrastructure for Developer Experience 2025",
+              "domain": "emailplatformreview.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1qj0m6r/who_offers_the_best_transactional_email_api_out/",
+              "title": "Who offers the best transactional email api out there? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://nitrosend.com/best-email-api-for-developers",
+              "title": "8 Best Email APIs for Developers and AI Agents (2026)",
+              "domain": "nitrosend.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Resend and Mailgun are widely considered to have the best overall developer experience, depending on whether you prefer modern component-based tooling or deeply reliable legacy infrastructure.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Resend and Mailgun are widely considered to have the best overall developer experience, depending on whether you prefer modern component-based tooling or deeply reliable legacy infrastructure.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark: Best for strict transactional email speed and deliverability.",
+              "match": "Postmark"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:18.063Z"
         }
@@ -1824,11 +3440,49 @@
           "overview": null,
           "mentioned": ["Loops", "Customer.io", "Resend"],
           "sources": [
-            "loops.so",
-            "customer.io",
-            "userlist.com",
-            "intercom.com",
-            "resend.com"
+            {
+              "url": "https://loops.so/?utm_source=openai",
+              "title": "Loops | Email Platform for SaaS: Marketing & Transactional",
+              "domain": "loops.so"
+            },
+            {
+              "url": "https://customer.io/pricing?utm_source=openai",
+              "title": "Pricing + Plans | Customer.io",
+              "domain": "customer.io"
+            },
+            {
+              "url": "https://userlist.com/pricing/?utm_source=openai",
+              "title": "Pricing Plans to Fit Your SaaS Business",
+              "domain": "userlist.com"
+            },
+            {
+              "url": "https://www.intercom.com/help/en/articles/4425207-series-explained?utm_source=openai",
+              "title": "Series explained | Intercom Help",
+              "domain": "intercom.com"
+            },
+            {
+              "url": "https://resend.com/pricing?contacts=100000&product=marketing&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Loops",
+              "text": "For most early-stage SaaS companies, I’d choose Loops.",
+              "match": "Loops"
+            },
+            {
+              "brand": "Customer.io",
+              "text": "Complex event-driven journeys: Customer.io",
+              "match": "Customer.io"
+            },
+            {
+              "brand": "Resend",
+              "text": "Want to code the entire workflow yourself: Resend",
+              "match": "Resend"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:32.949Z"
         },
@@ -1838,13 +3492,84 @@
           "overview": null,
           "mentioned": ["Customer.io", "Loops", "Brevo", "Resend", "Postmark"],
           "sources": [
-            "sequenzy.com",
-            "digistorms.ai",
-            "smtpbd.com",
-            "viasocket.com",
-            "emailplatformreview.com",
-            "saasemailplatforms.com",
-            "smashsend.com"
+            {
+              "url": "https://www.sequenzy.com/blog/best-email-tools-for-saas-onboarding",
+              "title": "21 Best Email Tools for SaaS Onboarding (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.digistorms.ai/compare/best-onboarding-email-tools",
+              "title": "6 Best Onboarding Email Tools for SaaS in 2026",
+              "domain": "digistorms.ai"
+            },
+            {
+              "url": "https://smtpbd.com/best-email-marketing-tool-for-saas-onboarding/",
+              "title": "Best Email Marketing Tool for SaaS Onboarding",
+              "domain": "smtpbd.com"
+            },
+            {
+              "url": "https://viasocket.com/discovery/blog/g9z7g1/9-best-email-newsletter-platforms-for-saas",
+              "title": "Top Email Newsletter Platforms for SaaS Onboarding & Welcome Series",
+              "domain": "viasocket.com"
+            },
+            {
+              "url": "https://www.emailplatformreview.com/blog/email-automation-platform-for-saas-onboarding/",
+              "title": "Email Automation Platform for SaaS Onboarding - Email Marketing Platform",
+              "domain": "emailplatformreview.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/email-marketing-for/early-stage-saas",
+              "title": "19 Best Email Marketing Tools for Early-Stage SaaS (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.saasemailplatforms.com/",
+              "title": "Best SaaS Email Platforms 2026 - Compare Top Email Marketing Tools for SaaS",
+              "domain": "saasemailplatforms.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/best-email-tools-for-saas-lifecycle-marketing",
+              "title": "21 Best Email Tools for SaaS Lifecycle Marketing (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://viasocket.com/discovery/blog/b8rzeg/7-best-drip-email-tools-for-saas-onboarding",
+              "title": "Best Drip Email Campaign Tools for SaaS Onboarding and Nurture",
+              "domain": "viasocket.com"
+            },
+            {
+              "url": "https://smashsend.com/blog/onboarding-email-sequence-examples",
+              "title": "7 Best Onboarding Email Sequence Examples for B2B SaaS in 2026",
+              "domain": "smashsend.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Customer.io",
+              "text": "Customer.io is the pick most guides agree on for behavior-based onboarding, and Loops is the common choice for early-stage startups.",
+              "match": "Customer.io"
+            },
+            {
+              "brand": "Loops",
+              "text": "Customer.io is the pick most guides agree on for behavior-based onboarding, and Loops is the common choice for early-stage startups.",
+              "match": "Loops"
+            },
+            {
+              "brand": "Brevo",
+              "text": "Brevo: free for 300 emails/day, paid from $9/month.",
+              "match": "Brevo"
+            },
+            {
+              "brand": "Resend",
+              "text": "Resend delivers the best developer experience (especially for React teams) while Postmark leads on deliverability.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Resend delivers the best developer experience (especially for React teams) while Postmark leads on deliverability.",
+              "match": "Postmark"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:31.382Z"
         },
@@ -1984,10 +3709,74 @@
             "Amazon SES"
           ],
           "sources": [
-            "reddit.com",
-            "sequenzy.com",
-            "pixxen.com",
-            "linkedin.com"
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1ka8ih7/best_email_sending_service_for_saas_verification/",
+              "title": "Best email sending service for saas (verification, confirmation and etc) - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/email-marketing-for/enterprise-saas",
+              "title": "17 Best Email Marketing Tools for Enterprise SaaS (2026)",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/email-marketing-for/white-label-saas",
+              "title": "Best Email Marketing Tools for White-Label SaaS",
+              "domain": "sequenzy.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/Emailmarketing/comments/1phm672/best_email_platform_for_a_consumer_saas_startup/",
+              "title": "Best email platform for a consumer SaaS startup? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1izz3ud/looking_for_the_best_email_service_for_a_saas/",
+              "title": "Looking for the best email service for a SaaS - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://pixxen.com/blog/saas-onboarding-email-sequences/",
+              "title": "SaaS Onboarding Email Sequence Best Practices [+ Templates]",
+              "domain": "pixxen.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/pherado_7-onboarding-emails-that-make-the-customer-activity-7351533592553963520-bOGb",
+              "title": "7 onboarding emails that make the customer feel special",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://www.sequenzy.com/blog/successful-saas-email-marketing-examples",
+              "title": "Successful SaaS Email Marketing Examples: What Actually Works",
+              "domain": "sequenzy.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Resend — Best for developer experience and modern stacks.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark — Best for reliable transactional and onboarding delivery.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Loops",
+              "text": "Loops — Best specifically for modern SaaS startups.",
+              "match": "Loops"
+            },
+            {
+              "brand": "Customer.io",
+              "text": "Customer.io — Best for complex, data-driven behavioral triggers.",
+              "match": "Customer.io"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Amazon SES — Best for maximum scale and lowest cost if you have the engineering resources to wire up your own tracking, bounce handling, and workflows.",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:33.337Z"
         }
@@ -2022,10 +3811,29 @@
           "overview": null,
           "mentioned": [],
           "sources": [
-            "nodejs.org",
-            "nodemailer.com",
-            "cheatsheetseries.owasp.org"
+            {
+              "url": "https://nodejs.org/api/crypto.html?utm_source=openai",
+              "title": "Crypto | Node.js v26.10.0 Documentation",
+              "domain": "nodejs.org"
+            },
+            {
+              "url": "https://nodemailer.com/smtp",
+              "title": "SMTP transport | Nodemailer",
+              "domain": "nodemailer.com"
+            },
+            {
+              "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html?utm_source=openai",
+              "title": "Password Storage - OWASP Cheat Sheet Series",
+              "domain": "cheatsheetseries.owasp.org"
+            },
+            {
+              "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html?utm_source=openai",
+              "title": "Forgot Password - OWASP Cheat Sheet Series",
+              "domain": "cheatsheetseries.owasp.org"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:22:32.051Z"
         },
         {
@@ -2040,6 +3848,34 @@
             "Amazon SES"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "host: process.env.SMTP_HOST, // e.g. smtp.sendgrid.net, smtp.postmarkapp.com",
+              "match": "sendgrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Options include Postmark, SendGrid, Resend, Mailgun, and Amazon SES.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Options include Postmark, SendGrid, Resend, Mailgun, and Amazon SES.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Options include Postmark, SendGrid, Resend, Mailgun, and Amazon SES.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Options include Postmark, SendGrid, Resend, Mailgun, and Amazon SES.",
+              "match": "Amazon SES"
+            }
+          ],
           "collectedAt": "2026-10-07T15:22:22.273Z"
         },
         {
@@ -2173,11 +4009,59 @@
           },
           "mentioned": ["SendGrid", "Postmark", "Resend"],
           "sources": [
-            "youtube.com",
-            "reddit.com",
-            "postmarkapp.com",
-            "stackoverflow.com",
-            "toolquestor.com"
+            {
+              "url": "https://www.youtube.com/watch?v=vFawjyLaUDY&t=82",
+              "title": "High Level Overview | Node JS + Express Course with MongoDB",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/node/comments/1pj4f86/verification_code_in_a_nodejs_app_for_password/",
+              "title": "verification code in a Node.js app for password reset - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://postmarkapp.com/developer/integration/ai-prompts",
+              "title": "AI Prompts | Postmark Developer Documentation",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://stackoverflow.com/questions/50658854/password-reset-link-using-jwt-and-nodejs",
+              "title": "Password reset link using jwt and nodejs",
+              "domain": "stackoverflow.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Bx0yQVwPm10",
+              "title": "How to Send FREE Emails in Node.js using Gmail SMTP ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://toolquestor.com/use-case/send-password-reset-emails",
+              "title": "Best 2 Tools for Password Reset Email Sending in 2026",
+              "domain": "toolquestor.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=VsU6QxI_mhc&t=676",
+              "title": "Reset Password - Part 3: Send Password Reset Email | Part #162",
+              "domain": "youtube.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "SendGrid",
+              "text": "Set up your transporter using an SMTP service (like Gmail App Passwords or SendGrid/Postmark) and send the reset link.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Set up your transporter using an SMTP service (like Gmail App Passwords or SendGrid/Postmark) and send the reset link.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Resend",
+              "text": "Which email service you prefer (Gmail, SendGrid, Resend)",
+              "match": "Resend"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:45.403Z"
         }
@@ -2218,12 +4102,59 @@
             "SendGrid"
           ],
           "sources": [
-            "aws.amazon.com",
-            "postmarkapp.com",
-            "mailgun.com",
-            "resend.com",
-            "docs.aws.amazon.com",
-            "support.google.com"
+            {
+              "url": "https://aws.amazon.com/ses/pricing/?nc2=type_a&utm_source=openai",
+              "title": "Pricing",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://www.postmarkapp.com/pricing?utm_source=openai",
+              "title": "Postmark Pricing and Free Trial",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://www.mailgun.com/pricing/?gspk=YW1pcnJlaXRlcg&gsxid=4DaNnhVsccWY&utm_source=openai",
+              "title": "Flexible Email Delivery & API Pricing Plans - Transactional Email API Service For Developers | Mailgun",
+              "domain": "mailgun.com"
+            },
+            {
+              "url": "https://resend.com/pricing?contacts=100000&product=marketing&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/en_en/ses/latest/dg/dedicated-ip.html?utm_source=openai",
+              "title": "Dedicated IP addresses for Amazon SES - Amazon Simple Email Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://support.google.com/mail/answer/81126?hl=en&utm_source=openai",
+              "title": "Email sender guidelines - Gmail Help",
+              "domain": "support.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "Use Amazon SES if you have an engineering team and expect to send 1M+ transactional emails per month.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Choose Postmark if password resets, verification emails and receipts are business-critical and you prefer paying more for a polished operational experience.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Choose Mailgun if you need strong inbound-routing features, email validation or hands-on deliverability services.",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Resend",
+              "text": "Choose Resend if developer experience is the priority and your volume is closer to hundreds of thousands than tens of millions.",
+              "match": "Resend"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:12.153Z"
         },
@@ -2233,14 +4164,74 @@
           "overview": null,
           "mentioned": ["Amazon SES", "Postmark", "SendGrid", "Mailgun"],
           "sources": [
-            "emailvendorselection.com",
-            "maestra.io",
-            "guideflow.com",
-            "ventureharbour.com",
-            "mailtoolscout.com",
-            "leadscrape.com",
-            "sendlayer.com",
-            "sender.net"
+            {
+              "url": "https://www.emailvendorselection.com/transactional-email-services/",
+              "title": "12 Best Transactional Email Services in 2026 (Reviewed)",
+              "domain": "emailvendorselection.com"
+            },
+            {
+              "url": "https://maestra.io/blog/comparisons/best-transactional-email-platforms",
+              "title": "Best Transactional Email Platforms for 2026: Features & Pricing",
+              "domain": "maestra.io"
+            },
+            {
+              "url": "https://www.guideflow.com/blog/transactional-email-software",
+              "title": "11 best transactional email software platforms for 2026 - Guideflow Blog",
+              "domain": "guideflow.com"
+            },
+            {
+              "url": "https://ventureharbour.com/transactional-email-service-best-mandrill-vs-sendgrid-vs-mailjet/",
+              "title": "7 Best Transactional Email Services in 2026 (Compared)",
+              "domain": "ventureharbour.com"
+            },
+            {
+              "url": "https://mailtoolscout.com/blog/best-transactional-email-services",
+              "title": "Best Transactional Email Services 2026 (API Tested)",
+              "domain": "mailtoolscout.com"
+            },
+            {
+              "url": "https://www.leadscrape.com/top-5-transactional-email-services.html",
+              "title": "Top 5 Transactional Email Services in 2026",
+              "domain": "leadscrape.com"
+            },
+            {
+              "url": "https://sendlayer.com/blog/best-transactional-email-services/",
+              "title": "7 Best Transactional Email Services for 2026",
+              "domain": "sendlayer.com"
+            },
+            {
+              "url": "https://www.sender.net/blog/transactional-email-services/",
+              "title": "12 Best Transactional Email Services (Free & Paid) 2026",
+              "domain": "sender.net"
+            },
+            {
+              "url": "https://learn.g2.com/best-transactional-email-software",
+              "title": "8 Best Transactional Email Software I Recommend (2026)",
+              "domain": "learn.g2.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "For high-volume transactional email, most teams end up choosing between three providers: Amazon SES if cost matters most, Postmark if reliable delivery matters most, and SendGrid or Mailgun if you want a full-featured platform in between.",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Postmark",
+              "text": "For high-volume transactional email, most teams end up choosing between three providers: Amazon SES if cost matters most, Postmark if reliable delivery matters most, and SendGrid or Mailgun if you want a full-featured platform in between.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "For high-volume transactional email, most teams end up choosing between three providers: Amazon SES if cost matters most, Postmark if reliable delivery matters most, and SendGrid or Mailgun if you want a full-featured platform in between.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "For high-volume transactional email, most teams end up choosing between three providers: Amazon SES if cost matters most, Postmark if reliable delivery matters most, and SendGrid or Mailgun if you want a full-featured platform in between.",
+              "match": "Mailgun"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:48.318Z"
         },
@@ -2357,13 +4348,69 @@
           },
           "mentioned": ["Amazon SES", "Postmark", "SendGrid", "Mailgun"],
           "sources": [
-            "emailvendorselection.com",
-            "quora.com",
-            "hostinger.com",
-            "spreadsimple.com",
-            "mailersend.com",
-            "mailtester.com",
-            "emailindustries.com"
+            {
+              "url": "https://www.emailvendorselection.com/transactional-email-services/",
+              "title": "12 Best Transactional Email Services in 2026 (Reviewed)",
+              "domain": "emailvendorselection.com"
+            },
+            {
+              "url": "https://www.quora.com/What-is-the-best-email-service-provider-that-can-send-email-to-highest-volume",
+              "title": "What is the best email service provider that can send ...",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://www.hostinger.com/ng/tutorials/best-transactional-email-services/",
+              "title": "Best transactional email services for reliable delivery",
+              "domain": "hostinger.com"
+            },
+            {
+              "url": "https://spreadsimple.com/blog/best-10-transactional-email-services-for-2024/",
+              "title": "Best 10 Transactional Email Services for 2024",
+              "domain": "spreadsimple.com"
+            },
+            {
+              "url": "https://www.mailersend.com/blog/email-infrastructure-readiness",
+              "title": "Email Infrastructure Readiness for High Volume Sending",
+              "domain": "mailersend.com"
+            },
+            {
+              "url": "https://www.quora.com/What-is-the-best-email-client-to-handle-a-high-volume-of-email",
+              "title": "What is the best email client to handle a high volume of email?",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://mailtester.com/blog/high-volume-email-deliverability-api-driven-transactional-messages/",
+              "title": "High",
+              "domain": "mailtester.com"
+            },
+            {
+              "url": "https://www.emailindustries.com/email-marketing/what-are-transactional-email-settings/",
+              "title": "What are Transactional Email Settings?",
+              "domain": "emailindustries.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon SES",
+              "text": "For high-volume transactional email, the best providers are Amazon SES (for maximum scale at the lowest cost), Postmark (for unmatched deliverability and speed), or SendGrid / Mailgun (for robust enterprise features and ease of use).",
+              "match": "Amazon SES"
+            },
+            {
+              "brand": "Postmark",
+              "text": "For high-volume transactional email, the best providers are Amazon SES (for maximum scale at the lowest cost), Postmark (for unmatched deliverability and speed), or SendGrid / Mailgun (for robust enterprise features and ease of use).",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "For high-volume transactional email, the best providers are Amazon SES (for maximum scale at the lowest cost), Postmark (for unmatched deliverability and speed), or SendGrid / Mailgun (for robust enterprise features and ease of use).",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "For high-volume transactional email, the best providers are Amazon SES (for maximum scale at the lowest cost), Postmark (for unmatched deliverability and speed), or SendGrid / Mailgun (for robust enterprise features and ease of use).",
+              "match": "Mailgun"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:08.113Z"
         }
@@ -2395,7 +4442,41 @@
           "text": "## Quick verdict\n\n- **Choose Resend** for the best developer experience and attractive startup pricing.\n- **Choose Postmark** when transactional email—password resets, receipts, alerts—is mission-critical and you value troubleshooting and separation of email streams.\n- **Choose SendGrid** for very high volume, complex enterprise requirements, or combined transactional email and full marketing campaigns.\n\n### Comparison as of October 7, 2026\n\n| | **Resend** | **Postmark** | **SendGrid** |\n|---|---|---|---|\n| Best for | Modern SaaS and developer teams | Mission-critical transactional email | High-volume and enterprise programs |\n| Developer experience | **Excellent**, particularly Node/React | Very good, mature and straightforward | Powerful but more complex |\n| Transactional email | Excellent | **Core specialization** | Excellent |\n| Marketing email | Broadcasts and automations | Basic bulk/broadcast streams | **Strongest marketing suite** |\n| Free offering | 3,000/month, 100/day | 100/month | 100/day for 60 days |\n| Entry paid plan | $20/month for 50,000 | $15/month for 10,000 | Volume-dependent |\n| Logs/history | 30 days on standard plans | **45 days**, expandable to 365 | Depends on plan/features |\n| Dedicated IP | $30/month on eligible Scale accounts | From $50/month, 300K+ volume | Available on higher tiers |\n| Enterprise controls | Growing | Good | **Most extensive** |\n| Platform complexity | Low | Low–medium | Medium–high |\n\nPricing and limits are based on the providers’ current published information. \n\n## Where each one wins\n\n### Resend\n\n**Pros**\n\n- Clean API and polished dashboard.\n- First-class React Email support.\n- Generous pricing: 50,000 emails for $20/month, then $0.90 per additional 1,000.\n- Supports API, SMTP, scheduling, batch sends, inbound email and webhooks.\n- Good default choice for Next.js, Node.js and modern SaaS applications. \n\n**Cons**\n\n- Standard log retention is only 30 days.\n- Fewer years of operational history than Postmark or SendGrid.\n- Advanced enterprise features and dedicated IPs require higher plans or add-ons.\n\n**Pick it when:** you want to integrate email quickly without dealing with a large, complicated platform.\n\n---\n\n### Postmark\n\n**Pros**\n\n- Product is tightly focused on transactional delivery.\n- Message Streams help isolate transactional and broadcast traffic.\n- Excellent debugging experience, with full message history retained for 45 days by default.\n- Inbound email processing and granular bounce information are mature.\n- Reasonable low-volume pricing: Basic starts at $15/month for 10,000 emails; Pro at $16.50 adds inbound processing and configurable retention. \n\n**Cons**\n\n- Free tier is only 100 emails per month.\n- More expensive than Resend at moderate volumes.\n- Not a full marketing automation platform comparable to SendGrid Marketing Campaigns.\n- Dedicated IPs start at $50/month and require at least 300,000 monthly emails. \n\n**Pick it when:** a password-reset or billing email failing is a serious operational incident, and strong logs and traffic isolation matter more than getting the lowest price.\n\n---\n\n### SendGrid\n\n**Pros**\n\n- Designed for extremely large sending volumes.\n- Supports both transactional APIs and a substantial marketing-campaign product.\n- Extensive analytics, templates, email validation, dedicated IPs and enterprise controls.\n- Strong option when you need subusers, sophisticated reputation management or an established enterprise vendor. \n\n**Cons**\n\n- More configuration and platform complexity.\n- Transactional and marketing products can make pricing harder to evaluate.\n- Current free access is a **60-day trial** capped at 100 emails per day, rather than the permanent free tier SendGrid historically offered. \n\n**Pick it when:** you have millions of emails, multiple business units, advanced marketing requirements or formal enterprise procurement needs.\n\n## My default recommendation\n\nFor a new application:\n\n1. **Resend** — best overall starting point.\n2. **Postmark** — choose instead if transactional reliability, logs and support workflows are your highest priorities.\n3. **SendGrid** — choose when you already know you need enterprise scale or sophisticated marketing functionality.\n\nIf you are sending under approximately **100,000 transactional emails per month**, I would generally narrow the choice to **Resend versus Postmark**. Resend emphasizes price and developer experience; Postmark emphasizes transactional operations and observability.",
           "overview": null,
           "mentioned": ["Resend", "Postmark", "SendGrid"],
-          "sources": ["resend.com", "postmarkapp.com", "sendgrid.com"],
+          "sources": [
+            {
+              "url": "https://resend.com/pricing?contacts=100000&product=marketing&utm_source=openai",
+              "title": "Pricing · Resend",
+              "domain": "resend.com"
+            },
+            {
+              "url": "https://postmarkapp.com/pricing/?utm_source=openai",
+              "title": "Postmark Pricing and Free Trial",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://sendgrid.com/en-us/marketing/sendgrid-services-cro",
+              "title": "Twilio SendGrid Email API | Twilio",
+              "domain": "sendgrid.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Choose Resend for the best developer experience and attractive startup pricing.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Choose Postmark when transactional email—password resets, receipts, alerts—is mission-critical and you value troubleshooting and separation of email streams.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Choose SendGrid for very high volume, complex enterprise requirements, or combined transactional email and full marketing campaigns.",
+              "match": "SendGrid"
+            }
+          ],
           "collectedAt": "2026-10-07T15:22:48.820Z"
         },
         {
@@ -2404,12 +4485,79 @@
           "overview": null,
           "mentioned": ["Resend", "Postmark", "SendGrid", "Amazon SES"],
           "sources": [
-            "blog.vibecoder.me",
-            "futurepicker.com",
-            "dreamlit.ai",
-            "klymentiev.com",
-            "trybuildpilot.com",
-            "usecarly.com"
+            {
+              "url": "https://blog.vibecoder.me/email-service-pricing-resend-sendgrid-postmark",
+              "title": "Resend vs SendGrid vs Postmark Pricing at 1K, 10K, 100K - Real costs for transactional email at every scale so you pick the right service before your free tier runs out — Vibe Coder Blog",
+              "domain": "blog.vibecoder.me"
+            },
+            {
+              "url": "https://futurepicker.com/en/resend-vs-postmark-vs-sendgrid-vs-mailgun-2026-en/",
+              "title": "Resend vs Postmark vs SendGrid vs Mailgun: Email API 2026",
+              "domain": "futurepicker.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/resend-vs-sendgrid-vs-dreamlit",
+              "title": "Resend vs SendGrid (2026): Pricing, Free Tiers, Features",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://blog.vibecoder.me/email-sending-resend-sendgrid-postmark-compared",
+              "title": "Resend vs SendGrid vs Postmark for Your AI-Built Application - Comparing the three email services that work best with AI coding tools for transactional and marketing emails — Vibe Coder Blog",
+              "domain": "blog.vibecoder.me"
+            },
+            {
+              "url": "https://klymentiev.com/blog/postmark-pricing",
+              "title": "Postmark Pricing 2026: Plans, Overage, vs Resend / SendGrid - Dmytro Klymentiev",
+              "domain": "klymentiev.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/best-postmark-alternatives",
+              "title": "8 Best Postmark Alternatives in 2026 (Pricing Compared)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://trybuildpilot.com/389-resend-vs-sendgrid-vs-postmark-2026",
+              "title": "Resend vs SendGrid vs Postmark (2026 Email Comparison)",
+              "domain": "trybuildpilot.com"
+            },
+            {
+              "url": "https://www.usecarly.com/blog/sendgrid-alternatives/",
+              "title": "8 Best SendGrid Alternatives in 2026 (Prices Compared)",
+              "domain": "usecarly.com"
+            },
+            {
+              "url": "https://trybuildpilot.com/390-resend-vs-sendgrid-vs-postmark-2026",
+              "title": "Resend vs SendGrid vs Postmark (2026 Comparison)",
+              "domain": "trybuildpilot.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/best-resend-alternatives",
+              "title": "8 Best Resend Alternatives in 2026 (Pricing Compared)",
+              "domain": "dreamlit.ai"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Short version: Resend is best for developer experience, Postmark for deliverability, and SendGrid if you want everything on one platform.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Short version: Resend is best for developer experience, Postmark for deliverability, and SendGrid if you want everything on one platform.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Short version: Resend is best for developer experience, Postmark for deliverability, and SendGrid if you want everything on one platform.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Very high volume (200K+/mo) on a tight budget: consider Amazon SES.",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:39.949Z"
         },
@@ -2530,14 +4678,69 @@
           },
           "mentioned": ["Resend", "Postmark", "SendGrid", "Amazon SES"],
           "sources": [
-            "blog.vibecoder.me",
-            "nuntly.com",
-            "reddit.com",
-            "postmarkapp.com",
-            "buildmvpfast.com",
-            "f3fundit.com",
-            "bahroze.substack.com",
-            "youtube.com"
+            {
+              "url": "https://blog.vibecoder.me/email-sending-resend-sendgrid-postmark-compared",
+              "title": "Resend vs SendGrid vs Postmark for Your AI-Built Application - Comparing the three email services that work best with AI coding tools for transactional and marketing emails — Vibe Coder Blog",
+              "domain": "blog.vibecoder.me"
+            },
+            {
+              "url": "https://nuntly.com/versus/resend-vs-postmark",
+              "title": "Resend vs Postmark: Which email API is better in 2026? | Nuntly",
+              "domain": "nuntly.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1rrxxs5/email_api_benchmarks_for_sendgrid_amazon_ses/",
+              "title": "Email API benchmarks for Sendgrid, Amazon SES, Resend, and more",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://postmarkapp.com/compare/resend-alternative",
+              "title": "Postmark vs. Resend: a detailed comparison for 2026",
+              "domain": "postmarkapp.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/blog/resend-vs-ses-vs-postmark-transactional-email-deliverability-saas-2026",
+              "title": "Resend vs Amazon SES vs Postmark Transactional Email 2026",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://f3fundit.com/transactional-email-bootstrapped-saas-resend-sendgrid-postmark-mailgun-2026/",
+              "title": "Transactional Email for Bootstrapped SaaS: Resend vs SendGrid vs ...",
+              "domain": "f3fundit.com"
+            },
+            {
+              "url": "https://bahroze.substack.com/p/choosing-the-right-email-service",
+              "title": "Choosing the Right Email Service for Your Startup: Insights on SendGrid ...",
+              "domain": "bahroze.substack.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=P3DODFC4cg0&vl=en-US&t=193",
+              "title": "Best Email API for Bulk Sending? We Have the Answer",
+              "domain": "youtube.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Resend",
+              "text": "Resend is best for modern developer experience, Postmark excels at strict transactional deliverability, and SendGrid handles massive enterprise-scale marketing and transactional bundles.",
+              "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Resend is best for modern developer experience, Postmark excels at strict transactional deliverability, and SendGrid handles massive enterprise-scale marketing and transactional bundles.",
+              "match": "Postmark"
+            },
+            {
+              "brand": "SendGrid",
+              "text": "Resend is best for modern developer experience, Postmark excels at strict transactional deliverability, and SendGrid handles massive enterprise-scale marketing and transactional bundles.",
+              "match": "SendGrid"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Downsides: Relies on Amazon SES under the hood (which can introduce double-queuing/higher latency) and keeps short log retention windows (1–3 days).",
+              "match": "Amazon SES"
+            }
           ],
           "collectedAt": "2026-10-07T15:22:33.220Z"
         }
@@ -2548,52 +4751,392 @@
     {
       "domain": "resend.com",
       "share": 35,
-      "byEngine": { "chatgpt": 80, "claude": 0, "ai-overview": 8 }
+      "byEngine": { "chatgpt": 80, "claude": 0, "ai-overview": 8 },
+      "citations": 25,
+      "pages": [
+        {
+          "url": "https://resend.com/pricing?contacts=100000&product=marketing",
+          "title": "Pricing · Resend",
+          "citations": 5
+        },
+        {
+          "url": "https://www.resend.com/pricing?product=transactional",
+          "title": "Pricing · Resend",
+          "citations": 4
+        },
+        {
+          "url": "https://resend.com/nextjs",
+          "title": "Send emails with Next.js · Resend",
+          "citations": 4
+        },
+        {
+          "url": "https://resend.com/pricing?product=transactional",
+          "title": "Pricing · Resend",
+          "citations": 3
+        },
+        {
+          "url": "https://resend.com/changelog/domain-claim",
+          "title": "Domain Claim · Resend",
+          "citations": 3
+        },
+        {
+          "url": "https://resend.com/features/dedicated-ips",
+          "title": "Dedicated IPs · Fully managed · Resend",
+          "citations": 3
+        },
+        {
+          "url": "https://resend.com/features/email-api",
+          "title": "Email API · Start sending today · Resend",
+          "citations": 2
+        },
+        {
+          "url": "https://resend.com/docs/introduction",
+          "title": "Introduction - Resend",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 9, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 6, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 7, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "postmarkapp.com",
       "share": 33,
-      "byEngine": { "chatgpt": 73, "claude": 0, "ai-overview": 17 }
+      "byEngine": { "chatgpt": 73, "claude": 0, "ai-overview": 17 },
+      "citations": 24,
+      "pages": [
+        {
+          "url": "https://postmarkapp.com/pricing/",
+          "title": "Postmark Pricing and Free Trial",
+          "citations": 9
+        },
+        {
+          "url": "https://postmarkapp.com/support/article/how-to-create-and-send-through-message-streams",
+          "title": "How to create and send through Message Streams | Postmark Support Center",
+          "citations": 4
+        },
+        {
+          "url": "https://postmarkapp.com/developer/user-guide/send-email-with-api",
+          "title": "Sending email with API | Postmark Developer Documentation",
+          "citations": 2
+        },
+        {
+          "url": "https://postmarkapp.com/support/article/1107-how-does-monthly-pricing-work",
+          "title": "How does Monthly Pricing work? | Postmark Support Center",
+          "citations": 2
+        },
+        {
+          "url": "https://postmarkapp.com/pricing",
+          "title": "postmarkapp.com",
+          "citations": 1
+        },
+        {
+          "url": "https://www.postmarkapp.com/developer/get-started",
+          "title": "Get started | Postmark Developer Documentation",
+          "citations": 1
+        },
+        {
+          "url": "https://www.postmarkapp.com/developer/api/email-api",
+          "title": "Email API | Postmark Developer Documentation",
+          "citations": 1
+        },
+        {
+          "url": "https://postmarkapp.com/developer/user-guide/sandbox-mode/server-sandbox-mode",
+          "title": "Server sandbox mode | Postmark Developer Documentation",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 7, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 6, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "sequenzy.com",
       "share": 24,
-      "byEngine": { "chatgpt": 0, "claude": 53, "ai-overview": 8 }
+      "byEngine": { "chatgpt": 0, "claude": 53, "ai-overview": 8 },
+      "citations": 17,
+      "pages": [
+        {
+          "url": "https://www.sequenzy.com/blog/best-transactional-email-services",
+          "title": "The 24 Best Transactional Email Services in 2026 (Tested & Compared)",
+          "citations": 6
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-transactional-email-apis-for-ai-agents",
+          "title": "10 Best Transactional Email APIs for AI Agents (2026)",
+          "citations": 4
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-api-first-email-platforms",
+          "title": "21 Best API-First Email Platforms for Developers (2026)",
+          "citations": 4
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-email-tools-for-saas-onboarding",
+          "title": "21 Best Email Tools for SaaS Onboarding (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.sequenzy.com/email-marketing-for/early-stage-saas",
+          "title": "19 Best Email Marketing Tools for Early-Stage SaaS (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-email-tools-for-saas-lifecycle-marketing",
+          "title": "21 Best Email Tools for SaaS Lifecycle Marketing (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-free-email-apis",
+          "title": "23 Best Free Email APIs in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://www.sequenzy.com/blog/best-email-platforms-transactional-and-marketing",
+          "title": "21 Best Email Platforms for Both Transactional and Marketing (2026)",
+          "citations": 2
+        }
+      ],
+      "prompts": [
+        { "id": 6, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 12, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 14, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "aws.amazon.com",
       "share": 14,
-      "byEngine": { "chatgpt": 33, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 33, "claude": 0, "ai-overview": 0 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://aws.amazon.com/ses/pricing/?nc2=type_a",
+          "title": "Pricing",
+          "citations": 8
+        },
+        {
+          "url": "https://aws.amazon.com/ses/pricing/?trk=article-ssr-frontend-pulse_little-text-block",
+          "title": "Pricing",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/about-aws/whats-new/2026/07/amazon-ses-pricing-plans/",
+          "title": "Amazon SES introduces pricing plans - AWS",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "agentmail.to",
       "share": 14,
-      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 0 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://www.agentmail.to/blog/5-best-email-api-for-developers-compared-2026",
+          "title": "6 Best Email API For Developers Compared [2026]",
+          "citations": 10
+        },
+        {
+          "url": "https://www.agentmail.to/blog/free-email-api-for-developers",
+          "title": "11 Free Email APIs Compared: Send Limits, Inbound, and Retention (2026)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] },
+        { "id": 14, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] },
+        { "id": 13, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "brevo.com",
       "share": 14,
-      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 0, "claude": 33, "ai-overview": 0 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://www.brevo.com/blog/best-email-api/",
+          "title": "Best Email API Services 2026: 8 Providers Compared",
+          "citations": 9
+        },
+        {
+          "url": "https://www.brevo.com/blog/best-transactional-email-services/",
+          "title": "10 Best Transactional Email Services Compared (2026)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 2, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude"] },
+        { "id": 14, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 1, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "courier.com",
       "share": 14,
-      "byEngine": { "chatgpt": 0, "claude": 30, "ai-overview": 8 }
+      "byEngine": { "chatgpt": 0, "claude": 30, "ai-overview": 8 },
+      "citations": 10,
+      "pages": [
+        {
+          "url": "https://www.courier.com/blog/best-email-api-providers-for-developers",
+          "title": "Best Email API for Developers in 2026: A Technical Comparison",
+          "citations": 6
+        },
+        {
+          "url": "https://www.courier.com/blog/transactional-email-services",
+          "title": "Best Transactional Email Services (2026)",
+          "citations": 2
+        },
+        {
+          "url": "https://www.courier.com/integrations/list/transactional-email",
+          "title": "Top 13 transactional email API providers [2026] - Courier",
+          "citations": 1
+        },
+        {
+          "url": "https://www.courier.com/blog/top-push-notification-providers",
+          "title": "Top 10 Push Notification Providers in 2026 (Compared)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 11, "citations": 1, "engines": ["claude"] },
+        { "id": 12, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "docs.aws.amazon.com",
       "share": 11,
-      "byEngine": { "chatgpt": 27, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 27, "claude": 0, "ai-overview": 0 },
+      "citations": 8,
+      "pages": [
+        {
+          "url": "https://docs.aws.amazon.com/en_en/ses/latest/dg/dedicated-ip.html",
+          "title": "Dedicated IP addresses for Amazon SES - Amazon Simple Email Service",
+          "citations": 4
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/dedicated-ip.html",
+          "title": "Dedicated IP addresses for Amazon SES - Amazon Simple Email Service",
+          "citations": 2
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/setting-up.html",
+          "title": "Setting up Amazon Simple Email Service - Amazon Simple Email Service",
+          "citations": 1
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/send-email.html",
+          "title": "Set up email sending with Amazon SES - Amazon Simple Email Service",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "nitrosend.com",
       "share": 11,
-      "byEngine": { "chatgpt": 0, "claude": 23, "ai-overview": 8 }
+      "byEngine": { "chatgpt": 0, "claude": 23, "ai-overview": 8 },
+      "citations": 8,
+      "pages": [
+        {
+          "url": "https://nitrosend.com/best-email-api-for-react-and-nextjs",
+          "title": "Best Email API for React and Next.js in 2026",
+          "citations": 4
+        },
+        {
+          "url": "https://nitrosend.com/best-transactional-email-api",
+          "title": "9 Best Transactional Email APIs for AI Agents (2026): Ranked - Nitrosend",
+          "citations": 3
+        },
+        {
+          "url": "https://nitrosend.com/best-email-api-for-developers",
+          "title": "8 Best Email APIs for Developers and AI Agents (2026)",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] },
+        { "id": 4, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "mailtoolscout.com",
       "share": 11,
-      "byEngine": { "chatgpt": 0, "claude": 27, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 0, "claude": 27, "ai-overview": 0 },
+      "citations": 8,
+      "pages": [
+        {
+          "url": "https://mailtoolscout.com/blog/best-transactional-email-services",
+          "title": "Best Transactional Email Services 2026 (API Tested)",
+          "citations": 8
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 9, "citations": 1, "engines": ["claude"] },
+        { "id": 12, "citations": 1, "engines": ["claude"] }
+      ]
     }
   ],
   "overview": {

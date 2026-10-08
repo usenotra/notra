@@ -50,9 +50,11 @@ const ENGINE_LABELS: Record<StateOfAiSearchEngineId, string> = {
 };
 
 const MAX_SOURCES = 10;
+const MAX_SOURCE_PAGES = 8;
 const MAX_QUOTES = 3;
 const MAX_QUOTES_PER_ENGINE = 1;
-const MAX_PROMPT_SOURCES = 8;
+const MAX_PROMPT_SOURCES = 12;
+const HIGHLIGHT_MAX_LENGTH = 320;
 const MAX_RESPONSE_LENGTH = 6000;
 const SUMMARY_LEADERS = 3;
 const QUOTE_MIN_LENGTH = 50;
@@ -284,13 +286,15 @@ function buildPrompts(
             overview:
               engine === "ai-overview" ? buildOverview(answer.raw) : null,
             mentioned: answer.mentioned.map((brand) => brand.name),
-            sources: [
-              ...new Set(
-                answer.raw.sources.map((source) =>
-                  normalizeDomain(source.domain)
-                )
-              ),
-            ].slice(0, MAX_PROMPT_SOURCES),
+            sources: answer.raw.sources
+              .slice(0, MAX_PROMPT_SOURCES)
+              .map((source) => ({
+                url: source.url,
+                title: source.title,
+                domain: normalizeDomain(source.domain),
+              })),
+            searchQueries: answer.raw.searchQueries ?? [],
+            highlights: buildHighlights(answer),
             collectedAt: answer.raw.collectedAt,
           },
         ];
@@ -340,7 +344,59 @@ function buildSources(
         );
       }
     }
-    return { domain, share: percent(count, answered.length), byEngine: rates };
+    const citing = answered.filter((answer) => domainsOf(answer).has(domain));
+    const pages = new Map<
+      string,
+      { url: string; title: string | null; citations: number }
+    >();
+    const prompts = new Map<
+      number,
+      { id: number; citations: number; engines: Set<StateOfAiSearchEngineId> }
+    >();
+    for (const answer of citing) {
+      const seen = new Set<string>();
+      for (const source of answer.raw.sources) {
+        if (normalizeDomain(source.domain) !== domain) {
+          continue;
+        }
+        const url = source.url.replace(/[?&]utm_source=openai$/, "");
+        if (seen.has(url)) {
+          continue;
+        }
+        seen.add(url);
+        const page = pages.get(url) ?? {
+          url,
+          title: source.title,
+          citations: 0,
+        };
+        page.citations += 1;
+        pages.set(url, page);
+      }
+      const entry = prompts.get(answer.raw.promptIndex) ?? {
+        id: answer.raw.promptIndex,
+        citations: 0,
+        engines: new Set<StateOfAiSearchEngineId>(),
+      };
+      entry.citations += 1;
+      entry.engines.add(answer.raw.engine);
+      prompts.set(answer.raw.promptIndex, entry);
+    }
+    return {
+      domain,
+      share: percent(count, answered.length),
+      byEngine: rates,
+      citations: count,
+      pages: [...pages.values()]
+        .toSorted((a, b) => b.citations - a.citations)
+        .slice(0, MAX_SOURCE_PAGES),
+      prompts: [...prompts.values()]
+        .toSorted((a, b) => b.citations - a.citations)
+        .map((entry) => ({
+          id: entry.id,
+          citations: entry.citations,
+          engines: ENGINE_ORDER.filter((engine) => entry.engines.has(engine)),
+        })),
+    };
   });
   return { sources, citedDomains: counts.size };
 }
@@ -439,6 +495,42 @@ function sentencesOf(text: string): string[] {
         .replace(/\s+([.,;:])/g, "$1")
         .trim()
     );
+}
+
+/** The first sentence that names each tracked brand, in answer order. */
+function buildHighlights(answer: AnalyzedAnswer) {
+  const text =
+    answer.raw.engine === "ai-overview" && answer.raw.overview
+      ? (buildOverview(answer.raw)?.blocks ?? [])
+          .flatMap((block) =>
+            block.type === "list"
+              ? block.items.map((item) => item.text)
+              : [block.text]
+          )
+          .join("\n")
+      : answer.clean;
+  const sentences = sentencesOf(text).filter(
+    (sentence) => sentence.length <= HIGHLIGHT_MAX_LENGTH
+  );
+  return answer.mentioned.flatMap((brand) => {
+    const matchers = brandMatchers(brand);
+    const sentence = sentences.find(
+      (item) => firstMention(item, matchers) !== -1
+    );
+    if (!sentence) {
+      return [];
+    }
+    const match = matchers
+      .map((matcher) => {
+        matcher.lastIndex = 0;
+        return matcher.exec(sentence);
+      })
+      .filter((found): found is RegExpExecArray => found !== null)
+      .toSorted((a, b) => a.index - b.index)[0];
+    return [
+      { brand: brand.name, text: sentence, match: match?.[0] ?? brand.name },
+    ];
+  });
 }
 
 function buildQuotes(

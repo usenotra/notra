@@ -57,6 +57,8 @@ export interface RawAnswer {
   present: boolean;
   text: string;
   sources: RawSource[];
+  /** Web searches the model ran; missing on answers collected before 2026-10-08. */
+  searchQueries?: string[];
   /** SerpApi's structured overview, kept to render it block by block. */
   overview: { text_blocks: unknown; references: unknown } | null;
 }

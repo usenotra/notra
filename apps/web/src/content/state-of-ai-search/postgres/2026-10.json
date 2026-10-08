@@ -242,11 +242,59 @@
             "Render"
           ],
           "sources": [
-            "neon.com",
-            "supabase.com",
-            "crunchydata.com",
-            "aws.amazon.com",
-            "render.com"
+            {
+              "url": "https://neon.com/blog/neon-free-plan-1-gb-per-project?utm_source=openai",
+              "title": "Neon gives you 100 projects for free, with 1 GB of Postgres storage each - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/pricing",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://www.crunchydata.com/pricing?utm_source=openai",
+              "title": "Pricing on Hosted Postgres | Crunchy Data",
+              "domain": "crunchydata.com"
+            },
+            {
+              "url": "https://aws.amazon.com/rds/postgresql/pricing/?utm_source=openai",
+              "title": "Amazon RDS for PostgreSQL Pricing",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://render.com/docs/postgresql?utm_source=openai",
+              "title": "Render Postgres – Render Docs",
+              "domain": "render.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "My default recommendation: Neon.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Choose Supabase if you also need authentication, file storage, realtime and generated APIs.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Choose Crunchy Bridge if database reliability, Postgres expertise and support matter most.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Choose AWS RDS if your infrastructure is already on AWS or you need mature IAM, networking and Multi-AZ deployment.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "Render",
+              "text": "Choose Render Postgres if your application is on Render and you value having everything in one dashboard.",
+              "match": "Render"
+            }
           ],
           "collectedAt": "2026-10-07T15:14:29.523Z"
         },
@@ -268,14 +316,114 @@
             "Aiven"
           ],
           "sources": [
-            "northflank.com",
-            "kuberns.com",
-            "instaclustr.com",
-            "dreamlit.ai",
-            "clickhouse.com",
-            "swyftstack.com",
-            "saptitan.com",
-            "fschackday.org"
+            {
+              "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL hosting providers for developers in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-managed-postgresql-hosting/",
+              "title": "10 Best Managed PostgreSQL Hosting Providers in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-solutions-for-developers-top-5-in-2026/",
+              "title": "Best managed PostgreSQL solutions for developers: Top 6 in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://clickhouse.com/resources/engineering/postgres-hosting-startups-2026",
+              "title": "8 Best Postgres Hosting Providers for Startups (2026)",
+              "domain": "clickhouse.com"
+            },
+            {
+              "url": "https://swyftstack.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL Hosting 2026: Compared by Use Case",
+              "domain": "swyftstack.com"
+            },
+            {
+              "url": "https://www.saptitan.com/managed-postgresql-hosting-2026/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "saptitan.com"
+            },
+            {
+              "url": "https://fschackday.org/managed-postgresql/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "fschackday.org"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Top 8 PostgreSQL Hosting Options with Real-Time Failover in 2026",
+              "domain": "instaclustr.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Starting a new app or side project: Neon or Supabase",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Starting a new app or side project: Neon or Supabase",
+              "match": "Supabase"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Steady production app on a predictable bill: DigitalOcean (or Render/Railway)",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Render",
+              "text": "Steady production app on a predictable bill: DigitalOcean (or Render/Railway)",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "Steady production app on a predictable bill: DigitalOcean (or Render/Railway)",
+              "match": "Railway"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS RDS / Aurora: The default choice on AWS.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Google Cloud SQL and Azure Database for PostgreSQL are the equivalents on those clouds.",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Azure Database for PostgreSQL",
+              "text": "Google Cloud SQL and Azure Database for PostgreSQL are the equivalents on those clouds.",
+              "match": "Azure Database for PostgreSQL"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "Aurora, Cloud SQL Enterprise Plus and PlanetScale's high-availability clusters all offer 99.99% uptime SLAs.",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Crunchy Bridge: Run by Postgres experts, with superuser access and PgBouncer built in.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Aiven: For running on multiple clouds or avoiding lock-in to a single cloud provider.",
+              "match": "Aiven"
+            }
           ],
           "collectedAt": "2026-10-07T15:14:16.854Z"
         },
@@ -362,10 +510,59 @@
             "Crunchy Data"
           ],
           "sources": [
-            "blog.railway.com",
-            "quora.com",
-            "youtube.com",
-            "instaclustr.com"
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026 - Railway Blog",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://www.quora.com/What-good-PostgreSQL-hosting-services-exist",
+              "title": "What good PostgreSQL hosting services exist? - Quora",
+              "domain": "quora.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=dPlTL_TJBOo",
+              "title": "Comparing Managed Postgres Pricing for Side Projects",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Best managed PostgreSQL options: Top 6 solutions in 2026",
+              "domain": "instaclustr.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Railway",
+              "text": "The best PostgreSQL hosting depends on your project size, budget, and operational needs, with Railway and Neon leading for modern developer workflows.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Neon",
+              "text": "The best PostgreSQL hosting depends on your project size, budget, and operational needs, with Railway and Neon leading for modern developer workflows.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Best for full-stack web and mobile apps looking for an integrated backend with built-in auth, realtime APIs, and managed Postgres.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean Managed Databases: Best for cost-effective, predictable pricing on traditional dedicated instances for side projects and growing apps.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Amazon RDS: Best for enterprise workloads tightly integrated into the AWS ecosystem requiring deep configuration and compliance controls.",
+              "match": "Amazon RDS"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Crunchy Bridge: Best for teams wanting direct superuser database access and core-level PostgreSQL expertise across multiple clouds.",
+              "match": "Crunchy Bridge"
+            }
           ],
           "collectedAt": "2026-10-07T15:14:26.282Z"
         }
@@ -417,10 +614,49 @@
             "Render"
           ],
           "sources": [
-            "neon.com",
-            "supabase.com",
-            "crunchydata.com",
-            "aws.amazon.com"
+            {
+              "url": "https://neon.com/blog/new-usage-based-pricing?a=02b5d7e9-95ea-473f-b9c0-ce88dcf1785c&utm_source=openai",
+              "title": "Neon’s New Pricing, Explained: Usage-Based, No Minimum - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/database/overview?utm_source=openai",
+              "title": "Database | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://www.crunchydata.com/pricing?utm_source=openai",
+              "title": "Pricing on Hosted Postgres | Crunchy Data",
+              "domain": "crunchydata.com"
+            },
+            {
+              "url": "https://aws.amazon.com/rds/postgresql/pricing/?utm_source=openai",
+              "title": "Amazon RDS for PostgreSQL Pricing",
+              "domain": "aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "As of October 2026, I’d choose Neon for most new applications.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase gives you a dedicated Postgres database plus authentication, storage, realtime, generated APIs and an administration dashboard.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Crunchy Bridge is my preference for a conventional, serious production database.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "RDS is the conservative enterprise choice when you already use AWS.",
+              "match": "RDS"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:56.454Z"
         },
@@ -440,14 +676,104 @@
             "Render"
           ],
           "sources": [
-            "northflank.com",
-            "dreamlit.ai",
-            "instaclustr.com",
-            "datastorage.com",
-            "saptitan.com",
-            "kuberns.com",
-            "fschackday.org",
-            "selfhost.dev"
+            {
+              "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL hosting providers for developers in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-platforms-top-5-providers-in-2025/",
+              "title": "Best managed PostgreSQL platforms: Top 7 providers in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://datastorage.com/articles/top-7-managed-postgresql-providers-of-2026-ranked/",
+              "title": "Top 7 Managed PostgreSQL Providers of 2026, Ranked - Data Storage",
+              "domain": "datastorage.com"
+            },
+            {
+              "url": "https://www.saptitan.com/managed-postgresql-hosting-2026/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "saptitan.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-services-top-5-in-2026/",
+              "title": "Top 8 Managed PostgreSQL Services with Security and Encryption",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-solutions-for-developers-top-5-in-2026/",
+              "title": "Best managed PostgreSQL solutions for developers: Top 6 in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-managed-postgresql-hosting/",
+              "title": "10 Best Managed PostgreSQL Hosting Providers in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://fschackday.org/managed-postgresql/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "fschackday.org"
+            },
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "New app / side project → Supabase or Neon.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "New app / side project → Supabase or Neon.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Production with strict uptime needs → Aurora, Cloud SQL, or PlanetScale.",
+              "match": "Aurora"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Production with strict uptime needs → Aurora, Cloud SQL, or PlanetScale.",
+              "match": "Cloud SQL"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "Production with strict uptime needs → Aurora, Cloud SQL, or PlanetScale.",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Predictable bills on a small team → DigitalOcean.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Lots of extensions or deep Postgres expertise → Crunchy Bridge.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Railway",
+              "text": "App and database on one platform → Railway or Render.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "App and database on one platform → Railway or Render.",
+              "match": "Render"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:43.099Z"
         },
@@ -574,14 +900,84 @@
             "DigitalOcean"
           ],
           "sources": [
-            "milesweb.com",
-            "hasura.io",
-            "severalnines.com",
-            "kuberns.com",
-            "cloud.google.com",
-            "northflank.com",
-            "postgresgui.com",
-            "youtube.com"
+            {
+              "url": "https://www.milesweb.com/blog/hosting/vps/best-postgresql-hosting-providers/",
+              "title": "PostgreSQL Hosting Providers: A Complete Guide for Developers",
+              "domain": "milesweb.com"
+            },
+            {
+              "url": "https://hasura.io/blog/top-serverless-postgresql-providers",
+              "title": "Top Serverless PostgreSQL Providers",
+              "domain": "hasura.io"
+            },
+            {
+              "url": "https://severalnines.com/blog/best-dbaas-solutions-postgresql/",
+              "title": "Best DBaaS Solutions for PostgreSQL - Severalnines",
+              "domain": "severalnines.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-managed-postgresql-hosting/",
+              "title": "10 Best Managed PostgreSQL Hosting Providers in 2026",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://cloud.google.com/sql/postgresql",
+              "title": "Cloud SQL for PostgreSQL Managed Database | Google Cloud",
+              "domain": "cloud.google.com"
+            },
+            {
+              "url": "https://northflank.com/blog/managed-postgres-guide",
+              "title": "Managed Postgres: when to use it, how to choose, and what to expect | Blog — Northflank",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://postgresgui.com/blog/best-postgresql-cloud-provider",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "postgresgui.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=DDrVGtR3rxE&t=1060",
+              "title": "Flavors of PostgreSQL®: Choosing the Right Database for Your ...",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.prisma.io/postgres",
+              "title": "Prisma Postgres | Serverless PostgreSQL for TypeScript Apps",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://www.heroku.com/postgres/",
+              "title": "Fully Managed PostgreSQL as a Service | Heroku",
+              "domain": "heroku.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Best for Serverless & AI Apps: Neon or Supabase",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Best for Serverless & AI Apps: Neon or Supabase",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Best for Enterprise & Scale: Amazon RDS / Aurora or Google Cloud SQL",
+              "match": "Amazon RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Best for Enterprise & Scale: Amazon RDS / Aurora or Google Cloud SQL",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Best for Simplicity & Predictable Pricing: DigitalOcean Managed Databases or Northflank",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:58.838Z"
         }
@@ -635,11 +1031,64 @@
             "Azure Database for PostgreSQL"
           ],
           "sources": [
-            "supabase.com",
-            "neon.com",
-            "aws.amazon.com",
-            "docs.cloud.google.com",
-            "learn.microsoft.com"
+            {
+              "url": "https://supabase.com/docs/guides/database/extensions/pgvector?utm_source=openai",
+              "title": "pgvector: Embeddings and vector similarity | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://neon.com/blog/ten-most-popular-postgres-extensions?utm_source=openai",
+              "title": "The 10 Most Popular Postgres Extensions on Neon - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://aws.amazon.com/about-aws/whats-new/2024/11/amazon-rds-for-postgresql-pgvector-080/?utm_source=openai",
+              "title": "Amazon RDS for PostgreSQL supports pgvector 0.8.0 - AWS",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/sql/docs/postgres/ai-overview?utm_source=openai",
+              "title": "Build generative AI applications using Cloud SQL  |  Cloud SQL for PostgreSQL  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://learn.microsoft.com/en-us/azure/postgresql/extensions/how-to-use-pgvector?utm_source=openai",
+              "title": "Vector Search in Azure Database for PostgreSQL Flexible Server - Azure Database for PostgreSQL | Microsoft Learn",
+              "domain": "learn.microsoft.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/ai/going-to-prod?utm_source=openai",
+              "title": "Going to Production | Supabase Docs",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "Use Supabase Postgres with pgvector unless you already run everything on AWS, Google Cloud, or Azure.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Neon — choose this if you want serverless Postgres, autoscaling, scale-to-zero, and database branches for preview environments.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS RDS/Aurora — choose this if your infrastructure is already on AWS or you need enterprise networking and Multi-AZ deployment.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Google Cloud SQL — best if you use Vertex AI; it supports pgvector and can integrate with Vertex AI embedding models.",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Azure Database for PostgreSQL",
+              "text": "Azure PostgreSQL — best if you use Azure OpenAI or already have an Azure environment.",
+              "match": "Azure PostgreSQL"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:06.340Z"
         },
@@ -658,14 +1107,99 @@
             "DigitalOcean"
           ],
           "sources": [
-            "encore.dev",
-            "pandastack.ai",
-            "chat2db.ai",
-            "blog.railway.com",
-            "estuary.dev",
-            "milesweb.co.uk",
-            "danubedata.ro",
-            "instaclustr.com"
+            {
+              "url": "https://encore.dev/articles/best-vector-databases",
+              "title": "Best Vector Databases in 2026: Complete Comparison Guide",
+              "domain": "encore.dev"
+            },
+            {
+              "url": "https://www.pandastack.ai/blog/best-vector-database-hosting-platforms-2026/",
+              "title": "Best Vector Database Hosting Platforms in 2026 · PandaStack",
+              "domain": "pandastack.ai"
+            },
+            {
+              "url": "https://chat2db.ai/resources/blog/best-postgres-hosting-providers-2026",
+              "title": "9 Best PostgreSQL Hosting Providers in 2026",
+              "domain": "chat2db.ai"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://estuary.dev/blog/managed-postgresql-hosting/",
+              "title": "Best Managed PostgreSQL Hosting in 2026: Compared by Use Case",
+              "domain": "estuary.dev"
+            },
+            {
+              "url": "https://www.milesweb.co.uk/blog/hosting/vps/best-postgresql-hosting-providers/",
+              "title": "PostgreSQL Hosting Providers: Top Picks for Developers [October 2026]",
+              "domain": "milesweb.co.uk"
+            },
+            {
+              "url": "https://danubedata.ro/blog/pgvector-rag-managed-postgres-2026",
+              "title": "Build a RAG System with pgvector on Managed PostgreSQL (2026)",
+              "domain": "danubedata.ro"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Top 8 PostgreSQL Hosting Options with Real-Time Failover in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL hosting providers for developers in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://railway.com/deploy/pgvector-latest",
+              "title": "Deploy PgVector [Updated Jul ’26]",
+              "domain": "railway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "Short version: Supabase or Neon if you're starting from scratch, and your cloud's own Postgres (RDS/Aurora, Cloud SQL, Azure) if your infrastructure already lives there.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Short version: Supabase or Neon if you're starting from scratch, and your cloud's own Postgres (RDS/Aurora, Cloud SQL, Azure) if your infrastructure already lives there.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Short version: Supabase or Neon if you're starting from scratch, and your cloud's own Postgres (RDS/Aurora, Cloud SQL, Azure) if your infrastructure already lives there.",
+              "match": "RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Short version: Supabase or Neon if you're starting from scratch, and your cloud's own Postgres (RDS/Aurora, Cloud SQL, Azure) if your infrastructure already lives there.",
+              "match": "Cloud SQL"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Crunchy Bridge: the boring, correct option for something important.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway, Render, DigitalOcean: simple and cheap if you're already hosting your app there.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Railway, Render, DigitalOcean: simple and cheap if you're already hosting your app there.",
+              "match": "Render"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Railway, Render, DigitalOcean: simple and cheap if you're already hosting your app there.",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:06.753Z"
         },
@@ -848,14 +1382,89 @@
             "Tiger Data"
           ],
           "sources": [
-            "enterprisedna.co",
-            "gocodeo.com",
-            "medium.com",
-            "reddit.com",
-            "thenewstack.io",
-            "youtube.com",
-            "ntspl.co.in",
-            "builder.aws.com"
+            {
+              "url": "https://enterprisedna.co/resources/guides/guide-pgvector-tutorial/",
+              "title": "pgvector PostgreSQL Vector Tutorial: A Hands",
+              "domain": "enterprisedna.co"
+            },
+            {
+              "url": "https://www.gocodeo.com/post/using-pgvector-for-ai-and-semantic-search-in-production",
+              "title": "Using pgvector for AI and Semantic Search in Production",
+              "domain": "gocodeo.com"
+            },
+            {
+              "url": "https://medium.com/@TechSnazAI/postgresql-pgvector-specifically-for-your-rag-use-case-dbbaf41d5822",
+              "title": "PostgreSQL + pgvector specifically for your RAG use case",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/programming/comments/1dpcgxp/making_postgresql_a_better_ai_database/",
+              "title": "r/programming - Making PostgreSQL a Better AI Database",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://thenewstack.io/making-adding-ai-apps-with-postgres-easier-for-developers/",
+              "title": "Making Adding AI Apps with Postgres Easier for Developers",
+              "domain": "thenewstack.io"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=jjdLqH5-3D0",
+              "title": "Three Killer PostgreSQL Extensions for Gen AI Apps",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://thenewstack.io/how-devs-can-use-postgres-extensions-including-for-ai-apps/",
+              "title": "How Devs Can Use Postgres Extensions, Including for AI Apps",
+              "domain": "thenewstack.io"
+            },
+            {
+              "url": "https://www.ntspl.co.in/blog/building-ai-powered-apps-on-google-cloud-databases-using-pgvector-llms-and-langchain/",
+              "title": "Next",
+              "domain": "ntspl.co.in"
+            },
+            {
+              "url": "https://builder.aws.com/content/39t2trPcTmD3eZ9k5zBmmharFoQ/ai-powered-search-for-postgresql-applications-with-pgvector",
+              "title": "AI",
+              "domain": "builder.aws.com"
+            },
+            {
+              "url": "https://medium.com/@anshusinghal703/supercharge-your-go-apps-implementing-rag-with-pgvector-and-postgresql-for-cutting-edge-search-%EF%B8%8F-40e8af5e3f56",
+              "title": "Supercharge Your Go Apps: Implementing RAG with pgvector ...",
+              "domain": "medium.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS: Available on Amazon RDS and Amazon Aurora.",
+              "match": "Amazon RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Google Cloud: Natively supported on Cloud SQL for PostgreSQL and AlloyDB.",
+              "match": "Cloud SQL"
+            },
+            {
+              "brand": "Azure Database for PostgreSQL",
+              "text": "Microsoft Azure: Available on Azure Database for PostgreSQL.",
+              "match": "Azure Database for PostgreSQL"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Choose Supabase or Neon if you want a modern, serverless developer experience with seamless integration.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Choose Supabase or Neon if you want a modern, serverless developer experience with seamless integration.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Tiger Data",
+              "text": "Choose Timescale if you expect massive production vector workloads and need deep performance optimization.",
+              "match": "Timescale"
+            }
           ],
           "collectedAt": "2026-10-07T15:38:30.075Z"
         }
@@ -906,10 +1515,54 @@
             "Amazon RDS"
           ],
           "sources": [
-            "crunchydata.com",
-            "supabase.com",
-            "neon.com",
-            "render.com"
+            {
+              "url": "https://www.crunchydata.com/pricing?utm_source=openai",
+              "title": "Pricing on Hosted Postgres | Crunchy Data",
+              "domain": "crunchydata.com"
+            },
+            {
+              "url": "https://supabase.com/solutions/hosted-postgres?utm_source=openai",
+              "title": "Hosted Postgres | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://neon.com/2024-plan-updates?utm_source=openai",
+              "title": "Pricing — Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://render.com/docs/postgresql-backups?utm_source=openai",
+              "title": "Render Postgres Recovery and Backups – Render Docs",
+              "domain": "render.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Crunchy Data",
+              "text": "For a small team with no dedicated DevOps person, I’d choose Crunchy Bridge if the database is important to the business.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Bootstrapped MVP: Supabase Pro",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Many preview environments or spiky traffic: Neon",
+              "match": "Neon"
+            },
+            {
+              "brand": "Render",
+              "text": "Already deploying everything on Render: Render Postgres",
+              "match": "Render"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "I would not start with AWS RDS unless your application is already deeply committed to AWS.",
+              "match": "AWS RDS"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:31.445Z"
         },
@@ -928,14 +1581,99 @@
             "Amazon RDS"
           ],
           "sources": [
-            "swyftstack.com",
-            "devshot.co",
-            "bytebase.com",
-            "techplained.com",
-            "nearbase.dev",
-            "1vps.com",
-            "chat2db.ai",
-            "estuary.dev"
+            {
+              "url": "https://swyftstack.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL Hosting 2026: Compared by Use Case",
+              "domain": "swyftstack.com"
+            },
+            {
+              "url": "https://devshot.co/reviews/best-postgres-hosting",
+              "title": "Best Postgres Hosting in 2026",
+              "domain": "devshot.co"
+            },
+            {
+              "url": "https://www.bytebase.com/blog/postgres-hosting-options-pricing-comparison/",
+              "title": "PostgreSQL Hosting Options in 2026: Pricing Comparison",
+              "domain": "bytebase.com"
+            },
+            {
+              "url": "https://www.techplained.com/best-managed-postgres",
+              "title": "Best Managed Postgres 2026: Neon vs Supabase vs RDS",
+              "domain": "techplained.com"
+            },
+            {
+              "url": "https://nearbase.dev/blog/best-postgres-hosting/",
+              "title": "Best PostgreSQL Hosting in 2026: 16 Providers Reviewed",
+              "domain": "nearbase.dev"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://chat2db.ai/resources/blog/best-postgres-hosting-providers-2026",
+              "title": "9 Best PostgreSQL Hosting Providers in 2026",
+              "domain": "chat2db.ai"
+            },
+            {
+              "url": "https://estuary.dev/blog/managed-postgresql-hosting/",
+              "title": "Best Managed PostgreSQL Hosting in 2026: Compared by Use Case",
+              "domain": "estuary.dev"
+            },
+            {
+              "url": "https://cadence.withremote.ai/blog/best-postgres-hosting",
+              "title": "Best Postgres hosting for startups",
+              "domain": "cadence.withremote.ai"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-managed-postgresql-hosting/",
+              "title": "10 Best Managed PostgreSQL Hosting Providers in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Crunchy Data",
+              "text": "Need only a database, and it runs all the time (most production apps): pick a flat-priced managed host like Crunchy Bridge or DigitalOcean Managed Postgres.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Need only a database, and it runs all the time (most production apps): pick a flat-priced managed host like Crunchy Bridge or DigitalOcean Managed Postgres.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Also need login, file storage and realtime features: Supabase.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Traffic is spiky, or you want a test database for every pull request: Neon.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Render",
+              "text": "App already runs on Render, Railway or Heroku: use that platform's built-in Postgres.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "App already runs on Render, Railway or Heroku: use that platform's built-in Postgres.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Heroku",
+              "text": "App already runs on Render, Railway or Heroku: use that platform's built-in Postgres.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS RDS, unless you're already on AWS.",
+              "match": "AWS RDS"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:24.918Z"
         },
@@ -1136,14 +1874,104 @@
             "Heroku"
           ],
           "sources": [
-            "swyftstack.com",
-            "fly.io",
-            "blog.railway.com",
-            "dreamlit.ai",
-            "northflank.com",
-            "sliplane.io",
-            "mydba.dev",
-            "youtube.com"
+            {
+              "url": "https://swyftstack.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL Hosting 2026: Compared by Use Case",
+              "domain": "swyftstack.com"
+            },
+            {
+              "url": "https://fly.io/learn/what-is-the-best-postgres-hosting/",
+              "title": "Postgres Hosting: How to Choose the Right Option for Your App",
+              "domain": "fly.io"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://northflank.com/blog/top-managed-database-services",
+              "title": "Top managed database services in 2026 | Blog",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://sliplane.io/blog/5-cheap-ways-to-host-postgres",
+              "title": "5 Cheap Ways to Host Postgres in 2026",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://mydba.dev/blog/best-postgres-hosting",
+              "title": "Best PostgreSQL Hosting in 2026: RDS vs Supabase vs Neon ...",
+              "domain": "mydba.dev"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=9T6tjTQ4Zo4",
+              "title": "FASTEST way to host a Postgres database (2024)",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.prisma.io/dataguide/postgresql/5-ways-to-host-postgresql",
+              "title": "5 Ways to Host PostgreSQL Databases",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://postgresgui.com/blog/best-postgresql-cloud-provider",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "postgresgui.com"
+            },
+            {
+              "url": "https://nearbase.dev/blog/best-postgres-hosting/",
+              "title": "Best PostgreSQL Hosting in 2026: 16 Providers Reviewed",
+              "domain": "nearbase.dev"
+            },
+            {
+              "url": "https://northflank.com/blog/managed-postgres-guide",
+              "title": "Managed Postgres: when to use it, how to choose, and what to expect",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "Avoid native cloud providers like AWS RDS or Google Cloud SQL, which require manual networking (VPCs), complex IAM configurations, and manual connection pooling setup.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Avoid native cloud providers like AWS RDS or Google Cloud SQL, which require manual networking (VPCs), complex IAM configurations, and manual connection pooling setup.",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Supabase",
+              "text": "The overall best choices are Supabase and Neon, depending on your architectural style.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "The overall best choices are Supabase and Neon, depending on your architectural style.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Render",
+              "text": "If you already have your application server hosted elsewhere (like Vercel, Render, or Fly.io) and you literally just want Postgres, Neon is the technical marvel.",
+              "match": "Render"
+            },
+            {
+              "brand": "Railway",
+              "text": "🚂 Option 3: Railway (The Application PaaS)",
+              "match": "Railway"
+            },
+            {
+              "brand": "Heroku",
+              "text": "If your team misses the old \"Heroku\" workflow where you could host your node/python/go backend and your database in the exact same place with one click, look at Railway.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:40:38.809Z"
         }
@@ -1193,9 +2021,34 @@
             "Azure Database for PostgreSQL"
           ],
           "sources": [
-            "cloud.google.com",
-            "aws.amazon.com",
-            "learn.microsoft.com"
+            {
+              "url": "https://cloud.google.com/sql/sla?utm_source=openai",
+              "title": "Cloud SQL Service Level Agreement SLA  |  Google Cloud",
+              "domain": "cloud.google.com"
+            },
+            {
+              "url": "https://aws.amazon.com/vi/rds/aurora/sla/?utm_source=openai",
+              "title": "Amazon Aurora Service Level Agreement",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://learn.microsoft.com/en-au/azure/postgresql/backup-restore/concepts-backup-restore?utm_source=openai",
+              "title": "Backup and Restore in Azure Database for PostgreSQL Flexible Server - Azure Database for PostgreSQL | Microsoft Learn",
+              "domain": "learn.microsoft.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud SQL",
+              "text": "For standard PostgreSQL, my pick is Google Cloud SQL Enterprise Plus with HA.",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Aurora’s storage is replicated six ways across three availability zones, and AWS offers continuous incremental backup plus immutable backup vaults.",
+              "match": "Aurora"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:30.813Z"
         },
@@ -1213,14 +2066,94 @@
             "DigitalOcean"
           ],
           "sources": [
-            "dreamlit.ai",
-            "instaclustr.com",
-            "mainframetech.net",
-            "clickhouse.com",
-            "jetboxsolutions.com",
-            "fschackday.org",
-            "hoststack.dev",
-            "enterprisedb.com"
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-database-services-top-13/",
+              "title": "Best Managed PostgreSQL Database Services: Top 13 in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://mainframetech.net/postgresql-hosting-providers/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "mainframetech.net"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Top 8 PostgreSQL Hosting Options with Real-Time Failover in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://clickhouse.com/resources/engineering/managed-postgres-analytics-2026",
+              "title": "Best managed Postgres for analytics in 2026: Top services compared for OLAP workloads",
+              "domain": "clickhouse.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-platforms-top-5-providers-in-2025/",
+              "title": "Best managed PostgreSQL platforms: Top 7 providers in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://jetboxsolutions.com/best-managed-postgresql-services/",
+              "title": "Best Managed PostgreSQL Services for Production 2026",
+              "domain": "jetboxsolutions.com"
+            },
+            {
+              "url": "https://fschackday.org/managed-postgresql/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "fschackday.org"
+            },
+            {
+              "url": "https://hoststack.dev/blog/managed-postgresql-europe-buyers-guide",
+              "title": "Managed PostgreSQL EU 2026: Scaleway, Neon & Aiven ...",
+              "domain": "hoststack.dev"
+            },
+            {
+              "url": "https://www.enterprisedb.com/postgres-database-provider-comparative-analysis",
+              "title": "Postgres Database Providers: A Comparative Analysis",
+              "domain": "enterprisedb.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "On those, Amazon Aurora PostgreSQL is the safest default, with Google AlloyDB / Cloud SQL Enterprise Plus close behind.",
+              "match": "Aurora"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "On those, Amazon Aurora PostgreSQL is the safest default, with Google AlloyDB / Cloud SQL Enterprise Plus close behind.",
+              "match": "AlloyDB"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Aiven: best if you need to run on more than one cloud provider.",
+              "match": "Aiven"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "Highest SLAs: for the extreme end, PlanetScale, CockroachDB, and Aurora DSQL publish 99.999% for multi-region deployments.",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Neon publishes 99.95% on its Scale plan, and Supabase publishes 99.9% on Enterprise.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Supabase: Neon publishes 99.95% on its Scale plan, and Supabase publishes 99.9% on Enterprise.",
+              "match": "Neon"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean: retains backups for 7 days by default (versus up to 35 for AWS RDS).",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:19.224Z"
         },
@@ -1360,13 +2293,80 @@
             "Supabase"
           ],
           "sources": [
-            "dreamlit.ai",
-            "postgresgui.com",
-            "instaclustr.com",
-            "marketplace.microsoft.com",
-            "sliplane.io",
-            "blog.railway.com",
-            "jusdb.com"
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://postgresgui.com/blog/best-postgresql-backup-solution",
+              "title": "Best PostgreSQL Backup Tools in 2026",
+              "domain": "postgresgui.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Best managed PostgreSQL options: Top 6 solutions in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://marketplace.microsoft.com/en-us/product/aivenltd1590663507662.aiven_managed_database_services",
+              "title": "Aiven Platform: Managed Database and Data Streaming ...",
+              "domain": "marketplace.microsoft.com"
+            },
+            {
+              "url": "https://postgresgui.com/blog/best-postgresql-cloud-provider",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "postgresgui.com"
+            },
+            {
+              "url": "https://sliplane.io/blog/managed-postgres-providers-with-automated-backups",
+              "title": "5 Managed Postgres Providers With Automated Backups in ...",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-database-services-top-13/",
+              "title": "Best Managed PostgreSQL Database Services: Top 13 in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://www.jusdb.com/databases/postgresql/consulting",
+              "title": "PostgreSQL Consulting Services | 7",
+              "domain": "jusdb.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "Amazon RDS for PostgreSQL and Amazon Aurora PostgreSQL-Compatible Edition offer the industry standard for enterprise uptime (99.99% SLA on Multi-AZ setups) and automated, continuous Point-In-Time Recovery (PITR) backups via WAL (Write-Ahead Log) archiving.",
+              "match": "Amazon RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Google Cloud SQL for PostgreSQL / AlloyDB:",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Azure Database for PostgreSQL",
+              "text": "Azure Database for PostgreSQL (Flexible Server):",
+              "match": "Azure Database for PostgreSQL"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Aiven for PostgreSQL:",
+              "match": "Aiven"
+            },
+            { "brand": "Neon", "text": "Neon & Supabase:", "match": "Neon" },
+            {
+              "brand": "Supabase",
+              "text": "Neon & Supabase:",
+              "match": "Supabase"
+            }
           ],
           "collectedAt": "2026-10-07T15:39:07.579Z"
         }
@@ -1415,10 +2415,54 @@
             "Render"
           ],
           "sources": [
-            "neon.com",
-            "supabase.com",
-            "crunchydata.com",
-            "docs.aws.amazon.com"
+            {
+              "url": "https://neon.com/blog/new-usage-based-pricing?a=02b5d7e9-95ea-473f-b9c0-ce88dcf1785c&utm_source=openai",
+              "title": "Neon’s New Pricing, Explained: Usage-Based, No Minimum - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/pricing?via=alternative.tools&utm_source=openai",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://www.crunchydata.com/pricing?utm_source=openai",
+              "title": "Pricing on Hosted Postgres | Crunchy Data",
+              "domain": "crunchydata.com"
+            },
+            {
+              "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html?utm_source=openai",
+              "title": "What is Amazon Relational Database Service (Amazon RDS)? - Amazon Relational Database Service",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://neon.com/docs/manage/endpoints/?utm_source=openai",
+              "title": "Manage computes - Neon Docs",
+              "domain": "neon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "For most early-stage startups, I’d choose Neon because it offers standard PostgreSQL with usage-based compute, autoscaling, built-in connection pooling, database branching, and scale-to-zero for inexpensive development and preview environments.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase gives every project dedicated Postgres compute and bundles auth, storage, realtime, APIs and developer tooling.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "RDS is dependable but has more configuration and a more complicated bill—compute, storage, backups and network transfer can all contribute.",
+              "match": "RDS"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Crunchy Bridge is a strong “boring Postgres” option, starting around $9–$10/month, with backups, point-in-time recovery and infrastructure costs included.",
+              "match": "Crunchy Bridge"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:34.718Z"
         },
@@ -1436,14 +2480,94 @@
             "Google Cloud SQL"
           ],
           "sources": [
-            "dreamlit.ai",
-            "dev.to",
-            "selfhost.dev",
-            "techplained.com",
-            "frontdeskreview.com",
-            "northflank.com",
-            "guptadeepak.com",
-            "1vps.com"
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://dev.to/kubeden/neon-vs-supabase-vs-planetscale-vs-aws-what-postgres-costs-in-2026-59o5",
+              "title": "Neon vs Supabase vs PlanetScale vs AWS: what Postgres costs in 2026 - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://www.techplained.com/best-managed-postgres",
+              "title": "Best Managed Postgres 2026: Neon vs Supabase vs RDS",
+              "domain": "techplained.com"
+            },
+            {
+              "url": "https://frontdeskreview.com/best/managed-postgres/",
+              "title": "Best Managed Postgres (2026): top picks + real pricing",
+              "domain": "frontdeskreview.com"
+            },
+            {
+              "url": "https://northflank.com/blog/top-managed-database-services",
+              "title": "Top managed database services in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://guptadeepak.com/tools/top-5-database-as-a-service-platforms-2026/",
+              "title": "Top 5 Database-as-a-Service Platforms 2026: Supabase vs Neon vs PlanetScale vs MongoDB Atlas vs Amazon RDS/Aurora",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://www.justsimple.tools/collections/best-serverless-postgres-platforms",
+              "title": "3 Best Serverless Postgres Platforms in 2026 (Compared)",
+              "domain": "justsimple.tools"
+            },
+            {
+              "url": "https://dev.to/whoffagents/neon-vs-supabase-vs-planetscale-managed-postgres-for-nextjs-in-2026-2el4",
+              "title": "Neon vs Supabase vs PlanetScale: Managed Postgres for Next.js in 2026 - DEV Community",
+              "domain": "dev.to"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "For most early-stage startups it comes down to three options: Neon, Supabase, or PlanetScale.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "For most early-stage startups it comes down to three options: Neon, Supabase, or PlanetScale.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "For most early-stage startups it comes down to three options: Neon, Supabase, or PlanetScale.",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "The same comparison put that case at PlanetScale $33 · RDS ~$57 · Supabase ~$82 · Neon ~$95.",
+              "match": "RDS"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway / Render: Good if you want your app and database on one bill.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Railway / Render: Good if you want your app and database on one bill.",
+              "match": "Render"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "AWS RDS / Aurora, Google Cloud SQL: Choose these if you're already on that cloud or have startup credits there (credits often settle it).",
+              "match": "Google Cloud SQL"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:32.715Z"
         },
@@ -1583,14 +2707,69 @@
           },
           "mentioned": ["Amazon RDS", "Google Cloud SQL", "Prisma Postgres"],
           "sources": [
-            "reddit.com",
-            "instaclustr.com",
-            "danubedata.ro",
-            "postgresgui.com",
-            "bytebase.com",
-            "prisma.io",
-            "mydbops.com",
-            "render.com"
+            {
+              "url": "https://www.reddit.com/r/PostgreSQL/comments/1hs6fo8/at_what_point_should_i_switch_to_a_managed_service/",
+              "title": "At what point should i switch to a managed service - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Best managed PostgreSQL options: Top 6 solutions in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://danubedata.ro/blog/cheapest-managed-postgresql-hosting-2025",
+              "title": "Cheapest Managed PostgreSQL Hosting Compared (2025)",
+              "domain": "danubedata.ro"
+            },
+            {
+              "url": "https://postgresgui.com/blog/best-postgresql-cloud-provider",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "postgresgui.com"
+            },
+            {
+              "url": "https://www.bytebase.com/blog/postgres-hosting-options-pricing-comparison/",
+              "title": "PostgreSQL Hosting Options in 2026: Pricing Comparison",
+              "domain": "bytebase.com"
+            },
+            {
+              "url": "https://www.prisma.io/dataguide/postgresql/5-ways-to-host-postgresql",
+              "title": "5 Ways to Host PostgreSQL Databases | PostgreSQL Hosting Guide",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/postgres-hosting-5-deployment-options-and-how-to-choose/",
+              "title": "Postgres hosting: 5 deployment options and how to choose",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://www.mydbops.com/blog/managed-database-services-for-saas-startups",
+              "title": "Managed Database Services for SaaS Startups: 2026 Guide",
+              "domain": "mydbops.com"
+            },
+            {
+              "url": "https://render.com/articles/choose-managed-postgresql-provider",
+              "title": "How to Choose a Managed PostgreSQL Provider in 2026",
+              "domain": "render.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "For traditional, enterprise-grade cloud reliability: Amazon RDS or Google Cloud SQL are the industry standards, though they require more configuration and have steeper pricing curves as you scale.",
+              "match": "Amazon RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "For traditional, enterprise-grade cloud reliability: Amazon RDS or Google Cloud SQL are the industry standards, though they require more configuration and have steeper pricing curves as you scale.",
+              "match": "Google Cloud SQL"
+            },
+            {
+              "brand": "Prisma Postgres",
+              "text": "For TypeScript and ORM-heavy apps: Prisma Postgres provides zero-infra setup and a usage-based operation pricing model.",
+              "match": "Prisma Postgres"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:16.873Z"
         }
@@ -1634,10 +2813,49 @@
           "overview": null,
           "mentioned": ["Amazon RDS", "Neon", "Google Cloud SQL", "Supabase"],
           "sources": [
-            "docs.aws.amazon.com",
-            "neon.com",
-            "docs.cloud.google.com",
-            "supabase.com"
+            {
+              "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.how-it-works.html?utm_source=openai",
+              "title": "How Aurora serverless works - Amazon Aurora",
+              "domain": "docs.aws.amazon.com"
+            },
+            {
+              "url": "https://neon.com/docs/manage/endpoints/?utm_source=openai",
+              "title": "Manage computes - Neon Docs",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://docs.cloud.google.com/alloydb/docs/instance-read-pool-scale?utm_source=openai",
+              "title": "Scale an instance  |  AlloyDB for PostgreSQL  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/platform/read-replicas?utm_source=openai",
+              "title": "Read Replicas | Supabase Docs",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS Aurora PostgreSQL scales best overall if you expect a genuinely large production workload and can accept AWS complexity and pricing.",
+              "match": "Aurora"
+            },
+            {
+              "brand": "Neon",
+              "text": "Neon is usually the easiest starting point: automatic compute scaling, scale-to-zero and inexpensive database branching.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "AlloyDB is the strongest GCP alternative.",
+              "match": "AlloyDB"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase is excellent as an application platform, but I wouldn't select it solely for maximum database scalability.",
+              "match": "Supabase"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:01.795Z"
         },
@@ -1655,14 +2873,94 @@
             "Render"
           ],
           "sources": [
-            "instaclustr.com",
-            "fschackday.org",
-            "selfhost.dev",
-            "1vps.com",
-            "saptitan.com",
-            "estuary.dev",
-            "blog.railway.com",
-            "kuberns.com"
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-platforms-top-5-providers-in-2025/",
+              "title": "Best managed PostgreSQL platforms: Top 7 providers in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://fschackday.org/managed-postgresql/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "fschackday.org"
+            },
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+              "title": "Top 8 PostgreSQL Hosting Options with Real-Time Failover in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://www.saptitan.com/managed-postgresql-hosting-2026/",
+              "title": "Best Managed PostgreSQL Hosting Providers 2026",
+              "domain": "saptitan.com"
+            },
+            {
+              "url": "https://estuary.dev/blog/managed-postgresql-hosting/",
+              "title": "Best Managed PostgreSQL Hosting in 2026: Compared by Use Case",
+              "domain": "estuary.dev"
+            },
+            {
+              "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-solutions-for-developers-top-5-in-2026/",
+              "title": "Best managed PostgreSQL solutions for developers: Top 6 in 2026",
+              "domain": "instaclustr.com"
+            },
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/best-managed-postgresql-hosting/",
+              "title": "10 Best Managed PostgreSQL Hosting Providers in 2026 • Kuberns",
+              "domain": "kuberns.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS (RDS, then Aurora): RDS is the usual starting point.",
+              "match": "RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Google Cloud (Cloud SQL, then AlloyDB): Cloud SQL instances can grow to 96 processor cores, 624GB of RAM, and 60TB of storage, and read replicas handle increasing read traffic.",
+              "match": "Cloud SQL"
+            },
+            {
+              "brand": "Azure Database for PostgreSQL",
+              "text": "Azure Database for PostgreSQL: Compute and storage scale independently.",
+              "match": "Azure Database for PostgreSQL"
+            },
+            {
+              "brand": "Neon",
+              "text": "If your traffic is spiky or unpredictable: Neon",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase has a risk if you outgrow it: its auth/realtime coupling complicates DB extraction.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "DigitalOcean keeps pricing simple, but advanced PostgreSQL® tuning parameters, custom extensions, and enterprise support SLAs are limited.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Render",
+              "text": "Render and DigitalOcean both start to show tuning limitations as you hit the growth stage.",
+              "match": "Render"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:57.032Z"
         },
@@ -1758,7 +3056,46 @@
             ]
           },
           "mentioned": ["Amazon RDS", "Google Cloud SQL", "Neon", "Supabase"],
-          "sources": ["doit.com", "startupbricks.in", "linkedin.com"],
+          "sources": [
+            {
+              "url": "https://www.doit.com/blog/when-to-use-alloydb-instead-of-cloud-sql-for-postgresql",
+              "title": "When to Use AlloyDB Instead of Cloud SQL for PostgreSQL",
+              "domain": "doit.com"
+            },
+            {
+              "url": "https://www.startupbricks.in/blog/postgresql-database-setup-mvp/",
+              "title": "PostgreSQL Best Practices for Startups 2025 - Startupbricks",
+              "domain": "startupbricks.in"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/levkk_running-postgres-in-production-is-hard-pgdog-activity-7470482449135845376-mEbs",
+              "title": "PgDog Makes Running Postgres in Production Easier",
+              "domain": "linkedin.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "For massive scale and high-performance enterprise workloads, Amazon Aurora PostgreSQL and Google Cloud AlloyDB scale best because they separate compute from storage and support heavy enterprise loads.",
+              "match": "Aurora"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "For massive scale and high-performance enterprise workloads, Amazon Aurora PostgreSQL and Google Cloud AlloyDB scale best because they separate compute from storage and support heavy enterprise loads.",
+              "match": "AlloyDB"
+            },
+            {
+              "brand": "Neon",
+              "text": "Neon: Best for serverless applications with spiky or unpredictable traffic.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Best for fast-growing full-stack apps and MVPs.",
+              "match": "Supabase"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:51.290Z"
         }
       ]
@@ -1796,10 +3133,29 @@
           "overview": null,
           "mentioned": [],
           "sources": [
-            "hub.docker.com",
-            "psycopg.org",
-            "docs.djangoproject.com"
+            {
+              "url": "https://hub.docker.com/_/postgres?utm_source=openai",
+              "title": "postgres - Official Image | Docker Hub",
+              "domain": "hub.docker.com"
+            },
+            {
+              "url": "https://www.psycopg.org/?utm_source=openai",
+              "title": "Psycopg - PostgreSQL adapter for Python",
+              "domain": "psycopg.org"
+            },
+            {
+              "url": "https://docs.djangoproject.com/en/4.2/ref/settings/?utm_source=openai",
+              "title": "Settings | Django documentation | Django",
+              "domain": "docs.djangoproject.com"
+            },
+            {
+              "url": "https://docs.djangoproject.com/en/6.0/faq/install/?utm_source=openai",
+              "title": "FAQ: Installation | Django documentation | Django",
+              "domain": "docs.djangoproject.com"
+            }
           ],
+          "searchQueries": [],
+          "highlights": [],
           "collectedAt": "2026-10-07T15:24:46.890Z"
         },
         {
@@ -1816,6 +3172,44 @@
             "Heroku"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Railway",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "Render"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Neon, Supabase, Railway, Render, AWS RDS, DigitalOcean, and Heroku all offer hosted Postgres.",
+              "match": "Heroku"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:36.219Z"
         },
         {
@@ -1957,12 +3351,59 @@
           },
           "mentioned": ["Amazon RDS", "Neon", "Supabase", "Render", "Heroku"],
           "sources": [
-            "realpython.com",
-            "stackoverflow.com",
-            "youtube.com",
-            "koyeb.com",
-            "dev.to",
-            "oneuptime.com"
+            {
+              "url": "https://realpython.com/videos/set-up-postgresql-database/",
+              "title": "Set Up the PostgreSQL Database (Video) - Real Python",
+              "domain": "realpython.com"
+            },
+            {
+              "url": "https://stackoverflow.com/questions/63139818/how-to-connect-a-django-app-to-a-dockerized-postgres-db-both-from-a-dockerized",
+              "title": "How to connect a django app to a dockerized postgres db, both from ...",
+              "domain": "stackoverflow.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=7rntktpOfxg",
+              "title": "How to Connect PostgreSQL Database with Django Project",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=z_FN0Zu-Z3Q&t=5",
+              "title": "Provision a PostgreSQL database on AWS for Django",
+              "domain": "youtube.com"
+            },
+            {
+              "url": "https://www.koyeb.com/tutorials/use-django-rest-framework-and-managed-postgres-to-build-an-api",
+              "title": "Use Django REST Framework and Managed Postgres to Build ...",
+              "domain": "koyeb.com"
+            },
+            {
+              "url": "https://dev.to/giftedstan/heroku-how-to-deploy-a-django-app-with-postgres-in-5-minutes-5lk",
+              "title": "Heroku: how to deploy a Django app with Postgres in 5 minutes!",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://stackoverflow.com/questions/74184981/setting-up-a-postgres-db-for-django-with-fly-io",
+              "title": "Setting up a Postgres DB for Django with Fly.io",
+              "domain": "stackoverflow.com"
+            },
+            {
+              "url": "https://oneuptime.com/blog/post/2026-02-16-deploy-django-azure-app-service-postgresql/view",
+              "title": "How to Deploy a Django Application to Azure App Service ...",
+              "domain": "oneuptime.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Render",
+              "text": "If production, what cloud platform (AWS, Render, Heroku, etc.) do you plan to use?",
+              "match": "Render"
+            },
+            {
+              "brand": "Heroku",
+              "text": "If production, what cloud platform (AWS, Render, Heroku, etc.) do you plan to use?",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:13.301Z"
         }
@@ -2006,9 +3447,29 @@
           "overview": null,
           "mentioned": ["Google Cloud SQL"],
           "sources": [
-            "learn.microsoft.com",
-            "postgresql.org",
-            "docs.cloud.google.com"
+            {
+              "url": "https://learn.microsoft.com/en-us/azure/postgresql/configure-maintain/overview-postgres-choose-server-options?utm_source=openai",
+              "title": "Choose the Right Hosting Option in Azure Database for PostgreSQL Flexible Server - Azure Database for PostgreSQL | Microsoft Learn",
+              "domain": "learn.microsoft.com"
+            },
+            {
+              "url": "https://www.postgresql.org/files/documentation/pdf/16/postgresql-16-A4.pdf?utm_source=openai",
+              "title": "PostgreSQL 16.13 Documentation",
+              "domain": "postgresql.org"
+            },
+            {
+              "url": "https://docs.cloud.google.com/sql/docs/postgres/high-availability?utm_source=openai",
+              "title": "About high availability  |  Cloud SQL for PostgreSQL  |  Google Cloud Documentation",
+              "domain": "docs.cloud.google.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Google Cloud SQL",
+              "text": "For example, Cloud SQL documents that standalone instances do not automatically recover from a zonal outage, while its HA configuration uses primary and standby instances across zones.",
+              "match": "Cloud SQL"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:01.002Z"
         },
@@ -2026,6 +3487,44 @@
             "Aiven"
           ],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "Cost at scale: Managed services often cost 2–4x what the same raw compute does (RDS and Cloud SQL especially).",
+              "match": "RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Cost at scale: Managed services often cost 2–4x what the same raw compute does (RDS and Cloud SQL especially).",
+              "match": "Cloud SQL"
+            },
+            {
+              "brand": "Neon",
+              "text": "Cheaper managed providers: Neon, Supabase, Crunchy Bridge, DigitalOcean, Aiven.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Cheaper managed providers: Neon, Supabase, Crunchy Bridge, DigitalOcean, Aiven.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Crunchy Data",
+              "text": "Cheaper managed providers: Neon, Supabase, Crunchy Bridge, DigitalOcean, Aiven.",
+              "match": "Crunchy Bridge"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Cheaper managed providers: Neon, Supabase, Crunchy Bridge, DigitalOcean, Aiven.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Cheaper managed providers: Neon, Supabase, Crunchy Bridge, DigitalOcean, Aiven.",
+              "match": "Aiven"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:53.037Z"
         },
         {
@@ -2219,11 +3718,74 @@
           },
           "mentioned": ["Amazon RDS", "Supabase", "Neon", "DigitalOcean"],
           "sources": [
-            "reddit.com",
-            "cloudexpo.nl",
-            "news.ycombinator.com",
-            "linkedin.com",
-            "instagram.com"
+            {
+              "url": "https://www.reddit.com/r/Supabase/comments/1vto7fg/im_done_with_sub_im_switching_to_self_hosted_help/",
+              "title": "I'm done with sub, I'm switching to self hosted, Help : r/Supabase",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://cloudexpo.nl/en/news/managed-postgresql-vs-self-hosted-postgresql-key-benefits-and-trade-offs-1",
+              "title": "Managed PostgreSQL vs. self-hosted PostgreSQL",
+              "domain": "cloudexpo.nl"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=46902664",
+              "title": "Managing the PostgreSQL databases is a medium to low ...",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=32053265",
+              "title": "Ask HN: How do you host your Postgres DB in 2022?",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://www.linkedin.com/posts/andark-consulting-pty-ltd_managed-postgresql-vs-self-hosted-postgresql-activity-7502698310319812608-Gz6Y",
+              "title": "Managed PostgreSQL vs Self",
+              "domain": "linkedin.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=33798523",
+              "title": "How We Built Fly Postgres",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=49008198",
+              "title": "Should one of the first things you do with a database not be to ...",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://news.ycombinator.com/item?id=24607664",
+              "title": "I debated running my own Postgres cluster for a side project, but ...",
+              "domain": "news.ycombinator.com"
+            },
+            {
+              "url": "https://www.instagram.com/p/DclBuurlc5T/",
+              "title": "Managed PostgreSQL vs. self",
+              "domain": "instagram.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Amazon RDS",
+              "text": "Deciding whether to pay for a managed PostgreSQL service (like AWS RDS, Supabase, Neon, or DigitalOcean) or self-host it (on a VPS like Hetzner or bare metal) comes down to a trade-off between operational time and infrastructure cost.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Deciding whether to pay for a managed PostgreSQL service (like AWS RDS, Supabase, Neon, or DigitalOcean) or self-host it (on a VPS like Hetzner or bare metal) comes down to a trade-off between operational time and infrastructure cost.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Deciding whether to pay for a managed PostgreSQL service (like AWS RDS, Supabase, Neon, or DigitalOcean) or self-host it (on a VPS like Hetzner or bare metal) comes down to a trade-off between operational time and infrastructure cost.",
+              "match": "Neon"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Deciding whether to pay for a managed PostgreSQL service (like AWS RDS, Supabase, Neon, or DigitalOcean) or self-host it (on a VPS like Hetzner or bare metal) comes down to a trade-off between operational time and infrastructure cost.",
+              "match": "DigitalOcean"
+            }
           ],
           "collectedAt": "2026-10-07T15:39:30.270Z"
         }
@@ -2261,7 +3823,37 @@
           "text": "**For most new SaaS products, I’d use managed Postgres rather than hosting it yourself.**\n\n### My default recommendation: **Neon**\n\nChoose Neon when:\n\n- Your backend runs on Vercel, Cloudflare, serverless functions, or containers\n- Traffic is initially low or unpredictable\n- You want autoscaling and scale-to-zero\n- You want database branches for previews and migrations\n- You only need Postgres—not an entire backend platform\n\nNeon separates compute and storage, supports autoscaling, and can suspend idle compute, which is useful for early-stage or bursty SaaS workloads. \n\n### Choose **Supabase** instead if you also need:\n\n- Authentication\n- File storage\n- Realtime subscriptions\n- Auto-generated APIs\n- A convenient admin dashboard\n- Postgres Row Level Security for multi-tenancy\n\nIts production plan starts around **$25/month**, with a dedicated Postgres instance, connection pooling, and daily backups. \n\n### Choose **AWS RDS** if:\n\n- Everything already runs on AWS\n- You need private networking, IAM integration, strict compliance, or conventional Multi-AZ infrastructure\n- You have someone comfortable operating AWS\n\nRDS is dependable but generally more expensive and operationally complicated; Multi-AZ also increases compute, storage, and write-I/O costs. \n\n## Simple decision\n\n| Situation | Use |\n|---|---|\n| Normal new SaaS, database only | **Neon** |\n| Need auth, storage and realtime too | **Supabase** |\n| AWS enterprise/compliance environment | **RDS PostgreSQL** |\n| Want strong Postgres-focused support | **Crunchy Bridge** |\n| Thinking about installing Postgres on a VPS | **Don’t—unless you can manage backups, upgrades and recovery** |\n\nWhatever you choose:\n\n- Put the database in the same region as your backend\n- Use pooled connections for serverless workloads\n- Enable point-in-time recovery before serving paying customers\n- Test restoring a backup\n- Use one shared database with `tenant_id` for most multi-tenant SaaS products\n- Keep SQL migrations in version control\n\n**Short answer: start with Neon. Pick Supabase if you want it to provide your auth and storage as well.**",
           "overview": null,
           "mentioned": ["Neon", "Supabase", "Amazon RDS", "Crunchy Data"],
-          "sources": ["neon.com", "supabase.com", "aws.amazon.com"],
+          "sources": [
+            {
+              "url": "https://neon.com/blog/building-patterns-unlocked-by-scale-to-zero?utm_source=openai",
+              "title": "Building patterns unlocked by scale to zero - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/solutions/hosted-postgres?utm_source=openai",
+              "title": "Hosted Postgres | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://aws.amazon.com/rds/postgresql/pricing/?utm_source=openai",
+              "title": "Amazon RDS for PostgreSQL Pricing",
+              "domain": "aws.amazon.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            { "brand": "Neon", "text": "Choose Neon when:", "match": "Neon" },
+            {
+              "brand": "Supabase",
+              "text": "Pick Supabase if you want it to provide your auth and storage as well.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "RDS is dependable but generally more expensive and operationally complicated; Multi-AZ also increases compute, storage, and write-I/O costs.",
+              "match": "RDS"
+            }
+          ],
           "collectedAt": "2026-10-07T15:25:06.725Z"
         },
         {
@@ -2276,14 +3868,84 @@
             "Google Cloud SQL"
           ],
           "sources": [
-            "dreamlit.ai",
-            "1vps.com",
-            "techplained.com",
-            "selfhost.dev",
-            "datastorage.com",
-            "northflank.com",
-            "guptadeepak.com",
-            "nearbase.dev"
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://www.techplained.com/best-managed-postgres",
+              "title": "Best Managed Postgres 2026: Neon vs Supabase vs RDS",
+              "domain": "techplained.com"
+            },
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://datastorage.com/articles/top-7-managed-postgresql-providers-of-2026-ranked/",
+              "title": "Top 7 Managed PostgreSQL Providers of 2026, Ranked - Data Storage",
+              "domain": "datastorage.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-database-providers",
+              "title": "Best database providers for modern applications in 2026",
+              "domain": "northflank.com"
+            },
+            {
+              "url": "https://guptadeepak.com/tools/top-5-database-as-a-service-platforms-2026/",
+              "title": "Top 5 Database-as-a-Service Platforms 2026: Supabase vs Neon vs PlanetScale vs MongoDB Atlas vs Amazon RDS/Aurora",
+              "domain": "guptadeepak.com"
+            },
+            {
+              "url": "https://nearbase.dev/blog/neon-alternatives/",
+              "title": "12 Best Neon Alternatives for Managed Postgres (Reviewed)",
+              "domain": "nearbase.dev"
+            },
+            {
+              "url": "https://queryplane.com/blog/top-managed-postgresql-cloud-providers/",
+              "title": "Best Managed PostgreSQL Cloud Providers in 2026 - QueryPlane Blog",
+              "domain": "queryplane.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL hosting providers for developers in 2026",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "Default for most new SaaS: Supabase or Neon",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "Default for most new SaaS: Supabase or Neon",
+              "match": "Neon"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "If uptime is critical: PlanetScale Postgres",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "If you're already on AWS or GCP: RDS/Aurora or Cloud SQL",
+              "match": "RDS"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "If you're already on AWS or GCP: RDS/Aurora or Cloud SQL",
+              "match": "Cloud SQL"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:08.496Z"
         },
@@ -2401,11 +4063,64 @@
             "Google Cloud SQL"
           ],
           "sources": [
-            "reddit.com",
-            "facebook.com",
-            "stackoverflow.com",
-            "dev.to",
-            "postgresql.org"
+            {
+              "url": "https://www.reddit.com/r/webdev/comments/1uqq52r/whats_the_most_practical_postgres_hosting_choice/",
+              "title": "What's the most practical Postgres hosting choice for an early stage SaaS? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://www.facebook.com/groups/aifire.co/posts/1678651229406846/",
+              "title": "Supabase as the ultimate backend for SaaS platforms",
+              "domain": "facebook.com"
+            },
+            {
+              "url": "https://www.reddit.com/r/SaaS/comments/1q8k286/postgresql_user_herewhat_database_is_everyone/",
+              "title": "PostgreSQL user here—what database is everyone else using? : r/SaaS - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://stackoverflow.com/questions/79965414/multi-tenant-saas-architecture-postgresql-schema-per-tenant-vs-shared-database",
+              "title": "Multi-tenant SaaS Architecture: PostgreSQL Schema per ...",
+              "domain": "stackoverflow.com"
+            },
+            {
+              "url": "https://dev.to/lbelkind/strategies-for-using-postgresql-as-a-database-for-multi-tenant-services-4abd",
+              "title": "Strategies for Using PostgreSQL as a Database for Multi ...",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.postgresql.org/message-id/etPan.57a03af2.63465551.5fc@gmail.com",
+              "title": "How to best archetect Multi",
+              "domain": "postgresql.org"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon: Best if you want pure Postgres with instant database branching, auto-scaling, and built-in connection pooling without extra backend clutter.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Best if you want an all-in-one Backend-as-a-Service (BaaS) that includes instant APIs, user authentication, and file storage alongside your database.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Traditional Managed (AWS RDS, DigitalOcean Managed Databases, or Google Cloud SQL): Best for predictable high-volume workloads and strict enterprise compliance where you want standard provisioned instances.",
+              "match": "AWS RDS"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Traditional Managed (AWS RDS, DigitalOcean Managed Databases, or Google Cloud SQL): Best for predictable high-volume workloads and strict enterprise compliance where you want standard provisioned instances.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Google Cloud SQL",
+              "text": "Traditional Managed (AWS RDS, DigitalOcean Managed Databases, or Google Cloud SQL): Best for predictable high-volume workloads and strict enterprise compliance where you want standard provisioned instances.",
+              "match": "Google Cloud SQL"
+            }
           ],
           "collectedAt": "2026-10-07T15:26:20.906Z"
         }
@@ -2444,10 +4159,49 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "Railway", "Render"],
           "sources": [
-            "neon.com",
-            "supabase.com",
-            "docs.railway.com",
-            "render.com"
+            {
+              "url": "https://neon.com/blog/neon-free-plan-1-gb-per-project?utm_source=openai",
+              "title": "Neon gives you 100 projects for free, with 1 GB of Postgres storage each - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/pricing?via=alternative.tools&utm_source=openai",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://docs.railway.com/pricing/free-trial?utm_source=openai",
+              "title": "Free Trial | Railway Docs",
+              "domain": "docs.railway.com"
+            },
+            {
+              "url": "https://render.com/docs/free?utm_source=openai",
+              "title": "Deploy for Free – Render Docs",
+              "domain": "render.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "As of October 7, 2026, Neon offers the strongest free tier for a straightforward hosted PostgreSQL database:",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Best if you also need authentication, file storage, realtime, and generated APIs.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway: Easiest when hosting your application and database together, but the permanent free plan is only $1 of monthly usage credit, making it less predictable.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: Not recommended for persistent free hosting because free PostgreSQL databases expire after 30 days and have no backups.",
+              "match": "Render"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:11.622Z"
         },
@@ -2464,14 +4218,89 @@
             "Heroku"
           ],
           "sources": [
-            "dev.to",
-            "koyeb.com",
-            "mydba.dev",
-            "kunalganglani.com",
-            "swyftstack.com",
-            "designrevision.com",
-            "perkstack.co",
-            "toolchew.com"
+            {
+              "url": "https://dev.to/philip_mcclarence_2ef9475/best-postgresql-hosting-in-2026-rds-vs-supabase-vs-neon-vs-self-hosted-5fkp",
+              "title": "Best PostgreSQL Hosting in 2026: RDS vs Supabase vs Neon vs Self-Hosted - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.koyeb.com/blog/top-postgresql-database-free-tiers-in-2026",
+              "title": "Top PostgreSQL Database Free Tiers in 2026 - Koyeb",
+              "domain": "koyeb.com"
+            },
+            {
+              "url": "https://mydba.dev/blog/best-postgres-hosting",
+              "title": "Best PostgreSQL Hosting in 2026: RDS vs Supabase vs Neon vs Self-Hosted",
+              "domain": "mydba.dev"
+            },
+            {
+              "url": "https://www.kunalganglani.com/blog/neon-vs-supabase-2026",
+              "title": "Neon vs Supabase 2026: Postgres Platform Compared",
+              "domain": "kunalganglani.com"
+            },
+            {
+              "url": "https://swyftstack.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL Hosting 2026: Compared by Use Case",
+              "domain": "swyftstack.com"
+            },
+            {
+              "url": "https://designrevision.com/blog/supabase-vs-neon",
+              "title": "Neon vs Supabase 2026: Benchmarks, Pricing & Verdict",
+              "domain": "designrevision.com"
+            },
+            {
+              "url": "https://perkstack.co/blog/free-postgres-hosting",
+              "title": "Free PostgreSQL Hosting: 7 Options Compared (2026)",
+              "domain": "perkstack.co"
+            },
+            {
+              "url": "https://swyftstack.com/blog/free-postgresql-hosting",
+              "title": "Free PostgreSQL Hosting: Every Real Option (2026) - Swyftstack",
+              "domain": "swyftstack.com"
+            },
+            {
+              "url": "https://toolchew.com/en/best-postgres-host/",
+              "title": "Best Postgres Host for Early-Stage SaaS (2026) — toolchew",
+              "domain": "toolchew.com"
+            },
+            {
+              "url": "https://selfhost.dev/blog/neon-vs-supabase/",
+              "title": "Neon vs Supabase: You're Comparing Them Wrong",
+              "domain": "selfhost.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "For most people, Neon has the best free tier if you just need a Postgres database.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase is better if you also want auth, file storage and APIs included.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Aiven: a dedicated single node with 1 CPU and 1 GB of RAM, no card required, free indefinitely.",
+              "match": "Aiven"
+            },
+            {
+              "brand": "Xata",
+              "text": "Xata: wins on raw free storage.",
+              "match": "Xata"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: Render's free database expires after 30 days, so it's only good for demos.",
+              "match": "Render"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Avoid: ElephantSQL shut down entirely, and Heroku removed its free plans in late 2022.",
+              "match": "Heroku"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:13.149Z"
         },
@@ -2528,7 +4357,37 @@
             ]
           },
           "mentioned": ["Neon", "Supabase"],
-          "sources": ["reddit.com", "daily.dev", "aiven.io"],
+          "sources": [
+            {
+              "url": "https://www.reddit.com/r/PostgreSQL/comments/1qq4vcf/free_postgresql_hosting_options/",
+              "title": "Free PostgreSQL hosting options? - Reddit",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://daily.dev/posts/how-to-choose-the-best-postgres-hosting-for-your-app-in-2026-pvrerpzfc",
+              "title": "How to Choose the Best Postgres Hosting for Your App in 2026",
+              "domain": "daily.dev"
+            },
+            {
+              "url": "https://www.reddit.com/r/django/comments/1wgr348/cheapest_reliable_hosting_for_a_react_django/",
+              "title": "Cheapest reliable hosting for a React + Django + PostgreSQL ...",
+              "domain": "reddit.com"
+            },
+            {
+              "url": "https://aiven.io/free-postgresql-database",
+              "title": "Free PostgreSQL® Database, No Credit Card - Aiven",
+              "domain": "aiven.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon and offer the best overall free tiers for PostgreSQL hosting, balancing generous storage with modern developer features.",
+              "match": "Neon"
+            },
+            { "brand": "Supabase", "text": "Supabase", "match": "Supabase" }
+          ],
           "collectedAt": "2026-10-07T15:25:16.930Z"
         }
       ]
@@ -2566,11 +4425,49 @@
           "overview": null,
           "mentioned": ["Neon", "Aiven", "DigitalOcean", "Supabase"],
           "sources": [
-            "neon.com",
-            "aiven.io",
-            "ovhcloud.com",
-            "scaleway.com",
-            "supabase.com"
+            {
+              "url": "https://neon.com/blog/neon-free-plan-1-gb-per-project?utm_source=openai",
+              "title": "Neon gives you 100 projects for free, with 1 GB of Postgres storage each - Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://aiven.io/pricing/postgresql?utm_source=openai",
+              "title": "Aiven - Your AI-ready Open Source Data Platform",
+              "domain": "aiven.io"
+            },
+            {
+              "url": "https://www.ovhcloud.com/fr/web-cloud/databases/?utm_source=openai",
+              "title": "Hébergement de Base de Données | Web Cloud Database | OVHcloud France",
+              "domain": "ovhcloud.com"
+            },
+            {
+              "url": "https://www.scaleway.com/en/pricing/managed-databases/?utm_source=openai",
+              "title": "Managed Databases Tarifs | Scaleway",
+              "domain": "scaleway.com"
+            },
+            {
+              "url": "https://supabase.com/pricing?via=alternative.tools&utm_source=openai",
+              "title": "Pricing & Fees | Supabase",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Absolute cheapest: Neon Free in Frankfurt.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Cheapest small always-on option: Aiven Developer at $5/month, selecting the Europe geographical area.",
+              "match": "Aiven"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Best developer experience: Neon for database-only, or Supabase if you also need authentication, storage and generated APIs.",
+              "match": "Supabase"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:46.995Z"
         },
@@ -2586,13 +4483,84 @@
             "Amazon RDS"
           ],
           "sources": [
-            "selfhost.dev",
-            "hoststack.dev",
-            "sliplane.io",
-            "danubedata.ro",
-            "medium.com",
-            "dev.to",
-            "scaleway.com"
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://hoststack.dev/blog/managed-postgresql-europe-buyers-guide",
+              "title": "Managed Postgres in Europe (2026): 7 EU Providers Compared",
+              "domain": "hoststack.dev"
+            },
+            {
+              "url": "https://sliplane.io/blog/cheap-managed-postgres-providers",
+              "title": "5 Cheap Managed Postgres Providers in 2026",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://sliplane.io/blog/5-cheap-ways-to-host-postgres",
+              "title": "5 Cheap Ways to Host Postgres in 2026",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://hoststack.dev/blog/scaleway-postgresql-pricing-2026",
+              "title": "Scaleway Managed PostgreSQL Pricing 2026 - HostStack",
+              "domain": "hoststack.dev"
+            },
+            {
+              "url": "https://danubedata.ro/blog/cheapest-managed-postgresql-hosting-2025",
+              "title": "Cheapest Managed PostgreSQL Hosting Compared (2025)",
+              "domain": "danubedata.ro"
+            },
+            {
+              "url": "https://sliplane.io/blog/best-managed-postgres-providers-europe",
+              "title": "5 Best Managed Postgres Providers in Europe in 2026",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://medium.com/@nile.bits/top-10-affordable-options-to-host-your-postgresql-database-6cf103fe40b4",
+              "title": "Top 10 Affordable Options To Host Your PostgreSQL Database",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://dev.to/nilebits/top-10-affordable-options-to-host-your-postgresql-database-5geo",
+              "title": "Top 10 Affordable Options To Host Your PostgreSQL Database - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://www.scaleway.com/en/pricing/managed-databases/",
+              "title": "Managed Databases Tarifs - Pricing",
+              "domain": "scaleway.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon: always-free, scale-to-zero tier.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Aiven",
+              "text": "Aiven: has a free plan that auto-powers-off.",
+              "match": "Aiven"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: free projects are paused after 1 week inactive.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Aiven Developer: ~$5/mo (1 GB, DigitalOcean Frankfurt/Amsterdam).",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "For comparison, Supabase Pro ~$75 (base + 4 GB compute add-on); Neon ~$91 always-on, and AWS RDS Frankfurt Multi-AZ is ~$120/month.",
+              "match": "AWS RDS"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:40.002Z"
         },
@@ -2772,14 +4740,84 @@
           },
           "mentioned": ["Aiven", "Render", "Neon"],
           "sources": [
-            "dreamlit.ai",
-            "hostim.dev",
-            "bytebase.com",
-            "neon.com",
-            "danubedata.ro",
-            "selfhost.dev",
-            "makerkit.dev",
-            "eurobase.app"
+            {
+              "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+              "title": "10 Best Managed Postgres Providers Compared (2026)",
+              "domain": "dreamlit.ai"
+            },
+            {
+              "url": "https://hostim.dev/hosting/free-postgres-hosting-europe/",
+              "title": "Free PostgreSQL Hosting in Europe",
+              "domain": "hostim.dev"
+            },
+            {
+              "url": "https://www.bytebase.com/blog/postgres-hosting-options-pricing-comparison/",
+              "title": "PostgreSQL Hosting Options in 2026: Pricing Comparison - Bytebase",
+              "domain": "bytebase.com"
+            },
+            {
+              "url": "https://neon.com/pricing",
+              "title": "Pricing — Neon",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://danubedata.ro/blog/neon-alternatives-europe-serverless-postgres-2026",
+              "title": "GDPR-Compliant Serverless Postgres (2026) - DanubeData",
+              "domain": "danubedata.ro"
+            },
+            {
+              "url": "https://neon.com/faqs/managed-postgres-databases-free-tier",
+              "title": "Which managed Postgres databases have a free tier generous ...",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+              "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+              "domain": "selfhost.dev"
+            },
+            {
+              "url": "https://makerkit.dev/blog/saas/supabase-pricing",
+              "title": "Supabase Pricing in 2026: What You'll Actually Pay (with Calculator)",
+              "domain": "makerkit.dev"
+            },
+            {
+              "url": "https://eurobase.app/vs/supabase",
+              "title": "Supabase EU alternative — Eurobase (Scaleway, France, GDPR",
+              "domain": "eurobase.app"
+            },
+            {
+              "url": "https://hostim.dev/hosting/alternatives/cheapest-eu-paas-compared/",
+              "title": "Cheapest EU PaaS Compared: App Plus Database in 2026",
+              "domain": "hostim.dev"
+            },
+            {
+              "url": "https://sliplane.io/blog/cheap-managed-postgres-providers",
+              "title": "5 Cheap Managed Postgres Providers in 2026 - Sliplane",
+              "domain": "sliplane.io"
+            },
+            {
+              "url": "https://hostim.dev/hosting/alternatives/alternative-to-neon/",
+              "title": "Neon Alternative in Europe – Flat-Priced Managed Postgres",
+              "domain": "hostim.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Aiven",
+              "text": "Aiven: Offers a free plan for a single-node database (1 GB), though region selection can be automated.",
+              "match": "Aiven"
+            },
+            {
+              "brand": "Render",
+              "text": "Render: Paid PostgreSQL hosting in Frankfurt starts at $6/month.",
+              "match": "Render"
+            },
+            {
+              "brand": "Neon",
+              "text": "Neon (Launch Plan): Usage-based pricing with no monthly minimum, typically running around $15/month for small always-on or intermittent workloads in EU regions.",
+              "match": "Neon"
+            }
           ],
           "collectedAt": "2026-10-07T15:27:18.233Z"
         }
@@ -2816,10 +4854,49 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "Amazon RDS", "PlanetScale"],
           "sources": [
-            "neon.com",
-            "supabase.com",
-            "aws.amazon.com",
-            "planetscale.com"
+            {
+              "url": "https://neon.com/docs/manage/endpoints/?utm_source=openai",
+              "title": "Manage computes - Neon Docs",
+              "domain": "neon.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/platform/manage-your-usage/compute?utm_source=openai",
+              "title": "Manage Compute usage | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://aws.amazon.com/rds/aurora/pricing/?did=ap_card&utm_source=openai",
+              "title": "Amazon Aurora Pricing",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://planetscale.com/postgres?utm_source=openai",
+              "title": "PlanetScale Postgres — PlanetScale",
+              "domain": "planetscale.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "As of October 7, 2026, I’d choose Neon for most greenfield web apps, SaaS products, and serverless/edge deployments.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase is an excellent backend platform, but its Postgres instances are dedicated VMs billed by compute time, so it is less “serverless database” than Neon.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Aurora Serverless v2 is the strongest enterprise/AWS option.",
+              "match": "Aurora"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "PlanetScale Postgres looks compelling when raw, consistent performance matters more than scale-to-zero economics.",
+              "match": "PlanetScale"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:09.292Z"
         },
@@ -2829,14 +4906,89 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "PlanetScale", "Amazon RDS"],
           "sources": [
-            "getautonoma.com",
-            "gautamkhorana.com",
-            "apiscout.dev",
-            "pickuma.com",
-            "coderfile.io",
-            "buildmvpfast.com",
-            "devtoolreviews.com",
-            "cirocloud.com"
+            {
+              "url": "https://getautonoma.com/blog/neon-vs-planetscale",
+              "title": "Neon vs PlanetScale (2026): Serverless DB Comparison",
+              "domain": "getautonoma.com"
+            },
+            {
+              "url": "https://gautamkhorana.com/blog/serverless-databases-2026-supabase-neon-planetscale-turso-convex/",
+              "title": "Supabase vs Neon vs PlanetScale vs Turso vs Convex 2026",
+              "domain": "gautamkhorana.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/supabase-vs-neon-vs-planetscale-serverless-db-2026",
+              "title": "PlanetScale Status 2026: Supabase vs Neon vs PlanetScale",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://pickuma.com/for-dev/planetscale-neon-supabase-serverless-database-comparison-2026/",
+              "title": "PlanetScale vs Neon vs Supabase: Serverless DB in 2026 — Pickuma",
+              "domain": "pickuma.com"
+            },
+            {
+              "url": "https://coderfile.io/blog/neon-vs-planetscale-vs-supabase",
+              "title": "Neon vs PlanetScale vs Supabase: Serverless Dat…",
+              "domain": "coderfile.io"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/compare/neon-vs-planetscale",
+              "title": "Neon vs PlanetScale (2026): Serverless Postgres Compared",
+              "domain": "buildmvpfast.com"
+            },
+            {
+              "url": "https://www.devtoolreviews.com/reviews/supabase-vs-planetscale-vs-neon",
+              "title": "Supabase vs PlanetScale vs Neon (2026): Best Serverless",
+              "domain": "devtoolreviews.com"
+            },
+            {
+              "url": "https://cirocloud.com/artikel/serverless-postgresql-2025-neon-vs-planetscale-vs-supabase-compared",
+              "title": "Serverless PostgreSQL 2026: Neon vs PlanetScale vs Supabase",
+              "domain": "cirocloud.com"
+            },
+            {
+              "url": "https://rafftechnologies.com/learn/compare/planetscale-alternatives-mysql-postgres",
+              "title": "PlanetScale Alternatives 2026: MySQL & Postgres Options",
+              "domain": "rafftechnologies.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/best-serverless-database-apis-2026",
+              "title": "Best Serverless Database APIs 2026",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://www.databricks.com/product/pricing/lakebase",
+              "title": "Lakebase",
+              "domain": "databricks.com"
+            },
+            {
+              "url": "https://www.buildmvpfast.com/blog/neon-serverless-postgres-databricks-comparison-pricing-2026",
+              "title": "Neon Serverless Postgres After Databricks",
+              "domain": "buildmvpfast.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon is the default pick for serverless Postgres right now, assuming you mean \"serverless\" literally: it scales to zero, autoscales, and you pay per use.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: best if you want a whole backend",
+              "match": "Supabase"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "PlanetScale Postgres: best for raw performance",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Aurora Serverless v2: if you're committed to AWS",
+              "match": "Aurora"
+            }
           ],
           "collectedAt": "2026-10-07T15:23:57.808Z"
         },
@@ -2982,14 +5134,69 @@
           },
           "mentioned": ["Neon", "Supabase", "Amazon RDS"],
           "sources": [
-            "blog.railway.com",
-            "apiscout.dev",
-            "dbpro.app",
-            "pkgpulse.com",
-            "prisma.io",
-            "getautonoma.com",
-            "mastra.ai",
-            "clickhouse.com"
+            {
+              "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+              "title": "The Best PostgreSQL Hosting for Developers in 2026",
+              "domain": "blog.railway.com"
+            },
+            {
+              "url": "https://apiscout.dev/guides/best-serverless-database-apis-2026",
+              "title": "Best Serverless Database APIs 2026 - APIScout",
+              "domain": "apiscout.dev"
+            },
+            {
+              "url": "https://www.dbpro.app/blog/neon-vs-supabase",
+              "title": "Neon vs Supabase: Comparing Serverless Postgres - DB Pro Blog",
+              "domain": "dbpro.app"
+            },
+            {
+              "url": "https://www.pkgpulse.com/guides/neon-vs-supabase-postgres-vs-tembo-serverless-2026",
+              "title": "Neon vs Supabase vs Tembo Postgres 2026 — PkgPulse Guides",
+              "domain": "pkgpulse.com"
+            },
+            {
+              "url": "https://www.prisma.io/blog/serverless-postgres",
+              "title": "Serverless Postgres: How It Works and Who Offers It (2026)",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://getautonoma.com/blog/supabase-vs-neon",
+              "title": "Supabase vs Neon: Serverless Postgres Compared (2026)",
+              "domain": "getautonoma.com"
+            },
+            {
+              "url": "https://mastra.ai/articles/best-serverless-postgres-databases",
+              "title": "The 11 Best Serverless Postgres Databases (August 2026)",
+              "domain": "mastra.ai"
+            },
+            {
+              "url": "https://clickhouse.com/resources/engineering/choose-managed-postgresql-provider",
+              "title": "How to choose the right managed Postgres provider in 2026",
+              "domain": "clickhouse.com"
+            },
+            {
+              "url": "https://www.dbpro.app/blog/neon-vs-aurora-serverless",
+              "title": "Neon vs Aurora Serverless: PostgreSQL Compared",
+              "domain": "dbpro.app"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon is the best pure serverless PostgreSQL database right now due to its true scale-to-zero compute, split storage-and-compute architecture, and instant Git-like database branching.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Full-Stack Backend Platform: Supabase",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "Enterprise Cloud-Native: Amazon Aurora Serverless v2",
+              "match": "Aurora"
+            }
           ],
           "collectedAt": "2026-10-07T15:24:22.906Z"
         }
@@ -3026,10 +5233,54 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "Prisma Postgres", "Amazon RDS"],
           "sources": [
-            "vercel.com",
-            "supabase.com",
-            "prisma.io",
-            "aws.amazon.com"
+            {
+              "url": "https://vercel.com/marketplace/neon/neon?utm_source=openai",
+              "title": "Neon – Neon for Vercel – Vercel",
+              "domain": "vercel.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/getting-started/quickstarts/nextjs?utm_source=openai",
+              "title": "Use Supabase with Next.js | Supabase Docs",
+              "domain": "supabase.com"
+            },
+            {
+              "url": "https://www.prisma.io/docs/postgres/database/serverless-driver?utm_source=openai",
+              "title": "Serverless driver | Prisma Documentation",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://aws.amazon.com/rds/aurora/serverless/?utm_source=openai",
+              "title": "Serverless Database - Amazon Aurora Serverless - AWS",
+              "domain": "aws.amazon.com"
+            },
+            {
+              "url": "https://vercel.com/docs/marketplace-storage?utm_source=openai",
+              "title": "Storage on Vercel Marketplace",
+              "domain": "vercel.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Database: Neon Postgres",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Best if you also want authentication, storage, realtime subscriptions, and browser-accessible data protected by Row Level Security.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Prisma Postgres",
+              "text": "Prisma Postgres: Good if you’re committed to Prisma and want an integrated database, ORM, pooling, and serverless driver.",
+              "match": "Prisma Postgres"
+            },
+            {
+              "brand": "Amazon RDS",
+              "text": "AWS Aurora Postgres: Better for large, AWS-centric or enterprise workloads needing advanced availability and infrastructure controls—but it is more complex.",
+              "match": "Aurora"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:19.968Z"
         },
@@ -3039,14 +5290,69 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "PlanetScale", "Prisma Postgres"],
           "sources": [
-            "dev.to",
-            "shrivex.com",
-            "layerbase.com",
-            "makerkit.dev",
-            "1vps.com",
-            "prisma.io",
-            "devtoolsacademy.com",
-            "northflank.com"
+            {
+              "url": "https://dev.to/whoffagents/neon-vs-supabase-vs-planetscale-managed-postgres-for-nextjs-in-2026-2el4",
+              "title": "Neon vs Supabase vs PlanetScale: Managed Postgres for Next.js in 2026 - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://shrivex.com/blog/best-free-postgresql-databases-in-2026-a-comprehensive-comparison-for-modern-developers",
+              "title": "Top Free PostgreSQL Hosting Providers 2026",
+              "domain": "shrivex.com"
+            },
+            {
+              "url": "https://layerbase.com/blog/best-database-for-nextjs-vercel",
+              "title": "Best database for Next.js in 2026 (Vercel Postgres is gone)",
+              "domain": "layerbase.com"
+            },
+            {
+              "url": "https://makerkit.dev/blog/tutorials/best-database-software-startups",
+              "title": "Best Database Software for Startups and SaaS (2026): A Developer's Guide",
+              "domain": "makerkit.dev"
+            },
+            {
+              "url": "https://1vps.com/best-managed-postgres-hosting",
+              "title": "Best Managed PostgreSQL Hosting in 2026",
+              "domain": "1vps.com"
+            },
+            {
+              "url": "https://www.prisma.io/blog/serverless-postgres",
+              "title": "Serverless Postgres: How It Works and Who Offers It (2026)",
+              "domain": "prisma.io"
+            },
+            {
+              "url": "https://www.devtoolsacademy.com/blog/serverless-sql-databases",
+              "title": "6 Best Serverless SQL Databases for Developers (2026 Comparison)",
+              "domain": "devtoolsacademy.com"
+            },
+            {
+              "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+              "title": "Best PostgreSQL hosting providers for developers in 2026",
+              "domain": "northflank.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "For most Next.js apps, use Neon if you only need a database, or Supabase if you also want auth, file storage and realtime built in.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "For most Next.js apps, use Neon if you only need a database, or Supabase if you also want auth, file storage and realtime built in.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "PlanetScale",
+              "text": "PlanetScale Postgres: best if reliability matters most.",
+              "match": "PlanetScale"
+            },
+            {
+              "brand": "Prisma Postgres",
+              "text": "Prisma Postgres: good if you already use Prisma.",
+              "match": "Prisma Postgres"
+            }
           ],
           "collectedAt": "2026-10-07T15:25:26.668Z"
         }
@@ -3073,7 +5379,26 @@
           "text": "**For a local prototype, Docker is the easiest option:**\n\n```bash\ndocker run --name prototype-db \\\n  -e POSTGRES_USER=app \\\n  -e POSTGRES_PASSWORD=devpassword \\\n  -e POSTGRES_DB=app \\\n  -p 5432:5432 \\\n  -v prototype-db:/var/lib/postgresql \\\n  -d postgres:18\n```\n\nConnection string:\n\n```text\npostgresql://app:devpassword@localhost:5432/app\n```\n\nUseful commands:\n\n```bash\ndocker stop prototype-db       # stop\ndocker start prototype-db      # restart\ndocker rm -f -v prototype-db   # delete it and its data\n```\n\nThe named volume preserves data between restarts. PostgreSQL 18’s official image expects persistent storage under `/var/lib/postgresql`. \n\nIf the prototype must be accessible online, use a managed service such as **Supabase** instead—you get hosted Postgres, a dashboard, SQL editor, backups, and a connection string without managing a server.",
           "overview": null,
           "mentioned": ["Supabase"],
-          "sources": ["hub.docker.com", "supabase.com"],
+          "sources": [
+            {
+              "url": "https://hub.docker.com/_/postgres?utm_source=openai",
+              "title": "postgres - Official Image | Docker Hub",
+              "domain": "hub.docker.com"
+            },
+            {
+              "url": "https://supabase.com/docs/guides/database/overview?utm_source=openai",
+              "title": "Database | Supabase Docs",
+              "domain": "supabase.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "If the prototype must be accessible online, use a managed service such as Supabase instead—you get hosted Postgres, a dashboard, SQL editor, backups, and a connection string without managing a server.",
+              "match": "Supabase"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:38.104Z"
         },
         {
@@ -3082,6 +5407,29 @@
           "overview": null,
           "mentioned": ["Neon", "Supabase", "Railway", "Render"],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Neon",
+              "text": "Neon: serverless Postgres.",
+              "match": "Neon"
+            },
+            {
+              "brand": "Supabase",
+              "text": "Supabase: Postgres plus auth, storage, auto-generated APIs and a dashboard.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Railway",
+              "text": "Railway / Render: convenient if you're already deploying your app there.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Railway / Render: convenient if you're already deploying your app there.",
+              "match": "Render"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:38.841Z"
         },
         {
@@ -3188,6 +5536,24 @@
           },
           "mentioned": ["Supabase", "Neon", "Render"],
           "sources": [],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Supabase",
+              "text": "The Simplest Cloud Way: Supabase or Neon (Free Tiers)",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Neon",
+              "text": "The Simplest Cloud Way: Supabase or Neon (Free Tiers)",
+              "match": "Neon"
+            },
+            {
+              "brand": "Render",
+              "text": "Render.com: Offers quick, managed Postgres databases with a straightforward free/cheap tier for prototyping.",
+              "match": "Render"
+            }
+          ],
           "collectedAt": "2026-10-07T15:24:55.859Z"
         }
       ]
@@ -3197,52 +5563,390 @@
     {
       "domain": "supabase.com",
       "share": 31,
-      "byEngine": { "chatgpt": 77, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 77, "claude": 0, "ai-overview": 0 },
+      "citations": 23,
+      "pages": [
+        {
+          "url": "https://supabase.com/solutions/hosted-postgres",
+          "title": "Hosted Postgres | Supabase",
+          "citations": 5
+        },
+        {
+          "url": "https://supabase.com/docs/guides/database/overview",
+          "title": "Database | Supabase Docs",
+          "citations": 4
+        },
+        {
+          "url": "https://supabase.com/docs/guides/platform/manage-your-usage/compute",
+          "title": "Manage Compute usage | Supabase Docs",
+          "citations": 3
+        },
+        {
+          "url": "https://supabase.com/pricing?via=alternative.tools",
+          "title": "Pricing & Fees | Supabase",
+          "citations": 3
+        },
+        {
+          "url": "https://supabase.com/pricing",
+          "title": "Pricing & Fees | Supabase",
+          "citations": 2
+        },
+        {
+          "url": "https://supabase.com/docs/guides/database/extensions/pgvector",
+          "title": "pgvector: Embeddings and vector similarity | Supabase Docs",
+          "citations": 2
+        },
+        {
+          "url": "https://supabase.com/docs/guides/ai/going-to-prod",
+          "title": "Going to Production | Supabase Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://supabase.com/docs/guides/ai/vector-indexes",
+          "title": "Vector indexes | Supabase Docs",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 7, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 9, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 14, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "neon.com",
       "share": 28,
-      "byEngine": { "chatgpt": 67, "claude": 0, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 67, "claude": 0, "ai-overview": 7 },
+      "citations": 21,
+      "pages": [
+        {
+          "url": "https://neon.com/docs/manage/endpoints/",
+          "title": "Manage computes - Neon Docs",
+          "citations": 10
+        },
+        {
+          "url": "https://neon.com/blog/neon-free-plan-1-gb-per-project",
+          "title": "Neon gives you 100 projects for free, with 1 GB of Postgres storage each - Neon",
+          "citations": 4
+        },
+        {
+          "url": "https://neon.com/blog/new-usage-based-pricing?a=02b5d7e9-95ea-473f-b9c0-ce88dcf1785c",
+          "title": "Neon’s New Pricing, Explained: Usage-Based, No Minimum - Neon",
+          "citations": 2
+        },
+        {
+          "url": "https://neon.com/blog/new-usage-based-pricing?a=b51acb5c-d88f-4d95-b533-36b729ea05a1",
+          "title": "Neon’s New Pricing, Explained: Usage-Based, No Minimum - Neon",
+          "citations": 1
+        },
+        {
+          "url": "https://neon.com/docs/get-started-with-neon/workflow-primer?a=9415b291-804f-4bb4-9807-4ce1c6e15400",
+          "title": "Database branching workflow primer - Neon Docs",
+          "citations": 1
+        },
+        {
+          "url": "https://neon.com/blog/ten-most-popular-postgres-extensions",
+          "title": "The 10 Most Popular Postgres Extensions on Neon - Neon",
+          "citations": 1
+        },
+        {
+          "url": "https://neon.com/2024-plan-updates",
+          "title": "Pricing — Neon",
+          "citations": 1
+        },
+        {
+          "url": "https://neon.com/blog/building-patterns-unlocked-by-scale-to-zero",
+          "title": "Building patterns unlocked by scale to zero - Neon",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 14, "citations": 3, "engines": ["chatgpt", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 8, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 11, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "northflank.com",
       "share": 19,
-      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 14 }
+      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 14 },
+      "citations": 14,
+      "pages": [
+        {
+          "url": "https://northflank.com/blog/best-postgresql-hosting-providers",
+          "title": "Best PostgreSQL hosting providers for developers in 2026",
+          "citations": 11
+        },
+        {
+          "url": "https://northflank.com/blog/top-managed-database-services",
+          "title": "Top managed database services in 2026",
+          "citations": 2
+        },
+        {
+          "url": "https://northflank.com/blog/managed-postgres-guide",
+          "title": "Managed Postgres: when to use it, how to choose, and what to expect | Blog — Northflank",
+          "citations": 2
+        },
+        {
+          "url": "https://northflank.com/blog/best-database-providers",
+          "title": "Best database providers for modern applications in 2026",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 1, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 4, "citations": 1, "engines": ["claude"] },
+        { "id": 8, "citations": 1, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] },
+        { "id": 12, "citations": 1, "engines": ["claude"] },
+        { "id": 13, "citations": 1, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "instaclustr.com",
       "share": 19,
-      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 21 }
+      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 21 },
+      "citations": 14,
+      "pages": [
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-options-top-6-solutions-in-2026/",
+          "title": "Top 8 PostgreSQL Hosting Options with Real-Time Failover in 2026",
+          "citations": 11
+        },
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-solutions-for-developers-top-5-in-2026/",
+          "title": "Best managed PostgreSQL solutions for developers: Top 6 in 2026",
+          "citations": 7
+        },
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-platforms-top-5-providers-in-2025/",
+          "title": "Best managed PostgreSQL platforms: Top 7 providers in 2026",
+          "citations": 5
+        },
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-services-top-5-in-2026/",
+          "title": "Top 8 Managed PostgreSQL Services with Security and Encryption",
+          "citations": 3
+        },
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/best-managed-postgresql-database-services-top-13/",
+          "title": "Best Managed PostgreSQL Database Services: Top 13 in 2026",
+          "citations": 3
+        },
+        {
+          "url": "https://www.instaclustr.com/education/postgresql/postgres-hosting-5-deployment-options-and-how-to-choose/",
+          "title": "Postgres hosting: 5 deployment options and how to choose",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 4, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 1, "engines": ["claude"] },
+        { "id": 13, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "dreamlit.ai",
       "share": 19,
-      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 21 }
+      "byEngine": { "chatgpt": 0, "claude": 37, "ai-overview": 21 },
+      "citations": 14,
+      "pages": [
+        {
+          "url": "https://dreamlit.ai/blog/top-10-managed-postgres-providers",
+          "title": "10 Best Managed Postgres Providers Compared (2026)",
+          "citations": 14
+        }
+      ],
+      "prompts": [
+        { "id": 4, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] },
+        { "id": 14, "citations": 1, "engines": ["ai-overview"] }
+      ]
     },
     {
       "domain": "selfhost.dev",
       "share": 18,
-      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 }
+      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 7 },
+      "citations": 13,
+      "pages": [
+        {
+          "url": "https://selfhost.dev/blog/managed-postgresql-comparison-2026/",
+          "title": "Managed PostgreSQL Comparison (2026) : $0 to $674/month",
+          "citations": 11
+        },
+        {
+          "url": "https://selfhost.dev/blog/neon-vs-supabase/",
+          "title": "Neon vs Supabase: You're Comparing Them Wrong",
+          "citations": 2
+        }
+      ],
+      "prompts": [
+        { "id": 14, "citations": 3, "engines": ["claude", "ai-overview"] },
+        { "id": 1, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 11, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "1vps.com",
       "share": 16,
-      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 0, "claude": 40, "ai-overview": 0 },
+      "citations": 12,
+      "pages": [
+        {
+          "url": "https://1vps.com/best-managed-postgres-hosting",
+          "title": "Best Managed PostgreSQL Hosting in 2026",
+          "citations": 12
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["claude"] },
+        { "id": 5, "citations": 2, "engines": ["claude"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 10, "citations": 2, "engines": ["claude"] },
+        { "id": 12, "citations": 2, "engines": ["claude"] },
+        { "id": 13, "citations": 2, "engines": ["claude"] }
+      ]
     },
     {
       "domain": "aws.amazon.com",
       "share": 15,
-      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 37, "claude": 0, "ai-overview": 0 },
+      "citations": 11,
+      "pages": [
+        {
+          "url": "https://aws.amazon.com/rds/postgresql/pricing/",
+          "title": "Amazon RDS for PostgreSQL Pricing",
+          "citations": 4
+        },
+        {
+          "url": "https://aws.amazon.com/rds/postgresql/pricing/?loc=3&pg=pr",
+          "title": "Amazon RDS for PostgreSQL Pricing",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/rds/aurora/pricing/?did=ap_card",
+          "title": "Amazon Aurora Pricing",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/about-aws/whats-new/2024/11/amazon-rds-for-postgresql-pgvector-080/",
+          "title": "Amazon RDS for PostgreSQL supports pgvector 0.8.0 - AWS",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-rds-postgresql-pgvector-ml-model-integration/",
+          "title": "Amazon RDS for PostgreSQL now supports pgvector for simplified ML model integration - AWS",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/vi/rds/aurora/sla/",
+          "title": "Amazon Aurora Service Level Agreement",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/rds/aurora/serverless/",
+          "title": "Serverless Database - Amazon Aurora Serverless - AWS",
+          "citations": 1
+        },
+        {
+          "url": "https://aws.amazon.com/rds/postgresql/",
+          "title": "Hosted PostgreSQL - Amazon RDS for PostgreSQL - AWS",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 3, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 2, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 4, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 12, "citations": 1, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "crunchydata.com",
       "share": 12,
-      "byEngine": { "chatgpt": 30, "claude": 0, "ai-overview": 0 }
+      "byEngine": { "chatgpt": 30, "claude": 0, "ai-overview": 0 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://www.crunchydata.com/pricing",
+          "title": "Pricing on Hosted Postgres | Crunchy Data",
+          "citations": 7
+        },
+        {
+          "url": "https://www.crunchydata.com/products/crunchy-bridge/pricing",
+          "title": "Pricing on Hosted Postgres | Crunchy Data",
+          "citations": 1
+        },
+        {
+          "url": "https://www.crunchydata.com/products/crunchy-bridge?trk=article-ssr-frontend-pulse_little-text-block",
+          "title": "Crunchy Bridge Managed Postgres Database | Crunchy Data",
+          "citations": 1
+        }
+      ],
+      "prompts": [
+        { "id": 0, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 1, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 5, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 13, "citations": 2, "engines": ["chatgpt"] },
+        { "id": 10, "citations": 1, "engines": ["chatgpt"] }
+      ]
     },
     {
       "domain": "blog.railway.com",
       "share": 12,
-      "byEngine": { "chatgpt": 0, "claude": 17, "ai-overview": 29 }
+      "byEngine": { "chatgpt": 0, "claude": 17, "ai-overview": 29 },
+      "citations": 9,
+      "pages": [
+        {
+          "url": "https://blog.railway.com/p/best-postgresql-hosting-2026",
+          "title": "The Best PostgreSQL Hosting for Developers in 2026",
+          "citations": 9
+        }
+      ],
+      "prompts": [
+        { "id": 3, "citations": 2, "engines": ["claude"] },
+        { "id": 4, "citations": 2, "engines": ["claude", "ai-overview"] },
+        { "id": 8, "citations": 2, "engines": ["claude"] },
+        { "id": 0, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 2, "citations": 1, "engines": ["ai-overview"] },
+        { "id": 5, "citations": 1, "engines": ["ai-overview"] }
+      ]
     }
   ],
   "overview": {

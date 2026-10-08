@@ -41,8 +41,12 @@ export interface StateOfAiSearchPromptAnswer {
   overview: StateOfAiSearchOverview | null;
   /** Tracked brands in order of first mention. */
   mentioned: string[];
-  /** Distinct cited domains. */
-  sources: string[];
+  /** Cited pages, in the order the answer linked them. */
+  sources: { url: string; title: string | null; domain: string }[];
+  /** What the assistant searched for; empty for AI Overview and older runs. */
+  searchQueries: string[];
+  /** The sentence that introduces each tracked brand, in answer order. */
+  highlights: { brand: string; text: string; match: string }[];
   collectedAt: string;
 }
 
@@ -70,6 +74,16 @@ export interface StateOfAiSearchSource {
   /** Percent of answers citing the domain at least once. */
   share: number;
   byEngine: Record<StateOfAiSearchEngineId, number | null>;
+  /** Answers citing the domain at least once. */
+  citations: number;
+  /** Pages on the domain, most-cited first. */
+  pages: { url: string; title: string | null; citations: number }[];
+  /** Prompts whose answers cite the domain, most first. */
+  prompts: {
+    id: number;
+    citations: number;
+    engines: StateOfAiSearchEngineId[];
+  }[];
 }
 
 export type StateOfAiSearchOverviewBlock =

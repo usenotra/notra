@@ -68,7 +68,7 @@ function domainOf(url: string): string | null {
 async function askModel(
   engine: "chatgpt" | "claude",
   prompt: string
-): Promise<Pick<RawAnswer, "text" | "sources">> {
+): Promise<Pick<RawAnswer, "text" | "sources" | "searchQueries">> {
   const model = ENGINE_MODELS[engine];
   const tools =
     engine === "chatgpt"
@@ -101,7 +101,36 @@ async function askModel(
       ? [{ url: source.url, title: source.title ?? null, domain }]
       : [];
   });
-  return { text, sources };
+  return { text, sources, searchQueries: readSearchQueries(result.steps) };
+}
+
+/**
+ * Queries the model sent to its web search tool. OpenAI reports them on the
+ * tool result (`action.query` / `action.queries`), Anthropic on the call input.
+ */
+function readSearchQueries(steps: readonly { content: readonly unknown[] }[]) {
+  const queries = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) {
+      queries.add(value.trim());
+    }
+  };
+  for (const part of steps.flatMap((step) => step.content)) {
+    if (!isRecord(part)) {
+      continue;
+    }
+    if (part.type === "tool-call" && isRecord(part.input)) {
+      add(part.input.query);
+    }
+    if (part.type === "tool-result" && isRecord(part.output)) {
+      const action = isRecord(part.output.action) ? part.output.action : {};
+      add(action.query);
+      if (Array.isArray(action.queries)) {
+        action.queries.forEach(add);
+      }
+    }
+  }
+  return [...queries];
 }
 
 let serpApiCalls = 0;
@@ -134,7 +163,9 @@ async function serpApiSearchesLeft(): Promise<number> {
 
 async function askAiOverview(
   prompt: string
-): Promise<Pick<RawAnswer, "text" | "sources" | "present" | "overview">> {
+): Promise<
+  Pick<RawAnswer, "text" | "sources" | "searchQueries" | "present" | "overview">
+> {
   const first = await serpApi({
     engine: "google",
     q: prompt,
@@ -152,7 +183,13 @@ async function askAiOverview(
   }
   const parsed = parseGoogleAiOverview(payload);
   if (parsed.status !== "present") {
-    return { text: "", sources: [], present: false, overview: null };
+    return {
+      text: "",
+      sources: [],
+      searchQueries: [],
+      present: false,
+      overview: null,
+    };
   }
   const overview = isRecord(payload) ? payload.ai_overview : null;
   return {
@@ -162,6 +199,7 @@ async function askAiOverview(
       title: source.title,
       domain: source.domain,
     })),
+    searchQueries: [],
     present: true,
     overview: isRecord(overview)
       ? { text_blocks: overview.text_blocks, references: overview.references }
