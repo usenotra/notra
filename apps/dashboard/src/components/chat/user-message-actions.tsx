@@ -280,6 +280,9 @@ function UserMessageEditor({
         className="text-foreground placeholder:text-muted-foreground max-h-80 min-h-6 w-full resize-none bg-transparent text-sm leading-6 wrap-break-word outline-none"
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) {
+            return;
+          }
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSubmit();

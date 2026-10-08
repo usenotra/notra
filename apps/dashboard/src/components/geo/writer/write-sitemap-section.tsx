@@ -115,6 +115,9 @@ export function WriteSitemapSection({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+      return;
+    }
     if (event.key === "Enter") {
       event.preventDefault();
       handleAdd().catch(() => undefined);
