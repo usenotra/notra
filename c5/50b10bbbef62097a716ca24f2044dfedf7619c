@@ -1,0 +1,19 @@
+packages/db/tests/build-telemetry-migration.test.ts
+  s_7b0d907503ea7a::t_c9b878d1e9cc52 60-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c550b10bbbef62097a716ca24f2044dfedf7619c",
+  "prompts": {},
+  "sessions": {
+    "s_7b0d907503ea7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1155e-2258-7f91-b515-5aed6fd1abc0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
