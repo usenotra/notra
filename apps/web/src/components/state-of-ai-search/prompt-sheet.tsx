@@ -212,12 +212,10 @@ function HighlightText({ text, brand }: { text: string; brand: string }) {
  */
 function PromptOverview({
   report,
-  prompt,
   response,
   onSelectBrand,
 }: {
   report: StateOfAiSearchReport;
-  prompt: StateOfAiSearchPromptRow;
   response: StateOfAiSearchPromptAnswer;
   onSelectBrand?: (brand: StateOfAiSearchRankingRow) => void;
 }) {
@@ -362,11 +360,6 @@ function PromptOverview({
           </ul>
         </OverviewSection>
       ) : null}
-
-      <p className="text-muted-foreground px-1 text-xs">
-        Across all {prompt.answers} answers to this prompt,{" "}
-        {prompt.topPick?.name ?? "no brand"} was named first most often.
-      </p>
     </SheetScrollArea>
   );
 }
@@ -453,7 +446,6 @@ function PromptSheetBody({
         view === "analysis" ? (
           <PromptOverview
             onSelectBrand={canStack ? setBrand : undefined}
-            prompt={prompt}
             report={report}
             response={response}
           />
