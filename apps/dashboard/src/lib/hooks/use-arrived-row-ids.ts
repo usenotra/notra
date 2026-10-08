@@ -6,6 +6,8 @@ import type {
   ArrivedRowIdsState,
 } from "@/types/arrived-row-ids";
 
+const NO_ARRIVALS: ReadonlyMap<string, number> = new Map();
+
 /**
  * Marks rows that appear in `ids` after the first load of one view, in table
  * order, so a live table can open them one by one. `viewKey` names the view
@@ -23,36 +25,38 @@ export function useArrivedRowIds({
   const [state, setState] = useState<ArrivedRowIdsState>(() => ({
     viewKey,
     known: new Set(ids),
-    arrived: new Set(),
+    arrived: new Map(),
   }));
   const isNewView = state.viewKey !== viewKey;
   const fresh = ids.filter((id) => !state.known.has(id));
   if (ready && (isNewView || fresh.length > 0)) {
+    // The stagger slot is fixed when a row arrives, so a later batch neither
+    // cuts off nor re-times the animations still running.
     setState({
       viewKey,
       known: new Set([...(isNewView ? [] : state.known), ...ids]),
-      arrived: isNewView || !enabled ? new Set() : new Set(fresh),
+      arrived:
+        isNewView || !enabled
+          ? new Map()
+          : new Map([
+              ...state.arrived,
+              ...fresh.map((id, slot): [string, number] => [id, slot]),
+            ]),
     });
   }
-  const arrivedCount = state.arrived.size;
-  // A row scrolled out and back would replay its arrival, so the mark comes
-  // off once the animation is over.
+  const { arrived } = state;
+  // A row scrolled out and back would replay its arrival, so the marks come
+  // off once the newest animation is over.
   useEffect(() => {
-    if (arrivedCount === 0) {
+    if (arrived.size === 0) {
       return;
     }
     const clear = setTimeout(
-      () => setState((prev) => ({ ...prev, arrived: new Set() })),
+      () => setState((prev) => ({ ...prev, arrived: new Map() })),
       GEO_LOG_ARRIVE_ANIMATION_MS
     );
     return () => clearTimeout(clear);
-  }, [arrivedCount, state.known]);
+  }, [arrived]);
 
-  const order = new Map<string, number>();
-  for (const id of ids) {
-    if (ready && state.arrived.has(id)) {
-      order.set(id, order.size);
-    }
-  }
-  return order;
+  return ready ? arrived : NO_ARRIVALS;
 }

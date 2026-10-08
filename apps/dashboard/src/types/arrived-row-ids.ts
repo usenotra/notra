@@ -12,5 +12,6 @@ export interface ArrivedRowIdsInput {
 export interface ArrivedRowIdsState {
   viewKey: string;
   known: ReadonlySet<string>;
-  arrived: ReadonlySet<string>;
+  /** Row id to its stagger slot within the batch it arrived with. */
+  arrived: ReadonlyMap<string, number>;
 }

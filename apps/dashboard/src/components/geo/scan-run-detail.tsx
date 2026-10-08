@@ -357,21 +357,28 @@ function ScanRunAnswersTable({
     t("itemAnswers"),
     onOffsetChange
   );
+  // The pager renders nothing without answers, so the footer carries the count then.
+  const progressText = progress
+    ? t("progress", {
+        checks: progress.checks.toLocaleString(locale),
+        total: progress.total.toLocaleString(locale),
+      })
+    : null;
   return (
     <DataTable
       columns={answerColumns(showLanguage, t, tShared, tCommon, locale)}
       data={results}
       emptyState={emptyState}
+      footer={
+        progressText && total === 0 ? (
+          <p className="text-muted-foreground flex min-h-11 items-center px-4 py-1.5 text-xs tabular-nums">
+            {progressText}
+          </p>
+        ) : undefined
+      }
       pagination={
-        progress
-          ? {
-              ...pagination,
-              formatRange: () =>
-                t("progress", {
-                  checks: progress.checks.toLocaleString(locale),
-                  total: progress.total.toLocaleString(locale),
-                }),
-            }
+        progressText
+          ? { ...pagination, formatRange: () => progressText }
           : pagination
       }
       getRowClassName={(row) => {
