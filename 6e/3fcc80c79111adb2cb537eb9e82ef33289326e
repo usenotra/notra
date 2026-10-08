@@ -1,0 +1,21 @@
+apps/web/src/components/state-of-ai-search/report-carousel.tsx
+  s_cf35b4ac28f59d::t_18b3de95668336 18-21,164
+  s_cf35b4ac28f59d::t_7f00d255156ab2 125-126,128-129,131-132,134-136,138-150,152-153,155-162,165-166
+  s_cf35b4ac28f59d::t_f1622a3e252f06 163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6e3fcc80c79111adb2cb537eb9e82ef33289326e",
+  "prompts": {},
+  "sessions": {
+    "s_cf35b4ac28f59d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e502f3a3-5a0e-4376-8178-b1e7ce7f0818",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
