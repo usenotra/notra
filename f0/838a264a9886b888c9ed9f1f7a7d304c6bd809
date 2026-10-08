@@ -1,0 +1,27 @@
+packages/ui/src/components/data-table/root.tsx
+  s_251ad595316c34::t_f56f1635300744 276-280
+apps/dashboard/src/components/geo/sentiment-results-table.tsx
+  s_251ad595316c34::t_5b1cf22079a66e 24,32-39,41-52,93-97,100-105,187
+  s_251ad595316c34::t_284933ea964def 18
+  s_251ad595316c34::t_370daf8d518987 40
+  s_251ad595316c34::t_a2b9963d6220a1 98-99,161,205-206
+  s_251ad595316c34::t_2c05f11b5ac803 117-125,197-199
+apps/dashboard/src/constants/agent-feedback.ts
+  s_251ad595316c34::t_19bb8d2c965576 110-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f0838a264a9886b888c9ed9f1f7a7d304c6bd809",
+  "prompts": {},
+  "sessions": {
+    "s_251ad595316c34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "10098624-b36b-4777-82b3-1dadb8211d7b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
