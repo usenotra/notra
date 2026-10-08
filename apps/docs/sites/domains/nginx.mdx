@@ -1,0 +1,74 @@
+---
+title: "Serve your site under a path with nginx or Caddy"
+sidebarTitle: "nginx and Caddy"
+description: "Forward acme.com/blog to Notra from your own server with nginx proxy_pass or a Caddy reverse_proxy."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/nginx
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra from your own server with nginx or Caddy. The important part is the `Host` header, which must be your Notra address rather than your own domain, or every page answers with a 404. Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+## nginx
+
+Add these blocks to the `server` block for `www.acme.com`:
+
+```nginx nginx.conf
+location = /blog      { include snippets/notra-site.conf; }
+location /blog/       { include snippets/notra-site.conf; }
+location = /changelog { include snippets/notra-site.conf; }
+location /changelog/  { include snippets/notra-site.conf; }
+```
+
+```nginx snippets/notra-site.conf
+proxy_pass https://acme.notra.site;
+proxy_set_header Host acme.notra.site;
+proxy_ssl_server_name on;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header Cookie "";
+proxy_set_header Authorization "";
+```
+
+- `proxy_pass` without a path keeps the request path, so `/blog/launch` goes to `https://acme.notra.site/blog/launch`.
+- `proxy_set_header Host` matters because many configs set `proxy_set_header Host $host;` at the `server` or `http` level, and without the override Notra gets your domain and answers with a 404.
+- `proxy_ssl_server_name on` sends the right TLS server name, and without it the connection may get the wrong certificate or be refused.
+- nginx passes redirects and the `Accept` header through by default.
+- nginx looks up `acme.notra.site` when it starts or reloads, so if the name doesn't resolve at that moment, nginx refuses to start.
+
+Reload with `sudo nginx -t && sudo systemctl reload nginx`, then click **Check** on the domain in Notra.
+
+## Caddy
+
+Caddy before 2.11 sends the visitor's `Host` header to the upstream, so set it explicitly. Caddy 2.11 and later do this for HTTPS upstreams on their own, and the line is harmless there.
+
+```text Caddyfile
+www.acme.com {
+	@notra path /blog /blog/* /changelog /changelog/*
+	handle @notra {
+		reverse_proxy https://acme.notra.site {
+			header_up Host {upstream_hostport}
+			header_up -Cookie
+			header_up -Authorization
+		}
+	}
+
+	handle {
+		# The rest of your website.
+		reverse_proxy localhost:3000
+	}
+}
+```
+
+Reload with `caddy reload`, then click **Check** on the domain in Notra.
+
+## Other servers
+
+Any reverse proxy works as long as it follows [these rules](/sites/domains/subpath#what-the-rewrite-has-to-do), which means it forwards the section paths and everything below them, keeps the path, sends your Notra address as `Host` and doesn't follow redirects.

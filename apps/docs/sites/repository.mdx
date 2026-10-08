@@ -1,156 +1,95 @@
 ---
 title: "Repository layout"
-description: "The files Notra Sites reads from your repository."
+description: "Which files Notra Sites reads from your repository, and how file paths become URLs."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/repository
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
 ---
 
-A site lives at the repository root or in a subfolder you choose when creating the site (useful for monorepos).
+A site lives at the root of your repository, or in a folder you choose with **Site is in a subdirectory** (useful in monorepos, for example `apps/blog`), and every path on this page is relative to that folder.
 
 ```text
-blog.json              # settings, see Customize your site
-header.mdx, footer.mdx  # optional: your own header and footer
-slots/*.mdx             # optional: content at fixed places on every page
-blog/*.mdx              # blog posts, one file per post
-changelog/*.mdx         # changelog entries, one file per release
-snippets/*.mdx          # reusable content
-snippets/*.jsx          # your own React components
-public/                 # images and other static files
-*.css                   # custom CSS, any file name, loaded on every page
-*.js                    # custom JavaScript outside the content folders, see Analytics and scripts
+blog.json              # optional: settings, see the blog.json reference
+blog/                  # blog posts, one file per post
+  hello-world.mdx
+  2026/launch.mdx
+changelog/             # changelog entries, one file per release
+  2026-10-01.mdx
+snippets/              # reusable MDX and your own React components
+  newsletter.jsx
+  install.mdx
+public/                # images, videos, fonts and other static files
+  images/cover.png
+header.mdx             # optional: your own header
+footer.mdx             # optional: your own footer
+slots/                 # optional: content at fixed places on every page
+  after-post.mdx
+style.css              # optional: any .css file loads on every page
+script.js              # optional: custom JavaScript on every page
 ```
 
-Files and folders starting with `_` are never published as pages. Everything else in `blog/` and `changelog/` becomes a page; the file path is the URL (`blog/2026/launch.mdx` → `/blog/2026/launch`).
+Besides the files above, Notra reads every `.css` file and every `.js` file outside `blog/`, `changelog/`, `snippets/`, `public/` and `slots/`, wherever it sits, and loads it on every page. Notra ignores other files, such as a `README.md` or a `package.json`. If the repository also holds your app's code, put the site in its own folder and turn on **Site is in a subdirectory**.
 
-## blog.json
+## blog.json is optional
+
+Without a `blog.json`, the site builds with the standard layout and the site name from the dashboard, so add one when you want your own colors, logo, navigation, authors or analytics. See the [blog.json reference](/sites/reference/blog-json).
+
+`blog.json` must sit at the root of the site folder, and the `$schema` line gives you autocomplete and inline errors in your editor:
 
 ```json blog.json
 {
-  "name": "Acme",
-  "description": "Notes from the Acme team.",
-  "logo": { "light": "/images/logo.svg", "dark": "/images/logo-dark.svg" },
-  "favicon": "/images/favicon.svg",
-  "navbar": {
-    "links": [{ "label": "Product", "href": "https://acme.com" }],
-    "cta": { "label": "Sign up", "href": "https://acme.com/signup" }
-  },
-  "footer": {
-    "links": [{ "label": "Privacy", "href": "https://acme.com/privacy" }],
-    "socials": { "x": "https://x.com/acme", "github": "https://github.com/acme" }
-  },
-  "blog": { "title": "Acme Blog", "description": "Product notes and launches." },
-  "changelog": { "title": "Changelog", "description": "Everything we shipped." },
-  "redirects": [{ "source": "/blog/old-post", "destination": "/blog/new-post" }]
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme"
 }
 ```
 
-The domain and the paths (`/blog`, `/changelog`) are configured in the dashboard, not in this file, so a commit can never move your site to a domain nobody verified.
+## From file to URL
 
-## Design
+Every `.md` or `.mdx` file in `blog/` and `changelog/` becomes a page, and the path of the file becomes the URL below the section path:
 
-Sites use the `notra` theme, with a light and a dark mode. Change it to fit your brand with the settings below; for layouts, navigation, banner and SEO see [Customize your site](/sites/customize).
-
-```json blog.json
-{
-  "theme": "notra",
-  "colors": { "primary": "#0D9373", "light": "#55D799", "dark": "#0D9373" },
-  "appearance": { "default": "system", "strict": false },
-  "fonts": { "family": "Inter", "heading": { "family": "Instrument Sans" } },
-  "background": { "decoration": "grid", "color": { "light": "#F8FAFC", "dark": "#0F172A" } },
-  "styling": { "codeblocks": "system" }
-}
-```
-
-| Setting | What it does |
+| File | URL |
 | --- | --- |
-| `colors.primary` | Accent for links, eyebrows, active states and buttons. `light` is used in dark mode, `dark` for buttons. |
-| `appearance` | `system`, `light` or `dark`. `strict: true` hides the dark mode toggle. |
-| `fonts` | A Google Fonts family, or your own file with `source` (`/fonts/brand.woff2`) and `format`. `heading` and `body` override each part. |
-| `background` | `decoration`: `none`, `grid`, `dots` or `gradient`, plus page colors per mode. |
-| `styling.codeblocks` | `system`, `dark`, a [Shiki theme](https://shiki.style/themes) name or `{ "light": …, "dark": … }`. |
+| `blog/hello-world.mdx` | `/blog/hello-world` |
+| `blog/2026/launch.mdx` | `/blog/2026/launch` |
+| `blog/guides/index.mdx` | `/blog/guides` |
+| `changelog/2026-10-01.mdx` | `/changelog/2026-10-01` |
+| `blog/_drafts/idea.mdx` | Not published |
 
-### Custom CSS
+- File and folder names in `blog/` and `changelog/` may only use **lowercase letters, digits and dashes**, so `My Post.mdx` stops the build with `slug_invalid`.
+- Notra never publishes files and folders that start with `_`, so use them for notes or for MDX you import into other posts.
+- An MDX file that another file imports is a snippet rather than a page.
+- Two files can't end up at the same URL, for example `blog/launch.mdx` and `blog/launch/index.mdx`.
 
-Every `.css` file in the site (`style.css`, `buttons.css`, `styles/brand.css`, a stylesheet next to a snippet) loads on every page after the theme, so it can override anything. Tailwind classes also work inside your MDX and components.
+Each section also gets an index page (`/blog`), an RSS feed (`/blog/feed.xml`), a sitemap (`/blog/sitemap.xml`), `llms.txt` and a Markdown version of every page. See [AI agents and search](/sites/agents).
 
-### Styling hooks
+## Static files
 
-Stable IDs and class names to target from your CSS:
+Put images, videos, PDFs and fonts in `public/` and reference them from the root of the site:
 
-| ID | Element |
+```mdx
+![The new editor](/images/editor.png)
+```
+
+Notra rewrites the path at build time so it works under `/blog`, `/changelog` and on every domain, which puts the file `public/images/editor.png` at `/blog/images/editor.png`. Always use paths that start with `/`, because relative paths like `./editor.png` don't work.
+
+## Allowed files
+
+| Kind | Extensions |
 | --- | --- |
-| `#banner` | Announcement banner above the navbar |
-| `#navbar` | Top navigation bar |
-| `#topbar-cta-button` | Call-to-action button in the navbar (`#topbar-cta-button > a`) |
-| `#topbar-primary-button` | Button next to the call to action, for example GitHub (`#topbar-primary-button > a`) |
-| `#mobile-nav`, `#mobile-nav-content` | Mobile menu and its links |
-| `#body-content` | The page body |
-| `#content-area`, `#content` | Main area and its inner content |
-| `#header`, `#page-title` | A post's header and its `<h1>` |
-| `#table-of-contents` | "On this page" navigation |
-| `#pagination` | Previous and next post links |
-| `#footer` | Page footer |
+| Content | `.md`, `.mdx` |
+| Components and scripts | `.jsx`, `.js` |
+| Settings | `.json` |
+| Styles | `.css` |
+| Images | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.avif`, `.svg`, `.ico` |
+| Video | `.mp4`, `.webm` |
+| Other | `.pdf`, `.txt`, `.woff`, `.woff2` |
 
-Components carry these classes: `callout`, `card`, `card-group`, `columns`, `accordion`, `accordion-group`, `tabs`, `tab`, `steps`, `step`, `frame`, `update`, `code-group`, `code-block`, `code-block-copy-button`, `mdx-content` and `eyebrow`.
-
-```css style.css
-#navbar { border-bottom: 1px solid #e5e7eb; }
-.callout { border-radius: 1rem; }
-.code-block-copy-button { display: none; }
-```
-
-For JavaScript and analytics, see [Analytics and scripts](/sites/analytics-and-scripts).
-
-## Frontmatter
-
-<CodeGroup>
-```mdx blog/launch.mdx
----
-title: "Introducing Acme Flow"
-description: "A calmer way to ship product updates."
-date: 2026-09-28
-author: [jan, dominik]
-image: /images/launch.png
-tags: [launch]
-draft: false
----
-```
-
-```mdx changelog/2026-09-28.mdx
----
-title: "Acme Flow is live"
-date: 2026-09-28
-version: v2.0.0
-tags: [Feature]
----
-```
-</CodeGroup>
-
-`draft: true` hides a post on the live site but shows it in previews. `noindex: true` keeps a published post out of search engines.
-
-`description` shows in search results and link previews; without it, the first paragraph is used. `image` is the cover and the social preview image (PNG or JPEG, 1200×630 works everywhere). Add `updated: 2026-10-02` to a blog post when you make a major change. The post then shows the date, and the sitemap and search engines pick it up.
-
-## Authors
-
-Describe the people who write for you once in `blog.json`, then name them by id in a post's `author`:
-
-```json blog.json
-"authors": {
-  "jan": {
-    "name": "Jan Burzinski",
-    "title": "Engineer",
-    "avatar": "/images/team/jan.jpg",
-    "bio": "Builds the publishing pipeline.",
-    "url": "https://jan.dev",
-    "x": "https://x.com/janburzinski",
-    "linkedin": "https://www.linkedin.com/in/janburzinski",
-    "github": "https://github.com/janburzinski"
-  }
-}
-```
-
-A known author gets an avatar and role next to the post, an author page at `/blog/author/<id>` with all their posts and a schema.org `Person` with their profiles as `sameAs`. That is how search engines and AI answers attribute the post to a real person. Any other value in `author` (`author: Guest Writer`) is shown as a plain name.
-
-Posts you publish from Notra get their frontmatter automatically: title, description, date, the cover image and you as the author (your blog.json id when the name matches).
-
-## Images
-
-Put files in `public/` and reference them from the root: `![Logo](/images/logo.svg)`. Notra rewrites the path so it works under `/blog` and `/changelog`.
+Notra skips other files, dotfiles, `node_modules` and symbolic links, and file names may only use letters, digits, spaces and `._-@()+`. For size limits, see [Limits](/sites/reference/limits).

@@ -172,7 +172,7 @@ and provider, billing, and logging credentials.
 
 Before activation:
 
-1. Merge this PR and apply `0113_geo_adhoc_scans` through the normal database
+1. Merge this PR and apply `0114_geo_adhoc_scans` through the normal database
    release process.
 2. Decide the scan billing policy and configure the corresponding Autumn
    entitlement. A real `AUTUMN_SECRET_KEY` is required in production.

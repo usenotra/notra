@@ -4304,6 +4304,9 @@ export const sites = pgTable(
     publicOrigin: text("public_origin").notNull(),
     mounts: jsonb("mounts").$type<SiteMounts>().notNull(),
     previewsEnabled: boolean("previews_enabled").notNull().default(true),
+    previewCommentsEnabled: boolean("preview_comments_enabled")
+      .notNull()
+      .default(true),
     previewVisibility: text("preview_visibility", {
       enum: SITE_PREVIEW_VISIBILITIES,
     })

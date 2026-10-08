@@ -1,0 +1,53 @@
+---
+title: "Tabs"
+description: "Show alternatives, like package managers or platforms, in one place."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/tabs
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Tabs show alternatives, like package managers or platforms, in one place, so readers pick the one that applies to them.
+
+````mdx
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install acme
+    ```
+  </Tab>
+  <Tab title="bun">
+    ```bash
+    bun add acme
+    ```
+  </Tab>
+</Tabs>
+````
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/tabs-light.webp" alt="Tabs with npm and bun on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/tabs-dark.webp" alt="Tabs with npm and bun on a Notra site" className="hidden dark:block" />
+</Frame>
+
+The first tab is open when the page loads, and readers switch with a click or with the arrow keys. Without JavaScript, every tab shows one below the other under its title.
+
+## Props
+
+### Tab
+
+<ResponseField name="title" type="string" required>
+  The tab's label.
+</ResponseField>
+
+`Tabs` takes no props.
+
+## Styling
+
+Tab groups carry the class `tabs` and each panel carries `tab`.

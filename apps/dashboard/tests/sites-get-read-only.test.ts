@@ -53,6 +53,7 @@ if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
     publicOrigin: "https://readonly.hosting.example",
     mounts: { blog: "/blog" },
     previewsEnabled: true,
+    previewCommentsEnabled: true,
     previewVisibility: "protected",
     publishMode: "pull_request",
     showBranding: true,

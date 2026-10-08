@@ -65,6 +65,7 @@ export const updateSiteInputSchema = siteScopeInputSchema.extend({
   rootDirectory: z.string().trim().max(200).optional(),
   mounts: siteMountsInputSchema.optional(),
   previewsEnabled: z.boolean().optional(),
+  previewCommentsEnabled: z.boolean().optional(),
   previewVisibility: z.enum(["public", "protected"]).optional(),
   publishMode: z.enum(["pull_request", "direct"]).optional(),
   showBranding: z.boolean().optional(),

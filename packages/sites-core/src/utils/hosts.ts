@@ -46,8 +46,12 @@ export function isValidSiteSlug(slug: string): boolean {
     slug.length <= SITE_SLUG_MAX_LENGTH &&
     SLUG.test(slug) &&
     !slug.includes(SITE_PREVIEW_HOST_SEPARATOR) &&
-    !SITE_RESERVED_SLUGS.has(slug)
+    !isReservedSiteSlug(slug)
   );
+}
+
+export function isReservedSiteSlug(slug: string): boolean {
+  return SITE_RESERVED_SLUGS.has(slug);
 }
 
 export function slugifySiteName(name: string): string {

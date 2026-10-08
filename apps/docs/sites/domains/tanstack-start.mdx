@@ -1,0 +1,95 @@
+---
+title: "Serve your site under a path with TanStack Start"
+sidebarTitle: "TanStack Start"
+description: "Forward acme.com/blog to Notra from a TanStack Start app, with Vercel edge routes or Nitro route rules."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/tanstack-start
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra from a TanStack Start app, which builds its server with Nitro, so the rewrite goes into the `nitro()` plugin in `vite.config.ts`. On Vercel you use edge routes and on every other host you use Nitro's `routeRules`, the same setup that serves `usenotra.com/docs`. Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+## On Vercel
+
+Edge routes forward the request before it reaches your app, which is fast and keeps every header.
+
+```typescript vite.config.ts
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
+import { defineConfig } from "vite";
+
+const NOTRA_SITE = "https://acme.notra.site";
+
+export default defineConfig({
+  plugins: [
+    tanstackStart(),
+    viteReact(),
+    nitro({
+      // Production on Vercel: forwarded at the edge.
+      vercel: {
+        config: {
+          version: 3,
+          routes: [
+            { src: "^/blog(/.*)?$", dest: `${NOTRA_SITE}/blog$1` },
+            { src: "^/changelog(/.*)?$", dest: `${NOTRA_SITE}/changelog$1` },
+          ],
+        },
+      },
+      // Local development: the same paths through the dev server.
+      devProxy: {
+        "/blog": { target: NOTRA_SITE, changeOrigin: true },
+        "/blog/**": { target: NOTRA_SITE, changeOrigin: true },
+        "/changelog": { target: NOTRA_SITE, changeOrigin: true },
+        "/changelog/**": { target: NOTRA_SITE, changeOrigin: true },
+      },
+    }),
+  ],
+});
+```
+
+Delete any `src/routes/blog` and `src/routes/changelog` routes and drop those pages from your own sitemap and RSS feed, because Notra serves its own under each path.
+
+## On any other host
+
+Nitro's `routeRules` proxy the paths from your server, which works on Netlify, Cloudflare, Node and every other Nitro preset.
+
+```typescript vite.config.ts
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
+import { defineConfig } from "vite";
+
+const NOTRA_SITE = "https://acme.notra.site";
+
+export default defineConfig({
+  plugins: [
+    tanstackStart(),
+    viteReact(),
+    nitro({
+      routeRules: {
+        "/blog": { proxy: `${NOTRA_SITE}/blog` },
+        "/blog/**": { proxy: `${NOTRA_SITE}/blog/**` },
+        "/changelog": { proxy: `${NOTRA_SITE}/changelog` },
+        "/changelog/**": { proxy: `${NOTRA_SITE}/changelog/**` },
+      },
+    }),
+  ],
+});
+```
+
+In a plain Nitro app, put the same `routeRules` in `nitro.config.ts`.
+
+## Limits to keep in mind
+
+- **Security headers on `/**`.** A `routeRules` entry like `"/**": { headers: { "content-security-policy": ... } }` also applies to proxied pages and replaces Notra's `Content-Security-Policy`, which blocks the site's own scripts, so exclude the section paths from it. Edge routes on Vercel run before these rules and aren't affected.
+- **Nitro 2.** Nitro 3 (`nitro/vite`, used by TanStack Start) keeps the `Accept` header, while Nitro 2 (`nitropack`, for example in Nuxt 3) drops it in `routeRules` proxies, so AI agents asking for Markdown get HTML. The `.md` URLs (`/blog/launch.md`) work either way.
+- **Your own middleware.** Middleware in `src/start.ts` doesn't run for the section paths with edge routes or with `routeRules`, because Nitro forwards the request before TanStack Start sees it.

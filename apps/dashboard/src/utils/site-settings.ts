@@ -28,6 +28,7 @@ export function siteSettingsFormFromSite(site: SiteRecord): SiteSettingsForm {
     changelogEnabled: Boolean(site.mounts.changelog),
     changelogPath: site.mounts.changelog ?? SITE_DEFAULT_CHANGELOG_PATH,
     publishMode: site.publishMode,
+    previewCommentsEnabled: site.previewCommentsEnabled,
   };
 }
 
@@ -62,6 +63,9 @@ export function siteSettingsPatch(
   }
   if (form.publishMode !== site.publishMode) {
     patch.publishMode = form.publishMode;
+  }
+  if (form.previewCommentsEnabled !== site.previewCommentsEnabled) {
+    patch.previewCommentsEnabled = form.previewCommentsEnabled;
   }
   return patch;
 }

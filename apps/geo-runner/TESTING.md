@@ -111,6 +111,12 @@ the guard validates 114 migrations. Eight migration tests, 188 Core tests
 (one PostgreSQL-only test skipped), 29 runner tests, typechecks and lint passed.
 The adhoc billing helper import follows its new location in `@notra/ai`.
 
+The subsequent merge at `cba4806bf` preserves `0113_site_preview_comments`
+and moves the adhoc migration to `0114_geo_adhoc_scans`. The guard validates
+115 migrations. The complete DB suite passes 10 tests, with seven PostgreSQL
+tests skipped without `SITES_TEST_DATABASE_URL`. The Sites telemetry test uses
+main's check for its journal entry rather than requiring it to be last.
+
 On 2026-10-07, a separate Daytona run exercised one real grounded model answer
 and its Judge through the CLI against isolated PGlite fixtures. Same-key replay
 made no additional external requests; authentication, organization boundaries

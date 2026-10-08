@@ -1,0 +1,105 @@
+---
+title: "Logo, navigation and banner"
+sidebarTitle: "Navigation"
+description: "Set your logo and favicon, the links in the navbar and footer, an announcement banner and the actions on every post."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/customize/navigation
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+`blog.json` sets your logo and favicon, the links in the navbar and footer, an announcement banner and the actions next to every post. To replace the header or footer with your own markup instead, see [Match your website](/sites/match-your-website).
+
+## Logo and favicon
+
+```json blog.json
+{
+  "name": "Acme",
+  "logo": { "light": "/images/logo.svg", "dark": "/images/logo-dark.svg", "href": "https://acme.com" },
+  "favicon": "/images/favicon.svg"
+}
+```
+
+- `logo` is one path or a `light` and `dark` version, and `href` is where the logo links to, usually your homepage. The header shows the logo next to `name`.
+- `favicon` is one path or `{ "light": ..., "dark": ... }`, and a PNG or JPEG favicon also becomes the icon when someone saves the page to their home screen.
+
+## Navbar
+
+```json blog.json
+"navbar": {
+  "links": [
+    { "label": "Docs", "href": "https://acme.com/docs", "icon": "book-open" },
+    { "label": "Pricing", "href": "https://acme.com/pricing" },
+    { "type": "discord", "href": "https://discord.gg/acme" }
+  ],
+  "primary": { "type": "github", "href": "https://github.com/acme/acme" },
+  "cta": { "label": "Sign up", "href": "https://acme.com/signup" }
+}
+```
+
+| Setting | What it does |
+| --- | --- |
+| `links` | Up to 8 links, each with a `label` of up to 60 characters and an `href` that is a path, `https://` or `mailto:` URL |
+| `links[].icon` | Any [Lucide](https://lucide.dev/icons) icon name, like `book-open` |
+| `links[].type` | `github`, `discord`, `x`, `linkedin`, `youtube` or `slack`, which shows the platform's icon, and `label` adds text next to it |
+| `primary` | A secondary button with a platform icon and name, like "GitHub", that takes `type` and `href` |
+| `cta` | The main button on the right, which takes `label` and `href` |
+
+On phones, the links move into a menu.
+
+## Footer
+
+```json blog.json
+"footer": {
+  "links": [
+    { "header": "Product", "items": [{ "label": "Pricing", "href": "https://acme.com/pricing" }] },
+    { "header": "Company", "items": [{ "label": "About", "href": "https://acme.com/about" }] }
+  ],
+  "socials": { "x": "https://x.com/acme", "github": "https://github.com/acme" }
+}
+```
+
+- `links` is either a flat list of up to 16 links or up to 6 columns with an optional `header` and 1 to 12 `items` each, and you can't mix the two.
+- `socials` takes `x`, `github`, `linkedin`, `youtube`, `discord`, `slack`, `instagram`, `facebook`, `bluesky`, `threads`, `reddit`, `medium`, `telegram`, `hacker-news` and `website`. Search engines get them as your company's profiles, and Notra uses the `x` account for X link previews.
+
+## Banner
+
+```json blog.json
+"banner": {
+  "content": "**Acme Flow** is live. [Read the launch post](/blog/2026/launch)",
+  "type": "info",
+  "dismissible": true
+}
+```
+
+The banner is one line of Markdown (links, bold, italic, code) of up to 300 characters across the top of every page.
+
+| Setting | Values | Default |
+| --- | --- | --- |
+| `type` | `info` (your button color), `warning` or `critical` | `info` |
+| `color` | Your own background as one hex color or `{ "light": ..., "dark": ... }`, and the text turns white | none |
+| `dismissible` | Shows a close button, and a closed banner stays hidden until you change its text | `false` |
+
+## Post actions
+
+Every blog post has **Copy article** and an **Open in** menu next to its date, so readers can copy the post as Markdown or ask an AI assistant about it. `contextual` sets what the menu offers:
+
+```json blog.json
+"contextual": {
+  "options": [
+    "copy", "view", "chatgpt", "claude",
+    { "title": "Share on LinkedIn", "icon": "linkedin", "href": "https://www.linkedin.com/sharing/share-offsite/?url={url}" }
+  ]
+}
+```
+
+- The built-in options are `copy`, `view` (the Markdown version), `chatgpt`, `claude`, `t3chat`, `perplexity` and `grok`, and all seven show by default.
+- Your own options take a `title` and an `href`, plus an optional `description` and Lucide `icon`. Notra replaces `{url}` and `{markdownUrl}` in the `href` with the post's address.
+- The menu holds up to 12 options, and `"display": "none"` hides the actions.

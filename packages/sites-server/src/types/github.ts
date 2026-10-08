@@ -76,6 +76,14 @@ export interface CompleteCheckRunParams {
   annotations?: CheckRunAnnotation[];
 }
 
+export interface PreviewCommentParams {
+  marker: string;
+  pullRequestNumber: number;
+  commitSha: string;
+  productionBranch: string;
+  body: string;
+}
+
 export interface RepositorySuggestions {
   branches: string[];
   defaultBranch: string | null;

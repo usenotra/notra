@@ -1,0 +1,77 @@
+---
+title: "Set up a subdomain"
+sidebarTitle: "Subdomain"
+description: "Serve your site on a subdomain like blog.acme.com with a CNAME and a TXT record."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/subdomain
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A subdomain like `blog.acme.com` points straight at Notra, which issues the TLS certificate and serves the site while your main website stays as it is.
+
+<Steps>
+  <Step title="Add the domain">
+    Open the site's **Domains** page, click **Add domain**, enter `blog.acme.com` and click **Add domain**, and the domain shows up with the status **Needs DNS**.
+  </Step>
+  <Step title="Add the DNS records">
+    Click the domain to see its records, and add every one at the provider that manages DNS for `acme.com`. The dashboard shows full names like `_notra.blog.acme.com`, so if your provider appends `acme.com` itself, enter only the part before it:
+
+    | Type | Name | Value | Purpose |
+    | --- | --- | --- | --- |
+    | `CNAME` | `blog` | `cname.notra.site` | Sends traffic to Notra |
+    | `TXT` | `_notra.blog` | `notra-domain-v1=…` | Proves the domain is yours |
+    | `TXT` | `_cf-custom-hostname.blog` | shown in the dashboard | Hostname check, if listed |
+
+    If the dashboard lists one more `TXT` record for the certificate, add it too.
+
+    <Warning>
+      On Cloudflare, set the CNAME's proxy status to **DNS only** (grey cloud), because Notra can't issue the certificate with the proxy on.
+    </Warning>
+  </Step>
+  <Step title="Check the domain">
+    Click **Check**, and Notra looks up the ownership record first and then waits for DNS and the certificate. DNS changes usually show up within a few minutes but can take longer at some providers, so click **Check** again until the domain is **Active**.
+  </Step>
+</Steps>
+
+Once the domain is active, Notra rebuilds the site for its new primary address, and your posts are at `https://blog.acme.com/blog/...`. To drop `/blog` from the URL, set the blog path to `/` under **Settings → Content → Sections**. See [Section paths](/sites/domains/overview#section-paths).
+
+## One-click setup
+
+If Notra can add the records for you, a **Connect with** button with your provider's name appears above the records. You sign in at your provider, review the records and approve, and the provider adds them and sends you back to Notra, which checks the domain right away. This only creates records on your subdomain. If the button isn't there, add the records by hand.
+
+## Statuses
+
+| Status | Meaning |
+| --- | --- |
+| **Needs DNS** | The domain hasn't been checked yet |
+| **Verifying** | A check ran but didn't pass yet, because a record is missing or the certificate isn't issued |
+| **Active** | The domain serves the site |
+| **Failed** | The domain was active before and its records are gone or wrong |
+
+The domain's **Last check details** say which record is missing or wrong.
+
+## Root domains
+
+A root domain like `acme.com` can't have a `CNAME` at most DNS providers, so use a subdomain like `blog.acme.com` or keep your website on `acme.com` and [forward a path](/sites/domains/subpath) to Notra. If your provider supports CNAME flattening (Cloudflare does), you can choose **Point the whole domain to Notra instead** in the **Add domain** dialog.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The check says to add the ownership TXT record">
+    The `_notra` record is missing or has a different value. Some providers add your domain to the name automatically, so enter `_notra.blog` rather than `_notra.blog.acme.com` if the provider appends `acme.com` itself. Check what's live with `dig TXT _notra.blog.acme.com +short`.
+  </Accordion>
+  <Accordion title="The domain stays on Verifying">
+    Notra can't issue the certificate yet. Make sure the CNAME points to `cname.notra.site`, that it isn't proxied (Cloudflare's orange cloud) and that no other `A`, `AAAA` or `CNAME` record exists for the same name.
+  </Accordion>
+  <Accordion title="I see an old version after the domain went active">
+    Notra rebuilds the site for the new address, and the previous version stays live until that build is done, usually within a minute. Follow it under **Deployments**.
+  </Accordion>
+</AccordionGroup>
