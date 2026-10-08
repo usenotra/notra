@@ -109,6 +109,8 @@ WHERE metrics #>> '{phases,compile}' IS NOT NULL;
 
 **Builds stuck in `queued`.** Check `site_jobs` for the deployment: `pending` with `dispatched_at` set → the sweep re-dispatches after 2 minutes; `running` with an expired `lease_until` → the sweep re-claims it; `failed` → `last_error`, attempts exhausted (redeploy from the dashboard). Concurrency limits (`SITE_BUILD_LIMITS`) push jobs back by 20 s when the sandbox budget is used up.
 
+**What the builder snapshot is.** Every site build runs in a fresh Upstash Box started from `SITES_BUILDER_SNAPSHOT_ID`: a saved Box with the toolchain (Astro, theme, compiler, `node_modules`) already installed. That is what keeps builds at about 12 s and lets them run with the network denied, so customer code cannot fetch or send anything. Without the variable every build fails. The snapshot belongs to the Upstash account of the key that created it, so build it with the same `UPSTASH_BOX_API_KEY` the dashboard uses.
+
 **Toolchain change (theme, Astro, compiler).** Rebuild the snapshot and roll the env var:
 `cd apps/sites-builder && bun --env-file=../../.env scripts/create-box-snapshot.ts` → set `SITES_BUILDER_SNAPSHOT_ID` (Vercel) → redeploy the dashboard. The deployment records the toolchain `VERSION`.
 
