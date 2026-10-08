@@ -187,7 +187,7 @@ async function reportPreviewComment(
   }
   await safely("preview_comment", () =>
     db.transaction(async (tx) => {
-      // Serialize comment creation and updates across workers and retries.
+      // Serialize only comments; GitHub requests must not hold site/deployment row locks.
       await tx.execute(
         sql`select pg_advisory_xact_lock(hashtextextended(${`sites-preview-comment:${site.id}:${pullRequestNumber}`}, 0))`
       );
@@ -195,8 +195,7 @@ async function reportPreviewComment(
         .select()
         .from(sites)
         .where(eq(sites.id, site.id))
-        .limit(1)
-        .for("share");
+        .limit(1);
       if (
         !currentSite ||
         currentSite.status !== "active" ||
@@ -216,8 +215,7 @@ async function reportPreviewComment(
           )
         )
         .orderBy(desc(siteDeployments.generation))
-        .limit(1)
-        .for("share");
+        .limit(1);
       if (
         latest?.id !== deployment.id ||
         (!outcome &&
