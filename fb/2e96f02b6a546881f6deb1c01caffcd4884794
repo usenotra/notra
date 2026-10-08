@@ -1,0 +1,40 @@
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-content.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-84
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-citation.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-156
+packages/ui/src/constants/google-ai-overview.ts
+  s_cf35b4ac28f59d::t_a0266e89843094 1-12
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-highlight.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-22
+packages/ui/src/styles/globals.css
+  s_cf35b4ac28f59d::t_a0266e89843094 7
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-55
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-header.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-24
+packages/ui/src/types/google-ai-overview.ts
+  s_cf35b4ac28f59d::t_a0266e89843094 1-54
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-icons.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-22
+packages/ui/src/components/ai-skins/google-ai-overview/ai-overview-favicon.tsx
+  s_cf35b4ac28f59d::t_a0266e89843094 1-26
+packages/ui/src/styles/ai-overview.css
+  s_cf35b4ac28f59d::t_a0266e89843094 1-2,4-77
+  s_cf35b4ac28f59d::t_d437a69411d6ed 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fb2e96f02b6a546881f6deb1c01caffcd4884794",
+  "prompts": {},
+  "sessions": {
+    "s_cf35b4ac28f59d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e502f3a3-5a0e-4376-8178-b1e7ce7f0818",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
