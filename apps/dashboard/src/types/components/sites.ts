@@ -290,9 +290,6 @@ export interface SiteDeploymentMenuProps {
   redeployPending: boolean;
   onRedeploy: () => void;
   onRollback: () => void;
-  triggerVariant?: "ghost" | "outline";
-  showVisit?: boolean;
-  className?: string;
   preview?: SitePreviewRow;
   onOpenPreview?: () => void;
   onCopyShareLink?: () => void;
@@ -491,7 +488,8 @@ export interface SiteDomainStatusDotProps {
 
 export interface SiteDomainCheckButtonProps {
   scope: SiteScope;
-  domain: SiteDomain;
+  domain: Pick<SiteDomain, "id" | "hostname">;
+  variant?: "ghost" | "outline";
 }
 
 export interface SiteDomainRowMenuProps {

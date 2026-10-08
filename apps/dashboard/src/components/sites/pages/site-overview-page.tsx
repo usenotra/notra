@@ -71,14 +71,12 @@ export function SiteOverviewPage() {
   const tStatus = useTranslations("sites.status");
   const { organizationId, organizationSlug, siteId, detail, liveDeployment } =
     useSite();
-  const { site } = detail;
+  const { site, deployments } = detail;
   const suspended = site.status === "suspended";
   const deployLatest = useDeployLatest({ organizationId, siteId });
-  const deployments = detail.deployments;
   const previews = sitePreviewRows(detail);
   const latestProduction =
-    detail.deployments.find((deployment) => deployment.kind === "production") ??
-    null;
+    deployments.find((deployment) => deployment.kind === "production") ?? null;
 
   return (
     <div className="space-y-6">
@@ -86,24 +84,22 @@ export function SiteOverviewPage() {
         description={<UpdatedLine deployment={liveDeployment} />}
         title={site.name}
       >
-        <div className="flex shrink-0 items-center gap-2">
-          {liveDeployment ? (
-            <a
-              className={buttonVariants({ variant: "outline" })}
-              href={site.liveUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {t("visitSite")}
-              <HugeiconsIcon
-                aria-hidden="true"
-                data-icon="inline-end"
-                icon={ArrowUpRight01Icon}
-                strokeWidth={1.5}
-              />
-            </a>
-          ) : null}
-        </div>
+        {liveDeployment ? (
+          <a
+            className={buttonVariants({ variant: "outline" })}
+            href={site.liveUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("visitSite")}
+            <HugeiconsIcon
+              aria-hidden="true"
+              data-icon="inline-end"
+              icon={ArrowUpRight01Icon}
+              strokeWidth={1.5}
+            />
+          </a>
+        ) : null}
       </PageHeading>
       <span aria-live="polite" className="sr-only">
         {latestProduction

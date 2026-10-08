@@ -11,8 +11,25 @@ import { Button } from "@/components/button";
 import { SiteDeleteDialog } from "@/components/sites/site-delete-dialog";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { SiteSettingsDangerZoneRowProps } from "@/types/components/site-settings-danger-zone";
 import type { SiteSettingsDangerZoneProps } from "@/types/components/sites";
 import { toErrorMessage } from "@/utils/error-message";
+
+function DangerZoneRow({
+  title,
+  description,
+  action,
+}: SiteSettingsDangerZoneRowProps) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-1 last:pb-1">
+      <div className="min-w-0 space-y-0.5">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-muted-foreground text-xs">{description}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
 
 export function SiteSettingsDangerZone({
   organizationId,
@@ -84,90 +101,82 @@ export function SiteSettingsDangerZone({
         headingAs="h2"
       >
         <div className="divide-border divide-y">
-          <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-1">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium">{tPage("brandingLabel")}</p>
-              <p className="text-muted-foreground text-xs">
-                {tPage("brandingHint")}
-              </p>
-            </div>
-            <Button
-              loading={brandingMutation.isPending}
-              onClick={() => brandingMutation.mutate(!site.showBranding)}
-              type="button"
-              variant="outline"
-            >
-              {site.showBranding
-                ? tPage("brandingRemove")
-                : tPage("brandingShow")}
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium">
-                {analyticsOn
-                  ? t("analytics.title")
-                  : t("analytics.enableTitle")}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {analyticsOn
-                  ? t("analytics.description")
-                  : t("analytics.enableDescription")}
-              </p>
-            </div>
-            <Button
-              onClick={() => setAnalyticsOpen(true)}
-              type="button"
-              variant="outline"
-            >
-              {analyticsOn ? t("analytics.action") : t("analytics.enable")}
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium">
-                {suspended ? t("offline.restoreTitle") : t("offline.title")}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {suspended
-                  ? t("offline.restoreDescription")
-                  : t("offline.description")}
-              </p>
-            </div>
-            {suspended ? (
+          <DangerZoneRow
+            action={
               <Button
-                loading={suspendMutation.isPending}
-                onClick={() => suspendMutation.mutate(false)}
+                loading={brandingMutation.isPending}
+                onClick={() => brandingMutation.mutate(!site.showBranding)}
                 type="button"
                 variant="outline"
               >
-                {t("offline.restore")}
+                {site.showBranding
+                  ? tPage("brandingRemove")
+                  : tPage("brandingShow")}
               </Button>
-            ) : (
+            }
+            description={tPage("brandingHint")}
+            title={tPage("brandingLabel")}
+          />
+          <DangerZoneRow
+            action={
               <Button
-                onClick={() => setOfflineOpen(true)}
+                onClick={() => setAnalyticsOpen(true)}
                 type="button"
                 variant="outline"
               >
-                {t("offline.action")}
+                {analyticsOn ? t("analytics.action") : t("analytics.enable")}
               </Button>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 py-3 last:pb-1">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium">{t("delete.title")}</p>
-              <p className="text-muted-foreground text-xs">
-                {t("delete.summary")}
-              </p>
-            </div>
-            <Button
-              onClick={() => setDeleteOpen(true)}
-              type="button"
-              variant="destructive"
-            >
-              {t("delete.action")}
-            </Button>
-          </div>
+            }
+            description={
+              analyticsOn
+                ? t("analytics.description")
+                : t("analytics.enableDescription")
+            }
+            title={
+              analyticsOn ? t("analytics.title") : t("analytics.enableTitle")
+            }
+          />
+          <DangerZoneRow
+            action={
+              suspended ? (
+                <Button
+                  loading={suspendMutation.isPending}
+                  onClick={() => suspendMutation.mutate(false)}
+                  type="button"
+                  variant="outline"
+                >
+                  {t("offline.restore")}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setOfflineOpen(true)}
+                  type="button"
+                  variant="outline"
+                >
+                  {t("offline.action")}
+                </Button>
+              )
+            }
+            description={
+              suspended
+                ? t("offline.restoreDescription")
+                : t("offline.description")
+            }
+            title={suspended ? t("offline.restoreTitle") : t("offline.title")}
+          />
+          <DangerZoneRow
+            action={
+              <Button
+                onClick={() => setDeleteOpen(true)}
+                type="button"
+                variant="destructive"
+              >
+                {t("delete.action")}
+              </Button>
+            }
+            description={t("delete.summary")}
+            title={t("delete.title")}
+          />
         </div>
       </TitleCard>
 

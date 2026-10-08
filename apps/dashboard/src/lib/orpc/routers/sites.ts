@@ -221,11 +221,7 @@ async function serializeDeploymentList(
 export const sitesRouter = {
   status: sitesAccessProcedure
     .input(organizationIdInputSchema)
-    .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
+    .handler(async ({ input }) => {
       const configured = isSitesConfigured();
       const hostingDomain = configured
         ? `${getSitesHostingDomain()}${getSitesHostingPortSuffix()}`
@@ -235,11 +231,7 @@ export const sitesRouter = {
 
   list: sitesAccessProcedure
     .input(organizationIdInputSchema)
-    .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
+    .handler(async ({ input }) => {
       if (!isSitesConfigured()) {
         return { configured: false, sites: [] };
       }
@@ -270,11 +262,7 @@ export const sitesRouter = {
 
   importableRepositories: sitesAccessProcedure
     .input(organizationIdInputSchema)
-    .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
+    .handler(async ({ input }) => {
       const installations = await listGitHubAppInstallationsByOrganization(
         input.organizationId
       );
@@ -357,11 +345,7 @@ export const sitesRouter = {
 
   repositorySuggestions: sitesProcedure
     .input(repositorySuggestionsInputSchema)
-    .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
+    .handler(async ({ input }) => {
       return await organizationRepositorySuggestions({
         organizationId: input.organizationId,
         repositoryId: input.repositoryId,
@@ -371,22 +355,14 @@ export const sitesRouter = {
 
   starterStatus: sitesProcedure
     .input(siteStarterInputSchema)
-    .handler(async ({ context, input }) => {
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
+    .handler(async ({ input }) => {
       return await siteStarterStatus(input);
     }),
 
   createStarter: sitesProcedure
     .input(siteStarterInputSchema)
-    .handler(async ({ context, input }) => {
+    .handler(async ({ input }) => {
       assertNotDemo();
-      await assertOrganizationAccess({
-        headers: context.headers,
-        organizationId: input.organizationId,
-      });
       return await createSiteStarter(input);
     }),
 
@@ -658,6 +634,7 @@ export const sitesRouter = {
     refresh: sitesProcedure
       .input(siteDomainInputSchema)
       .handler(async ({ context, input }) => {
+        assertNotDemo();
         const { site, userId } = await requireSite(context, input, {
           admin: true,
         });
@@ -801,8 +778,8 @@ export const sitesRouter = {
     discardDraft: sitesProcedure
       .input(siteDraftMutationInputSchema)
       .handler(async ({ context, input }) => {
-        const { site } = await requireSite(context, input);
         assertNotDemo();
+        const { site } = await requireSite(context, input);
         await discardSiteDraft(site, input);
         return { ok: true };
       }),

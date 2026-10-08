@@ -45,7 +45,11 @@ export function SiteIntegrationsPage() {
 
       {query.data?.invalid ? (
         <Alert variant="warning">
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={1.5} />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={Alert02Icon}
+            strokeWidth={1.5}
+          />
           <AlertTitle>{t("invalidTitle")}</AlertTitle>
           <AlertDescription>{t("invalidDescription")}</AlertDescription>
         </Alert>
@@ -91,7 +95,7 @@ export function SiteIntegrationsPage() {
       </div>
 
       {query.data?.hasDraft ? (
-        <div className="pointer-events-none sticky bottom-6 z-10 mt-auto flex justify-center">
+        <div className="pointer-events-none sticky bottom-4 z-10 mt-auto flex justify-center">
           <div className="bg-background/90 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 pointer-events-auto flex max-w-full items-center gap-6 rounded-xl border py-2 pr-2 pl-4 shadow-lg backdrop-blur motion-safe:duration-200">
             <p className="text-muted-foreground flex items-center gap-2 text-sm">
               <span

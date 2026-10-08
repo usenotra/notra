@@ -55,6 +55,7 @@ function LineText({ line, query }: SiteBuildLogLineTextProps) {
 }
 
 function LogLine({ line, offset, query }: SiteBuildLogLineProps) {
+  const tDiagnostics = useTranslations("sites.diagnostics");
   const marked =
     !line.continued && (line.tone === "error" || line.tone === "warning");
   return (
@@ -76,7 +77,11 @@ function LogLine({ line, offset, query }: SiteBuildLogLineProps) {
       <span className="flex h-5 items-center">
         {marked ? (
           <HugeiconsIcon
-            aria-label={line.tone}
+            aria-label={
+              line.tone === "error"
+                ? tDiagnostics("error")
+                : tDiagnostics("warning")
+            }
             className={cn(
               "size-3.5",
               line.tone === "error" ? "text-destructive" : "text-warning"
@@ -112,7 +117,7 @@ function FoldRow({ entry, offsets }: SiteBuildLogFoldRowProps) {
       <span aria-hidden="true" />
       <span aria-hidden="true" />
       <button
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 w-fit rounded-sm text-left font-sans transition-colors duration-150 outline-none focus-visible:ring-2"
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 w-fit rounded-sm text-left font-sans transition-colors duration-150 outline-none focus-visible:ring-[3px]"
         onClick={() => setOpen(true)}
         type="button"
       >

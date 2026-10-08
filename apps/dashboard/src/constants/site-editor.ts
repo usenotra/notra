@@ -31,6 +31,8 @@ export const SITE_FILE_TREE_SKELETON_ROWS = [
   "w-1/3",
 ] as const;
 
+export const SITE_FILE_TREE_ITEM_HEIGHT = 28;
+
 export const SITE_EDITOR_EDIT_STATE_PREFIX = "notra-site";
 
 export const SITE_EDITOR_LANGUAGES: Record<string, SiteEditorLanguage> = {

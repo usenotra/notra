@@ -2233,7 +2233,6 @@
       "setUpGeoTracking": "GEO-Tracking einrichten",
       "vsPreviousPeriodOfThe": "ggü. vorherigem Zeitraum gleicher Länge",
       "path": "Pfad",
-      "paths": "Pfade",
       "fetches": "Abrufe",
       "crawler": "Crawler",
       "lastSeenTime": "Zuletzt gesehen {time}",
@@ -7163,6 +7162,7 @@
       "blogPlaceholder": "Unsere neue API",
       "changelogPlaceholder": "Schnellere Exporte",
       "fileName": "Dateiname",
+      "fileNamePlaceholder": "mein-beitrag",
       "pathHint": "Erstellt {path}",
       "invalidName": "Verwende Kleinbuchstaben, Ziffern und Bindestriche.",
       "exists": "{path} existiert bereits."
@@ -7266,7 +7266,7 @@
       "previewNothingLive": "Noch nichts live"
     },
     "deploymentsPage": {
-      "description": "Produktions- und Preview-Builds dieser Site, die neuesten zuerst.",
+      "description": "Produktions- und Preview-Builds dieser Site, die neuesten zuerst",
       "current": "Aktuell",
       "columns": {
         "deployment": "Deployment",
@@ -7454,7 +7454,6 @@
         "subdomain": "Subdomain",
         "proxy": "Pfade auf deiner Website"
       },
-      "kindProxyPaths": "Pfade auf deiner Website: {paths}",
       "checked": "Geprüft",
       "notChecked": "Noch nicht geprüft",
       "check": "Prüfen",
@@ -7466,8 +7465,6 @@
       "verifiedRebuilding": "Domain verifiziert. Die Site wird für die neue Adresse neu gebaut…",
       "notVerifiedYet": "Noch nicht verifiziert",
       "verifyNow": "Jetzt prüfen",
-      "verifyDnsHint": "DNS-Änderungen können ein paar Minuten dauern.",
-      "verifyProxyHint": "Wir rufen eine Testdatei über deine Site ab.",
       "lastErrorTitle": "Details zur Domainprüfung:",
       "lastCheckDetails": "Details zur letzten Prüfung",
       "remove": "Entfernen",
@@ -7485,18 +7482,11 @@
         "failed": "Fehlgeschlagen"
       },
       "dns": {
-        "title": "DNS-Konfiguration",
-        "description": "Lege diese Einträge dort an, wo du das DNS für {hostname} verwaltest.",
-        "calloutTitle": "Lege diese Einträge bei deinem DNS-Anbieter an",
-        "calloutDescription": "Kopiere Name und Wert jeweils genau.",
-        "cloudflareHint": "Stell bei Cloudflare den Proxy-Status auf „Nur DNS“.",
         "type": "Typ",
         "name": "Name",
         "value": "Wert",
         "noRecords": "Keine Einträge nötig",
         "connect": "Mit {provider} verbinden",
-        "connectDescription": "Wir legen die DNS-Einträge für dich an. Du bestätigst das bei {provider}.",
-        "titleAt": "Diese Einträge bei {provider} anlegen",
         "openProvider": "{provider}-DNS öffnen",
         "proxy": "Proxy",
         "dnsOnly": "Nur DNS (erforderlich)",
@@ -7504,7 +7494,6 @@
         "proxyNotApplicable": "Nicht zutreffend"
       },
       "proxy": {
-        "title": "Proxy-Einrichtung",
         "agentPromptDescription": "Lass deinen Coding-Agent den Proxy einrichten.",
         "agentPromptLabel": "Agent-Prompt für das Proxy-Setup",
         "manualSetup": "Manuell einrichten",
@@ -7550,8 +7539,7 @@
         "status": "Status",
         "checked": "Geprüft",
         "actions": "Aktionen"
-      },
-      "checkTitle": "Domain prüfen"
+      }
     },
     "editorPage": {
       "title": "Editor",
@@ -7611,7 +7599,7 @@
     },
     "settingsPage": {
       "title": "Einstellungen",
-      "description": "Repository, Bereiche, Previews und Veröffentlichen für diese Site.",
+      "description": "Repository, Bereiche, Previews und Veröffentlichen für diese Site",
       "unsaved": "Du hast ungespeicherte Änderungen",
       "brandingLabel": "Notra-Branding",
       "brandingHint": "Zeigt ein kleines „Powered by Notra“-Badge im Footer. Eine Änderung baut die Site neu.",
@@ -7622,29 +7610,15 @@
     },
     "previewAccess": {
       "title": "Zugriff auf Vorschauen",
-      "description": "Lege fest, ob Pull Requests Vorschauen bekommen und wer sie öffnen kann.",
       "trigger": {
         "members": "Nur Team",
         "password": "Team oder Passwort",
         "public": "Alle mit dem Link",
         "off": "Vorschauen aus"
       },
-      "turnOn": "Einschalten",
-      "buildLabel": "Vorschauen bauen",
       "buildOffWarning": "{count, plural, one {Die offene Vorschau wird} other {Alle # offenen Vorschauen werden}} beim Speichern geschlossen. Schaltest du Vorschauen wieder ein, baut der nächste Push sie neu.",
       "buildOffHint": "Neue Pull Requests bekommen keine Vorschau.",
       "whoLabel": "Wer Vorschauen öffnen kann",
-      "modes": {
-        "members": {
-          "title": "Nur Team"
-        },
-        "password": {
-          "title": "Team oder Passwort"
-        },
-        "public": {
-          "title": "Alle mit dem Link"
-        }
-      },
       "passwordLabel": "Passwort für Vorschauen",
       "newPasswordLabel": "Neues Passwort",
       "passwordHint": "Mindestens {min} Zeichen.",
@@ -7700,7 +7674,7 @@
     },
     "analyticsPage": {
       "title": "Analytics",
-      "description": "Menschen und AI-Agents auf dieser Seite",
+      "description": "Menschen und AI-Agents auf dieser Site",
       "emptyTitle": "Noch keine Besucher",
       "emptyDescription": "Besuche erscheinen hier etwa eine Minute, nachdem jemand die Seite öffnet.",
       "overviewTitle": "Letzte 7 Tage",

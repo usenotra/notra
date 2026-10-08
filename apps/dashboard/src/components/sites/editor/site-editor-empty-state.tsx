@@ -46,7 +46,11 @@ export function SiteEditorEmptyState({
           size="sm"
           variant="outline"
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={1.5} />
+          <HugeiconsIcon
+            data-icon="inline-start"
+            icon={PlusSignIcon}
+            strokeWidth={1.5}
+          />
           {t("newFile")}
         </Button>
       </div>

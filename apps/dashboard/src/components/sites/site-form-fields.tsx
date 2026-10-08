@@ -5,6 +5,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldLabel,
   FieldTitle,
 } from "@notra/ui/components/ui/field";
@@ -160,11 +161,7 @@ export function SiteSectionsFields({
           title={t("changelog")}
         />
       </div>
-      {noneEnabled ? (
-        <p className="text-destructive text-xs" role="alert">
-          {t("atLeastOne")}
-        </p>
-      ) : null}
+      {noneEnabled ? <FieldError>{t("atLeastOne")}</FieldError> : null}
     </div>
   );
 }

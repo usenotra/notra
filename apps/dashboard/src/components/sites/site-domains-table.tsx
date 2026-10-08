@@ -6,7 +6,6 @@ import {
   Delete02Icon,
   Link04Icon,
   MoreHorizontalIcon,
-  RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "@notra/ui/components/ui/badge";
@@ -21,22 +20,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
 import { type ReactNode, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import { SiteDomainCheckButton } from "@/components/sites/site-domain-check-button";
 import { SiteDomainSetup } from "@/components/sites/site-domain-setup";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SITE_DOMAIN_STATUS_DOTS } from "@/constants/sites";
-import { useSiteDomainCheck } from "@/lib/hooks/use-site-domain-check";
 import { cn } from "@/lib/utils";
 import type {
-  SiteDomainCheckButtonProps,
   SiteDomainRowMenuProps,
   SiteDomainStatusDotProps,
   SiteDomainsTableProps,
@@ -60,38 +53,6 @@ function StatusDot({ status }: SiteDomainStatusDotProps) {
       />
       <span className="font-medium">{t(status)}</span>
     </span>
-  );
-}
-
-function CheckButton({ scope, domain }: SiteDomainCheckButtonProps) {
-  const t = useTranslations("sites.domainsPage");
-  const check = useSiteDomainCheck({ ...scope, domainId: domain.id });
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            aria-label={t("checkLabel", { hostname: domain.hostname })}
-            disabled={check.isPending}
-            onClick={() => check.mutate()}
-            size="icon-sm"
-            variant="ghost"
-          />
-        }
-      >
-        <HugeiconsIcon
-          className={cn(
-            "size-4",
-            check.isPending && "motion-safe:animate-spin"
-          )}
-          icon={RefreshIcon}
-          strokeWidth={1.5}
-        />
-      </TooltipTrigger>
-      <TooltipContent>
-        {check.isPending ? t("checking") : t("check")}
-      </TooltipContent>
-    </Tooltip>
   );
 }
 
@@ -268,7 +229,7 @@ export function SiteDomainsTable({
             onKeyDown={(event) => event.stopPropagation()}
           >
             {row.kind === "domain" && !isExpanded(row) ? (
-              <CheckButton domain={row.domain} scope={scope} />
+              <SiteDomainCheckButton domain={row.domain} scope={scope} />
             ) : null}
             <RowMenu
               canOpen={row.kind === "alias" || row.domain.status === "active"}

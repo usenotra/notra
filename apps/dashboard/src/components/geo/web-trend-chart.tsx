@@ -68,7 +68,7 @@ export function WebTrendChart({
 
   return (
     <div className={TRAFFIC_HERO_CHART_SURFACE_CLASS}>
-      <h3 className="mb-3 text-sm font-medium">{t("trendTitle")}</h3>
+      <h2 className="mb-3 text-sm font-medium">{t("trendTitle")}</h2>
       <EChartsAreaChart
         animation={false}
         chartOptions={TRAFFIC_HERO_CHART_OPTIONS}

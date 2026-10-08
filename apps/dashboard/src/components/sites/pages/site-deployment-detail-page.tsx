@@ -7,7 +7,9 @@ import {
   RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { TABLE_FRAME_CLASS } from "@notra/ui/constants/table";
 import { ORPCError } from "@orpc/client";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
@@ -24,10 +26,7 @@ import { SitePreviewDeleteDialog } from "@/components/sites/site-preview-delete-
 import { SitePreviewRowMenu } from "@/components/sites/site-preview-row-menu";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SiteRollbackDialog } from "@/components/sites/site-rollback-dialog";
-import {
-  SITE_DEPLOYMENT_LOG_SURFACE_CLASS,
-  SITE_DEPLOYMENT_SHELL_CLASS,
-} from "@/constants/sites";
+import { SITE_DEPLOYMENT_LOG_SURFACE_CLASS } from "@/constants/sites";
 import {
   useRedeployDeployment,
   useSiteDeployment,
@@ -104,7 +103,7 @@ function DeploymentDetail({
 }: SiteDeploymentDetailProps) {
   const t = useTranslations("sites.deploymentPage");
   const tStatus = useTranslations("sites.status");
-  const tLegacy = useTranslations("sites.deployment");
+  const tDeployment = useTranslations("sites.deployment");
   const invalidateSites = useInvalidateSites();
   const inProgress = isDeploymentInProgress(deployment.status);
   const live = deployment.live;
@@ -130,24 +129,27 @@ function DeploymentDetail({
     : t(`bylineAnonymous.${deployment.trigger}`);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <span aria-live="polite" className="sr-only">
-        {tLegacy("statusAnnouncement", { status: tStatus(deployment.status) })}
+        {tDeployment("statusAnnouncement", {
+          status: tStatus(deployment.status),
+        })}
       </span>
 
-      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <h1
-            className="line-clamp-2 text-2xl font-bold tracking-tight text-balance sm:text-3xl"
-            title={title ?? undefined}
-          >
-            {title ?? tLegacy("title", { sha: shortSha(deployment.commitSha) })}
-          </h1>
-          <p className="text-muted-foreground text-sm">
+      <PageHeading
+        description={
+          <>
             {byline} · <SiteRelativeTime date={deployment.createdAt} inline />
-          </p>
-          <DeploymentNote deployment={deployment} />
-        </div>
+            <DeploymentNote deployment={deployment} />
+          </>
+        }
+        title={
+          <span className="line-clamp-2" title={title ?? undefined}>
+            {title ??
+              tDeployment("title", { sha: shortSha(deployment.commitSha) })}
+          </span>
+        }
+      >
         <DeploymentActions
           deployment={deployment}
           live={live}
@@ -157,7 +159,7 @@ function DeploymentDetail({
           rollbackEntry={listEntry}
           siteId={siteId}
         />
-      </header>
+      </PageHeading>
 
       <SiteDeploymentSummary
         deployment={deployment}
@@ -170,7 +172,7 @@ function DeploymentDetail({
       <SiteDeploymentFailure deployment={deployment} />
 
       <section aria-label={t("log.title")}>
-        <div className={SITE_DEPLOYMENT_SHELL_CLASS}>
+        <div className={TABLE_FRAME_CLASS}>
           <div className={SITE_DEPLOYMENT_LOG_SURFACE_CLASS}>
             <div className="p-4">
               <SiteDeploymentTimeline deployment={deployment} log={log} />
@@ -316,10 +318,7 @@ function DeploymentNote({ deployment }: SiteDeploymentRecordProps) {
     return null;
   }
   return (
-    <p
-      className="text-muted-foreground flex items-start gap-1.5 text-sm text-pretty"
-      role="status"
-    >
+    <span className="mt-1.5 flex items-start gap-1.5" role="status">
       <HugeiconsIcon
         aria-hidden="true"
         className="mt-0.5 size-4 shrink-0"
@@ -327,13 +326,13 @@ function DeploymentNote({ deployment }: SiteDeploymentRecordProps) {
         strokeWidth={1.5}
       />
       {t(deployment.status)}
-    </p>
+    </span>
   );
 }
 
 function DeploymentDetailSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0 flex-1 space-y-3">
           <Skeleton className="h-9 w-80 max-w-full" />

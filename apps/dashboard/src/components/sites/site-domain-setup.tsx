@@ -1,22 +1,15 @@
 "use client";
 
-import { Alert02Icon, RefreshIcon } from "@hugeicons/core-free-icons";
+import { Alert02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@notra/ui/components/ui/tooltip";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
+import { SiteDomainCheckButton } from "@/components/sites/site-domain-check-button";
 import {
   SiteDnsRecordsTable,
   SiteDnsSetup,
 } from "@/components/sites/site-domain-dns";
 import { SiteProxySetup } from "@/components/sites/site-domain-proxy";
-import { useSiteDomainCheck } from "@/lib/hooks/use-site-domain-check";
-import { cn } from "@/lib/utils";
 import type { SiteDomainSetupProps } from "@/types/components/sites";
 
 export function SiteDomainSetup({
@@ -27,40 +20,13 @@ export function SiteDomainSetup({
   mounts,
 }: SiteDomainSetupProps) {
   const t = useTranslations("sites.domainsPage");
-  const check = useSiteDomainCheck({
-    organizationId,
-    siteId,
-    domainId: domain.id,
-  });
   const isActive = domain.status === "active";
   const checkAction = (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            aria-busy={check.isPending}
-            aria-label={t("checkLabel", { hostname: domain.hostname })}
-            disabled={check.isPending}
-            onClick={() => check.mutate()}
-            size="icon-sm"
-            variant="outline"
-          />
-        }
-      >
-        <HugeiconsIcon
-          aria-hidden="true"
-          className={cn(
-            "size-4",
-            check.isPending && "motion-safe:animate-spin"
-          )}
-          icon={RefreshIcon}
-          strokeWidth={1.5}
-        />
-      </TooltipTrigger>
-      <TooltipContent>
-        {check.isPending ? t("checking") : t("check")}
-      </TooltipContent>
-    </Tooltip>
+    <SiteDomainCheckButton
+      domain={domain}
+      scope={{ organizationId, siteId }}
+      variant="outline"
+    />
   );
 
   let setup = (

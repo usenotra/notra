@@ -20,6 +20,7 @@ import { useTranslations } from "use-intl";
 import { Button } from "@/components/button";
 import { SitePublishChange } from "@/components/sites/editor/site-publish-change";
 import { SiteChoiceGroup } from "@/components/sites/site-form-fields";
+import { SITE_PUBLISH_MESSAGE_MAX_LENGTH } from "@/constants/site-publish";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SitePublishDialogProps } from "@/types/components/sites";
 import type { SitePublishMode } from "@/types/sites";
@@ -51,6 +52,7 @@ export function SitePublishDialog({
   );
   const effectiveMode = directAllowed ? mode : "pull_request";
   const trimmed = message.trim();
+  const canPublish = trimmed.length > 0 && draftCount > 0 && !unsaved;
 
   const publishMutation = useMutation({
     mutationFn: () =>
@@ -102,12 +104,7 @@ export function SitePublishDialog({
           id={`${id}-form`}
           onSubmit={(event) => {
             event.preventDefault();
-            if (
-              trimmed &&
-              draftCount > 0 &&
-              !unsaved &&
-              !publishMutation.isPending
-            ) {
+            if (canPublish && !publishMutation.isPending) {
               publishMutation.mutate();
             }
           }}
@@ -134,7 +131,7 @@ export function SitePublishDialog({
             <Input
               autoComplete="off"
               id={`${id}-message`}
-              maxLength={200}
+              maxLength={SITE_PUBLISH_MESSAGE_MAX_LENGTH}
               onChange={(event) => setMessage(event.target.value)}
               placeholder={t("messagePlaceholder")}
               value={message}
@@ -172,18 +169,19 @@ export function SitePublishDialog({
             {tCommon("actions.cancel")}
           </Button>
           <Button
-            disabled={!trimmed || draftCount === 0 || unsaved}
+            disabled={!canPublish}
             form={`${id}-form`}
             loading={publishMutation.isPending}
             type="submit"
           >
             <HugeiconsIcon
+              aria-hidden="true"
+              data-icon="inline-start"
               icon={
                 effectiveMode === "pull_request"
                   ? GitPullRequestIcon
                   : GitCommitIcon
               }
-              size={15}
               strokeWidth={1.5}
             />
             {effectiveMode === "pull_request"

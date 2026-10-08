@@ -251,7 +251,6 @@ export function SitePreviewsTable({
     <>
       <DataTable
         autoHeight
-        className="rounded-2xl"
         columns={columns}
         data={rows}
         emptyState={emptyState}

@@ -7,16 +7,14 @@ import {
   GitPullRequestIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { TABLE_FRAME_CLASS } from "@notra/ui/constants/table";
 import { useLocale, useTranslations } from "use-intl";
 
 import { SiteEnvironmentBadge } from "@/components/sites/site-environment-badge";
 import { SitePreviewFrame } from "@/components/sites/site-preview-frame";
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
 import { SiteStatusDot } from "@/components/sites/site-status-dot";
-import {
-  SITE_DEPLOYMENT_SHELL_CLASS,
-  SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS,
-} from "@/constants/sites";
+import { SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS } from "@/constants/sites";
 import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import type {
@@ -117,7 +115,7 @@ export function SiteDeploymentSummary({
   const created = new Date(deployment.createdAt);
 
   return (
-    <div className={SITE_DEPLOYMENT_SHELL_CLASS}>
+    <div className={TABLE_FRAME_CLASS}>
       <div className={SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS}>
         <SitePreviewFrame
           className="aspect-[16/10] w-full rounded-lg border"

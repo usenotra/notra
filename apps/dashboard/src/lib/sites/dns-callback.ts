@@ -4,7 +4,7 @@ import { getSite } from "@notra/sites-server/deployments";
 import { refreshSiteDomain } from "@notra/sites-server/domains";
 import { eq } from "drizzle-orm";
 
-import { SITE_DOMAIN_CONNECT_PARAM } from "@/constants/sites";
+import { SITE_ADMIN_ROLES, SITE_DOMAIN_CONNECT_PARAM } from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { afterResponse } from "@/lib/framework/after-response";
 import { dispatchSiteJobs } from "@/lib/sites/dispatch";
@@ -23,6 +23,12 @@ export async function loadDnsCallbackSite(
       headers: request.headers,
       organizationId: site.organizationId,
     });
+    // Connecting DNS changes a domain, which the dashboard limits to admins.
+    if (!SITE_ADMIN_ROLES.has(access.membership.role)) {
+      return new Response("Only owners and admins can do this.", {
+        status: 403,
+      });
+    }
     return { site, userId: access.user.id };
   } catch {
     return new Response("You don't have access to this site.", { status: 403 });

@@ -69,5 +69,10 @@ export const SITE_CREATE_ROW_VARIANTS: Variants = {
   shown: { opacity: 1, y: 0, transition: TRANSITION.enter },
 };
 
+/** Gap kept above the first step card. */
+export const SITE_CREATE_STAGE_FIRST_OFFSET_PX = 8;
+/** Gap kept above a step card too tall to center in the track. */
+export const SITE_CREATE_STAGE_EDGE_PX = 24;
+
 export const SITE_CREATE_STARTER_DEBOUNCE_MS = 400;
 export const SITE_CONFIG_MISSING_DIAGNOSTIC = "config_missing";

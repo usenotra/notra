@@ -47,3 +47,16 @@ export function SiteStatusDot({
     </span>
   );
 }
+
+export function SiteOfflineStatus() {
+  const t = useTranslations("sites.detail");
+  return (
+    <span className="inline-flex items-center gap-2 text-sm whitespace-nowrap">
+      <span
+        aria-hidden="true"
+        className="bg-muted-foreground/40 size-2 shrink-0 rounded-full"
+      />
+      <span className="font-medium">{t("offline")}</span>
+    </span>
+  );
+}

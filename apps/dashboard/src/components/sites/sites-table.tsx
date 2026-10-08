@@ -9,21 +9,21 @@ import {
 import { useTranslations } from "use-intl";
 
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
-import { SiteStatusDot } from "@/components/sites/site-status-dot";
+import {
+  SiteOfflineStatus,
+  SiteStatusDot,
+} from "@/components/sites/site-status-dot";
 import { SITE_LIST_TABLE_ROW_HEIGHT } from "@/constants/sites";
 import { useRouter } from "@/lib/navigation";
 import type { SitesTableProps } from "@/types/components/sites";
 import type { SiteListItem } from "@/types/sites";
-import { displayUrl } from "@/utils/site-links";
+import { displayUrl, siteHref } from "@/utils/site-links";
 import { tableHeightFor } from "@/utils/table";
 
 export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
   const t = useTranslations("sites.list");
   const tCommon = useTranslations("common");
-  const tDetail = useTranslations("sites.detail");
   const router = useRouter();
-  const siteHref = (site: SiteListItem) =>
-    `/${organizationSlug}/sites/${site.id}`;
 
   const columns: TableColumn<SiteListItem>[] = [
     {
@@ -94,21 +94,11 @@ export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
       sortValue: (site) => site.latestDeployment?.status ?? "",
       cell: (site) => {
         if (site.status === "suspended") {
-          return (
-            <span className="inline-flex items-center gap-2 text-sm font-medium">
-              <span
-                aria-hidden="true"
-                className="bg-muted-foreground/40 size-2 rounded-full"
-              />
-              {tDetail("offline")}
-            </span>
-          );
+          return <SiteOfflineStatus />;
         }
         if (!site.latestDeployment) {
           return (
-            <span className="text-muted-foreground text-xs">
-              {t("noDeployments")}
-            </span>
+            <span className="text-muted-foreground">{t("noDeployments")}</span>
           );
         }
         return (
@@ -144,13 +134,14 @@ export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
 
   return (
     <DataTable
-      className="rounded-2xl"
       columns={columns}
       data={sites}
       getRowId={(site) => site.id}
       height={tableHeightFor(sites.length, SITE_LIST_TABLE_ROW_HEIGHT)}
-      onRowClick={(site) => router.push(siteHref(site))}
-      onRowPointerEnter={(site) => router.prefetch(siteHref(site))}
+      onRowClick={(site) => router.push(siteHref(organizationSlug, site.id))}
+      onRowPointerEnter={(site) =>
+        router.prefetch(siteHref(organizationSlug, site.id))
+      }
       rowHeight={SITE_LIST_TABLE_ROW_HEIGHT}
       scrollFade={false}
     />

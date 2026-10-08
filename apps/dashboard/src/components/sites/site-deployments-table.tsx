@@ -223,7 +223,6 @@ export function SiteDeploymentsTable({
               onDeletePreview={
                 preview ? () => setDeleteTarget(preview) : undefined
               }
-              showVisit={deployment.kind === "production" || Boolean(preview)}
             />
           </span>
         );
@@ -234,7 +233,6 @@ export function SiteDeploymentsTable({
   return (
     <>
       <DataTable
-        className="rounded-2xl"
         columns={columns}
         data={deployments}
         emptyState={emptyState}

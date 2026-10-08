@@ -14,8 +14,17 @@ export function siteDiagnosticLocation(
     : `${diagnostic.file}:${diagnostic.line}:${diagnostic.column}`;
 }
 
-export function siteDiagnosticSeverityRank(diagnostic: SiteDiagnostic): number {
+function siteDiagnosticSeverityRank(diagnostic: SiteDiagnostic): number {
   return diagnostic.severity === "error" ? 0 : 1;
+}
+
+/** Errors first; the order within each severity stays as reported. */
+export function sortSiteDiagnostics<T extends SiteDiagnostic>(
+  diagnostics: readonly T[]
+): T[] {
+  return diagnostics.toSorted(
+    (a, b) => siteDiagnosticSeverityRank(a) - siteDiagnosticSeverityRank(b)
+  );
 }
 
 export function withDiagnosticKeys<T extends SiteDiagnostic>(

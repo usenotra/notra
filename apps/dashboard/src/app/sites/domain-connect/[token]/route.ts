@@ -17,9 +17,7 @@ export async function GET(
   if (!claims) {
     return new Response(
       "This DNS setup link expired. Start again from the Domains tab.",
-      {
-        status: 400,
-      }
+      { status: 400 }
     );
   }
   const loaded = await loadDnsCallbackSite(request, claims.siteId);
@@ -27,9 +25,9 @@ export async function GET(
     return loaded;
   }
 
-  const error = new URL(request.url).searchParams.get("error");
-  const description =
-    new URL(request.url).searchParams.get("error_description") ?? "";
+  const { searchParams } = new URL(request.url);
+  const error = searchParams.get("error");
+  const description = searchParams.get("error_description") ?? "";
   let outcome: SiteDomainConnectOutcome = "success";
   if (error) {
     outcome =

@@ -1,5 +1,12 @@
 "use client";
 
+import { CloudOffIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@notra/ui/components/ui/alert";
 import { ORPCError } from "@orpc/client";
 import { useTranslations } from "use-intl";
 
@@ -75,18 +82,20 @@ export function SiteLayout({
     >
       <SitesPageShell>
         {detail.site.status === "suspended" ? (
-          <div
-            className="bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm"
-            role="status"
-          >
-            <p>{t("offlineDescription")}</p>
-            <Link
-              className="text-foreground text-sm font-medium hover:underline"
-              href={siteHref(organizationSlug, siteId, "settings")}
-            >
-              {t("offlineAction")}
-            </Link>
-          </div>
+          <Alert role="status">
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={CloudOffIcon}
+              strokeWidth={1.5}
+            />
+            <AlertTitle>{t("offline")}</AlertTitle>
+            <AlertDescription>
+              {t("offlineDescription")}{" "}
+              <Link href={siteHref(organizationSlug, siteId, "settings")}>
+                {t("offlineAction")}
+              </Link>
+            </AlertDescription>
+          </Alert>
         ) : null}
         {children}
       </SitesPageShell>

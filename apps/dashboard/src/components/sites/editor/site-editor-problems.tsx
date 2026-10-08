@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import type { SiteEditorProblemsProps } from "@/types/components/site-editor";
 import {
   siteDiagnosticLocation,
+  sortSiteDiagnostics,
   withDiagnosticKeys,
-  siteDiagnosticSeverityRank,
 } from "@/utils/site-diagnostics";
 
 export function SiteEditorProblems({
@@ -25,9 +25,7 @@ export function SiteEditorProblems({
 }: SiteEditorProblemsProps) {
   const t = useTranslations("sites.editorPage.problems");
   const tDiagnostics = useTranslations("sites.diagnostics");
-  const sorted = [...diagnostics].sort(
-    (a, b) => siteDiagnosticSeverityRank(a) - siteDiagnosticSeverityRank(b)
-  );
+  const sorted = sortSiteDiagnostics(diagnostics);
 
   return (
     <section
@@ -38,7 +36,7 @@ export function SiteEditorProblems({
       <div className="flex h-9 shrink-0 items-center justify-between gap-2 ps-3 pe-1.5">
         <h2 className="flex items-center gap-2 text-xs font-medium">
           {t("title")}
-          <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-[11px] tabular-nums">
+          <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-xs tabular-nums">
             {diagnostics.length}
           </span>
         </h2>
@@ -97,7 +95,7 @@ export function SiteEditorProblems({
               <li key={key}>
                 {diagnostic.file ? (
                   <button
-                    className="hover:bg-muted flex w-full items-start gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors duration-150"
+                    className="hover:bg-muted focus-visible:ring-ring/50 flex w-full items-start gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors duration-150 outline-none focus-visible:ring-[3px]"
                     onClick={() => onSelect(diagnostic)}
                     title={where ?? undefined}
                     type="button"

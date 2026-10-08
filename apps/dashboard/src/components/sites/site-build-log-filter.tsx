@@ -41,11 +41,12 @@ export function SiteBuildLogFilter({
       {value ? (
         <button
           aria-label={t("clearFilter")}
-          className="hover:text-foreground absolute end-1 flex size-5 items-center justify-center rounded-sm"
+          className="hover:text-foreground focus-visible:ring-ring/50 absolute end-1 flex size-5 items-center justify-center rounded-sm outline-none focus-visible:ring-[3px]"
           onClick={() => onChange("")}
           type="button"
         >
           <HugeiconsIcon
+            aria-hidden="true"
             className="size-3"
             icon={Cancel01Icon}
             strokeWidth={2}

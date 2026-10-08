@@ -109,8 +109,9 @@ test("an already-open publish dialog blocks submission while any file has unsave
   expect(dialog).toContain("draftCount > 0");
   expect(dialog).toContain("!unsaved");
   expect(dialog).toContain(
-    "disabled={!trimmed || draftCount === 0 || unsaved}"
+    "const canPublish = trimmed.length > 0 && draftCount > 0 && !unsaved;"
   );
+  expect(dialog).toContain("disabled={!canPublish}");
   const page = readFileSync(
     resolve(
       import.meta.dirname,

@@ -2,6 +2,10 @@
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 
+import {
+  SITE_CREATE_STAGE_EDGE_PX,
+  SITE_CREATE_STAGE_FIRST_OFFSET_PX,
+} from "@/constants/site-create";
 import { cn } from "@/lib/utils";
 import type { SiteCreateStageProps } from "@/types/components/sites";
 
@@ -29,13 +33,14 @@ export function SiteCreateStage({
       if (!card) {
         return;
       }
-      const tall = card.offsetHeight > track.clientHeight - 48;
+      const tall =
+        card.offsetHeight > track.clientHeight - SITE_CREATE_STAGE_EDGE_PX * 2;
       let offset =
         track.clientHeight / 2 - (card.offsetTop + card.offsetHeight / 2);
       if (activeIndex === 0) {
-        offset = 8;
+        offset = SITE_CREATE_STAGE_FIRST_OFFSET_PX;
       } else if (tall) {
-        offset = 24 - card.offsetTop;
+        offset = SITE_CREATE_STAGE_EDGE_PX - card.offsetTop;
       }
       setPosition({ offset, top: offset + card.offsetTop });
     };

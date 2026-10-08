@@ -10,11 +10,18 @@ import {
 } from "@notra/ui/components/ui/input-group";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { FileTree, useFileTree, useFileTreeSearch } from "@pierre/trees/react";
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import {
+  type KeyboardEvent,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { useTranslations } from "use-intl";
 
 import {
   SITE_FILE_TREE_CSS,
+  SITE_FILE_TREE_ITEM_HEIGHT,
   SITE_FILE_TREE_SKELETON_ROWS,
 } from "@/constants/site-editor";
 import type { SiteFileTreeProps } from "@/types/components/site-editor";
@@ -66,7 +73,7 @@ function SiteFileTreeView({
     gitStatus,
     icons: { set: "standard", colored: false },
     density: "compact",
-    itemHeight: 28,
+    itemHeight: SITE_FILE_TREE_ITEM_HEIGHT,
     unsafeCSS: SITE_FILE_TREE_CSS,
   });
   const search = useFileTreeSearch(model);
@@ -118,9 +125,7 @@ function SiteFileTreeView({
   const noMatches = query.length > 0 && search.matchingPaths.length === 0;
   const filterRef = useRef<HTMLInputElement>(null);
 
-  const handleFilterKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  const handleFilterKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape" && query) {
       event.preventDefault();
       search.setValue(null);
@@ -148,9 +153,7 @@ function SiteFileTreeView({
     }
   };
 
-  const handleTreeKeyDownCapture = (
-    event: React.KeyboardEvent<HTMLElement>
-  ) => {
+  const handleTreeKeyDownCapture = (event: KeyboardEvent<HTMLElement>) => {
     if (
       event.key === "ArrowUp" &&
       query &&
@@ -167,7 +170,12 @@ function SiteFileTreeView({
       <div className="px-2 pt-2 pb-1">
         <InputGroup className="bg-background h-8">
           <InputGroupAddon>
-            <HugeiconsIcon icon={Search01Icon} size={14} strokeWidth={1.5} />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Search01Icon}
+              size={14}
+              strokeWidth={1.5}
+            />
           </InputGroupAddon>
           <InputGroupInput
             aria-label={t("filter")}

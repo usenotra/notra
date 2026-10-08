@@ -357,12 +357,6 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .site-deployment-phase {
-    transition: flex-grow 700ms linear;
-  }
-}
-
 /* Passages annotated in the chat's content preview. */
 ::highlight(chat-annotation) {
   background-color: color-mix(in oklch, var(--warning) 22%, transparent);

@@ -20,6 +20,7 @@ import { SiteSettingsDangerZone } from "@/components/sites/site-settings-danger-
 import { SiteSettingsRow } from "@/components/sites/site-settings-row";
 import { SiteSettingsSaveBar } from "@/components/sites/site-settings-save-bar";
 import { SiteSuggestInput } from "@/components/sites/site-suggest-input";
+import { SITE_NAME_MAX_LENGTH } from "@/constants/sites-form";
 import { useRepositorySuggestions } from "@/lib/hooks/use-repository-suggestions";
 import { useSitePublishModeOptions } from "@/lib/hooks/use-site-publish-mode-options";
 import { useSiteRootDirectoryToggle } from "@/lib/hooks/use-site-root-directory-toggle";
@@ -56,9 +57,9 @@ function SiteSettingsForm({
   const tPage = useTranslations("sites.settingsPage");
   const tNew = useTranslations("sites.new");
   const tSections = useTranslations("sites.sections");
+  const tAccess = useTranslations("sites.previewAccess");
   const id = useId();
   const invalidateSites = useInvalidateSites();
-  const tAccess = useTranslations("sites.previewAccess");
   const publishModeOptions = useSitePublishModeOptions();
   const { site } = detail;
   const [form, setForm] = useState<SiteSettingsFormValues>(() =>
@@ -89,11 +90,7 @@ function SiteSettingsForm({
       dashboardOrpc.sites.update.call({ organizationId, siteId, ...patch }),
     onSuccess: async (result) => {
       setForm(siteSettingsFormFromSite(result.site));
-      if (result.rebuilding) {
-        toast.success(t("savedRebuilding"));
-      } else {
-        toast.success(t("saved"));
-      }
+      toast.success(result.rebuilding ? t("savedRebuilding") : t("saved"));
       await invalidateSites();
     },
     onError: (error) => {
@@ -118,7 +115,7 @@ function SiteSettingsForm({
             <SiteSettingsRow htmlFor={`${id}-name`} label={tNew("name")}>
               <Input
                 id={`${id}-name`}
-                maxLength={80}
+                maxLength={SITE_NAME_MAX_LENGTH}
                 onChange={(event) => update("name", event.target.value)}
                 value={form.name}
               />
@@ -171,28 +168,24 @@ function SiteSettingsForm({
         </TitleCard>
 
         <TitleCard as="section" heading={t("content")} headingAs="h2">
-          <div className="divide-border divide-y">
-            <SiteSettingsRow
-              description={tPage("sectionsHint")}
-              label={tSections("title")}
-            >
-              <SiteSectionsFields
-                blogEnabled={form.blogEnabled}
-                blogPath={form.blogPath}
-                changelogEnabled={form.changelogEnabled}
-                changelogPath={form.changelogPath}
-                idPrefix={id}
-                onBlogEnabledChange={(value) => update("blogEnabled", value)}
-                onBlogPathChange={(value) => update("blogPath", value)}
-                onChangelogEnabledChange={(value) =>
-                  update("changelogEnabled", value)
-                }
-                onChangelogPathChange={(value) =>
-                  update("changelogPath", value)
-                }
-              />
-            </SiteSettingsRow>
-          </div>
+          <SiteSettingsRow
+            description={tPage("sectionsHint")}
+            label={tSections("title")}
+          >
+            <SiteSectionsFields
+              blogEnabled={form.blogEnabled}
+              blogPath={form.blogPath}
+              changelogEnabled={form.changelogEnabled}
+              changelogPath={form.changelogPath}
+              idPrefix={id}
+              onBlogEnabledChange={(value) => update("blogEnabled", value)}
+              onBlogPathChange={(value) => update("blogPath", value)}
+              onChangelogEnabledChange={(value) =>
+                update("changelogEnabled", value)
+              }
+              onChangelogPathChange={(value) => update("changelogPath", value)}
+            />
+          </SiteSettingsRow>
         </TitleCard>
 
         <TitleCard as="section" heading={t("previews")} headingAs="h2">
@@ -207,17 +200,15 @@ function SiteSettingsForm({
         </TitleCard>
 
         <TitleCard as="section" heading={t("publishing")} headingAs="h2">
-          <div className="divide-border divide-y">
-            <SiteSettingsRow label={tNew("publishMode")}>
-              <SiteChoiceGroup
-                hideLabel
-                label={tNew("publishMode")}
-                onValueChange={(value) => update("publishMode", value)}
-                options={publishModeOptions}
-                value={form.publishMode}
-              />
-            </SiteSettingsRow>
-          </div>
+          <SiteSettingsRow label={tNew("publishMode")}>
+            <SiteChoiceGroup
+              hideLabel
+              label={tNew("publishMode")}
+              onValueChange={(value) => update("publishMode", value)}
+              options={publishModeOptions}
+              value={form.publishMode}
+            />
+          </SiteSettingsRow>
         </TitleCard>
 
         {dirty ? (

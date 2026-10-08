@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { FieldError } from "@notra/ui/components/ui/field";
 import {
   domAnimation,
   LazyMotion,
@@ -260,11 +261,7 @@ export function SiteCreateForm({
               organizationSlug={organizationSlug}
               repositories={importable.data?.repositories ?? []}
             />
-            {errors.repository ? (
-              <p className="text-destructive mt-3 text-sm" role="alert">
-                {errors.repository}
-              </p>
-            ) : null}
+            <FieldError className="mt-3">{errors.repository}</FieldError>
           </SiteCreateStep>
 
           <SiteCreateStep

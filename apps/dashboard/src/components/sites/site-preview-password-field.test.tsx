@@ -8,7 +8,7 @@ import messages from "../../../messages/en.json";
 import { SitePreviewAccessModes } from "./site-preview-access-modes";
 import { SitePreviewPasswordField } from "./site-preview-password-field";
 
-test("the password input and access-mode radio have distinct IDs", () => {
+test("the password input and access-mode select have distinct IDs", () => {
   const html = renderToStaticMarkup(
     <IntlProvider locale="en" messages={messages} timeZone="UTC">
       <SitePreviewAccessModes
@@ -39,7 +39,7 @@ test("the password input and access-mode radio have distinct IDs", () => {
   expect(password?.[0]).toContain(
     `minLength="${SITE_PREVIEW_PASSWORD_MIN_LENGTH}"`
   );
-  expect(html).toContain('id="preview-access-password"');
+  expect(html).toContain('id="preview-access-mode"');
 });
 
 test("access modes use a labeled native selection including Off", () => {

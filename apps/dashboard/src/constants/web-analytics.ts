@@ -36,6 +36,7 @@ export const WEB_DEVICE_ICONS: Record<string, typeof ComputerIcon> = {
   mobile: SmartPhone01Icon,
   tablet: Tablet01Icon,
 };
+
 export const WEB_LIST_LIMIT = 8;
 
 export const WEB_TABLE_ROW_HEIGHT = 44;

@@ -17,6 +17,7 @@ import {
   SITE_CONFIG_MISSING_DIAGNOSTIC,
   SITE_CREATE_DEPLOY_POLL_MS,
 } from "@/constants/site-create";
+import { MS_PER_SECOND } from "@/constants/site-deployments";
 import { useNow } from "@/lib/hooks/use-now";
 import { useSiteDeployment } from "@/lib/hooks/use-site-deployments";
 import { dashboardOrpc } from "@/lib/orpc/query";
@@ -70,7 +71,7 @@ export function SiteCreateDeploy({
   const startedSeconds = record
     ? Math.max(
         0,
-        Math.round((now - new Date(record.createdAt).getTime()) / 1000)
+        Math.round((now - new Date(record.createdAt).getTime()) / MS_PER_SECOND)
       )
     : 0;
 

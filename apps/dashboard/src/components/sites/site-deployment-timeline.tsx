@@ -79,7 +79,7 @@ export function SiteDeploymentTimeline({
               <li
                 aria-current={phase.state === "active" ? "step" : undefined}
                 aria-label={`${label} · ${state}${duration ? ` · ${duration}` : ""}`}
-                className="site-deployment-phase min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
+                className="min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
                 data-phase={phase.id}
                 data-state={phase.state}
                 key={phase.id}

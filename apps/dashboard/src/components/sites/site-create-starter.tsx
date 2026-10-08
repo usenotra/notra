@@ -6,6 +6,11 @@ import {
   GitPullRequestIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@notra/ui/components/ui/alert";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -35,23 +40,17 @@ export function SiteCreateStarter({
 
   if (openUrl) {
     return (
-      <div
-        aria-live="polite"
-        className="animate-in fade-in space-y-0.5 rounded-xl border px-3.5 py-2.5 text-sm duration-300"
-      >
-        <p className="flex items-center gap-2">
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="text-success size-4 shrink-0"
-            icon={GitPullRequestIcon}
-            strokeWidth={1.75}
-          />
-          <span className="font-medium">{t("opened")}</span>
-          <span aria-hidden="true" className="text-muted-foreground">
-            ·
-          </span>
+      <Alert role="status">
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={GitPullRequestIcon}
+          strokeWidth={1.75}
+        />
+        <AlertTitle>{t("opened")}</AlertTitle>
+        <AlertDescription>
+          {t("optional")}{" "}
           <a
-            className="text-primary inline-flex items-center gap-0.5 underline-offset-4 hover:underline"
+            className="inline-flex items-center gap-0.5"
             href={openUrl}
             rel="noopener noreferrer"
             target="_blank"
@@ -63,38 +62,30 @@ export function SiteCreateStarter({
               icon={ArrowUpRight01Icon}
             />
           </a>
-        </p>
-        <p className="text-muted-foreground pl-6 text-xs text-pretty">
-          {t("optional")}
-        </p>
-      </div>
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div className="animate-in fade-in flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-dashed px-3.5 py-2.5 text-sm duration-300">
-      <HugeiconsIcon
-        aria-hidden="true"
-        className="text-muted-foreground size-4 shrink-0"
-        icon={FileAddIcon}
-        strokeWidth={1.75}
-      />
-      <p className="text-muted-foreground min-w-0 flex-1 text-pretty">
-        {t("missing")}
-      </p>
-      <Button
-        loading={createStarter.isPending}
-        onClick={() =>
-          createStarter.mutate(scope, {
-            onSuccess: (result) => onPullRequestOpened(result.pullRequestUrl),
-          })
-        }
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        {t("create")}
-      </Button>
-    </div>
+    <Alert role="status">
+      <HugeiconsIcon aria-hidden="true" icon={FileAddIcon} strokeWidth={1.75} />
+      <AlertDescription>{t("missing")}</AlertDescription>
+      <div className="col-start-2 pt-2">
+        <Button
+          loading={createStarter.isPending}
+          onClick={() =>
+            createStarter.mutate(scope, {
+              onSuccess: (result) => onPullRequestOpened(result.pullRequestUrl),
+            })
+          }
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          {t("create")}
+        </Button>
+      </div>
+    </Alert>
   );
 }

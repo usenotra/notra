@@ -97,7 +97,7 @@ export function SiteEditorStatusBar({
       <button
         aria-expanded={diagnostics ? problemsOpen : undefined}
         className={cn(
-          "hover:bg-background/70 hover:text-foreground -ms-1 inline-flex h-6 items-center gap-2.5 rounded-md px-1.5 transition-colors duration-150 disabled:pointer-events-none",
+          "hover:bg-background/70 hover:text-foreground focus-visible:ring-ring/50 -ms-1 inline-flex h-6 items-center gap-2.5 rounded-md px-1.5 transition-colors duration-150 outline-none focus-visible:ring-[3px] disabled:pointer-events-none",
           problemsOpen && "bg-background/70 text-foreground"
         )}
         disabled={isValidating}

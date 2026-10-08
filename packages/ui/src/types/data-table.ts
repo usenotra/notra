@@ -139,6 +139,7 @@ export interface DataTableProps<T> {
   getRowClassName?: (row: T) => string | undefined;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
+  /** Full-width row rendered under a row; return null to keep it collapsed. */
   renderRowDetail?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */
   onRowPointerEnter?: (row: T) => void;

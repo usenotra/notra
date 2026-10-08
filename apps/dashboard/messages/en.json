@@ -2233,7 +2233,6 @@
       "setUpGeoTracking": "Set up GEO tracking",
       "vsPreviousPeriodOfThe": "vs previous period of the same length",
       "path": "Path",
-      "paths": "Paths",
       "fetches": "Fetches",
       "crawler": "Crawler",
       "lastSeenTime": "Last seen {time}",
@@ -6919,7 +6918,7 @@
       "description": "Host a blog and changelog from a GitHub repo. Every push goes live, every pull request gets a preview."
     },
     "loadFailed": {
-      "title": "Sites couldn't load",
+      "title": "Couldn't load sites",
       "description": "Reload the page to try again."
     },
     "unavailable": {
@@ -7120,7 +7119,7 @@
         "title": "Deployment not found",
         "description": "It may belong to another site."
       },
-      "loadFailedTitle": "This deployment couldn't load",
+      "loadFailedTitle": "Couldn't load this deployment",
       "loadFailed": "Reload the page to try again."
     },
     "diagnostics": {
@@ -7163,6 +7162,7 @@
       "blogPlaceholder": "Introducing our new API",
       "changelogPlaceholder": "Faster exports",
       "fileName": "File name",
+      "fileNamePlaceholder": "my-post",
       "pathHint": "Creates {path}",
       "invalidName": "Use lowercase letters, digits and dashes.",
       "exists": "{path} already exists."
@@ -7266,7 +7266,7 @@
       "previewNothingLive": "Nothing is live yet"
     },
     "deploymentsPage": {
-      "description": "Production and preview builds of this site, newest first.",
+      "description": "Production and preview builds of this site, newest first",
       "current": "Current",
       "columns": {
         "deployment": "Deployment",
@@ -7454,7 +7454,6 @@
         "subdomain": "Subdomain",
         "proxy": "Paths on your site"
       },
-      "kindProxyPaths": "Paths on your site: {paths}",
       "checked": "Checked",
       "notChecked": "Not checked yet",
       "check": "Check",
@@ -7466,8 +7465,6 @@
       "verifiedRebuilding": "Domain verified. Rebuilding for the new address…",
       "notVerifiedYet": "Not verified yet",
       "verifyNow": "Check now",
-      "verifyDnsHint": "DNS changes can take a few minutes.",
-      "verifyProxyHint": "We fetch a test file through your site.",
       "lastErrorTitle": "Domain check details:",
       "lastCheckDetails": "Last check details",
       "remove": "Remove",
@@ -7485,18 +7482,11 @@
         "failed": "Failed"
       },
       "dns": {
-        "title": "DNS configuration",
-        "description": "Add these records where you manage DNS for {hostname}.",
-        "calloutTitle": "Add these records at your DNS provider",
-        "calloutDescription": "Copy each name and value exactly.",
-        "cloudflareHint": "On Cloudflare, set the proxy status to DNS only.",
         "type": "Type",
         "name": "Name",
         "value": "Value",
         "noRecords": "No records needed",
         "connect": "Connect with {provider}",
-        "connectDescription": "We'll add the DNS records for you. You approve it at {provider}.",
-        "titleAt": "Add these records at {provider}",
         "openProvider": "Open {provider} DNS",
         "proxy": "Proxy",
         "dnsOnly": "DNS only (required)",
@@ -7504,7 +7494,6 @@
         "proxyNotApplicable": "N/A"
       },
       "proxy": {
-        "title": "Proxy setup",
         "agentPromptDescription": "Let your coding agent set up the proxy.",
         "agentPromptLabel": "Proxy setup agent prompt",
         "manualSetup": "Manual setup",
@@ -7550,8 +7539,7 @@
         "status": "Status",
         "checked": "Checked",
         "actions": "Actions"
-      },
-      "checkTitle": "Check the domain"
+      }
     },
     "editorPage": {
       "title": "Editor",
@@ -7611,7 +7599,7 @@
     },
     "settingsPage": {
       "title": "Settings",
-      "description": "Repository, sections, previews and publishing for this site.",
+      "description": "Repository, sections, previews and publishing for this site",
       "unsaved": "You have unsaved changes",
       "brandingLabel": "Notra branding",
       "brandingHint": "Shows a small \"Powered by Notra\" badge in the footer. Changing it rebuilds the site.",
@@ -7622,29 +7610,15 @@
     },
     "previewAccess": {
       "title": "Preview access",
-      "description": "Choose whether pull requests get previews and who can open them.",
       "trigger": {
         "members": "Team only",
         "password": "Team or password",
         "public": "Anyone with the link",
         "off": "Previews off"
       },
-      "turnOn": "Turn on",
-      "buildLabel": "Build previews",
       "buildOffWarning": "{count, plural, one {The open preview closes} other {All # open previews close}} when you save. Turn previews back on and the next push builds them again.",
       "buildOffHint": "New pull requests won't build a preview.",
       "whoLabel": "Who can open previews",
-      "modes": {
-        "members": {
-          "title": "Team only"
-        },
-        "password": {
-          "title": "Team or password"
-        },
-        "public": {
-          "title": "Anyone with the link"
-        }
-      },
       "passwordLabel": "Preview password",
       "newPasswordLabel": "New password",
       "passwordHint": "At least {min} characters.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import {
@@ -41,25 +41,27 @@ export function SitePreviewFrame({
         <iframe
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute top-0 left-0 origin-top-left border-0 transition-opacity duration-300",
+            "pointer-events-none absolute top-0 left-0 h-(--preview-height) w-(--preview-width) origin-top-left scale-(--preview-scale) border-0 transition-opacity duration-300",
             loaded ? "opacity-100" : "opacity-0"
           )}
           loading="lazy"
           onLoad={() => setLoaded(true)}
           sandbox="allow-same-origin"
           src={url}
-          style={{
-            width: SITE_PREVIEW_VIEWPORT_WIDTH,
-            height: SITE_PREVIEW_VIEWPORT_HEIGHT,
-            transform: `scale(${scale})`,
-          }}
+          style={
+            {
+              "--preview-width": `${SITE_PREVIEW_VIEWPORT_WIDTH}px`,
+              "--preview-height": `${SITE_PREVIEW_VIEWPORT_HEIGHT}px`,
+              "--preview-scale": scale,
+            } as CSSProperties
+          }
           tabIndex={-1}
           title={t("title")}
         />
       ) : null}
-      {url && loaded ? null : (
+      {url ? null : (
         <div className="text-muted-foreground absolute inset-0 flex items-center justify-center text-sm">
-          {url ? null : (fallback ?? t("unavailable"))}
+          {fallback ?? t("unavailable")}
         </div>
       )}
     </div>

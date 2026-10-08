@@ -5,6 +5,14 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Cloudflare } from "@notra/ui/components/ui/svgs/cloudflare";
 import { Vercel } from "@notra/ui/components/ui/svgs/vercel";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@notra/ui/components/ui/table";
 import { type ReactNode, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -48,49 +56,48 @@ export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
     return <p className="text-muted-foreground text-sm">{t("noRecords")}</p>;
   }
   return (
-    <div className="bg-muted/30 overflow-x-auto rounded-lg border">
-      <table className="w-full min-w-[32rem] table-fixed text-sm">
-        <colgroup>
-          <col className="w-18" />
-          <col className="w-[25%]" />
-          <col />
-          <col className="w-36" />
-        </colgroup>
-        <thead>
-          <tr className="text-muted-foreground text-left text-xs">
-            <th className="py-2 pr-4 pl-3 font-normal">{t("type")}</th>
-            <th className="py-2 pr-4 font-normal">{t("name")}</th>
-            <th className="py-2 pr-3 font-normal">{t("value")}</th>
-            <th className="py-2 pr-3 font-normal">{t("proxy")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((record) => (
-            <tr
-              className="bg-background border-t"
-              key={`${record.type}:${record.name}:${record.value}`}
-            >
-              <td className="py-2 pr-4 pl-3 font-mono text-xs font-medium">
+    <Table className="min-w-[32rem] table-fixed">
+      <colgroup>
+        <col className="w-18" />
+        <col className="w-[25%]" />
+        <col />
+        <col className="w-36" />
+      </colgroup>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t("type")}</TableHead>
+          <TableHead>{t("name")}</TableHead>
+          <TableHead>{t("value")}</TableHead>
+          <TableHead>{t("proxy")}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {records.map((record) => (
+          <TableRow key={`${record.type}:${record.name}:${record.value}`}>
+            <TableCell>
+              <span className="font-mono text-xs font-medium">
                 {record.type}
-              </td>
-              <td className="min-w-0 py-2 pr-4">
-                <RecordValue label={t("name")} value={record.name} />
-              </td>
-              <td className="min-w-0 py-2 pr-3">
-                <RecordValue label={t("value")} value={record.value} />
-              </td>
-              <td className="text-muted-foreground py-2 pr-3 text-xs">
+              </span>
+            </TableCell>
+            <TableCell>
+              <RecordValue label={t("name")} value={record.name} />
+            </TableCell>
+            <TableCell>
+              <RecordValue label={t("value")} value={record.value} />
+            </TableCell>
+            <TableCell>
+              <span className="text-muted-foreground text-xs">
                 {record.type === "CNAME" ? (
                   <span title={t("proxyRequirement")}>{t("dnsOnly")}</span>
                 ) : (
                   t("proxyNotApplicable")
                 )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </span>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -140,7 +147,6 @@ export function SiteDnsSetup({
   domain,
   checkAction,
 }: SiteDnsSetupProps) {
-  const t = useTranslations("sites.domainsPage.dns");
   const connect = useSiteDomainConnect({ organizationId, siteId, domain });
   const result = connect.data;
   const ready = result?.status === "ready" ? result : null;

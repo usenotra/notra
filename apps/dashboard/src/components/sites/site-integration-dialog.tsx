@@ -52,6 +52,7 @@ export function SiteIntegrationDialog({
   const errors = siteIntegrationFieldErrors(provider, next);
   const hasErrors = Object.keys(errors).length > 0;
   const connected = settings !== null;
+  const removing = save.isPending && save.variables?.settings === null;
 
   const submit = (nextSettings: Record<string, unknown> | null) => {
     save.mutate(
@@ -143,17 +144,22 @@ export function SiteIntegrationDialog({
               target="_blank"
             >
               {t("docs", { provider: provider.name })}
-              <HugeiconsIcon icon={ArrowUpRight01Icon} size={12} />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={ArrowUpRight01Icon}
+                size={12}
+              />
             </a>
           </FieldDescription>
         </form>
         <ResponsiveDialogFooter className="sm:justify-between">
           {connected ? (
             <Button
-              disabled={save.isPending}
+              disabled={save.isPending && !removing}
+              loading={removing}
               onClick={() => submit(null)}
               type="button"
-              variant="ghost"
+              variant="destructive"
             >
               {t("remove")}
             </Button>
@@ -169,7 +175,12 @@ export function SiteIntegrationDialog({
             >
               {tCommon("actions.cancel")}
             </Button>
-            <Button form={`${id}-form`} loading={save.isPending} type="submit">
+            <Button
+              disabled={removing}
+              form={`${id}-form`}
+              loading={save.isPending && !removing}
+              type="submit"
+            >
               {connected ? t("save") : t("connect")}
             </Button>
           </div>

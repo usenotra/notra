@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  ArrowDown01Icon,
-  Copy01Icon,
-  Loading03Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +22,7 @@ import type {
   SiteBuildLogSummaryProps,
   SiteBuildLogsProps,
 } from "@/types/components/sites";
-import { copyTextToClipboard } from "@/utils/copy-to-clipboard";
+import { toastCopyError } from "@/utils/copy-to-clipboard";
 import { formatCount } from "@/utils/format";
 import {
   countLogLines,
@@ -90,25 +87,22 @@ function BuildLogEmpty({
 
 function BuildLogCopyButton({ log }: SiteBuildLogCopyButtonProps) {
   const t = useTranslations("sites.deploymentPage.log");
+  const text = useMemo(() => (log ? stripAnsi(log) : ""), [log]);
   return (
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
+          <CopyButton
             aria-label={t("copy")}
+            copiedAriaLabel={t("copied")}
             disabled={!log}
-            onClick={() => {
-              if (log) {
-                copyTextToClipboard(stripAnsi(log), t("copied"));
-              }
-            }}
+            onCopyError={toastCopyError}
             size="icon-xs"
+            value={text}
             variant="ghost"
           />
         }
-      >
-        <HugeiconsIcon icon={Copy01Icon} size={14} />
-      </TooltipTrigger>
+      />
       <TooltipContent>{t("copy")}</TooltipContent>
     </Tooltip>
   );

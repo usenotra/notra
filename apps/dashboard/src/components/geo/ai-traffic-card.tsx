@@ -101,19 +101,24 @@ export function AiTrafficCard({
           (group) => trafficGroupKey(group.band, group.key) === openGroupKey
         ) ?? null);
 
-  const columns = useTrafficSourceColumns({ seriesByKey: seriesByGroup }).map(
-    (column) =>
-      column.key === "paths"
-        ? {
-            ...column,
-            cell: (row: GeoTrafficSourceGroup) => (
-              <span className="text-sm tabular-nums">
-                {trafficGroupPathsAreLowerBound(row) ? "≥ " : null}
-                <AnimatedNumber locale={locale} value={row.paths} />
-              </span>
-            ),
-          }
-        : column
+  const sourceColumns = useTrafficSourceColumns({ seriesByKey: seriesByGroup });
+  // A group shows its busiest bot's path count, a lower bound once several bots are active.
+  const columns = useMemo(
+    () =>
+      sourceColumns.map((column) =>
+        column.key === "paths"
+          ? {
+              ...column,
+              cell: (row: GeoTrafficSourceGroup) => (
+                <span className="text-sm tabular-nums">
+                  {trafficGroupPathsAreLowerBound(row) ? "≥ " : null}
+                  <AnimatedNumber locale={locale} value={row.paths} />
+                </span>
+              ),
+            }
+          : column
+      ),
+    [sourceColumns, locale]
   );
 
   if (groups.length === 0) {

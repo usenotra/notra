@@ -101,7 +101,7 @@ export function SiteNewFileDialog({
             id={id}
             onValueChange={setFileName}
             path={path}
-            placeholder={slugifyFileName(title) || "my-post"}
+            placeholder={slugifyFileName(title) || t("fileNamePlaceholder")}
             slug={slug}
             slugValid={slugValid}
             value={fileName}

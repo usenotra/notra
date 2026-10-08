@@ -6,9 +6,11 @@ import { useTranslations } from "use-intl";
 
 import Link from "@/components/framework/link";
 import { useSite } from "@/components/sites/site-context";
-import { SiteStatusDot } from "@/components/sites/site-status-dot";
+import {
+  SiteOfflineStatus,
+  SiteStatusDot,
+} from "@/components/sites/site-status-dot";
 import { useNow } from "@/lib/hooks/use-now";
-import { cn } from "@/lib/utils";
 import type {
   SiteOverviewStatusProps,
   SitePendingProductionProps,
@@ -53,26 +55,11 @@ export function SiteOverviewStatus({
   suspended,
   live,
 }: SiteOverviewStatusProps) {
-  const tStatus = useTranslations("sites.status");
-  const tDetail = useTranslations("sites.detail");
   if (pendingProduction && !suspended) {
     return <PendingProduction deployment={pendingProduction} />;
   }
-  if (!(suspended || live)) {
-    return null;
+  if (suspended) {
+    return <SiteOfflineStatus />;
   }
-  return (
-    <span className="inline-flex items-center gap-2 text-sm">
-      <span
-        aria-hidden="true"
-        className={cn(
-          "size-2 rounded-full",
-          suspended ? "bg-muted-foreground/40" : "bg-success"
-        )}
-      />
-      <span className="font-medium">
-        {suspended ? tDetail("offline") : tStatus("live")}
-      </span>
-    </span>
-  );
+  return live ? <SiteStatusDot live status="ready" /> : null;
 }

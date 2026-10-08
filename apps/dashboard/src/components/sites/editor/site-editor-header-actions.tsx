@@ -18,7 +18,11 @@ export function SiteEditorHeaderActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button disabled={!canCreateFile} onClick={onNewFile} variant="outline">
-        <HugeiconsIcon icon={PlusSignIcon} size={15} strokeWidth={1.5} />
+        <HugeiconsIcon
+          data-icon="inline-start"
+          icon={PlusSignIcon}
+          strokeWidth={1.5}
+        />
         {t("newFile")}
       </Button>
       <Button
@@ -26,7 +30,11 @@ export function SiteEditorHeaderActions({
         disabled={draftCount === 0 || unsaved}
         onClick={onPublish}
       >
-        <HugeiconsIcon icon={Rocket01Icon} size={15} strokeWidth={1.5} />
+        <HugeiconsIcon
+          data-icon="inline-start"
+          icon={Rocket01Icon}
+          strokeWidth={1.5}
+        />
         {t("publish")}
         {draftCount > 0 ? (
           <span className="bg-primary-foreground/20 -me-0.5 rounded-full px-1.5 text-xs tabular-nums">

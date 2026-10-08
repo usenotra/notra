@@ -10,7 +10,7 @@ import {
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { parseDiffFromFile } from "@pierre/diffs";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import { useTranslations } from "use-intl";
 
 import { SiteFileDiff } from "@/components/sites/editor/site-file-diff";
@@ -52,7 +52,7 @@ export function SitePublishChange({
     );
   }, [document, before, after, path]);
 
-  let diff: React.ReactNode;
+  let diff: ReactNode;
   if (readQuery.isPending || !highlighterReady) {
     diff = (
       <div aria-busy="true" className="space-y-2.5 px-4 py-3">

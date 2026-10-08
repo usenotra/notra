@@ -24,16 +24,16 @@ import { useTranslations } from "use-intl";
 import { GeoCountCell } from "@/components/geo/geo-count-cell";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";
 import {
-  PAGE_SKELETON_ROWS,
-  PAGE_COLUMN_WIDTH,
-  SOURCE_COLUMN_WIDTH,
   GEO_COUNT_COLUMN_WIDTH,
+  PAGE_COLUMN_WIDTH,
+  PAGE_SKELETON_ROWS,
+  SOURCE_COLUMN_WIDTH,
 } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type {
-  TrafficPageColumnLabels,
   GeoTrafficPageGroup,
+  TrafficPageColumnLabels,
   TrafficPagesCardProps,
   TrafficPagesFiltersProps,
   TrafficPagesResultsProps,

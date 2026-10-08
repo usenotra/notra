@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import { InstrumentSection } from "@notra/ui/components/instrument/instrument-module";
+import { TABLE_BODY_CLASS, TABLE_FRAME_CLASS } from "@notra/ui/constants/table";
 import { useTranslations } from "use-intl";
 
 import { buttonVariants } from "@/components/button";
@@ -13,6 +14,7 @@ import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
 import { useSite } from "@/components/sites/site-context";
 import { SITE_OVERVIEW_ANALYTICS_DAYS } from "@/constants/sites";
 import { useSiteAnalytics } from "@/lib/hooks/use-sites";
+import { cn } from "@/lib/utils";
 import { siteHref } from "@/utils/site-links";
 
 export function SiteVisitorsCard() {
@@ -71,29 +73,36 @@ export function SiteVisitorsCard() {
       }
       eyebrow={t("overviewTitle")}
     >
-      <dl className="border-shell-border bg-shell grid grid-cols-2 overflow-hidden rounded-2xl border md:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            className="border-border flex min-w-0 flex-col gap-1.5 border-b px-4 py-3 odd:border-r md:border-r md:border-b-0 md:last:border-r-0"
-            key={stat.key}
-          >
-            <dt className="text-muted-foreground text-xs">{stat.label}</dt>
-            <dd className="flex items-center gap-2">
-              <AnimatedNumber
-                className="text-xl font-semibold tabular-nums"
-                value={stat.value}
-              />
-              {stat.delta === null ? null : (
-                <GeoStatDelta
-                  delta={stat.delta}
-                  hint={tShared("vsPreviousPeriodOfThe")}
-                  label={stat.label}
+      <div className={TABLE_FRAME_CLASS}>
+        <dl
+          className={cn(
+            TABLE_BODY_CLASS,
+            "grid grid-cols-2 overflow-hidden md:grid-cols-4"
+          )}
+        >
+          {stats.map((stat) => (
+            <div
+              className="border-border/60 flex min-w-0 flex-col gap-1.5 border-b px-4 py-3 odd:border-r nth-[n+3]:border-b-0 md:border-r md:border-b-0 md:last:border-r-0"
+              key={stat.key}
+            >
+              <dt className="text-muted-foreground text-xs">{stat.label}</dt>
+              <dd className="flex items-center gap-2">
+                <AnimatedNumber
+                  className="text-xl font-semibold tabular-nums"
+                  value={stat.value}
                 />
-              )}
-            </dd>
-          </div>
-        ))}
-      </dl>
+                {stat.delta === null ? null : (
+                  <GeoStatDelta
+                    delta={stat.delta}
+                    hint={tShared("vsPreviousPeriodOfThe")}
+                    label={stat.label}
+                  />
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </InstrumentSection>
   );
 }

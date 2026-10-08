@@ -124,7 +124,12 @@ export function SiteDeploymentsPage() {
       size={variant === "default" ? "default" : "sm"}
       variant={variant}
     >
-      <HugeiconsIcon icon={RefreshIcon} size={16} strokeWidth={1.5} />
+      <HugeiconsIcon
+        aria-hidden="true"
+        data-icon="inline-start"
+        icon={RefreshIcon}
+        strokeWidth={1.5}
+      />
       {tDetail("deployLatest")}
     </Button>
   );
@@ -153,7 +158,11 @@ export function SiteDeploymentsPage() {
     <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <HugeiconsIcon icon={Rocket01Icon} strokeWidth={1.5} />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={Rocket01Icon}
+            strokeWidth={1.5}
+          />
         </EmptyMedia>
         <EmptyTitle>{t("empty.title")}</EmptyTitle>
         <EmptyDescription>
@@ -200,7 +209,11 @@ export function SiteDeploymentsPage() {
                 <PopoverTrigger
                   render={
                     <Button
-                      aria-label={t("filters.label")}
+                      aria-label={
+                        filtered
+                          ? `${t("filters.label")}, ${t("filters.active")}`
+                          : t("filters.label")
+                      }
                       className="relative shrink-0"
                       size="icon-sm"
                       variant="outline"
@@ -217,7 +230,7 @@ export function SiteDeploymentsPage() {
               />
               {filtered ? (
                 <span
-                  aria-label={t("filters.active")}
+                  aria-hidden="true"
                   className="bg-primary absolute -top-1 -right-1 size-2 rounded-full"
                 />
               ) : null}

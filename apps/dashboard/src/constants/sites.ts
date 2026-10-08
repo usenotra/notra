@@ -188,8 +188,6 @@ export const SITE_VERCEL_PROVIDER_PATTERN = /vercel/i;
 
 export const SITES_CLEANUP_CONCURRENCY = 4;
 
-export const SITE_DEPLOYMENT_SHELL_CLASS =
-  "border-shell-border bg-shell rounded-2xl border p-0.5";
 export const SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS =
   "bg-background shadow-lift grid gap-6 rounded-[14px] border p-5 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]";
 export const SITE_DEPLOYMENT_LOG_SURFACE_CLASS =

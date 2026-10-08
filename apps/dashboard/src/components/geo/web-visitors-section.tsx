@@ -34,40 +34,32 @@ import type {
 import { countryName } from "@/utils/country";
 import { formatVisibleDuration, webSourceName } from "@/utils/web-analytics";
 
-function WebMetric({ label, value, previous }: WebMetricProps) {
+function WebMetric({
+  label,
+  value,
+  previous,
+  format = "count",
+}: WebMetricProps) {
   const tShared = useTranslations("geo.shared");
+  const isDuration = format === "duration";
+  const showDelta = !isDuration || (value > 0 && previous > 0);
   return (
     <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
       <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight">
         {label}
       </p>
       <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
-        <AnimatedNumber
-          className={TRAFFIC_HERO_METRIC_VALUE_CLASS}
-          value={value}
-        />
-        <GeoStatDelta
-          delta={trafficVisitDelta(value, previous)}
-          hint={tShared("vsPreviousPeriodOfThe")}
-          label={label}
-        />
-      </div>
-    </div>
-  );
-}
-
-function WebTimeMetric({ label, value, previous }: WebMetricProps) {
-  const tShared = useTranslations("geo.shared");
-  return (
-    <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
-      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight">
-        {label}
-      </p>
-      <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
-        <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
-          {value > 0 ? formatVisibleDuration(value) : "-"}
-        </span>
-        {previous > 0 && value > 0 ? (
+        {isDuration ? (
+          <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
+            {value > 0 ? formatVisibleDuration(value) : "—"}
+          </span>
+        ) : (
+          <AnimatedNumber
+            className={TRAFFIC_HERO_METRIC_VALUE_CLASS}
+            value={value}
+          />
+        )}
+        {showDelta ? (
           <GeoStatDelta
             delta={trafficVisitDelta(value, previous)}
             hint={tShared("vsPreviousPeriodOfThe")}
@@ -205,7 +197,8 @@ export function WebVisitorsSection({
             value={totals.views}
           />
           {engagement ? (
-            <WebTimeMetric
+            <WebMetric
+              format="duration"
               label={t("avgTime")}
               previous={engagement.previousAvgSeconds}
               value={engagement.avgSeconds}

@@ -99,7 +99,7 @@ export function SiteEditorFileBar({
         {onOpenFilePicker ? (
           <button
             aria-haspopup="dialog"
-            className="hover:bg-muted -ms-1.5 flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 transition-colors duration-150 md:hidden"
+            className="hover:bg-muted focus-visible:ring-ring/50 -ms-1.5 flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 transition-colors duration-150 outline-none focus-visible:ring-[3px] md:hidden"
             onClick={onOpenFilePicker}
             title={path}
             type="button"

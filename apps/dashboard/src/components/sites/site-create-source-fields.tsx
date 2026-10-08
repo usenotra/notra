@@ -19,6 +19,7 @@ import { SiteCreateSectionFields } from "@/components/sites/site-create-section-
 import { SiteCreateStarter } from "@/components/sites/site-create-starter";
 import { SiteSuggestInput } from "@/components/sites/site-suggest-input";
 import { SITE_CREATE_ROW_VARIANTS } from "@/constants/site-create";
+import { SITE_NAME_MAX_LENGTH } from "@/constants/sites-form";
 import { useSiteRootDirectoryToggle } from "@/lib/hooks/use-site-root-directory-toggle";
 import type { SiteCreateSourceFieldsProps } from "@/types/components/sites";
 
@@ -55,7 +56,7 @@ export function SiteCreateSourceFields({
             aria-invalid={errors.name ? true : undefined}
             autoComplete="off"
             id={`${id}-name`}
-            maxLength={80}
+            maxLength={SITE_NAME_MAX_LENGTH}
             onChange={(event) => update("name", event.target.value)}
             placeholder={t("namePlaceholder")}
             required

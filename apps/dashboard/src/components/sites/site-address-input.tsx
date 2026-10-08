@@ -1,5 +1,6 @@
 "use client";
 
+import { SITE_SLUG_MAX_LENGTH } from "@notra/sites-core/constants/sites";
 import {
   InputGroup,
   InputGroupAddon,
@@ -26,7 +27,7 @@ export function SiteAddressInput({
         autoCapitalize="none"
         autoComplete="off"
         id={id}
-        maxLength={40}
+        maxLength={SITE_SLUG_MAX_LENGTH}
         onChange={(event) => onValueChange(event.target.value)}
         placeholder={placeholder}
         spellCheck={false}

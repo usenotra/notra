@@ -35,20 +35,18 @@ export function SitePreviewPasswordField({
 
   if (!editing) {
     return (
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
-          <p className="text-muted-foreground min-w-0 text-sm">
-            {t.rich("passwordSet", {
-              time: () =>
-                passwordSetAt ? (
-                  <SiteRelativeTime date={passwordSetAt} inline />
-                ) : null,
-            })}
-          </p>
-          <Button onClick={onEdit} size="sm" type="button" variant="outline">
-            {t("changePassword")}
-          </Button>
-        </div>
+      <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+        <p className="text-muted-foreground min-w-0 text-sm">
+          {t.rich("passwordSet", {
+            time: () =>
+              passwordSetAt ? (
+                <SiteRelativeTime date={passwordSetAt} inline />
+              ) : null,
+          })}
+        </p>
+        <Button onClick={onEdit} size="sm" type="button" variant="outline">
+          {t("changePassword")}
+        </Button>
       </div>
     );
   }
@@ -79,6 +77,7 @@ export function SitePreviewPasswordField({
             size="icon-xs"
           >
             <HugeiconsIcon
+              aria-hidden="true"
               icon={showPassword ? ViewOffIcon : ViewIcon}
               strokeWidth={1.5}
             />

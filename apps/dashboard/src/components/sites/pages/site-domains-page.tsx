@@ -85,7 +85,12 @@ export function SiteDomainsPage() {
     <div className="space-y-6">
       <PageHeading description={t("description")} title={t("title")}>
         <Button onClick={() => setAddOpen(true)}>
-          <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+          <HugeiconsIcon
+            aria-hidden="true"
+            data-icon="inline-start"
+            icon={PlusSignIcon}
+            strokeWidth={1.5}
+          />
           {t("addDomain")}
         </Button>
       </PageHeading>

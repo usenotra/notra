@@ -56,70 +56,66 @@ function PreviewAccessForm({ onDone }: SitePreviewAccessFormProps) {
     plan.isDirty && !plan.passwordTooShort && !saveMutation.isPending;
 
   return (
-    <>
-      <form
-        className="space-y-3"
-        id={`${id}-form`}
-        onSubmit={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          if (canSave) {
-            saveMutation.mutate(plan);
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (canSave) {
+          saveMutation.mutate(plan);
+        }
+      }}
+    >
+      <SitePreviewAccessModes
+        idPrefix={id}
+        mode={enabled ? mode : "off"}
+        onModeChange={(next) => {
+          setEnabled(next !== "off");
+          if (next !== "off") {
+            setMode(next);
           }
         }}
-      >
-        <SitePreviewAccessModes
+      />
+      {!enabled ? (
+        <p className="text-muted-foreground text-xs text-pretty">
+          {site.previewsEnabled && detail.previews.length > 0
+            ? t("buildOffWarning", { count: detail.previews.length })
+            : t("buildOffHint")}
+        </p>
+      ) : null}
+      {enabled && mode === "password" ? (
+        <SitePreviewPasswordField
+          editing={editingPassword}
           idPrefix={id}
-          mode={enabled ? mode : "off"}
-          onModeChange={(next) => {
-            setEnabled(next !== "off");
-            if (next !== "off") {
-              setMode(next);
-            }
-          }}
+          onEdit={() => setEditingPassword(true)}
+          onChange={setPassword}
+          onToggleShowPassword={() => setShowPassword((shown) => !shown)}
+          value={password}
+          passwordSetAt={site.previewPasswordSetAt}
+          showPassword={showPassword}
+          tooShort={plan.passwordTooShort}
         />
-        {!enabled ? (
-          <p className="text-muted-foreground text-xs text-pretty">
-            {site.previewsEnabled && detail.previews.length > 0
-              ? t("buildOffWarning", { count: detail.previews.length })
-              : t("buildOffHint")}
-          </p>
-        ) : null}
-        {enabled && mode === "password" ? (
-          <SitePreviewPasswordField
-            editing={editingPassword}
-            idPrefix={id}
-            onEdit={() => setEditingPassword(true)}
-            onChange={setPassword}
-            onToggleShowPassword={() => setShowPassword((shown) => !shown)}
-            value={password}
-            passwordSetAt={site.previewPasswordSetAt}
-            showPassword={showPassword}
-            tooShort={plan.passwordTooShort}
-          />
-        ) : null}
-        <div className="flex justify-end gap-2 pt-1">
-          <Button
-            disabled={saveMutation.isPending}
-            onClick={onDone}
-            type="button"
-            variant="outline"
-            size="sm"
-          >
-            {tCommon("actions.cancel")}
-          </Button>
-          <Button
-            disabled={!canSave}
-            form={`${id}-form`}
-            loading={saveMutation.isPending}
-            type="submit"
-            size="sm"
-          >
-            {t("save")}
-          </Button>
-        </div>
-      </form>
-    </>
+      ) : null}
+      <div className="flex justify-end gap-2 pt-1">
+        <Button
+          disabled={saveMutation.isPending}
+          onClick={onDone}
+          type="button"
+          variant="outline"
+          size="sm"
+        >
+          {tCommon("actions.cancel")}
+        </Button>
+        <Button
+          disabled={!canSave}
+          loading={saveMutation.isPending}
+          type="submit"
+          size="sm"
+        >
+          {t("save")}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -134,12 +130,17 @@ export function SitePreviewAccessControl() {
       <PopoverTrigger render={<Button type="button" variant="outline" />}>
         <HugeiconsIcon
           aria-hidden="true"
+          data-icon="inline-start"
           icon={site.previewsEnabled ? mode.icon : ViewOffIcon}
-          size={16}
           strokeWidth={1.5}
         />
         {t(`trigger.${site.previewsEnabled ? mode.mode : "off"}`)}
-        <HugeiconsIcon aria-hidden="true" icon={ArrowDown01Icon} size={14} />
+        <HugeiconsIcon
+          aria-hidden="true"
+          data-icon="inline-end"
+          icon={ArrowDown01Icon}
+          strokeWidth={1.5}
+        />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 max-w-[calc(100vw-2rem)]">
         <PopoverTitle>{t("title")}</PopoverTitle>

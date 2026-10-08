@@ -32,17 +32,18 @@ import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
 import type {
-  TrafficSourcePageColumnLabels,
   GeoTrafficGroupPage,
   GeoTrafficSourceGroup,
   SheetStat,
   TrafficSourceSheetContentProps,
+  TrafficSourcePageColumnLabels,
   TrafficSourceSheetProps,
 } from "@/types/geo";
 import {
-  trafficGroupKey,
-  trafficGroupPreviousVisits,
   trafficGroupCurrentMembers,
+  trafficGroupKey,
+  trafficGroupPathsAreLowerBound,
+  trafficGroupPreviousVisits,
   trafficGroupTopPages,
 } from "@/utils/ai-traffic-groups";
 import { paginatedTableHeightFor } from "@/utils/table";
@@ -111,9 +112,9 @@ function TrafficSourceSheetContent({
 }: TrafficSourceSheetContentProps) {
   const t = useTranslations("geo.trafficSourceSheet");
   const tGeoShared = useTranslations("geo.shared");
-  const [trafficHost] = useGeoTrafficHostQuery();
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const [trafficHost] = useGeoTrafficHostQuery();
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
   const members = trafficGroupCurrentMembers(group);
@@ -126,8 +127,8 @@ function TrafficSourceSheetContent({
         previous === null ? null : trafficVisitDelta(group.visits, previous),
     },
     {
-      label: tGeoShared("paths"),
-      value: `${members.length > 1 ? "≥ " : ""}${group.paths.toLocaleString(locale)}`,
+      label: tGeoShared("pages"),
+      value: `${trafficGroupPathsAreLowerBound(group) ? "≥ " : ""}${group.paths.toLocaleString(locale)}`,
     },
     showMarkdown
       ? {

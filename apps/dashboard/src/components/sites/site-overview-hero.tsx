@@ -23,7 +23,12 @@ import {
   isDeploymentInProgress,
   pendingProductionDeployment,
 } from "@/utils/site-deployments";
-import { displayUrl, siteHref, siteUrlOnOrigin } from "@/utils/site-links";
+import {
+  displayUrl,
+  githubRepositoryUrl,
+  siteHref,
+  siteUrlOnOrigin,
+} from "@/utils/site-links";
 
 function InfoRow({ icon, label, children }: SiteOverviewInfoRowProps) {
   return (
@@ -95,7 +100,7 @@ export function SiteOverviewHero() {
           <InfoRow icon={GithubIcon} label={t("repository")}>
             {site.repository ? (
               <SiteOverviewExternalLink
-                href={`https://github.com/${site.repository.owner}/${site.repository.name}`}
+                href={githubRepositoryUrl(site.repository)}
               >
                 {site.repository.owner} / {site.repository.name}
               </SiteOverviewExternalLink>

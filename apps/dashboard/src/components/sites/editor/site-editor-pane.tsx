@@ -91,6 +91,16 @@ export function SiteEditorPane({
 
   useEffect(() => () => flushOnLeave(), []);
 
+  const discard = async () => {
+    cancelPending();
+    try {
+      await saveQueue.discard(saveInput(value));
+      toast.success(t("discarded"));
+    } catch {
+      toast.error(t("discardFailed"));
+    }
+  };
+
   const handleChange = (next: string) => {
     saveQueue.edit(saveInput(next));
     cancelPending();
@@ -105,13 +115,7 @@ export function SiteEditorPane({
         isDiscarding={isDiscarding}
         mode={mode}
         onDiscard={() => {
-          cancelPending();
-          void saveQueue
-            .discard(saveInput(value))
-            .then(() => {
-              toast.success(t("discarded"));
-            })
-            .catch(() => toast.error(t("discardFailed")));
+          void discard();
         }}
         onModeChange={setMode}
         onOpenFilePicker={onOpenFilePicker}

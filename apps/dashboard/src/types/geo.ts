@@ -1909,6 +1909,8 @@ export interface WebMetricProps {
   label: string;
   value: number;
   previous: number;
+  /** Durations are in seconds and skip the delta until both periods have data. */
+  format?: "count" | "duration";
 }
 
 export interface WebOutcomesTableProps {

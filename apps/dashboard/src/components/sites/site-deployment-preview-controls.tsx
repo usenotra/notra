@@ -125,8 +125,9 @@ export function SiteDeploymentPreviewControls() {
         <Button
           disabled={!site.previewsEnabled || site.status === "suspended"}
           onClick={() => setBranchDialogOpen(true)}
+          variant="outline"
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={16} />
+          <HugeiconsIcon data-icon="inline-start" icon={PlusSignIcon} />
           {t("branchTitle")}
         </Button>
       </div>

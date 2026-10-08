@@ -141,7 +141,7 @@ function TrafficPageView({
               geoSettingsPath(organizationSlug),
               projectId
             )}
-            showHero={!(showVisitors && web)}
+            showHero={!showVisitors}
             traffic={traffic}
           />
           <TrafficPagesCard isPending={isPagesPending} pages={trafficPages} />

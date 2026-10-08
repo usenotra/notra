@@ -48,7 +48,7 @@ export function WebBreakdownTable({
       collapsePriority: 1,
       cell: (row) => (
         <span className="text-muted-foreground text-sm tabular-nums">
-          {row.fromAi ? formatChartInteger(row.fromAi, locale) : "-"}
+          {row.fromAi ? formatChartInteger(row.fromAi, locale) : "—"}
         </span>
       ),
       sortValue: (row) => row.fromAi ?? 0,
@@ -64,7 +64,7 @@ export function WebBreakdownTable({
       collapsePriority: 2,
       cell: (row) => (
         <span className="text-muted-foreground text-sm tabular-nums">
-          {row.avgSeconds ? formatVisibleDuration(row.avgSeconds) : "-"}
+          {row.avgSeconds ? formatVisibleDuration(row.avgSeconds) : "—"}
         </span>
       ),
       sortValue: (row) => row.avgSeconds ?? 0,

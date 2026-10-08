@@ -3,7 +3,7 @@
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { EditProvider } from "@pierre/diffs/react";
 import { parseAsString, useQueryState } from "nuqs";
-import { useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { SiteEditorConflictBanner } from "@/components/sites/editor/site-editor-conflict-banner";
@@ -151,7 +151,7 @@ export function SiteEditorPage() {
     />
   );
 
-  let editorSurface: React.ReactNode;
+  let editorSurface: ReactNode;
   if (filesQuery.isError) {
     editorSurface = (
       <SiteEditorFilesError
@@ -221,7 +221,7 @@ export function SiteEditorPage() {
       ) : null}
 
       <div
-        className="border-shell-border bg-shell flex min-h-[28rem] flex-1 basis-0 flex-col rounded-2xl border p-0.5"
+        className="border-shell-border bg-shell flex min-h-112 flex-1 basis-0 flex-col rounded-2xl border p-0.5"
         data-site-editor=""
         inert={rebaseMutation.isPending}
       >

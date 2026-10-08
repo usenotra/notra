@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 
-import { SitesPageShell } from "./sites-page-shell";
+import { SitesPageShell } from "@/components/sites/sites-page-shell";
 
 export function SitePageSkeleton() {
   return (

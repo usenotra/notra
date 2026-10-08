@@ -39,6 +39,10 @@ export function hostFromOrigin(origin: string): string {
   }
 }
 
+export function githubRepositoryUrl(repository: SiteRepositoryRef): string {
+  return `https://github.com/${repository.owner}/${repository.name}`;
+}
+
 export function githubBranchUrl(
   repository: SiteRepositoryRef | null,
   branch: string

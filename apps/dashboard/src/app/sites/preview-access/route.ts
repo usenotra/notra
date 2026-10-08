@@ -8,11 +8,10 @@ import { SITE_PREVIEW_KEY_PATTERN } from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 
 export async function GET(request: Request) {
-  const siteId = new URL(request.url).searchParams.get("site") ?? "";
-  const previewKey = new URL(request.url).searchParams.get("preview") ?? "";
-  const next = safePreviewNextPath(
-    new URL(request.url).searchParams.get("next")
-  );
+  const { searchParams } = new URL(request.url);
+  const siteId = searchParams.get("site") ?? "";
+  const previewKey = searchParams.get("preview") ?? "";
+  const next = safePreviewNextPath(searchParams.get("next"));
   if (
     !(siteId.startsWith("site_") && SITE_PREVIEW_KEY_PATTERN.test(previewKey))
   ) {

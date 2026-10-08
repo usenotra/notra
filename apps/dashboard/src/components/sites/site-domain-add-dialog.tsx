@@ -95,7 +95,7 @@ export function SiteDomainAddDialog({
             }
           }}
         >
-          <InputGroup className="h-10">
+          <InputGroup>
             <InputGroupAddon>
               <HugeiconsIcon
                 aria-hidden="true"
@@ -141,7 +141,7 @@ export function SiteDomainAddDialog({
                   <ul className="space-y-1">
                     {urls.map((url) => (
                       <li
-                        className="animate-in fade-in motion-safe:slide-in-from-left-1 duration-normal ease-emphasized flex items-center gap-2 font-mono text-sm"
+                        className="flex items-center gap-2 font-mono text-sm"
                         key={url}
                       >
                         <HugeiconsIcon
@@ -193,7 +193,7 @@ export function SiteDomainAddDialog({
             )}
           </div>
         </form>
-        <ResponsiveDialogFooter className="sm:justify-between">
+        <ResponsiveDialogFooter>
           <Button
             disabled={addMutation.isPending}
             onClick={() => onOpenChange(false)}
