@@ -23,14 +23,14 @@
     "@neondatabase/serverless": "^1.0.2",
     "@notra/sites-core": "workspace:*",
     "@upstash/redis": "^1.38.4",
-    "@vercel/functions": "^3.7.2",
+    "@vercel/functions": "^3.7.7",
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.23.0",
+    "pg": "^8.23.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@notra/typescript-config": "workspace:*",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.35",
     "drizzle-kit": "^0.31.8",
     "effect": "4.0.0",
     "typescript": "7.0.2"

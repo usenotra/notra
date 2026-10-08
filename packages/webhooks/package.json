@@ -32,8 +32,8 @@
     "@cloudflare/workers-types": "^5.0.0",
     "@electric-sql/pglite": "0.5.8",
     "@notra/typescript-config": "workspace:*",
-    "@types/node": "24.13.2",
-    "@types/pg": "^8.15.0",
+    "@types/node": "24.13.6",
+    "@types/pg": "^8.15.6",
     "typescript": "7.0.2",
     "wrangler": "^4.0.0"
   }
