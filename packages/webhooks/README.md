@@ -21,8 +21,8 @@ Public API clients use `webhooks.read` and `webhooks.write` scopes.
 3. The delivery consumer atomically claims a delivery and creates its attempt row.
    It signs the exact stored payload, sends it and atomically records the result.
    Up to five messages of a batch are delivered concurrently, below the Workers
-   limit of six open connections. A sweep queues up to 5,000 due deliveries,
-   oldest deadline first.
+   limit of six open connections. A sweep queues every due delivery, oldest
+   deadline first, in pages of 5,000.
 4. Deliveries, not queue messages, are the source of outstanding work. Every sweep
    resubmits due deliveries independently of queue acknowledgement. Stale workers
    cannot overwrite a new attempt because completion is fenced by a unique lease

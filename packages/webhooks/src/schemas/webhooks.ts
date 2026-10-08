@@ -118,6 +118,10 @@ export const Endpoint = Schema.Struct({
 });
 export const IdentifierRow = Schema.Struct({ id: Schema.String });
 export const CountRow = Schema.Struct({ count: Schema.Number });
+export const DueDeliveryRow = Schema.Struct({
+  id: Schema.String,
+  dueAt: Schema.String,
+});
 export const StoredDelivery = Schema.Struct({
   id: DeliveryId,
   eventId: EventId,

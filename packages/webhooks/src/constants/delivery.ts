@@ -3,7 +3,7 @@ export const LEASE_SECONDS = 60;
 export const HTTP_TIMEOUT_MS = 10_000;
 export const DNS_CHECK_TTL_SECONDS = 5;
 export const RECOVERY_BATCH_SIZE = 500;
-// Upper bound of deliveries one sweep queues; the queue drains far faster.
+// Page size for due deliveries; a sweep keeps paging until the backlog is queued.
 export const DUE_DELIVERIES_PER_SWEEP = 5000;
 // Stays below the Workers limit of six simultaneous open connections.
 export const DELIVERY_CONCURRENCY = 5;

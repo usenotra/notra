@@ -14,6 +14,7 @@ import { sql as drizzleSql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/pglite";
 import { Effect, Layer, Redacted, Schema } from "effect";
 
+import { DUE_DELIVERIES_PER_SWEEP } from "../src/constants/delivery";
 import { publishEventInTransaction } from "../src/drizzle";
 import { WebhookQueueError, WebhookStorageError } from "../src/errors/webhooks";
 import {
@@ -260,6 +261,26 @@ describe("durable webhook pipeline", () => {
           [id]
         );
         expect(dispatched.rows).toEqual([{ dispatch_at: null }]);
+      }).pipe(Effect.provide(layers))
+    ));
+
+  test("a backlog larger than one page is queued in a single sweep, oldest first", () =>
+    Effect.runPromise(
+      Effect.gen(function* () {
+        const backlog = DUE_DELIVERIES_PER_SWEEP + 1;
+        yield* sql(
+          `INSERT INTO webhook_endpoints (id, organization_id, url, events, secret)
+           SELECT 'backlog-' || n, 'org-one', 'https://hooks.usenotra.com/receive', ARRAY['post.generation.completed'], 'secret'
+           FROM generate_series(1, $1::int) AS n`,
+          [backlog]
+        );
+        yield* publish();
+        yield* sql(
+          "UPDATE webhook_deliveries SET next_attempt_at = now() - interval '1 hour' WHERE endpoint_id = 'backlog-1'"
+        );
+        expect((yield* sweep()).queuedDeliveries).toBe(backlog);
+        expect(new Set(queuedDeliveries).size).toBe(backlog);
+        expect(queuedDeliveries[0]).toEndWith("_backlog-1");
       }).pipe(Effect.provide(layers))
     ));
 

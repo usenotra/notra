@@ -5,10 +5,11 @@ import {
   RECOVERY_BATCH_SIZE,
   RETENTION_DAYS,
 } from "../constants/delivery";
-import { CountRow, IdentifierRow, PipelineMetrics } from "../schemas/webhooks";
-import { decodeRows, WebhookDatabase } from "../services/database";
+import { CountRow, DueDeliveryRow, PipelineMetrics } from "../schemas/webhooks";
+import { decodeRows, queryRows, WebhookDatabase } from "../services/database";
 import { WebhookQueues } from "../services/queue";
 import type { SqlStatement } from "../types/services";
+import type { DueDeliveryRow as DueDelivery } from "../types/webhooks";
 
 const expireLeases: SqlStatement = {
   sql: `WITH expired AS (
@@ -50,11 +51,22 @@ const removeExpiredEvents: SqlStatement = {
   parameters: [RETENTION_DAYS, RECOVERY_BATCH_SIZE],
 };
 
+// `next_attempt_at::text` keeps microsecond precision for the keyset cursor.
+const DUE_DELIVERY_COLUMNS = `SELECT id, next_attempt_at::text AS "dueAt" FROM webhook_deliveries
+    WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now()`;
+
 const selectDueDeliveries: SqlStatement = {
-  sql: `SELECT id FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now()
-    ORDER BY next_attempt_at, id LIMIT $1`,
+  sql: `${DUE_DELIVERY_COLUMNS} ORDER BY next_attempt_at, id LIMIT $1`,
   parameters: [DUE_DELIVERIES_PER_SWEEP],
 };
+
+const selectDueDeliveriesAfter = (cursor: DueDelivery) =>
+  queryRows(
+    DueDeliveryRow,
+    `${DUE_DELIVERY_COLUMNS} AND (next_attempt_at, id) > ($1::timestamptz, $2)
+    ORDER BY next_attempt_at, id LIMIT $3`,
+    [cursor.dueAt, cursor.id, DUE_DELIVERIES_PER_SWEEP]
+  );
 
 const selectMetrics: SqlStatement = {
   sql: `SELECT
@@ -87,18 +99,27 @@ export const sweep = Effect.fn("webhooks.sweep")(function* () {
       selectDueDeliveries,
       selectMetrics,
     ]);
-  const deliveryIds = (yield* decodeRows(IdentifierRow, due)).map(
-    (row) => row.id
-  );
+  let page = yield* decodeRows(DueDeliveryRow, due);
+  let queuedDeliveries = 0;
+  // Pages past the transaction only exist during a backlog; queue each page
+  // before reading the next so no sweep caps how much work it submits.
+  while (page.length > 0) {
+    yield* queues.deliveries(page.map((row) => row.id));
+    queuedDeliveries += page.length;
+    const last = page.at(-1);
+    page =
+      last && page.length === DUE_DELIVERIES_PER_SWEEP
+        ? yield* selectDueDeliveriesAfter(last)
+        : [];
+  }
   const [pipeline] = yield* decodeRows(PipelineMetrics, metrics);
   const summary = {
     expiredLeases: yield* countOf(expired),
     cancelledDeliveries: yield* countOf(cancelled),
     dispatchedEvents: yield* countOf(dispatched),
     removedEvents: yield* countOf(removed),
-    queuedDeliveries: deliveryIds.length,
+    queuedDeliveries,
   };
-  yield* queues.deliveries(deliveryIds);
   yield* Effect.logInfo("Webhook pipeline metrics").pipe(
     Effect.annotateLogs({ ...pipeline, ...summary })
   );
