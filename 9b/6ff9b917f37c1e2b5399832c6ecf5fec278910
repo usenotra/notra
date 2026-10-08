@@ -1,0 +1,208 @@
+apps/dashboard/src/components/sites/site-domain-add-dialog.tsx
+  ai_agent 98,144,196
+apps/dashboard/src/constants/sites-form.ts
+  s_42c3a3fb97592d::t_d39c911589e4c8 1
+apps/dashboard/src/components/sites/site-build-log-filter.tsx
+  ai_agent 44,49
+apps/dashboard/src/utils/site-links.ts
+  s_42c3a3fb97592d::t_a1b8bfdf0865f7 42-45
+apps/dashboard/src/components/sites/site-visitors-card.tsx
+  s_42c3a3fb97592d::t_520807a3bc8d77 8,17,76-92,94-105
+apps/dashboard/src/components/sites/site-layout.tsx
+  s_42c3a3fb97592d::t_dd6a2bf0d57098 3-9,85-98
+apps/dashboard/src/utils/site-diagnostics.ts
+  s_42c3a3fb97592d::t_1e07c7397d2a69 17,21-27
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  s_42c3a3fb97592d::t_3be75c4e147692 79
+  s_42c3a3fb97592d::t_4b062474c763a1 87-102
+apps/dashboard/src/components/sites/site-deployment-menu.tsx
+  s_42c3a3fb97592d::t_99e0554c64bba0 53,55,70-83
+apps/dashboard/src/constants/site-editor.ts
+  s_42c3a3fb97592d::t_59b94914adfed0 34-35
+apps/dashboard/src/components/sites/site-create-stage.tsx
+  s_42c3a3fb97592d::t_4105770d20bad1 5-8,36-37,41,43
+apps/dashboard/src/components/sites/site-environment-badge.tsx
+  s_42c3a3fb97592d::t_75a1d36f5cc939 21,26,30-34
+  s_42c3a3fb97592d::t_d83b26add4b5be 4,20,22,35
+apps/dashboard/src/components/sites/editor/site-publish-change.tsx
+  s_42c3a3fb97592d::t_59b94914adfed0 13,55
+apps/dashboard/src/components/sites/editor/site-editor-file-bar.tsx
+  s_42c3a3fb97592d::t_350c184e2d3946 102
+apps/dashboard/src/components/sites/site-status-dot.tsx
+  s_42c3a3fb97592d::t_adae12356d4936 50-62
+apps/dashboard/src/components/geo/web-visitors-section.tsx
+  s_42c3a3fb97592d::t_7fc1b3bc31d64e 37-42,44-45,52-62,200-201
+apps/dashboard/messages/de.json
+  s_42c3a3fb97592d::t_a69fc3946bb019 7542
+  s_42c3a3fb97592d::t_4c3fd7f80a3eba 7165
+  s_42c3a3fb97592d::t_8fc0373b93525a 7269,7602,7677
+apps/dashboard/src/components/sites/site-new-file-dialog.tsx
+  s_42c3a3fb97592d::t_4ae4fa528988dc 104
+apps/dashboard/src/components/sites/site-create-starter.tsx
+  s_42c3a3fb97592d::t_13c5b53028d084 9-13,44-51,53,65-66,72-89
+  s_42c3a3fb97592d::t_7d6d26d7f48269 43,71
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_42c3a3fb97592d::t_e500a06f2ed094 10,106,132,139-141,143-152,162,321,329,335
+  s_42c3a3fb97592d::t_3be75c4e147692 134-136
+  ai_agent 12,29
+  s_42c3a3fb97592d::t_6f45eb518be828 175
+apps/dashboard/src/components/sites/site-domain-setup.tsx
+  s_42c3a3fb97592d::t_369b5c5bfd6ea5 3,7,25-29
+apps/dashboard/src/constants/site-create.ts
+  s_42c3a3fb97592d::t_6d03bb1f4e41d1 72-76
+apps/dashboard/src/components/sites/editor/site-editor-problems.tsx
+  s_42c3a3fb97592d::t_8cb50597bc145b 17,28
+  s_42c3a3fb97592d::t_6975392ef7527d 39
+  s_42c3a3fb97592d::t_350c184e2d3946 98
+apps/dashboard/src/types/components/sites.ts
+  s_42c3a3fb97592d::t_65965844880403 491-492
+apps/dashboard/src/components/sites/editor/site-editor-empty-state.tsx
+  s_42c3a3fb97592d::t_eda50ec01bdd71 49-53
+apps/dashboard/src/components/sites/site-address-input.tsx
+  ai_agent 3,30
+apps/dashboard/src/components/sites/pages/site-deployments-page.tsx
+  s_42c3a3fb97592d::t_4b062474c763a1 212-216,233
+  s_42c3a3fb97592d::t_2c4e75389a23fd 127-132
+  s_42c3a3fb97592d::t_3be75c4e147692 161-165
+apps/dashboard/src/components/sites/site-deployment-timeline.tsx
+  s_42c3a3fb97592d::t_ea5a57935c5366 82
+apps/dashboard/messages/en.json
+  s_42c3a3fb97592d::t_9d07b9101ab25b 7165
+  s_42c3a3fb97592d::t_8fc0373b93525a 6921,7122,7269,7602
+  s_42c3a3fb97592d::t_43bd639fd91ba3 7542
+apps/dashboard/src/components/sites/site-overview-status.tsx
+  s_42c3a3fb97592d::t_4bf2343ffa53c4 9-12
+  s_42c3a3fb97592d::t_3bcb44e8b12247 61-62,64
+apps/dashboard/src/types/components/site-settings-danger-zone.ts
+  ai_agent 1-7
+apps/dashboard/src/components/sites/site-build-log-rows.tsx
+  s_42c3a3fb97592d::t_381bdbd4e3a06b 58,80-84,120
+apps/dashboard/src/constants/site-publish.ts
+  s_42c3a3fb97592d::t_5be998271b3588 1-2
+apps/dashboard/src/components/sites/site-build-logs.tsx
+  s_42c3a3fb97592d::t_96e50721915736 5,25,90,95,97,99,101,105
+  s_42c3a3fb97592d::t_350c184e2d3946 3
+packages/ui/src/types/data-table.ts
+  s_42c3a3fb97592d::t_75112f2ab15f0e 142
+apps/dashboard/src/components/sites/editor/site-editor-header-actions.tsx
+  s_42c3a3fb97592d::t_eda50ec01bdd71 21-25,33-37
+apps/dashboard/src/components/sites/site-create-deploy.tsx
+  s_42c3a3fb97592d::t_50e3b9f0d038a3 20
+  s_42c3a3fb97592d::t_350c184e2d3946 74
+apps/dashboard/src/components/sites/sites-table.tsx
+  s_42c3a3fb97592d::t_beb92b046ec3dd 12-15,20,97,101,141-144
+apps/dashboard/src/components/sites/site-preview-access-modes.tsx
+  s_42c3a3fb97592d::t_99e0554c64bba0 31
+  s_42c3a3fb97592d::t_720d5dca5aa0ad 19,21-26,30
+apps/dashboard/src/components/sites/site-publish-dialog.tsx
+  s_42c3a3fb97592d::t_5be998271b3588 23,55,107,134,172,178-179
+apps/dashboard/src/components/sites/site-deployment-summary.tsx
+  s_42c3a3fb97592d::t_6f45eb518be828 118
+  ai_agent 10,17
+apps/dashboard/src/components/sites/site-form-fields.tsx
+  s_42c3a3fb97592d::t_2db3223a388bcc 8,164
+apps/dashboard/src/components/sites/editor/site-editor-status-bar.tsx
+  s_42c3a3fb97592d::t_350c184e2d3946 100
+apps/dashboard/src/components/sites/site-preview-access-control.tsx
+  s_42c3a3fb97592d::t_c7251c22698714 59-75,78-88,90-96,98-118,133,138-143
+apps/dashboard/src/components/sites/editor/site-editor-pane.tsx
+  s_42c3a3fb97592d::t_00616815de484d 94-103,118
+apps/dashboard/src/app/sites/preview-access/route.ts
+  s_42c3a3fb97592d::t_9c74ca668484e4 11-14
+apps/dashboard/src/components/sites/editor/site-file-tree.tsx
+  s_42c3a3fb97592d::t_59b94914adfed0 13-19,24,76,128,156,173-178
+apps/dashboard/src/app/(dashboard)/[slug]/geo/traffic/page-client.tsx
+  ai_agent 144
+apps/dashboard/src/components/geo/web-trend-chart.tsx
+  s_42c3a3fb97592d::t_3c2fb59b3deebe 71
+apps/dashboard/src/components/sites/site-deployment-preview-controls.tsx
+  s_42c3a3fb97592d::t_eda50ec01bdd71 130
+  s_42c3a3fb97592d::t_75a63f2b0e2b69 128
+apps/dashboard/src/components/sites/site-domain-dns.tsx
+  s_42c3a3fb97592d::t_cbe3f497701555 68-71,82,85
+  s_42c3a3fb97592d::t_cd0882d5872bbc 8-15,59-67,72-76,81,83-84,86-87,96-100
+  s_42c3a3fb97592d::t_75a1d36f5cc939 77-78,80,88-89,95
+apps/dashboard/src/components/geo/traffic-source-sheet.tsx
+  s_42c3a3fb97592d::t_372ce1b61d82ad 130
+  ai_agent 39
+apps/dashboard/src/components/sites/editor/site-editor-conflict-banner.tsx
+  s_42c3a3fb97592d::t_67da46c01480aa 5-9,25-29,31,33,35,47-48,62
+apps/dashboard/src/app/sites/domain-connect/[token]/route.ts
+  s_42c3a3fb97592d::t_346c2ef476874d 20,28-30
+apps/dashboard/src/components/geo/traffic-pages-card.tsx
+  ai_agent 27,29,36
+apps/dashboard/src/components/sites/site-preview-password-field.test.tsx
+  s_42c3a3fb97592d::t_99e0554c64bba0 11,42
+apps/dashboard/src/constants/web-analytics.ts
+  ai_agent 39
+apps/dashboard/src/components/sites/site-overview-hero.tsx
+  s_42c3a3fb97592d::t_94b2d7d276fb13 103
+  s_42c3a3fb97592d::t_1f9ae9a1831e81 26-31
+apps/dashboard/tests/sites-editor-wiring.test.ts
+  s_42c3a3fb97592d::t_9ec6e9e5111e9a 112,114
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  ai_agent 22,59
+apps/dashboard/src/app/(dashboard)/[slug]/sites/new/skeleton.tsx
+  s_42c3a3fb97592d::t_3c2fb59b3deebe 3,5,10,13-14,16
+apps/dashboard/src/components/geo/web-breakdown-table.tsx
+  s_42c3a3fb97592d::t_bd15113368b133 51,67
+apps/dashboard/src/components/sites/pages/site-domains-page.tsx
+  s_42c3a3fb97592d::t_28120f8a847647 88-93
+apps/dashboard/src/components/sites/site-deployment-failure.tsx
+  s_42c3a3fb97592d::t_04f97c8d3d6379 4,9-13,29-32,38-49,51-100
+  s_42c3a3fb97592d::t_8cb50597bc145b 20,34
+  s_42c3a3fb97592d::t_38bd916830b977 50
+apps/dashboard/src/lib/sites/dns-callback.ts
+  s_42c3a3fb97592d::t_ecd6e9af815bf1 7,26-31
+apps/dashboard/src/types/geo.ts
+  s_42c3a3fb97592d::t_bd15113368b133 1912-1913
+apps/dashboard/src/components/sites/site-domains-table.tsx
+  s_42c3a3fb97592d::t_369b5c5bfd6ea5 27,232
+apps/dashboard/src/components/sites/pages/site-integrations-page.tsx
+  s_42c3a3fb97592d::t_c4f00e7233cab0 98
+  s_42c3a3fb97592d::t_3be75c4e147692 48-52
+apps/dashboard/src/components/geo/ai-traffic-card.tsx
+  s_42c3a3fb97592d::t_4c6a3129f67c32 104-121
+apps/dashboard/src/components/sites/site-domain-check-button.tsx
+  s_42c3a3fb97592d::t_e1225da4c94e41 1-53
+apps/dashboard/src/components/sites/site-create-form.tsx
+  s_42c3a3fb97592d::t_2db3223a388bcc 4,264
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_42c3a3fb97592d::t_d39c911589e4c8 23,60,93,118,171,203-211
+  s_42c3a3fb97592d::t_3be75c4e147692 172-188
+apps/dashboard/src/components/sites/site-integration-dialog.tsx
+  s_42c3a3fb97592d::t_adac0569d3c0fa 55,158-159,162,178-183
+  s_42c3a3fb97592d::t_d6d29393df45cb 147-151
+apps/dashboard/src/components/sites/site-preview-frame.tsx
+  s_42c3a3fb97592d::t_ce7f97c609c5a7 62,64
+  ai_agent 3,44,51-57
+apps/dashboard/src/components/sites/site-preview-password-field.tsx
+  s_42c3a3fb97592d::t_ce7f97c609c5a7 38-49,80
+apps/dashboard/src/components/sites/sites-unavailable-state.tsx
+  s_42c3a3fb97592d::t_30fd83675ef2fd 5-6,9
+apps/dashboard/src/components/sites/pages/site-editor-page.tsx
+  s_42c3a3fb97592d::t_d39c911589e4c8 6,154,224
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_42c3a3fb97592d::t_77abe1c831f65e 224,234,265,348,358,364,782
+  s_42c3a3fb97592d::t_95b69d9882104e 637
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  ai_agent 14,18-33,104-105,107-108,112-114,116-121,123,127-174,176-179
+apps/dashboard/src/components/sites/site-page-skeleton.tsx
+  s_42c3a3fb97592d::t_ce7f97c609c5a7 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9b6ff9b917f37c1e2b5399832c6ecf5fec278910",
+  "prompts": {},
+  "sessions": {
+    "s_42c3a3fb97592d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0242f9e8-eead-46de-9e27-e8caede1c967",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
