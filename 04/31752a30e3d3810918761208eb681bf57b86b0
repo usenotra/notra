@@ -1,0 +1,30 @@
+packages/webhooks/README.md
+  s_1312d0dab4bfc6::t_dad1b93d5bdc94 24-25
+packages/webhooks/src/types/webhooks.ts
+  s_1312d0dab4bfc6::t_4f9d58b430519c 12
+packages/webhooks/src/programs/recovery.ts
+  s_1312d0dab4bfc6::t_4f9d58b430519c 12,63
+  s_1312d0dab4bfc6::t_dad1b93d5bdc94 8-9,54-57,59,64-70,102-114,121
+packages/webhooks/src/schemas/webhooks.ts
+  s_1312d0dab4bfc6::t_dad1b93d5bdc94 121-124
+packages/webhooks/src/constants/delivery.ts
+  s_1312d0dab4bfc6::t_dad1b93d5bdc94 6
+packages/webhooks/tests/webhooks.test.ts
+  s_1312d0dab4bfc6::t_d384287b990d34 17,267-283
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0431752a30e3d3810918761208eb681bf57b86b0",
+  "prompts": {},
+  "sessions": {
+    "s_1312d0dab4bfc6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b094b550-b102-4aa3-a737-62fb473c04fa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
