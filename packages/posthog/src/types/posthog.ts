@@ -1,5 +1,6 @@
 import type { POSTHOG_GROUP_TYPES } from "@notra/posthog/constants/posthog";
 import type { PostHogEventName } from "@notra/posthog/events";
+import type { PostHog } from "posthog-node";
 
 export type PostHogPropertyValue =
   | string
@@ -50,4 +51,9 @@ export interface PostHogPersonPropertiesInput {
   distinctId: string;
   set?: PostHogProperties;
   setOnce?: PostHogProperties;
+}
+export interface PostHogServerFlush {
+  client: PostHog;
+  revision: number;
+  promise: Promise<boolean>;
 }

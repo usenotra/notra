@@ -13,6 +13,7 @@ import type {
   PostHogProperties,
   PostHogServerEventInput,
   PostHogServerExceptionInput,
+  PostHogServerFlush,
 } from "@notra/posthog/types/posthog";
 import { PostHog } from "posthog-node";
 
@@ -20,6 +21,8 @@ const PROJECT_TOKEN_ENV = "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN";
 
 let client: PostHog | null | undefined;
 let warnedMissingToken = false;
+let captureRevision = 0;
+let activeFlush: PostHogServerFlush | undefined;
 
 function readHost(): string {
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim();
@@ -128,6 +131,7 @@ export function captureServerEvent(input: PostHogServerEventInput): void {
     properties,
     groups: buildGroups(input),
   });
+  captureRevision += 1;
 }
 
 export function captureServerException(
@@ -155,6 +159,7 @@ export function captureServerException(
   }
 
   posthog.captureException(input.error, distinctId, properties);
+  captureRevision += 1;
 }
 
 export function identifyServerGroup(input: PostHogGroupIdentifyInput): void {
@@ -170,6 +175,7 @@ export function identifyServerGroup(input: PostHogGroupIdentifyInput): void {
     distinctId:
       input.distinctId ?? `${POSTHOG_SERVICE_DISTINCT_ID_PREFIX}groups`,
   });
+  captureRevision += 1;
 }
 
 export function setServerPersonProperties(
@@ -187,6 +193,7 @@ export function setServerPersonProperties(
       $set_once: compactProperties(input.setOnce),
     },
   });
+  captureRevision += 1;
 }
 
 export async function flushPostHogServer(): Promise<void> {
@@ -194,10 +201,36 @@ export async function flushPostHogServer(): Promise<void> {
   if (!posthog) {
     return;
   }
+  const targetRevision = captureRevision;
+  let previous = activeFlush;
+  while (previous?.client === posthog) {
+    const succeeded = await previous.promise;
+    if (!succeeded || previous.revision >= targetRevision) {
+      return;
+    }
+    previous = activeFlush;
+  }
+
+  const pending: PostHogServerFlush = {
+    client: posthog,
+    revision: captureRevision,
+    promise: Promise.resolve()
+      .then(() => posthog.flush())
+      .then(
+        () => true,
+        (error) => {
+          console.error("[posthog] flush failed", error);
+          return false;
+        }
+      ),
+  };
+  activeFlush = pending;
   try {
-    await posthog.flush();
-  } catch (error) {
-    console.error("[posthog] flush failed", error);
+    await pending.promise;
+  } finally {
+    if (activeFlush === pending) {
+      activeFlush = undefined;
+    }
   }
 }
 
@@ -207,6 +240,9 @@ export async function shutdownPostHogServer(): Promise<void> {
     return;
   }
   try {
+    if (activeFlush?.client === posthog) {
+      await activeFlush.promise;
+    }
     await posthog.shutdown();
   } catch (error) {
     console.error("[posthog] shutdown failed", error);

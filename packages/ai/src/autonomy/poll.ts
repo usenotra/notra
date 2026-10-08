@@ -1,5 +1,5 @@
 import type { IrisPollError } from "@notra/ai/autonomy/errors";
-import { recordSignal } from "@notra/ai/autonomy/signals";
+import { recordSignals } from "@notra/ai/autonomy/signals";
 import {
   IRIS_POLL_LOOKBACK_HOURS,
   IRIS_POLL_SOURCE_CONCURRENCY,
@@ -28,17 +28,19 @@ const recordSourceItems = Effect.fn("iris.poll.record")(function* (
   let recordedCount = 0;
   let deduplicatedCount = 0;
 
-  for (const item of source.items) {
-    const result = yield* recordSignal({
-      organizationId,
+  const results = yield* recordSignals({
+    organizationId,
+    signals: source.items.map((item) => ({
       source: item.source,
       kind: item.kind,
       sourceEventId: item.sourceEventId,
       occurredAt: item.occurredAt,
       payload: { ...item.payload, digest },
       dedupeHash: item.dedupeHash,
-    });
+    })),
+  });
 
+  for (const result of results) {
     if (result.deduplicated) {
       deduplicatedCount += 1;
     } else {
