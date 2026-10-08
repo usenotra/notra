@@ -1,6 +1,6 @@
-import { beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, expect, mock, test } from "bun:test";
 
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
 
 import {
@@ -10,19 +10,42 @@ import {
 } from "../../src/constants/demo";
 import { demoPoolSize } from "../../src/utils/demo-limits";
 
+const originalPoolSize = process.env.NOTRA_DEMO_POOL_SIZE;
 let total = 300;
+let pooled = 3;
 const afterResponse = mock((_task: () => unknown) => {});
-const findMany = mock(async (input = { where: sql``, limit: 0 }) => {
-  const where = new PgDialect().sqlToQuery(input.where).sql;
-  if (!where.includes("not like")) {
-    return [];
+const findMany = mock(
+  async (input = { where: sql``, limit: 0, orderBy: [sql``] }) => {
+    const dialect = new PgDialect();
+    const where = dialect.sqlToQuery(input.where).sql;
+    if (!(input.limit > 0 && where.includes("like"))) {
+      return [];
+    }
+    const visitors = where.includes("not like");
+    expect(
+      (input.orderBy ?? []).map((order: SQL) => dialect.sqlToQuery(order).sql)
+    ).toEqual([
+      visitors
+        ? '"demo_sandboxes"."last_seen_at" asc'
+        : '"demo_sandboxes"."created_at" asc',
+    ]);
+    return Array.from(
+      { length: Math.min(input.limit, visitors ? total - pooled : pooled) },
+      (_, index) => ({
+        organizationId: `${visitors ? "visitor" : "pool"}-workspace-${index}`,
+        apiKeyId: null,
+      })
+    );
   }
-  return Array.from({ length: input.limit }, (_, index) => ({
-    organizationId: `old-workspace-${index}`,
-    apiKeyId: null,
-  }));
-});
-const deleteOrganization = mock(async () => {
+);
+const deleteOrganization = mock(async (condition = sql``) => {
+  const [organizationId] = new PgDialect().sqlToQuery(condition).params;
+  if (
+    typeof organizationId === "string" &&
+    organizationId.startsWith("pool-")
+  ) {
+    pooled -= 1;
+  }
   total -= 1;
 });
 
@@ -34,7 +57,7 @@ mock.module("@notra/db/drizzle", () => ({
           if (Object.hasOwn(selection, "value")) {
             const where = new PgDialect().sqlToQuery(condition).sql;
             return Promise.resolve([
-              { value: where.includes(" like ") ? 3 : total },
+              { value: where.includes(" like ") ? pooled : total },
             ]);
           }
           if (Object.hasOwn(selection, "userId")) {
@@ -69,9 +92,20 @@ mock.module("@/lib/framework/after-response", () => ({ afterResponse }));
 const { maintainDemoSandboxPool } = await import("../../src/lib/demo/sandbox");
 
 beforeEach(() => {
+  process.env.NOTRA_DEMO_POOL_SIZE = "3";
   total = 300;
+  pooled = 3;
   afterResponse.mockClear();
+  findMany.mockClear();
   deleteOrganization.mockClear();
+});
+
+afterAll(() => {
+  if (originalPoolSize === undefined) {
+    delete process.env.NOTRA_DEMO_POOL_SIZE;
+  } else {
+    process.env.NOTRA_DEMO_POOL_SIZE = originalPoolSize;
+  }
 });
 
 test("trims existing workspaces to the fixed cap without needing a refill", async () => {
@@ -83,7 +117,47 @@ test("trims existing workspaces to the fixed cap without needing a refill", asyn
   await task();
   expect(DEMO_MAX_ACTIVE_SANDBOXES).toBe(50);
   expect(total).toBe(50);
+  expect(pooled).toBe(3);
   expect(deleteOrganization).toHaveBeenCalledTimes(250);
+});
+
+test.each([59, 60])(
+  "shrinks %i old ready workspaces without evicting a newly claimed visitor",
+  async (readyCount) => {
+    pooled = readyCount;
+    total = pooled + 1;
+    maintainDemoSandboxPool();
+    await afterResponse.mock.calls[0]?.[0]();
+    expect(total).toBe(DEMO_MAX_ACTIVE_SANDBOXES);
+    expect(pooled).toBe(DEMO_MAX_ACTIVE_SANDBOXES - 1);
+    expect(
+      deleteOrganization.mock.calls.every(([condition]) => {
+        const [organizationId] = new PgDialect().sqlToQuery(condition).params;
+        return (
+          typeof organizationId === "string" &&
+          organizationId.startsWith("pool-")
+        );
+      })
+    ).toBe(true);
+  }
+);
+
+test("removes excess ready workspaces before the oldest visitors while keeping the configured reserve", async () => {
+  pooled = 10;
+  total = 70;
+  maintainDemoSandboxPool();
+  await afterResponse.mock.calls[0]?.[0]();
+  expect(total).toBe(DEMO_MAX_ACTIVE_SANDBOXES);
+  expect(pooled).toBe(3);
+  const deleted = deleteOrganization.mock.calls.map(
+    ([condition]) => new PgDialect().sqlToQuery(condition).params[0]
+  );
+  expect(deleted.slice(0, 7)).toEqual(
+    Array.from({ length: 7 }, (_, index) => `pool-workspace-${index}`)
+  );
+  expect(deleted.slice(7)).toEqual(
+    Array.from({ length: 13 }, (_, index) => `visitor-workspace-${index}`)
+  );
 });
 
 test("maintenance keeps all workspaces when already at the cap", async () => {

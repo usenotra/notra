@@ -221,12 +221,35 @@ async function enforceDemoSandboxCap(reservedSlots = 1) {
     return;
   }
   await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
-  const overflow = (await countDemoSandboxes()) - cap;
+  let overflow = (await countDemoSandboxes()) - cap;
   if (overflow <= 0) {
     return;
   }
-  // Visitors' sandboxes go first: the few waiting in the pool look idle but
-  // are what keeps the next visitor from waiting.
+  // Shrink a pool left by an older configuration before evicting visitors.
+  // Otherwise a newly claimed workspace could be the only eviction candidate.
+  const excessPoolSize = Math.min(
+    overflow,
+    Math.max(
+      0,
+      (await countDemoSandboxes(
+        like(demoSandboxes.anonymousId, POOLED_ID_PATTERN)
+      )) - demoPoolSize()
+    )
+  );
+  if (excessPoolSize > 0) {
+    const excessPool = await db.query.demoSandboxes.findMany({
+      where: like(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
+      orderBy: [asc(demoSandboxes.createdAt)],
+      limit: excessPoolSize,
+    });
+    await Promise.all(excessPool.map(deleteDemoSandbox));
+    overflow -= excessPool.length;
+    if (overflow <= 0) {
+      return;
+    }
+  }
+  // Keep the configured reserve: it looks idle but prevents the next visitor
+  // from waiting for a seed. Only visitor workspaces are evicted from here.
   const oldest = await db.query.demoSandboxes.findMany({
     where: notLike(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
     orderBy: [asc(demoSandboxes.lastSeenAt)],
