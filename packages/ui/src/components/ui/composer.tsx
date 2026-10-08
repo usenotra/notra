@@ -59,9 +59,12 @@ function ComposerNudgeShell({ children }: { children: ReactNode }) {
 
   return (
     <m.div
+      // react-doctor-disable-next-line react-doctor/no-layout-property-animation -- the tray has to push the input card down, a transform would leave a gap
       animate={{ height, opacity: 1 }}
       className="overflow-hidden"
+      // react-doctor-disable-next-line react-doctor/no-layout-property-animation -- the tray has to push the input card down, a transform would leave a gap
       exit={{ height: 0, opacity: 0 }}
+      // react-doctor-disable-next-line react-doctor/no-layout-property-animation -- the tray has to push the input card down, a transform would leave a gap
       initial={{ height: 0, opacity: 0 }}
       transition={reduceMotion ? { duration: 0 } : TRANSITION.resize}
     >
@@ -283,6 +286,7 @@ function ComposerSend({
   );
 }
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- compound component namespace, members are all components
 export const Composer = {
   Frame: ComposerFrame,
   Nudge: ComposerNudge,
