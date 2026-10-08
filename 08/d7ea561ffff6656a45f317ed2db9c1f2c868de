@@ -1,0 +1,22 @@
+packages/ui/src/components/ui/composer.tsx
+  s_a07f1e923b55f6::t_4f6c288dcfcad5 22,24-30,97-99,101-103,126
+  s_a07f1e923b55f6::t_0e8ecb7617825f 31-32,42-72,100
+packages/ui/src/constants/composer.ts
+  s_a07f1e923b55f6::t_da5121871e515a 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "08d7ea561ffff6656a45f317ed2db9c1f2c868de",
+  "prompts": {},
+  "sessions": {
+    "s_a07f1e923b55f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "835f4bc3-d252-4f5f-8902-c26a6253d9fc",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
