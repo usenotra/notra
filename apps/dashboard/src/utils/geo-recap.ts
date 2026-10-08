@@ -50,8 +50,8 @@ export function getPreviousWeekWindow(now: Date): GeoRecapWindow {
 }
 
 /** The last full days before `now` against the baseline days before them. */
-export function getDropAlertWindow(now: Date, daysBack = 0): GeoRecapWindow {
-  const toExclusive = daysBefore(startOfUtcDay(now), daysBack);
+export function getDropAlertWindow(now: Date): GeoRecapWindow {
+  const toExclusive = startOfUtcDay(now);
   const splitAt = daysBefore(toExclusive, GEO_ALERT_RECENT_DAYS);
   return {
     from: daysBefore(splitAt, GEO_ALERT_BASELINE_DAYS),

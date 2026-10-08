@@ -82,7 +82,7 @@ export function runGeoRecapCron(now = new Date()): Promise<GeoRecapCronResult> {
         sendWeeklyRecap(input)
       )
     : runRecapForOrganizations("drop_alert", getDropAlertWindow(now), (input) =>
-        sendDropAlert({ ...input, now })
+        sendDropAlert(input)
       );
 }
 
@@ -422,11 +422,9 @@ async function pickAction(
 async function sendDropAlert({
   organizationId,
   window,
-  now,
 }: {
   organizationId: string;
   window: GeoRecapWindow;
-  now: Date;
 }): Promise<GeoRecapOrganizationResult> {
   // A daily scan answers each prompt once a day, so the recent side only
   // needs one answer per prompt; the aggregate threshold keeps it honest.
@@ -446,7 +444,6 @@ async function sendDropAlert({
   const pendingEmails = await recipientsOutsideAlertCooldown({
     organizationId,
     emails: recipients.emails,
-    now,
   });
   if (pendingEmails.length === 0) {
     return "quiet";
@@ -489,17 +486,15 @@ function alertCooldownKey(organizationId: string, email: string) {
 /**
  * Owners hear about a drop once per cooldown, not every day it lasts. The
  * cooldown starts only after a successful send, so a failed send is retried
- * by the next run. Without Redis it falls back to alerting on the first day
- * of a drop only.
+ * by the next run. Without a working Redis everyone is due: a repeated alert
+ * beats a lost one, and Brew's per-day idempotency key stops same-day repeats.
  */
 async function recipientsOutsideAlertCooldown({
   organizationId,
   emails,
-  now,
 }: {
   organizationId: string;
   emails: readonly string[];
-  now: Date;
 }): Promise<string[]> {
   if (redis) {
     try {
@@ -515,13 +510,7 @@ async function recipientsOutsideAlertCooldown({
     }
   }
 
-  const yesterdayPairs = buildComparablePairs(
-    await queryGeoCheckPeriodPrompts(
-      periodInput(organizationId, getDropAlertWindow(now, 1))
-    ),
-    1
-  );
-  return detectVisibilityDrop(yesterdayPairs) ? [] : [...emails];
+  return [...emails];
 }
 
 async function startAlertCooldown(organizationId: string, email: string) {
