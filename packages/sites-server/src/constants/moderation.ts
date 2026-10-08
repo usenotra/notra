@@ -11,6 +11,8 @@ export const SITE_RESERVED_BRAND_SLUGS: Readonly<Record<string, string>> =
 export const SITE_NAME_REJECTION_MESSAGES = {
   granted:
     "This address is reserved for another organization. Pick a different one.",
+  protected:
+    "Addresses containing “notra” are reserved for Notra. Pick a different one.",
   offensive: "This name isn't allowed on Notra Sites. Pick a different one.",
   impersonation:
     "This name looks like another organization or a login page. Use your own organization's name.",

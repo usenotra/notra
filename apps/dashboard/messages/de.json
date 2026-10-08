@@ -6997,6 +6997,7 @@
       "namePlaceholder": "Acme-Blog",
       "address": "Adresse",
       "addressInvalid": "Verwende 3 bis 40 Kleinbuchstaben, Ziffern und einzelne Bindestriche.",
+      "addressReserved": "{slug} ist reserviert. Ergänze die Adresse um weitere Wörter.",
       "branch": "Produktions-Branch",
       "rootDirectoryPlaceholder": "apps/blog",
       "publishMode": "Veröffentlichen aus dem Editor",
@@ -7042,11 +7043,13 @@
         "notStarted": "Der erste Build konnte nicht starten. Starte ihn auf der Site."
       },
       "starter": {
-        "missing": "Keine blog.json? Notra verwendet sofort das Standardlayout und die Standardkonfiguration. Für eigene Marken-, Header- und Footer-Dateien kannst du optional einen Starter-Pull-Request öffnen.",
+        "missingTitle": "Noch keine blog.json",
+        "missing": "Notra nutzt das Standardlayout. Mit einer blog.json kommen deine Marke, Header und Footer dazu.",
+        "why": "Wozu eine blog.json?",
         "create": "Starter-PR öffnen (optional)",
         "opened": "Pull Request geöffnet",
         "view": "PR ansehen",
-        "optional": "Du kannst die Site jetzt mit dem Standardlayout und der Standardkonfiguration erstellen und deployen. Dieser Pull Request ergänzt eigene Marken-, Header- und Footer-Dateien; der Merge ist optional.",
+        "optional": "Der Merge ist optional. Du kannst jetzt erstellen und deployen.",
         "failed": "Der Starter-Pull-Request konnte nicht geöffnet werden"
       },
       "subdirectory": "Site liegt in einem Unterordner",

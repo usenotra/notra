@@ -32,12 +32,6 @@ async function siteNameRejection(
 ): Promise<SiteNameRejection | null> {
   const { slug } = params;
   if (slug) {
-    if (slug.split("-").some((word) => SITE_PROTECTED_SLUG_WORDS.has(word))) {
-      return {
-        message: SITE_NAME_REJECTION_MESSAGES.impersonation,
-        field: "slug",
-      };
-    }
     const grant = await db.query.siteSlugGrants.findFirst({
       columns: { organizationId: true },
       where: eq(siteSlugGrants.slug, slug),
@@ -46,6 +40,12 @@ async function siteNameRejection(
       return grant.organizationId === params.organizationId
         ? null
         : { message: SITE_NAME_REJECTION_MESSAGES.granted, field: "slug" };
+    }
+    if (slug.split("-").some((word) => SITE_PROTECTED_SLUG_WORDS.has(word))) {
+      return {
+        message: SITE_NAME_REJECTION_MESSAGES.protected,
+        field: "slug",
+      };
     }
     const reservedFor = SITE_RESERVED_BRAND_SLUGS[slug];
     if (reservedFor) {
