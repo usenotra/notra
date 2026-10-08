@@ -1,3 +1,4 @@
+import { PREFETCH_PURPOSE_HEADERS } from "./constants";
 import type {
   GeoLocation,
   GeoRequestPayload,
@@ -47,11 +48,21 @@ function readGeo(headers: Headers): GeoLocation | undefined {
 
 const TRACING_HEADERS = ["traceparent", "b3", "x-b3-traceid"];
 
+function isPrefetch(headers: Headers): boolean {
+  return (
+    headers.has("next-router-prefetch") ||
+    PREFETCH_PURPOSE_HEADERS.some((name) =>
+      headers.get(name)?.toLowerCase().includes("prefetch")
+    )
+  );
+}
+
 function readSignals(headers: Headers): GeoRequestSignals {
   return {
     clientHints: headers.has("sec-ch-ua"),
     fetchMode: header(headers, "sec-fetch-mode") ?? null,
     tracing: TRACING_HEADERS.some((name) => headers.has(name)),
+    prefetch: isPrefetch(headers),
   };
 }
 

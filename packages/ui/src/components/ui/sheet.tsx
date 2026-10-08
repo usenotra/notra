@@ -5,11 +5,57 @@ import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Button } from "@notra/ui/components/ui/button";
+import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
 import * as React from "react";
 import { cn } from "@notra/ui/lib/utils";
 
+interface SheetStackLevel {
+  popup: HTMLElement | null;
+  parent: SheetStackLevel | null;
+  setPopup: (popup: HTMLElement | null) => void;
+}
+
+const SheetStackContext = React.createContext<SheetStackLevel | null>(null);
+
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
+  const parent = React.useContext(SheetStackContext);
+  const [popup, setPopup] = React.useState<HTMLElement | null>(null);
+  const level = React.useMemo(
+    () => ({ popup, parent, setPopup }),
+    [popup, parent]
+  );
+  return (
+    <SheetStackContext.Provider value={level}>
+      <SheetPrimitive.Root data-slot="sheet" {...props} />
+    </SheetStackContext.Provider>
+  );
+}
+
+/**
+ * A sheet opened from inside another sheet hands its width to the parent, so
+ * the parent can slide clear of it (see `sheet-motion`). Both widths follow
+ * resizes; offsetWidth ignores the slide transform.
+ */
+function useSheetStack(popup: HTMLElement | null) {
+  const parentPopup = React.useContext(SheetStackContext)?.parent?.popup;
+
+  React.useLayoutEffect(() => {
+    if (!popup) return;
+    const record = () => {
+      popup.style.setProperty("--sheet-rest-width", `${popup.offsetWidth}px`);
+      parentPopup?.style.setProperty(
+        "--sheet-child-width",
+        `${popup.offsetWidth}px`
+      );
+    };
+    record();
+    const observer = new ResizeObserver(record);
+    observer.observe(popup);
+    return () => {
+      observer.disconnect();
+      parentPopup?.style.removeProperty("--sheet-child-width");
+    };
+  }, [popup, parentPopup]);
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
@@ -45,6 +91,7 @@ function SheetContent({
   variant = "default",
   showCloseButton = true,
   closeLabel,
+  ref,
   ...props
 }: SheetPrimitive.Popup.Props & {
   variant?: "default" | "inset";
@@ -54,6 +101,17 @@ function SheetContent({
   closeLabel?: string;
 }) {
   const labels = useUiLabels();
+  const stack = React.useContext(SheetStackContext);
+  const [popup, setPopup] = React.useState<HTMLElement | null>(null);
+  const registerPopup = React.useCallback(
+    (node: HTMLElement | null) => {
+      setPopup(node);
+      stack?.setPopup(node);
+    },
+    [stack?.setPopup]
+  );
+  const popupRef = useComposedRefs(ref, registerPopup);
+  useSheetStack(popup);
   return (
     <SheetPortal keepMounted={keepMounted}>
       <SheetOverlay />
@@ -66,6 +124,7 @@ function SheetContent({
         )}
         data-side={side}
         data-slot="sheet-content"
+        ref={popupRef}
         {...props}
       >
         {children}

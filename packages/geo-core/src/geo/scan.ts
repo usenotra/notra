@@ -2,11 +2,11 @@ import {
   askGeoOpenCode,
   askGeoOpenCodeConversation,
 } from "@notra/ai/agents/geo-opencode";
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import { GEO_OPENCODE_BOX_MODEL_ID } from "@notra/ai/constants/geo-opencode";
 import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type { GatewayModelOptions } from "@notra/ai/types/gateway";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import {
   EMPTY_GEO_CHECK_GROUNDING,
   GEO_CHECK_GROUNDING_MAX_SOURCES,
@@ -77,9 +77,9 @@ import {
   geoBoxAgentForEngine,
   isGeoBoxCodingAgent,
 } from "../utils/geo-coding-agents";
+import { engineModelOf } from "../utils/geo-engine-family";
 import {
   geoScanEmptyEngineSkipReason,
-  isGeoNativeSearchEngine,
   isPartialGeoScanEngineScope,
   resolveGeoEngineGateway,
   resolveGeoGroundedZdrMode,
@@ -661,7 +661,7 @@ export const listGeoScanProjects = Effect.fn("geo.listScanProjects")(function* (
 /**
  * First step of a project scan: takes (or revalidates) the scan-slot claim,
  * reserves billing, materializes the `geo_scans` row, and compiles the full
- * task list — search engines × prompts × languages plus grounded sequences — into a
+ * task list — engines × prompts × languages plus grounded sequences — into a
  * serializable plan the batch steps execute. Everything that must happen
  * exactly once per scan lives here; everything model-call-shaped lives in the
  * batches.
@@ -925,7 +925,8 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
     const scanEnglish = settings.languages.includes(DEFAULT_LANGUAGE);
     const groundedEngines: { grounded: GeoGroundedEngine; zdr: GeoZdrMode }[] =
       [];
-    for (const grounded of resolveGroundedEngines(scanEngines, catalog)) {
+    const groundedRoutes = resolveGroundedEngines(scanEngines, catalog);
+    for (const grounded of groundedRoutes) {
       const zdr = resolveGeoGroundedZdrMode(catalog, grounded, zdrPolicy);
       if (zdr === null) {
         yield* geoLogWarn({
@@ -940,12 +941,15 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       }
       groundedEngines.push({ grounded, zdr });
     }
-    const searchTrackedEngines = trackedEngines.filter(({ engine }) =>
-      isGeoNativeSearchEngine(catalog, engine)
+    const searchModels = new Set(
+      groundedRoutes.map((grounded) => engineModelOf(grounded.key))
+    );
+    const rawEngines = trackedEngines.filter(
+      ({ engine }) => !searchModels.has(engine)
     );
     const tasks: GeoScanPlannedTask[] = [];
     if (scanSourceLanguage) {
-      for (const { engine, zdr } of searchTrackedEngines) {
+      for (const { engine, zdr } of rawEngines) {
         for (const prompt of prompts) {
           tasks.push({
             engine,
@@ -959,9 +963,8 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
     }
     const skipReason = geoScanEmptyEngineSkipReason(
       scanEngines,
-      searchTrackedEngines.length + groundedEngines.length,
-      requestedEngines,
-      trackedEngines.length + groundedEngines.length
+      rawEngines.length + groundedEngines.length,
+      requestedEngines
     );
     if (skipReason) {
       yield* geoLogWarn({
@@ -1029,7 +1032,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       if (entry.usage) {
         translateUsage = addTokenUsage(translateUsage, entry.usage);
       }
-      for (const { engine, zdr } of searchTrackedEngines) {
+      for (const { engine, zdr } of rawEngines) {
         for (const prompt of localized) {
           tasks.push({ engine, groundedKey: null, prompt, language, zdr });
         }
@@ -1136,7 +1139,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       : [];
 
     const engines = [
-      ...searchTrackedEngines.map((entry) => entry.engine),
+      ...rawEngines.map((entry) => entry.engine),
       ...groundedEngines.map((entry) => entry.grounded.key),
     ];
     yield* geoLogInfo({
@@ -1148,7 +1151,7 @@ const buildGeoScanProjectPlan = Effect.fn("geo.buildScanProjectPlan")(
       engines,
       enforceZdr: zdrPolicy.enforceZdr,
       zdrModes: Object.fromEntries([
-        ...searchTrackedEngines.map((entry) => [entry.engine, entry.zdr]),
+        ...rawEngines.map((entry) => [entry.engine, entry.zdr]),
         ...groundedEngines.map((entry) => [entry.grounded.key, entry.zdr]),
       ]),
       promptCount: prompts.length,

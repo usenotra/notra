@@ -17,8 +17,10 @@ import {
   CHAT_TOOL_CHART_OPTIONS,
   CHAT_TOOL_RANK_TRACK_CLASS,
   CHART_SEARCH_FILL_CLASS,
+  DONUT_CORNER_RADIUS,
   DONUT_INNER_RADIUS,
   DONUT_OUTER_RADIUS,
+  DONUT_PADDING_ANGLE,
 } from "@/constants/charts";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
@@ -195,6 +197,8 @@ function PieArtifactChart({ chart }: { chart: PieChartArtifact }) {
       <EChartsPieChart.Pie
         innerRadius={DONUT_INNER_RADIUS}
         outerRadius={DONUT_OUTER_RADIUS}
+        cornerRadius={DONUT_CORNER_RADIUS}
+        paddingAngle={DONUT_PADDING_ANGLE}
       />
       <EChartsPieChart.Tooltip />
       <EChartsPieChart.Legend />

@@ -362,6 +362,7 @@ export interface PrepareGitHubContentAssetsParams {
   imagePathTemplate: string;
   markdown: string;
   organizationId: string;
+  publicDirectory?: string;
   publicUrl: string | null;
   slug: string;
   loadImage: (key: string, maxBytes: number) => Promise<GitHubSourceImageAsset>;

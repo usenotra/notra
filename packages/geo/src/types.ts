@@ -38,6 +38,7 @@ export interface GeoRequestSignals {
   clientHints: boolean;
   fetchMode: string | null;
   tracing: boolean;
+  prefetch?: boolean;
 }
 
 export interface GeoRequestPayload {
@@ -51,6 +52,7 @@ export interface GeoRequestPayload {
   accept?: string;
   acceptLanguage?: string;
   requestId?: string;
+  status?: number;
   signals?: GeoRequestSignals;
 }
 

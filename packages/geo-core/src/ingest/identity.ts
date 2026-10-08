@@ -17,7 +17,10 @@ export async function isGeoIngestIdentityActive(
       identity.organizationId,
       identity.projectId
     );
-    return generation !== null && generation === identity.generation;
+    return (
+      generation !== null &&
+      (identity.site !== undefined || generation === identity.generation)
+    );
   } catch {
     return false;
   }

@@ -1,7 +1,8 @@
 // Local wrangler entry: same queue/cron handler as src/worker.ts, Postgres instead of Neon.
 import { Config, ConfigProvider, Effect, Layer } from "effect";
 
-import { processQueueBatch, runScheduledPass } from "../src/runtime/handler";
+import { sweep } from "../src/programs/recovery";
+import { processQueueBatch } from "../src/runtime/handler";
 import { postgresDatabaseLayer } from "../src/runtime/postgres";
 import { webCryptoLayer } from "../src/services/crypto";
 import { cloudflareQueuesLayer } from "../src/services/queue";
@@ -28,7 +29,7 @@ export default {
   },
   scheduled(_controller: ScheduledController, bindings: WorkerBindings) {
     return Effect.runPromise(
-      runScheduledPass().pipe(Effect.provide(localWorkerLayer(bindings)))
+      sweep().pipe(Effect.provide(localWorkerLayer(bindings)), Effect.asVoid)
     );
   },
 } satisfies ExportedHandler<WorkerBindings, unknown>;

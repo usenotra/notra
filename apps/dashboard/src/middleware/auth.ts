@@ -1,6 +1,7 @@
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { redirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
+import { configure } from "@workos/authkit-session";
 import {
   authkitMiddleware,
   type AuthKitContext,
@@ -63,6 +64,7 @@ export const dashboardAuthMiddleware = createMiddleware().server(
       process.env.WORKOS_REDIRECT_URI =
         process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI;
     }
+    configure({ cookieDomain: process.env.WORKOS_COOKIE_DOMAIN });
     const authenticate = authkitMiddleware().options.server;
     if (!authenticate) {
       throw new Error("AuthKit middleware is unavailable");

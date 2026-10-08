@@ -4,7 +4,8 @@ import {
   GITHUB_PULL_REQUEST_EVENT_TYPE,
   GITHUB_PULL_REQUEST_MERGED_ACTION,
 } from "@notra/ai/constants/autonomy-signals";
-import { getWebhookSecretByRepositoryId } from "@notra/ai/integrations/github";
+import { decryptToken } from "@notra/ai/crypto/token-encryption";
+import { getGitHubWebhookIntegrations } from "@notra/ai/integrations/github-webhooks";
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
 import { contentTriggers } from "@notra/db/schema";
@@ -27,6 +28,7 @@ import type {
   GithubProcessedEvent,
   WebhookContext,
 } from "@/types/webhooks/webhooks";
+import { authorizeWebhookIntegration } from "@/utils/webhook-integration";
 
 const DELIVERY_TTL_SECONDS = 60 * 60 * 24;
 const SHOULD_DEDUPE_DELIVERIES = process.env.NODE_ENV !== "development";
@@ -234,8 +236,31 @@ function processPullRequestEvent(
 export async function handleGitHubWebhook(
   context: WebhookContext
 ): Promise<Response> {
-  const { request, rawBody, repositoryId, organizationId, integrationId } =
-    context;
+  const { request, repositoryId, organizationId, integrationId } = context;
+
+  const records = await getGitHubWebhookIntegrations(
+    integrationId,
+    repositoryId
+  );
+  const integration = authorizeWebhookIntegration(
+    records.find((record) => record.id === integrationId),
+    organizationId
+  );
+  if (integration instanceof Response) {
+    return integration;
+  }
+  const repository = records.find((record) => record.id === repositoryId);
+  if (!repository) {
+    return Response.json({ error: "Repository not found" }, { status: 404 });
+  }
+  if (repository.id !== integration.id) {
+    return Response.json(
+      { error: "Repository does not belong to this integration" },
+      { status: 403 }
+    );
+  }
+
+  const rawBody = await request.text();
 
   const eventHeader = request.headers.get("x-github-event");
   const signature = request.headers.get("x-hub-signature-256");
@@ -293,7 +318,9 @@ export async function handleGitHubWebhook(
     });
   }
 
-  const secret = await getWebhookSecretByRepositoryId(repositoryId);
+  const secret = repository.encryptedWebhookSecret
+    ? decryptToken(repository.encryptedWebhookSecret)
+    : null;
   if (!secret) {
     await appendWebhookLog({
       organizationId,

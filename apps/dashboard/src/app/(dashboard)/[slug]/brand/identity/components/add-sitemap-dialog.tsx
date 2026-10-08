@@ -85,6 +85,9 @@ export function AddSitemapDialog({
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+      return;
+    }
     if (event.key === "Enter" && !createSitemap.isPending) {
       event.preventDefault();
       handleSubmit();

@@ -105,12 +105,26 @@ main migration files remain unchanged. The guard validates 113 migrations;
 eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
 typecheck and build passed locally without connecting to a live database.
 
+The merge of `main` at `8c8d09c61` preserves `0112_sites` and moves the GEO
+migration to `0113_geo_adhoc_scans`. All main migration files remain unchanged;
+the guard validates 114 migrations. Eight migration tests, 188 Core tests
+(one PostgreSQL-only test skipped), 29 runner tests, typechecks and lint passed.
+The adhoc billing helper import follows its new location in `@notra/ai`.
+
+On 2026-10-07, a separate Daytona run exercised one real grounded model answer
+and its Judge through the CLI against isolated PGlite fixtures. Same-key replay
+made no additional external requests; authentication, organization boundaries
+and idempotency conflicts passed. Billing used the unmetered development path.
+The [complete report](https://0tcw1n97jymk.postplan.dev) records that earlier
+`383ecedc4` source revision, rather than this later merge.
+
 ## Remaining production checks
 
 The Railway service was deleted at the user's request. There is no active
-runner deployment. `AUTUMN_SECRET_KEY` was unavailable during the sandbox tests. No production migration,
-billable model call, or production Axiom drain was verified. Follow the
-[activation steps](README.md#railway-setup) before enabling callers.
+runner deployment. Sandbox tests did not use production Autumn credentials.
+No production migration, real customer charge, or production Axiom drain was
+verified. Follow the [activation steps](README.md#railway-setup) before enabling
+callers.
 
 The in-process queue has no automatic restart recovery. A same-key retry or
 explicit reoffer recovers queued work; otherwise it expires after 12 hours.

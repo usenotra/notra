@@ -27,6 +27,7 @@
     "@notra/analytics": "workspace:*",
     "@notra/db": "workspace:*",
     "@notra/posthog": "workspace:*",
+    "@notra/sites-core": "workspace:*",
     "@notra/utils": "workspace:*",
     "@upstash/ratelimit": "^2.1.0",
     "@upstash/redis": "^1.38.4",

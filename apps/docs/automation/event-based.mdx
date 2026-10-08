@@ -1,5 +1,5 @@
 ---
-title: "Event-Based Automation"
+title: "Event-based automation"
 description: "Trigger content generation when a GitHub release is published or code lands on the default branch"
 authors:
   - handle: dominik
@@ -24,13 +24,19 @@ docolin:
   next: ./scheduled.mdx
 ---
 
-Event triggers generate content in response to GitHub activity: a published release, or a push to the repository's default branch. Each trigger listens on one or more repositories, fires for one event type, and produces one output format. You manage them under **Automation > Events** in the dashboard or through the `/v1/event-triggers` API.
+Event triggers generate content in response to GitHub activity, either a published release or a push to the repository's default branch. Each trigger listens on one or more repositories, fires for one event type and produces one output format. You manage them under **Automation > Events** in the dashboard.
+
+<Visibility for="agents">
+
+You can also manage them through the `/v1/event-triggers` API.
+
+</Visibility>
 
 ## How event triggers work
 
 <Steps>
   <Step title="GitHub event occurs">
-    A release is published, or commits are pushed to the default branch.
+    Someone publishes a release or pushes commits to the default branch.
   </Step>
 
   <Step title="Webhook received">
@@ -38,7 +44,7 @@ Event triggers generate content in response to GitHub activity: a published rele
   </Step>
 
   <Step title="Validation">
-    Notra verifies the signature, drops duplicate deliveries, and checks that the repository is connected and enabled and that a matching trigger is enabled.
+    Notra verifies the signature and drops duplicate deliveries, then checks that the repository is connected and enabled and that a matching trigger is enabled.
   </Step>
 
   <Step title="Content generation">
@@ -54,16 +60,16 @@ Event triggers generate content in response to GitHub activity: a published rele
 
 <Tabs>
   <Tab title="Release published">
-    Fires when a release is published on GitHub. Draft releases are ignored.
+    Fires when someone publishes a release on GitHub, and ignores draft releases.
 
     **GitHub actions that fire it:**
 
     * `published`
     * `prereleased`
 
-    **Include pre-releases:** each release trigger has an **Include pre-releases** switch (on by default). When it is off, releases marked as pre-release on GitHub do not fire the trigger.
+    Each release trigger has an **Include pre-releases** switch that is on by default, and when it's off, releases marked as pre-release on GitHub don't fire the trigger.
 
-    **What gets analyzed:** the release tag, name, and notes, the publish time, and repository activity in the hour before it.
+    **What gets analyzed:** the release tag, name and notes, the publish time and repository activity in the hour before it.
 
     ```json Event data
     {
@@ -83,13 +89,13 @@ Event triggers generate content in response to GitHub activity: a published rele
   </Tab>
 
   <Tab title="Push to default branch">
-    Fires when commits are pushed to the repository's default branch (usually `main` or `master`). Pushes to other branches, and pushes with no commits, are ignored.
+    Fires when someone pushes commits to the repository's default branch, usually `main` or `master`. Notra ignores pushes to other branches and pushes with no commits.
 
     **GitHub action that fires it:**
 
     * `pushed`
 
-    **What gets analyzed:** the commit messages, authors, and timestamps in the push, the head commit, and repository activity in the hour before the last commit.
+    **What gets analyzed:** the commit messages, authors and timestamps in the push, the head commit and repository activity in the hour before the last commit.
 
     ```json Event data
     {
@@ -115,12 +121,12 @@ Event triggers generate content in response to GitHub activity: a published rele
 </Tabs>
 
 <Note>
-  Event triggers are GitHub-only. Linear is a source for [schedules](/automation/scheduled) and on-demand generation, not for event triggers.
+  Event triggers are GitHub-only, while Linear is a source for [schedules](/automation/scheduled) and on-demand generation.
 </Note>
 
 ## Set up the repository webhook
 
-Notra receives events through a webhook you add to each repository. Installing the GitHub App connects the repository; the webhook is a separate, one-time step per repository.
+Notra receives events through a webhook you add to each repository. Installing the GitHub App connects the repository, but the webhook is a separate, one-time step per repository.
 
 <Steps>
   <Step title="Open the repository in Notra">
@@ -128,15 +134,15 @@ Notra receives events through a webhook you add to each repository. Installing t
   </Step>
 
   <Step title="Generate a secret">
-    Click generate. Notra shows the **Payload URL**, the **Content type** (`application/json`), and the **Secret** with copy buttons. You can regenerate the secret later; update GitHub when you do.
+    Click generate, and Notra shows the **Payload URL**, the **Content type** (`application/json`) and the **Secret** with copy buttons. You can regenerate the secret later, as long as you update GitHub when you do.
   </Step>
 
   <Step title="Add the webhook in GitHub">
-    In the repository's **Settings > Webhooks**, add a webhook with the payload URL, content type, and secret from Notra. Select the **Releases** and **Pushes** events (or "Send me everything"), then save.
+    In the repository's **Settings > Webhooks**, add a webhook with the payload URL, content type and secret from Notra. Select the **Releases** and **Pushes** events (or "Send me everything"), then save.
   </Step>
 
   <Step title="Confirm in Notra">
-    Click **I've added the webhook**. GitHub's webhook page shows each delivery and Notra's response, which is the quickest way to debug a setup.
+    Click **I've added the webhook**. GitHub's webhook page shows each delivery and Notra's response, so check it first when you debug a setup.
   </Step>
 </Steps>
 
@@ -148,29 +154,31 @@ Notra receives events through a webhook you add to each repository. Installing t
   </Step>
 
   <Step title="Choose the trigger event">
-    Pick **Release published** or **Push to default branch**. For releases, decide whether to include pre-releases.
+    Pick **Release published** or **Push to default branch**, and for releases decide whether to include pre-releases.
   </Step>
 
   <Step title="Select repositories">
-    Choose one or more connected repositories. The trigger fires for events from any of them.
+    Choose one or more connected repositories, and the trigger fires for events from any of them.
   </Step>
 
   <Step title="Choose the content format">
-    Changelog entry, blog post, LinkedIn post, tweet, or image.
+    Pick a changelog entry, blog post, LinkedIn post, tweet or image.
   </Step>
 
   <Step title="Pick a brand identity and auto-publish">
-    Use the default brand identity or pin one. Auto-publish is available for changelogs and blog posts; when it is on, posts are published immediately instead of saved as drafts.
+    Use the default brand identity or pin one. Auto-publish is available for changelogs and blog posts, and when it's on, Notra publishes posts immediately instead of saving them as drafts.
   </Step>
 
   <Step title="Save">
-    New triggers start enabled. Notra rejects a trigger that duplicates an existing one ("Trigger already exists").
+    New triggers start enabled, and Notra rejects a trigger that duplicates an existing one ("Trigger already exists").
   </Step>
 </Steps>
 
+<Visibility for="agents">
+
 ### Through the API
 
-The same trigger through the public API (scope `event-triggers.write`):
+To create the same trigger through the public API, use the `event-triggers.write` scope:
 
 <CodeGroup>
 ```bash curl
@@ -209,44 +217,46 @@ const { eventTrigger } = await response.json();
 ```
 </CodeGroup>
 
-`repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `eventTypes` accepts `release` and `push`; the dashboard creates one event type per trigger, but the API accepts both in one trigger. `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post`, or `image`. List, read, update, and delete with `GET /v1/event-triggers`, `GET`/`PATCH`/`DELETE /v1/event-triggers/{triggerId}`. A `PATCH` takes the full body. A duplicate configuration returns `409`.
+`repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `eventTypes` accepts `release` and `push`, and while the dashboard creates one event type per trigger, the API accepts both in one trigger. `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`. List triggers with `GET /v1/event-triggers`, and read, update and delete one with `GET`/`PATCH`/`DELETE /v1/event-triggers/{triggerId}`. A `PATCH` takes the full body, and a duplicate configuration returns `409`.
+
+</Visibility>
 
 ## Content generation context
 
 When an event fires, the run builds its prompt from:
 
-* **Event details**: type, action, and a sanitized copy of the event data. Notra strips the payload down to known fields and instructs the model to treat it as data, never as instructions.
+* **Event details**: type, action and a sanitized copy of the event data. Notra strips the payload down to known fields and instructs the model to treat it as data, never as instructions.
 * **Repository activity**: the hour leading up to the event timestamp (the release publish time, or the latest commit timestamp in the push).
-* **Brand identity**: tone, audience, company details, and custom instructions from the selected or default brand identity.
+* **Brand identity**: tone, audience, company details and custom instructions from the selected or default brand identity.
 
 ## Security and validation
 
 <AccordionGroup>
   <Accordion title="Signature verification">
-    Every delivery must carry a valid `X-Hub-Signature-256` HMAC SHA-256 signature computed with the repository's webhook secret. Requests without a valid signature are rejected and logged.
+    Every delivery must carry a valid `X-Hub-Signature-256` HMAC SHA-256 signature computed with the repository's webhook secret. Notra rejects and logs requests without a valid signature.
   </Accordion>
 
   <Accordion title="Duplicate detection">
-    Deliveries are deduplicated by GitHub's `X-GitHub-Delivery` ID for 24 hours. A redelivered event does not generate content twice.
+    Notra deduplicates deliveries by GitHub's `X-GitHub-Delivery` ID for 24 hours, so a redelivered event doesn't generate content twice.
   </Accordion>
 
   <Accordion title="Payload sanitization">
-    Only known fields are extracted from the payload, string lengths are capped, and the model is told the event context is untrusted input.
+    Notra extracts only known fields from the payload, caps string lengths and tells the model that the event context is untrusted input.
   </Accordion>
 
   <Accordion title="Repository and trigger matching">
-    Each webhook URL is bound to one organization, integration, and repository. Events are dropped when the integration is disabled, and a trigger only fires when it is enabled and lists that repository.
+    Each webhook URL belongs to one organization, integration and repository. Notra drops events when the integration is disabled, and a trigger only fires when it is enabled and lists that repository.
   </Accordion>
 </AccordionGroup>
 
 ## Testing a trigger
 
-Event triggers do not have a **Run now** action; they fire only from GitHub. To test one, publish a release (a pre-release works if the trigger includes pre-releases) or push a small commit to the default branch, then check **Content** for the draft and **Settings > Logs** for the delivery.
+Event triggers don't have a **Run now** action because they fire only from GitHub. To test one, publish a release (a pre-release works if the trigger includes pre-releases) or push a small commit to the default branch, then check **Content** for the draft and **Settings > Logs** for the delivery.
 
 ## Monitoring
 
-* **Settings > Logs** lists integration events with their delivery status, including rejected signatures, duplicate deliveries, and payload validation errors.
-* **Settings > Notifications** can email you when automated content is created, when generation fails, and when a run is skipped.
+* **Settings > Logs** lists integration events with their delivery status, including rejected signatures, duplicate deliveries and payload validation errors.
+* **Settings > Notifications** can email you when automated content is created, when generation fails and when a run is skipped.
 * GitHub's own **Recent Deliveries** view on the webhook shows every request and Notra's response code.
 
 ## Common use cases
@@ -273,7 +283,7 @@ Event triggers do not have a **Run now** action; they fire only from GitHub. To 
 
 <AccordionGroup>
   <Accordion title="Filter strategically">
-    Release triggers produce far fewer runs than push triggers. Use releases for announcements and reserve push triggers for changelogs.
+    Release triggers produce far fewer runs than push triggers, so use releases for announcements and reserve push triggers for changelogs.
   </Accordion>
 
   <Accordion title="Mind your quota">
@@ -285,7 +295,7 @@ Event triggers do not have a **Run now** action; they fire only from GitHub. To 
   </Accordion>
 
   <Accordion title="Keep secrets in sync">
-    If you regenerate a webhook secret in Notra, update the GitHub webhook right away. Deliveries signed with the old secret are rejected.
+    If you regenerate a webhook secret in Notra, update the GitHub webhook right away, because Notra rejects deliveries signed with the old secret.
   </Accordion>
 </AccordionGroup>
 
@@ -312,7 +322,7 @@ Event triggers do not have a **Run now** action; they fire only from GitHub. To 
     * The trigger is enabled (Active tab, not Paused)
     * You still have quota or AI credits for that format
 
-    If the run found nothing worth writing about it is recorded as skipped; enable the Skipped notification to hear about it.
+    If the run finds nothing worth writing about, Notra records it as skipped, and you can enable the Skipped notification to hear about it.
   </Accordion>
 </AccordionGroup>
 

@@ -10,7 +10,7 @@ import { agentReadinessWorkflowPayloadSchema } from "@notra/geo-core/schemas/age
 import {
   geoScanWorkflowPayloadSchema,
   geoWriterWorkflowPayloadSchema,
-} from "@notra/geo-core/schemas/geo";
+} from "@notra/geo-core/schemas/geo-workflows";
 import { gscSyncPayloadSchema } from "@notra/geo-core/schemas/google-search-console";
 import type { AgentReadinessWorkflowPayload } from "@notra/geo-core/types/agent-readiness";
 import type { GeoWriterPayload } from "@notra/geo-core/types/geo";
@@ -39,6 +39,7 @@ import {
 import { trackWorkflowStarted } from "@/lib/analytics/workflow-lifecycle";
 import type { BrandAnalysisPayload } from "@/types/brand-analysis";
 import type { ScheduledPublicationWorkflowInput } from "@/types/content/scheduled-publications";
+import type { SiteJobRunHandle } from "@/types/sites-server";
 import { agentReadinessWorkflow } from "@/workflows/agent-readiness";
 import {
   brandAnalysisPayloadSchema,
@@ -58,7 +59,15 @@ import { onDemandContentWorkflow } from "@/workflows/on-demand-content";
 import { onboardingAgentWorkflow } from "@/workflows/onboarding-agent";
 import { scheduleContentWorkflow } from "@/workflows/schedule-content";
 import { scheduledPublicationWorkflow } from "@/workflows/scheduled-publication";
+import { siteJobWorkflow } from "@/workflows/site-job";
 import { socialAnalyticsSyncWorkflow } from "@/workflows/social-analytics-sync";
+
+export async function startSiteJobRun(
+  jobId: string
+): Promise<SiteJobRunHandle> {
+  const run = await start(siteJobWorkflow, [jobId]);
+  return { runId: run.runId };
+}
 
 export async function startGitHubMentionRun(context: GitHubMentionContext) {
   const run = await start(githubMentionWorkflow, [context]);

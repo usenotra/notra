@@ -1,0 +1,53 @@
+---
+title: "AI agents"
+description: "Every page of your site is readable by AI agents as Markdown, with no setup."
+---
+
+Notra Sites serve the same content to people and to AI agents. You don't need to configure anything.
+
+## Markdown for every page
+
+Each post, changelog entry and index page also exists as clean Markdown, with a short header (URL, date, authors, version, tags) and absolute links:
+
+- Add `.md` to any URL: `https://acme.com/blog/launch.md`, `https://acme.com/blog/index.md`
+- Or request the normal URL with `Accept: text/markdown`. Browsers still get HTML.
+
+```bash
+curl -H "Accept: text/markdown" https://acme.com/blog/launch
+```
+
+HTML pages point to their Markdown version with `<link rel="alternate" type="text/markdown">` and a `Link` response header. Responses carry `Vary: Accept`, so caches keep the two apart. The Markdown version names the HTML page as its canonical URL, so search engines never list it in place of the page.
+
+A page that doesn't exist answers with a real `404`. Agents that ask for Markdown, or request a `.md` URL, get the error as Markdown with links to the section index and `llms.txt`.
+
+## llms.txt
+
+[llms.txt](https://llmstxt.org) lists every published page with a link to its Markdown, a one-line summary (the `description`, or the first paragraph) and its date, followed by a short note on how to cite the site and links to the feeds and sitemaps. `llms-full.txt` contains all pages in one file.
+
+| URL | Contains |
+| --- | --- |
+| `/blog/llms.txt`, `/changelog/llms.txt` | One section |
+| `/llms.txt` | Blog and changelog, on your Notra address or subdomain |
+
+If you forward paths from your own website, `/llms.txt` belongs to your website. Link the section files from your own `llms.txt`, or forward `/llms.txt` to Notra too. Drafts and posts with `noindex: true` are left out. A `public/llms.txt` in your repository replaces the generated one.
+
+## Search engines and structured data
+
+- `robots.txt` allows search engines and AI crawlers (GPTBot, ClaudeBot, PerplexityBot and others) on your canonical address and links to `llms.txt` and the sitemaps. Your Notra address disallows crawling once traffic reaches the site through your own domain, and every page names the canonical address, so the same post is never indexed twice.
+- Previews, drafts, `noindex: true` posts and 404 pages are marked `noindex`.
+- Each section has a sitemap (`/blog/sitemap.xml`) with the last change of every page and an RSS feed (`/blog/feed.xml`) with summaries, authors and tags. Every page links to the feeds of both sections.
+- Every page includes schema.org data: `BlogPosting` for posts and `TechArticle` for changelog entries (headline, description, publish and update dates, authors, image), `Blog` or `CollectionPage` for the indexes, breadcrumbs and your company as publisher (`name`, `logo` and the profiles in `footer.socials`).
+- Open Graph and X tags use the post's `image`, or your logo when it has none. Use a PNG or JPEG for `image`, because social networks don't show SVG. The X account comes from an `x` or `twitter` entry in `footer.socials`.
+- Pages without a `description` use their first paragraph for search results and link previews.
+
+## AI traffic analytics
+
+Sites report their own visits to [AI Traffic](/geo/traffic), with nothing to install. Crawlers, AI agents and visitors arriving from ChatGPT, Claude, Perplexity and other assistants show up under the project the site belongs to. Other visitors are discarded, and previews are never counted.
+
+- A site counts toward the project that was active when it was created. Sites created before that count toward the organization's oldest project.
+- Visits are reported under the site's canonical address. A page forwarded from `acme.com/blog` counts as `acme.com/blog`.
+- If your website also runs the [Notra SDK](/geo/traffic) and forwards paths to the site, the site's report is the one that counts. The same page view is never counted twice.
+
+<Note>
+When you forward paths through your own host, keep the request's `Accept` header. Vercel, Next.js, Netlify and Cloudflare rewrites do this by default.
+</Note>

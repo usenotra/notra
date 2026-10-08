@@ -1,0 +1,52 @@
+---
+---
+
+<div data-notra-tabs class="tabs not-prose my-6 overflow-hidden rounded-lg border border-border">
+  <div role="tablist" class="relative flex gap-4 border-b border-border px-4" data-tablist>
+    <span aria-hidden="true" data-indicator class="absolute bottom-[-1px] left-0 h-px bg-foreground transition-[transform,width] duration-300 ease-[var(--ease-emphasized)]"></span>
+  </div>
+  <div class="px-4 py-3.5 text-[0.9375rem] leading-relaxed"><slot /></div>
+</div>
+
+<script>
+  function setupTabs(root: HTMLElement, index: number) {
+    const list = root.querySelector<HTMLElement>("[data-tablist]");
+    const indicator = root.querySelector<HTMLElement>("[data-indicator]");
+    const panels = [...root.querySelectorAll<HTMLElement>("[data-notra-tab]")].filter((panel) => panel.closest("[data-notra-tabs]") === root);
+    if (!(list && indicator) || panels.length === 0) return;
+    const buttons = panels.map((panel, panelIndex) => {
+      const button = document.createElement("button");
+      const id = `notra-tab-${index}-${panelIndex}`;
+      button.type = "button";
+      button.role = "tab";
+      button.id = id;
+      button.textContent = panel.dataset.title ?? `Tab ${panelIndex + 1}`;
+      button.className = "h-10 text-sm text-muted-foreground transition-colors hover:text-foreground aria-selected:text-foreground";
+      panel.setAttribute("aria-labelledby", id);
+      panel.querySelector(":scope > [data-notra-tab-title]")?.remove();
+      list.append(button);
+      return button;
+    });
+    const select = (selected: number, focus = false) => {
+      buttons.forEach((button, buttonIndex) => {
+        const active = buttonIndex === selected;
+        button.setAttribute("aria-selected", String(active));
+        button.tabIndex = active ? 0 : -1;
+        panels[buttonIndex]!.hidden = !active;
+        if (active) {
+          indicator.style.cssText = `width: ${button.offsetWidth}px; transform: translateX(${button.offsetLeft}px)`;
+          if (focus) button.focus();
+        }
+      });
+    };
+    buttons.forEach((button, buttonIndex) => {
+      button.addEventListener("click", () => select(buttonIndex));
+      button.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (step) select((buttonIndex + step + buttons.length) % buttons.length, true);
+      });
+    });
+    select(0);
+  }
+  document.querySelectorAll<HTMLElement>("[data-notra-tabs]").forEach(setupTabs);
+</script>

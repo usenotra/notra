@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { members, organizations, users } from "@notra/db/schema";
+import { isSitesConfigured } from "@notra/sites-server/env";
 import type { OrganizationMembership } from "@workos-inc/node";
 import { getWorkOS } from "@workos/authkit-session";
 import { and, eq } from "drizzle-orm";
@@ -172,5 +173,13 @@ export const removeMembershipFromWebhook = Effect.fn(
         ),
     catch: (cause) =>
       new WebhookSyncError({ message: "Failed to remove membership", cause }),
+  });
+  if (!isSitesConfigured()) {
+    return;
+  }
+  yield* Effect.promise(async () => {
+    const { revokeSitePreviewAccess } =
+      await import("@/lib/sites/preview-revocation");
+    await revokeSitePreviewAccess(organizationId, userId);
   });
 });

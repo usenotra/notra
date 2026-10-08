@@ -147,9 +147,10 @@
     },
     "react-doctor": {
       "source": "millionco/react-doctor",
+      "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/react-doctor/SKILL.md",
-      "computedHash": "2a003f397a4a94fc032019bc7fd97e938b4e2fae995c96df8603790db168dcc7"
+      "computedHash": "c2fe7246d704327c3757100ba675411cab545168374ec580645c3491073475ba"
     },
     "satori": {
       "source": "usenotra/skills",

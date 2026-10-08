@@ -1,0 +1,59 @@
+---
+import type { ChangelogEntryProps as Props } from "../types/entries";
+import { render } from "astro:content";
+import { assetUrl, href } from "../lib/params";
+import { formatDate, isoDate } from "../utils/dates";
+import { excerpt } from "../utils/excerpt";
+import Icon from "./Icon.astro";
+
+const { entry, standalone = false, layout = "timeline" } = Astro.props;
+const { Content } = await render(entry);
+const Heading = standalone ? "h1" : "h2";
+const anchor = entry.id.replaceAll("/", "-");
+const image = assetUrl(entry.data.image);
+const summary = layout === "compact" ? (entry.data.description ?? excerpt(entry.body)) : undefined;
+---
+
+{
+  layout === "compact" && !standalone ? (
+    <article id={anchor} class="group relative grid scroll-mt-20 gap-1 py-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-6">
+      <div class="flex items-center gap-2 text-sm text-muted-foreground tabular-nums sm:block sm:pt-0.5">
+        <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>
+        {entry.data.version && <p class="font-mono text-xs sm:mt-0.5">{entry.data.version}</p>}
+      </div>
+      <div class="flex min-w-0 items-start justify-between gap-4">
+        <div class="min-w-0">
+          <h2 class="font-semibold tracking-[-0.01em] text-balance transition-colors duration-150 group-hover:text-primary">
+            <a href={href(entry.id)} class="after:absolute after:inset-0">{entry.data.title}</a>
+            {entry.data.draft && <span class="ml-2 align-middle text-sm font-normal text-warning">Draft</span>}
+          </h2>
+          {summary && <p class="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">{summary}</p>}
+        </div>
+        <Icon name="arrow-right" size={16} class="mt-1 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5" />
+      </div>
+    </article>
+  ) : (
+    <article
+      id={anchor}
+      class:list={[
+        "grid scroll-mt-20",
+        layout === "cards" && !standalone ? "post-card gap-3 rounded-2xl border p-6 sm:p-8" : "gap-2 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-6",
+      ]}
+    >
+      <div class:list={["text-sm text-muted-foreground tabular-nums", layout === "cards" && !standalone ? "flex items-center gap-2 font-mono" : "sm:sticky sm:top-20 sm:self-start sm:pt-1"]}>
+        <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>
+        {entry.data.version && (layout === "cards" && !standalone ? <span class="rounded-full border border-border px-2 py-0.5 text-xs">{entry.data.version}</span> : <p class="mt-0.5">{entry.data.version}</p>)}
+      </div>
+      <div class="min-w-0">
+        <Heading id={standalone ? "page-title" : undefined} class:list={["font-semibold tracking-[-0.02em] text-balance", standalone ? "text-[1.75rem] leading-tight" : layout === "cards" ? "font-heading text-xl font-medium" : "text-lg"]}>
+          {standalone ? entry.data.title : <a href={href(entry.id)} class="underline-offset-4 hover:underline">{entry.data.title}</a>}
+          {entry.data.draft && <span class="ml-2 align-middle text-sm font-normal tracking-normal text-warning">Draft</span>}
+        </Heading>
+        {image && <img src={image} alt="" class="mt-5 w-full rounded-lg border border-border" loading="lazy" />}
+        <div class="mdx-content prose prose-notra mt-4 max-w-none" data-md-root={standalone ? "" : undefined}>
+          <Content />
+        </div>
+      </div>
+    </article>
+  )
+}

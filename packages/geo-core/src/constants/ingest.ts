@@ -14,6 +14,8 @@ export const GEO_INGEST_REDIS_RETRIES = 1;
 export const GEO_INGEST_ADMISSION_RATELIMIT_PREFIX =
   "ratelimit:geo-ingest-admission";
 export const GEO_INGEST_ADMISSION_RATELIMIT_MAX_REQUESTS = 1000;
+export const WEB_INGEST_RATELIMIT_PREFIX = "ratelimit:web-ingest";
+export const WEB_INGEST_RATELIMIT_MAX_REQUESTS = 20_000;
 export const GEO_INGEST_TINYBIRD_TIMEOUT_MS = 5000;
 // Client timestamps outside this window are replaced with the receive time so
 // a skewed or forged clock cannot backdate stats or land outside ClickHouse's

@@ -19,7 +19,6 @@ import type {
   GeoScanSizeInput,
 } from "../types/geo";
 import { isGeoBoxCodingAgent } from "./geo-coding-agents";
-import { isGeoNativeSearchEngine } from "./geo-engines";
 
 function toTimestamp(value: Date | string | null | undefined): number | null {
   if (!value) {
@@ -253,9 +252,8 @@ export function summarizeGeoEngineAttempts(
 
 /**
  * Counts prompt checks and sequence turns using the scan planner's limits.
- * Only web-search engines are counted: grounded catalog models, SerpApi, and
- * Box agents. ZDR filtering and failed translations can reduce the actual
- * number of checks.
+ * Each engine runs once: with web search when it has a route, else without.
+ * ZDR filtering and failed translations can reduce the actual number of checks.
  */
 export function calcGeoScanSize(input: GeoScanSizeInput): number {
   if (!Number.isFinite(input.promptCount) || input.promptCount < 0) {
@@ -267,10 +265,7 @@ export function calcGeoScanSize(input: GeoScanSizeInput): number {
       (model) => model.id === engine && model.supportsGroundedChecks
     )
   ).length;
-  const nativeSearchCount = engines.filter((engine) =>
-    isGeoNativeSearchEngine(input.catalog, engine)
-  ).length;
-  const passes = nativeSearchCount + groundedCount;
+  const passes = engines.length;
   const sourceLanguage = input.promptLanguage ?? DEFAULT_LANGUAGE;
   const scanSourceLanguage = input.languages.includes(sourceLanguage);
   const defaultTranslated = Math.min(

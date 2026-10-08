@@ -1,0 +1,9 @@
+{
+  "siteId": "site_fixture",
+  "deploymentId": "dep_fixture",
+  "commitSha": "0000000000000000000000000000000000000000",
+  "publicOrigin": "https://acme.example.com",
+  "mounts": { "blog": "/blog", "changelog": "/changelog" },
+  "noindex": false,
+  "includeDrafts": false
+}

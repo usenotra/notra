@@ -1,7 +1,7 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { FEATURES } from "@notra/ai/billing/features";
 import { DEFAULT_LANGUAGE } from "@notra/ai/constants/languages";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { db } from "@notra/db/drizzle";
 import { geoAdhocScans, geoSettings } from "@notra/db/schema";
 import type {

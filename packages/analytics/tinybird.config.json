@@ -2,7 +2,8 @@
   "include": [
     "src/tinybird/datasources.ts",
     "src/tinybird/pipes/social.ts",
-    "src/tinybird/pipes/geo-traffic.ts"
+    "src/tinybird/pipes/geo-traffic.ts",
+    "src/tinybird/pipes/web.ts"
   ],
   "token": "${TINYBIRD_TOKEN}",
   "baseUrl": "${TINYBIRD_BASE_URL}",

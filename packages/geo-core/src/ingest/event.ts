@@ -40,6 +40,7 @@ export function buildGeoTrafficEvent(
   const {
     organizationId,
     projectId,
+    siteId,
     payload,
     url,
     capturedAt,
@@ -50,6 +51,7 @@ export function buildGeoTrafficEvent(
   return {
     organization_id: organizationId,
     project_id: projectId ?? "",
+    site_id: siteId ?? "",
     captured_at: toClickHouseDateTime(capturedAt),
     visitor_type: classification.visitorType,
     source: classification.source,

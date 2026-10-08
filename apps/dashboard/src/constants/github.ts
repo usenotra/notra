@@ -32,6 +32,8 @@ export const DEFAULT_GITHUB_CONTENT_DIRECTORIES = {
   blog_post: "blog",
 } as const satisfies Record<GitHubPublishContentType, string>;
 
+export const GITHUB_DEFAULT_PUBLIC_DIRECTORY = "public";
+
 export const DEFAULT_GITHUB_CONTENT_OUTPUT_ENABLED = {
   changelog: true,
   blog_post: true,

@@ -121,6 +121,7 @@ import {
 } from "@notra/schemas/dashboard/slack-integration";
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { PublicUrlValidationError } from "@notra/utils/url";
+import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
@@ -366,6 +367,9 @@ async function getAffectedSchedulesForIntegration(
 }
 
 async function toKnownIntegrationError(error: unknown): Promise<Error> {
+  if (error instanceof ORPCError) {
+    return error;
+  }
   if (error instanceof GitHubRepositoryAlreadyConnectedError) {
     const tCommon = await getTranslations("common");
     return conflict(tCommon("labels.repositoryAlreadyConnected"), {
