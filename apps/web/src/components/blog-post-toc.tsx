@@ -225,6 +225,16 @@ export function BlogPostToc({ toc }: BlogPostTocProps) {
                   }`}
                   href={item.url}
                   onClick={(event) => {
+                    if (
+                      event.defaultPrevented ||
+                      event.button !== 0 ||
+                      event.ctrlKey ||
+                      event.metaKey ||
+                      event.shiftKey ||
+                      event.altKey
+                    ) {
+                      return;
+                    }
                     event.preventDefault();
                     lockScrollSpy();
                     setActiveId(id);
