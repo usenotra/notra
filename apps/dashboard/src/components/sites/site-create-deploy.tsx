@@ -12,6 +12,7 @@ import { useTranslations } from "use-intl";
 
 import { buttonVariants } from "@/components/button";
 import Link from "@/components/framework/link";
+import { CopyPromptButton } from "@/components/geo/code-snippet";
 import { SiteBuildLogs } from "@/components/sites/site-build-logs";
 import {
   SITE_CONFIG_MISSING_DIAGNOSTIC,
@@ -23,6 +24,7 @@ import { useSiteDeployment } from "@/lib/hooks/use-site-deployments";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { cn } from "@/lib/utils";
 import type { SiteCreateDeployProps } from "@/types/components/sites";
+import { buildSiteBuildAgentPrompt } from "@/utils/site-build-agent-prompt";
 import {
   deploymentElapsedMs,
   formatBuildDuration,
@@ -97,7 +99,7 @@ export function SiteCreateDeploy({
     <span
       aria-live="polite"
       className={cn(
-        "inline-flex items-center gap-2",
+        "inline-flex items-start gap-2",
         ready && "text-success",
         failed && "text-destructive",
         !(ready || failed) && "text-muted-foreground"
@@ -106,7 +108,7 @@ export function SiteCreateDeploy({
       <HugeiconsIcon
         aria-hidden="true"
         className={cn(
-          "size-4",
+          "mt-0.5 size-4 shrink-0",
           !(ready || failed) && "motion-safe:animate-spin"
         )}
         icon={icon}
@@ -156,18 +158,32 @@ export function SiteCreateDeploy({
       ) : null}
 
       {ready || failed ? (
-        <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap justify-end gap-2 duration-300">
-          {failed && deploymentId ? (
+        <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap items-center justify-end gap-2 duration-300">
+          {failed ? (
+            <CopyPromptButton
+              className="me-auto"
+              prompt={buildSiteBuildAgentPrompt({
+                site,
+                deployment: record,
+                log: deployment.data?.log ?? null,
+              })}
+            />
+          ) : null}
+          {failed ? (
             <Link
-              className={buttonVariants({ variant: "outline" })}
-              href={siteDeploymentHref(organizationSlug, site.id, deploymentId)}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+              href={
+                deploymentId
+                  ? siteDeploymentHref(organizationSlug, site.id, deploymentId)
+                  : siteHref(organizationSlug, site.id, "deployments")
+              }
             >
               {t("viewDeployment")}
             </Link>
           ) : null}
           {ready ? (
             <a
-              className={buttonVariants({ variant: "outline" })}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
               href={site.liveUrl}
               rel="noopener noreferrer"
               target="_blank"
@@ -176,12 +192,14 @@ export function SiteCreateDeploy({
               <HugeiconsIcon data-icon="inline-end" icon={ArrowUpRight01Icon} />
             </a>
           ) : null}
-          <Link
-            className={buttonVariants()}
-            href={siteHref(organizationSlug, site.id)}
-          >
-            {t("openSite")}
-          </Link>
+          {ready ? (
+            <Link
+              className={buttonVariants({ size: "sm" })}
+              href={siteHref(organizationSlug, site.id)}
+            >
+              {t("openSite")}
+            </Link>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -7034,13 +7034,13 @@
         "waiting": "Waiting for a builder…",
         "started": "Deployment started {seconds}s ago…",
         "ready": "Your site is live. Built in {duration}.",
-        "failed": "The build failed. The log shows why.",
+        "failed": "Build failed",
         "visit": "Visit",
         "openSite": "Go to site",
         "viewDeployment": "View deployment",
         "configMissingRetry": "This build reported a missing blog.json. Retry the deployment from the site to use the standard layout and configuration. The starter pull request is optional.",
         "viewPullRequest": "View pull request",
-        "notStarted": "The first build couldn't start. Deploy it from the site."
+        "notStarted": "The first build couldn't start. View deployments to retry."
       },
       "starter": {
         "missingTitle": "No blog.json yet",

@@ -595,7 +595,15 @@ export interface SiteCreateStageProps {
 export interface SiteCreateDeployProps {
   organizationId: string;
   organizationSlug: string;
-  site: { id: string; liveUrl: string };
+  site: Pick<
+    SiteRecord,
+    | "id"
+    | "name"
+    | "liveUrl"
+    | "repository"
+    | "productionBranch"
+    | "rootDirectory"
+  >;
   deploymentQueued: boolean;
   starterPullRequestUrl?: string | null;
 }

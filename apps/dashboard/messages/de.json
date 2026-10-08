@@ -7034,13 +7034,13 @@
         "waiting": "Warte auf einen Builder…",
         "started": "Deployment vor {seconds} s gestartet…",
         "ready": "Deine Site ist live. Gebaut in {duration}.",
-        "failed": "Der Build ist fehlgeschlagen. Der Log zeigt warum.",
+        "failed": "Build fehlgeschlagen",
         "visit": "Öffnen",
         "openSite": "Zur Site",
         "viewDeployment": "Deployment ansehen",
         "configMissingRetry": "Dieser Build hat eine fehlende blog.json gemeldet. Starte das Deployment auf der Site erneut, um das Standardlayout und die Standardkonfiguration zu verwenden. Der Starter-Pull-Request ist optional.",
         "viewPullRequest": "Pull Request ansehen",
-        "notStarted": "Der erste Build konnte nicht starten. Starte ihn auf der Site."
+        "notStarted": "Der erste Build konnte nicht starten. Öffne die Deployments, um es erneut zu versuchen."
       },
       "starter": {
         "missingTitle": "Noch keine blog.json",

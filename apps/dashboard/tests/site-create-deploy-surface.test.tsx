@@ -8,6 +8,7 @@ import { IntlProvider } from "use-intl";
 
 import messages from "../messages/en.json";
 import type { SiteDeploymentStatus } from "../src/types/sites";
+import { buildSiteBuildAgentPrompt } from "../src/utils/site-build-agent-prompt";
 
 if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
   test("creation deployment log surface", () => {
@@ -27,6 +28,14 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
   let log: string | null = null;
   let hasRecord = true;
   let configMissing = false;
+  const site = {
+    id: "site",
+    name: "Example blog",
+    liveUrl: "https://site.example",
+    repository: { owner: "example", name: "blog" },
+    productionBranch: "main",
+    rootDirectory: "apps/blog",
+  };
   mock.module("@tanstack/react-query", () => ({
     useQuery: () => ({
       data: { deployments: hasRecord ? [{ id: "deployment" }] : [] },
@@ -41,11 +50,22 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
         deployment: hasRecord
           ? {
               status,
+              branch: "main",
+              commitSha: "abc123",
+              errorMessage: null,
               createdAt: "2026-10-07T00:00:00Z",
               startedAt: null,
               finishedAt: null,
               buildDurationMs: 1000,
-              diagnostics: configMissing ? [{ code: "config_missing" }] : [],
+              diagnostics: configMissing
+                ? [
+                    {
+                      code: "config_missing",
+                      severity: "error",
+                      message: "Missing blog.json",
+                    },
+                  ]
+                : [],
             }
           : null,
         log,
@@ -72,14 +92,14 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
           deploymentQueued
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
         />
       </IntlProvider>
     );
     expect(html.match(/Deployment started/g)).toHaveLength(1);
     expect(html.match(/motion-safe:animate-spin/g)).toHaveLength(1);
     expect(html).not.toContain(messages.sites.deploymentPage.log.streaming);
-    expect(html).toContain("h-44");
+    expect(html).toContain("min-h-28");
     expect(html).not.toContain("h-80");
     expect(html.match(/rounded-xl border/g)).toHaveLength(1);
     expect(html).toContain(messages.sites.deploymentPage.log.starting);
@@ -94,11 +114,12 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
           deploymentQueued
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
         />
       </IntlProvider>
     );
-    expect(html).toContain("h-72");
+    expect(html).toContain("h-48");
+    expect(html).toContain('data-streaming="true"');
     expect(html).toContain('role="log"');
     expect(html).toContain('aria-busy="true"');
     expect(html).toContain(messages.sites.deploymentPage.log.filter);
@@ -116,17 +137,29 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
             deploymentQueued
             organizationId="organization"
             organizationSlug="organization"
-            site={{ id: "site", liveUrl: "https://site.example" }}
+            site={site}
           />
         </IntlProvider>
       );
-      expect(html).toContain(messages.sites.new.deploy.openSite);
       if (nextStatus === "ready") {
+        expect(html).toContain(messages.sites.new.deploy.openSite);
+        expect(html).not.toContain(messages.common.labels.copyAgentPrompt);
         expect(html).toContain("Your site is live.");
         expect(html).toContain('href="https://site.example"');
       } else {
         expect(html).toContain(messages.sites.new.deploy.failed);
         expect(html).toContain(messages.sites.new.deploy.viewDeployment);
+        expect(html).not.toContain(messages.sites.new.deploy.openSite);
+        expect(html).not.toContain('href="https://site.example"');
+        expect(html).toContain(messages.common.labels.copyAgentPrompt);
+        expect(
+          html.indexOf(messages.common.labels.copyAgentPrompt)
+        ).toBeLessThan(html.indexOf(messages.sites.new.deploy.viewDeployment));
+        expect(html).toContain("me-auto");
+        expect(html).toContain("min-h-24");
+        expect(html).toContain("max-h-48");
+        expect(html).toContain('data-streaming="false"');
+        expect(html).not.toContain(" h-48");
       }
       expect(html).not.toContain("motion-safe:animate-spin");
     }
@@ -134,20 +167,24 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
 
   test("a deployment that was not queued has no empty log box", () => {
     status = "queued";
+    hasRecord = false;
     const html = renderToStaticMarkup(
       <IntlProvider locale="en" messages={messages} timeZone="UTC">
         <SiteCreateDeploy
           deploymentQueued={false}
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
         />
       </IntlProvider>
     );
     expect(html.replaceAll("&#x27;", "'")).toContain(
       messages.sites.new.deploy.notStarted
     );
-    expect(html).toContain(messages.sites.new.deploy.openSite);
+    expect(html).not.toContain(messages.sites.new.deploy.openSite);
+    expect(html).toContain(messages.common.labels.copyAgentPrompt);
+    expect(html).toContain(messages.sites.new.deploy.viewDeployment);
+    expect(html).toContain('href="/organization/sites/site/deployments"');
     expect(html).not.toContain(messages.sites.deploymentPage.log.copy);
     expect(html).not.toContain("motion-safe:animate-spin");
   });
@@ -161,7 +198,7 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
           deploymentQueued
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
         />
       </IntlProvider>
     );
@@ -180,7 +217,7 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
           deploymentQueued
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
           starterPullRequestUrl="https://github.example/repository/pull/1"
         />
       </IntlProvider>
@@ -199,5 +236,72 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
     expect(html).toContain(messages.sites.deploymentPage.log.streaming);
     expect(html).toContain("max-h-[min(30rem,60vh)]");
     expect(html).not.toContain("h-72");
+  });
+
+  test("short errors collapse the timestamp gutter and redundant error marker", () => {
+    const html = renderToStaticMarkup(
+      <IntlProvider locale="en" messages={messages} timeZone="UTC">
+        <SiteBuildLogs
+          heading="Build failed"
+          inProgress={false}
+          log="✘ blog/example.mdx  Same URL as blog/example.md\nBuild failed"
+          queued={false}
+        />
+      </IntlProvider>
+    );
+    expect(html).toContain('data-timestamps="false"');
+    expect(html).toContain("min-h-24");
+    expect(html).toContain("max-h-48");
+    expect(html).toContain("Same URL as blog/example.md");
+    expect(html).not.toContain("✘");
+    expect(html).toContain("group-data-[timestamps=false]/log:hidden");
+  });
+
+  test("the repair prompt includes repository context, diagnostics and clean logs", () => {
+    const prompt = buildSiteBuildAgentPrompt({
+      site,
+      deployment: {
+        status: "failed",
+        branch: "fix/blog",
+        commitSha: "abc123",
+        errorMessage: "Build failed",
+        diagnostics: [
+          {
+            severity: "error",
+            code: "duplicate_url",
+            file: "blog/example.mdx",
+            message: "Same URL as blog/example.md",
+          },
+        ],
+      },
+      log: "\u001b[31m✘ blog/example.mdx  Same URL as blog/example.md\u001b[0m",
+    });
+    for (const text of [
+      "Example blog",
+      "example/blog",
+      "fix/blog",
+      "apps/blog",
+      "abc123",
+      "duplicate_url",
+      "blog/example.mdx",
+      "Same URL as blog/example.md",
+      "do not blindly delete content",
+      "push commits or deploy without explicit approval",
+    ]) {
+      expect(prompt).toContain(text);
+    }
+    expect(prompt).not.toContain("\u001b");
+  });
+
+  test("a missing build result produces a usable prompt without inventing logs", () => {
+    const prompt = buildSiteBuildAgentPrompt({
+      site,
+      deployment: null,
+      log: null,
+    });
+    expect(prompt).toContain("The first deployment could not start");
+    expect(prompt).toContain("Branch: main");
+    expect(prompt).toContain("No build log is available.");
+    expect(prompt).not.toContain("Commit:");
   });
 }

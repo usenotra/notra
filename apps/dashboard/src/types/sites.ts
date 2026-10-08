@@ -38,6 +38,18 @@ export type SiteEditorDraft = SiteEditorFiles["drafts"][number];
 export type SiteEditorDocument = SitesOutputs["editor"]["read"];
 export type SiteDiagnostic = SiteDeploymentRecord["diagnostics"][number];
 
+export interface SiteBuildAgentPromptInput {
+  site: Pick<
+    SiteRecord,
+    "name" | "repository" | "productionBranch" | "rootDirectory"
+  >;
+  deployment: Pick<
+    SiteDeploymentRecord,
+    "status" | "branch" | "commitSha" | "diagnostics" | "errorMessage"
+  > | null;
+  log: string | null;
+}
+
 export type SiteDeploymentStatus = (typeof SITE_DEPLOYMENT_STATUSES)[number];
 export type SiteSection = (typeof SITE_DETAIL_TABS)[number];
 
