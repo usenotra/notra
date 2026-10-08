@@ -113,6 +113,8 @@ export default {
     // Your visitors' sessions stay on your domain.
     headers.delete("cookie");
     headers.delete("authorization");
+    // Lets site analytics see the visitor, not Cloudflare.
+    headers.set("x-forwarded-for", request.headers.get("cf-connecting-ip") ?? "");
     return fetch(new URL(url.pathname + url.search, SITE_ORIGIN), {
       method: request.method,
       headers,
