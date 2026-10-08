@@ -9,6 +9,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useIsMobile } from "@notra/ui/hooks/use-mobile";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
@@ -19,7 +20,6 @@ import {
   AGENT_FEEDBACK_SENTIMENT_PILL_CLASS,
 } from "@/constants/agent-feedback";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   SentimentDetailRow,
   SentimentThemeTableProps,

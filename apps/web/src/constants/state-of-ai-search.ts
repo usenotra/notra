@@ -25,3 +25,12 @@ export const REPORT_BRAND_COLORS = [
   "#F43F5E",
 ] as const;
 export const REPORT_OTHER_BRAND_COLOR = "#64748B";
+
+/** Heatmap tints, in percent of the primary color, as in the dashboard. */
+export const HEATMAP_MIN_TINT = 8;
+export const HEATMAP_MAX_TINT = 80;
+export const HEATMAP_LIGHT_TEXT_TINT = 62;
+/** Prompts listed in the brand drawer. */
+export const BRAND_SHEET_PROMPTS = 8;
+/** Drawers opened from drawers stop here, so the stack stays readable. */
+export const MAX_SHEET_DEPTH = 2;

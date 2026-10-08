@@ -10,6 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -19,7 +20,6 @@ import { ShelfPlacementsTable } from "@/components/geo/shelf/shelf-placements-ta
 import { ShelfTicketForm } from "@/components/geo/shelf/shelf-ticket-form";
 import { GEO_SHELF_CITATION_WINDOW_DAYS } from "@/constants/geo-shelf";
 import { useFormatRelative } from "@/lib/hooks/use-format-relative";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoShelfDetailDialogProps } from "@/types/geo-shelf";
 import {
   formatShelfDate,

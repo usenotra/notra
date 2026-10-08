@@ -1,34 +1,56 @@
-import type { StateOfAiSearchReport } from "@/types/state-of-ai-search";
+import type {
+  StateOfAiSearchReport,
+  StateOfAiSearchSummary,
+} from "@/types/state-of-ai-search";
 
-// Built by packages/geo-core/scripts/state-of-ai-search/build.ts.
-const REPORT_MODULES = import.meta.glob<StateOfAiSearchReport>(
-  "/src/content/state-of-ai-search/*/*.json",
+// Built by packages/geo-core/scripts/state-of-ai-search/build.ts. Summaries
+// are tiny and bundled; a full report is its own chunk, loaded per page.
+const SUMMARY_MODULES = import.meta.glob<StateOfAiSearchSummary>(
+  "/src/content/state-of-ai-search/*/*.summary.json",
   { eager: true, import: "default" }
 );
+const REPORT_LOADERS = import.meta.glob<StateOfAiSearchReport>(
+  [
+    "/src/content/state-of-ai-search/*/*.json",
+    "!/src/content/state-of-ai-search/*/*.summary.json",
+  ],
+  { import: "default" }
+);
 
-const REPORTS: StateOfAiSearchReport[] = Object.values(REPORT_MODULES);
+const SUMMARIES: StateOfAiSearchSummary[] = Object.values(SUMMARY_MODULES);
 
-export function findReport(
+export function listSummaries(): StateOfAiSearchSummary[] {
+  return SUMMARIES;
+}
+
+export function findSummary(
   slug: string,
   edition: string
-): StateOfAiSearchReport | undefined {
-  return REPORTS.find(
-    (report) => report.slug === slug && report.edition === edition
+): StateOfAiSearchSummary | undefined {
+  return SUMMARIES.find(
+    (summary) => summary.slug === slug && summary.edition === edition
   );
 }
 
-export function latestReport(slug: string): StateOfAiSearchReport | undefined {
-  return REPORTS.filter((report) => report.slug === slug).toSorted((a, b) =>
+export function latestSummary(
+  slug: string
+): StateOfAiSearchSummary | undefined {
+  return SUMMARIES.filter((summary) => summary.slug === slug).toSorted((a, b) =>
     b.edition.localeCompare(a.edition)
   )[0];
 }
 
-/** Newest edition per category, in the order the reports were built. */
-export function listLatestReports(): StateOfAiSearchReport[] {
-  const slugs = [...new Set(REPORTS.map((report) => report.slug))];
-  return slugs.flatMap((slug) => latestReport(slug) ?? []);
+/** Newest edition per category. */
+export function listLatestSummaries(): StateOfAiSearchSummary[] {
+  const slugs = [...new Set(SUMMARIES.map((summary) => summary.slug))];
+  return slugs.flatMap((slug) => latestSummary(slug) ?? []);
 }
 
-export function listReports(): StateOfAiSearchReport[] {
-  return REPORTS;
+export async function loadReport(
+  slug: string,
+  edition: string
+): Promise<StateOfAiSearchReport | undefined> {
+  const load =
+    REPORT_LOADERS[`/src/content/state-of-ai-search/${slug}/${edition}.json`];
+  return load ? await load() : undefined;
 }

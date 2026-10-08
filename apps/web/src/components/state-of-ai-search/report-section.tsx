@@ -17,6 +17,7 @@ export function ReportBlock({
   title: string;
   description?: ReactNode;
   readout?: ReactNode;
+  /** Pass a subgrid class here to line blocks up across a row. */
   className?: string;
   children: ReactNode;
 }) {
@@ -39,11 +40,14 @@ export function ReportBlock({
  */
 export function ReportPanel({
   header,
+  footer,
   className,
   bodyClassName,
   children,
 }: {
   header?: ReactNode;
+  /** Sits on the shell under the card, like a table footer row. */
+  footer?: ReactNode;
   className?: string;
   bodyClassName?: string;
   children: ReactNode;
@@ -57,6 +61,84 @@ export function ReportPanel({
       ) : null}
       <div className={cn(TABLE_BODY_CLASS, "flex-1", bodyClassName)}>
         {children}
+      </div>
+      {footer ? <div className="shrink-0">{footer}</div> : null}
+    </div>
+  );
+}
+
+/** Text button for a shell footer row: "Show 7 more brands", "Show full overview". */
+export function ShellFooterButton({
+  expanded,
+  onToggle,
+  children,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      aria-expanded={expanded}
+      className="text-muted-foreground hover:text-foreground focus-visible:outline-ring h-10 w-full rounded-b-[14px] px-4 text-left text-xs font-medium outline-offset-[-2px] transition-colors focus-visible:outline-2"
+      onClick={onToggle}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+interface ReportPairSide {
+  title: string;
+  description?: ReactNode;
+  children: ReactNode;
+}
+
+function ReportHeading({
+  title,
+  description,
+  className,
+}: Omit<ReportPairSide, "children"> & { className?: string }) {
+  return (
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <h2 className="text-foreground text-sm font-medium">{title}</h2>
+      {description ? (
+        <p className="text-muted-foreground text-sm">{description}</p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Two blocks side by side whose titles share one row and whose surfaces share
+ * the next, so both tables start and end on the same line. On small screens
+ * they stack as two normal blocks.
+ */
+export function ReportPair({
+  left,
+  right,
+}: {
+  left: ReportPairSide;
+  right: ReportPairSide;
+}) {
+  return (
+    <div className="grid gap-x-6 gap-y-3 lg:grid-cols-2 lg:grid-rows-[auto_1fr]">
+      <ReportHeading
+        className="lg:col-start-1 lg:row-start-1"
+        description={left.description}
+        title={left.title}
+      />
+      <div className="flex min-w-0 flex-col lg:col-start-1 lg:row-start-2">
+        {left.children}
+      </div>
+      <ReportHeading
+        className="max-lg:mt-9 lg:col-start-2 lg:row-start-1"
+        description={right.description}
+        title={right.title}
+      />
+      <div className="flex min-w-0 flex-col lg:col-start-2 lg:row-start-2">
+        {right.children}
       </div>
     </div>
   );

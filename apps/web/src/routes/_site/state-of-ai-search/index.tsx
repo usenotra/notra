@@ -13,7 +13,7 @@ import {
   STATE_OF_AI_SEARCH_TITLE,
   STATE_OF_AI_SEARCH_URL,
 } from "@/constants/state-of-ai-search";
-import { listLatestReports } from "@/lib/state-of-ai-search/reports";
+import { listLatestSummaries } from "@/lib/state-of-ai-search/reports";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
 import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
@@ -30,7 +30,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 ]);
 
 export const Route = createFileRoute("/_site/state-of-ai-search/")({
-  loader: () => listLatestReports(),
+  loader: () => listLatestSummaries(),
   head: () =>
     buildHead({
       title,

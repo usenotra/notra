@@ -14,9 +14,14 @@ import {
   TableRow,
 } from "@notra/ui/components/ui/table";
 import { cn } from "@notra/ui/lib/utils";
+import type { CSSProperties, KeyboardEvent } from "react";
 import { useState } from "react";
 
+import { ShellFooterButton } from "@/components/state-of-ai-search/report-section";
 import {
+  HEATMAP_LIGHT_TEXT_TINT,
+  HEATMAP_MAX_TINT,
+  HEATMAP_MIN_TINT,
   PROMPTS_PAGE_SIZE,
   RANKING_COLLAPSED_ROWS,
 } from "@/constants/state-of-ai-search";
@@ -32,18 +37,88 @@ const PERCENT_MAX = 100;
 const BRAND_STACK_LIMIT = 6;
 const LOGO_OUTLINE =
   "outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10";
-const NUMBER_COL = "text-right";
+const ROW_CLICKABLE =
+  "cursor-pointer focus-visible:outline-ring focus-visible:outline-2 focus-visible:-outline-offset-2";
 
-export function Brand({ name, domain }: { name: string; domain: string }) {
+export function Brand({
+  name,
+  domain,
+  className,
+}: {
+  name: string;
+  domain: string;
+  className?: string;
+}) {
   return (
-    <span className="flex min-w-0 items-center gap-2.5">
+    <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <CompetitorLogo className={LOGO_OUTLINE} domain={domain} name={name} />
       <span className="truncate">{name}</span>
     </span>
   );
 }
 
-/** "Show N more" as a footer row on the shell, under the lifted card. */
+/** Row that opens a drawer on click, Enter or Space. */
+function rowActions(onActivate: () => void) {
+  return {
+    className: ROW_CLICKABLE,
+    onClick: onActivate,
+    onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onActivate();
+      }
+    },
+    tabIndex: 0,
+  };
+}
+
+/** Same tint scale as the dashboard's recommendations-by-assistant heatmap. */
+function heatTint(rate: number, min: number, max: number): number {
+  if (rate <= 0 || max <= 0) {
+    return 0;
+  }
+  const span = max - min;
+  const position = span > 0 ? (rate - min) / span : 1;
+  return Math.round(
+    HEATMAP_MIN_TINT + position * (HEATMAP_MAX_TINT - HEATMAP_MIN_TINT)
+  );
+}
+
+function HeatCell({
+  value,
+  min,
+  max,
+  label,
+}: {
+  value: number | null;
+  min: number;
+  max: number;
+  label: string;
+}) {
+  if (value === null) {
+    return (
+      <span className="bg-muted/60 text-muted-foreground flex h-9 items-center justify-center rounded-lg text-sm">
+        –
+      </span>
+    );
+  }
+  const tint = heatTint(value, min, max);
+  return (
+    <span
+      className={cn(
+        "hover:ring-foreground/20 flex h-9 items-center justify-center rounded-lg bg-[color-mix(in_oklab,var(--primary)_var(--heat-tint),var(--muted))] text-sm tabular-nums transition-shadow ring-inset hover:ring-2",
+        tint > HEATMAP_LIGHT_TEXT_TINT
+          ? "text-primary-foreground"
+          : "text-foreground"
+      )}
+      style={{ "--heat-tint": `${tint}%` } as CSSProperties}
+      title={label}
+    >
+      {formatPercent(value)}
+    </span>
+  );
+}
+
 function ShowMoreFooter({
   colSpan,
   expanded,
@@ -61,42 +136,38 @@ function ShowMoreFooter({
     <TableFooter>
       <TableRow>
         <TableCell className="h-10 p-0" colSpan={colSpan}>
-          <button
-            aria-expanded={expanded}
-            className="text-muted-foreground hover:text-foreground focus-visible:outline-ring h-10 w-full rounded-b-[14px] px-4 text-left text-xs font-medium outline-offset-[-2px] transition-colors focus-visible:outline-2"
-            onClick={onToggle}
-            type="button"
-          >
+          <ShellFooterButton expanded={expanded} onToggle={onToggle}>
             {expanded ? "Show less" : `Show ${hidden} more ${noun}`}
-          </button>
+          </ShellFooterButton>
         </TableCell>
       </TableRow>
     </TableFooter>
   );
 }
 
-function useCollapsed<T>(rows: T[], limit: number) {
-  const [expanded, setExpanded] = useState(false);
-  return {
-    expanded,
-    visible: expanded ? rows : rows.slice(0, limit),
-    hidden: Math.max(0, rows.length - limit),
-    toggle: () => setExpanded((current) => !current),
-  };
+interface CollapseProps {
+  expanded: boolean;
+  onToggleExpanded: () => void;
 }
 
-export function RankingTable({ rows }: { rows: StateOfAiSearchRankingRow[] }) {
-  const { expanded, visible, hidden, toggle } = useCollapsed(
-    rows,
-    RANKING_COLLAPSED_ROWS
-  );
+export function RankingTable({
+  rows,
+  expanded,
+  onToggleExpanded,
+  onSelect,
+}: CollapseProps & {
+  rows: StateOfAiSearchRankingRow[];
+  onSelect: (row: StateOfAiSearchRankingRow) => void;
+}) {
+  const visible = expanded ? rows : rows.slice(0, RANKING_COLLAPSED_ROWS);
+  const hidden = rows.length - RANKING_COLLAPSED_ROWS;
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-12">#</TableHead>
+          <TableHead className="w-10">#</TableHead>
           <TableHead>Brand</TableHead>
-          <TableHead className={cn(NUMBER_COL, "hidden sm:table-cell")}>
+          <TableHead className="hidden text-right sm:table-cell">
             Named first
           </TableHead>
           <TableHead>Visibility</TableHead>
@@ -104,17 +175,12 @@ export function RankingTable({ rows }: { rows: StateOfAiSearchRankingRow[] }) {
       </TableHeader>
       <TableBody>
         {visible.map((row) => (
-          <TableRow key={row.name}>
+          <TableRow key={row.name} {...rowActions(() => onSelect(row))}>
             <TableCell className="text-muted-foreground">{row.rank}</TableCell>
             <TableCell className="w-full max-w-0">
               <Brand domain={row.domain} name={row.name} />
             </TableCell>
-            <TableCell
-              className={cn(
-                NUMBER_COL,
-                "text-muted-foreground hidden sm:table-cell"
-              )}
-            >
+            <TableCell className="text-muted-foreground hidden text-right sm:table-cell">
               {formatPercent(row.topPick)}
             </TableCell>
             <TableCell>
@@ -125,7 +191,7 @@ export function RankingTable({ rows }: { rows: StateOfAiSearchRankingRow[] }) {
                   max={PERCENT_MAX}
                   value={row.visibility}
                 />
-                <span className="font-medium">
+                <span className="w-9 text-right font-medium">
                   {formatPercent(row.visibility)}
                 </span>
               </span>
@@ -139,30 +205,35 @@ export function RankingTable({ rows }: { rows: StateOfAiSearchRankingRow[] }) {
           expanded={expanded}
           hidden={hidden}
           noun="brands"
-          onToggle={toggle}
+          onToggle={onToggleExpanded}
         />
       ) : null}
     </Table>
   );
 }
 
-export function EngineTable({
+/** Brands × assistants, tinted like the dashboard heatmap. */
+export function EngineHeatmap({
   rows,
   engines,
-}: {
+  expanded,
+  onToggleExpanded,
+  onSelect,
+}: CollapseProps & {
   rows: StateOfAiSearchRankingRow[];
   engines: StateOfAiSearchEngine[];
+  onSelect: (row: StateOfAiSearchRankingRow) => void;
 }) {
-  const { expanded, visible, hidden, toggle } = useCollapsed(
-    rows,
-    RANKING_COLLAPSED_ROWS
+  const visible = expanded ? rows : rows.slice(0, RANKING_COLLAPSED_ROWS);
+  const hidden = rows.length - RANKING_COLLAPSED_ROWS;
+  const rates = rows.flatMap((row) =>
+    engines.flatMap((engine) => {
+      const value = row.byEngine[engine.id];
+      return value && value > 0 ? [value] : [];
+    })
   );
-  const leaders = new Map(
-    engines.map((engine) => [
-      engine.id,
-      Math.max(...rows.map((row) => row.byEngine[engine.id] ?? 0)),
-    ])
-  );
+  const min = Math.min(...rates);
+  const max = Math.max(...rates);
   return (
     <Table>
       <TableHeader>
@@ -170,15 +241,20 @@ export function EngineTable({
           <TableHead>Brand</TableHead>
           {engines.map((engine) => (
             <TableHead
-              className="w-14 px-2 text-right sm:w-[7.75rem] sm:px-3"
+              className="max-w-16 min-w-16 px-1 text-center sm:max-w-28 sm:min-w-28"
               key={engine.id}
             >
               <span
-                className="inline-flex items-center gap-1.5"
+                className="inline-flex max-w-full items-center gap-1.5"
                 title={engine.label}
               >
-                <EngineIcon className="size-3.5" engine={engine.model} />
-                <span className="hidden sm:inline">{engine.label}</span>
+                <EngineIcon
+                  className="size-3.5 shrink-0"
+                  engine={engine.model}
+                />
+                <span className="hidden truncate sm:inline">
+                  {engine.label}
+                </span>
               </span>
             </TableHead>
           ))}
@@ -186,26 +262,20 @@ export function EngineTable({
       </TableHeader>
       <TableBody>
         {visible.map((row) => (
-          <TableRow key={row.name}>
+          <TableRow key={row.name} {...rowActions(() => onSelect(row))}>
             <TableCell className="w-full max-w-0">
               <Brand domain={row.domain} name={row.name} />
             </TableCell>
-            {engines.map((engine) => {
-              const value = row.byEngine[engine.id];
-              const isLeader =
-                value !== null && value > 0 && value === leaders.get(engine.id);
-              return (
-                <TableCell
-                  className={cn(
-                    "px-2 text-right sm:px-3",
-                    isLeader ? "font-semibold" : "text-muted-foreground"
-                  )}
-                  key={engine.id}
-                >
-                  {formatPercent(value)}
-                </TableCell>
-              );
-            })}
+            {engines.map((engine) => (
+              <TableCell className="min-w-16 px-1 sm:min-w-28" key={engine.id}>
+                <HeatCell
+                  label={`${row.name} · ${engine.label}: ${formatPercent(row.byEngine[engine.id])} of answers`}
+                  max={max}
+                  min={min}
+                  value={row.byEngine[engine.id]}
+                />
+              </TableCell>
+            ))}
           </TableRow>
         ))}
       </TableBody>
@@ -215,29 +285,33 @@ export function EngineTable({
           expanded={expanded}
           hidden={hidden}
           noun="brands"
-          onToggle={toggle}
+          onToggle={onToggleExpanded}
         />
       ) : null}
     </Table>
   );
 }
 
-export function PromptsTable({ rows }: { rows: StateOfAiSearchPromptRow[] }) {
-  const { expanded, visible, hidden, toggle } = useCollapsed(
-    rows,
-    PROMPTS_PAGE_SIZE
-  );
+/** The questions, everyone named in the answers and who came first. */
+export function PromptsTable({
+  rows,
+  onSelect,
+}: {
+  rows: StateOfAiSearchPromptRow[];
+  onSelect: (row: StateOfAiSearchPromptRow) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? rows : rows.slice(0, PROMPTS_PAGE_SIZE);
+  const hidden = rows.length - PROMPTS_PAGE_SIZE;
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Prompt</TableHead>
-          <TableHead className="hidden md:table-cell md:w-[12rem]">
+          <TableHead className="hidden md:table-cell">
             Brands mentioned
           </TableHead>
-          <TableHead
-            className={cn(NUMBER_COL, "hidden lg:table-cell lg:w-[6.5rem]")}
-          >
+          <TableHead className="hidden text-right lg:table-cell">
             Assistants
           </TableHead>
           <TableHead>Named first</TableHead>
@@ -245,8 +319,8 @@ export function PromptsTable({ rows }: { rows: StateOfAiSearchPromptRow[] }) {
       </TableHeader>
       <TableBody>
         {visible.map((row) => (
-          <TableRow key={row.prompt}>
-            <TableCell className="w-full py-3 text-pretty whitespace-normal">
+          <TableRow key={row.id} {...rowActions(() => onSelect(row))}>
+            <TableCell className="w-full min-w-48 py-3 text-pretty whitespace-normal">
               {row.prompt}
             </TableCell>
             <TableCell className="hidden md:table-cell">
@@ -254,7 +328,7 @@ export function PromptsTable({ rows }: { rows: StateOfAiSearchPromptRow[] }) {
                 items={row.brands.map((brand) => ({
                   key: brand.name,
                   label: brand.name,
-                  detail: brand.domain,
+                  detail: `Named in ${row.mentions[brand.name] ?? 0} of ${row.answers} answers`,
                   renderIcon: (className) => (
                     <CompetitorLogo
                       className={cn(className, LOGO_OUTLINE)}
@@ -269,14 +343,13 @@ export function PromptsTable({ rows }: { rows: StateOfAiSearchPromptRow[] }) {
             </TableCell>
             <TableCell
               className={cn(
-                NUMBER_COL,
-                "hidden lg:table-cell",
+                "hidden text-right lg:table-cell",
                 !row.consensus && "text-muted-foreground"
               )}
             >
               {row.consensus ? "Agree" : "Split"}
             </TableCell>
-            <TableCell className="max-w-[9rem] sm:max-w-[12rem]">
+            <TableCell className="max-w-36 sm:max-w-44">
               {row.topPick ? (
                 <Brand domain={row.topPick.domain} name={row.topPick.name} />
               ) : (
@@ -292,7 +365,7 @@ export function PromptsTable({ rows }: { rows: StateOfAiSearchPromptRow[] }) {
           expanded={expanded}
           hidden={hidden}
           noun="prompts"
-          onToggle={toggle}
+          onToggle={() => setExpanded((current) => !current)}
         />
       ) : null}
     </Table>
@@ -314,7 +387,7 @@ export function SourcesTable({
           <TableHead>Domain</TableHead>
           {engines.map((engine) => (
             <TableHead
-              className="hidden px-2 text-right sm:table-cell sm:w-14"
+              className="hidden px-2 text-right sm:table-cell"
               key={engine.id}
             >
               <span className="inline-flex" title={engine.label}>
@@ -342,7 +415,9 @@ export function SourcesTable({
             <TableCell>
               <span className="flex items-center gap-2.5">
                 <GeoBar className="w-12" max={max} value={row.share} />
-                <span className="font-medium">{formatPercent(row.share)}</span>
+                <span className="w-9 text-right font-medium">
+                  {formatPercent(row.share)}
+                </span>
               </span>
             </TableCell>
           </TableRow>

@@ -21,13 +21,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { TrafficSheetHero } from "@/components/geo/traffic-sheet-hero";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
 import type {
   GeoTrafficGroupPage,

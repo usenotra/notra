@@ -1,5 +1,13 @@
-import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
+"use client";
 
+import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
+import { cn } from "@notra/ui/lib/utils";
+import { type ReactNode, useState } from "react";
+
+import {
+  ReportPanel,
+  ShellFooterButton,
+} from "@/components/state-of-ai-search/report-section";
 import type { StateOfAiSearchOverview } from "@/types/state-of-ai-search";
 
 const LEAD_SEPARATOR = ": ";
@@ -105,5 +113,48 @@ export function AiOverviewCard({
         );
       })}
     </div>
+  );
+}
+
+/**
+ * The overview at the height of its neighbour: on wide screens the text is
+ * taken out of flow so the sources table sets the row height, then fades out
+ * until the reader opens it.
+ */
+export function AiOverviewPanel({
+  overview,
+  header,
+}: {
+  overview: StateOfAiSearchOverview;
+  header: ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <ReportPanel
+      bodyClassName={cn(
+        "relative overflow-hidden",
+        !expanded && "max-lg:max-h-[28rem] lg:min-h-[20rem]"
+      )}
+      className="h-full"
+      footer={
+        <ShellFooterButton
+          expanded={expanded}
+          onToggle={() => setExpanded((current) => !current)}
+        >
+          {expanded ? "Show less" : "Show full overview"}
+        </ShellFooterButton>
+      }
+      header={header}
+    >
+      <div className={cn(!expanded && "lg:absolute lg:inset-0")}>
+        <AiOverviewCard overview={overview} />
+      </div>
+      {expanded ? null : (
+        <div
+          aria-hidden="true"
+          className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t to-transparent"
+        />
+      )}
+    </ReportPanel>
   );
 }

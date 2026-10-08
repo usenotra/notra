@@ -13,11 +13,13 @@ import type {
   StateOfAiSearchEngineId,
   StateOfAiSearchOverview,
   StateOfAiSearchOverviewBlock,
+  StateOfAiSearchPromptAnswer,
   StateOfAiSearchPromptRow,
   StateOfAiSearchQuote,
   StateOfAiSearchRankingRow,
   StateOfAiSearchReport,
   StateOfAiSearchSource,
+  StateOfAiSearchSummary,
 } from "../../../../apps/web/src/types/state-of-ai-search";
 import {
   REPORT_CATEGORIES,
@@ -48,8 +50,11 @@ const ENGINE_LABELS: Record<StateOfAiSearchEngineId, string> = {
 };
 
 const MAX_SOURCES = 10;
-const MAX_QUOTES = 6;
-const MAX_QUOTES_PER_ENGINE = 2;
+const MAX_QUOTES = 3;
+const MAX_QUOTES_PER_ENGINE = 1;
+const MAX_PROMPT_SOURCES = 8;
+const MAX_RESPONSE_LENGTH = 6000;
+const SUMMARY_LEADERS = 3;
 const QUOTE_MIN_LENGTH = 50;
 const QUOTE_MAX_LENGTH = 260;
 /** "Profound, a competitor, calls it…" quotes someone about another brand. */
@@ -251,7 +256,48 @@ function buildPrompts(
       );
       return [first?.name ?? ""];
     });
+    const mentionCounts = Object.fromEntries(
+      [...counts.entries()].map(([brand, count]) => [brand.name, count])
+    );
+    const firstCounts: Record<string, number> = {};
+    for (const brand of firsts) {
+      firstCounts[brand.name] = (firstCounts[brand.name] ?? 0) + 1;
+    }
+    const responses: StateOfAiSearchPromptAnswer[] = ENGINE_ORDER.flatMap(
+      (engine) => {
+        const answer = answers
+          .filter((item) => item.raw.engine === engine)
+          .toSorted((a, b) => a.raw.sample - b.raw.sample)[0];
+        if (!answer) {
+          return [];
+        }
+        return [
+          {
+            engine,
+            text:
+              engine === "ai-overview"
+                ? ""
+                : answer.raw.text
+                    .replace(MARKDOWN_CITATION, "")
+                    .slice(0, MAX_RESPONSE_LENGTH)
+                    .trim(),
+            overview:
+              engine === "ai-overview" ? buildOverview(answer.raw) : null,
+            mentioned: answer.mentioned.map((brand) => brand.name),
+            sources: [
+              ...new Set(
+                answer.raw.sources.map((source) =>
+                  normalizeDomain(source.domain)
+                )
+              ),
+            ].slice(0, MAX_PROMPT_SOURCES),
+            collectedAt: answer.raw.collectedAt,
+          },
+        ];
+      }
+    );
     return {
+      id: promptIndex,
       prompt,
       topPick: topPick ? toBrand(topPick) : null,
       brands,
@@ -261,6 +307,9 @@ function buildPrompts(
         engineFirsts[0] !== "" &&
         engineFirsts.every((name) => name === engineFirsts[0]),
       aiOverviewShown: overviewShown.has(promptIndex),
+      mentions: mentionCounts,
+      firsts: firstCounts,
+      responses,
     };
   });
 }
@@ -393,13 +442,10 @@ function sentencesOf(text: string): string[] {
 }
 
 function buildQuotes(
-  leader: ReportBrand | undefined,
+  brand: ReportBrand,
   answered: AnalyzedAnswer[]
 ): StateOfAiSearchQuote[] {
-  if (!leader) {
-    return [];
-  }
-  const matchers = brandMatchers(leader);
+  const matchers = brandMatchers(brand);
   const candidates = answered.flatMap((answer) =>
     sentencesOf(answer.clean).flatMap((sentence) => {
       const index = firstMention(sentence, matchers);
@@ -506,9 +552,6 @@ async function buildReport(
   const ranking = buildRanking(category, byEngine, answered);
   const prompts = buildPrompts(category, answered, overviewShown);
   const { sources, citedDomains } = buildSources(byEngine, answered);
-  const leader = category.brands.find(
-    (brand) => brand.name === ranking[0]?.name
-  );
   const headIndex = category.prompts.indexOf(category.headQuery);
   const overview = buildOverview(
     overviewAnswers.find(
@@ -546,7 +589,12 @@ async function buildReport(
     prompts: [...prompts].sort((a, b) => b.brands.length - a.brands.length),
     sources,
     overview,
-    quotes: buildQuotes(leader, answered),
+    quotes: Object.fromEntries(
+      category.brands.flatMap((brand) => {
+        const quotes = buildQuotes(brand, answered);
+        return quotes.length > 0 ? [[brand.name, quotes]] : [];
+      })
+    ),
   };
 }
 
@@ -558,9 +606,24 @@ for (const category of REPORT_CATEGORIES) {
   }
   const dir = join(OUTPUT_ROOT, category.slug);
   await mkdir(dir, { recursive: true });
+  // Minified: the report is a lazy chunk on the site, not a file to diff by hand.
   await writeFile(
     join(dir, `${REPORT_EDITION}.json`),
-    `${JSON.stringify(report, null, 2)}\n`
+    `${JSON.stringify(report)}\n`
+  );
+  const summary: StateOfAiSearchSummary = {
+    slug: report.slug,
+    edition: report.edition,
+    editionLabel: report.editionLabel,
+    publishedAt: report.publishedAt,
+    subject: report.subject,
+    noun: report.noun,
+    engines: report.engines,
+    leaders: report.ranking.slice(0, SUMMARY_LEADERS),
+  };
+  await writeFile(
+    join(dir, `${REPORT_EDITION}.summary.json`),
+    `${JSON.stringify(summary, null, 2)}\n`
   );
   const top = report.ranking
     .slice(0, 3)

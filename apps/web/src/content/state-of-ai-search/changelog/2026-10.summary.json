@@ -1,0 +1,78 @@
+{
+  "slug": "changelog",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Changelog",
+  "noun": "changelog tool",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 2.9,
+      "sourcesPerAnswer": 4.2
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 5.8,
+      "sourcesPerAnswer": 8.7
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 1.9,
+      "sourcesPerAnswer": 6.9
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Headway",
+      "domain": "headwayapp.co",
+      "rank": 1,
+      "visibility": 54,
+      "topPick": 18,
+      "ownSiteCited": 15,
+      "byEngine": {
+        "chatgpt": 40,
+        "claude": 80,
+        "ai-overview": 43
+      },
+      "delta": null
+    },
+    {
+      "name": "Beamer",
+      "domain": "getbeamer.com",
+      "rank": 2,
+      "visibility": 52,
+      "topPick": 18,
+      "ownSiteCited": 16,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 80,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "Canny",
+      "domain": "canny.io",
+      "rank": 3,
+      "visibility": 50,
+      "topPick": 3,
+      "ownSiteCited": 19,
+      "byEngine": {
+        "chatgpt": 47,
+        "claude": 73,
+        "ai-overview": 29
+      },
+      "delta": null
+    }
+  ]
+}

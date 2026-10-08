@@ -1,0 +1,78 @@
+{
+  "slug": "postgres",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Postgres",
+  "noun": "Postgres provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 3.8,
+      "sourcesPerAnswer": 4.1
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 6.6,
+      "sourcesPerAnswer": 8.8
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 7.8
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Neon",
+      "domain": "neon.com",
+      "rank": 1,
+      "visibility": 90,
+      "topPick": 53,
+      "ownSiteCited": 28,
+      "byEngine": {
+        "chatgpt": 77,
+        "claude": 100,
+        "ai-overview": 93
+      },
+      "delta": null
+    },
+    {
+      "name": "Supabase",
+      "domain": "supabase.com",
+      "rank": 2,
+      "visibility": 90,
+      "topPick": 14,
+      "ownSiteCited": 31,
+      "byEngine": {
+        "chatgpt": 83,
+        "claude": 100,
+        "ai-overview": 86
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon RDS",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 76,
+      "topPick": 18,
+      "ownSiteCited": 24,
+      "byEngine": {
+        "chatgpt": 67,
+        "claude": 83,
+        "ai-overview": 79
+      },
+      "delta": null
+    }
+  ]
+}

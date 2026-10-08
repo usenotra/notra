@@ -5,7 +5,7 @@ import { ImageResponse } from "@vercel/og";
 import ditherDataUrl from "@/../public/blog/og-dither.png?inline";
 import logoSvg from "@/../public/notra-mark.svg?raw";
 import { STATE_OF_AI_SEARCH_TITLE } from "@/constants/state-of-ai-search";
-import { findReport } from "@/lib/state-of-ai-search/reports";
+import { findSummary } from "@/lib/state-of-ai-search/reports";
 import { loadImageAsDataUrl, loadInterFont } from "@/utils/og";
 
 const size = { width: 1200, height: 630 };
@@ -18,8 +18,8 @@ async function GET({
 }: {
   params: { category: string; edition: string };
 }) {
-  const report = findReport(params.category, params.edition);
-  const leaders = report?.ranking.slice(0, OG_LEADERS) ?? [];
+  const report = findSummary(params.category, params.edition);
+  const leaders = report?.leaders.slice(0, OG_LEADERS) ?? [];
   const [sansFont, sansBoldFont, ...logos] = await Promise.all([
     loadInterFont(400),
     loadInterFont(600),

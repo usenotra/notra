@@ -32,7 +32,22 @@ export interface StateOfAiSearchRankingRow extends StateOfAiSearchBrand {
   delta: number | null;
 }
 
+/** One engine's answer to a prompt, kept for the prompt drawer. */
+export interface StateOfAiSearchPromptAnswer {
+  engine: StateOfAiSearchEngineId;
+  /** Markdown answer with inline citations removed; empty for AI Overview. */
+  text: string;
+  /** Google's overview blocks; only set for AI Overview. */
+  overview: StateOfAiSearchOverview | null;
+  /** Tracked brands in order of first mention. */
+  mentioned: string[];
+  /** Distinct cited domains. */
+  sources: string[];
+  collectedAt: string;
+}
+
 export interface StateOfAiSearchPromptRow {
+  id: number;
   prompt: string;
   /** Brand named first most often across all answers to the prompt. */
   topPick: StateOfAiSearchBrand | null;
@@ -42,6 +57,12 @@ export interface StateOfAiSearchPromptRow {
   /** Every engine named the same brand first. */
   consensus: boolean;
   aiOverviewShown: boolean;
+  /** Answers naming each brand, keyed by brand name. */
+  mentions: Record<string, number>;
+  /** Answers that name each brand first, keyed by brand name. */
+  firsts: Record<string, number>;
+  /** First sample per engine. */
+  responses: StateOfAiSearchPromptAnswer[];
 }
 
 export interface StateOfAiSearchSource {
@@ -93,5 +114,20 @@ export interface StateOfAiSearchReport {
   prompts: StateOfAiSearchPromptRow[];
   sources: StateOfAiSearchSource[];
   overview: StateOfAiSearchOverview | null;
-  quotes: StateOfAiSearchQuote[];
+  /** Up to three quotes per brand, keyed by brand name. */
+  quotes: Record<string, StateOfAiSearchQuote[]>;
+}
+
+/** What listings need, so they can skip the full report. */
+export interface StateOfAiSearchSummary extends Pick<
+  StateOfAiSearchReport,
+  | "slug"
+  | "edition"
+  | "editionLabel"
+  | "publishedAt"
+  | "subject"
+  | "noun"
+  | "engines"
+> {
+  leaders: StateOfAiSearchRankingRow[];
 }

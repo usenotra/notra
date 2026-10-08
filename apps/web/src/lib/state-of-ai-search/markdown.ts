@@ -12,7 +12,7 @@ import {
 import { buildReportFindings } from "@/utils/state-of-ai-search-findings";
 import { SITE_URL } from "@/utils/urls";
 
-import { listLatestReports } from "./reports";
+import { listLatestSummaries } from "./reports";
 
 function table(header: string[], rows: string[][]): string {
   return [
@@ -23,7 +23,7 @@ function table(header: string[], rows: string[][]): string {
 }
 
 export function buildStateOfAiSearchIndexMarkdown(): string {
-  const reports = listLatestReports();
+  const reports = listLatestSummaries();
   return [
     `# ${STATE_OF_AI_SEARCH_TITLE}`,
     "",
@@ -32,8 +32,7 @@ export function buildStateOfAiSearchIndexMarkdown(): string {
     "## Reports",
     "",
     ...reports.map((report) => {
-      const leaders = report.ranking
-        .slice(0, 3)
+      const leaders = report.leaders
         .map((row) => `${row.name} (${row.visibility}%)`)
         .join(", ");
       return `- [${report.subject}, ${report.editionLabel}](${SITE_URL}${reportPath(report.slug, report.edition)}): ${leaders}`;

@@ -1,0 +1,78 @@
+{
+  "slug": "email-api",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Email API",
+  "noun": "transactional email API",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 3.9,
+      "sourcesPerAnswer": 4
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 5.9,
+      "sourcesPerAnswer": 9.7
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 12,
+      "brandsPerAnswer": 3.8,
+      "sourcesPerAnswer": 7.3
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Postmark",
+      "domain": "postmarkapp.com",
+      "rank": 1,
+      "visibility": 89,
+      "topPick": 25,
+      "ownSiteCited": 33,
+      "byEngine": {
+        "chatgpt": 83,
+        "claude": 100,
+        "ai-overview": 83
+      },
+      "delta": null
+    },
+    {
+      "name": "Resend",
+      "domain": "resend.com",
+      "rank": 2,
+      "visibility": 87,
+      "topPick": 38,
+      "ownSiteCited": 35,
+      "byEngine": {
+        "chatgpt": 93,
+        "claude": 93,
+        "ai-overview": 75
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon SES",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 77,
+      "topPick": 14,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 70,
+        "claude": 93,
+        "ai-overview": 67
+      },
+      "delta": null
+    }
+  ]
+}

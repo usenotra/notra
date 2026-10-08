@@ -68,6 +68,7 @@
 @source "../../../../packages/ui/src/components/ui/collapsible.tsx";
 @source "../../../../packages/ui/src/components/ui/command-tabs.tsx";
 @source "../../../../packages/ui/src/components/ui/context-menu.tsx";
+@source "../../../../packages/ui/src/components/ui/detail-sheet.tsx";
 @source "../../../../packages/ui/src/components/ui/dialog.tsx";
 @source "../../../../packages/ui/src/components/ui/dropdown-menu.tsx";
 @source "../../../../packages/ui/src/components/ui/expandable-tabs.tsx";
@@ -75,6 +76,10 @@
 @source "../../../../packages/ui/src/components/ui/input.tsx";
 @source "../../../../packages/ui/src/components/ui/kbd.tsx";
 @source "../../../../packages/ui/src/components/ui/label.tsx";
+@source "../../../../packages/ui/src/components/ui/permission-option.tsx";
+@source "../../../../packages/ui/src/components/ui/permission-row.tsx";
+@source "../../../../packages/ui/src/components/ui/permission-selector-context.ts";
+@source "../../../../packages/ui/src/components/ui/permission-selector.tsx";
 @source "../../../../packages/ui/src/components/ui/popover.tsx";
 @source "../../../../packages/ui/src/components/ui/scroll-area.tsx";
 @source "../../../../packages/ui/src/components/ui/select.tsx";
@@ -178,6 +183,7 @@
 @source "../../../../packages/ui/src/hooks/compose-refs.ts";
 @source "../../../../packages/ui/src/hooks/use-mobile.tsx";
 @source "../../../../packages/ui/src/hooks/use-opencode-frame.ts";
+@source "../../../../packages/ui/src/hooks/use-retained-value.ts";
 @source "../../../../packages/ui/src/lib/chatgpt-model.ts";
 @source "../../../../packages/ui/src/lib/claude-chat-model.ts";
 @source "../../../../packages/ui/src/lib/framework-image.ts";

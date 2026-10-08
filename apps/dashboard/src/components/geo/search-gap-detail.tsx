@@ -13,11 +13,11 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { GEO_SEARCH_GAP_ACTION_LABEL_KEYS } from "@/constants/geo-gaps";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   GeoAiSearchEvidenceProps,
   GeoConsoleSearchGapDetailsProps,

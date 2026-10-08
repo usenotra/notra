@@ -40,7 +40,7 @@ import {
   buildStateOfAiSearchIndexMarkdown,
   buildStateOfAiSearchReportMarkdown,
 } from "@/lib/state-of-ai-search/markdown";
-import { listReports } from "@/lib/state-of-ai-search/reports";
+import { listSummaries, loadReport } from "@/lib/state-of-ai-search/reports";
 import type { BlogAuthorMarkdownPage } from "@/types/blog-author";
 import { listNotraBlogPosts } from "@/utils/blog";
 import {
@@ -330,9 +330,12 @@ export function buildDualmarkStaticPages(): StaticPageConfig[] {
       pattern: STATE_OF_AI_SEARCH_PATH,
       render: () => buildStateOfAiSearchIndexMarkdown(),
     },
-    ...listReports().map((report) => ({
-      pattern: reportPath(report.slug, report.edition),
-      render: () => buildStateOfAiSearchReportMarkdown(report),
+    ...listSummaries().map((summary) => ({
+      pattern: reportPath(summary.slug, summary.edition),
+      render: async () => {
+        const report = await loadReport(summary.slug, summary.edition);
+        return report ? buildStateOfAiSearchReportMarkdown(report) : "";
+      },
     })),
     ...listCompareMarkdownPages().map((page) => ({
       pattern: page.pattern,

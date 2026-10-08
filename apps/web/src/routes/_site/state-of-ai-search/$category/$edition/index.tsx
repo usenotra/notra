@@ -6,8 +6,8 @@ import {
   STATE_OF_AI_SEARCH_URL,
 } from "@/constants/state-of-ai-search";
 import {
-  findReport,
-  listLatestReports,
+  listLatestSummaries,
+  loadReport,
 } from "@/lib/state-of-ai-search/reports";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -25,12 +25,12 @@ const OG_IMAGE_HEIGHT = 630;
 export const Route = createFileRoute(
   "/_site/state-of-ai-search/$category/$edition/"
 )({
-  loader: ({ params }) => {
-    const report = findReport(params.category, params.edition);
+  loader: async ({ params }) => {
+    const report = await loadReport(params.category, params.edition);
     if (!report) {
       throw notFound();
     }
-    const otherReports = listLatestReports().filter(
+    const otherReports = listLatestSummaries().filter(
       (other) => other.slug !== report.slug
     );
     return { report, otherReports };

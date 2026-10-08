@@ -1,0 +1,78 @@
+{
+  "slug": "app-hosting",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "App hosting",
+  "noun": "app hosting platform",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 4.9
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 7.8,
+      "sourcesPerAnswer": 10.3
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 15,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 7.1
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 1,
+      "visibility": 68,
+      "topPick": 23,
+      "ownSiteCited": 32,
+      "byEngine": {
+        "chatgpt": 77,
+        "claude": 80,
+        "ai-overview": 47
+      },
+      "delta": null
+    },
+    {
+      "name": "Railway",
+      "domain": "railway.com",
+      "rank": 2,
+      "visibility": 55,
+      "topPick": 11,
+      "ownSiteCited": 25,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 80,
+        "ai-overview": 33
+      },
+      "delta": null
+    },
+    {
+      "name": "AWS",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 52,
+      "topPick": 4,
+      "ownSiteCited": 11,
+      "byEngine": {
+        "chatgpt": 50,
+        "claude": 53,
+        "ai-overview": 53
+      },
+      "delta": null
+    }
+  ]
+}

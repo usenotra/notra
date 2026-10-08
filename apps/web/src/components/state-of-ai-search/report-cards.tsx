@@ -4,12 +4,16 @@ import { Link } from "@tanstack/react-router";
 import { ReportPanel } from "@/components/state-of-ai-search/report-section";
 import { Brand } from "@/components/state-of-ai-search/report-tables";
 import { REPORT_LEADER_LOGOS } from "@/constants/state-of-ai-search";
-import type { StateOfAiSearchReport } from "@/types/state-of-ai-search";
+import type { StateOfAiSearchSummary } from "@/types/state-of-ai-search";
 import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
 
 const PERCENT_MAX = 100;
 
-export function ReportCards({ reports }: { reports: StateOfAiSearchReport[] }) {
+export function ReportCards({
+  reports,
+}: {
+  reports: StateOfAiSearchSummary[];
+}) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {reports.map((report) => (
@@ -31,7 +35,7 @@ export function ReportCards({ reports }: { reports: StateOfAiSearchReport[] }) {
               }
             >
               <ol className="divide-border/60 divide-y">
-                {report.ranking.slice(0, REPORT_LEADER_LOGOS).map((row) => (
+                {report.leaders.slice(0, REPORT_LEADER_LOGOS).map((row) => (
                   <li
                     className="flex h-12 items-center gap-3 px-4 text-sm tabular-nums"
                     key={row.name}

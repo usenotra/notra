@@ -9,7 +9,7 @@ import { MCP_USE_CASES, MCP_USE_CASES_PATH } from "@/constants/mcp-use-cases";
 import { STATE_OF_AI_SEARCH_URL } from "@/constants/state-of-ai-search";
 import { fetchIntegrations } from "@/lib/integrations/fetch";
 import { getIntegrationHref } from "@/lib/integrations/helpers";
-import { listReports } from "@/lib/state-of-ai-search/reports";
+import { listSummaries } from "@/lib/state-of-ai-search/reports";
 import type { SitemapEntry } from "@/types/sitemap";
 import { getAuthorHref } from "@/utils/author-href";
 import { filterPostsByAuthorSlug, listNotraAuthors } from "@/utils/authors";
@@ -200,13 +200,13 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
     {
       url: STATE_OF_AI_SEARCH_URL,
       lastModified: new Date(
-        listReports()
+        listSummaries()
           .map((report) => report.publishedAt)
           .toSorted()
           .at(-1) ?? STATIC_PAGE_LAST_MODIFIED
       ),
     },
-    ...listReports().map((report) => ({
+    ...listSummaries().map((report) => ({
       url: `${SITE_URL}${reportPath(report.slug, report.edition)}`,
       lastModified: new Date(report.publishedAt),
     })),

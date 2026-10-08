@@ -1,20 +1,27 @@
+"use client";
+
 import { Download04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
-import { AiOverviewCard } from "@/components/state-of-ai-search/ai-overview-card";
-import { QuoteGrid } from "@/components/state-of-ai-search/quote-grid";
+import { AiOverviewPanel } from "@/components/state-of-ai-search/ai-overview-card";
+import { BrandSheet } from "@/components/state-of-ai-search/brand-sheet";
+import {
+  AnswerViewer,
+  PromptSheet,
+} from "@/components/state-of-ai-search/prompt-sheet";
 import { ReportCards } from "@/components/state-of-ai-search/report-cards";
 import {
   ReportBlock,
-  ReportPanel,
+  ReportPair,
 } from "@/components/state-of-ai-search/report-section";
 import {
-  EngineTable,
+  EngineHeatmap,
   PromptsTable,
   RankingTable,
   SourcesTable,
@@ -25,7 +32,12 @@ import {
   STATE_OF_AI_SEARCH_PATH,
   STATE_OF_AI_SEARCH_SIGNUP_SOURCE,
 } from "@/constants/state-of-ai-search";
-import type { StateOfAiSearchReport } from "@/types/state-of-ai-search";
+import type {
+  StateOfAiSearchPromptRow,
+  StateOfAiSearchRankingRow,
+  StateOfAiSearchReport,
+  StateOfAiSearchSummary,
+} from "@/types/state-of-ai-search";
 import {
   engineNames,
   formatReportDate,
@@ -48,11 +60,19 @@ export function ReportView({
   otherReports,
 }: {
   report: StateOfAiSearchReport;
-  otherReports: StateOfAiSearchReport[];
+  otherReports: StateOfAiSearchSummary[];
 }) {
-  const leader = report.ranking[0];
+  const [brandsExpanded, setBrandsExpanded] = useState(false);
+  const [brand, setBrand] = useState<StateOfAiSearchRankingRow | null>(null);
+  const [prompt, setPrompt] = useState<StateOfAiSearchPromptRow | null>(null);
   const csvHref = `${reportPath(report.slug, report.edition)}/data.csv`;
-  const { answers } = report.totals;
+  const toggleBrands = () => setBrandsExpanded((current) => !current);
+  const headPrompt =
+    report.prompts.find((row) => row.prompt === report.overview?.query) ??
+    report.prompts[0];
+
+  const openBrand = (row: StateOfAiSearchRankingRow) => setBrand(row);
+  const openPrompt = (row: StateOfAiSearchPromptRow) => setPrompt(row);
 
   return (
     <div className="flex w-full flex-col items-center gap-16 pb-16 antialiased [font-synthesis:none] md:gap-20 md:pb-24">
@@ -88,108 +108,88 @@ export function ReportView({
       </MarketingHeroWash>
 
       <div className="flex w-full max-w-[72rem] flex-col gap-12 px-4 sm:px-6">
-        <div className="grid gap-x-6 gap-y-12 lg:grid-cols-2">
-          <ReportBlock
-            description={`Share of ${answers} answers that name each of the ${report.ranking.length} brands, averaged over the assistants.`}
-            title="Visibility"
-          >
-            <RankingTable rows={report.ranking} />
-          </ReportBlock>
-          <ReportBlock
-            description="Share of each assistant's answers. Bold is the brand it names most."
-            title="By assistant"
-          >
-            <EngineTable engines={report.engines} rows={report.ranking} />
-          </ReportBlock>
-        </div>
+        <ReportPair
+          left={{
+            title: "Visibility",
+            description: `Share of ${report.totals.answers} answers naming the brand. Click a brand for details.`,
+            children: (
+              <RankingTable
+                expanded={brandsExpanded}
+                onSelect={openBrand}
+                onToggleExpanded={toggleBrands}
+                rows={report.ranking}
+              />
+            ),
+          }}
+          right={{
+            title: "By assistant",
+            description:
+              "Share of each assistant's answers that name the brand.",
+            children: (
+              <EngineHeatmap
+                engines={report.engines}
+                expanded={brandsExpanded}
+                onSelect={openBrand}
+                onToggleExpanded={toggleBrands}
+                rows={report.ranking}
+              />
+            ),
+          }}
+        />
 
         <ReportBlock
-          description="The questions we asked, every brand in the answers and the one named first."
+          description="The questions we asked and the brands in the answers. Click a prompt to read them."
           readout={`${report.prompts.length} prompts`}
           title="Prompts"
         >
-          <PromptsTable rows={report.prompts} />
+          <PromptsTable onSelect={openPrompt} rows={report.prompts} />
         </ReportBlock>
 
-        <div className="grid items-start gap-x-6 gap-y-12 lg:grid-cols-2">
-          {report.overview ? (
-            <ReportBlock
-              description="Google's answer above the results, from a US desktop search."
-              title="AI Overview"
-            >
-              <ReportPanel
-                header={
-                  <>
-                    <EngineIcon
-                      className="size-3.5"
-                      engine="google/ai-overview"
-                    />
-                    <span className="text-foreground truncate">
-                      “{report.overview.query}”
-                    </span>
-                  </>
-                }
-              >
-                <AiOverviewCard overview={report.overview} />
-              </ReportPanel>
-            </ReportBlock>
-          ) : null}
+        {headPrompt ? (
           <ReportBlock
-            description={`Share of answers that link to the domain. ${report.totals.citedDomains} domains cited in total.`}
-            title="Cited sources"
+            description={`What each assistant answered for “${headPrompt.prompt}”, word for word.`}
+            title="Read the answers"
           >
-            <SourcesTable engines={report.engines} rows={report.sources} />
-          </ReportBlock>
-        </div>
-
-        {leader && report.quotes.length > 0 ? (
-          <ReportBlock
-            description="Lines from today's answers, word for word."
-            title={`What AI says about ${leader.name}`}
-          >
-            <QuoteGrid
-              brand={leader.name}
-              engines={report.engines}
-              quotes={report.quotes}
+            <AnswerViewer
+              key={headPrompt.id}
+              prompt={headPrompt}
+              report={report}
             />
           </ReportBlock>
         ) : null}
 
-        <ReportBlock title="Methodology">
-          <ReportPanel bodyClassName="text-muted-foreground grid gap-6 p-4 text-sm/6 text-pretty md:grid-cols-3">
-            <p>
-              <span className="text-foreground block font-medium">
-                What we asked
-              </span>
-              On {formatReportDate(report.publishedAt)} each prompt went to
-              ChatGPT and Claude twice, both with web search on, and once to a
-              US Google search for its AI Overview.
-            </p>
-            <p>
-              <span className="text-foreground block font-medium">
-                How we count
-              </span>
-              A brand counts when its name or an alias appears as a whole word.
-              Visibility averages the assistants, so none of them outweighs the
-              others.
-            </p>
-            <p>
-              <span className="text-foreground block font-medium">
-                How to read it
-              </span>
-              Answers change from run to run, so a few points are noise. Every
-              number is in the{" "}
-              <a
-                className="text-foreground underline underline-offset-4"
-                download
-                href={csvHref}
-              >
-                CSV
-              </a>
-              .
-            </p>
-          </ReportPanel>
-        </ReportBlock>
+        {report.overview ? (
+          <ReportPair
+            left={{
+              title: "AI Overview",
+              description:
+                "Google's answer above the results, from a US desktop search.",
+              children: (
+                <AiOverviewPanel
+                  header={
+                    <>
+                      <EngineIcon
+                        className="size-3.5"
+                        engine="google/ai-overview"
+                      />
+                      <span className="text-foreground truncate">
+                        “{report.overview.query}”
+                      </span>
+                    </>
+                  }
+                  overview={report.overview}
+                />
+              ),
+            }}
+            right={{
+              title: "Cited sources",
+              description: `Share of answers linking to the domain, out of ${report.totals.citedDomains} cited.`,
+              children: (
+                <SourcesTable engines={report.engines} rows={report.sources} />
+              ),
+            }}
+          />
+        ) : null}
 
         {otherReports.length > 0 ? (
           <ReportBlock title="More reports">
@@ -205,6 +205,17 @@ export function ReportView({
           subcopy={STATE_OF_AI_SEARCH_CTA_SUBCOPY}
         />
       </div>
+
+      <BrandSheet
+        brand={brand}
+        onClose={() => setBrand(null)}
+        report={report}
+      />
+      <PromptSheet
+        onClose={() => setPrompt(null)}
+        prompt={prompt}
+        report={report}
+      />
     </div>
   );
 }

@@ -1,0 +1,78 @@
+{
+  "slug": "auth",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-07",
+  "subject": "Auth",
+  "noun": "auth provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 30,
+      "brandsPerAnswer": 4.2,
+      "sourcesPerAnswer": 4.6
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 30,
+      "brandsPerAnswer": 7.1,
+      "sourcesPerAnswer": 9.1
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 14,
+      "brandsPerAnswer": 4.1,
+      "sourcesPerAnswer": 7.3
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Clerk",
+      "domain": "clerk.com",
+      "rank": 1,
+      "visibility": 72,
+      "topPick": 22,
+      "ownSiteCited": 34,
+      "byEngine": {
+        "chatgpt": 73,
+        "claude": 87,
+        "ai-overview": 57
+      },
+      "delta": null
+    },
+    {
+      "name": "Auth0",
+      "domain": "auth0.com",
+      "rank": 2,
+      "visibility": 70,
+      "topPick": 12,
+      "ownSiteCited": 22,
+      "byEngine": {
+        "chatgpt": 57,
+        "claude": 83,
+        "ai-overview": 71
+      },
+      "delta": null
+    },
+    {
+      "name": "WorkOS",
+      "domain": "workos.com",
+      "rank": 3,
+      "visibility": 60,
+      "topPick": 19,
+      "ownSiteCited": 34,
+      "byEngine": {
+        "chatgpt": 63,
+        "claude": 73,
+        "ai-overview": 43
+      },
+      "delta": null
+    }
+  ]
+}

@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { findReport } from "@/lib/state-of-ai-search/reports";
+import { loadReport } from "@/lib/state-of-ai-search/reports";
 import { buildReportCsv } from "@/utils/state-of-ai-search";
 
-function GET({ params }: { params: { category: string; edition: string } }) {
-  const report = findReport(params.category, params.edition);
+async function GET({
+  params,
+}: {
+  params: { category: string; edition: string };
+}) {
+  const report = await loadReport(params.category, params.edition);
   if (!report) {
     return new Response("Not found", { status: 404 });
   }
