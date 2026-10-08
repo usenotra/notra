@@ -54,7 +54,6 @@ export function SiteCreateStarter({
         <AlertDescription>{t("optional")}</AlertDescription>
         <div className="col-start-2 pt-2">
           <a
-            aria-label={t("view")}
             className="border-border text-muted-foreground hover:bg-muted hover:text-foreground inline-flex max-w-full items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors"
             href={openUrl}
             rel="noopener noreferrer"
