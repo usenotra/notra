@@ -1,9 +1,9 @@
-import type { BlogEntry } from "../types/entries";
+import type { BlogEntry, FeaturedEntries } from "../types/entries";
 
 export function splitFeatured(
   entries: BlogEntry[],
   featured: "latest" | "none" | string[]
-): { featured: BlogEntry[]; rest: BlogEntry[] } {
+): FeaturedEntries {
   let picked: BlogEntry[] = [];
   if (featured === "latest") {
     picked = entries.slice(0, 1);

@@ -8,7 +8,7 @@ import type {
   SiteMounts,
 } from "@notra/sites-core/types/deployment";
 
-const MOUNT_SEGMENT = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
+import { MOUNT_SEGMENT } from "../constants/mounts";
 
 class SiteMountError extends Error {
   readonly name = "SiteMountError";

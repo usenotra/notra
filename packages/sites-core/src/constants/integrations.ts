@@ -21,3 +21,13 @@ export const GOOGLE_ANALYTICS_CONNECT_ORIGINS = [
   "https://*.google-analytics.com",
   "https://*.analytics.google.com",
 ] as const;
+
+const HOST = String.raw`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}`;
+const PORT = String.raw`(?::\d{1,5})?`;
+export const HOSTNAME = new RegExp(`^${HOST}$`);
+export const HTTPS_BASE_URL = new RegExp(
+  String.raw`^https:\/\/${HOST}${PORT}(?:\/[A-Za-z0-9._~-]+)*$`
+);
+export const CSP_ORIGIN = new RegExp(
+  String.raw`^(?:https|wss):\/\/(?:\*\.)?${HOST}${PORT}$`
+);

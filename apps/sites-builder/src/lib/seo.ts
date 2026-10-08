@@ -4,7 +4,12 @@ import {
   TOUCH_ICON_EXTENSIONS,
   X_HOSTS,
 } from "../constants/seo";
-import type { ExtraMetaTag, JsonLdNode, SocialImage } from "../types/seo";
+import type {
+  ExtraMetaTag,
+  JsonLdNode,
+  SocialImage,
+  ThemeColors,
+} from "../types/seo";
 import {
   absoluteUrl,
   areaTitle,
@@ -150,7 +155,7 @@ export function twitterHandle(): string | undefined {
   return undefined;
 }
 
-export function themeColors(): { light: string; dark: string } {
+export function themeColors(): ThemeColors {
   return {
     light: config.background.color?.light ?? DEFAULT_THEME_COLORS.light,
     dark: config.background.color?.dark ?? DEFAULT_THEME_COLORS.dark,

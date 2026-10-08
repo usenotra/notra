@@ -1,5 +1,13 @@
 import { expect, test } from "bun:test";
-import { cp, mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -53,6 +61,10 @@ test("real fixture and empty-source builds use snapshot config without adding so
           filter: (path) =>
             path !== join(toolchainRoot, "fixtures/acme/blog.json"),
         });
+        await writeFile(
+          join(siteRoot, "header.mdx"),
+          "<header><SiteAreas /><ThemeToggle /><Note>Leaf import build proof</Note></header>\n"
+        );
       } else {
         await mkdir(siteRoot);
       }
@@ -94,6 +106,11 @@ test("real fixture and empty-source builds use snapshot config without adding so
       for (const area of ["blog", "changelog"]) {
         const html = await readFile(join(outDir, area, "index.html"), "utf8");
         expect(html).toContain("Frozen build name");
+        if (source === "fixture") {
+          expect(html).toContain("Leaf import build proof");
+          expect(html).toContain('aria-label="Sections"');
+          expect(html).toContain("data-theme-toggle");
+        }
         const markdown404 = await readFile(
           join(outDir, area, "404.md"),
           "utf8"

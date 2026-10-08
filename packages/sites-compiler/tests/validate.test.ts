@@ -134,7 +134,8 @@ describe("site contract", () => {
     expect(launch).toContain('from "@site/snippets/counter.jsx"');
     expect(launch).toContain("<Counter client:load />");
     expect(launch).toContain("<Toggle client:load />");
-    expect(launch).toContain('import { Note } from "@notra/builtins"');
+    expect(launch).toContain('import Note from "@notra/builtins/Note.astro";');
+    expect(launch).toContain("<Note>Built-in</Note>");
     expect(launch).not.toContain("export const Toggle");
     expect(result.outputs.get("blog/launch.mdx.notra-inline.jsx")).toContain(
       'import { useState } from "react"'
@@ -149,6 +150,69 @@ describe("site contract", () => {
       result.entries.map((entry) => `${entry.area}:${entry.slug}`)
     ).toEqual(["blog:launch"]);
   });
+
+  test("built-ins use only sorted default leaf imports with exact spellings", () => {
+    const body = [
+      '<YouTube id="video" />',
+      "<ThemeToggle />",
+      "<SiteAreas />",
+      "<Note>First</Note>",
+      "<Note>Second</Note>",
+      '<Warning title="Careful">Warning text</Warning>',
+    ].join("\n\n");
+    const result = run({ "blog/post.mdx": post(body) });
+    expect(errors(result)).toEqual([]);
+    const output = result.outputs.get("blog/post.mdx") ?? "";
+    expect(output).toBe(
+      [
+        "---",
+        "title: Hello",
+        "date: 2026-10-01",
+        "---",
+        'import Note from "@notra/builtins/Note.astro";',
+        'import SiteAreas from "@notra/builtins/SiteAreas.astro";',
+        'import ThemeToggle from "@notra/builtins/ThemeToggle.astro";',
+        'import Warning from "@notra/builtins/Warning.astro";',
+        'import YouTube from "@notra/builtins/YouTube.astro";',
+        "",
+        "",
+        body,
+        "",
+      ].join("\n")
+    );
+    expect(output).not.toContain("client:load");
+    expect(output).not.toContain("@notra/builtins/Tip.astro");
+    expect(errors(run({ "blog/post.mdx": post("<Youtube />") }))).toEqual([
+      "blog/post.mdx:6 unknown_component",
+    ]);
+  });
+
+  test("a local component alias takes precedence over builtin detection", () => {
+    const result = run({
+      "snippets/note.jsx": "export const CustomNote = () => <b>Custom</b>;",
+      "blog/post.mdx": post(
+        'import { CustomNote as Note } from "/snippets/note.jsx";\n\n<Note />'
+      ),
+    });
+    expect(errors(result)).toEqual([]);
+    const output = result.outputs.get("blog/post.mdx") ?? "";
+    expect(output).toContain(
+      'import { CustomNote as Note } from "@site/snippets/note.jsx";'
+    );
+    expect(output).toContain("<Note client:load />");
+    expect(output).not.toContain("@notra/builtins");
+  });
+
+  test.each(["@notra/builtins", "@notra/builtins/Note.astro"])(
+    "author imports cannot access the generated builtin path %s",
+    (source) => {
+      const result = run({
+        "blog/post.mdx": post(`import Note from "${source}";\n\n<Note />`),
+      });
+      expect(errors(result)).toContain("blog/post.mdx:6 import");
+      expect(result.outputs.has("blog/post.mdx")).toBe(false);
+    }
+  );
 
   test("rejects what the contract forbids, with file and line", () => {
     const result = run({
@@ -262,8 +326,9 @@ describe("header, footer and slots", () => {
       "<Counter client:load />"
     );
     expect(result.outputs.get("footer.mdx")).toContain(
-      'import { Note } from "@notra/builtins"'
+      'import Note from "@notra/builtins/Note.astro";'
     );
+    expect(result.outputs.get("footer.mdx")).toContain("<Note>© Acme</Note>");
     expect(result.outputs.get("slots/after-post.mdx")).toContain(
       "{props.post.title}"
     );

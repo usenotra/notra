@@ -1,12 +1,6 @@
 ---
+import type { IconProps as Props } from "../types/icons";
 import { ICONS } from "../constants/icons";
-import type { IconName } from "../types/icons";
-
-interface Props {
-  name: IconName;
-  size?: number;
-  class?: string;
-}
 
 const { name, size = 16, class: className } = Astro.props;
 ---

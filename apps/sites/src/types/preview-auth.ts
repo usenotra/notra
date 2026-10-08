@@ -7,3 +7,8 @@ export interface PreviewRequestContext extends SiteRequestContext {
   siteId: string;
   previewKey: string;
 }
+
+export interface PreviewPasswordForm {
+  password: string;
+  next: string;
+}

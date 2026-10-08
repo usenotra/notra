@@ -1,11 +1,8 @@
 ---
+import type { CustomChromeProps as Props } from "../types/site-files";
 import { chromeComponent } from "../lib/site-files";
 import { params } from "../lib/params";
 import PoweredByNotra from "./PoweredByNotra.astro";
-
-interface Props {
-  part: "header" | "footer";
-}
 
 const { part } = Astro.props;
 const Component = chromeComponent(part);

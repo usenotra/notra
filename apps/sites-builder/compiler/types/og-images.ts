@@ -19,6 +19,11 @@ export interface OgImagesResult {
   durationMs: number;
 }
 
+export interface OgBackgroundResult {
+  dataUri?: string;
+  diagnostic?: SiteDiagnostic;
+}
+
 export interface OgCardContent {
   eyebrow: string;
   title: string;

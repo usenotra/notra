@@ -8,12 +8,14 @@ import {
 } from "@notra/sites-core/constants/sites";
 import type { ParsedSiteHost } from "@notra/sites-core/types/hosts";
 
-const HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
-const SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
-const PREVIEW_KEY = /^(?:pr|br)-[a-z0-9-]+$/;
-const NON_SLUG_CHARACTERS = /[^a-z0-9]+/g;
-const EDGE_DASHES = /^-|-$/g;
-const COMBINING_MARKS = /[\u0300-\u036f]/g;
+import {
+  HOST_LABEL,
+  SLUG,
+  PREVIEW_KEY,
+  NON_SLUG_CHARACTERS,
+  EDGE_DASHES,
+  COMBINING_MARKS,
+} from "../constants/hosts";
 
 function dashCase(value: string): string {
   return value

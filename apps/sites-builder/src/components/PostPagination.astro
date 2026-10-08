@@ -1,14 +1,9 @@
 ---
+import type { PostPaginationProps as Props } from "../types/entries";
 import { authorsOf } from "../lib/authors";
 import { href } from "../lib/params";
-import type { BlogEntry } from "../types/entries";
 import AuthorAvatar from "./AuthorAvatar.astro";
 import Icon from "./Icon.astro";
-
-interface Props {
-  next?: BlogEntry;
-  previous?: BlogEntry;
-}
 
 const { next, previous } = Astro.props;
 const cards = [

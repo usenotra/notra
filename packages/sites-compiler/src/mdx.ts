@@ -18,7 +18,6 @@ import {
   BLOCKED_ELEMENT_HINT,
   BLOCKED_HTML_ELEMENTS,
 } from "./constants/elements";
-import { missingHookImports, parseJsxModule } from "./jsx";
 import type {
   EsmNode,
   InlineModule,
@@ -38,6 +37,7 @@ import {
   nodeRange,
   referencedIdentifiers,
 } from "./utils/estree";
+import { missingHookImports, parseJsxModule } from "./utils/jsx";
 import {
   expressionPrograms,
   hasClientDirective,
@@ -393,7 +393,13 @@ export function analyzeMdxFile(
     pass.edits.push({
       start: frontmatterLength,
       end: frontmatterLength,
-      text: `import { ${[...usedBuiltins].sort().join(", ")} } from ${JSON.stringify(BUILTINS_IMPORT_SOURCE)};\n\n`,
+      text: `${[...usedBuiltins]
+        .sort()
+        .map(
+          (name) =>
+            `import ${name} from ${JSON.stringify(`${BUILTINS_IMPORT_SOURCE}/${name}.astro`)};`
+        )
+        .join("\n")}\n\n`,
     });
   }
   const edited = applyEdits(text, pass.edits);

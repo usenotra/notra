@@ -1,16 +1,10 @@
 ---
+import type { ChangelogEntryProps as Props } from "../types/entries";
 import { render } from "astro:content";
 import { assetUrl, href } from "../lib/params";
-import type { ChangelogEntry } from "../types/entries";
 import { formatDate, isoDate } from "../utils/dates";
 import { excerpt } from "../utils/excerpt";
 import Icon from "./Icon.astro";
-
-interface Props {
-  entry: ChangelogEntry;
-  standalone?: boolean;
-  layout?: "timeline" | "cards" | "compact";
-}
 
 const { entry, standalone = false, layout = "timeline" } = Astro.props;
 const { Content } = await render(entry);

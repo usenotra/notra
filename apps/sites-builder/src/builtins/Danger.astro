@@ -1,8 +1,7 @@
 ---
+import type { DangerProps as Props } from "../types/builtins";
 import Callout from "./Callout.astro";
-interface Props {
-  title?: string;
-}
+
 ---
 
 <Callout variant="danger" title={Astro.props.title}><slot /></Callout>

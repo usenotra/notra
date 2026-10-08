@@ -1,9 +1,5 @@
 ---
-import type { MarkdownHeading } from "astro";
-
-interface Props {
-  headings: MarkdownHeading[];
-}
+import type { TocProps as Props } from "../types/toc";
 
 const items = Astro.props.headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 ---

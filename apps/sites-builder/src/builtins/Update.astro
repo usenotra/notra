@@ -1,9 +1,6 @@
 ---
-interface Props {
-  label: string;
-  description?: string;
-  tags?: string[];
-}
+import type { UpdateProps as Props } from "../types/builtins";
+
 const { label, description } = Astro.props;
 const anchor = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 ---

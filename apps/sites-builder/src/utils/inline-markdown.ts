@@ -19,10 +19,13 @@ function escapeHtml(text: string): string {
 function emphasis(escaped: string): string {
   return escaped
     .replace(
-      STRONG,
+      INLINE_STRONG,
       (_, a?: string, b?: string) => `<strong>${a ?? b}</strong>`
     )
-    .replace(EMPHASIS, (_, a?: string, b?: string) => `<em>${a ?? b}</em>`);
+    .replace(
+      INLINE_EMPHASIS,
+      (_, a?: string, b?: string) => `<em>${a ?? b}</em>`
+    );
 }
 
 export function renderInlineMarkdown(source: string): string {
@@ -32,15 +35,15 @@ export function renderInlineMarkdown(source: string): string {
     return `\uE000${pieces.length - 1}\uE000`;
   };
   const withoutMarkers = source.replaceAll("\uE000", "");
-  const withCode = withoutMarkers.replace(CODE, (_, code: string) =>
+  const withCode = withoutMarkers.replace(INLINE_CODE, (_, code: string) =>
     hold(`<code>${escapeHtml(code)}</code>`)
   );
   const withLinks = withCode.replace(
-    LINK,
+    INLINE_LINK,
     (_, label: string, target: string) => {
       const text = emphasis(escapeHtml(label));
       return hold(
-        SAFE_HREF.test(target)
+        INLINE_SAFE_HREF.test(target)
           ? `<a href="${escapeHtml(target)}">${text}</a>`
           : text
       );
@@ -50,7 +53,7 @@ export function renderInlineMarkdown(source: string): string {
   let restored = html;
   while (restored.includes("\uE000")) {
     restored = restored.replace(
-      PLACEHOLDER,
+      INLINE_PLACEHOLDER,
       (_, index: string) => pieces[Number(index)] ?? ""
     );
   }

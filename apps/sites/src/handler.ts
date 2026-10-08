@@ -32,10 +32,8 @@ import {
   previewAccessDenied,
 } from "./preview-auth";
 import {
-  html,
   markdownNotFound,
   methodNotAllowed,
-  plainText,
   robotsTxt,
   serveFile,
 } from "./responses";
@@ -46,6 +44,7 @@ import type {
   SiteRequestContext,
 } from "./types/serving";
 import type { SitesDeps } from "./types/worker";
+import { html, plainText } from "./utils/responses";
 import {
   markdownTwin,
   matchRedirect,

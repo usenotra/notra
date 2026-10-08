@@ -1,8 +1,6 @@
 ---
-interface Props {
-  id: string;
-  title?: string;
-}
+import type { YouTubeProps as Props } from "../types/builtins";
+
 const { id, title = "YouTube video" } = Astro.props;
 const safeId = id.replace(/[^A-Za-z0-9_-]/g, "");
 ---

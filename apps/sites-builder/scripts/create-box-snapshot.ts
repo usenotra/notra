@@ -15,8 +15,9 @@ import { parseArgs } from "node:util";
 
 import { Box } from "@upstash/box";
 
+import { WORKDIR } from "./constants/box-snapshot";
+
 const ROOT = resolve(import.meta.dir, "..");
-const WORKDIR = "/workspace/home";
 const { values } = parseArgs({ options: { "write-env": { type: "string" } } });
 
 function listFiles(dir: string): string[] {

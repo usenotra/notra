@@ -1,15 +1,11 @@
 import { SITE_CSP_MAX_ALLOWED_ORIGINS } from "@notra/sites-core/constants/security";
 import { z } from "zod";
 
-const HOST = String.raw`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}`;
-const PORT = String.raw`(?::\d{1,5})?`;
-const HOSTNAME = new RegExp(`^${HOST}$`);
-const HTTPS_BASE_URL = new RegExp(
-  String.raw`^https:\/\/${HOST}${PORT}(?:\/[A-Za-z0-9._~-]+)*$`
-);
-const CSP_ORIGIN = new RegExp(
-  String.raw`^(?:https|wss):\/\/(?:\*\.)?${HOST}${PORT}$`
-);
+import {
+  HOSTNAME,
+  HTTPS_BASE_URL,
+  CSP_ORIGIN,
+} from "../constants/integrations";
 
 const databuddySchema = z.strictObject({
   clientId: z

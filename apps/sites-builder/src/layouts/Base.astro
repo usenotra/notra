@@ -1,4 +1,5 @@
 ---
+import type { BaseLayoutProps as Props } from "../types/seo";
 import "../styles/global.css";
 import "@notra/custom-css";
 import Banner from "../components/Banner.astro";
@@ -12,22 +13,7 @@ import { absoluteUrl, areaTitle, config, llmsHref, namedAreaTitle, params } from
 import { extraMetaTags, socialImage, structuredData, themeColors, touchIcon, twitterHandle } from "../lib/seo";
 import { chromeComponent } from "../lib/site-files";
 import { decorationClass, faviconFor, fontFaces, googleFontsUrl, themeStyle } from "../lib/theme";
-import type { JsonLdNode } from "../types/seo";
 import { mountPath } from "../utils/paths";
-
-interface Props {
-  title: string;
-  description?: string;
-  image?: string;
-  generatedImage?: string;
-  type?: "website" | "article";
-  noindex?: boolean;
-  publishedTime?: Date;
-  modifiedTime?: Date;
-  tags?: string[];
-  markdown?: string;
-  jsonLd?: JsonLdNode[];
-}
 
 const { title, description, image, generatedImage, type = "website", noindex = false, publishedTime, modifiedTime, tags = [], markdown, jsonLd } = Astro.props;
 const canonicalPath = Astro.url.pathname.length > 1 ? Astro.url.pathname.replace(/\/+$/, "") : Astro.url.pathname;

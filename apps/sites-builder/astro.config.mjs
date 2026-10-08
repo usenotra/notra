@@ -68,7 +68,13 @@ export default defineConfig({
     resolve: {
       alias: {
         "@site": siteDir,
-        "@notra/builtins": resolve("src/builtins/index.ts"),
+        "@notra/builtins/SiteAreas.astro": resolve(
+          "src/components/SiteAreas.astro"
+        ),
+        "@notra/builtins/ThemeToggle.astro": resolve(
+          "src/components/ThemeToggle.astro"
+        ),
+        "@notra/builtins": resolve("src/builtins"),
         "@notra/custom-css": resolve(workDir, "custom.css"),
       },
     },

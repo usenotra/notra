@@ -6,3 +6,7 @@ export interface ResolvedBanner {
   dark: string;
   foreground: string;
 }
+
+export interface BannerProps {
+  banner: ResolvedBanner;
+}

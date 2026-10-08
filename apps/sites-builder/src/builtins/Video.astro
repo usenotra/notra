@@ -1,9 +1,6 @@
 ---
-interface Props {
-  src: string;
-  poster?: string;
-  title?: string;
-}
+import type { VideoProps as Props } from "../types/builtins";
+
 const { src, poster, title } = Astro.props;
 ---
 

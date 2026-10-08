@@ -1,13 +1,8 @@
 ---
+import type { CopyArticleProps as Props } from "../types/contextual";
 import { contextualActions } from "../lib/contextual";
 import Icon from "./Icon.astro";
 import LinkIcon from "./LinkIcon.astro";
-
-interface Props {
-  markdownHref: string;
-  pagePath: string;
-  title: string;
-}
 
 const { markdownHref, pagePath, title } = Astro.props;
 const { copy, menu } = contextualActions({ title, pagePath, markdownHref });

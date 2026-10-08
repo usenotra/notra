@@ -1,13 +1,7 @@
 ---
-import type { LinkIcon } from "../types/icons";
+import type { LinkIconProps as Props } from "../types/icons";
 import BrandIcon from "./BrandIcon.astro";
 import Icon from "./Icon.astro";
-
-interface Props {
-  icon: LinkIcon | undefined;
-  size?: number;
-  class?: string;
-}
 
 const { icon, size = 16, class: className } = Astro.props;
 const brandSize = Math.round(size * 0.875);

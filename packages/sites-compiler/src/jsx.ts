@@ -1,9 +1,6 @@
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
-import { Parser } from "acorn";
-import jsx from "acorn-jsx";
 import type { Program } from "estree";
 
-import { INJECTED_HOOK_NAMES } from "./constants/builtins";
 import type { JsxSnippetAnalysis } from "./types/jsx";
 import { hasErrors } from "./utils/diagnostics";
 import { acornSyntaxError } from "./utils/errors";
@@ -12,34 +9,9 @@ import {
   exportedDeclarationNames,
   forbiddenUsage,
   nodeRange,
-  referencedIdentifiers,
 } from "./utils/estree";
+import { missingHookImports, parseJsxModule } from "./utils/jsx";
 import { offsetToLineColumn } from "./utils/paths";
-
-const JsxParser = Parser.extend(jsx());
-
-export function parseJsxModule(source: string): Program {
-  return JsxParser.parse(source, {
-    ecmaVersion: "latest",
-    sourceType: "module",
-  }) as unknown as Program;
-}
-
-export function missingHookImports(
-  program: Program,
-  ownNames: ReadonlySet<string>
-): string[] {
-  const missing = new Set<string>();
-  for (const reference of referencedIdentifiers(program)) {
-    if (
-      INJECTED_HOOK_NAMES.has(reference.name) &&
-      !ownNames.has(reference.name)
-    ) {
-      missing.add(reference.name);
-    }
-  }
-  return [...missing].sort();
-}
 
 export function analyzeJsxSnippet(
   path: string,

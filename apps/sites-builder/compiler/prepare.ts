@@ -3,7 +3,8 @@ import { cp, mkdir, readFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { hasErrors } from "@notra/sites-compiler/utils/diagnostics";
-import { isTextSourceFile, validateSite } from "@notra/sites-compiler/validate";
+import { isTextSourceFile } from "@notra/sites-compiler/utils/paths";
+import { validateSite } from "@notra/sites-compiler/validate";
 import { SITE_AREAS, SITE_ASSETS_DIR } from "@notra/sites-core/constants/sites";
 import { sortCustomScriptPaths } from "@notra/sites-core/utils/custom-scripts";
 import { isSiteStylesheet } from "@notra/sites-core/utils/source-files";

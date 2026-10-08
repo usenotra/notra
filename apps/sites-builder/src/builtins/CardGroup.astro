@@ -1,9 +1,7 @@
 ---
+import type { CardGroupProps as Props } from "../types/builtins";
 import { CARD_GROUP_GRID } from "../constants/builtins";
 
-interface Props {
-  cols?: number;
-}
 const cols = Math.min(Math.max(Number(Astro.props.cols ?? 2), 1), 4);
 const grid = CARD_GROUP_GRID[cols];
 ---

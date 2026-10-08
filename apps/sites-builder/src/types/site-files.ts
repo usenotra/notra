@@ -33,3 +33,13 @@ export interface SlotChangelogEntry {
   date: string;
   url: string;
 }
+
+export interface CustomChromeProps {
+  part: "header" | "footer";
+}
+
+export interface SiteSlotProps {
+  name: SlotName;
+  data?: Record<string, unknown>;
+  class?: string;
+}

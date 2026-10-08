@@ -19,7 +19,6 @@ import {
   ENTRY_SLUG,
   MDX_FILE,
   SCRIPT_FILE,
-  TEXT_SOURCE_FILE,
 } from "./constants/validate";
 import { parseEntryFrontmatter } from "./frontmatter";
 import { analyzeJsxSnippet } from "./jsx";
@@ -31,6 +30,7 @@ import type {
   ParsedSiteConfig,
   SiteValidationInput,
   SiteValidationResult,
+  SubstitutedSettings,
   SubstitutedSources,
 } from "./types/validate";
 import {
@@ -41,12 +41,8 @@ import { hasErrors } from "./utils/diagnostics";
 import { acornSyntaxError } from "./utils/errors";
 import { importCycleDiagnostics } from "./utils/import-cycles";
 import { blockedMarkdownHtml } from "./utils/markdown-html";
-import { offsetToLineColumn } from "./utils/paths";
+import { isTextSourceFile, offsetToLineColumn } from "./utils/paths";
 import { substituteSettingText, substituteVariables } from "./utils/variables";
-
-export function isTextSourceFile(path: string): boolean {
-  return TEXT_SOURCE_FILE.test(path);
-}
 
 function entryCandidate(path: string): EntryCandidate | null {
   const match = ENTRY_FILE.exec(path);
@@ -98,10 +94,7 @@ function validateSlotFile(path: string): SiteDiagnostic[] {
   ];
 }
 
-function substituteSettingVariables(config: SiteConfig): {
-  config: SiteConfig;
-  diagnostics: SiteDiagnostic[];
-} {
+function substituteSettingVariables(config: SiteConfig): SubstitutedSettings {
   const diagnostics: SiteDiagnostic[] = [];
   const fill = (text: string | undefined, setting: string) => {
     if (text === undefined || !text.includes("{{")) {

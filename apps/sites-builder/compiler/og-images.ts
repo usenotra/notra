@@ -20,6 +20,7 @@ import {
   OG_IMAGES_DIR,
 } from "./constants/og-images";
 import type {
+  OgBackgroundResult,
   OgCardContent,
   OgImagesResult,
   OgManifest,
@@ -63,7 +64,7 @@ function formatDate(date: Date): string {
 
 async function loadBackground(
   params: WriteOgImagesParams
-): Promise<{ dataUri?: string; diagnostic?: SiteDiagnostic }> {
+): Promise<OgBackgroundResult> {
   const path = params.config.thumbnails.background;
   if (!path) {
     return {};

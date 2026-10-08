@@ -1,10 +1,5 @@
 ---
-interface Props {
-  title?: string;
-  href?: string;
-  img?: string;
-  cta?: string;
-}
+import type { CardProps as Props } from "../types/builtins";
 
 const { title, href, img, cta } = Astro.props;
 const Element = href ? "a" : "div";

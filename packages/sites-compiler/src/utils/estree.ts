@@ -5,6 +5,7 @@ import { COMPONENT_NAME, NODE_ONLY_GLOBALS } from "../constants/builtins";
 import type {
   ForbiddenSyntax,
   IdentifierReference,
+  JsxReferenceNode,
   SourceRange,
 } from "../types/estree";
 
@@ -122,7 +123,7 @@ export function referencedIdentifiers(root: EstreeNode): IdentifierReference[] {
       });
       return;
     }
-    const jsx = node as { type: string; name?: string } & Partial<SourceRange>;
+    const jsx = node as JsxReferenceNode;
     if (
       jsx.type === "JSXIdentifier" &&
       key === "name" &&

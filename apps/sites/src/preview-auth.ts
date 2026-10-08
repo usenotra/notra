@@ -18,11 +18,15 @@ import {
 
 import { PASSWORD_FORM_MAX_BYTES } from "./constants/preview-auth";
 import { previewLockedPage } from "./pages";
-import { html, noStoreRedirect } from "./responses";
+import { noStoreRedirect } from "./responses";
 import type { PreviewGateError } from "./types/pages";
-import type { PreviewRequestContext } from "./types/preview-auth";
+import type {
+  PreviewPasswordForm,
+  PreviewRequestContext,
+} from "./types/preview-auth";
 import type { SitesDeps } from "./types/worker";
 import { readCookie } from "./utils/cookies";
+import { html } from "./utils/responses";
 
 function nowSeconds(deps: SitesDeps): number {
   return Math.floor(deps.now().getTime() / 1000);
@@ -127,7 +131,7 @@ async function acceptToken(
 
 async function readPasswordForm(
   request: Request
-): Promise<{ password: string; next: string } | null> {
+): Promise<PreviewPasswordForm | null> {
   const length = Number(request.headers.get("content-length") ?? "0");
   if (length > PASSWORD_FORM_MAX_BYTES) {
     return null;

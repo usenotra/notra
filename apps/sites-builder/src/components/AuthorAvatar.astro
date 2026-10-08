@@ -1,11 +1,5 @@
 ---
-import type { ResolvedAuthor } from "../types/authors";
-
-interface Props {
-  author: ResolvedAuthor;
-  size?: number;
-  class?: string;
-}
+import type { AuthorAvatarProps as Props } from "../types/authors";
 
 const { author, size = 24, class: className } = Astro.props;
 const initial = author.name.trim().charAt(0).toUpperCase();

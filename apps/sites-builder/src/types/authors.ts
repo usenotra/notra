@@ -8,3 +8,17 @@ export interface ResolvedAuthor {
   links: string[];
   url?: string;
 }
+
+export interface AuthorAvatarProps {
+  author: ResolvedAuthor;
+  size?: number;
+  class?: string;
+}
+
+export interface AuthorListProps {
+  authors: ResolvedAuthor[];
+}
+
+export interface AuthorPageProps {
+  author: ResolvedAuthor;
+}

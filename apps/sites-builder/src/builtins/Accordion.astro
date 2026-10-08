@@ -1,8 +1,6 @@
 ---
-interface Props {
-  title: string;
-  defaultOpen?: boolean;
-}
+import type { AccordionProps as Props } from "../types/builtins";
+
 const { title, defaultOpen = false } = Astro.props;
 ---
 

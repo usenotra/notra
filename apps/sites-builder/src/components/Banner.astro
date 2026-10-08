@@ -1,10 +1,6 @@
 ---
-import type { ResolvedBanner } from "../types/banner";
+import type { BannerProps as Props } from "../types/banner";
 import Icon from "./Icon.astro";
-
-interface Props {
-  banner: ResolvedBanner;
-}
 
 const { banner } = Astro.props;
 ---

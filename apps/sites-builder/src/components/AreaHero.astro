@@ -1,11 +1,7 @@
 ---
+import type { AreaHeroProps as Props } from "../types/areas";
 import { heroOptions } from "../lib/options";
 import { assetUrl, params } from "../lib/params";
-
-interface Props {
-  title: string;
-  description?: string;
-}
 
 const { title, description } = Astro.props;
 const hero = heroOptions(params.area);

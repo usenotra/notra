@@ -1,20 +1,13 @@
 ---
+import type { PostCardProps as Props } from "../types/entries";
 import { POST_CARD_RADIUS } from "../constants/post-card";
 import { authorsOf } from "../lib/authors";
 import { blogOptions } from "../lib/options";
 import { assetUrl, href } from "../lib/params";
-import type { BlogEntry } from "../types/entries";
 import { formatDate, isoDate } from "../utils/dates";
 import { excerpt } from "../utils/excerpt";
 import { readingMinutes } from "../utils/reading-time";
 import AuthorAvatar from "./AuthorAvatar.astro";
-
-interface Props {
-  entry: BlogEntry;
-  headingLevel?: "h2" | "h3";
-  variant?: "card" | "feature" | "row";
-  featured?: boolean;
-}
 
 const { entry, headingLevel: Heading = "h2", variant = "card", featured = false } = Astro.props;
 const show = blogOptions.card;

@@ -1,12 +1,7 @@
 ---
+import type { CalloutProps as Props } from "../types/builtins";
 import Icon from "../components/Icon.astro";
 import { CALLOUT_TONES } from "../constants/builtins";
-import type { CalloutVariant } from "../types/builtins";
-
-interface Props {
-  variant?: CalloutVariant;
-  title?: string;
-}
 
 const { variant = "note", title } = Astro.props;
 const tone = CALLOUT_TONES[variant];

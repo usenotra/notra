@@ -1,10 +1,6 @@
 ---
-import type { ResolvedAuthor } from "../types/authors";
+import type { AuthorListProps as Props } from "../types/authors";
 import AuthorAvatar from "./AuthorAvatar.astro";
-
-interface Props {
-  authors: ResolvedAuthor[];
-}
 
 const { authors } = Astro.props;
 ---

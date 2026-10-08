@@ -1,6 +1,7 @@
 import { posix } from "node:path";
 
 import { IMPORTABLE_EXTENSIONS } from "../constants/builtins";
+import { TEXT_SOURCE_FILE } from "../constants/validate";
 import type { LineColumn, ResolvedImport } from "../types/paths";
 
 export function resolveSiteImport(
@@ -68,4 +69,8 @@ export function offsetToLineColumn(source: string, offset: number): LineColumn {
     }
   }
   return { line, column: offset - lastBreak };
+}
+
+export function isTextSourceFile(path: string): boolean {
+  return TEXT_SOURCE_FILE.test(path);
 }

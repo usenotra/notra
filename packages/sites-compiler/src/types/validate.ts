@@ -32,6 +32,11 @@ export interface SubstitutedSources {
   diagnostics: SiteDiagnostic[];
 }
 
+export interface SubstitutedSettings {
+  config: SiteConfig;
+  diagnostics: SiteDiagnostic[];
+}
+
 export interface ImportCycleFrame {
   path: string;
   imports: readonly string[];

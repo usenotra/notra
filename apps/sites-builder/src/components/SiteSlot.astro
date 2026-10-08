@@ -1,12 +1,6 @@
 ---
+import type { SiteSlotProps as Props } from "../types/site-files";
 import { slotComponent } from "../lib/site-files";
-import type { SlotName } from "../types/site-files";
-
-interface Props {
-  name: SlotName;
-  data?: Record<string, unknown>;
-  class?: string;
-}
 
 const { name, data = {}, class: className } = Astro.props;
 const Component = slotComponent(name);

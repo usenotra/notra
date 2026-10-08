@@ -1,8 +1,7 @@
 ---
+import type { TipProps as Props } from "../types/builtins";
 import Callout from "./Callout.astro";
-interface Props {
-  title?: string;
-}
+
 ---
 
 <Callout variant="tip" title={Astro.props.title}><slot /></Callout>

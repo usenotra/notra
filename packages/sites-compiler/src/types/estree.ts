@@ -14,3 +14,8 @@ export interface IdentifierReference {
   end: number;
   shorthand?: boolean;
 }
+
+export interface JsxReferenceNode extends Partial<SourceRange> {
+  type: string;
+  name?: string;
+}
