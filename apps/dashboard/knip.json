@@ -8,7 +8,7 @@
     "src/routes/**/*.{ts,tsx}",
     "src/app/**/route.ts",
     "scripts/*.ts",
-    "tests/fixtures/*.fixture.{ts,tsx,mjs}",
+    "tests/fixtures/*.fixture.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
     "tests/**/*.test.{ts,tsx}"
   ],
