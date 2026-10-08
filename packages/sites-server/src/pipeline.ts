@@ -1,8 +1,11 @@
 import { SITE_DEPLOYMENT_PHASES } from "@notra/sites-core/constants/deployment-timeline";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
+import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
+import { Effect, Exit } from "effect";
 
 import { activateDeployment } from "./activation";
-import { runSandboxBuild } from "./box-build";
+import { runSandboxBuildEffect } from "./box-build";
+import { saveBuildTelemetryEffect } from "./build-telemetry";
 import { CANCELED_OUTCOME } from "./constants/deployments";
 import {
   getDeployment,
@@ -10,51 +13,49 @@ import {
   transitionDeployment,
 } from "./deployments";
 import {
-  downloadRepositoryTarball,
+  downloadRepositoryTarballEffect,
   getBranchHead,
   siteRepositoryAccess,
 } from "./github";
-import { publishDeploymentFiles } from "./publish";
-import { r2Put } from "./r2";
+import { publishDeploymentFilesEffect } from "./publish";
+import { r2PutEffect } from "./r2";
 import { openCheckRun, reportOutcome } from "./reporting";
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
 import type { SiteRepositoryAccess } from "./types/github";
 import type { Site } from "./types/sites";
+import { redactBuildLog } from "./utils/build-log";
 import { summarizeDiagnostics } from "./utils/diagnostics";
-import { isNotFoundError } from "./utils/errors";
+import { errorMessage, isNotFoundError } from "./utils/errors";
+import { runSitesEffect } from "./utils/run-sites-effect";
 
-async function writeBuildLog(
+const writeBuildLog = Effect.fn("Sites.writeBuildLog")(function* (
   siteId: string,
   deploymentId: string,
   log: string
 ) {
-  await r2Put(SITE_R2_KEYS.buildLog(siteId, deploymentId), log, {
+  yield* r2PutEffect(SITE_R2_KEYS.buildLog(siteId, deploymentId), log, {
     contentType: "text/plain; charset=utf-8",
-  });
-}
+  }).pipe(Effect.catch(() => Effect.void));
+});
 
-async function currentBranchHead(
+const currentBranchHead = Effect.fn("Sites.currentBranchHead")(function* (
   { repository, token }: SiteRepositoryAccess,
   branch: string
-): Promise<string | null> {
-  try {
-    return (await getBranchHead(repository, token, branch)).sha;
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return null;
-    }
-    throw error;
-  }
-}
+) {
+  return yield* Effect.tryPromise({
+    try: async () => (await getBranchHead(repository, token, branch)).sha,
+    catch: (error) => error,
+  }).pipe(Effect.catchIf(isNotFoundError, () => Effect.succeed(null)));
+});
 
-async function whyNotBuild(
+const whyNotBuild = Effect.fn("Sites.whyNotBuild")(function* (
   access: SiteRepositoryAccess,
   deployment: SiteDeployment
-): Promise<string | null> {
+) {
   if (deployment.status !== "queued") {
     return null;
   }
-  const head = await currentBranchHead(access, deployment.branch);
+  const head = yield* currentBranchHead(access, deployment.branch);
   const fromWebhook =
     deployment.trigger === "push" || deployment.trigger === "pull_request";
   if (fromWebhook && head !== deployment.commitSha) {
@@ -62,145 +63,308 @@ async function whyNotBuild(
       ? `${deployment.branch} moved on to ${head.slice(0, 7)}.`
       : `${deployment.branch} no longer exists.`;
   }
-  if (await hasNewerDeployment(deployment, head)) {
+  if (
+    yield* Effect.tryPromise({
+      try: () => hasNewerDeployment(deployment, head),
+      catch: (error) => error,
+    })
+  ) {
     return "A newer deployment replaces this one.";
   }
   return null;
-}
+});
 
-async function buildAndPublish(
+const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
   site: Site,
   deployment: SiteDeployment
-): Promise<DeploymentOutcome | null> {
+) {
   if (site.status !== "active") {
-    await transitionDeployment(deployment.id, "canceled", {
-      finishedAt: new Date(),
-      errorMessage: "Site is suspended",
-    });
-    return { kind: "skipped", reason: "The site is offline." };
-  }
-  const access = await siteRepositoryAccess(site, { contents: "read" });
-  const skipReason = await whyNotBuild(access, deployment);
-  if (skipReason) {
-    await transitionDeployment(deployment.id, "superseded", {
-      finishedAt: new Date(),
-      errorMessage: skipReason,
-    });
-    return { kind: "skipped", reason: skipReason };
+    yield* Effect.uninterruptible(
+      Effect.tryPromise({
+        try: () =>
+          transitionDeployment(deployment.id, "canceled", {
+            finishedAt: new Date(),
+            errorMessage: "Site is suspended",
+          }),
+        catch: (error) => error,
+      })
+    );
+    return { kind: "skipped" as const, reason: "The site is offline." };
   }
   const startedAt = new Date();
-  if (
-    !(await transitionDeployment(deployment.id, "building", {
-      startedAt: deployment.startedAt ?? startedAt,
-    }))
-  ) {
-    return CANCELED_OUTCOME;
-  }
 
   let phaseTimestamp = startedAt.getTime();
   let phaseLog = `[deployment:${SITE_DEPLOYMENT_PHASES[0]}] ${startedAt.toISOString()}\n`;
-  await writeBuildLog(site.id, deployment.id, phaseLog).catch(() => undefined);
-  const sourceArchive = await downloadRepositoryTarball(
-    access.repository,
-    access.token,
-    deployment.commitSha
-  );
-  phaseTimestamp = Math.max(phaseTimestamp, Date.now());
-  phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[1]}] ${new Date(phaseTimestamp).toISOString()}\n`;
-  await writeBuildLog(site.id, deployment.id, phaseLog).catch(() => undefined);
-  const build = await runSandboxBuild({
-    sourceArchive,
-    rootDirectory: site.rootDirectory,
-    target: {
-      siteId: site.id,
-      deploymentId: deployment.id,
-      commitSha: deployment.commitSha,
-      publicOrigin: deployment.target.publicOrigin,
-      mounts: deployment.target.mounts,
-      noindex: deployment.target.noindex,
-      includeDrafts: deployment.kind === "preview",
-      branding: deployment.target.branding !== false,
-      defaultConfig: deployment.target.defaultConfig,
-    },
-    onLog: (log) =>
-      writeBuildLog(site.id, deployment.id, phaseLog + log).catch(
-        () => undefined
-      ),
-  });
-  await writeBuildLog(site.id, deployment.id, phaseLog + build.log).catch(
-    () => undefined
-  );
-
-  const result = build.result;
-  if (!(result?.ok && build.outputArchive)) {
-    const diagnostics = result?.diagnostics ?? [
-      {
-        severity: "error" as const,
-        file: null,
-        code: "build_crashed",
-        message: build.crash ?? "The build failed.",
+  const measurementStart = performance.now();
+  let metrics: SiteBuildMetrics = {
+    version: 1,
+    provider: "upstash",
+    snapshotId: null,
+    sandboxId: null,
+    requestedSize: "medium",
+    sourceArchiveBytes: 0,
+    outputArchiveBytes: null,
+    totalDurationMs: 0,
+    phases: {},
+  };
+  let sandboxLog = "";
+  let telemetryAvailable = false;
+  let accessToken = "";
+  const operation = Effect.gen(function* () {
+    const accessStarted = performance.now();
+    const access = yield* Effect.tryPromise({
+      try: () => siteRepositoryAccess(site, { contents: "read" }),
+      catch: (error) => error,
+    }).pipe(
+      Effect.ensuring(
+        Effect.sync(() => {
+          metrics.phases.repositoryAccess = performance.now() - accessStarted;
+        })
+      )
+    );
+    accessToken = access.token;
+    const skipReason = yield* whyNotBuild(access, deployment);
+    if (skipReason) {
+      yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () =>
+            transitionDeployment(deployment.id, "superseded", {
+              finishedAt: new Date(),
+              errorMessage: skipReason,
+            }),
+          catch: (error) => error,
+        })
+      );
+      return { kind: "skipped" as const, reason: skipReason };
+    }
+    if (
+      !(yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () =>
+            transitionDeployment(deployment.id, "building", {
+              startedAt: deployment.startedAt ?? startedAt,
+            }),
+          catch: (error) => error,
+        })
+      ))
+    ) {
+      return CANCELED_OUTCOME;
+    }
+    yield* writeBuildLog(site.id, deployment.id, phaseLog);
+    const sourceStarted = performance.now();
+    const sourceArchive = yield* downloadRepositoryTarballEffect(
+      access.repository,
+      access.token,
+      deployment.commitSha
+    ).pipe(
+      Effect.ensuring(
+        Effect.sync(() => {
+          metrics.phases.sourceDownload = performance.now() - sourceStarted;
+        })
+      )
+    );
+    metrics.sourceArchiveBytes = sourceArchive.byteLength;
+    phaseTimestamp = Math.max(phaseTimestamp, Date.now());
+    phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[1]}] ${new Date(phaseTimestamp).toISOString()}\n`;
+    yield* writeBuildLog(site.id, deployment.id, phaseLog);
+    const build = yield* runSandboxBuildEffect({
+      sourceArchive,
+      rootDirectory: site.rootDirectory,
+      target: {
+        siteId: site.id,
+        deploymentId: deployment.id,
+        commitSha: deployment.commitSha,
+        publicOrigin: deployment.target.publicOrigin,
+        mounts: deployment.target.mounts,
+        noindex: deployment.target.noindex,
+        includeDrafts: deployment.kind === "preview",
+        branding: deployment.target.branding !== false,
+        defaultConfig: deployment.target.defaultConfig,
       },
-    ];
-    const summary = summarizeDiagnostics(diagnostics);
-    await transitionDeployment(deployment.id, "failed", {
-      finishedAt: new Date(),
-      diagnostics,
-      errorMessage: summary.slice(0, 4000),
-      buildDurationMs: build.durationMs,
-      toolchainVersion: build.toolchainVersion,
+      onLog: (log) =>
+        Effect.gen(function* () {
+          sandboxLog = redactBuildLog(log, [access.token]);
+          yield* writeBuildLog(site.id, deployment.id, phaseLog + sandboxLog);
+        }),
+      onComplete: (completed) =>
+        Effect.gen(function* () {
+          sandboxLog = redactBuildLog(completed.log, [access.token]);
+          if (completed.metrics) {
+            metrics = {
+              ...completed.metrics,
+              phases: { ...metrics.phases, ...completed.metrics.phases },
+              totalDurationMs: performance.now() - measurementStart,
+            };
+            telemetryAvailable = true;
+            yield* saveBuildTelemetryEffect(
+              deployment.id,
+              metrics,
+              phaseLog + sandboxLog
+            );
+          }
+        }),
     });
-    return { kind: "failed", summary, diagnostics };
-  }
+    sandboxLog = redactBuildLog(build.log, [access.token]);
+    if (build.metrics) {
+      metrics = {
+        ...build.metrics,
+        phases: { ...metrics.phases, ...build.metrics.phases },
+      };
+      telemetryAvailable = true;
+    }
+    yield* writeBuildLog(site.id, deployment.id, phaseLog + sandboxLog);
 
-  if (!(await transitionDeployment(deployment.id, "uploading"))) {
-    return CANCELED_OUTCOME;
-  }
-  phaseTimestamp = Math.max(phaseTimestamp, Date.now());
-  phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[2]}] ${new Date(phaseTimestamp).toISOString()}\n`;
-  await writeBuildLog(site.id, deployment.id, phaseLog + build.log).catch(
-    () => undefined
+    const result = build.result;
+    if (!(result?.ok && build.outputArchive)) {
+      const diagnostics = result?.diagnostics ?? [
+        {
+          severity: "error" as const,
+          file: null,
+          code: "build_crashed",
+          message: build.crash ?? "The build failed.",
+        },
+      ];
+      const summary = summarizeDiagnostics(diagnostics);
+      yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () =>
+            transitionDeployment(deployment.id, "failed", {
+              finishedAt: new Date(),
+              diagnostics,
+              errorMessage: summary.slice(0, 4000),
+              buildDurationMs: build.durationMs,
+              toolchainVersion: build.toolchainVersion,
+            }),
+          catch: (error) => error,
+        })
+      );
+      return { kind: "failed" as const, summary, diagnostics };
+    }
+
+    if (
+      !(yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () => transitionDeployment(deployment.id, "uploading"),
+          catch: (error) => error,
+        })
+      ))
+    ) {
+      return CANCELED_OUTCOME;
+    }
+    phaseTimestamp = Math.max(phaseTimestamp, Date.now());
+    phaseLog += `[deployment:${SITE_DEPLOYMENT_PHASES[2]}] ${new Date(phaseTimestamp).toISOString()}\n`;
+    yield* writeBuildLog(site.id, deployment.id, phaseLog + sandboxLog);
+    const publishStarted = performance.now();
+    const manifest = yield* publishDeploymentFilesEffect({
+      site,
+      deployment,
+      archive: build.outputArchive,
+      result,
+      toolchainVersion: build.toolchainVersion,
+    }).pipe(
+      Effect.ensuring(
+        Effect.sync(() => {
+          metrics.phases.publish = performance.now() - publishStarted;
+        })
+      )
+    );
+    const ready = yield* Effect.uninterruptible(
+      Effect.tryPromise({
+        try: () =>
+          transitionDeployment(deployment.id, "ready", {
+            fileCount: manifest.files.length,
+            totalBytes: manifest.totalBytes,
+            buildDurationMs: build.durationMs,
+            toolchainVersion: build.toolchainVersion,
+            diagnostics: result.diagnostics,
+            finishedAt: new Date(),
+          }),
+        catch: (error) => error,
+      })
+    );
+    return ready ? null : CANCELED_OUTCOME;
+  });
+  return yield* Effect.uninterruptibleMask((restore) =>
+    Effect.gen(function* () {
+      const result = yield* Effect.exit(restore(operation));
+      if (Exit.isFailure(result)) {
+        telemetryAvailable = true;
+        const failure = result.cause.reasons.find(
+          (reason) => reason._tag === "Fail"
+        );
+        sandboxLog += `\n[deployment:error] ${redactBuildLog(failure?._tag === "Fail" ? errorMessage(failure.error) : "The deployment was interrupted or encountered a defect.", [accessToken, process.env.UPSTASH_BOX_API_KEY ?? ""])}\n`;
+      }
+      if (telemetryAvailable) {
+        metrics.totalDurationMs = performance.now() - measurementStart;
+        const log = phaseLog + sandboxLog;
+        yield* writeBuildLog(site.id, deployment.id, log);
+        yield* saveBuildTelemetryEffect(deployment.id, metrics, log).pipe(
+          Effect.catch((error) => {
+            if (Exit.isSuccess(result)) {
+              return Effect.fail(error);
+            }
+            const persistenceFailure = redactBuildLog(errorMessage(error), [
+              accessToken,
+              process.env.UPSTASH_BOX_API_KEY ?? "",
+            ]);
+            return writeBuildLog(
+              site.id,
+              deployment.id,
+              `${log}\n[telemetry:persistence] ${persistenceFailure}\n`
+            );
+          })
+        );
+      }
+      return yield* result;
+    })
   );
-  const manifest = await publishDeploymentFiles({
-    site,
-    deployment,
-    archive: build.outputArchive,
-    result,
-    toolchainVersion: build.toolchainVersion,
-  });
-  const ready = await transitionDeployment(deployment.id, "ready", {
-    fileCount: manifest.files.length,
-    totalBytes: manifest.totalBytes,
-    buildDurationMs: build.durationMs,
-    toolchainVersion: build.toolchainVersion,
-    diagnostics: result.diagnostics,
-    finishedAt: new Date(),
-  });
-  return ready ? null : CANCELED_OUTCOME;
-}
+});
 
-async function activationOutcome(
+const activationOutcome = Effect.fn("Sites.activationOutcome")(function* (
   site: Site,
   deployment: SiteDeployment
-): Promise<DeploymentOutcome> {
+) {
   const live =
     site.status === "active" &&
-    (await activateDeployment(site, deployment)) === "live";
-  return live ? { kind: "live" } : { kind: "not_live" };
-}
+    (yield* Effect.uninterruptible(
+      Effect.tryPromise({
+        try: () => activateDeployment(site, deployment),
+        catch: (error) => error,
+      })
+    )) === "live";
+  return live ? { kind: "live" as const } : { kind: "not_live" as const };
+});
 
-export async function runDeploymentPipeline(
-  site: Site,
-  queued: SiteDeployment
-): Promise<DeploymentOutcome> {
-  const deployment = await openCheckRun(site, queued);
+export const runDeploymentPipelineEffect = Effect.fn(
+  "Sites.runDeploymentPipeline"
+)(function* (site: Site, queued: SiteDeployment) {
+  const deployment = yield* Effect.tryPromise({
+    try: () => openCheckRun(site, queued),
+    catch: (error) => error,
+  });
   const ended =
     deployment.status === "ready"
       ? null
-      : await buildAndPublish(site, deployment);
-  const finished = (await getDeployment(deployment.id)) ?? deployment;
-  const outcome = ended ?? (await activationOutcome(site, finished));
-  await reportOutcome(site, finished, outcome);
+      : yield* buildAndPublish(site, deployment);
+  const finished =
+    (yield* Effect.tryPromise({
+      try: () => getDeployment(deployment.id),
+      catch: (error) => error,
+    })) ?? deployment;
+  const outcome: DeploymentOutcome =
+    ended ?? (yield* activationOutcome(site, finished));
+  yield* Effect.tryPromise({
+    try: () => reportOutcome(site, finished, outcome),
+    catch: (error) => error,
+  });
   return outcome;
+});
+
+export function runDeploymentPipeline(
+  site: Site,
+  queued: SiteDeployment
+): Promise<DeploymentOutcome> {
+  return runSitesEffect(runDeploymentPipelineEffect(site, queued));
 }
 
 export async function failDeployment(

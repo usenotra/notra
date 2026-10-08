@@ -119,6 +119,14 @@ CREATE TABLE "sites" (
 	"active_production_deployment_id" text
 );
 --> statement-breakpoint
+CREATE TABLE "site_build_telemetry" (
+	"deployment_id" text PRIMARY KEY NOT NULL,
+	"metrics" jsonb NOT NULL,
+	"log" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE INDEX "siteDeployments_site_created_idx" ON "site_deployments" USING btree ("site_id","created_at");
 --> statement-breakpoint
 CREATE UNIQUE INDEX "siteDeployments_site_generation_uidx" ON "site_deployments" USING btree ("site_id","generation");
@@ -234,3 +242,5 @@ ALTER TABLE "sites" ADD CONSTRAINT "sites_publishMode_check" CHECK ("sites"."pub
 ALTER TABLE "sites" ADD CONSTRAINT "sites_lastGeneration_check" CHECK ("sites"."last_generation" >= 0);
 --> statement-breakpoint
 ALTER TABLE "site_deployments" ADD CONSTRAINT "siteDeployments_previewKey_check" CHECK (("site_deployments"."kind" = 'production' AND "site_deployments"."preview_key" IS NULL) OR ("site_deployments"."kind" = 'preview' AND "site_deployments"."preview_key" IS NOT NULL AND length("site_deployments"."preview_key") > 0));
+--> statement-breakpoint
+ALTER TABLE "site_build_telemetry" ADD CONSTRAINT "site_build_telemetry_deployment_id_site_deployments_id_fk" FOREIGN KEY ("deployment_id") REFERENCES "public"."site_deployments"("id") ON DELETE cascade ON UPDATE no action;

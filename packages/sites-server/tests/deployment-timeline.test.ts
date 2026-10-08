@@ -10,7 +10,7 @@ import {
 import { Effect } from "effect";
 
 import type {
-  SandboxBuildParams,
+  SandboxBuildEffectParams,
   SandboxBuildResult,
 } from "../src/types/build";
 import type {
@@ -77,7 +77,7 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
       return true;
     },
   }));
-  mock.module("../src/github", () => ({
+  const github = {
     siteRepositoryAccess: async () => ({ repository: "owner/repo", token: "" }),
     getBranchHead: async () => ({ sha: "sha" }),
     downloadRepositoryTarball: async () => {
@@ -89,19 +89,34 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
       ).toBeGreaterThanOrEqual(deployment.startedAt?.getTime() ?? 0);
       return new Uint8Array();
     },
+  };
+  mock.module("../src/github", () => ({
+    ...github,
+    downloadRepositoryTarballEffect: (
+      ...args: Parameters<typeof github.downloadRepositoryTarball>
+    ) =>
+      Effect.tryPromise({
+        try: () => github.downloadRepositoryTarball(...args),
+        catch: (error) => error,
+      }),
   }));
   mock.module("../src/box-build", () => ({
-    runSandboxBuild: async ({ onLog }: SandboxBuildParams) => {
-      expect(writes).toHaveLength(2);
-      expect(writes[1]).toStartWith(writes[0] ?? "");
-      expect(writes[1]).toContain("[deployment:building] ");
-      expect(writes[1]?.trim().split("\n")).toHaveLength(2);
-      await onLog?.("first sandbox log");
-      await onLog?.(tail);
-      return build;
-    },
+    runSandboxBuildEffect: ({ onLog }: SandboxBuildEffectParams) =>
+      Effect.gen(function* () {
+        expect(writes).toHaveLength(2);
+        expect(writes[1]).toStartWith(writes[0] ?? "");
+        expect(writes[1]).toContain("[deployment:building] ");
+        expect(writes[1]?.trim().split("\n")).toHaveLength(2);
+        if (onLog) {
+          yield* onLog("first sandbox log");
+        }
+        if (onLog) {
+          yield* onLog(tail);
+        }
+        return build;
+      }),
   }));
-  mock.module("../src/publish", () => ({
+  const publish = {
     publishDeploymentFiles: async () => {
       expect(deployment.status).toBe("uploading");
       expect(writes.at(-1)).toContain("[deployment:deploying] ");
@@ -109,6 +124,16 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
       published = true;
       return { files: [], totalBytes: 0 };
     },
+  };
+  mock.module("../src/publish", () => ({
+    ...publish,
+    publishDeploymentFilesEffect: (
+      ...args: Parameters<typeof publish.publishDeploymentFiles>
+    ) =>
+      Effect.tryPromise({
+        try: () => publish.publishDeploymentFiles(...args),
+        catch: (error) => error,
+      }),
   }));
   mock.module("../src/activation", () => ({
     activateDeployment: async () => {

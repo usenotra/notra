@@ -42,6 +42,7 @@ import {
   SITE_R2_KEYS,
 } from "@notra/sites-core/constants/sites";
 import { hashBuildTarget } from "@notra/sites-core/utils/build-target";
+import { getBuildTelemetry } from "@notra/sites-server/build-telemetry";
 import {
   deployBranchHead,
   redeploy,
@@ -532,16 +533,24 @@ export const sitesRouter = {
         if (!deployment || deployment.siteId !== site.id) {
           throw notFound("Deployment not found");
         }
-        const [log, state] = await Promise.all([
-          r2GetText(SITE_R2_KEYS.buildLog(site.id, deployment.id)),
+        const [log, state, telemetry] = await Promise.all([
+          r2GetText(SITE_R2_KEYS.buildLog(site.id, deployment.id)).catch(
+            () => null
+          ),
           servingState(site.id),
+          getBuildTelemetry(deployment.id),
         ]);
         return {
           deployment: serializeDeployment(
             deployment,
             liveDeploymentsFromState(state)
           ),
-          log: log?.text ?? null,
+          log:
+            deployment.status === "building" ||
+            deployment.status === "uploading"
+              ? (log?.text ?? telemetry?.log ?? null)
+              : (telemetry?.log ?? log?.text ?? null),
+          metrics: telemetry?.metrics ?? null,
         };
       }),
 

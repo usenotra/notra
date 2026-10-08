@@ -9,6 +9,7 @@ import {
   SITE_STATUSES,
 } from "@notra/sites-core/constants/sites";
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
+import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
 import type {
   SiteBuildTarget,
   SiteMounts,
@@ -4337,6 +4338,19 @@ export const siteDeployments = pgTable(
     ),
   ]
 );
+
+export const siteBuildTelemetry = pgTable("site_build_telemetry", {
+  deploymentId: text("deployment_id")
+    .primaryKey()
+    .references(() => siteDeployments.id, { onDelete: "cascade" }),
+  metrics: jsonb("metrics").$type<SiteBuildMetrics>().notNull(),
+  log: text("log").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
 
 export const siteJobs = pgTable(
   "site_jobs",

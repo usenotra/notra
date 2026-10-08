@@ -42,6 +42,64 @@ deployments/{siteId}/{deploymentId}/files/{mount}/...
 logs/{siteId}/{deploymentId}.log
 ```
 
+## Build metrics and retained logs
+
+The telemetry table is included in the consolidated `0109_sites` migration.
+Apply that migration for a fresh rollout. Do not replay it on a database that
+already applied an earlier local Sites migration sequence; reconcile that
+database's migration history separately.
+Builds upsert structured metrics and final logs into `site_build_telemetry`, keyed
+by deployment ID, after sandbox cleanup and when the pipeline finishes. Compiler
+failures and source/provider/publication exceptions also retain partial metrics
+and error logs. Live logs continue to use R2. The authorized deployment GET
+returns `metrics`; terminal deployments prefer the database log, while running
+deployments prefer the live log and fall back to the database copy. Older
+deployments without a telemetry row still use their existing R2 logs.
+
+Normal artifact cleanup and deployment expiry do not remove this telemetry.
+There is no application-level expiration. Explicit deployment, site, or
+organization deletion removes its telemetry through the deployment foreign key's
+cascade, preserving the existing deletion policy.
+
+Logs preserve the leading deployment phase markers and newest valid UTF-8 output
+within the existing **512-KiB cap**. They are bounded final logs, not unlimited
+console history or an archive of every retry. Known provider/repository secrets,
+authorization values and URL credentials are redacted before persistence. Logs
+are not included in metrics JSON or deployment list responses. Database write
+failures are not silently treated as successful persistence: an already failing
+pipeline preserves its original exception and records the persistence error in
+its best-effort R2 log.
+
+`metrics.version` is 1. `phases` contains monotonic millisecond durations for
+attempted repository access, source download, sandbox startup, upload, execution, result reads,
+output download, cleanup and publication. Guest extraction, compilation and
+packing phases are nested within execution; do not sum all phase values to
+derive total time. Compiler area durations are recorded separately.
+
+Final `totalDurationMs` covers repository access through publication/cleanup and
+host orchestration, excluding the final telemetry write and later activation/
+GitHub reporting. Existing `buildDurationMs` keeps its earlier dashboard meaning:
+sandbox startup through result reading, before output download and cleanup.
+
+`sandboxCpuTimeMs` is the cgroup CPU delta during guest extraction/build/packing,
+not whole-lifecycle billing or child-process CPU time. `sandboxMemoryPeakBytes`
+is the cgroup lifetime high-water mark, not aggregate child-process RSS. Both are
+null when the platform does not expose the counters. No costs are invented from
+missing provider meters. `requestedSize` records configuration, not hardware
+verification.
+
+For example, compile duration can be aggregated without reading log blobs:
+
+```sql
+SELECT
+  count(*) AS measured_builds,
+  percentile_cont(0.5) WITHIN GROUP (
+    ORDER BY (metrics #>> '{phases,compile}')::double precision
+  ) AS median_compile_ms
+FROM site_build_telemetry
+WHERE metrics #>> '{phases,compile}' IS NOT NULL;
+```
+
 ## Runbook
 
 **Take a site down now (abuse, legal).** Dashboard → site → Settings → Take site offline, or:
@@ -65,7 +123,7 @@ logs/{siteId}/{deploymentId}.log
 
 **Customer proxy domain stopped verifying.** `Check` in the Domains tab runs the probe (`{origin}{mount}/_notra/probe.txt` must name the site) and shows the exact failing URL. The site keeps serving; only the canonical origin is affected.
 
-**Restore after data loss.** R2 holds only build artifacts; any deployment can be rebuilt from its commit (Redeploy). The database is the source of truth for sites/domains (Neon point-in-time restore). A missing `state.json` makes the worker 404 the site until the next deployment activates.
+**Restore after data loss.** R2 holds build artifacts and live logs; any deployment can be rebuilt from its commit (Redeploy). The database is the source of truth for sites/domains and retained build telemetry (Neon point-in-time restore). A missing `state.json` makes the worker 404 the site until the next deployment activates.
 
 ## Domain Connect (one-click DNS for custom subdomains)
 

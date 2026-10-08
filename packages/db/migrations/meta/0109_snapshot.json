@@ -1,5 +1,5 @@
 {
-  "id": "b7c120aa-e12a-4af3-80c8-449fce7d4277",
+  "id": "f57bda24-a7bc-4da9-8c01-3a153798bef2",
   "prevId": "6747c3b9-f2a0-41b9-9858-7a2105ffc1c6",
   "version": "7",
   "dialect": "postgresql",
@@ -11978,6 +11978,65 @@
           "tableTo": "github_integrations",
           "columnsFrom": [
             "repository_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.site_build_telemetry": {
+      "name": "site_build_telemetry",
+      "schema": "",
+      "columns": {
+        "deployment_id": {
+          "name": "deployment_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "metrics": {
+          "name": "metrics",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "log": {
+          "name": "log",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_build_telemetry_deployment_id_site_deployments_id_fk": {
+          "name": "site_build_telemetry_deployment_id_site_deployments_id_fk",
+          "tableFrom": "site_build_telemetry",
+          "tableTo": "site_deployments",
+          "columnsFrom": [
+            "deployment_id"
           ],
           "columnsTo": [
             "id"
