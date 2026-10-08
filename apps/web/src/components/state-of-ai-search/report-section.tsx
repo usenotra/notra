@@ -67,28 +67,6 @@ export function ReportPanel({
   );
 }
 
-/** Text button for a shell footer row: "Show 7 more brands", "Show full overview". */
-export function ShellFooterButton({
-  expanded,
-  onToggle,
-  children,
-}: {
-  expanded: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      aria-expanded={expanded}
-      className="text-muted-foreground hover:text-foreground focus-visible:outline-ring h-10 w-full rounded-b-[14px] px-4 text-left text-xs font-medium outline-offset-[-2px] transition-colors focus-visible:outline-2"
-      onClick={onToggle}
-      type="button"
-    >
-      {children}
-    </button>
-  );
-}
-
 interface ReportPairSide {
   title: string;
   description?: ReactNode;

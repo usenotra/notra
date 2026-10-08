@@ -1,4 +1,5 @@
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
+import { cn } from "@notra/ui/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CtaBanner } from "@/components/landing/cta-banner";
@@ -6,6 +7,7 @@ import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { ReportCards } from "@/components/state-of-ai-search/report-cards";
 import { ReportBlock } from "@/components/state-of-ai-search/report-section";
 import {
+  REPORT_SURFACE_LIFT,
   STATE_OF_AI_SEARCH_CTA_HEADING,
   STATE_OF_AI_SEARCH_CTA_SUBCOPY,
   STATE_OF_AI_SEARCH_DESCRIPTION,
@@ -62,7 +64,9 @@ function StateOfAiSearchIndexPage() {
   const engines = latest?.engines ?? [];
 
   return (
-    <div className="flex w-full flex-col items-center">
+    <div
+      className={cn(REPORT_SURFACE_LIFT, "flex w-full flex-col items-center")}
+    >
       <script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: server-built JSON-LD
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}

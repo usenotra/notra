@@ -1,9 +1,11 @@
 "use client";
 
-import { Download04Icon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon, Download04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
+import { cn } from "@notra/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -15,7 +17,6 @@ import {
   AnswerViewer,
   PromptSheet,
 } from "@/components/state-of-ai-search/prompt-sheet";
-import { ReportCards } from "@/components/state-of-ai-search/report-cards";
 import {
   ReportBlock,
   ReportPair,
@@ -24,9 +25,12 @@ import {
   EngineHeatmap,
   PromptsTable,
   RankingTable,
+  ReportsTable,
   SourcesTable,
 } from "@/components/state-of-ai-search/report-tables";
+import { SourceSheet } from "@/components/state-of-ai-search/source-sheet";
 import {
+  REPORT_SURFACE_LIFT,
   STATE_OF_AI_SEARCH_CTA_HEADING,
   STATE_OF_AI_SEARCH_CTA_SUBCOPY,
   STATE_OF_AI_SEARCH_PATH,
@@ -36,6 +40,7 @@ import type {
   StateOfAiSearchPromptRow,
   StateOfAiSearchRankingRow,
   StateOfAiSearchReport,
+  StateOfAiSearchSource,
   StateOfAiSearchSummary,
 } from "@/types/state-of-ai-search";
 import {
@@ -45,6 +50,52 @@ import {
 } from "@/utils/state-of-ai-search";
 
 const TIE_POINTS = 2;
+const PODIUM_SIZE = 3;
+
+/** Podium order: second on the left, first in the middle, third on the right. */
+const PODIUM_ORDER = [1, 0, 2] as const;
+
+/**
+ * The top three as a podium in the headline: first place in the middle,
+ * larger and in front, second and third smaller and tucked behind it.
+ */
+function PodiumLogos({ leaders }: { leaders: StateOfAiSearchRankingRow[] }) {
+  return (
+    <span
+      aria-label={`Top ${leaders.length}: ${leaders.map((row) => row.name).join(", ")}`}
+      className="relative inline-flex translate-y-[0.08em] items-center self-center"
+      role="img"
+    >
+      {PODIUM_ORDER.flatMap((rank) => {
+        const row = leaders[rank];
+        if (!row) {
+          return [];
+        }
+        const first = rank === 0;
+        return [
+          <span
+            className={cn(
+              "relative inline-flex rounded-[0.24em] ring-[0.06em] ring-[#efe9fb] dark:ring-[#2a2140]",
+              first ? "z-10 shadow-[0_0.04em_0.12em_rgb(0_0_0/0.25)]" : "z-0",
+              rank === 1 && "-mr-[0.3em] -rotate-[8deg]",
+              rank === 2 && "-ml-[0.3em] rotate-[8deg]"
+            )}
+            key={row.name}
+          >
+            <CompetitorLogo
+              className={cn(
+                "rounded-[0.2em] bg-white",
+                first ? "size-[0.8em]" : "size-[0.62em]"
+              )}
+              domain={row.domain}
+              name={row.name}
+            />
+          </span>,
+        ];
+      })}
+    </span>
+  );
+}
 
 function heroSubtitle(report: StateOfAiSearchReport): string {
   const [first, second] = report.ranking;
@@ -62,11 +113,12 @@ export function ReportView({
   report: StateOfAiSearchReport;
   otherReports: StateOfAiSearchSummary[];
 }) {
-  const [brandsExpanded, setBrandsExpanded] = useState(false);
+  const [brandsPage, setBrandsPage] = useState(1);
   const [brand, setBrand] = useState<StateOfAiSearchRankingRow | null>(null);
   const [prompt, setPrompt] = useState<StateOfAiSearchPromptRow | null>(null);
+  const [source, setSource] = useState<StateOfAiSearchSource | null>(null);
   const csvHref = `${reportPath(report.slug, report.edition)}/data.csv`;
-  const toggleBrands = () => setBrandsExpanded((current) => !current);
+  const brandsShared = { page: brandsPage, onPageChange: setBrandsPage };
   const headPrompt =
     report.prompts.find((row) => row.prompt === report.overview?.query) ??
     report.prompts[0];
@@ -75,36 +127,43 @@ export function ReportView({
   const openPrompt = (row: StateOfAiSearchPromptRow) => setPrompt(row);
 
   return (
-    <div className="flex w-full flex-col items-center gap-16 pb-16 antialiased [font-synthesis:none] md:gap-20 md:pb-24">
+    <div
+      className={cn(
+        REPORT_SURFACE_LIFT,
+        "flex w-full flex-col items-center gap-16 pb-16 antialiased [font-synthesis:none] md:gap-20 md:pb-24"
+      )}
+    >
       <MarketingHeroWash
         subtitle={heroSubtitle(report)}
         title={
           <>
-            Who wins <span className="text-primary">{report.subject}</span> in
-            AI search?
+            Who wins{" "}
+            <span className="inline-flex items-baseline gap-[0.18em] whitespace-nowrap">
+              <PodiumLogos leaders={report.ranking.slice(0, PODIUM_SIZE)} />
+              <span className="text-primary">{report.subject}</span>
+            </span>{" "}
+            in AI search?
           </>
         }
       >
         <CtaButton
           nativeButton={false}
           render={<a download href={csvHref} />}
-          variant="light"
+          variant="primary"
         >
           <HugeiconsIcon icon={Download04Icon} />
           Download data
         </CtaButton>
-        <p className="flex items-center gap-2 text-sm text-[#1E1E1EBF] dark:text-white/70">
-          <Link
-            className="underline-offset-4 hover:underline"
-            to={STATE_OF_AI_SEARCH_PATH}
-          >
-            State of AI Search
-          </Link>
-          <span aria-hidden="true">·</span>
+        <CtaButton
+          nativeButton={false}
+          render={<Link to={STATE_OF_AI_SEARCH_PATH} />}
+          variant="light"
+        >
+          <HugeiconsIcon icon={Calendar03Icon} />
           <time dateTime={report.publishedAt}>
             {formatReportDate(report.publishedAt)}
           </time>
-        </p>
+        </CtaButton>
       </MarketingHeroWash>
 
       <div className="flex w-full max-w-[72rem] flex-col gap-12 px-4 sm:px-6">
@@ -114,10 +173,9 @@ export function ReportView({
             description: `Share of ${report.totals.answers} answers naming the brand. Click a brand for details.`,
             children: (
               <RankingTable
-                expanded={brandsExpanded}
                 onSelect={openBrand}
-                onToggleExpanded={toggleBrands}
                 rows={report.ranking}
+                shared={brandsShared}
               />
             ),
           }}
@@ -128,10 +186,9 @@ export function ReportView({
             children: (
               <EngineHeatmap
                 engines={report.engines}
-                expanded={brandsExpanded}
                 onSelect={openBrand}
-                onToggleExpanded={toggleBrands}
                 rows={report.ranking}
+                shared={brandsShared}
               />
             ),
           }}
@@ -139,7 +196,6 @@ export function ReportView({
 
         <ReportBlock
           description="The questions we asked and the brands in the answers. Click a prompt to read them."
-          readout={`${report.prompts.length} prompts`}
           title="Prompts"
         >
           <PromptsTable onSelect={openPrompt} rows={report.prompts} />
@@ -183,17 +239,26 @@ export function ReportView({
             }}
             right={{
               title: "Cited sources",
-              description: `Share of answers linking to the domain, out of ${report.totals.citedDomains} cited.`,
+              description:
+                "Bold marks the assistant that cites the domain most. Click a domain for its pages and prompts.",
               children: (
-                <SourcesTable engines={report.engines} rows={report.sources} />
+                <SourcesTable
+                  engines={report.engines}
+                  onSelect={setSource}
+                  rows={report.sources}
+                />
               ),
             }}
           />
         ) : null}
 
         {otherReports.length > 0 ? (
-          <ReportBlock title="More reports">
-            <ReportCards reports={otherReports} />
+          <ReportBlock
+            description="The top three in every other category. Open a row for the full report."
+            readout={`${otherReports.length} categories`}
+            title="More reports"
+          >
+            <ReportsTable reports={otherReports} />
           </ReportBlock>
         ) : null}
       </div>
@@ -215,6 +280,11 @@ export function ReportView({
         onClose={() => setPrompt(null)}
         prompt={prompt}
         report={report}
+      />
+      <SourceSheet
+        onClose={() => setSource(null)}
+        report={report}
+        source={source}
       />
     </div>
   );

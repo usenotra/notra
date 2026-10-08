@@ -5,40 +5,46 @@ import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import { LogoStack } from "@notra/ui/components/geo/logo-stack";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@notra/ui/components/ui/table";
-import { cn } from "@notra/ui/lib/utils";
-import type { CSSProperties, KeyboardEvent } from "react";
-import { useState } from "react";
-
-import { ShellFooterButton } from "@/components/state-of-ai-search/report-section";
+  DataTable,
+  type TableColumn,
+} from "@notra/ui/components/ui/data-table";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
+import { cn } from "@notra/ui/lib/utils";
+import { useNavigate } from "@tanstack/react-router";
+import { type CSSProperties, useState } from "react";
+
+import {
+  BRANDS_PAGE_SIZE,
   HEATMAP_LIGHT_TEXT_TINT,
   HEATMAP_MAX_TINT,
   HEATMAP_MIN_TINT,
   PROMPTS_PAGE_SIZE,
-  RANKING_COLLAPSED_ROWS,
+  REPORT_ROW_HEIGHT,
 } from "@/constants/state-of-ai-search";
 import type {
   StateOfAiSearchEngine,
   StateOfAiSearchPromptRow,
   StateOfAiSearchRankingRow,
   StateOfAiSearchSource,
+  StateOfAiSearchSummary,
 } from "@/types/state-of-ai-search";
 import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
 
 const PERCENT_MAX = 100;
+/**
+ * Tooltips invert the page colors, so themed logos (OpenAI) need the variant
+ * of the opposite theme. Themed icons render the light and dark SVG as a
+ * pair; single-SVG icons are left alone.
+ */
+const INVERTED_ICON =
+  "inline-flex [&_svg:first-child:not(:last-child)]:!hidden [&_svg:last-child:not(:first-child)]:!block dark:[&_svg:first-child:not(:last-child)]:!block dark:[&_svg:last-child:not(:first-child)]:!hidden";
 const BRAND_STACK_LIMIT = 6;
 const LOGO_OUTLINE =
   "outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10";
-const ROW_CLICKABLE =
-  "cursor-pointer focus-visible:outline-ring focus-visible:outline-2 focus-visible:-outline-offset-2";
 
 export function Brand({
   name,
@@ -57,21 +63,6 @@ export function Brand({
   );
 }
 
-/** Row that opens a drawer on click, Enter or Space. */
-function rowActions(onActivate: () => void) {
-  return {
-    className: ROW_CLICKABLE,
-    onClick: onActivate,
-    onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onActivate();
-      }
-    },
-    tabIndex: 0,
-  };
-}
-
 /** Same tint scale as the dashboard's recommendations-by-assistant heatmap. */
 function heatTint(rate: number, min: number, max: number): number {
   if (rate <= 0 || max <= 0) {
@@ -84,131 +75,171 @@ function heatTint(rate: number, min: number, max: number): number {
   );
 }
 
+interface HeatCellDetail {
+  brand: StateOfAiSearchRankingRow;
+  engine: StateOfAiSearchEngine;
+  /** 1-based rank of the brand among all brands for this assistant. */
+  rank: number;
+  total: number;
+}
+
+function HeatCellTooltip({ detail }: { detail: HeatCellDetail }) {
+  const { brand, engine, rank, total } = detail;
+  const rate = brand.byEngine[engine.id] ?? 0;
+  const mentions = Math.round((rate / PERCENT_MAX) * engine.answers);
+  return (
+    <span className="flex min-w-48 flex-col gap-1.5 py-0.5">
+      <span className="flex items-center gap-1.5 font-medium">
+        <span className={INVERTED_ICON}>
+          <EngineIcon className="size-3.5" engine={engine.model} />
+        </span>
+        {brand.name}
+      </span>
+      <span className="flex justify-between gap-4 opacity-70">
+        Named in
+        <span className="font-medium tabular-nums opacity-100">
+          {mentions} of {engine.answers} answers
+        </span>
+      </span>
+      <span className="flex justify-between gap-4 opacity-70">
+        Rank with {engine.label}
+        <span className="font-medium tabular-nums opacity-100">
+          #{rank} of {total}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 function HeatCell({
   value,
   min,
   max,
-  label,
+  detail,
 }: {
   value: number | null;
   min: number;
   max: number;
-  label: string;
+  detail: HeatCellDetail;
 }) {
   if (value === null) {
     return (
-      <span className="bg-muted/60 text-muted-foreground flex h-9 items-center justify-center rounded-lg text-sm">
+      <span className="bg-muted/60 text-muted-foreground flex h-9 w-full items-center justify-center rounded-lg text-sm">
         –
       </span>
     );
   }
   const tint = heatTint(value, min, max);
   return (
-    <span
-      className={cn(
-        "hover:ring-foreground/20 flex h-9 items-center justify-center rounded-lg bg-[color-mix(in_oklab,var(--primary)_var(--heat-tint),var(--muted))] text-sm tabular-nums transition-shadow ring-inset hover:ring-2",
-        tint > HEATMAP_LIGHT_TEXT_TINT
-          ? "text-primary-foreground"
-          : "text-foreground"
-      )}
-      style={{ "--heat-tint": `${tint}%` } as CSSProperties}
-      title={label}
-    >
-      {formatPercent(value)}
-    </span>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span
+            className={cn(
+              "flex h-9 w-full items-center justify-center rounded-lg bg-[color-mix(in_oklab,var(--primary)_var(--heat-tint),var(--muted))] text-sm tabular-nums transition-shadow duration-150 ease-out hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.22),inset_0_0_0_1px_rgb(255_255_255/0.12),inset_0_10px_18px_-12px_rgb(255_255_255/0.14)]",
+              tint > HEATMAP_LIGHT_TEXT_TINT
+                ? "text-primary-foreground"
+                : "text-foreground"
+            )}
+            style={{ "--heat-tint": `${tint}%` } as CSSProperties}
+          />
+        }
+      >
+        {formatPercent(value)}
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <HeatCellTooltip detail={detail} />
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
-function ShowMoreFooter({
-  colSpan,
-  expanded,
-  hidden,
-  noun,
-  onToggle,
-}: {
-  colSpan: number;
-  expanded: boolean;
-  hidden: number;
-  noun: string;
-  onToggle: () => void;
-}) {
-  return (
-    <TableFooter>
-      <TableRow>
-        <TableCell className="h-10 p-0" colSpan={colSpan}>
-          <ShellFooterButton expanded={expanded} onToggle={onToggle}>
-            {expanded ? "Show less" : `Show ${hidden} more ${noun}`}
-          </ShellFooterButton>
-        </TableCell>
-      </TableRow>
-    </TableFooter>
-  );
+/** Page state shared by tables that sit side by side and flip together. */
+export interface SharedPage {
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
-interface CollapseProps {
-  expanded: boolean;
-  onToggleExpanded: () => void;
+/**
+ * Fixed rows, so two tables with the same page size end on the same line.
+ * The viewport height counts the header row too, as in the dashboard.
+ */
+function pagedTableProps(rowCount: number, pageSize: number) {
+  const height = (Math.min(rowCount, pageSize) + 1) * REPORT_ROW_HEIGHT;
+  return { height, minHeight: height, rowHeight: REPORT_ROW_HEIGHT };
 }
 
 export function RankingTable({
   rows,
-  expanded,
-  onToggleExpanded,
+  shared,
   onSelect,
-}: CollapseProps & {
+}: {
   rows: StateOfAiSearchRankingRow[];
+  shared: SharedPage;
   onSelect: (row: StateOfAiSearchRankingRow) => void;
 }) {
-  const visible = expanded ? rows : rows.slice(0, RANKING_COLLAPSED_ROWS);
-  const hidden = rows.length - RANKING_COLLAPSED_ROWS;
+  const columns: TableColumn<StateOfAiSearchRankingRow>[] = [
+    {
+      key: "rank",
+      header: "#",
+      width: "3rem",
+      cell: (row) => (
+        <span className="text-muted-foreground tabular-nums">{row.rank}</span>
+      ),
+    },
+    {
+      key: "name",
+      header: "Brand",
+      width: "1fr",
+      minWidth: "8rem",
+      cell: (row) => <Brand domain={row.domain} name={row.name} />,
+    },
+    {
+      key: "topPick",
+      header: "Named first",
+      hint: "Share of answers where this brand comes before every other tracked brand.",
+      width: "7.5rem",
+      align: "right",
+      collapsePriority: 1,
+      cell: (row) => (
+        <span className="text-muted-foreground tabular-nums">
+          {formatPercent(row.topPick)}
+        </span>
+      ),
+    },
+    {
+      key: "visibility",
+      header: "Visibility",
+      width: "9.5rem",
+      cell: (row) => (
+        <span className="flex w-full items-center gap-2.5">
+          <GeoBar
+            className="w-16"
+            fillColor={brandColor(row.rank)}
+            max={PERCENT_MAX}
+            value={row.visibility}
+          />
+          <span className="font-medium tabular-nums">
+            {formatPercent(row.visibility)}
+          </span>
+        </span>
+      ),
+    },
+  ];
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-10">#</TableHead>
-          <TableHead>Brand</TableHead>
-          <TableHead className="hidden text-right sm:table-cell">
-            Named first
-          </TableHead>
-          <TableHead>Visibility</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {visible.map((row) => (
-          <TableRow key={row.name} {...rowActions(() => onSelect(row))}>
-            <TableCell className="text-muted-foreground">{row.rank}</TableCell>
-            <TableCell className="w-full max-w-0">
-              <Brand domain={row.domain} name={row.name} />
-            </TableCell>
-            <TableCell className="text-muted-foreground hidden text-right sm:table-cell">
-              {formatPercent(row.topPick)}
-            </TableCell>
-            <TableCell>
-              <span className="flex items-center gap-2.5">
-                <GeoBar
-                  className="w-16"
-                  fillColor={brandColor(row.rank)}
-                  max={PERCENT_MAX}
-                  value={row.visibility}
-                />
-                <span className="w-9 text-right font-medium">
-                  {formatPercent(row.visibility)}
-                </span>
-              </span>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-      {hidden > 0 ? (
-        <ShowMoreFooter
-          colSpan={4}
-          expanded={expanded}
-          hidden={hidden}
-          noun="brands"
-          onToggle={onToggleExpanded}
-        />
-      ) : null}
-    </Table>
+    <DataTable
+      columns={columns}
+      data={rows}
+      getRowId={(row) => row.name}
+      onRowClick={onSelect}
+      pagination={{
+        ...shared,
+        pageSize: BRANDS_PAGE_SIZE,
+        itemLabel: "brands",
+        pageSizeSelector: false,
+      }}
+      {...pagedTableProps(rows.length, BRANDS_PAGE_SIZE)}
+    />
   );
 }
 
@@ -216,16 +247,14 @@ export function RankingTable({
 export function EngineHeatmap({
   rows,
   engines,
-  expanded,
-  onToggleExpanded,
+  shared,
   onSelect,
-}: CollapseProps & {
+}: {
   rows: StateOfAiSearchRankingRow[];
   engines: StateOfAiSearchEngine[];
+  shared: SharedPage;
   onSelect: (row: StateOfAiSearchRankingRow) => void;
 }) {
-  const visible = expanded ? rows : rows.slice(0, RANKING_COLLAPSED_ROWS);
-  const hidden = rows.length - RANKING_COLLAPSED_ROWS;
   const rates = rows.flatMap((row) =>
     engines.flatMap((engine) => {
       const value = row.byEngine[engine.id];
@@ -234,65 +263,66 @@ export function EngineHeatmap({
   );
   const min = Math.min(...rates);
   const max = Math.max(...rates);
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Brand</TableHead>
-          {engines.map((engine) => (
-            <TableHead
-              className="max-w-16 min-w-16 px-1 text-center sm:max-w-28 sm:min-w-28"
-              key={engine.id}
-            >
-              <span
-                className="inline-flex max-w-full items-center gap-1.5"
-                title={engine.label}
-              >
-                <EngineIcon
-                  className="size-3.5 shrink-0"
-                  engine={engine.model}
-                />
-                <span className="hidden truncate sm:inline">
-                  {engine.label}
-                </span>
-              </span>
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {visible.map((row) => (
-          <TableRow key={row.name} {...rowActions(() => onSelect(row))}>
-            <TableCell className="w-full max-w-0">
-              <Brand domain={row.domain} name={row.name} />
-            </TableCell>
-            {engines.map((engine) => (
-              <TableCell className="min-w-16 px-1 sm:min-w-28" key={engine.id}>
-                <HeatCell
-                  label={`${row.name} · ${engine.label}: ${formatPercent(row.byEngine[engine.id])} of answers`}
-                  max={max}
-                  min={min}
-                  value={row.byEngine[engine.id]}
-                />
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-      {hidden > 0 ? (
-        <ShowMoreFooter
-          colSpan={engines.length + 1}
-          expanded={expanded}
-          hidden={hidden}
-          noun="brands"
-          onToggle={onToggleExpanded}
+  const rankWith = (
+    engine: StateOfAiSearchEngine,
+    row: StateOfAiSearchRankingRow
+  ) =>
+    1 +
+    rows.filter(
+      (other) =>
+        (other.byEngine[engine.id] ?? 0) > (row.byEngine[engine.id] ?? 0)
+    ).length;
+  const columns: TableColumn<StateOfAiSearchRankingRow>[] = [
+    {
+      key: "name",
+      header: "Brand",
+      width: "1fr",
+      minWidth: "8rem",
+      cell: (row) => <Brand domain={row.domain} name={row.name} />,
+    },
+    ...engines.map((engine): TableColumn<StateOfAiSearchRankingRow> => ({
+      key: engine.id,
+      header: (
+        <span className="inline-flex items-center gap-1.5">
+          <EngineIcon className="size-3.5" engine={engine.model} />
+          {engine.label}
+        </span>
+      ),
+      width: "7.5rem",
+      align: "center",
+      sortValue: (row) => row.byEngine[engine.id] ?? -1,
+      cell: (row) => (
+        <HeatCell
+          detail={{
+            brand: row,
+            engine,
+            rank: rankWith(engine, row),
+            total: rows.length,
+          }}
+          max={max}
+          min={min}
+          value={row.byEngine[engine.id]}
         />
-      ) : null}
-    </Table>
+      ),
+    })),
+  ];
+  return (
+    <DataTable
+      columns={columns}
+      data={rows}
+      getRowId={(row) => row.name}
+      onRowClick={onSelect}
+      pagination={{
+        ...shared,
+        pageSize: BRANDS_PAGE_SIZE,
+        itemLabel: "brands",
+        pageSizeSelector: false,
+      }}
+      {...pagedTableProps(rows.length, BRANDS_PAGE_SIZE)}
+    />
   );
 }
 
-/** The questions, everyone named in the answers and who came first. */
 export function PromptsTable({
   rows,
   onSelect,
@@ -300,129 +330,198 @@ export function PromptsTable({
   rows: StateOfAiSearchPromptRow[];
   onSelect: (row: StateOfAiSearchPromptRow) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? rows : rows.slice(0, PROMPTS_PAGE_SIZE);
-  const hidden = rows.length - PROMPTS_PAGE_SIZE;
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Prompt</TableHead>
-          <TableHead className="hidden md:table-cell">
-            Brands mentioned
-          </TableHead>
-          <TableHead className="hidden text-right lg:table-cell">
-            Assistants
-          </TableHead>
-          <TableHead>Named first</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {visible.map((row) => (
-          <TableRow key={row.id} {...rowActions(() => onSelect(row))}>
-            <TableCell className="w-full min-w-48 py-3 text-pretty whitespace-normal">
-              {row.prompt}
-            </TableCell>
-            <TableCell className="hidden md:table-cell">
-              <LogoStack
-                items={row.brands.map((brand) => ({
-                  key: brand.name,
-                  label: brand.name,
-                  detail: `Named in ${row.mentions[brand.name] ?? 0} of ${row.answers} answers`,
-                  renderIcon: (className) => (
-                    <CompetitorLogo
-                      className={cn(className, LOGO_OUTLINE)}
-                      domain={brand.domain}
-                      name={brand.name}
-                    />
-                  ),
-                }))}
-                labels={{ additionalItems: "More brands" }}
-                limit={BRAND_STACK_LIMIT}
+  const [page, setPage] = useState(1);
+  const columns: TableColumn<StateOfAiSearchPromptRow>[] = [
+    {
+      key: "prompt",
+      header: "Prompt",
+      width: "1fr",
+      minWidth: "12rem",
+      cell: (row) => <span className="truncate">{row.prompt}</span>,
+    },
+    {
+      key: "brands",
+      header: "Brands mentioned",
+      width: "12rem",
+      collapsePriority: 1,
+      cell: (row) => (
+        <LogoStack
+          items={row.brands.map((brand) => ({
+            key: brand.name,
+            label: brand.name,
+            detail: `Named in ${row.mentions[brand.name] ?? 0} of ${row.answers} answers`,
+            renderIcon: (className) => (
+              <CompetitorLogo
+                className={cn(className, LOGO_OUTLINE)}
+                domain={brand.domain}
+                name={brand.name}
               />
-            </TableCell>
-            <TableCell
-              className={cn(
-                "hidden text-right lg:table-cell",
-                !row.consensus && "text-muted-foreground"
-              )}
-            >
-              {row.consensus ? "Agree" : "Split"}
-            </TableCell>
-            <TableCell className="max-w-36 sm:max-w-44">
-              {row.topPick ? (
-                <Brand domain={row.topPick.domain} name={row.topPick.name} />
-              ) : (
-                <span className="text-muted-foreground">–</span>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-      {hidden > 0 ? (
-        <ShowMoreFooter
-          colSpan={4}
-          expanded={expanded}
-          hidden={hidden}
-          noun="prompts"
-          onToggle={() => setExpanded((current) => !current)}
+            ),
+          }))}
+          labels={{ additionalItems: "More brands" }}
+          limit={BRAND_STACK_LIMIT}
         />
-      ) : null}
-    </Table>
+      ),
+    },
+    {
+      key: "topPick",
+      header: "Named first",
+      width: "11rem",
+      cell: (row) =>
+        row.topPick ? (
+          <Brand domain={row.topPick.domain} name={row.topPick.name} />
+        ) : (
+          <span className="text-muted-foreground">–</span>
+        ),
+    },
+  ];
+  return (
+    <DataTable
+      columns={columns}
+      data={rows}
+      getRowId={(row) => String(row.id)}
+      onRowClick={onSelect}
+      pagination={{
+        page,
+        onPageChange: setPage,
+        pageSize: PROMPTS_PAGE_SIZE,
+        itemLabel: "prompts",
+        pageSizeSelector: false,
+      }}
+      {...pagedTableProps(rows.length, PROMPTS_PAGE_SIZE)}
+    />
   );
 }
 
 export function SourcesTable({
   rows,
   engines,
+  onSelect,
 }: {
   rows: StateOfAiSearchSource[];
   engines: StateOfAiSearchEngine[];
+  onSelect: (row: StateOfAiSearchSource) => void;
 }) {
   const max = Math.max(...rows.map((row) => row.share), 1);
+  const leaderOf = (row: StateOfAiSearchSource) =>
+    Math.max(...engines.map((engine) => row.byEngine[engine.id] ?? 0));
+  const columns: TableColumn<StateOfAiSearchSource>[] = [
+    {
+      key: "domain",
+      header: "Domain",
+      width: "1fr",
+      minWidth: "8rem",
+      cell: (row) => <Brand domain={row.domain} name={row.domain} />,
+    },
+    ...engines.map((engine): TableColumn<StateOfAiSearchSource> => ({
+      key: engine.id,
+      header: (
+        <span className="inline-flex" title={engine.label}>
+          <EngineIcon className="size-3.5" engine={engine.model} />
+        </span>
+      ),
+      width: "4.5rem",
+      align: "right",
+      collapsePriority: 1,
+      cell: (row) => {
+        const value = row.byEngine[engine.id];
+        const leads = value !== null && value > 0 && value === leaderOf(row);
+        return (
+          <span
+            className={cn(
+              "tabular-nums",
+              leads ? "text-foreground font-semibold" : "text-muted-foreground"
+            )}
+          >
+            {formatPercent(value)}
+          </span>
+        );
+      },
+    })),
+    {
+      key: "share",
+      header: "Cited in",
+      width: "8.5rem",
+      cell: (row) => (
+        <span className="flex w-full items-center gap-2.5">
+          <GeoBar className="w-12" max={max} value={row.share} />
+          <span className="font-medium tabular-nums">
+            {formatPercent(row.share)}
+          </span>
+        </span>
+      ),
+    },
+  ];
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Domain</TableHead>
-          {engines.map((engine) => (
-            <TableHead
-              className="hidden px-2 text-right sm:table-cell"
-              key={engine.id}
-            >
-              <span className="inline-flex" title={engine.label}>
-                <EngineIcon className="size-3.5" engine={engine.model} />
-              </span>
-            </TableHead>
-          ))}
-          <TableHead>Cited in</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row) => (
-          <TableRow key={row.domain}>
-            <TableCell className="w-full max-w-0">
-              <Brand domain={row.domain} name={row.domain} />
-            </TableCell>
-            {engines.map((engine) => (
-              <TableCell
-                className="text-muted-foreground hidden px-2 text-right sm:table-cell"
-                key={engine.id}
-              >
-                {formatPercent(row.byEngine[engine.id])}
-              </TableCell>
-            ))}
-            <TableCell>
-              <span className="flex items-center gap-2.5">
-                <GeoBar className="w-12" max={max} value={row.share} />
-                <span className="w-9 text-right font-medium">
-                  {formatPercent(row.share)}
-                </span>
-              </span>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataTable
+      columns={columns}
+      data={rows}
+      getRowId={(row) => row.domain}
+      onRowClick={onSelect}
+      {...pagedTableProps(rows.length, rows.length)}
+    />
+  );
+}
+
+/** Other categories as one table: leader and runners-up per report. */
+export function ReportsTable({
+  reports,
+}: {
+  reports: StateOfAiSearchSummary[];
+}) {
+  const navigate = useNavigate();
+  const columns: TableColumn<StateOfAiSearchSummary>[] = [
+    {
+      key: "subject",
+      header: "Category",
+      width: "10rem",
+      cell: (row) => <span className="font-medium">{row.subject}</span>,
+    },
+    ...[0, 1, 2].map((index): TableColumn<StateOfAiSearchSummary> => ({
+      key: `leader-${index}`,
+      header: `#${index + 1}`,
+      width: "1fr",
+      minWidth: "9rem",
+      collapsePriority: index,
+      cell: (row) => {
+        const leader = row.leaders[index];
+        return leader ? (
+          <span className="flex w-full min-w-0 items-center gap-2.5">
+            <Brand
+              className="flex-1"
+              domain={leader.domain}
+              name={leader.name}
+            />
+            <span className="text-muted-foreground tabular-nums">
+              {formatPercent(leader.visibility)}
+            </span>
+          </span>
+        ) : null;
+      },
+    })),
+    {
+      key: "edition",
+      header: "Edition",
+      width: "8rem",
+      align: "right",
+      collapsePriority: 3,
+      cell: (row) => (
+        <span className="text-muted-foreground">{row.editionLabel}</span>
+      ),
+    },
+  ];
+  return (
+    <DataTable
+      columns={columns}
+      data={reports}
+      getRowId={(row) => row.slug}
+      onRowClick={(row) =>
+        navigate({
+          to: "/state-of-ai-search/$category/$edition",
+          params: { category: row.slug, edition: row.edition },
+        })
+      }
+      {...pagedTableProps(reports.length, reports.length)}
+    />
   );
 }

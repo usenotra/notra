@@ -7,9 +7,11 @@ export const STATE_OF_AI_SEARCH_DESCRIPTION =
   "Monthly reports on which brands ChatGPT, Claude and Google's AI Overview recommend, category by category. Rankings, the prompts behind them and the sources the assistants cite.";
 export const STATE_OF_AI_SEARCH_SIGNUP_SOURCE = "state-of-ai-search";
 
-/** Ranking rows shown before "Show all". */
-export const RANKING_COLLAPSED_ROWS = 8;
+/** Brands per page in the ranking and the heatmap, which page together. */
+export const BRANDS_PAGE_SIZE = 8;
 export const PROMPTS_PAGE_SIZE = 10;
+/** One row height for every report table, so side-by-side tables line up. */
+export const REPORT_ROW_HEIGHT = 48;
 export const REPORT_LEADER_LOGOS = 3;
 
 export const STATE_OF_AI_SEARCH_CTA_HEADING = "Where do you rank in AI search?";
@@ -34,3 +36,10 @@ export const HEATMAP_LIGHT_TEXT_TINT = 62;
 export const BRAND_SHEET_PROMPTS = 8;
 /** Drawers opened from drawers stop here, so the stack stays readable. */
 export const MAX_SHEET_DEPTH = 2;
+
+/**
+ * Lifted cards on the report and its drawers get a white inner ring in dark mode: a top
+ * highlight plus a faint inset edge, on top of the usual drop shadow.
+ */
+export const REPORT_SURFACE_LIFT =
+  "dark:[--surface-lift:inset_0_1px_0_rgb(255_255_255/0.12),inset_0_0_0_1px_rgb(255_255_255/0.05),inset_0_8px_16px_-12px_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.4)]";

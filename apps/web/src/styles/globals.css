@@ -4,6 +4,7 @@
 @import "@c15t/react/styles.css";
 @import "@fontsource-variable/inter";
 @import "@fontsource/instrument-serif/400.css";
+@import "../../../../packages/ui/src/styles/ai-overview.css";
 @import "../../../../packages/ui/src/styles/cta-button.css";
 @import "../../../../packages/ui/src/styles/motion.css";
 @import "../../../../packages/ui/src/styles/skeleton-shimmer.css";

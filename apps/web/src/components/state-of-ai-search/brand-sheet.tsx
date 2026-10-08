@@ -30,6 +30,7 @@ import {
 import {
   BRAND_SHEET_PROMPTS,
   MAX_SHEET_DEPTH,
+  REPORT_SURFACE_LIFT,
 } from "@/constants/state-of-ai-search";
 import type {
   StateOfAiSearchPromptRow,
@@ -107,7 +108,7 @@ export function BrandSheet({
       }}
       open={brandProp !== null}
     >
-      <DetailSheetContent size="md">
+      <DetailSheetContent className={REPORT_SURFACE_LIFT} size="md">
         {brand ? (
           <>
             <SheetHeader className="shrink-0 border-b p-4">
