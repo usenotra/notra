@@ -1,0 +1,19 @@
+apps/web/src/lib/state-of-ai-search/markdown.ts
+  s_cf35b4ac28f59d::t_c05874e021dc8a 1-2,4-6,9,11-15,17,20,29-50,52-54,58-87,95-121,125-127,131-136,140-141,143-145,149-153,155-167,170-175,177-227,230-248,250-293,295-298,300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "57a4f655127a8e82a800861ca5fdc6d1c4a7201d",
+  "prompts": {},
+  "sessions": {
+    "s_cf35b4ac28f59d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e502f3a3-5a0e-4376-8178-b1e7ce7f0818",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
