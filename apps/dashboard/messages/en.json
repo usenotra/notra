@@ -7331,6 +7331,7 @@
         "phases": {
           "queued": "Queued",
           "preparing": "Preparing source",
+          "preparingShort": "Preparing",
           "building": "Building",
           "deploying": "Deploying",
           "execution": "Build & deploy"

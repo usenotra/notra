@@ -7331,6 +7331,7 @@
         "phases": {
           "queued": "Warteschlange",
           "preparing": "Quellcode vorbereiten",
+          "preparingShort": "Vorbereiten",
           "building": "Build",
           "deploying": "Deployen",
           "execution": "Build & Deployment"
