@@ -1,0 +1,44 @@
+---
+title: "Previews"
+description: "A private link for every pull request and branch, so you can review a post before it goes live."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/previews
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A preview is a full copy of your site that Notra builds from a pull request or a branch at its own address. Drafts (`draft: true`) show in previews, so reviewers see exactly what will go live.
+
+## Pull request previews
+
+Every pull request into the production branch gets a preview at `https://pr-<number>--<address>.notra.site`, which updates with every new commit and goes away when the pull request is closed. The **Notra Sites preview** check on the pull request links to it, while pull requests from forks don't get a preview.
+
+## Branch previews
+
+To preview a branch without opening a pull request, open **Deployments → Preview a branch**, enter the branch name and click **Create preview**. Every push to the branch updates the preview, and branch previews stay until you remove them with **Delete preview**.
+
+## Who can open a preview
+
+Set this under **Settings → Previews**, or with the access button on the **Deployments** page, which shows the current mode, for example **Team only**:
+
+| Access | Who can open previews |
+| --- | --- |
+| **Team only** (default) | Members of your Notra workspace, signed in |
+| **Team or password** | Members, or anyone with the password (at least 8 characters) |
+| **Anyone with the link** | Anyone |
+| **Previews off** | Nobody, and turning previews off closes all open previews |
+
+For a reviewer outside your workspace, choose **Copy share link** on a preview, and the link works for seven days.
+
+## What's different in a preview
+
+- Search engines never index previews, because every response sends `X-Robots-Tag: noindex` and `robots.txt` blocks all crawlers.
+- Notra only serves previews on Notra addresses and never on your own domain.
+- Visits to previews don't count in Analytics, but analytics integrations like Plausible still load, so filter preview hosts (`*.notra.site`) in your tool.

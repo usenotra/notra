@@ -1,0 +1,64 @@
+---
+title: "Serve your site under a path with Next.js"
+sidebarTitle: "Next.js"
+description: "Forward acme.com/blog to Notra with rewrites in next.config.ts, on Vercel or self-hosted."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/nextjs
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra with `rewrites` in `next.config.ts`, which works on Vercel and on any other host that runs Next.js. Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+<Steps>
+  <Step title="Add the rewrites">
+    ```typescript next.config.ts
+    import type { NextConfig } from "next";
+
+    const NOTRA_SITE = "https://acme.notra.site";
+
+    const nextConfig: NextConfig = {
+      async rewrites() {
+        return {
+          beforeFiles: [
+            { source: "/blog", destination: `${NOTRA_SITE}/blog` },
+            { source: "/blog/:path*", destination: `${NOTRA_SITE}/blog/:path*` },
+            { source: "/changelog", destination: `${NOTRA_SITE}/changelog` },
+            { source: "/changelog/:path*", destination: `${NOTRA_SITE}/changelog/:path*` },
+          ],
+        };
+      },
+    };
+
+    export default nextConfig;
+    ```
+
+    `beforeFiles` makes the rewrites win over pages in your app, and if your app has no `/blog` route, a plain array works too. If you already return rewrites, add these entries to your `beforeFiles` list.
+  </Step>
+  <Step title="Keep proxy.ts away from these paths">
+    If you have a `proxy.ts` (`middleware.ts` before Next.js 16) that redirects, rewrites or requires a login, exclude the section paths in its matcher:
+
+    ```typescript proxy.ts
+    export const config = {
+      matcher: ["/((?!blog(?:/|$)|changelog(?:/|$)|_next/static|_next/image|favicon.ico).*)"],
+    };
+    ```
+  </Step>
+  <Step title="Deploy and check">
+    Deploy, open `https://www.acme.com/blog/_notra/probe.txt` to confirm the rewrite works, then click **Check** on the domain in Notra.
+  </Step>
+</Steps>
+
+## Limits to keep in mind
+
+- **`trailingSlash: true`** redirects `/blog` to `/blog/` and the check fails, so leave it off.
+- **`basePath`** is prefixed to every rewrite `source`, so with `basePath: "/app"` the rewrites match `/app/blog`. Use a [Vercel](/sites/domains/vercel) or [Cloudflare](/sites/domains/cloudflare) rewrite in front of the app instead.
+- **Security headers**: if you set a `Content-Security-Policy` for every route in `headers()`, exclude the section paths so it can never replace Notra's own policy for the site.
+- Next.js passes Notra's redirects back to the browser and keeps the `Accept` header, so Markdown for AI agents works.
