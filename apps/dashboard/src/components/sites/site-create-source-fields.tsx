@@ -115,36 +115,35 @@ export function SiteCreateSourceFields({
           />
         </Field>
         {subdirectory.checked ? (
-          <Field
-            className="animate-in fade-in motion-safe:slide-in-from-top-1 duration-200"
-            data-invalid={errors.rootDirectory ? true : undefined}
-          >
-            <FieldLabel htmlFor={`${id}-root`}>
-              {t("rootDirectoryPath")}
-            </FieldLabel>
-            <SiteSuggestInput
-              describedBy={
-                errors.rootDirectory ? `${id}-root-error` : `${id}-root-hint`
-              }
-              emptyLabel={t("noDirectoryMatch")}
-              icon={Folder01Icon}
-              id={`${id}-root`}
-              invalid={Boolean(errors.rootDirectory)}
-              onValueChange={(value) => update("rootDirectory", value)}
-              placeholder={t("rootDirectoryPlaceholder")}
-              suggestions={suggestions.configDirectories.filter(Boolean)}
-              value={form.rootDirectory}
-            />
-            {errors.rootDirectory ? (
-              <FieldError id={`${id}-root-error`}>
-                {errors.rootDirectory}
-              </FieldError>
-            ) : (
-              <FieldDescription id={`${id}-root-hint`}>
-                {t("rootDirectoryPathHint")}
-              </FieldDescription>
-            )}
-          </Field>
+          <div className="animate-in fade-in motion-safe:slide-in-from-top-1 duration-200">
+            <Field data-invalid={errors.rootDirectory ? true : undefined}>
+              <FieldLabel htmlFor={`${id}-root`}>
+                {t("rootDirectoryPath")}
+              </FieldLabel>
+              <SiteSuggestInput
+                describedBy={
+                  errors.rootDirectory ? `${id}-root-error` : `${id}-root-hint`
+                }
+                emptyLabel={t("noDirectoryMatch")}
+                icon={Folder01Icon}
+                id={`${id}-root`}
+                invalid={Boolean(errors.rootDirectory)}
+                onValueChange={(value) => update("rootDirectory", value)}
+                placeholder={t("rootDirectoryPlaceholder")}
+                suggestions={suggestions.configDirectories.filter(Boolean)}
+                value={form.rootDirectory}
+              />
+              {errors.rootDirectory ? (
+                <FieldError id={`${id}-root-error`}>
+                  {errors.rootDirectory}
+                </FieldError>
+              ) : (
+                <FieldDescription id={`${id}-root-hint`}>
+                  {t("rootDirectoryPathHint")}
+                </FieldDescription>
+              )}
+            </Field>
+          </div>
         ) : null}
       </m.div>
       {form.repositoryId ? (
