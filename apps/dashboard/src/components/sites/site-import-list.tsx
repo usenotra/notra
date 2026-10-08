@@ -167,7 +167,8 @@ export function SiteImportList({
               ))}
             </SelectContent>
           </Select>
-        ) : activeOwner ? (
+        ) : null}
+        {owners.length <= 1 && activeOwner ? (
           <span className="bg-muted/30 flex h-8 shrink-0 items-center gap-2 rounded-lg border px-2.5 text-sm">
             <OwnerAvatar className="size-5" owner={activeOwner} />
             <span className="max-w-32 truncate">{activeOwner}</span>
