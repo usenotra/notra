@@ -34,7 +34,6 @@ export function SiteDeploymentTimeline({
         minute: "2-digit",
         second: "2-digit",
         hour12: false,
-        timeZone: "UTC",
       }),
     [locale]
   );
@@ -55,12 +54,7 @@ export function SiteDeploymentTimeline({
 
   return (
     <section aria-label={t("title")} className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-sm font-medium">{t("title")}</h2>
-        <span className="text-muted-foreground text-xs">
-          {running ? `${t("live")} · UTC` : "UTC"}
-        </span>
-      </div>
+      <h2 className="text-sm font-medium">{t("title")}</h2>
       <div className="overflow-x-auto pb-1">
         <ol className="flex min-w-xl gap-2">
           {phases.map((phase) => {
@@ -123,7 +117,12 @@ export function SiteDeploymentTimeline({
                 </div>
                 <div className="text-muted-foreground min-h-4 font-mono text-xs tabular-nums">
                   {phase.startIso !== null ? (
-                    <time dateTime={phase.startIso} title={phase.startIso}>
+                    // Local time: the server renders in its own zone first.
+                    <time
+                      dateTime={phase.startIso}
+                      suppressHydrationWarning
+                      title={phase.startIso}
+                    >
                       {phase.startLabel}
                     </time>
                   ) : null}

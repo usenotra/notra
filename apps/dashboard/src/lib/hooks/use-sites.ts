@@ -9,6 +9,7 @@ import {
   SITE_ACTIVE_POLL_INTERVAL_MS,
   SITE_ANALYTICS_POLL_INTERVAL_MS,
   SITE_IDLE_POLL_INTERVAL_MS,
+  SITE_REPOSITORY_OVERVIEW_STALE_MS,
 } from "@/constants/sites";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
@@ -83,6 +84,21 @@ export function useSiteAnalytics(
     }),
     placeholderData: keepPreviousData,
   });
+}
+
+/** Loads a site's GitHub details only while their hover card is open. */
+export function useSiteRepositoryOverview(
+  organizationId: string,
+  siteId: string,
+  enabled: boolean
+) {
+  return useQuery(
+    dashboardOrpc.sites.repository.queryOptions({
+      input: { organizationId, siteId },
+      enabled: enabled && organizationId.length > 0,
+      staleTime: SITE_REPOSITORY_OVERVIEW_STALE_MS,
+    })
+  );
 }
 
 export function useInvalidateSites() {

@@ -86,7 +86,11 @@ export default function PageClient({ organizationSlug }: SitesPageClientProps) {
           title={t("empty.title")}
         />
       ) : (
-        <SitesTable organizationSlug={organizationSlug} sites={sites} />
+        <SitesTable
+          organizationId={organizationId}
+          organizationSlug={organizationSlug}
+          sites={sites}
+        />
       )}
     </SitesPageShell>
   );

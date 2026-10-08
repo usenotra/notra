@@ -94,3 +94,25 @@ export interface RepositoryTreeScan {
   contentCounts: Record<string, RepositoryContentCount>;
   truncated: boolean;
 }
+
+export interface SiteRepositoryCommit {
+  sha: string;
+  message: string;
+  authorName: string | null;
+  committedAt: string | null;
+}
+
+/** What the dashboard shows when hovering a site's repository. */
+export interface SiteRepositoryOverview {
+  fullName: string;
+  description: string | null;
+  isPrivate: boolean;
+  language: string | null;
+  stars: number;
+  forks: number;
+  openIssues: number;
+  defaultBranch: string;
+  pushedAt: string | null;
+  htmlUrl: string;
+  latestCommit: SiteRepositoryCommit | null;
+}

@@ -158,7 +158,7 @@ export function SiteDomainsTable({
         const name = rowHostname(row);
         const primary = isAlias ? row.isPrimary : row.domain.isPrimary;
         return (
-          <span className="flex min-w-0 flex-col gap-1">
+          <span className="flex min-h-10 min-w-0 flex-col justify-center gap-1">
             <span className="flex min-w-0 items-center gap-2">
               <span className="truncate font-medium" title={name}>
                 {name}

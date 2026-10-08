@@ -57,7 +57,9 @@ export const SITE_DEPLOYMENTS_PAGE_SIZE = 20;
 export const SITE_OVERVIEW_PREVIEWS_LIMIT = 5;
 export const SITE_TABLE_EMPTY_HEIGHT = 340;
 export const SITE_TABLE_COMPACT_EMPTY_HEIGHT = 300;
-export const SITE_LIST_TABLE_ROW_HEIGHT = 60;
+export const SITE_LIST_TABLE_ROW_HEIGHT = 66;
+export const SITE_REPOSITORY_OVERVIEW_STALE_MS = 5 * 60 * 1000;
+export const SITE_REPOSITORY_SKELETON_ROWS = 4;
 export const SITE_SHORT_SHA_LENGTH = 7;
 export const SITE_SHARE_LINK_DAYS = 7;
 
@@ -191,4 +193,4 @@ export const SITES_CLEANUP_CONCURRENCY = 4;
 export const SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS =
   "bg-background shadow-lift grid gap-6 rounded-[14px] border p-5 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]";
 export const SITE_DEPLOYMENT_LOG_SURFACE_CLASS =
-  "bg-background shadow-lift h-96 overflow-hidden rounded-[14px] border";
+  "bg-background shadow-lift overflow-hidden rounded-[14px] border";

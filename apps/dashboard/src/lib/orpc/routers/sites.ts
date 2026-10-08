@@ -77,6 +77,7 @@ import {
 } from "@notra/sites-server/env";
 import {
   getRepositorySuggestions,
+  getSiteRepositoryOverview,
   siteRepositoryAccess,
 } from "@notra/sites-server/github";
 import {
@@ -399,6 +400,21 @@ export const sitesRouter = {
         previews: serializePreviews(site, state, deployments),
         draftCount: drafts.length,
       };
+    }),
+
+  repository: sitesProcedure
+    .input(siteScopeInputSchema)
+    .handler(async ({ context, input }) => {
+      const { site } = await requireSite(context, input);
+      // Hover details are optional: a disconnected repository or a GitHub
+      // outage shows "unavailable" instead of failing the page.
+      return await getSiteRepositoryOverview(site).catch((error: unknown) => {
+        console.warn("sites.repository_overview_failed", {
+          siteId: site.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return null;
+      });
     }),
 
   analytics: sitesProcedure

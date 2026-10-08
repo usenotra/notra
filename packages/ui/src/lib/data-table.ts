@@ -278,6 +278,7 @@ export function tableLoadingOverlay(
 export function getTableViewportLayout({
   rowCount,
   rowHeight,
+  headerHeight = rowHeight,
   rowSizing,
   height,
   minHeight,
@@ -287,12 +288,12 @@ export function getTableViewportLayout({
   const resolvedHeight = Math.max(height, minHeight ?? 0);
   // Fixed viewports end on a whole row so separators meet the bottom border.
   const bodyHeight =
-    Math.floor(Math.max(rowHeight, resolvedHeight - rowHeight) / rowHeight) *
+    Math.floor(Math.max(rowHeight, resolvedHeight - headerHeight) / rowHeight) *
     rowHeight;
   const minBodyHeight =
     minHeight == null
       ? 0
-      : Math.floor(Math.max(rowHeight, minHeight - rowHeight) / rowHeight) *
+      : Math.floor(Math.max(rowHeight, minHeight - headerHeight) / rowHeight) *
         rowHeight;
   const contentHeight = Math.max(
     rowHeight,

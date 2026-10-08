@@ -7321,7 +7321,6 @@
     "deploymentPage": {
       "timeline": {
         "title": "Deployment timeline",
-        "live": "Updating live",
         "timingUnavailable": "Timing unavailable",
         "phases": {
           "queued": "Queued",
@@ -7671,6 +7670,18 @@
       "add": "Add {provider}",
       "more": "{provider} options",
       "edit": "Edit"
+    },
+    "repositoryCard": {
+      "private": "Private",
+      "public": "Public",
+      "language": "Language",
+      "stars": "Stars",
+      "forks": "Forks",
+      "openIssues": "Open issues and PRs",
+      "defaultBranch": "Default branch",
+      "lastPush": "Last push",
+      "openOnGithub": "Open on GitHub",
+      "unavailable": "Couldn't load repository details from GitHub."
     },
     "analyticsPage": {
       "title": "Analytics",

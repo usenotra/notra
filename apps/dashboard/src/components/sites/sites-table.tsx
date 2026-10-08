@@ -1,7 +1,5 @@
 "use client";
 
-import { GitBranchIcon, Github01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DataTable,
   type TableColumn,
@@ -9,18 +7,24 @@ import {
 import { useTranslations } from "use-intl";
 
 import { SiteRelativeTime } from "@/components/sites/site-relative-time";
+import { SiteRepositoryHoverCard } from "@/components/sites/site-repository-hover-card";
 import {
   SiteOfflineStatus,
   SiteStatusDot,
 } from "@/components/sites/site-status-dot";
 import { SITE_LIST_TABLE_ROW_HEIGHT } from "@/constants/sites";
+import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useRouter } from "@/lib/navigation";
 import type { SitesTableProps } from "@/types/components/sites";
 import type { SiteListItem } from "@/types/sites";
 import { displayUrl, siteHref } from "@/utils/site-links";
-import { tableHeightFor } from "@/utils/table";
+import { paginatedTableHeightFor } from "@/utils/table";
 
-export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
+export function SitesTable({
+  organizationId,
+  organizationSlug,
+  sites,
+}: SitesTableProps) {
   const t = useTranslations("sites.list");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -59,30 +63,13 @@ export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
           : "",
       cell: (site) =>
         site.repository ? (
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="flex min-w-0 items-center gap-1.5">
-              <HugeiconsIcon
-                aria-hidden="true"
-                className="text-muted-foreground shrink-0"
-                icon={Github01Icon}
-                size={14}
-              />
-              <span className="truncate">
-                {site.repository.owner}/{site.repository.name}
-              </span>
-            </span>
-            <span className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs">
-              <HugeiconsIcon
-                aria-hidden="true"
-                className="shrink-0"
-                icon={GitBranchIcon}
-                size={12}
-              />
-              <span className="truncate font-mono">
-                {site.productionBranch}
-              </span>
-            </span>
-          </span>
+          <SiteRepositoryHoverCard
+            branch={site.productionBranch}
+            name={site.repository.name}
+            organizationId={organizationId}
+            owner={site.repository.owner}
+            siteId={site.id}
+          />
         ) : (
           <span className="text-muted-foreground">{t("notConnected")}</span>
         ),
@@ -137,11 +124,12 @@ export function SitesTable({ organizationSlug, sites }: SitesTableProps) {
       columns={columns}
       data={sites}
       getRowId={(site) => site.id}
-      height={tableHeightFor(sites.length, SITE_LIST_TABLE_ROW_HEIGHT)}
+      height={paginatedTableHeightFor(sites.length, SITE_LIST_TABLE_ROW_HEIGHT)}
       onRowClick={(site) => router.push(siteHref(organizationSlug, site.id))}
       onRowPointerEnter={(site) =>
         router.prefetch(siteHref(organizationSlug, site.id))
       }
+      headerHeight={TABLE_ROW_HEIGHT}
       rowHeight={SITE_LIST_TABLE_ROW_HEIGHT}
       scrollFade={false}
     />

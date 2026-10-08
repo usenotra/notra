@@ -7321,7 +7321,6 @@
     "deploymentPage": {
       "timeline": {
         "title": "Deployment-Zeitstrahl",
-        "live": "Live aktualisiert",
         "timingUnavailable": "Keine Zeitmessung verfügbar",
         "phases": {
           "queued": "Warteschlange",
@@ -7671,6 +7670,18 @@
       "add": "{provider} hinzufügen",
       "more": "{provider}-Optionen",
       "edit": "Bearbeiten"
+    },
+    "repositoryCard": {
+      "private": "Privat",
+      "public": "Öffentlich",
+      "language": "Sprache",
+      "stars": "Sterne",
+      "forks": "Forks",
+      "openIssues": "Offene Issues und PRs",
+      "defaultBranch": "Standard-Branch",
+      "lastPush": "Letzter Push",
+      "openOnGithub": "Auf GitHub öffnen",
+      "unavailable": "Repository-Details konnten nicht von GitHub geladen werden."
     },
     "analyticsPage": {
       "title": "Analytics",

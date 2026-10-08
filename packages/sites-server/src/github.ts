@@ -32,6 +32,7 @@ import type {
   SiteRepository,
   SiteRepositoryAccess,
   SiteRepositoryColumns,
+  SiteRepositoryOverview,
   SiteRepositoryPermissions,
 } from "./types/github";
 import { readBodyUpToEffect } from "./utils/read-body";
@@ -316,6 +317,54 @@ function isSkippedDirectory(directory: string): boolean {
   return directory
     .split("/")
     .some((segment) => CONFIG_SEARCH_SKIPPED_SEGMENTS.has(segment));
+}
+
+export async function getSiteRepositoryOverview(
+  site: SiteRepositoryColumns & { productionBranch: string }
+): Promise<SiteRepositoryOverview> {
+  const { repository, token } = await siteRepositoryAccess(site, {
+    contents: "read",
+  });
+  const octokit = createOctokit(token);
+  const params = {
+    owner: repository.owner,
+    repo: repository.repo,
+    headers: GITHUB_API_VERSION_HEADER,
+  };
+  const [{ data: repo }, commits] = await Promise.all([
+    octokit.request("GET /repos/{owner}/{repo}", params),
+    // An empty repository or a deleted branch has no commit to show.
+    octokit
+      .request("GET /repos/{owner}/{repo}/commits", {
+        ...params,
+        sha: site.productionBranch,
+        per_page: 1,
+      })
+      .then(({ data }) => data)
+      .catch(() => []),
+  ]);
+  const [commit] = commits;
+  return {
+    fullName: repo.full_name,
+    description: repo.description,
+    isPrivate: repo.private,
+    language: repo.language ?? null,
+    stars: repo.stargazers_count,
+    forks: repo.forks_count,
+    openIssues: repo.open_issues_count,
+    defaultBranch: repo.default_branch,
+    pushedAt: repo.pushed_at ?? null,
+    htmlUrl: repo.html_url,
+    latestCommit: commit
+      ? {
+          sha: commit.sha,
+          message: commit.commit.message.split("\n")[0] ?? "",
+          authorName:
+            commit.author?.login ?? commit.commit.author?.name ?? null,
+          committedAt: commit.commit.author?.date ?? null,
+        }
+      : null,
+  };
 }
 
 export async function getDefaultBranch(

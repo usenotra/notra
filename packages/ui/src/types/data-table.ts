@@ -108,6 +108,8 @@ export interface DataTableProps<T> {
   onColumnResize?: (key: string, width: number) => void;
   /** Fixed row height in px — required for virtualization. */
   rowHeight?: number;
+  /** Header row height in px; defaults to `rowHeight`. */
+  headerHeight?: number;
   /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
   rowSizing?: "fixed" | "content";
   /** Scroll viewport height in px. */
@@ -268,6 +270,7 @@ export interface DataTableHeaderProps<T> {
 export interface TableViewportLayoutOptions {
   rowCount: number;
   rowHeight: number;
+  headerHeight?: number;
   rowSizing: NonNullable<DataTableProps<unknown>["rowSizing"]>;
   height: number;
   minHeight?: number;
