@@ -1,0 +1,21 @@
+apps/dashboard/src/components/evilcharts/ui/echarts-scrub.ts
+  s_27d4c099c83992::t_84f903fdd7945e 8-12,212,238
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_27d4c099c83992::t_84f903fdd7945e 97,1326-1328,2376-2382,2709,2804
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e182f58b380e8ad214be839e3fd8570bff8c10b5",
+  "prompts": {},
+  "sessions": {
+    "s_27d4c099c83992": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0b02eb17-71e3-4728-a537-a3849b112cfb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
