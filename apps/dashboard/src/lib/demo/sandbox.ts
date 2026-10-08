@@ -34,6 +34,7 @@ import {
   DEMO_CLEANUP_BATCH_SIZE,
   DEMO_ANONYMOUS_ID_PREFIX,
   DEMO_COMPANY_NAME,
+  DEMO_MAX_ACTIVE_SANDBOXES,
   DEMO_POOL_FRESH_MS,
   DEMO_POOL_ID_PREFIX,
   DEMO_POOL_REFILL_LOCK_KEY,
@@ -62,7 +63,7 @@ import type {
   DemoSandbox,
   DemoTransaction,
 } from "@/types/demo";
-import { demoMaxActiveSandboxes, demoPoolSize } from "@/utils/demo-limits";
+import { demoPoolSize } from "@/utils/demo-limits";
 
 const ID_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -214,13 +215,13 @@ async function createDemoOrganization(input: DemoOrganizationInput) {
  * Bounds the demo database: at the cap, expired sandboxes go first, then the
  * least recently used ones, so a traffic spike can't fill the disk.
  */
-async function enforceDemoSandboxCap() {
-  const cap = demoMaxActiveSandboxes();
-  if ((await countDemoSandboxes()) < cap) {
+async function enforceDemoSandboxCap(reservedSlots = 1) {
+  const cap = DEMO_MAX_ACTIVE_SANDBOXES - reservedSlots;
+  if ((await countDemoSandboxes()) <= cap) {
     return;
   }
   await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
-  const overflow = (await countDemoSandboxes()) - cap + 1;
+  const overflow = (await countDemoSandboxes()) - cap;
   if (overflow <= 0) {
     return;
   }
@@ -392,6 +393,7 @@ async function refillDemoSandboxPool(): Promise<void> {
 export function maintainDemoSandboxPool(): void {
   afterResponse(async () => {
     await cleanupExpiredDemoSandboxes(DEMO_CLEANUP_BATCH_SIZE);
+    await enforceDemoSandboxCap(0);
     await refillDemoSandboxPool();
   });
 }
