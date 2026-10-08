@@ -1,0 +1,43 @@
+apps/ai-traffic-ingest/package.json
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 15
+apps/ai-traffic-ingest/tests/database-pool.test.ts
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 1-38
+apps/ai-traffic-ingest/tests/server.test.ts
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 22-23
+apps/ai-traffic-ingest/src/constants/server.ts
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 3,9-10
+packages/db/src/types/database.ts
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 1-5
+packages/sites-server/src/state.ts
+  s_42c3a3fb97592d::t_c09a2ebb3d9a8d 43,71,118,194,256,314
+apps/ai-traffic-ingest/src/utils/retain-database-connections.ts
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 1-8
+apps/ai-traffic-ingest/README.md
+  s_42c3a3fb97592d::t_4faf92db8fb8ae 20-25,36-42,156-168
+packages/sites-server/src/utils/bind-custom-hostname.ts
+  s_42c3a3fb97592d::t_ceaede0a866d63 3,19,21
+packages/sites-server/src/types/state.ts
+  s_42c3a3fb97592d::t_c09a2ebb3d9a8d 1,7,32-37
+bun.lock
+  ai_agent 69
+packages/db/src/drizzle.ts
+  ai_agent 3,7,13,18,60-61,68
+apps/ai-traffic-ingest/src/index.ts
+  ai_agent 1,8,14-17,21,26,30,39-43,103-124,152-153,155-159,186-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fbd5de38bf0f3fa39748060ae0d633624808d729",
+  "prompts": {},
+  "sessions": {
+    "s_42c3a3fb97592d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0242f9e8-eead-46de-9e27-e8caede1c967",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
