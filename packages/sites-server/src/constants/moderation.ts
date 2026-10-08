@@ -8,10 +8,6 @@ export const SITE_PROTECTED_SLUG_WORDS: ReadonlySet<string> = new Set([
 export const SITE_RESERVED_BRAND_SLUGS: Readonly<Record<string, string>> =
   reservedBrandSlugs;
 
-export function reservedSlugMessage(slug: string, domain: string): string {
-  return `${slug} is reserved for ${domain}. Sign in with an @${domain} email address to use it, contact support, or pick another address.`;
-}
-
 export const SITE_NAME_REJECTION_MESSAGES = {
   granted:
     "This address is reserved for another organization. Pick a different one.",
@@ -19,3 +15,22 @@ export const SITE_NAME_REJECTION_MESSAGES = {
   impersonation:
     "This name looks like another organization or a login page. Use your own organization's name.",
 } as const;
+
+export const GENERIC_TLDS = new Set([
+  "app",
+  "biz",
+  "co",
+  "com",
+  "dev",
+  "gg",
+  "info",
+  "io",
+  "ai",
+  "me",
+  "net",
+  "org",
+  "sh",
+  "so",
+  "tv",
+  "xyz",
+]);

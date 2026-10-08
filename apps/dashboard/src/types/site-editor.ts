@@ -15,6 +15,11 @@ export type SiteEditorDraftResult = Awaited<
   ReturnType<typeof dashboardOrpc.sites.editor.saveDraft.call>
 >;
 
+export type SiteEditorDraftReference = Pick<
+  SiteEditorDraftInput,
+  "draftId" | "draftRevision" | "sourceContext"
+>;
+
 export interface SiteEditorSaveSnapshot {
   content: string | null;
   state: SiteEditorSaveState;
@@ -23,7 +28,7 @@ export interface SiteEditorSaveSnapshot {
 
 export interface SiteEditorSaveQueueOptions {
   save: (input: SiteEditorDraftInput) => Promise<SiteEditorDraftResult>;
-  discard: () => Promise<void>;
+  discard: (input: SiteEditorDraftReference) => Promise<void>;
   onSaved: (input: SiteEditorDraftInput, result: SiteEditorDraftResult) => void;
   onDiscarded: () => Promise<void>;
   onStateChange: (state: SiteEditorSaveState) => void;
@@ -35,7 +40,7 @@ export interface SiteEditorSaveQueue {
   subscribe: (listener: () => void) => () => void;
   edit: (input: SiteEditorDraftInput) => void;
   flush: () => Promise<void>;
-  discard: () => Promise<void>;
+  discard: (input: SiteEditorDraftReference) => Promise<void>;
 }
 export type SiteEditorLanguage =
   | "mdx"

@@ -1,5 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import { siteDomains, siteJobs, sites } from "@notra/db/schema";
+import { siteDomains, siteDrafts, siteJobs, sites } from "@notra/db/schema";
 import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import {
   SITE_PREVIEW_PASSWORD_MAX_LENGTH,
@@ -29,6 +29,7 @@ import {
   releaseHostRecord,
   setServingStatus,
 } from "./state";
+import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   CreateSiteInput,
   CreateSiteResult,
@@ -37,10 +38,10 @@ import type {
   SiteUpdateValues,
   UpdateSiteSettingsResult,
 } from "./types/sites";
-import { siteAliasOrigin } from "./urls";
 import { errorMessage } from "./utils/errors";
 import { prefixedId } from "./utils/ids";
 import { parseRootDirectory } from "./utils/root-directory";
+import { siteAliasOrigin } from "./utils/urls";
 
 function siteAliasHostname(slug: string): string {
   return siteAliasHost(slug, getSitesHostingDomain());
@@ -240,6 +241,23 @@ export async function updateSiteSettings(
     if (!current) {
       throw new SiteInputError("Site not found");
     }
+    if (
+      (values.productionBranch !== undefined &&
+        values.productionBranch !== current.productionBranch) ||
+      (values.rootDirectory !== undefined &&
+        values.rootDirectory !== current.rootDirectory)
+    ) {
+      const [draft] = await tx
+        .select({ id: siteDrafts.id })
+        .from(siteDrafts)
+        .where(eq(siteDrafts.siteId, current.id))
+        .limit(1);
+      if (draft) {
+        throw new SiteInputError(
+          "Publish or discard this site's drafts before changing its branch or root directory"
+        );
+      }
+    }
     const removePreviewsThrough =
       current.previewsEnabled && values.previewsEnabled === false
         ? current.lastGeneration + 1
@@ -256,16 +274,18 @@ export async function updateSiteSettings(
       (values.publicOrigin !== undefined &&
         values.publicOrigin !== current.publicOrigin)
     );
-    const [updated] = await tx
-      .update(sites)
-      .set({
-        ...values,
-        ...(removePreviewsThrough === null
-          ? {}
-          : { lastGeneration: removePreviewsThrough }),
-      })
-      .where(eq(sites.id, site.id))
-      .returning();
+    const [updated] = Object.values(values).some((value) => value !== undefined)
+      ? await tx
+          .update(sites)
+          .set({
+            ...values,
+            ...(removePreviewsThrough === null
+              ? {}
+              : { lastGeneration: removePreviewsThrough }),
+          })
+          .where(eq(sites.id, site.id))
+          .returning()
+      : [current];
     if (!updated) {
       throw new SiteInputError("Site not found");
     }
@@ -303,8 +323,9 @@ export async function setSitePublicOrigin(
 
 export async function deleteSite(
   site: Site,
-  executor: Pick<typeof db, "select" | "delete"> = db
+  tx?: SiteStorageTransaction
 ): Promise<void> {
+  const executor = tx ?? db;
   await setServingStatus(site, "suspended");
   const subdomains = await executor
     .select({
@@ -315,13 +336,11 @@ export async function deleteSite(
     .where(
       and(eq(siteDomains.siteId, site.id), eq(siteDomains.kind, "subdomain"))
     );
-  await Promise.all([
-    releaseHostRecord(siteAliasHostname(site.slug), site.id),
-    ...subdomains.map(async (domain) => {
-      await releaseHostRecord(domain.hostname, site.id);
-      await deleteCustomHostnameQuietly(domain.cloudflareHostnameId);
-    }),
-  ]);
+  await releaseHostRecord(siteAliasHostname(site.slug), site.id, tx);
+  for (const domain of subdomains) {
+    await releaseHostRecord(domain.hostname, site.id, tx);
+    await deleteCustomHostnameQuietly(domain.cloudflareHostnameId);
+  }
   await executor.delete(sites).where(eq(sites.id, site.id));
   await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
     () => undefined

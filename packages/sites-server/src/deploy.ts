@@ -1,15 +1,12 @@
 import { hashBuildTarget } from "@notra/sites-core/utils/build-target";
 
 import { restoreProductionDeployment } from "./activation";
-import {
-  enqueueSiteDeployment,
-  getDeployment,
-  redeploymentInput,
-} from "./deployments";
+import { enqueueSiteDeployment, getDeployment } from "./deployments";
 import { SiteInputError } from "./errors";
 import { getBranchHead, siteRepositoryAccess } from "./github";
 import type { DeployBranchHeadOptions, Site } from "./types/sites";
-import { buildTargetForDeployment } from "./urls";
+import { redeploymentInput } from "./utils/deployments";
+import { buildTargetForDeployment } from "./utils/urls";
 
 export async function deployBranchHead(
   site: Site,

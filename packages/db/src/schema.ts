@@ -16,6 +16,8 @@ import type {
 } from "@notra/sites-core/types/deployment";
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
+  type PgTableExtraConfigValue,
   boolean,
   check,
   foreignKey,
@@ -48,6 +50,7 @@ import {
   GEO_CONTENT_BRIEF_STATUSES,
   GEO_WRITER_SOURCE_KINDS,
 } from "./constants/geo-writer";
+import { SITE_JOB_KINDS, SITE_JOB_STATUSES } from "./constants/sites";
 import type { AgentFeedbackMetadata } from "./types/agent-feedback";
 import type {
   AgentReadinessIssue,
@@ -373,6 +376,10 @@ export const githubAppInstallations = pgTable(
       table.organizationId,
       table.installationId
     ),
+    uniqueIndex("githubAppInstallations_org_id_uidx").on(
+      table.organizationId,
+      table.id
+    ),
   ]
 );
 
@@ -414,6 +421,18 @@ export const githubIntegrations = pgTable(
       table.owner,
       table.repo
     ),
+    uniqueIndex("githubIntegrations_org_id_uidx").on(
+      table.organizationId,
+      table.id
+    ),
+    foreignKey({
+      columns: [table.organizationId, table.githubAppInstallationId],
+      foreignColumns: [
+        githubAppInstallations.organizationId,
+        githubAppInstallations.id,
+      ],
+      name: "githubIntegrations_org_installation_fk",
+    }).onDelete("cascade"),
   ]
 );
 
@@ -1430,6 +1449,7 @@ export const projects = pgTable(
   },
   (table) => [
     index("projects_organizationId_idx").on(table.organizationId),
+    uniqueIndex("projects_org_id_uidx").on(table.organizationId, table.id),
     uniqueIndex("projects_organizationId_sample_uidx")
       .on(table.organizationId)
       .where(sql`${table.isSample} = true`),
@@ -2331,6 +2351,7 @@ export const posts = pgTable(
       table.id
     ),
     index("posts_collection_id_idx").on(table.collectionId),
+    uniqueIndex("posts_org_id_uidx").on(table.organizationId, table.id),
     index("posts_org_createdAt_status_idx").on(
       table.organizationId,
       table.createdAt,
@@ -2392,6 +2413,19 @@ export const contentPublications = pgTable(
       table.repo,
       table.pullRequestNumber
     ),
+    foreignKey({
+      columns: [table.organizationId, table.postId],
+      foreignColumns: [posts.organizationId, posts.id],
+      name: "contentPublications_org_post_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.organizationId, table.repositoryId],
+      foreignColumns: [
+        githubIntegrations.organizationId,
+        githubIntegrations.id,
+      ],
+      name: "contentPublications_org_repository_fk",
+    }).onDelete("cascade"),
   ]
 );
 
@@ -4071,18 +4105,6 @@ export const webhookAttempts = pgTable(
   ]
 );
 
-export const SITE_JOB_KINDS = [
-  "build",
-  "remove_preview",
-  "sync_state",
-] as const;
-export const SITE_JOB_STATUSES = [
-  "pending",
-  "running",
-  "done",
-  "failed",
-] as const;
-
 export const sites = pgTable(
   "sites",
   {
@@ -4123,6 +4145,11 @@ export const sites = pgTable(
     status: text("status", { enum: SITE_STATUSES }).notNull().default("active"),
     suspendedReason: text("suspended_reason"),
     lastGeneration: integer("last_generation").notNull().default(0),
+    activeProductionDeploymentId: text(
+      "active_production_deployment_id"
+    ).references((): AnyPgColumn => siteDeployments.id, {
+      onDelete: "set null",
+    }),
     createdByUserId: text("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -4132,10 +4159,42 @@ export const sites = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [
+  (table): PgTableExtraConfigValue[] => [
     index("sites_organizationId_idx").on(table.organizationId),
     uniqueIndex("sites_slug_uidx").on(table.slug),
     index("sites_githubRepositoryId_idx").on(table.githubRepositoryId),
+    uniqueIndex("sites_org_id_uidx").on(table.organizationId, table.id),
+    foreignKey({
+      columns: [table.organizationId, table.projectId],
+      foreignColumns: [projects.organizationId, projects.id],
+      name: "sites_org_project_fk",
+    }),
+    foreignKey({
+      columns: [table.organizationId, table.repositoryId],
+      foreignColumns: [
+        githubIntegrations.organizationId,
+        githubIntegrations.id,
+      ],
+      name: "sites_org_repository_fk",
+    }),
+    foreignKey({
+      columns: [table.id, table.activeProductionDeploymentId],
+      foreignColumns: [siteDeployments.siteId, siteDeployments.id],
+      name: "sites_active_production_same_site_fk",
+    }),
+    check(
+      "sites_status_check",
+      sql`${table.status} IN ('active', 'suspended')`
+    ),
+    check(
+      "sites_previewVisibility_check",
+      sql`${table.previewVisibility} IN ('public', 'protected')`
+    ),
+    check(
+      "sites_publishMode_check",
+      sql`${table.publishMode} IN ('pull_request', 'direct')`
+    ),
+    check("sites_lastGeneration_check", sql`${table.lastGeneration} >= 0`),
   ]
 );
 
@@ -4145,7 +4204,7 @@ export const siteDomains = pgTable(
     id: text("id").primaryKey(),
     siteId: text("site_id")
       .notNull()
-      .references(() => sites.id, { onDelete: "cascade" }),
+      .references((): AnyPgColumn => sites.id, { onDelete: "cascade" }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -4178,6 +4237,19 @@ export const siteDomains = pgTable(
       .on(table.hostname)
       .where(sql`${table.status} = 'active'`),
     index("siteDomains_hostname_idx").on(table.hostname),
+    foreignKey({
+      columns: [table.organizationId, table.siteId],
+      foreignColumns: [sites.organizationId, sites.id],
+      name: "siteDomains_org_site_fk",
+    }).onDelete("cascade"),
+    check(
+      "siteDomains_kind_check",
+      sql`${table.kind} IN ('subdomain', 'proxy')`
+    ),
+    check(
+      "siteDomains_status_check",
+      sql`${table.status} IN ('pending', 'verifying', 'active', 'failed')`
+    ),
   ]
 );
 
@@ -4187,7 +4259,7 @@ export const siteDeployments = pgTable(
     id: text("id").primaryKey(),
     siteId: text("site_id")
       .notNull()
-      .references(() => sites.id, { onDelete: "cascade" }),
+      .references((): AnyPgColumn => sites.id, { onDelete: "cascade" }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -4236,6 +4308,33 @@ export const siteDeployments = pgTable(
       table.siteId,
       table.previewKey
     ),
+    uniqueIndex("siteDeployments_site_id_uidx").on(table.siteId, table.id),
+    index("siteDeployments_org_created_idx").on(
+      table.organizationId,
+      table.createdAt
+    ),
+    foreignKey({
+      columns: [table.organizationId, table.siteId],
+      foreignColumns: [sites.organizationId, sites.id],
+      name: "siteDeployments_org_site_fk",
+    }).onDelete("cascade"),
+    check(
+      "siteDeployments_kind_check",
+      sql`${table.kind} IN ('production', 'preview')`
+    ),
+    check(
+      "siteDeployments_status_check",
+      sql`${table.status} IN ('queued', 'building', 'uploading', 'ready', 'superseded', 'failed', 'canceled', 'expired')`
+    ),
+    check(
+      "siteDeployments_trigger_check",
+      sql`${table.trigger} IN ('push', 'pull_request', 'manual', 'redeploy', 'config')`
+    ),
+    check("siteDeployments_generation_check", sql`${table.generation} >= 0`),
+    check(
+      "siteDeployments_previewKey_check",
+      sql`(${table.kind} = 'production' AND ${table.previewKey} IS NULL) OR (${table.kind} = 'preview' AND ${table.previewKey} IS NOT NULL AND length(${table.previewKey}) > 0)`
+    ),
   ]
 );
 
@@ -4246,9 +4345,7 @@ export const siteJobs = pgTable(
     siteId: text("site_id")
       .notNull()
       .references(() => sites.id, { onDelete: "cascade" }),
-    deploymentId: text("deployment_id").references(() => siteDeployments.id, {
-      onDelete: "cascade",
-    }),
+    deploymentId: text("deployment_id"),
     kind: text("kind", { enum: SITE_JOB_KINDS }).notNull(),
     payload: jsonb("payload")
       .$type<SiteJobPayload>()
@@ -4273,6 +4370,24 @@ export const siteJobs = pgTable(
   (table) => [
     index("siteJobs_due_idx").on(table.status, table.availableAt),
     uniqueIndex("siteJobs_dedupeKey_uidx").on(table.dedupeKey),
+    index("siteJobs_site_deployment_idx").on(table.siteId, table.deploymentId),
+    foreignKey({
+      columns: [table.siteId, table.deploymentId],
+      foreignColumns: [siteDeployments.siteId, siteDeployments.id],
+      name: "siteJobs_site_deployment_fk",
+    }).onDelete("cascade"),
+    check(
+      "siteJobs_kind_check",
+      sql`${table.kind} IN ('build', 'remove_preview', 'sync_state')`
+    ),
+    check(
+      "siteJobs_status_check",
+      sql`${table.status} IN ('pending', 'running', 'done', 'failed')`
+    ),
+    check(
+      "siteJobs_attempts_check",
+      sql`${table.attempts} >= 0 AND ${table.maxAttempts} >= 0`
+    ),
   ]
 );
 
@@ -4304,6 +4419,7 @@ export const siteDrafts = pgTable(
     baseBlobSha: text("base_blob_sha"),
     baseCommitSha: text("base_commit_sha"),
     deleted: boolean("deleted").notNull().default(false),
+    revision: integer("revision").notNull().default(0),
     updatedByUserId: text("updated_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),

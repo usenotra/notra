@@ -1,6 +1,9 @@
 import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+
+import { deferred } from "./utils/deferred";
 
 const databaseUrl = process.env.SITES_TEST_DATABASE_URL;
 
@@ -44,6 +47,8 @@ if (!databaseUrl) {
   let failWrite = false;
   let failPrefix = false;
   let onWrite = async () => {};
+  let onCreate = async () => {};
+  let providerCreates = 0;
   let organizationId = "";
   let otherOrganizationId = "";
   let hosted: (typeof sites.$inferSelect)[] = [];
@@ -88,8 +93,24 @@ if (!databaseUrl) {
   const cloudflare = await import("../src/cloudflare-saas");
   mock.module("../src/cloudflare-saas", () => ({
     ...cloudflare,
-    deleteCustomHostnameQuietly: async (id: string) => {
-      removedProviders.push(id);
+    cloudflareSaasConfig: () => ({
+      zoneId: "synthetic",
+      apiToken: "synthetic",
+    }),
+    createCustomHostname: async (_config: unknown, hostname: string) => {
+      providerCreates += 1;
+      await onCreate();
+      return {
+        id: crypto.randomUUID(),
+        hostname,
+        status: "pending",
+        ssl: { status: "pending" },
+      };
+    },
+    deleteCustomHostnameQuietly: async (id: string | null) => {
+      if (id) {
+        removedProviders.push(id);
+      }
     },
   }));
   mock.module("@notra/geo-core/geo/ingest", () => ({
@@ -99,6 +120,8 @@ if (!databaseUrl) {
     invalidateIngestSiteCaches: async () => {},
   }));
   const { deleteOrganizationSites } = await import("../src/organization");
+  const { addSiteDomain } = await import("../src/domains");
+  const { releaseHostRecord } = await import("../src/state");
 
   beforeEach(async () => {
     objects.clear();
@@ -107,7 +130,10 @@ if (!databaseUrl) {
     failWrite = false;
     failPrefix = false;
     onWrite = async () => {};
+    onCreate = async () => {};
+    providerCreates = 0;
     process.env.SITES_HOSTING_DOMAIN = "notra.site";
+    process.env.SITES_PREVIEW_SECRET = "synthetic-organization-domain-secret";
     organizationId = crypto.randomUUID();
     otherOrganizationId = crypto.randomUUID();
     await db.insert(organizations).values(
@@ -320,5 +346,274 @@ if (!databaseUrl) {
         .where(eq(organizations.id, organizationId));
     });
     expect(checked).toBe(true);
+  });
+
+  test("deletion blocks same-workspace failed-host add before provider effects", async () => {
+    const own = hosted.filter((site) => site.organizationId === organizationId);
+    const first = own[0];
+    const second = own[1];
+    if (!(first && second)) {
+      throw new Error("Expected two sites");
+    }
+    const hostname = `${first.id}.example.test`;
+    await db
+      .update(siteDomains)
+      .set({ status: "failed" })
+      .where(eq(siteDomains.siteId, first.id));
+    let addition: Promise<unknown> | undefined;
+    let checked = false;
+    onWrite = async () => {
+      if (checked) {
+        return;
+      }
+      checked = true;
+      addition = addSiteDomain(second, { kind: "subdomain", value: hostname });
+      addition.catch(() => {});
+      let blocked = false;
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        const result = await db.execute(
+          sql`select count(*)::int as count from pg_stat_activity where datname = current_database() and pid <> pg_backend_pid() and wait_event_type = 'Lock' and query like '%organization%'`
+        );
+        if (Number(result.rows[0]?.count) > 0) {
+          blocked = true;
+          break;
+        }
+        await delay(10);
+      }
+      expect(blocked).toBe(true);
+      expect(providerCreates).toBe(0);
+    };
+    try {
+      await db.transaction(async (tx) => {
+        await deleteOrganizationSites(organizationId, tx);
+        await tx
+          .delete(organizations)
+          .where(eq(organizations.id, organizationId));
+      });
+    } finally {
+      await Promise.allSettled(addition ? [addition] : []);
+    }
+    expect(checked).toBe(true);
+    expect(providerCreates).toBe(0);
+    if (!addition) {
+      throw new Error("Expected the concurrent domain add");
+    }
+    await expect(addition).rejects.toThrow("Workspace not found");
+    expect(
+      await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId))
+    ).toHaveLength(0);
+  });
+
+  test("domain add holds organization and host admission until insert commits", async () => {
+    const own = hosted.filter((site) => site.organizationId === organizationId);
+    const first = own[0];
+    const second = own[1];
+    if (!(first && second)) {
+      throw new Error("Expected two sites");
+    }
+    await db
+      .update(siteDomains)
+      .set({ status: "failed" })
+      .where(eq(siteDomains.siteId, first.id));
+    const entered = deferred();
+    const release = deferred();
+    onCreate = async () => {
+      entered.resolve();
+      await release.promise;
+    };
+    const addition = addSiteDomain(second, {
+      kind: "subdomain",
+      value: `${first.id}.example.test`,
+    });
+    addition.catch(() => {});
+    await entered.promise;
+    let deletionPid = 0;
+    const deletion = db.transaction(async (tx) => {
+      const result = await tx.execute(sql`select pg_backend_pid() as pid`);
+      deletionPid = Number(result.rows[0]?.pid);
+      await deleteOrganizationSites(organizationId, tx);
+      await tx
+        .delete(organizations)
+        .where(eq(organizations.id, organizationId));
+    });
+    deletion.catch(() => {});
+    try {
+      let blockers: unknown[] = [];
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        const result = await db.execute(
+          sql`select pg_blocking_pids(${deletionPid}) as blockers`
+        );
+        blockers = result.rows[0]?.blockers as unknown[];
+        if (blockers.length) {
+          break;
+        }
+        await delay(10);
+      }
+      expect(blockers).toHaveLength(1);
+      expect(suspended).toHaveLength(0);
+      expect(removedProviders).toHaveLength(0);
+      const locks = await db.execute(
+        sql`select count(*)::int as count from pg_locks where pid = ${Number(blockers[0])} and locktype = 'advisory' and granted`
+      );
+      expect(Number(locks.rows[0]?.count)).toBeGreaterThan(0);
+    } finally {
+      release.resolve();
+      await Promise.allSettled([addition, deletion]);
+    }
+    const domain = await addition;
+    await deletion;
+    expect(removedProviders).toContain(domain.cloudflareHostnameId as string);
+    expect(
+      await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId))
+    ).toHaveLength(0);
+  });
+
+  test("opposite failed-host row orders use shared sorted locks across workspace deletions", async () => {
+    const own = hosted.filter((site) => site.organizationId === organizationId);
+    const foreign = hosted.find(
+      (site) => site.organizationId === otherOrganizationId
+    );
+    const first = own[0];
+    if (!(first && foreign)) {
+      throw new Error("Expected sites in both workspaces");
+    }
+    const hostnames = ["a", "z"]
+      .map((prefix) => `${prefix}-${crypto.randomUUID()}.example.test`)
+      .sort();
+    for (const [site, names] of [
+      [first, hostnames],
+      [foreign, [...hostnames].reverse()],
+    ] as const) {
+      for (const hostname of names) {
+        await db.insert(siteDomains).values({
+          id: crypto.randomUUID(),
+          siteId: site.id,
+          organizationId: site.organizationId,
+          hostname,
+          kind: "subdomain",
+          status: "failed",
+        });
+      }
+    }
+    const outsideId = crypto.randomUUID();
+    for (const hostname of hostnames) {
+      objects.set(
+        SITE_R2_KEYS.host(hostname),
+        JSON.stringify({ version: 1, siteId: outsideId, kind: "custom" })
+      );
+    }
+    const blockerReady = deferred();
+    const unblock = deferred();
+    const held = db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`sites-host:${hostnames[0]}`}, 0))`
+      );
+      blockerReady.resolve();
+      await unblock.promise;
+    });
+    held.catch(() => {});
+    await blockerReady.promise;
+    const deletions = [organizationId, otherOrganizationId].map((id) =>
+      db.transaction(async (tx) => {
+        await deleteOrganizationSites(id, tx);
+        await tx.delete(organizations).where(eq(organizations.id, id));
+      })
+    );
+    for (const deletion of deletions) {
+      deletion.catch(() => {});
+    }
+    try {
+      let waits = 0;
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        const result = await db.execute(
+          sql`select count(*)::int as count from pg_locks where locktype = 'advisory' and not granted and database = (select oid from pg_database where datname = current_database())`
+        );
+        waits = Number(result.rows[0]?.count);
+        if (waits >= 2) {
+          break;
+        }
+        await delay(10);
+      }
+      expect(waits).toBe(2);
+      expect(suspended).toHaveLength(0);
+      await db.transaction(async (tx) => {
+        const result = await tx.execute(
+          sql`select pg_try_advisory_xact_lock(hashtextextended(${`sites-host:${hostnames[1]}`}, 0)) as acquired`
+        );
+        expect(result.rows[0]?.acquired).toBe(true);
+      });
+    } finally {
+      unblock.resolve();
+      await Promise.allSettled([held, ...deletions]);
+    }
+    await Promise.all([held, ...deletions]);
+    for (const hostname of hostnames) {
+      expect(
+        JSON.parse(objects.get(SITE_R2_KEYS.host(hostname)) ?? "null")?.siteId
+      ).toBe(outsideId);
+    }
+    expect(
+      await db
+        .select()
+        .from(organizations)
+        .where(inArray(organizations.id, [organizationId, otherOrganizationId]))
+    ).toHaveLength(0);
+  });
+
+  test("host release with a supplied transaction still waits for the hostname lock", async () => {
+    const site = hosted[0];
+    if (!site) {
+      throw new Error("Expected a site");
+    }
+    const hostname = `${site.slug}.notra.site`;
+    const key = SITE_R2_KEYS.host(hostname);
+    objects.set(
+      SITE_R2_KEYS.state(site.id),
+      JSON.stringify({ status: "suspended" })
+    );
+    const entered = deferred();
+    const unblock = deferred();
+    const held = db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${`sites-host:${hostname}`}, 0))`
+      );
+      entered.resolve();
+      await unblock.promise;
+    });
+    held.catch(() => {});
+    await entered.promise;
+    let releasePid = 0;
+    const release = db.transaction(async (tx) => {
+      const result = await tx.execute(sql`select pg_backend_pid() as pid`);
+      releasePid = Number(result.rows[0]?.pid);
+      await releaseHostRecord(hostname, site.id, tx);
+    });
+    release.catch(() => {});
+    try {
+      let waits = 0;
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        const result = await db.execute(
+          sql`select count(*)::int as count from pg_locks where pid = ${releasePid} and locktype = 'advisory' and not granted`
+        );
+        waits = Number(result.rows[0]?.count);
+        if (waits) {
+          break;
+        }
+        await delay(10);
+      }
+      expect(waits).toBe(1);
+      expect(objects.has(key)).toBe(true);
+    } finally {
+      unblock.resolve();
+      await Promise.allSettled([held, release]);
+    }
+    await Promise.all([held, release]);
+    expect(objects.has(key)).toBe(false);
   });
 }

@@ -4,13 +4,13 @@ import { organizations, siteSlugGrants, users } from "@notra/db/schema";
 import { eq } from "drizzle-orm";
 
 import {
-  reservedSlugMessage,
   SITE_NAME_REJECTION_MESSAGES,
   SITE_PROTECTED_SLUG_WORDS,
   SITE_RESERVED_BRAND_SLUGS,
 } from "./constants/moderation";
 import { SiteInputError } from "./errors";
 import type { SiteNameRejection, SiteNameRejectionParams } from "./types/sites";
+import { reservedSlugMessage } from "./utils/moderation";
 
 async function ownsReservedDomain(
   userId: string,

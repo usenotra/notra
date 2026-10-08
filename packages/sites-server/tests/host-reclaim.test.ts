@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import type { CloudflareCustomHostname } from "../src/types/cloudflare-saas";
 import type { SiteDomain } from "../src/types/domains";
 import type { R2PutOptions } from "../src/types/r2";
 import type { Site } from "../src/types/sites";
@@ -35,10 +36,11 @@ if (!databaseUrl) {
   const { db } = await import("@notra/db/drizzle");
   const { organizations, sites, siteDomains } =
     await import("@notra/db/schema");
-  const { eq } = await import("drizzle-orm");
+  const { eq, inArray } = await import("drizzle-orm");
   const { SITE_R2_KEYS } = await import("@notra/sites-core/constants/sites");
   const { R2PreconditionFailedError } = await import("../src/errors");
   let organizationId = "";
+  let otherOrganizationId = "";
   let oldSite: Site;
   let newSite: Site;
   let oldDomain: SiteDomain;
@@ -54,7 +56,44 @@ if (!databaseUrl) {
   let failAfterPut = false;
   let failOriginWrite = false;
   let originWrites = 0;
+  let dnsRecords: string[][] | null = null;
+  let dnsError = false;
+  let createConflict = false;
+  let createResponseId = "";
+  let providerExisting: CloudflareCustomHostname | null = null;
+  let providerReads = 0;
   const providerDeletes: string[] = [];
+  mock.module("../src/utils/ids", () => ({
+    prefixedId: () => crypto.randomUUID(),
+  }));
+  process.env.SITES_PREVIEW_SECRET = "synthetic-host-ownership-secret";
+  const dns = await import("node:dns/promises");
+  mock.module("node:dns/promises", () => ({
+    ...dns,
+    lookup: () => {
+      throw new Error("Unexpected DNS address lookup");
+    },
+    Resolver: class {
+      setServers(servers: string[]) {
+        expect(servers).toEqual(["1.1.1.1", "1.0.0.1"]);
+      }
+      async resolveTxt(name: string) {
+        await onProof();
+        expect(name).toBe(`_notra.${candidate.hostname}`);
+        if (dnsError) {
+          throw new Error("Synthetic DNS failure");
+        }
+        return (
+          dnsRecords ?? [
+            [domainOwnershipRecord(newSite.id, candidate.hostname).value],
+          ]
+        );
+      }
+      cancel() {}
+    },
+  }));
+  const { domainOwnershipRecord } =
+    await import("../src/utils/domain-ownership");
   mock.module("../src/r2", () => ({
     r2GetText: async (key: string) => objects.get(key) ?? null,
     r2Put: async (key: string, text: string, options: R2PutOptions) => {
@@ -82,7 +121,7 @@ if (!databaseUrl) {
   mock.module("../src/cloudflare-saas", () => ({
     cloudflareSaasConfig: () => ({}),
     getCustomHostname: async (_config: unknown, id: string) => {
-      await onProof();
+      providerReads += 1;
       return {
         id,
         hostname: proofHostname || candidate.hostname,
@@ -95,14 +134,26 @@ if (!databaseUrl) {
         providerDeletes.push(id);
       }
     },
-    createCustomHostname: () => {
-      throw new Error("unexpected provider create");
+    createCustomHostname: async (_config: unknown, hostname: string) => {
+      if (createConflict) {
+        throw new Error("Synthetic hostname already exists");
+      }
+      const created = {
+        id: createResponseId || crypto.randomUUID(),
+        hostname,
+        status: "pending",
+        ssl: { status: "pending" },
+      };
+      providerExisting = created;
+      return created;
     },
-    findCustomHostname: () => {
-      throw new Error("unexpected provider lookup");
+    findCustomHostname: async () => {
+      providerReads += 1;
+      return providerExisting;
     },
-    deleteCustomHostname: () => {
-      throw new Error("unexpected provider delete");
+    deleteCustomHostname: async (_config: unknown, id: string) => {
+      providerDeletes.push(id);
+      providerExisting = null;
     },
   }));
   mock.module("../src/sites", () => ({
@@ -118,7 +169,7 @@ if (!databaseUrl) {
       return "synthetic-job";
     },
   }));
-  const { refreshSiteDomain, removeSiteDomain } =
+  const { addSiteDomain, refreshSiteDomain, removeSiteDomain } =
     await import("../src/domains");
   const { claimHostRecord, releaseHostRecord } = await import("../src/state");
   process.env.SITES_HOSTING_DOMAIN = "notra.site";
@@ -136,6 +187,7 @@ if (!databaseUrl) {
 
   beforeEach(async () => {
     organizationId = crypto.randomUUID();
+    otherOrganizationId = crypto.randomUUID();
     objects = new Map();
     verified = true;
     tlsActive = true;
@@ -147,16 +199,24 @@ if (!databaseUrl) {
     failAfterPut = false;
     failOriginWrite = false;
     providerDeletes.length = 0;
-    await db.insert(organizations).values({
-      id: organizationId,
-      name: "Synthetic host reclaim",
-      slug: organizationId,
-      createdAt: new Date(),
-    });
+    dnsRecords = null;
+    dnsError = false;
+    createConflict = false;
+    createResponseId = "";
+    providerExisting = null;
+    providerReads = 0;
+    await db.insert(organizations).values(
+      [organizationId, otherOrganizationId].map((id) => ({
+        id,
+        name: "Synthetic host reclaim",
+        slug: id,
+        createdAt: new Date(),
+      }))
+    );
     const inserted = await db
       .insert(sites)
       .values(
-        [0, 1].map(() => ({
+        [organizationId, otherOrganizationId].map((organizationId) => ({
           id: crypto.randomUUID(),
           organizationId,
           name: "Synthetic",
@@ -183,7 +243,7 @@ if (!databaseUrl) {
         {
           id: crypto.randomUUID(),
           siteId: newSite.id,
-          organizationId,
+          organizationId: newSite.organizationId,
           hostname,
           kind: "subdomain",
           status: "pending",
@@ -194,7 +254,9 @@ if (!databaseUrl) {
     mapping(oldSite.id);
   });
   afterEach(async () => {
-    await db.delete(organizations).where(eq(organizations.id, organizationId));
+    await db
+      .delete(organizations)
+      .where(inArray(organizations.id, [organizationId, otherOrganizationId]));
   });
   afterAll(async () => {
     await Reflect.get(db, "$client").end();
@@ -242,6 +304,9 @@ if (!databaseUrl) {
       .update(siteDomains)
       .set({ status: "active" })
       .where(eq(siteDomains.id, oldDomain.id));
+    dnsRecords = [
+      [domainOwnershipRecord(oldSite.id, candidate.hostname).value],
+    ];
     expect(
       (await refreshSiteDomain(oldSite, oldDomain.id, null)).domain.status
     ).toBe("failed");
@@ -328,9 +393,13 @@ if (!databaseUrl) {
       .from(siteDomains)
       .where(eq(siteDomains.id, candidate.id));
     expect(row?.status).toBe("pending");
+    dnsRecords = [
+      [domainOwnershipRecord(oldSite.id, candidate.hostname).value],
+    ];
     await expect(
       refreshSiteDomain(oldSite, oldDomain.id, null)
     ).rejects.toThrow("not a failed");
+    dnsRecords = null;
     expect(
       (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
     ).toBe("active");
@@ -391,7 +460,7 @@ if (!databaseUrl) {
       .insert(sites)
       .values({
         id: crypto.randomUUID(),
-        organizationId,
+        organizationId: newSite.organizationId,
         name: "Synthetic",
         slug: crypto.randomUUID(),
         publicOrigin: newSite.publicOrigin,
@@ -413,6 +482,9 @@ if (!databaseUrl) {
     if (!other) {
       throw new Error("Synthetic domain insert failed");
     }
+    dnsRecords = [newSite, otherSite].map((site) => [
+      domainOwnershipRecord(site.id, candidate.hostname).value,
+    ]);
     const results = await Promise.allSettled([
       refreshSiteDomain(newSite, candidate.id, null),
       refreshSiteDomain(otherSite, other.id, null),
@@ -421,5 +493,264 @@ if (!databaseUrl) {
       results.filter((result) => result.status === "fulfilled")
     ).toHaveLength(1);
     expect([newSite.id, otherSite.id]).toContain(mappedSite());
+  });
+
+  test("another workspace can add pending or failed hostnames without deleting their provider resource", async () => {
+    createConflict = true;
+    providerExisting = {
+      id: oldDomain.cloudflareHostnameId as string,
+      hostname: candidate.hostname,
+      status: "active",
+      ssl: { status: "active" },
+    };
+    for (const status of ["pending", "failed"] as const) {
+      await db.delete(siteDomains).where(eq(siteDomains.id, candidate.id));
+      await db
+        .update(siteDomains)
+        .set({ status })
+        .where(eq(siteDomains.id, oldDomain.id));
+      candidate = await addSiteDomain(newSite, {
+        kind: "subdomain",
+        value: oldDomain.hostname,
+      });
+      expect(candidate.cloudflareHostnameId).toBeNull();
+      expect(candidate.verificationRecords).toContainEqual(
+        domainOwnershipRecord(newSite.id, candidate.hostname)
+      );
+      expect(providerDeletes).toEqual([]);
+      const [old] = await db
+        .select()
+        .from(siteDomains)
+        .where(eq(siteDomains.id, oldDomain.id));
+      expect(old?.cloudflareHostnameId).toBe(oldDomain.cloudflareHostnameId);
+      expect(mappedSite()).toBe(oldSite.id);
+    }
+  });
+
+  test("missing, old-owner and wrong-host TXT records never authorize provider replacement", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = {
+      id: oldDomain.cloudflareHostnameId as string,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    for (const records of [
+      [],
+      [[domainOwnershipRecord(oldSite.id, candidate.hostname).value]],
+      [
+        [
+          domainOwnershipRecord(
+            newSite.id,
+            `${crypto.randomUUID()}.example.test`
+          ).value,
+        ],
+      ],
+    ]) {
+      dnsRecords = records;
+      expect(
+        (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+      ).toBe("verifying");
+      expect(providerDeletes).toEqual([]);
+      expect(providerReads).toBe(0);
+      expect(mappedSite()).toBe(oldSite.id);
+    }
+  });
+
+  test("DNS errors and oversized TXT responses fail closed before provider calls", async () => {
+    dnsError = true;
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("verifying");
+    dnsError = false;
+    dnsRecords = Array.from({ length: 33 }, () => [
+      domainOwnershipRecord(newSite.id, candidate.hostname).value,
+    ]);
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("verifying");
+    dnsRecords = [
+      ["x".repeat(8193)],
+      [domainOwnershipRecord(newSite.id, candidate.hostname).value],
+    ];
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("verifying");
+    expect(providerReads).toBe(0);
+    expect(providerDeletes).toEqual([]);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("site-bound TXT proof authorizes failed provider replacement and TLS-gated R2 transfer", async () => {
+    const oldHostnameId = oldDomain.cloudflareHostnameId;
+    if (!oldHostnameId) {
+      throw new Error("Expected synthetic provider resource");
+    }
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = {
+      id: oldDomain.cloudflareHostnameId as string,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    const oldOrigin = `https://${candidate.hostname}`;
+    await db
+      .update(sites)
+      .set({ publicOrigin: oldOrigin })
+      .where(eq(sites.id, oldSite.id));
+    const token = domainOwnershipRecord(newSite.id, candidate.hostname).value;
+    dnsRecords = [[token.slice(0, 20), token.slice(20)]];
+    tlsActive = false;
+    const awaitingTls = await refreshSiteDomain(newSite, candidate.id, null);
+    expect(awaitingTls.domain.cloudflareHostnameId).not.toBeNull();
+    expect(awaitingTls.domain.status).toBe("verifying");
+    expect(providerDeletes).toEqual([oldHostnameId]);
+    expect(mappedSite()).toBe(oldSite.id);
+    tlsActive = true;
+    expect(
+      (await refreshSiteDomain(newSite, candidate.id, null)).domain.status
+    ).toBe("active");
+    expect(mappedSite()).toBe(newSite.id);
+    const [old] = await db.select().from(sites).where(eq(sites.id, oldSite.id));
+    expect(old?.publicOrigin).toBe(oldOrigin);
+  });
+
+  test("a candidate identity changed during TXT resolution cannot trigger provider effects", async () => {
+    onProof = async () => {
+      await db
+        .update(siteDomains)
+        .set({ cloudflareHostnameId: crypto.randomUUID() })
+        .where(eq(siteDomains.id, candidate.id));
+    };
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("changed during verification");
+    expect(providerReads).toBe(0);
+    expect(providerDeletes).toEqual([]);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("valid TXT proof still cannot delete an unrelated provider resource", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = {
+      id: crypto.randomUUID(),
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("unrelated provider mapping");
+    expect(providerDeletes).toEqual([]);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("TXT challenges bind both site and normalized hostname", () => {
+    const record = domainOwnershipRecord(newSite.id, candidate.hostname);
+    expect(
+      domainOwnershipRecord(newSite.id, candidate.hostname.toUpperCase()).value
+    ).toBe(record.value);
+    expect(
+      domainOwnershipRecord(oldSite.id, candidate.hostname).value
+    ).not.toBe(record.value);
+    expect(
+      domainOwnershipRecord(newSite.id, `${crypto.randomUUID()}.example.test`)
+        .value
+    ).not.toBe(record.value);
+  });
+
+  test("add never stores another claim's provider identity even if create returns it", async () => {
+    await db.delete(siteDomains).where(eq(siteDomains.id, candidate.id));
+    createResponseId = oldDomain.cloudflareHostnameId as string;
+    candidate = await addSiteDomain(newSite, {
+      kind: "subdomain",
+      value: oldDomain.hostname,
+    });
+    expect(candidate.cloudflareHostnameId).toBeNull();
+    await removeSiteDomain(newSite, candidate.id, newSite.publicOrigin, null);
+    expect(providerDeletes).toEqual([]);
+    expect(mappedSite()).toBe(oldSite.id);
+  });
+
+  test("legacy shared provider identities are replaced only after the candidate's TXT proof", async () => {
+    const oldHostnameId = oldDomain.cloudflareHostnameId;
+    if (!oldHostnameId) {
+      throw new Error("Expected synthetic provider resource");
+    }
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: oldHostnameId })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = {
+      id: oldHostnameId,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    const result = await refreshSiteDomain(newSite, candidate.id, null);
+    expect(result.domain.cloudflareHostnameId).not.toBe(oldHostnameId);
+    expect(result.domain.status).toBe("active");
+    expect(providerDeletes).toEqual([oldHostnameId]);
+    expect(mappedSite()).toBe(newSite.id);
+    await removeSiteDomain(oldSite, oldDomain.id, oldSite.publicOrigin, null);
+    expect(providerDeletes).toEqual([oldHostnameId]);
+  });
+
+  test("an unrelated R2 owner is rejected before proved provider replacement", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    providerExisting = {
+      id: oldDomain.cloudflareHostnameId as string,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    const unrelated = crypto.randomUUID();
+    mapping(unrelated);
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("not a failed custom-domain claim");
+    expect(providerReads).toBe(0);
+    expect(providerDeletes).toEqual([]);
+    expect(mappedSite()).toBe(unrelated);
+  });
+
+  test("a newly provisioned resource orphaned by rollback is not blindly deleted on retry", async () => {
+    await db
+      .update(siteDomains)
+      .set({ cloudflareHostnameId: null })
+      .where(eq(siteDomains.id, candidate.id));
+    const oldHostnameId = oldDomain.cloudflareHostnameId;
+    if (!oldHostnameId) {
+      throw new Error("Expected synthetic provider resource");
+    }
+    providerExisting = {
+      id: oldHostnameId,
+      hostname: candidate.hostname,
+      status: "active",
+    };
+    failAfterPut = true;
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("lost write response");
+    expect(mappedSite()).toBe(newSite.id);
+    expect(providerDeletes).toEqual([oldHostnameId]);
+    const [row] = await db
+      .select()
+      .from(siteDomains)
+      .where(eq(siteDomains.id, candidate.id));
+    expect(row?.cloudflareHostnameId).toBeNull();
+    expect(row?.status).toBe("pending");
+    await expect(
+      refreshSiteDomain(newSite, candidate.id, null)
+    ).rejects.toThrow("unrelated provider mapping");
+    expect(providerDeletes).toEqual([oldHostnameId]);
+    expect(mappedSite()).toBe(newSite.id);
   });
 }

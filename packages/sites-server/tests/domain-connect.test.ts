@@ -4,17 +4,26 @@ import { readFileSync } from "node:fs";
 
 import {
   DOMAIN_CONNECT_CNAME_TARGET,
+  DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE,
   DOMAIN_CONNECT_OWNERSHIP_VARIABLE,
+  DOMAIN_CONNECT_TEMPLATE_VERSION,
 } from "../src/constants/domain-connect";
 import {
   buildApplyUrl,
   discoverDomainConnect,
+  domainConnectForDomain,
   getDomainConnectConfig,
-  publicKeyTxtRecords,
+} from "../src/domain-connect";
+import { domainConnectTemplateSchema } from "../src/schemas/domain-connect";
+import type { DomainConnectDeps } from "../src/types/domain-connect";
+import type { SiteDomain } from "../src/types/domains";
+import {
   signDomainConnectCallback,
   verifyDomainConnectCallback,
-} from "../src/domain-connect";
-import type { DomainConnectDeps } from "../src/types/domain-connect";
+} from "../src/utils/domain-connect-callback";
+import { publicKeyTxtRecords } from "../src/utils/domain-connect-keys";
+import { domainOwnershipRecord } from "../src/utils/domain-ownership";
+import { applyVercelDnsRecords } from "../src/vercel-dns";
 
 function publicKeyFromTxt(records: string[]): string {
   const parts = records
@@ -46,7 +55,10 @@ describe("signed apply URL", () => {
       config,
       domain: "acme.co.uk",
       host: "blog",
-      variables: { ownership: "5ff4a0b2-d1e6-4a7c-9b1d-0c7f2a9e8f11" },
+      variables: {
+        ownership: "5ff4a0b2-d1e6-4a7c-9b1d-0c7f2a9e8f11",
+        notraOwnership: "notra-domain-v1=synthetic-site-proof",
+      },
       redirectUri:
         "https://app.usenotra.com/sites/domain-connect/eyJ.a_b-c?x=1 2",
     });
@@ -59,6 +71,9 @@ describe("signed apply URL", () => {
     expect(parsed.searchParams.get("redirect_uri")).toBe(
       "https://app.usenotra.com/sites/domain-connect/eyJ.a_b-c?x=1 2"
     );
+    expect(
+      parsed.searchParams.get(DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE)
+    ).toBe("notra-domain-v1=synthetic-site-proof");
 
     const records = publicKeyTxtRecords(publicKey);
     for (const record of records) {
@@ -75,6 +90,16 @@ describe("signed apply URL", () => {
     ).toBeTrue();
     expect(
       verify("sha256", Buffer.from(`${signed}x`), providerKey, signature)
+    ).toBeFalse();
+    expect(
+      verify(
+        "sha256",
+        Buffer.from(
+          signed.replace("synthetic-site-proof", "another-site-proof")
+        ),
+        providerKey,
+        signature
+      )
     ).toBeFalse();
   });
 });
@@ -168,6 +193,7 @@ test("published template matches what the code sends", () => {
   ) as {
     providerId: string;
     serviceId: string;
+    version: number;
     records: Array<{
       type: string;
       host: string;
@@ -178,6 +204,7 @@ test("published template matches what the code sends", () => {
   expect(`${template.providerId}.${template.serviceId}`).toBe(
     "usenotra.com.sites"
   );
+  expect(template.version).toBe(DOMAIN_CONNECT_TEMPLATE_VERSION);
   expect(template.records).toContainEqual(
     expect.objectContaining({
       type: "CNAME",
@@ -190,6 +217,160 @@ test("published template matches what the code sends", () => {
       type: "TXT",
       host: "_cf-custom-hostname",
       data: `%${DOMAIN_CONNECT_OWNERSHIP_VARIABLE}%`,
+    })
+  );
+  expect(template.records).toContainEqual(
+    expect.objectContaining({
+      type: "TXT",
+      host: "_notra",
+      data: `%${DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE}%`,
+    })
+  );
+});
+
+test("automatic Domain Connect requires the complete tenant-proof template and signs both TXT values", async () => {
+  process.env.SITES_PREVIEW_SECRET = "synthetic-domain-connect-secret";
+  process.env.SITES_CNAME_TARGET = DOMAIN_CONNECT_CNAME_TARGET;
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  process.env.SITES_DOMAIN_CONNECT_PRIVATE_KEY = privateKey
+    .export({ type: "pkcs8", format: "pem" })
+    .toString();
+  const template = domainConnectTemplateSchema.parse(
+    JSON.parse(
+      readFileSync(
+        new URL("../domain-connect/usenotra.com.sites.json", import.meta.url),
+        "utf8"
+      )
+    )
+  );
+  let offeredTemplate = { ...template, version: 1 };
+  const record = domainOwnershipRecord("site_a", "blog.acme.com");
+  const domain = {
+    id: "dom_a",
+    siteId: "site_a",
+    hostname: "blog.acme.com",
+    kind: "subdomain",
+    status: "pending",
+    verificationRecords: [
+      record,
+      {
+        type: "TXT",
+        name: "_cf-custom-hostname.blog.acme.com",
+        value: "synthetic-cloudflare-proof",
+        purpose: "ownership",
+      },
+    ],
+  } as SiteDomain;
+  const deps: DomainConnectDeps = {
+    resolveTxt: async () => [["provider.example"]],
+    fetch: (async (input: string | URL | Request) =>
+      String(input).endsWith("/settings")
+        ? Response.json({
+            providerId: "synthetic",
+            providerName: "Synthetic",
+            urlSyncUX: "https://provider.example/setup",
+            urlAPI: "https://provider.example/api",
+          })
+        : Response.json(offeredTemplate)) as typeof fetch,
+  };
+  expect(
+    (await domainConnectForDomain({ siteId: "site_a", domain, deps })).status
+  ).toBe("unsupported");
+  offeredTemplate = {
+    ...template,
+    records: template.records.filter((entry) => entry.host !== "_notra"),
+  };
+  expect(
+    (await domainConnectForDomain({ siteId: "site_a", domain, deps })).status
+  ).toBe("unsupported");
+  offeredTemplate = {
+    ...template,
+    records: [
+      ...template.records,
+      { type: "TXT", host: "unrelated", data: "unexpected" },
+    ],
+  };
+  expect(
+    (await domainConnectForDomain({ siteId: "site_a", domain, deps })).status
+  ).toBe("unsupported");
+  offeredTemplate = {
+    ...template,
+    records: template.records.map((entry) =>
+      entry.host === "_notra"
+        ? { ...entry, data: `%${DOMAIN_CONNECT_OWNERSHIP_VARIABLE}%` }
+        : entry
+    ),
+  };
+  expect(
+    (await domainConnectForDomain({ siteId: "site_a", domain, deps })).status
+  ).toBe("unsupported");
+  offeredTemplate = template;
+  const result = await domainConnectForDomain({
+    siteId: "site_a",
+    domain,
+    deps,
+  });
+  expect(result.status).toBe("ready");
+  if (result.status !== "ready") {
+    throw new Error("Expected complete automatic DNS setup");
+  }
+  const url = new URL(result.applyUrl);
+  expect(url.searchParams.get(DOMAIN_CONNECT_OWNERSHIP_VARIABLE)).toBe(
+    "synthetic-cloudflare-proof"
+  );
+  expect(url.searchParams.get(DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE)).toBe(
+    record.value
+  );
+  expect(
+    (
+      await domainConnectForDomain({
+        siteId: "site_a",
+        domain: { ...domain, verificationRecords: [record] },
+        deps,
+      })
+    ).status
+  ).toBe("unsupported");
+});
+
+test("Vercel DNS applies every verification record including the site-bound Notra TXT", async () => {
+  process.env.SITES_PREVIEW_SECRET = "synthetic-vercel-domain-secret";
+  const record = domainOwnershipRecord("site_a", "blog.acme.com");
+  const writes: unknown[] = [];
+  await applyVercelDnsRecords({
+    grant: {
+      accessToken: "synthetic",
+      teamId: null,
+      configurationId: "synthetic",
+    },
+    zone: "acme.com",
+    records: [
+      record,
+      {
+        type: "CNAME",
+        name: "blog.acme.com",
+        value: DOMAIN_CONNECT_CNAME_TARGET,
+        purpose: "routing",
+      },
+      {
+        type: "TXT",
+        name: "_cf-custom-hostname.blog.acme.com",
+        value: "synthetic-cloudflare-proof",
+        purpose: "ownership",
+      },
+    ],
+    deps: {
+      fetch: (async (_input: string | URL | Request, init?: RequestInit) => {
+        writes.push(JSON.parse(String(init?.body)));
+        return new Response(null, { status: 200 });
+      }) as typeof fetch,
+    },
+  });
+  expect(writes).toHaveLength(3);
+  expect(writes).toContainEqual(
+    expect.objectContaining({
+      name: "_notra.blog",
+      type: "TXT",
+      value: record.value,
     })
   );
 });

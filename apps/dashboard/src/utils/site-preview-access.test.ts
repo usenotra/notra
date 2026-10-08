@@ -4,11 +4,7 @@ import { SITE_PREVIEW_PASSWORD_MIN_LENGTH } from "@notra/sites-core/constants/si
 
 import { sitePreviewAccessPlan } from "@/utils/site-preview-access";
 
-const site = {
-  previewsEnabled: true,
-  previewVisibility: "protected" as const,
-  previewPasswordSetAt: "2026-10-01T00:00:00Z",
-};
+import { site } from "../../tests/constants/site-preview-access";
 
 test("an existing password stays unchanged until replacement text or removal is explicit", () => {
   for (const editingPassword of [false, true]) {

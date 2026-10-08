@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 import { isValidSiteSlug } from "@notra/sites-core/utils/hosts";
 
+import { GENERIC_TLDS } from "../src/constants/moderation";
+
 const listId = process.argv[2] ?? "Y83KG";
 const count = Number(process.argv[3] ?? 5000);
 const output = join(
@@ -28,25 +30,6 @@ const suffixes = new Set(
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("//") && !line.startsWith("!"))
 );
-
-const GENERIC_TLDS = new Set([
-  "app",
-  "biz",
-  "co",
-  "com",
-  "dev",
-  "gg",
-  "info",
-  "io",
-  "ai",
-  "me",
-  "net",
-  "org",
-  "sh",
-  "so",
-  "tv",
-  "xyz",
-]);
 
 function isCompanyDomain(domain: string): boolean {
   const tld = domain.split(".").at(-1) ?? "";

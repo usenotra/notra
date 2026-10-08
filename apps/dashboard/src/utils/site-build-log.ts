@@ -1,3 +1,18 @@
+import {
+  TIMESTAMP_PREFIX,
+  ERROR_LINE,
+  WARNING_LINE,
+  SUCCESS_LINE,
+  CONTINUATION_LINE,
+  LINE_BREAK,
+  NOISE_LINE,
+  TAG_PREFIX,
+  CLOCK,
+  SECONDS_PER_MINUTE,
+  SECONDS_PER_HOUR,
+  SECONDS_PER_DAY,
+  STACK_FRAME,
+} from "@/constants/site-build-log";
 import { SITE_DEPLOYMENT_PHASE_MARKER } from "@/constants/site-deployment-timeline";
 import {
   SITE_BUILD_LOG_FRAME_FOLD_MIN,
@@ -11,13 +26,6 @@ import type {
   SiteBuildLogTone,
 } from "@/types/sites";
 import { stripAnsi } from "@/utils/site-deployments";
-
-const TIMESTAMP_PREFIX = /^(\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?) (.*)$/;
-const ERROR_LINE = /\[error\]|\berror\b|\bERR!|✘|✖/i;
-const WARNING_LINE = /\[warn\]|\bwarn(?:ing)?\b/i;
-const SUCCESS_LINE = /[✓✔]/;
-const CONTINUATION_LINE = /^[\s│╭╰─┬┴├└┌]/;
-const LINE_BREAK = /\r?\n/;
 
 function toneOf(text: string): SiteBuildLogTone {
   if (ERROR_LINE.test(text)) {
@@ -95,15 +103,6 @@ export function findMatches(
   }
   return ranges;
 }
-
-const NOISE_LINE = /^\s*(?:[├└│]|at\s)/;
-const TAG_PREFIX = /^(\[[\w:@/-]+\])\s?(.*)$/;
-const CLOCK = /^(\d{2}):(\d{2}):(\d{2})/;
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 3600;
-const SECONDS_PER_DAY = 86_400;
-
-const STACK_FRAME = /^\s+at\s/;
 
 function takeRun(
   lines: readonly SiteBuildLogLine[],

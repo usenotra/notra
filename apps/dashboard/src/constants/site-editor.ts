@@ -191,3 +191,5 @@ ${SITE_EDITOR_IMAGE_EXTENSIONS.map(
   cursor: default;
 }
 `.trim();
+
+export const ENTRY_FILE = /^(blog|changelog)\/(.+)\.mdx?$/;

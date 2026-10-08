@@ -6,10 +6,11 @@ import { PgDialect } from "drizzle-orm/pg-core";
 import { Effect } from "effect";
 
 import { createORPCContext } from "../../src/lib/orpc/context";
-import type { ORPCContext } from "../../src/lib/orpc/context";
+import type { ORPCContext } from "../../src/types/orpc/context";
+import { owner } from "../constants/user-organization-teardown";
 
 const events: string[] = [];
-const owner = { id: "membership", role: "owner" };
+
 let membership: typeof owner | null = null;
 let membershipCount = 2;
 let organizationExists = true;

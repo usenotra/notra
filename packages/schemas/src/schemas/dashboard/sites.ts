@@ -114,7 +114,16 @@ export const siteFilePathInputSchema = siteScopeInputSchema.extend({
   path: z.string().trim().min(1).max(400),
 });
 
-export const saveSiteDraftInputSchema = siteFilePathInputSchema.extend({
+export const siteDraftMutationInputSchema = siteFilePathInputSchema.extend({
+  draftId: z.string().min(1).nullable(),
+  draftRevision: z.number().int().nonnegative().nullable(),
+  sourceContext: z.object({
+    productionBranch: z.string().min(1),
+    rootDirectory: z.string(),
+  }),
+});
+
+export const saveSiteDraftInputSchema = siteDraftMutationInputSchema.extend({
   content: z.string().max(512 * 1024),
   baseBlobSha: z.string().nullable(),
   baseCommitSha: z.string().nullable(),

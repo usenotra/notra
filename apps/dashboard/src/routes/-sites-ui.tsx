@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/sites/site-layout";
-import type { SiteSectionUiPage } from "@/types/ui-route";
+import { SITE_SECTION_PAGES } from "@/constants/site-ui-pages";
 import { lazyPage } from "@/utils/lazy-page";
 import { sitePreviewDeploymentsHref } from "@/utils/site-links";
 
@@ -40,50 +40,11 @@ const Overview = lazyPage(() =>
     default: module.SiteOverviewPage,
   }))
 );
-const Analytics = lazyPage(() =>
-  import("@/components/sites/pages/site-analytics-page").then((module) => ({
-    default: module.SiteAnalyticsPage,
-  }))
-);
-const Deployments = lazyPage(() =>
-  import("@/components/sites/pages/site-deployments-page").then((module) => ({
-    default: module.SiteDeploymentsPage,
-  }))
-);
 const DeploymentDetail = lazyPage(() =>
   import("@/components/sites/pages/site-deployment-detail-page").then(
     (module) => ({ default: module.SiteDeploymentDetailPage })
   )
 );
-const Domains = lazyPage(() =>
-  import("@/components/sites/pages/site-domains-page").then((module) => ({
-    default: module.SiteDomainsPage,
-  }))
-);
-const Editor = lazyPage(() =>
-  import("@/components/sites/pages/site-editor-page").then((module) => ({
-    default: module.SiteEditorPage,
-  }))
-);
-const Integrations = lazyPage(() =>
-  import("@/components/sites/pages/site-integrations-page").then((module) => ({
-    default: module.SiteIntegrationsPage,
-  }))
-);
-const Settings = lazyPage(() =>
-  import("@/components/sites/pages/site-settings-page").then((module) => ({
-    default: module.SiteSettingsPage,
-  }))
-);
-
-const SITE_SECTION_PAGES: readonly SiteSectionUiPage[] = [
-  { section: "analytics", page: Analytics },
-  { section: "deployments", page: Deployments },
-  { section: "domains", page: Domains },
-  { section: "editor", page: Editor },
-  { section: "integrations", page: Integrations },
-  { section: "settings", page: Settings },
-];
 
 export function createSitesUiRoutes(organization: AnyRoute) {
   const sites = createRoute({

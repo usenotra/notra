@@ -3,6 +3,18 @@ import { slugify } from "@notra/utils/slugify";
 import { fromMarkdown } from "mdast-util-from-markdown";
 
 import {
+  FRONTMATTER_BLOCK,
+  FRONTMATTER_TITLE_KEY,
+  FRONTMATTER_DATE_KEY,
+  FRONTMATTER_AUTHOR_LINE,
+  UNQUOTED_YAML_COMMENT,
+  LEADING_BLANK_LINES,
+  LEADING_ATX_HEADING,
+  WHITESPACE_RUN,
+  TRAILING_PUNCTUATION,
+  SURROUNDING_SLASHES,
+  SITE_IMAGE_URL,
+  ELLIPSIS,
   SITE_ENTRY_DESCRIPTION_MAX_LENGTH,
   SITE_ENTRY_DIRECTORIES,
   SITE_ENTRY_FALLBACK_SLUG,
@@ -12,24 +24,11 @@ import {
 import { siteConfigAuthorsSchema } from "@/schemas/site-github-publish";
 import type { GitHubPublishContentType } from "@/types/integrations/github";
 import type {
+  ResolveSiteEntrySlugParams,
   BuildSiteEntryMarkdownParams,
   SiteConfigAuthorNames,
   SiteMarkdownNode,
 } from "@/types/integrations/site-github-publish";
-
-const FRONTMATTER_BLOCK = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
-const FRONTMATTER_TITLE_KEY = /^title[ \t]*:/m;
-const FRONTMATTER_DATE_KEY = /^date[ \t]*:/m;
-const FRONTMATTER_AUTHOR_LINE = /^author[ \t]*:[ \t]*(.*)$/m;
-const UNQUOTED_YAML_COMMENT = /\s+#.*$/;
-const LEADING_BLANK_LINES = /^(?:[ \t]*\r?\n)+/;
-const LEADING_ATX_HEADING =
-  /^[ \t]{0,3}#[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*(?:\r?\n|$)/;
-const WHITESPACE_RUN = /\s+/g;
-const TRAILING_PUNCTUATION = /[\s,;:.\-–—]+$/;
-const SURROUNDING_SLASHES = /^\/+|\/+$/g;
-const SITE_IMAGE_URL = /^(?:https:\/\/|\/(?!\/))/;
-const ELLIPSIS = "…";
 
 function joinRepositoryPath(...segments: string[]): string {
   return segments
@@ -69,11 +68,9 @@ export function resolveSiteImagePathTemplate(
   );
 }
 
-export function resolveSiteEntrySlug(params: {
-  contentId: string;
-  slug: string | null;
-  title: string;
-}): string {
+export function resolveSiteEntrySlug(
+  params: ResolveSiteEntrySlugParams
+): string {
   return (
     slugify(params.slug ?? "") ||
     slugify(params.title) ||

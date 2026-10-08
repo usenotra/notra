@@ -11,11 +11,11 @@ import {
   getSitesHostingDomain,
   getSitesHostingPortSuffix,
   getSitesHostingProtocol,
-} from "./env";
+} from "../env";
 import type {
   BuildTargetForDeploymentParams,
   DeploymentDashboardUrlParams,
-} from "./types/urls";
+} from "../types/urls";
 
 function hostingOrigin(host: string): string {
   return `${getSitesHostingProtocol()}://${host}${getSitesHostingPortSuffix()}`;

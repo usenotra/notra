@@ -8,8 +8,12 @@ import { and, asc, eq, or, sql } from "drizzle-orm";
 
 import { GITHUB_API_VERSION_HEADERS } from "@/constants/github";
 import { SITE_ENTRY_DIRECTORIES } from "@/constants/site-github-publish";
-import type { GitHubPublishContentType } from "@/types/integrations/github";
-import type { SiteGitHubPublishTarget } from "@/types/integrations/site-github-publish";
+import type {
+  SiteGitHubPublishTarget,
+  FindSiteGitHubPublishTargetParams,
+  ReadSiteRepositoryTextFileParams,
+  ResolveSiteEntryAuthorParams,
+} from "@/types/integrations/site-github-publish";
 import {
   normalizeSiteRootDirectory,
   parseSiteConfigAuthors,
@@ -18,16 +22,9 @@ import {
   resolveSiteConfigPath,
 } from "@/utils/site-github-publish";
 
-export async function findSiteGitHubPublishTarget(params: {
-  organizationId: string;
-  contentType: GitHubPublishContentType;
-  repository: {
-    id: string;
-    githubRepositoryId: string | null;
-    owner: string;
-    repo: string;
-  };
-}): Promise<SiteGitHubPublishTarget | null> {
+export async function findSiteGitHubPublishTarget(
+  params: FindSiteGitHubPublishTargetParams
+): Promise<SiteGitHubPublishTarget | null> {
   const { repository } = params;
   const candidates = await db
     .select({
@@ -74,7 +71,7 @@ export async function findSiteGitHubPublishTarget(params: {
 
 async function readRepositoryTextFile(
   token: string,
-  params: { owner: string; repo: string; path: string; ref: string }
+  params: ReadSiteRepositoryTextFileParams
 ): Promise<string | null> {
   try {
     const { data } = await createOctokit(token, {
@@ -107,14 +104,9 @@ async function readPublisherName(userId: string | undefined) {
   return user?.name ?? null;
 }
 
-export async function resolveSiteEntryAuthor(params: {
-  token: string;
-  owner: string;
-  repo: string;
-  target: SiteGitHubPublishTarget;
-  publisherUserId: string | undefined;
-  existingEntry: { branchName: string; path: string } | undefined;
-}): Promise<string | null> {
+export async function resolveSiteEntryAuthor(
+  params: ResolveSiteEntryAuthorParams
+): Promise<string | null> {
   const [existingMarkdown, publisherName, siteConfig] = await Promise.all([
     params.existingEntry
       ? readRepositoryTextFile(params.token, {

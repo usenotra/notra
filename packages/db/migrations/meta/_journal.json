@@ -771,13 +771,6 @@
       "when": 1791295933516,
       "tag": "0109_sites",
       "breakpoints": true
-    },
-    {
-      "idx": 110,
-      "version": "7",
-      "when": 1791350768620,
-      "tag": "0110_automatic_visitor_tracking",
-      "breakpoints": true
     }
   ]
 }

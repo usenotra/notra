@@ -11,7 +11,10 @@ import {
   SITE_IDLE_POLL_INTERVAL_MS,
 } from "@/constants/sites";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { SitePollingQuery } from "@/types/hooks/sites";
+import type {
+  SitePollingQuery,
+  SiteAnalyticsWindow,
+} from "@/types/hooks/sites";
 import type { SiteDetail, SiteListResult } from "@/types/sites";
 import { hasDeploymentInProgress } from "@/utils/site-deployments";
 
@@ -69,7 +72,7 @@ export function useSiteDetail(organizationId: string, siteId: string) {
 export function useSiteAnalytics(
   organizationId: string,
   siteId: string,
-  window: { days?: number; from?: string; to?: string }
+  window: SiteAnalyticsWindow
 ) {
   return useQuery({
     ...dashboardOrpc.sites.analytics.queryOptions({

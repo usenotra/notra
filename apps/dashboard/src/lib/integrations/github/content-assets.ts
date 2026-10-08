@@ -16,6 +16,7 @@ import type {
   PrepareGitHubContentAssetsParams,
   PreparedGitHubContent,
 } from "@/types/integrations/github";
+import type { PrepareR2GitHubContentAssetsParams } from "@/types/integrations/github-content-assets";
 import {
   contentImageKeyBelongsToOrganization,
   contentMediaExtension,
@@ -358,14 +359,9 @@ export async function prepareGitHubContentAssets(
   };
 }
 
-export async function prepareR2GitHubContentAssets(params: {
-  contentPath: string;
-  imagePathTemplate: string;
-  markdown: string;
-  organizationId: string;
-  publicDirectory?: string;
-  slug: string;
-}) {
+export async function prepareR2GitHubContentAssets(
+  params: PrepareR2GitHubContentAssetsParams
+) {
   const publicUrl = getOptionalR2PublicUrl();
 
   return prepareGitHubContentAssets({

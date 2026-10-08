@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 
 import type { Site } from "../src/types/sites";
-import { buildTargetForDeployment } from "../src/urls";
 import { defaultSiteConfigContent } from "../src/utils/default-config";
+import { buildTargetForDeployment } from "../src/utils/urls";
 
 test("the queued target freezes defaults before later site edits", () => {
   const site = {

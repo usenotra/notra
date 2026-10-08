@@ -67,6 +67,12 @@ export function SiteEditorPane({
     content: text,
     baseBlobSha: document?.blobSha ?? null,
     baseCommitSha,
+    draftId: document?.draftId ?? null,
+    draftRevision: document?.draftRevision ?? null,
+    sourceContext: document?.sourceContext ?? {
+      productionBranch: site.productionBranch,
+      rootDirectory: site.rootDirectory,
+    },
   });
 
   const cancelPending = () => {
@@ -101,7 +107,7 @@ export function SiteEditorPane({
         onDiscard={() => {
           cancelPending();
           void saveQueue
-            .discard()
+            .discard(saveInput(value))
             .then(() => {
               toast.success(t("discarded"));
             })

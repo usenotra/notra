@@ -1,16 +1,13 @@
 import {
+  ATTRIBUTE,
+  ENTITY,
   HTML_NAMED_ENTITIES,
   HTML_RAW_TEXT_ELEMENTS,
   HTML_VOID_ELEMENTS,
+  TAG,
+  WHITESPACE,
 } from "../constants/html";
 import type { HtmlToken } from "../types/html";
-
-const TAG =
-  /<!--[\s\S]*?-->|<![^>]*>|<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*(\/?)>/g;
-const ATTRIBUTE =
-  /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
-const ENTITY = /&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi;
-const WHITESPACE = /\s+/g;
 
 function safeCodePoint(code: number): string | null {
   return Number.isInteger(code) && code > 0 && code <= 0x10_ff_ff

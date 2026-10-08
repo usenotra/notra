@@ -1,5 +1,6 @@
 import type {
   SiteEditorDraftInput,
+  SiteEditorDraftReference,
   SiteEditorSaveQueue,
   SiteEditorSaveQueueOptions,
   SiteEditorSaveSnapshot,
@@ -17,6 +18,8 @@ export function createSiteEditorSaveQueue(
   let pending: SiteEditorDraftInput | null = null;
   let running: Promise<void> | null = null;
   let discarding = false;
+  let observed: SiteEditorDraftReference | null = null;
+  let latestInput: SiteEditorDraftInput | null = null;
   const listeners = new Set<() => void>();
 
   const update = (
@@ -43,11 +46,23 @@ export function createSiteEditorSaveQueue(
         if (discarding) {
           break;
         }
-        const input = pending;
+        const input: SiteEditorDraftInput = pending;
         pending = null;
         update({ status: "saving" });
         try {
           const result = await options.save(input);
+          observed = {
+            draftId: result.draftId,
+            draftRevision: result.draftRevision,
+            sourceContext: input.sourceContext,
+          };
+          const queued = pending as SiteEditorDraftInput | null;
+          if (queued) {
+            pending = { ...queued, ...observed };
+            latestInput = pending;
+          } else if (latestInput) {
+            latestInput = { ...latestInput, ...observed };
+          }
           options.onSaved(input, result);
         } catch (error) {
           pending ??= input;
@@ -76,11 +91,17 @@ export function createSiteEditorSaveQueue(
       if (discarding) {
         return;
       }
-      pending = input;
+      observed ??= {
+        draftId: input.draftId,
+        draftRevision: input.draftRevision,
+        sourceContext: input.sourceContext,
+      };
+      pending = { ...input, ...observed };
+      latestInput = pending;
       update({ status: "dirty" }, input.content);
     },
     flush,
-    discard: async () => {
+    discard: async (input) => {
       if (discarding) {
         return;
       }
@@ -90,10 +111,13 @@ export function createSiteEditorSaveQueue(
       try {
         await running;
         pending = null;
-        await options.discard();
+        await options.discard(observed ?? input);
         await options.onDiscarded();
+        observed = null;
+        latestInput = null;
         update({ status: "idle" }, null, snapshot.revision + 1);
       } catch (error) {
+        pending = latestInput;
         update({ status: "error", error: options.errorMessage(error) });
         throw error;
       } finally {

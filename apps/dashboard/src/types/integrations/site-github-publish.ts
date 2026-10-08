@@ -25,3 +25,36 @@ export interface SiteMarkdownNode {
   url?: string;
   value?: string;
 }
+
+export interface FindSiteGitHubPublishTargetParams {
+  organizationId: string;
+  contentType: GitHubPublishContentType;
+  repository: {
+    id: string;
+    githubRepositoryId: string | null;
+    owner: string;
+    repo: string;
+  };
+}
+
+export interface ReadSiteRepositoryTextFileParams {
+  owner: string;
+  repo: string;
+  path: string;
+  ref: string;
+}
+
+export interface ResolveSiteEntryAuthorParams {
+  token: string;
+  owner: string;
+  repo: string;
+  target: SiteGitHubPublishTarget;
+  publisherUserId: string | undefined;
+  existingEntry: { branchName: string; path: string } | undefined;
+}
+
+export interface ResolveSiteEntrySlugParams {
+  contentId: string;
+  slug: string | null;
+  title: string;
+}

@@ -13,7 +13,7 @@ import type {
   PreviewAccessUrlParams,
 } from "./types/preview-access";
 import type { Site, UpdateSiteSettingsResult } from "./types/sites";
-import { sitePreviewOrigin } from "./urls";
+import { sitePreviewOrigin } from "./utils/urls";
 
 export async function previewAccessUrl(
   params: PreviewAccessUrlParams

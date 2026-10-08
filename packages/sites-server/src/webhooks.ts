@@ -1,6 +1,8 @@
 import { verifyGitHubWebhookSignature } from "@notra/ai/utils/github-webhook-signature";
 import { db } from "@notra/db/drizzle";
 import {
+  githubAppInstallations,
+  githubIntegrations,
   siteDeployments,
   sites,
   siteWebhookDeliveries,
@@ -24,7 +26,6 @@ import {
   enqueuePreviewRemoval,
   enqueueSiteDeployment,
   getDeployment,
-  redeploymentInput,
 } from "./deployments";
 import { SiteNotBuildableError } from "./errors";
 import type { EnqueueDeploymentInput } from "./types/deployments";
@@ -35,6 +36,7 @@ import type {
   SitesWebhookParams,
   SitesWebhookResult,
 } from "./types/webhooks";
+import { redeploymentInput } from "./utils/deployments";
 
 async function enqueueOrSkip(
   input: EnqueueDeploymentInput
@@ -85,15 +87,40 @@ async function sitesForRepository(
     return [];
   }
   return await db
-    .select()
+    .select({ site: sites })
     .from(sites)
+    .innerJoin(
+      githubIntegrations,
+      and(
+        eq(sites.repositoryId, githubIntegrations.id),
+        eq(sites.organizationId, githubIntegrations.organizationId),
+        eq(sites.githubRepositoryId, githubIntegrations.githubRepositoryId),
+        eq(sites.repositoryOwner, githubIntegrations.owner),
+        eq(sites.repositoryName, githubIntegrations.repo)
+      )
+    )
+    .innerJoin(
+      githubAppInstallations,
+      and(
+        eq(
+          githubIntegrations.githubAppInstallationId,
+          githubAppInstallations.id
+        ),
+        eq(sites.organizationId, githubAppInstallations.organizationId),
+        eq(sites.githubInstallationId, githubAppInstallations.installationId)
+      )
+    )
     .where(
       and(
         eq(sites.githubRepositoryId, String(repositoryId)),
         eq(sites.githubInstallationId, String(installationId)),
-        eq(sites.status, "active")
+        eq(sites.status, "active"),
+        eq(githubIntegrations.enabled, true),
+        eq(githubIntegrations.repositoryEnabled, true),
+        eq(githubAppInstallations.enabled, true)
       )
-    );
+    )
+    .then((rows) => rows.map(({ site }) => site));
 }
 
 async function handlePush(payload: PushPayload): Promise<string[]> {

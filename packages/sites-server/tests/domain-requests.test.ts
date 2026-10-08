@@ -57,6 +57,12 @@ if (process.env.NOTRA_SITES_DOMAIN_REQUEST_TEST_WORKER !== "1") {
     verificationRecords: [
       {
         type: "TXT",
+        name: "_notra.blog.acme.com",
+        value: "synthetic-notra-proof",
+        purpose: "ownership",
+      },
+      {
+        type: "TXT",
         name: "_cf-custom-hostname.blog.acme.com",
         value: "ownership-token",
         purpose: "ownership",

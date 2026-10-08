@@ -1,5 +1,6 @@
 import { db } from "@notra/db/drizzle";
 import { sites } from "@notra/db/schema";
+import { invalidateIngestSiteCaches } from "@notra/geo-core/ingest/sites";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import type {
   PreviewActivationResult,
@@ -42,7 +43,7 @@ export async function activateDeployment(
   site: Site,
   deployment: SiteDeployment
 ): Promise<ActivationOutcome> {
-  return await withSiteStorageLock(site.id, async (tx) => {
+  const outcome = await withSiteStorageLock(site.id, async (tx) => {
     const [currentSite] = await tx
       .select()
       .from(sites)
@@ -85,6 +86,12 @@ export async function activateDeployment(
       )
     );
   });
+  if (outcome === "live" && deployment.kind === "production") {
+    await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+      () => undefined
+    );
+  }
+  return outcome;
 }
 
 export async function restoreProductionDeployment(
@@ -92,7 +99,7 @@ export async function restoreProductionDeployment(
   deployment: SiteDeployment
 ): Promise<ActivationOutcome> {
   const { lastGeneration } = await allocateGeneration(db, site.id);
-  return await withSiteStorageLock(site.id, async (tx) => {
+  const outcome = await withSiteStorageLock(site.id, async (tx) => {
     const [currentSite] = await tx
       .select()
       .from(sites)
@@ -116,6 +123,12 @@ export async function restoreProductionDeployment(
       )
     );
   });
+  if (outcome === "live") {
+    await invalidateIngestSiteCaches(site.id, site.organizationId).catch(
+      () => undefined
+    );
+  }
+  return outcome;
 }
 
 export async function readLiveDeployments(

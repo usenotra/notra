@@ -1,4 +1,10 @@
 import {
+  MS_PER_SECOND,
+  ESCAPE,
+  ANSI_SEQUENCE,
+  SECONDS_PER_MINUTE,
+} from "@/constants/site-deployments";
+import {
   SITE_DEPLOYMENT_ENVIRONMENT_FILTERS,
   SITE_DEPLOYMENT_IN_PROGRESS_STATUSES,
   SITE_DEPLOYMENT_STATUS_FILTERS,
@@ -14,13 +20,6 @@ import type {
   SiteDetail,
 } from "@/types/sites";
 import { hostFromOrigin } from "@/utils/site-links";
-
-const MS_PER_SECOND = 1000;
-
-const ESCAPE = String.fromCharCode(27);
-const ANSI_SEQUENCE = new RegExp(`${ESCAPE}\\[[0-9;?]*[A-Za-z]`, "g");
-
-const SECONDS_PER_MINUTE = 60;
 
 export function isDeploymentInProgress(status: SiteDeploymentStatus): boolean {
   return SITE_DEPLOYMENT_IN_PROGRESS_STATUSES.has(status);

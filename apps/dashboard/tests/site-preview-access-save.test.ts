@@ -12,6 +12,7 @@ import {
 
 import type { DashboardORPCClient } from "../src/lib/orpc/client";
 import type { SitePreviewAccessPlan } from "../src/types/site-preview-access";
+import { plan } from "./constants/site-preview-access";
 
 if (process.env.NOTRA_SITE_PREVIEW_ACCESS_SAVE_TEST_WORKER !== "1") {
   test("preview access saves through a single authorized mutation", () => {
@@ -64,14 +65,7 @@ if (process.env.NOTRA_SITE_PREVIEW_ACCESS_SAVE_TEST_WORKER !== "1") {
   }));
   const { useSavePreviewAccess } =
     await import("../src/lib/hooks/use-save-preview-access");
-  const plan: SitePreviewAccessPlan = {
-    previewsEnabled: true,
-    previewVisibility: "protected",
-    settingsChanged: false,
-    password: undefined,
-    passwordTooShort: false,
-    isDirty: true,
-  };
+
   beforeEach(() => {
     client?.clear();
     client = new QueryClient();

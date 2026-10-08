@@ -1,5 +1,5 @@
 {
-  "id": "268d973d-73a9-4d49-81f1-f6df8f99bc88",
+  "id": "b7c120aa-e12a-4af3-80c8-449fce7d4277",
   "prevId": "6747c3b9-f2a0-41b9-9858-7a2105ffc1c6",
   "version": "7",
   "dialect": "postgresql",
@@ -4408,6 +4408,36 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "contentPublications_org_post_fk": {
+          "name": "contentPublications_org_post_fk",
+          "tableFrom": "content_publications",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "organization_id",
+            "post_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contentPublications_org_repository_fk": {
+          "name": "contentPublications_org_repository_fk",
+          "tableFrom": "content_publications",
+          "tableTo": "github_integrations",
+          "columnsFrom": [
+            "organization_id",
+            "repository_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -8502,6 +8532,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "githubAppInstallations_org_id_uidx": {
+          "name": "githubAppInstallations_org_id_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -8700,6 +8751,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "githubIntegrations_org_id_uidx": {
+          "name": "githubIntegrations_org_id_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -8737,6 +8809,21 @@
             "github_app_installation_id"
           ],
           "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "githubIntegrations_org_installation_fk": {
+          "name": "githubIntegrations_org_installation_fk",
+          "tableFrom": "github_integrations",
+          "tableTo": "github_app_installations",
+          "columnsFrom": [
+            "organization_id",
+            "github_app_installation_id"
+          ],
+          "columnsTo": [
+            "organization_id",
             "id"
           ],
           "onDelete": "cascade",
@@ -11501,6 +11588,27 @@
           "method": "btree",
           "with": {}
         },
+        "posts_org_id_uidx": {
+          "name": "posts_org_id_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "posts_org_createdAt_status_idx": {
           "name": "posts_org_createdAt_status_idx",
           "columns": [
@@ -11679,13 +11787,6 @@
           "notNull": true,
           "default": false
         },
-        "track_visitors": {
-          "name": "track_visitors",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -11713,6 +11814,27 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "projects_org_id_uidx": {
+          "name": "projects_org_id_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -12104,6 +12226,48 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "siteDeployments_site_id_uidx": {
+          "name": "siteDeployments_site_id_uidx",
+          "columns": [
+            {
+              "expression": "site_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "siteDeployments_org_created_idx": {
+          "name": "siteDeployments_org_created_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -12145,12 +12309,48 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
+        },
+        "siteDeployments_org_site_fk": {
+          "name": "siteDeployments_org_site_fk",
+          "tableFrom": "site_deployments",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "organization_id",
+            "site_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "siteDeployments_kind_check": {
+          "name": "siteDeployments_kind_check",
+          "value": "\"site_deployments\".\"kind\" IN ('production', 'preview')"
+        },
+        "siteDeployments_status_check": {
+          "name": "siteDeployments_status_check",
+          "value": "\"site_deployments\".\"status\" IN ('queued', 'building', 'uploading', 'ready', 'superseded', 'failed', 'canceled', 'expired')"
+        },
+        "siteDeployments_trigger_check": {
+          "name": "siteDeployments_trigger_check",
+          "value": "\"site_deployments\".\"trigger\" IN ('push', 'pull_request', 'manual', 'redeploy', 'config')"
+        },
+        "siteDeployments_generation_check": {
+          "name": "siteDeployments_generation_check",
+          "value": "\"site_deployments\".\"generation\" >= 0"
+        },
+        "siteDeployments_previewKey_check": {
+          "name": "siteDeployments_previewKey_check",
+          "value": "(\"site_deployments\".\"kind\" = 'production' AND \"site_deployments\".\"preview_key\" IS NULL) OR (\"site_deployments\".\"kind\" = 'preview' AND \"site_deployments\".\"preview_key\" IS NOT NULL AND length(\"site_deployments\".\"preview_key\") > 0)"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.site_domains": {
@@ -12335,12 +12535,36 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "siteDomains_org_site_fk": {
+          "name": "siteDomains_org_site_fk",
+          "tableFrom": "site_domains",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "organization_id",
+            "site_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "siteDomains_kind_check": {
+          "name": "siteDomains_kind_check",
+          "value": "\"site_domains\".\"kind\" IN ('subdomain', 'proxy')"
+        },
+        "siteDomains_status_check": {
+          "name": "siteDomains_status_check",
+          "value": "\"site_domains\".\"status\" IN ('pending', 'verifying', 'active', 'failed')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.site_drafts": {
@@ -12389,6 +12613,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "updated_by_user_id": {
           "name": "updated_by_user_id",
@@ -12606,6 +12837,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "siteJobs_site_deployment_idx": {
+          "name": "siteJobs_site_deployment_idx",
+          "columns": [
+            {
+              "expression": "site_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "deployment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -12622,14 +12874,16 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "site_jobs_deployment_id_site_deployments_id_fk": {
-          "name": "site_jobs_deployment_id_site_deployments_id_fk",
+        "siteJobs_site_deployment_fk": {
+          "name": "siteJobs_site_deployment_fk",
           "tableFrom": "site_jobs",
           "tableTo": "site_deployments",
           "columnsFrom": [
+            "site_id",
             "deployment_id"
           ],
           "columnsTo": [
+            "site_id",
             "id"
           ],
           "onDelete": "cascade",
@@ -12639,7 +12893,20 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "siteJobs_kind_check": {
+          "name": "siteJobs_kind_check",
+          "value": "\"site_jobs\".\"kind\" IN ('build', 'remove_preview', 'sync_state')"
+        },
+        "siteJobs_status_check": {
+          "name": "siteJobs_status_check",
+          "value": "\"site_jobs\".\"status\" IN ('pending', 'running', 'done', 'failed')"
+        },
+        "siteJobs_attempts_check": {
+          "name": "siteJobs_attempts_check",
+          "value": "\"site_jobs\".\"attempts\" >= 0 AND \"site_jobs\".\"max_attempts\" >= 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.site_slug_grants": {
@@ -12876,6 +13143,12 @@
           "notNull": true,
           "default": 0
         },
+        "active_production_deployment_id": {
+          "name": "active_production_deployment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_by_user_id": {
           "name": "created_by_user_id",
           "type": "text",
@@ -12942,6 +13215,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "sites_org_id_uidx": {
+          "name": "sites_org_id_uidx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -12984,6 +13278,19 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
+        "sites_active_production_deployment_id_site_deployments_id_fk": {
+          "name": "sites_active_production_deployment_id_site_deployments_id_fk",
+          "tableFrom": "sites",
+          "tableTo": "site_deployments",
+          "columnsFrom": [
+            "active_production_deployment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
         "sites_created_by_user_id_users_id_fk": {
           "name": "sites_created_by_user_id_users_id_fk",
           "tableFrom": "sites",
@@ -12996,12 +13303,74 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
+        },
+        "sites_org_project_fk": {
+          "name": "sites_org_project_fk",
+          "tableFrom": "sites",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "organization_id",
+            "project_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sites_org_repository_fk": {
+          "name": "sites_org_repository_fk",
+          "tableFrom": "sites",
+          "tableTo": "github_integrations",
+          "columnsFrom": [
+            "organization_id",
+            "repository_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sites_active_production_same_site_fk": {
+          "name": "sites_active_production_same_site_fk",
+          "tableFrom": "sites",
+          "tableTo": "site_deployments",
+          "columnsFrom": [
+            "id",
+            "active_production_deployment_id"
+          ],
+          "columnsTo": [
+            "site_id",
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "sites_status_check": {
+          "name": "sites_status_check",
+          "value": "\"sites\".\"status\" IN ('active', 'suspended')"
+        },
+        "sites_previewVisibility_check": {
+          "name": "sites_previewVisibility_check",
+          "value": "\"sites\".\"preview_visibility\" IN ('public', 'protected')"
+        },
+        "sites_publishMode_check": {
+          "name": "sites_publishMode_check",
+          "value": "\"sites\".\"publish_mode\" IN ('pull_request', 'direct')"
+        },
+        "sites_lastGeneration_check": {
+          "name": "sites_lastGeneration_check",
+          "value": "\"sites\".\"last_generation\" >= 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.skills": {

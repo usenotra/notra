@@ -67,3 +67,7 @@ export const STARTER_SYSTEM_FONTS: ReadonlySet<string> = new Set([
 
 export const GOOGLE_FONTS_STYLESHEET_HREF =
   /^(?:https?:)?\/\/fonts\.googleapis\.com\//i;
+
+export const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+export const RGB =
+  /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*[\d.%]+)?\s*\)$/i;

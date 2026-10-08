@@ -1,5 +1,9 @@
 import type { KeyObject } from "node:crypto";
 
+import type {
+  DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE,
+  DOMAIN_CONNECT_OWNERSHIP_VARIABLE,
+} from "../constants/domain-connect";
 import type { SiteDomain } from "./domains";
 import type { Site } from "./sites";
 
@@ -50,6 +54,12 @@ export interface BuildApplyUrlParams {
   redirectUri?: string;
   state?: string;
 }
+
+export type DomainConnectOwnershipVariables = Record<
+  | typeof DOMAIN_CONNECT_OWNERSHIP_VARIABLE
+  | typeof DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE,
+  string
+>;
 
 export interface DnsSetupForDomainParams {
   site: Pick<Site, "id">;

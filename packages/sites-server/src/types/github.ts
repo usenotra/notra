@@ -1,6 +1,9 @@
 import type { githubIntegrations } from "@notra/db/schema";
 
 export interface SiteRepository {
+  organizationId: string;
+  integrationId: string | null;
+  githubRepositoryId: string | null;
   installationId: string;
   owner: string;
   repo: string;
@@ -17,6 +20,10 @@ export interface SiteRepositoryAccess {
 }
 
 export interface SiteRepositoryColumns {
+  id: string;
+  organizationId: string;
+  repositoryId: string | null;
+  githubRepositoryId: string | null;
   githubInstallationId: string | null;
   repositoryOwner: string | null;
   repositoryName: string | null;

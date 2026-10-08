@@ -28,6 +28,7 @@ import {
   siteDomainInputSchema,
   saveSiteIntegrationInputSchema,
   siteFilePathInputSchema,
+  siteDraftMutationInputSchema,
   sitePreviewAccessInputSchema,
   sitePreviewInputSchema,
   siteAnalyticsInputSchema,
@@ -75,7 +76,7 @@ import {
 } from "@notra/sites-server/env";
 import {
   getRepositorySuggestions,
-  requireSiteRepository,
+  siteRepositoryAccess,
 } from "@notra/sites-server/github";
 import {
   readSiteIntegrations,
@@ -103,13 +104,13 @@ import {
 } from "@notra/sites-server/starter";
 import { readServingState } from "@notra/sites-server/state";
 import type { Site } from "@notra/sites-server/types/sites";
+import { defaultSiteConfigContent } from "@notra/sites-server/utils/default-config";
 import {
   buildTargetForDeployment,
   primaryMountUrl,
   siteAliasOrigin,
   sitePreviewOrigin,
-} from "@notra/sites-server/urls";
-import { defaultSiteConfigContent } from "@notra/sites-server/utils/default-config";
+} from "@notra/sites-server/utils/urls";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { Effect } from "effect";
 
@@ -393,7 +394,7 @@ export const sitesRouter = {
     .handler(async ({ context, input }) => {
       const { site } = await requireSite(context, input);
       return await getRepositorySuggestions(
-        requireSiteRepository(site),
+        await siteRepositoryAccess(site, { contents: "read" }),
         input.ref || null
       );
     }),
@@ -708,9 +709,15 @@ export const sitesRouter = {
         }
         return {
           commitSha: source.commitSha,
+          sourceContext: {
+            productionBranch: site.productionBranch,
+            rootDirectory: site.rootDirectory,
+          },
           files,
           drafts: drafts.map((draft) => ({
             path: draft.path,
+            id: draft.id,
+            revision: draft.revision,
             deleted: draft.deleted,
             baseBlobSha: draft.baseBlobSha,
             updatedAt: draft.updatedAt,
@@ -741,6 +748,12 @@ export const sitesRouter = {
           blobSha: draft ? draft.baseBlobSha : (file?.sha ?? null),
           publishedBlobSha: file?.sha ?? null,
           hasDraft: Boolean(draft),
+          draftId: draft?.id ?? null,
+          draftRevision: draft?.revision ?? null,
+          sourceContext: {
+            productionBranch: site.productionBranch,
+            rootDirectory: site.rootDirectory,
+          },
         };
       }),
 
@@ -755,24 +768,33 @@ export const sitesRouter = {
           baseBlobSha: input.baseBlobSha,
           baseCommitSha: input.baseCommitSha,
           deleted: input.deleted,
+          draftId: input.draftId,
+          draftRevision: input.draftRevision,
+          sourceContext: input.sourceContext,
           userId,
         });
-        return { path: draft.path, updatedAt: draft.updatedAt };
+        return {
+          path: draft.path,
+          updatedAt: draft.updatedAt,
+          draftId: draft.id,
+          draftRevision: draft.revision,
+        };
       }),
 
     rebaseDraft: sitesProcedure
-      .input(siteFilePathInputSchema)
+      .input(siteDraftMutationInputSchema)
       .handler(async ({ context, input }) => {
         assertNotDemo();
-        const { site } = await requireSite(context, input);
-        return { rebased: Boolean(await rebaseSiteDraft(site, input.path)) };
+        const { site, userId } = await requireSite(context, input);
+        return { rebased: Boolean(await rebaseSiteDraft(site, input, userId)) };
       }),
 
     discardDraft: sitesProcedure
-      .input(siteFilePathInputSchema)
+      .input(siteDraftMutationInputSchema)
       .handler(async ({ context, input }) => {
         const { site } = await requireSite(context, input);
-        await discardSiteDraft(site.id, input.path);
+        assertNotDemo();
+        await discardSiteDraft(site, input);
         return { ok: true };
       }),
 

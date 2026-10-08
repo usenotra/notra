@@ -8,6 +8,7 @@ import type {
 } from "@pierre/trees";
 
 import {
+  ENTRY_FILE,
   SITE_EDITOR_COLLAPSED_FOLDERS,
   SITE_EDITOR_EDIT_STATE_PREFIX,
   SITE_EDITOR_FILE_ICONS,
@@ -31,8 +32,6 @@ import type {
   SiteNewFileFolder,
   SiteRecord,
 } from "@/types/sites";
-
-const ENTRY_FILE = /^(blog|changelog)\/(.+)\.mdx?$/;
 
 function isEditableSiteFile(path: string): boolean {
   return SITE_EDITABLE_FILE_PATTERN.test(path);

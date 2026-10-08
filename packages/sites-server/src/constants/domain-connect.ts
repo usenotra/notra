@@ -1,5 +1,7 @@
 export const DOMAIN_CONNECT_CNAME_TARGET = "cname.notra.site";
 export const DOMAIN_CONNECT_OWNERSHIP_VARIABLE = "ownership";
+export const DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE = "notraOwnership";
+export const DOMAIN_CONNECT_TEMPLATE_VERSION = 2;
 export const DOMAIN_CONNECT_CALLBACK_PATH = "/sites/domain-connect";
 
 export const OWNERSHIP_RECORD_PREFIX = "_cf-custom-hostname.";

@@ -21,12 +21,12 @@ import { generateText, Output } from "ai";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { createRequestLogger } from "evlog";
 
-import { commandRoutesForAI } from "@/components/command-palette/registry";
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { getServerSession } from "@/lib/auth/session";
 import { hasAiCreditsGrant } from "@/lib/billing/subscription";
 import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
 import { isSitesEnabledForOrganization } from "@/lib/sites/flag";
+import { commandRoutesForAI } from "@/utils/command-palette";
 import { getClientIp, ratelimit } from "@/utils/ratelimit";
 
 const LIKE_ESCAPE_PATTERN = /[\\%_]/g;

@@ -89,8 +89,7 @@ if (!process.env.NOTRA_SITES_FLAG_TEST_WORKER) {
   const { createORPCContext } = await import("../src/lib/orpc/context");
   const { sitesRouter } = await import("../src/lib/orpc/routers/sites");
   const { resolveNavItems } = await import("../src/utils/nav");
-  const { commandRoutesForAI } =
-    await import("../src/components/command-palette/registry");
+  const { commandRoutesForAI } = await import("../src/utils/command-palette");
   const { useNavVisibility } =
     await import("../src/lib/hooks/use-nav-visibility");
   beforeEach(() => {
@@ -197,6 +196,9 @@ if (!process.env.NOTRA_SITES_FLAG_TEST_WORKER) {
           content: "Demo",
           baseBlobSha: null,
           baseCommitSha: null,
+          draftId: null,
+          draftRevision: null,
+          sourceContext: { productionBranch: "main", rootDirectory: "" },
         },
         client
       )

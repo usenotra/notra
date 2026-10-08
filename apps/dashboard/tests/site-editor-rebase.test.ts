@@ -14,6 +14,7 @@ import {
 import type { DashboardORPCClient } from "../src/lib/orpc/client";
 import type { SiteEditorDraftInput } from "../src/types/site-editor";
 import { createSiteEditorSaveQueue } from "../src/utils/site-editor-save-queue";
+import { scope, sourceContext } from "./constants/site-editor";
 
 function deferred() {
   let resolve = () => {};
@@ -37,7 +38,6 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     expect(result.status, result.stderr?.toString()).toBe(0);
   });
 } else {
-  const scope = { organizationId: "org", siteId: "site" };
   let client: QueryClient;
   let rebase: (path: string) => Promise<void>;
   let read: (path: string) => Promise<void>;
@@ -47,6 +47,11 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       const { path: file } = input as { path: string };
       switch (path.join(".")) {
         case "sites.editor.rebaseDraft":
+          expect(input).toMatchObject({
+            draftId: `drf-${file}`,
+            draftRevision: 1,
+            sourceContext,
+          });
           await rebase(file);
           return { path: file };
         case "sites.editor.read":
@@ -59,9 +64,17 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
             blobSha: `new:${file}`,
             publishedBlobSha: `new:${file}`,
             hasDraft: true,
+            draftId: `drf-${file}`,
+            draftRevision: 2,
+            sourceContext,
           };
         case "sites.editor.files":
-          return { commitSha: "new-commit", files: [], drafts: [] };
+          return {
+            commitSha: "new-commit",
+            sourceContext,
+            files: [],
+            drafts: [],
+          };
         default:
           throw new Error(`Unexpected procedure: ${path.join(".")}`);
       }
@@ -95,6 +108,24 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
   const readOptions = (path: string) =>
     dashboardOrpc.sites.editor.read.queryOptions({ input: { ...scope, path } });
   const seed = (path: string) => {
+    client.setQueryData(filesOptions.queryKey, (current) =>
+      current
+        ? {
+            ...current,
+            drafts: [
+              ...current.drafts,
+              {
+                path,
+                id: `drf-${path}`,
+                revision: 1,
+                deleted: false,
+                baseBlobSha: `old:${path}`,
+                updatedAt: new Date(),
+              },
+            ],
+          }
+        : current
+    );
     client.setQueryData(readOptions(path).queryKey, {
       path,
       content: `draft:${path}`,
@@ -102,6 +133,9 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       blobSha: `old:${path}`,
       publishedBlobSha: `old:${path}`,
       hasDraft: true,
+      draftId: `drf-${path}`,
+      draftRevision: 1,
+      sourceContext,
     });
   };
 
@@ -117,6 +151,7 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     readCalls.length = 0;
     client.setQueryData(filesOptions.queryKey, {
       commitSha: "old-commit",
+      sourceContext,
       files: [],
       drafts: [],
     });
@@ -137,6 +172,9 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       blobSha: "other",
       publishedBlobSha: "other",
       hasDraft: false,
+      draftId: null,
+      draftRevision: null,
+      sourceContext,
     });
     const observer = new QueryObserver(client, readOptions("blog/active.mdx"));
     const unsubscribe = observer.subscribe(() => {});
@@ -149,7 +187,12 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
         const queue = createSiteEditorSaveQueue({
           save: async (input) => {
             saved.push(input);
-            return { path, updatedAt: new Date() };
+            return {
+              path,
+              updatedAt: new Date(),
+              draftId: `drf-${path}`,
+              draftRevision: 3,
+            };
           },
           discard: async () => {},
           onSaved: () => {},
@@ -164,6 +207,9 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
           baseBlobSha: document?.blobSha ?? null,
           baseCommitSha:
             client.getQueryData(filesOptions.queryKey)?.commitSha ?? null,
+          draftId: document?.draftId ?? null,
+          draftRevision: document?.draftRevision ?? null,
+          sourceContext,
         });
         void queue.flush();
       }
@@ -182,6 +228,7 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     expect(saved.every((input) => input.baseCommitSha === "new-commit")).toBe(
       true
     );
+    expect(saved.every((input) => input.draftRevision === 2)).toBe(true);
     expect(
       client.getQueryData(readOptions("blog/untouched.mdx").queryKey)?.blobSha
     ).toBe("old:blog/untouched.mdx");

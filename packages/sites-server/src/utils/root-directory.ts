@@ -1,7 +1,5 @@
+import { ROOT_DIRECTORY, EDGE_SLASHES } from "../constants/root-directory";
 import { SiteInputError } from "../errors";
-
-const ROOT_DIRECTORY = /^(?:[A-Za-z0-9._-]+\/)*[A-Za-z0-9._-]*$/;
-const EDGE_SLASHES = /^\/+|\/+$/g;
 
 export function isSafeRootDirectory(rootDirectory: string): boolean {
   return (

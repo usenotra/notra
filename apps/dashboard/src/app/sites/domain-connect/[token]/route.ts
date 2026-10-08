@@ -1,4 +1,4 @@
-import { verifyDomainConnectCallback } from "@notra/sites-server/domain-connect";
+import { verifyDomainConnectCallback } from "@notra/sites-server/utils/domain-connect-callback";
 
 import {
   finishDnsCallback,

@@ -9,7 +9,10 @@ import type {
   UseRebaseSiteDraftsParams,
   UseValidateSiteDraftsParams,
 } from "@/types/hooks/sites";
-import type { SiteEditorNewFile } from "@/types/site-editor";
+import type {
+  SiteEditorNewFile,
+  SiteEditorDraftResult,
+} from "@/types/site-editor";
 import type { SiteScope } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
 import { listSiteEditorFiles } from "@/utils/site-editor";
@@ -40,7 +43,11 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
     ]);
   };
 
-  const applyDraftChange = (path: string, updatedAt: Date | null) => {
+  const applyDraftChange = (
+    path: string,
+    updatedAt: Date | null,
+    draft: SiteEditorDraftResult | null
+  ) => {
     queryClient.setQueryData(filesOptions.queryKey, (current) => {
       if (!current) {
         return current;
@@ -48,6 +55,9 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
       const others = current.drafts.filter((draft) => draft.path !== path);
       if (updatedAt === null) {
         return { ...current, drafts: others };
+      }
+      if (!draft) {
+        return current;
       }
       const existing = current.drafts.find((draft) => draft.path === path);
       const source = current.files.find((file) => file.path === path);
@@ -57,6 +67,8 @@ export function useSiteEditorFiles({ organizationId, siteId }: SiteScope) {
           ...others,
           {
             path,
+            id: draft.draftId,
+            revision: draft.draftRevision,
             deleted: false,
             baseBlobSha: existing?.baseBlobSha ?? (source?.sha || null),
             updatedAt,
@@ -91,23 +103,31 @@ export function useRebaseSiteDrafts({
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (paths: string[]) => {
+      const filesOptions = dashboardOrpc.sites.editor.files.queryOptions({
+        input: { organizationId, siteId },
+      });
+      const files = queryClient.getQueryData(filesOptions.queryKey);
+      if (!files) {
+        throw new Error("Reload the editor files before rebasing");
+      }
       const results = await Promise.allSettled(
-        paths.map((path) =>
-          dashboardOrpc.sites.editor.rebaseDraft.call({
+        paths.map((path) => {
+          const draft = files.drafts.find((entry) => entry.path === path);
+          return dashboardOrpc.sites.editor.rebaseDraft.call({
             organizationId,
             siteId,
             path,
-          })
-        )
+            draftId: draft?.id ?? null,
+            draftRevision: draft?.revision ?? null,
+            sourceContext: files.sourceContext,
+          });
+        })
       );
       const readOptions = paths.map((path) =>
         dashboardOrpc.sites.editor.read.queryOptions({
           input: { organizationId, siteId, path },
         })
       );
-      const filesOptions = dashboardOrpc.sites.editor.files.queryOptions({
-        input: { organizationId, siteId },
-      });
       await Promise.all(
         [filesOptions, ...readOptions].map(async (options) => {
           const filter = { queryKey: options.queryKey, exact: true };
@@ -161,6 +181,7 @@ export function useCreateSiteFile({
   organizationId,
   siteId,
   baseCommitSha,
+  sourceContext,
   refreshDrafts,
   onSaved,
   onCreated,
@@ -175,6 +196,9 @@ export function useCreateSiteFile({
         content: file.content,
         baseBlobSha: null,
         baseCommitSha,
+        draftId: null,
+        draftRevision: null,
+        sourceContext,
       }),
     onSuccess: async (result) => {
       onSaved();

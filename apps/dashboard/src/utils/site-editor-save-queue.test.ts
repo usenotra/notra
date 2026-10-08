@@ -23,21 +23,31 @@ function input(content: string): SiteEditorDraftInput {
     content,
     baseBlobSha: "blob",
     baseCommitSha: "commit",
+    draftId: null,
+    draftRevision: null,
+    sourceContext: { productionBranch: "main", rootDirectory: "" },
   };
 }
 
 test("serializes persistence and coalesces edits arriving during a save", async () => {
   const first = deferred();
   const writes: string[] = [];
+  const revisions: (number | null)[] = [];
   let persisted = "";
   const queue = createSiteEditorSaveQueue({
     save: async (draft) => {
       writes.push(draft.content);
+      revisions.push(draft.draftRevision);
       if (writes.length === 1) {
         await first.promise;
       }
       persisted = draft.content;
-      return { path: draft.path, updatedAt: new Date() };
+      return {
+        path: draft.path,
+        updatedAt: new Date(),
+        draftId: "drf-test",
+        draftRevision: (draft.draftRevision ?? -1) + 1,
+      };
     },
     discard: async () => {},
     onSaved: () => {},
@@ -55,8 +65,62 @@ test("serializes persistence and coalesces edits arriving during a save", async 
   first.resolve();
   await Promise.all([saving, flushing]);
   expect(writes).toEqual(["A", "C"]);
+  expect(revisions).toEqual([null, 0]);
   expect(persisted).toBe("C");
   expect(queue.getSnapshot().state.status).toBe("saved");
+  queue.edit(input("D"));
+  await queue.flush();
+  expect(revisions).toEqual([null, 0, 1]);
+  expect(persisted).toBe("D");
+});
+
+test("stale writes from another tab keep the unsaved local content and observed revision", async () => {
+  let revision = 0;
+  let persisted = "initial";
+  const writes: SiteEditorDraftInput[] = [];
+  const create = () =>
+    createSiteEditorSaveQueue({
+      save: async (draft) => {
+        writes.push(draft);
+        if (draft.draftRevision !== revision) {
+          throw new Error("draft conflict");
+        }
+        persisted = draft.content;
+        revision += 1;
+        return {
+          path: draft.path,
+          updatedAt: new Date(),
+          draftId: "drf-shared",
+          draftRevision: revision,
+        };
+      },
+      discard: async () => {
+        throw new Error("draft conflict");
+      },
+      onSaved: () => {},
+      onDiscarded: async () => {},
+      onStateChange: () => {},
+      errorMessage: String,
+    });
+  const first = create();
+  const stale = create();
+  const observation = {
+    ...input("first tab"),
+    draftId: "drf-shared",
+    draftRevision: 0,
+  };
+  first.edit(observation);
+  stale.edit({ ...observation, content: "local second tab" });
+  await first.flush();
+  await stale.flush();
+  expect(persisted).toBe("first tab");
+  expect(stale.getSnapshot().content).toBe("local second tab");
+  expect(stale.getSnapshot().state.status).toBe("error");
+  await expect(stale.discard(observation)).rejects.toThrow("draft conflict");
+  await stale.flush();
+  expect(writes.at(-1)?.draftRevision).toBe(0);
+  expect(stale.getSnapshot().content).toBe("local second tab");
+  expect(persisted).toBe("first tab");
 });
 
 test("discard waits for the in-flight write and cancels queued edits", async () => {
@@ -68,9 +132,16 @@ test("discard waits for the in-flight write and cancels queued edits", async () 
       await first.promise;
       operations.push(`save:${draft.content}`);
       persisted = draft.content;
-      return { path: draft.path, updatedAt: new Date() };
+      return {
+        path: draft.path,
+        updatedAt: new Date(),
+        draftId: "drf-test",
+        draftRevision: (draft.draftRevision ?? -1) + 1,
+      };
     },
-    discard: async () => {
+    discard: async (observed) => {
+      expect(observed.draftId).toBe("drf-test");
+      expect(observed.draftRevision).toBe(0);
       operations.push("discard");
       persisted = null;
     },
@@ -82,7 +153,7 @@ test("discard waits for the in-flight write and cancels queued edits", async () 
   queue.edit(input("A"));
   const saving = queue.flush();
   queue.edit(input("B"));
-  const discarding = queue.discard();
+  const discarding = queue.discard(input("B"));
   queue.edit(input("C"));
   expect(operations).toEqual([]);
   expect(queue.getSnapshot().state.status).toBe("discarding");
@@ -103,7 +174,12 @@ test("a file keeps its pending content and blocking state after its pane unsubsc
   const queue = createSiteEditorSaveQueue({
     save: async (draft) => {
       await first.promise;
-      return { path: draft.path, updatedAt: new Date() };
+      return {
+        path: draft.path,
+        updatedAt: new Date(),
+        draftId: "drf-test",
+        draftRevision: (draft.draftRevision ?? -1) + 1,
+      };
     },
     discard: async () => {},
     onSaved: () => {},
@@ -129,7 +205,12 @@ test("a failed save retains the latest edit and can be retried", async () => {
       if (fails) {
         throw new Error("offline");
       }
-      return { path: draft.path, updatedAt: new Date() };
+      return {
+        path: draft.path,
+        updatedAt: new Date(),
+        draftId: "drf-test",
+        draftRevision: (draft.draftRevision ?? -1) + 1,
+      };
     },
     discard: async () => {},
     onSaved: () => {},
@@ -167,7 +248,7 @@ test("discard still deletes after an in-flight save fails, without retrying disc
   queue.edit(input("A"));
   const saving = queue.flush();
   queue.edit(input("B"));
-  const discarding = queue.discard();
+  const discarding = queue.discard(input("B"));
   first.resolve();
   await Promise.all([saving, discarding]);
   await queue.flush();

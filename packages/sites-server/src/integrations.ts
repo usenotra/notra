@@ -82,12 +82,21 @@ export async function saveSiteIntegration(
     delete config.integrations;
   }
   const next = `${JSON.stringify(config, null, 2)}\n`;
+  const observed = {
+    path: SITE_CONFIG_FILENAME,
+    draftId: draft?.id ?? null,
+    draftRevision: draft?.revision ?? null,
+    sourceContext: {
+      productionBranch: site.productionBranch,
+      rootDirectory: site.rootDirectory,
+    },
+  };
   if (file && next === file.content) {
-    await discardSiteDraft(site.id, SITE_CONFIG_FILENAME);
+    await discardSiteDraft(site, observed);
     return { integrations: current, hasDraft: false, invalid: false };
   }
   await saveSiteDraft(site, {
-    path: SITE_CONFIG_FILENAME,
+    ...observed,
     content: next,
     baseBlobSha: draft ? draft.baseBlobSha : (file?.sha ?? null),
     baseCommitSha: draft?.baseCommitSha ?? null,

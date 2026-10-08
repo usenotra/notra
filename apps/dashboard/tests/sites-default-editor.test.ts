@@ -4,6 +4,12 @@ import { fileURLToPath } from "node:url";
 
 import { call } from "@orpc/server";
 
+import { site } from "./constants/site-editor";
+import type {
+  DefaultEditorDraft,
+  DefaultEditorSaveDraftInput,
+} from "./types/site-editor";
+
 if (process.env.NOTRA_DEFAULT_EDITOR_TEST_WORKER !== "1") {
   test("defaults-first editor and integrations in an isolated process", () => {
     const result = spawnSync(
@@ -17,22 +23,8 @@ if (process.env.NOTRA_DEFAULT_EDITOR_TEST_WORKER !== "1") {
     expect(result.status, result.stderr?.toString()).toBe(0);
   }, 35_000);
 } else {
-  const site = {
-    id: "site_demo",
-    organizationId: "org-demo",
-    name: "Default Acme",
-    productionBranch: "main",
-    rootDirectory: "",
-  };
   let config: string | null = null;
-  let draft: {
-    path: string;
-    content: string;
-    deleted: boolean;
-    baseBlobSha: string | null;
-    baseCommitSha: string | null;
-    updatedAt: Date;
-  } | null = null;
+  let draft: DefaultEditorDraft | null = null;
   let writes = 0;
   mock.module("../src/lib/auth/organization", () => ({
     assertAuthenticated: async () => ({
@@ -72,11 +64,7 @@ if (process.env.NOTRA_DEFAULT_EDITOR_TEST_WORKER !== "1") {
     listSiteDrafts: async () => (draft ? [draft] : []),
     saveSiteDraft: async (
       _site: unknown,
-      input: {
-        content: string;
-        baseBlobSha: string | null;
-        baseCommitSha: string | null;
-      }
+      input: DefaultEditorSaveDraftInput
     ) => {
       writes += 1;
       draft = {
@@ -126,6 +114,9 @@ if (process.env.NOTRA_DEFAULT_EDITOR_TEST_WORKER !== "1") {
       blobSha: null,
       publishedBlobSha: null,
       hasDraft: false,
+      draftId: null,
+      draftRevision: null,
+      sourceContext: { productionBranch: "main", rootDirectory: "" },
     });
     expect(writes).toBe(0);
   });

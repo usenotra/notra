@@ -95,6 +95,7 @@ export function SiteEditorPage() {
     organizationId,
     siteId,
     onRebased: () => {
+      saves.reset();
       setConflicts([]);
       setEditorEpoch((epoch) => epoch + 1);
     },
@@ -111,6 +112,10 @@ export function SiteEditorPage() {
     organizationId,
     siteId,
     baseCommitSha,
+    sourceContext: data?.sourceContext ?? {
+      productionBranch: site.productionBranch,
+      rootDirectory: site.rootDirectory,
+    },
     refreshDrafts,
     onSaved: () => setNewFileOpen(false),
     onCreated: openFile,

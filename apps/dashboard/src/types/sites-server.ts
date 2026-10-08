@@ -1,6 +1,8 @@
 import type { siteDeployments, siteDomains } from "@notra/db/schema";
 import type { Site } from "@notra/sites-server/types/sites";
 
+import type { SiteDomainConnectOutcome } from "@/types/sites";
+
 export type SiteDeploymentDbRow = typeof siteDeployments.$inferSelect;
 export type SiteDomainDbRow = typeof siteDomains.$inferSelect;
 
@@ -26,4 +28,12 @@ export interface SiteJobSweepResult {
 
 export interface SiteJobRunHandle {
   runId: string;
+}
+
+export interface FinishDnsCallbackParams {
+  request: Request;
+  site: Site;
+  domainId: string;
+  userId: string;
+  outcome: SiteDomainConnectOutcome;
 }

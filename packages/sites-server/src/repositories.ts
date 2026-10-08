@@ -3,7 +3,7 @@ import { githubAppInstallations, githubIntegrations } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";
 
 import { SiteInputError } from "./errors";
-import { getRepositorySuggestions } from "./github";
+import { getRepositorySuggestions, siteRepositoryToken } from "./github";
 import type {
   OrganizationRepository,
   RepositorySuggestions,
@@ -28,13 +28,16 @@ export async function requireOrganizationRepository(
       and(
         eq(githubIntegrations.id, repositoryId),
         eq(githubIntegrations.organizationId, organizationId),
-        eq(githubAppInstallations.organizationId, organizationId)
+        eq(githubAppInstallations.organizationId, organizationId),
+        eq(githubIntegrations.enabled, true),
+        eq(githubIntegrations.repositoryEnabled, true),
+        eq(githubAppInstallations.enabled, true)
       )
     )
     .limit(1);
   const owner = row?.integration.owner;
   const repo = row?.integration.repo;
-  if (!(row && owner && repo)) {
+  if (!(row && owner && repo && row.integration.githubRepositoryId)) {
     throw new SiteInputError(
       "Connect the repository through the Notra GitHub App first",
       { field: "repository" }
@@ -42,7 +45,14 @@ export async function requireOrganizationRepository(
   }
   return {
     integration: row.integration,
-    repository: { installationId: row.installationId, owner, repo },
+    repository: {
+      organizationId,
+      integrationId: row.integration.id,
+      githubRepositoryId: row.integration.githubRepositoryId,
+      installationId: row.installationId,
+      owner,
+      repo,
+    },
   };
 }
 
@@ -53,5 +63,6 @@ export async function organizationRepositorySuggestions(
     params.organizationId,
     params.repositoryId
   );
-  return await getRepositorySuggestions(repository, params.ref);
+  const token = await siteRepositoryToken(repository, { contents: "read" });
+  return await getRepositorySuggestions({ repository, token }, params.ref);
 }

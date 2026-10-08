@@ -1,12 +1,12 @@
 import { GITHUB_CREATE_COMMIT_ON_BRANCH_MUTATION } from "@notra/ai/constants/github";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { db } from "@notra/db/drizzle";
-import { siteDrafts } from "@notra/db/schema";
+import { siteDrafts, sites } from "@notra/db/schema";
 import { validateSite } from "@notra/sites-compiler/validate";
 import { SITE_CONFIG_FILENAME } from "@notra/sites-core/constants/sites";
 import { createDefaultSiteConfig } from "@notra/sites-core/utils/default-config";
 import { isSiteSourcePath } from "@notra/sites-core/utils/source-files";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import {
   DEFAULT_PUBLISH_HEADLINE,
@@ -30,6 +30,7 @@ import type {
   RepositoryFileRef,
   RepositoryBranchInput,
   SaveSiteDraftInput,
+  SiteDraftMutationInput,
   SiteDraft,
   SiteSourceEntry,
   SiteSourceFileContent,
@@ -222,64 +223,159 @@ export async function saveSiteDraft(
   if (Buffer.byteLength(input.content, "utf8") > MAX_DRAFT_BYTES) {
     throw new SiteInputError("This file is too large to edit in the browser");
   }
-  const [draft] = await db
-    .insert(siteDrafts)
-    .values({
-      id: prefixedId("drf"),
-      siteId: site.id,
-      path: input.path,
+  return await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, site.id))
+      .for("update");
+    if (
+      !current ||
+      current.productionBranch !== input.sourceContext.productionBranch ||
+      current.rootDirectory !== input.sourceContext.rootDirectory
+    ) {
+      throw new SitePublishConflictError(
+        [input.path],
+        "The site's source changed. Reload the editor before saving."
+      );
+    }
+    if ((input.draftId === null) !== (input.draftRevision === null)) {
+      throw new SiteInputError(
+        "A draft ID and revision must be supplied together"
+      );
+    }
+    const values = {
       content: input.content,
       baseBlobSha: input.baseBlobSha,
       baseCommitSha: input.baseCommitSha,
       deleted: input.deleted ?? false,
       updatedByUserId: input.userId,
-    })
-    .onConflictDoUpdate({
-      target: [siteDrafts.siteId, siteDrafts.path],
-      set: {
-        content: input.content,
-        deleted: input.deleted ?? false,
-        baseBlobSha: input.baseBlobSha,
-        baseCommitSha: input.baseCommitSha,
-        updatedByUserId: input.userId,
-        updatedAt: new Date(),
-      },
-    })
-    .returning();
-  if (!draft) {
-    throw new Error("Could not save draft");
-  }
-  return draft;
+    };
+    const [draft] =
+      input.draftId === null
+        ? await tx
+            .insert(siteDrafts)
+            .values({
+              id: prefixedId("drf"),
+              siteId: site.id,
+              path: input.path,
+              ...values,
+            })
+            .onConflictDoNothing({
+              target: [siteDrafts.siteId, siteDrafts.path],
+            })
+            .returning()
+        : await tx
+            .update(siteDrafts)
+            .set({
+              ...values,
+              revision: sql`${siteDrafts.revision} + 1`,
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                eq(siteDrafts.siteId, site.id),
+                eq(siteDrafts.path, input.path),
+                eq(siteDrafts.id, input.draftId),
+                eq(siteDrafts.revision, input.draftRevision ?? -1)
+              )
+            )
+            .returning();
+    if (!draft) {
+      throw new SitePublishConflictError(
+        [input.path],
+        "This draft changed in another editor. Reload it before saving."
+      );
+    }
+    return draft;
+  });
 }
 
 export async function rebaseSiteDraft(
   site: Site,
-  path: string
+  input: SiteDraftMutationInput,
+  userId: string
 ): Promise<SiteDraft | null> {
+  const { path } = input;
   const [draft] = await db
     .select()
     .from(siteDrafts)
     .where(and(eq(siteDrafts.siteId, site.id), eq(siteDrafts.path, path)))
     .limit(1);
   if (!draft) {
+    if (input.draftId !== null) {
+      throw new SitePublishConflictError(
+        [path],
+        "This draft was removed in another editor. Reload it before rebasing."
+      );
+    }
     return null;
   }
   const current = await readSiteSourceFile(site, path);
-  const [updated] = await db
-    .update(siteDrafts)
-    .set({ baseBlobSha: current?.sha ?? null, updatedAt: new Date() })
-    .where(eq(siteDrafts.id, draft.id))
-    .returning();
-  return updated ?? null;
+  return await saveSiteDraft(site, {
+    ...input,
+    content: draft.content,
+    deleted: draft.deleted,
+    baseBlobSha: current?.sha ?? null,
+    baseCommitSha: draft.baseCommitSha,
+    userId,
+  });
 }
 
 export async function discardSiteDraft(
-  siteId: string,
-  path: string
+  site: Site,
+  input: SiteDraftMutationInput
 ): Promise<void> {
-  await db
-    .delete(siteDrafts)
-    .where(and(eq(siteDrafts.siteId, siteId), eq(siteDrafts.path, path)));
+  await db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, site.id))
+      .for("update");
+    if (
+      !current ||
+      current.productionBranch !== input.sourceContext.productionBranch ||
+      current.rootDirectory !== input.sourceContext.rootDirectory
+    ) {
+      throw new SitePublishConflictError(
+        [input.path],
+        "The site's source changed. Reload the editor before discarding."
+      );
+    }
+    if (input.draftId === null || input.draftRevision === null) {
+      const [existing] = await tx
+        .select()
+        .from(siteDrafts)
+        .where(
+          and(eq(siteDrafts.siteId, site.id), eq(siteDrafts.path, input.path))
+        )
+        .limit(1);
+      if (existing) {
+        throw new SitePublishConflictError(
+          [input.path],
+          "This draft changed in another editor. Reload it before discarding."
+        );
+      }
+      return;
+    }
+    const removed = await tx
+      .delete(siteDrafts)
+      .where(
+        and(
+          eq(siteDrafts.siteId, site.id),
+          eq(siteDrafts.path, input.path),
+          eq(siteDrafts.id, input.draftId),
+          eq(siteDrafts.revision, input.draftRevision)
+        )
+      )
+      .returning({ id: siteDrafts.id });
+    if (removed.length === 0) {
+      throw new SitePublishConflictError(
+        [input.path],
+        "This draft changed in another editor. Reload it before discarding."
+      );
+    }
+  });
 }
 
 async function validateWithDrafts(site: Site, drafts: SiteDraft[]) {
@@ -449,8 +545,7 @@ export async function publishSiteDrafts(
         .where(
           and(
             eq(siteDrafts.id, draft.id),
-            eq(siteDrafts.content, draft.content),
-            eq(siteDrafts.deleted, draft.deleted)
+            eq(siteDrafts.revision, draft.revision)
           )
         )
     )

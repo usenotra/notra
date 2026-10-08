@@ -1,6 +1,13 @@
 import { createScopedGitHubAppInstallationToken } from "@notra/ai/integrations/github";
 import { createOctokit } from "@notra/ai/utils/octokit";
+import { db } from "@notra/db/drizzle";
+import {
+  githubAppInstallations,
+  githubIntegrations,
+  sites,
+} from "@notra/db/schema";
 import { SITE_CONFIG_FILENAME } from "@notra/sites-core/constants/sites";
+import { and, eq } from "drizzle-orm";
 
 import {
   BRANCH_SUGGESTION_LIMIT,
@@ -37,6 +44,9 @@ export function requireSiteRepository(
     );
   }
   return {
+    organizationId: site.organizationId,
+    integrationId: site.repositoryId,
+    githubRepositoryId: site.githubRepositoryId,
     installationId: site.githubInstallationId,
     owner: site.repositoryOwner,
     repo: site.repositoryName,
@@ -47,7 +57,26 @@ export async function siteRepositoryAccess(
   site: SiteRepositoryColumns,
   permissions: SiteRepositoryPermissions
 ): Promise<SiteRepositoryAccess> {
-  const repository = requireSiteRepository(site);
+  const [current] = await db
+    .select()
+    .from(sites)
+    .where(
+      and(eq(sites.id, site.id), eq(sites.organizationId, site.organizationId))
+    )
+    .limit(1);
+  if (
+    !current ||
+    current.repositoryId !== site.repositoryId ||
+    current.githubRepositoryId !== site.githubRepositoryId ||
+    current.githubInstallationId !== site.githubInstallationId ||
+    current.repositoryOwner !== site.repositoryOwner ||
+    current.repositoryName !== site.repositoryName
+  ) {
+    throw new SitePermanentBuildError(
+      "This site's repository association changed or was removed"
+    );
+  }
+  const repository = requireSiteRepository(current);
   return {
     repository,
     token: await siteRepositoryToken(repository, permissions),
@@ -58,6 +87,41 @@ export async function siteRepositoryToken(
   repository: SiteRepository,
   permissions: SiteRepositoryPermissions
 ): Promise<string> {
+  if (!(repository.integrationId && repository.githubRepositoryId)) {
+    throw new SitePermanentBuildError(
+      "This site's GitHub repository is disconnected"
+    );
+  }
+  const [approved] = await db
+    .select({ id: githubIntegrations.id })
+    .from(githubIntegrations)
+    .innerJoin(
+      githubAppInstallations,
+      eq(githubIntegrations.githubAppInstallationId, githubAppInstallations.id)
+    )
+    .where(
+      and(
+        eq(githubIntegrations.id, repository.integrationId),
+        eq(githubIntegrations.organizationId, repository.organizationId),
+        eq(githubAppInstallations.organizationId, repository.organizationId),
+        eq(
+          githubIntegrations.githubRepositoryId,
+          repository.githubRepositoryId
+        ),
+        eq(githubIntegrations.owner, repository.owner),
+        eq(githubIntegrations.repo, repository.repo),
+        eq(githubAppInstallations.installationId, repository.installationId),
+        eq(githubIntegrations.enabled, true),
+        eq(githubIntegrations.repositoryEnabled, true),
+        eq(githubAppInstallations.enabled, true)
+      )
+    )
+    .limit(1);
+  if (!approved) {
+    throw new SitePermanentBuildError(
+      "This site's GitHub repository is no longer approved by this workspace"
+    );
+  }
   return await createScopedGitHubAppInstallationToken(
     repository.installationId,
     {
@@ -276,10 +340,9 @@ async function listConfigDirectories(
 }
 
 export async function getRepositorySuggestions(
-  repository: SiteRepository,
+  { repository, token }: SiteRepositoryAccess,
   ref: string | null
 ): Promise<RepositorySuggestions> {
-  const token = await siteRepositoryToken(repository, { contents: "read" });
   const scanConfig = async () => {
     const defaultBranch = await getDefaultBranch(repository, token);
     const config = await listConfigDirectories(

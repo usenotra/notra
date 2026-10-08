@@ -2,7 +2,7 @@ import { SITE_PREVIEW_AUTH_PATH } from "@notra/sites-core/constants/sites";
 import { safePreviewNextPath } from "@notra/sites-core/utils/preview-path";
 import { getSite } from "@notra/sites-server/deployments";
 import { previewAccessUrl } from "@notra/sites-server/preview-access";
-import { sitePreviewOrigin } from "@notra/sites-server/urls";
+import { sitePreviewOrigin } from "@notra/sites-server/utils/urls";
 
 import { SITE_PREVIEW_KEY_PATTERN } from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";

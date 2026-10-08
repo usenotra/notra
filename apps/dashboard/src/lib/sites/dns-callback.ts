@@ -2,19 +2,18 @@ import { db } from "@notra/db/drizzle";
 import { organizations } from "@notra/db/schema";
 import { getSite } from "@notra/sites-server/deployments";
 import { refreshSiteDomain } from "@notra/sites-server/domains";
-import type { Site } from "@notra/sites-server/types/sites";
 import { eq } from "drizzle-orm";
 
 import { SITE_DOMAIN_CONNECT_PARAM } from "@/constants/sites";
 import { assertOrganizationAccess } from "@/lib/auth/organization";
 import { afterResponse } from "@/lib/framework/after-response";
 import { dispatchSiteJobs } from "@/lib/sites/dispatch";
-import type { SiteDomainConnectOutcome } from "@/types/sites";
+import type { SiteAccess, FinishDnsCallbackParams } from "@/types/sites-server";
 
 export async function loadDnsCallbackSite(
   request: Request,
   siteId: string
-): Promise<{ site: Site; userId: string } | Response> {
+): Promise<SiteAccess | Response> {
   const site = await getSite(siteId);
   if (!site) {
     return new Response("Site not found", { status: 404 });
@@ -36,13 +35,7 @@ export async function finishDnsCallback({
   domainId,
   userId,
   outcome,
-}: {
-  request: Request;
-  site: Site;
-  domainId: string;
-  userId: string;
-  outcome: SiteDomainConnectOutcome;
-}): Promise<Response> {
+}: FinishDnsCallbackParams): Promise<Response> {
   if (outcome === "success") {
     try {
       const { rebuildJobId } = await refreshSiteDomain(site, domainId, userId);

@@ -1,3 +1,4 @@
+import type { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteDiagnostic, SiteDomain, SiteScope } from "@/types/sites";
 
 export interface SitePollingQuery<TData> {
@@ -26,6 +27,9 @@ export interface UseValidateSiteDraftsParams extends SiteScope {
 
 export interface UseCreateSiteFileParams extends SiteScope {
   baseCommitSha: string | null;
+  sourceContext: Parameters<
+    typeof dashboardOrpc.sites.editor.saveDraft.call
+  >[0]["sourceContext"];
   refreshDrafts: () => Promise<void>;
   onSaved: () => void;
   onCreated: (path: string) => void;
@@ -33,4 +37,17 @@ export interface UseCreateSiteFileParams extends SiteScope {
 
 export interface UseSavePreviewAccessParams extends SiteScope {
   onSaved: () => void;
+}
+
+export interface SaveSiteIntegrationInput {
+  provider: Parameters<
+    typeof dashboardOrpc.sites.integrations.save.call
+  >[0]["provider"];
+  settings: Record<string, unknown> | null;
+}
+
+export interface SiteAnalyticsWindow {
+  days?: number;
+  from?: string;
+  to?: string;
 }

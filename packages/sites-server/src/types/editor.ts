@@ -41,6 +41,21 @@ export interface SaveSiteDraftInput {
   baseCommitSha: string | null;
   deleted?: boolean;
   userId: string;
+  draftId: string | null;
+  draftRevision: number | null;
+  sourceContext: SiteEditorSourceContext;
+}
+
+export interface SiteEditorSourceContext {
+  productionBranch: string;
+  rootDirectory: string;
+}
+
+export interface SiteDraftMutationInput {
+  path: string;
+  draftId: string | null;
+  draftRevision: number | null;
+  sourceContext: SiteEditorSourceContext;
 }
 
 export interface PublishSiteDraftsInput {

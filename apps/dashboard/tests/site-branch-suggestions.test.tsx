@@ -6,6 +6,10 @@ import { GitBranchIcon } from "@hugeicons/core-free-icons";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import type { dashboardOrpc } from "../src/lib/orpc/query";
+import {
+  repositoryData,
+  releaseData,
+} from "./constants/site-repository-suggestions";
 
 if (!process.env.NOTRA_SITE_BRANCH_SUGGESTIONS_TEST_WORKER) {
   test("repository-backed Production branch suggestions", () => {
@@ -24,16 +28,6 @@ if (!process.env.NOTRA_SITE_BRANCH_SUGGESTIONS_TEST_WORKER) {
     expect(result.status, result.stderr?.toString()).toBe(0);
   });
 } else {
-  const repositoryData = {
-    branches: ["main", "release", "feature/docs"],
-    defaultBranch: "main",
-    configDirectories: ["", "docs"],
-    contentCounts: {},
-  };
-  const releaseData = {
-    ...repositoryData,
-    configDirectories: ["release-docs"],
-  };
   let baseData: typeof repositoryData | undefined;
   let branchData: typeof repositoryData | undefined;
   let pending = false;

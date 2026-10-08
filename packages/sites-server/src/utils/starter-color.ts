@@ -1,7 +1,4 @@
-const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
-const RGB =
-  /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*[\d.%]+)?\s*\)$/i;
-
+import { HEX, RGB } from "../constants/starter";
 export function normalizeHexColor(
   value: string | null | undefined
 ): string | null {

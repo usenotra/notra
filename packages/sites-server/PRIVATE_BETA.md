@@ -57,6 +57,33 @@ receives vanity-domain traffic as well as aliases; dev explicitly has no routes.
 6. Keep manual DNS available. Domain Connect signing keys, template publication
    and provider onboarding are separate optional prerequisites.
 
+Custom subdomains also require a public `_notra.<hostname>` TXT record, displayed
+with the CNAME and any Cloudflare validation records. Its value binds the site ID
+and normalized hostname using `SITES_PREVIEW_SECRET`; keep that secret stable.
+Adding a hostname cannot delete another site's Cloudflare resource. Replacement
+requires this site's TXT proof, no active competing domain, and matching provider
+ownership/TLS verification before host routing changes.
+
+Register the checked-in Domain Connect template version 2 with each supported
+provider before enabling one-click DNS for that provider. It includes both
+`ownership` (Cloudflare) and `notraOwnership` (Notra) TXT values. An older or partial
+provider template is rejected and falls back to manual records; checking a 2xx
+response alone is insufficient. This code change does not publish the template.
+When a candidate has no Cloudflare ID because another site still owns the
+resource, first add the displayed Notra TXT and CNAME manually (or through Vercel
+DNS), then refresh to provision its own resource. Add any newly displayed
+Cloudflare validation records afterward. Vercel DNS consumes all displayed
+verification records, including the Notra TXT.
+
+Existing custom subdomains must also add their displayed Notra TXT record before
+re-verification. Missing TXT, DNS errors, or a temporary certificate failure do
+not release the existing routing record or silently change the old site's public
+origin. A provider replacement that succeeds before a database rollback can
+leave an unrecorded Cloudflare resource; refresh refuses to delete an unknown
+resource. An approved operator must reconcile that resource with the candidate
+before retrying. A lost R2 response with an already-recorded candidate provider ID
+can instead be retried through normal ownership and TLS verification.
+
 Reference: [Workers as your fallback origin](https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/start/advanced-settings/worker-as-origin/).
 
 ## Release sequence
@@ -65,8 +92,11 @@ Run `bun scripts/sites-private-beta-preflight.ts` in the intended dashboard
 deployment environment. It prints variable names/status, never values. It cannot
 certify remote permissions, edge settings or matching worker/dashboard secrets.
 
-1. Apply forward migration `0110_automatic_visitor_tracking.sql` normally; deploy
-   updated Tinybird `geo_traffic_overview` and `web_audience` pipes.
+1. Apply the consolidated `0109_sites.sql` from the pre-Sites migration baseline;
+   it includes visitor tracking and tenant-integrity changes. Do not replay it
+   on a database that already applied the former 0109–0111 sequence; reconcile
+   that development migration history separately. Deploy the updated Tinybird
+   `geo_traffic_overview` and `web_audience` pipes.
 2. Create a private production R2 bucket. Match its account/name to Worker
    `SITES_BUCKET` and scope dashboard credentials to required object operations.
 3. Build/upload the current Box snapshot and configure `SITES_BUILDER_SNAPSHOT_ID`.
@@ -97,6 +127,48 @@ intended account, zone, bucket and runtime settings. For top-level production us
 an explicit Wrangler `--env ""`; use `--env dev` only for the development worker.
 
 ## Smoke test and recovery
+
+The SQL `activeProductionDeploymentId` is an ingest read projection of the R2
+production pointer, not a replacement for R2 serving authority. Ingest uses that
+deployment's frozen origin and mounts; queued/failed rebuilds do not move traffic
+ownership or suppress SDK traffic on newly requested paths. Sites without a
+published projection claim no ingest ownership.
+
+Before switching ingest to this release, reconcile existing R2-live beta sites
+whose SQL projection is null. An admin can invoke the existing `sites.update`
+mutation with only `{ organizationId, siteId }`: the no-op save records and
+dispatches a `sync_state` job without requesting a rebuild. The regular job
+sweeper retries failures. Inspect that job's outcome and the scoped site's SQL
+projection before enabling ingest.
+
+For an approved operations environment, the same existing service path can be
+run explicitly for one known beta site from the repository root:
+
+```bash
+SITE_ID=site_replace_with_approved_id bun --env-file=.env -e '
+  import { db } from "./packages/db/src/drizzle.ts";
+  import { getSite } from "./packages/sites-server/src/deployments.ts";
+  import { updateSiteSettings } from "./packages/sites-server/src/sites.ts";
+  import { runSiteJob } from "./packages/sites-server/src/runner.ts";
+  try {
+    const siteId = process.env.SITE_ID;
+    if (!siteId) throw new Error("Approved SITE_ID is required");
+    const site = await getSite(siteId);
+    if (!site) throw new Error("Approved site not found");
+    const { syncJobId } = await updateSiteSettings(site, {}, null);
+    console.log({ syncJobId, outcome: await runSiteJob(syncJobId) });
+  } finally {
+    await Reflect.get(db, "$client").end();
+  }
+'
+```
+
+The fenced worker repairs the projection from a fresh, same-site production
+pointer in R2, using payload `{ "rebuild": false, "removePreviewsThrough": null,
+"requestedByUserId": null }`. Explicit redeployment also establishes it when
+activated. Do not backfill from the newest ready deployment or use GET repair.
+The v2 ingest cache namespaces ignore old desired-config cache entries; until
+reconciled, a null projection intentionally has no ingest ownership.
 
 Exercise a disposable site: no-config setup, empty/default build, virtual config
 edit/discard, PR publishing, protected direct-commit refusal, member/password/share

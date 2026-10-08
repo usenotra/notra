@@ -4,7 +4,7 @@ import {
   primaryMountUrl,
   siteAliasOrigin,
   sitePreviewOrigin,
-} from "@notra/sites-server/urls";
+} from "@notra/sites-server/utils/urls";
 
 import type {
   LiveDeployments,

@@ -110,7 +110,11 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
             return updated;
           }
           if (table === sites) {
-            site.lastGeneration += 1;
+            if (patch.lastGeneration instanceof Object) {
+              site.lastGeneration += 1;
+            } else {
+              Object.assign(site, patch);
+            }
             updated = [{ ...site }];
           } else if (table === siteJobs) {
             const target = jobs.find((job) => job.id === query.params[0]);

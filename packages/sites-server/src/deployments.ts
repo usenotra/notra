@@ -30,8 +30,8 @@ import type {
 } from "./types/deployments";
 import type { SettingsJobAttempt } from "./types/jobs";
 import type { Site } from "./types/sites";
-import { buildTargetForDeployment } from "./urls";
 import { prefixedId } from "./utils/ids";
+import { buildTargetForDeployment } from "./utils/urls";
 
 export async function allocateGeneration(
   executor: DeploymentExecutor,
@@ -238,24 +238,6 @@ export async function enqueuePreviewRemoval(
     });
   });
   return jobId;
-}
-
-export function redeploymentInput(
-  previous: SiteDeployment,
-  requestedByUserId: string | null
-): EnqueueDeploymentInput {
-  return {
-    siteId: previous.siteId,
-    kind: previous.kind,
-    previewKey: previous.previewKey,
-    trigger: "redeploy",
-    branch: previous.branch,
-    commitSha: previous.commitSha,
-    commitMessage: previous.commitMessage,
-    commitAuthor: previous.commitAuthor,
-    pullRequestNumber: previous.pullRequestNumber,
-    requestedByUserId,
-  };
 }
 
 export async function hasNewerDeployment(

@@ -3,10 +3,10 @@
   "providerName": "Notra",
   "serviceId": "sites",
   "serviceName": "Notra Sites",
-  "version": 1,
+  "version": 2,
   "logoUrl": "https://www.usenotra.com/notra-mark.svg",
   "description": "Connects one subdomain, such as blog.example.com, to a blog or changelog hosted by Notra Sites. Only records on that subdomain are touched.",
-  "variableDescription": "ownership is the per-hostname ownership verification value Notra receives from Cloudflare for SaaS for the _cf-custom-hostname TXT record.",
+  "variableDescription": "ownership is the per-hostname Cloudflare for SaaS verification value for _cf-custom-hostname. notraOwnership is Notra's public, site-and-hostname-bound ownership challenge for _notra; both TXT records are required.",
   "syncBlock": false,
   "syncPubKeyDomain": "domainconnect.usenotra.com",
   "syncRedirectDomain": "app.usenotra.com",
@@ -17,6 +17,13 @@
       "host": "@",
       "pointsTo": "cname.notra.site",
       "ttl": 3600
+    },
+    {
+      "type": "TXT",
+      "host": "_notra",
+      "data": "%notraOwnership%",
+      "ttl": 3600,
+      "txtConflictMatchingMode": "All"
     },
     {
       "type": "TXT",

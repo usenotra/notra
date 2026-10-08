@@ -1,9 +1,10 @@
+import {
+  URL_SCHEME,
+  HTTP_SCHEME,
+  MDX_UNSAFE_URL_CHARACTER,
+} from "../constants/links";
 import { STARTER_MAX_URL_LENGTH } from "../constants/starter";
 import type { ResolveLinkUrlOptions } from "../types/starter";
-
-const URL_SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i;
-const HTTP_SCHEME = /^http:\/\//i;
-const MDX_UNSAFE_URL_CHARACTER = /["'<>{}`\\]/;
 
 export function resolveLinkUrl(
   href: string,

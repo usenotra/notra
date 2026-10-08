@@ -37,6 +37,7 @@ if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
   const now = new Date("2026-10-07T10:00:00Z");
   const site: Site = {
     id: "site_readonly",
+    activeProductionDeploymentId: null,
     organizationId: "org-readonly",
     projectId: null,
     name: "Read-only site",

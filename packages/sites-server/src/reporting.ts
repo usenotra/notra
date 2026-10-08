@@ -11,8 +11,8 @@ import {
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
 import type { CheckReport } from "./types/reporting";
 import type { Site } from "./types/sites";
-import { deploymentDashboardUrl, primaryMountUrl } from "./urls";
 import { errorMessage } from "./utils/errors";
+import { deploymentDashboardUrl, primaryMountUrl } from "./utils/urls";
 
 async function safely<T>(
   label: string,

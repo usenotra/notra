@@ -7,10 +7,6 @@ import {
   VERCEL_DNS_STATE_LABEL,
   VERCEL_NAMESERVER_SUFFIX,
 } from "./constants/vercel-dns";
-import {
-  signDomainConnectCallback,
-  verifyDomainConnectCallback,
-} from "./domain-connect";
 import { getDashboardUrl } from "./env";
 import type { DomainConnectCallbackClaims } from "./types/domain-connect";
 import type {
@@ -26,6 +22,10 @@ import {
   relativeDnsName,
   zoneCandidates,
 } from "./utils/dns";
+import {
+  signDomainConnectCallback,
+  verifyDomainConnectCallback,
+} from "./utils/domain-connect-callback";
 import { errorMessage } from "./utils/errors";
 
 function defaultDeps(): VercelDnsDeps {

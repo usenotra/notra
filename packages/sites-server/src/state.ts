@@ -153,14 +153,46 @@ function writeIfActivated<
 export async function activateProductionDeployment(
   site: ServingSiteRef,
   pointer: ProductionPointerInput,
-  executor: Pick<typeof db, "select"> = db
+  executor: SiteStorageTransaction
 ) {
-  return await mutateServingState(
+  const outcome = await mutateServingState(
     site,
     (state) =>
       writeIfActivated(activateProductionInState(state, pointer, new Date())),
     executor
   );
+  if (outcome.outcome === "activated" || outcome.outcome === "already_active") {
+    await executor
+      .update(sites)
+      .set({ activeProductionDeploymentId: pointer.deploymentId })
+      .where(eq(sites.id, site.id));
+  }
+  return outcome;
+}
+
+export async function reconcileProductionProjection(
+  site: ServingSiteRef,
+  executor: SiteStorageTransaction
+): Promise<void> {
+  const serving = await readServingState(site.id);
+  const deploymentId = serving?.state.production?.deploymentId;
+  const [deployment] = deploymentId
+    ? await executor
+        .select({ id: siteDeployments.id })
+        .from(siteDeployments)
+        .where(
+          and(
+            eq(siteDeployments.id, deploymentId),
+            eq(siteDeployments.siteId, site.id),
+            eq(siteDeployments.kind, "production")
+          )
+        )
+        .limit(1)
+    : [];
+  await executor
+    .update(sites)
+    .set({ activeProductionDeploymentId: deployment?.id ?? null })
+    .where(eq(sites.id, site.id));
 }
 
 export async function activatePreviewDeployment(
@@ -314,13 +346,13 @@ export async function releaseHostRecord(
   siteId: string,
   tx?: SiteStorageTransaction
 ): Promise<void> {
-  if (!tx) {
-    await withSiteHostLock(hostname, async (locked) => {
-      await releaseHostRecord(hostname, siteId, locked);
-    });
-    return;
-  }
-  if ((await readHostRecord(hostname))?.siteId === siteId) {
-    await r2DeleteKey(SITE_R2_KEYS.host(hostname));
-  }
+  await withSiteHostLock(
+    hostname,
+    async () => {
+      if ((await readHostRecord(hostname))?.siteId === siteId) {
+        await r2DeleteKey(SITE_R2_KEYS.host(hostname));
+      }
+    },
+    { tx }
+  );
 }

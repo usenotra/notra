@@ -2,10 +2,8 @@ import { createPublicKey, generateKeyPairSync } from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
 import { parseArgs } from "node:util";
 
-import {
-  getDomainConnectConfig,
-  publicKeyTxtRecords,
-} from "../src/domain-connect";
+import { getDomainConnectConfig } from "../src/domain-connect";
+import { publicKeyTxtRecords } from "../src/utils/domain-connect-keys";
 
 const { values } = parseArgs({
   options: {

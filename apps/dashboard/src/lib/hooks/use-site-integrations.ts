@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { dashboardOrpc } from "@/lib/orpc/query";
+import type { SaveSiteIntegrationInput } from "@/types/hooks/sites";
 import type { SiteScope } from "@/types/sites";
 
 export function useSiteIntegrations({ organizationId, siteId }: SiteScope) {
@@ -15,12 +16,7 @@ export function useSiteIntegrations({ organizationId, siteId }: SiteScope) {
 export function useSaveSiteIntegration({ organizationId, siteId }: SiteScope) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: {
-      provider: Parameters<
-        typeof dashboardOrpc.sites.integrations.save.call
-      >[0]["provider"];
-      settings: Record<string, unknown> | null;
-    }) =>
+    mutationFn: (input: SaveSiteIntegrationInput) =>
       dashboardOrpc.sites.integrations.save.call({
         organizationId,
         siteId,

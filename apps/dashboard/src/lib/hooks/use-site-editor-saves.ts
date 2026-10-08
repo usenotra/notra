@@ -6,6 +6,7 @@ import { dashboardOrpc } from "@/lib/orpc/query";
 import type {
   SiteEditorSaveQueue,
   SiteEditorSaveState,
+  SiteEditorDraftResult,
 } from "@/types/site-editor";
 import type { SiteScope } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
@@ -14,7 +15,11 @@ import { createSiteEditorSaveQueue } from "@/utils/site-editor-save-queue";
 
 export function useSiteEditorSaves(
   scope: SiteScope,
-  onDraftChange: (path: string, updatedAt: Date | null) => void
+  onDraftChange: (
+    path: string,
+    updatedAt: Date | null,
+    draft: SiteEditorDraftResult | null
+  ) => void
 ) {
   const queryClient = useQueryClient();
   const t = useTranslations("sites.editor");
@@ -33,16 +38,26 @@ export function useSiteEditorSaves(
     });
     const queue = createSiteEditorSaveQueue({
       save: (input) => dashboardOrpc.sites.editor.saveDraft.call(input),
-      discard: async () => {
-        await dashboardOrpc.sites.editor.discardDraft.call({ ...scope, path });
+      discard: async (input) => {
+        await dashboardOrpc.sites.editor.discardDraft.call({
+          ...scope,
+          path,
+          ...input,
+        });
       },
       onSaved: (input, result) => {
         queryClient.setQueryData(readOptions.queryKey, (current) =>
           current
-            ? { ...current, content: input.content, hasDraft: true }
+            ? {
+                ...current,
+                content: input.content,
+                hasDraft: true,
+                draftId: result.draftId,
+                draftRevision: result.draftRevision,
+              }
             : current
         );
-        onDraftChange(path, new Date(result.updatedAt));
+        onDraftChange(path, new Date(result.updatedAt), result);
       },
       onDiscarded: async () => {
         queryClient.setQueryData(readOptions.queryKey, (current) =>
@@ -51,11 +66,13 @@ export function useSiteEditorSaves(
                 ...current,
                 content: current.published ?? "",
                 hasDraft: false,
+                draftId: null,
+                draftRevision: null,
                 blobSha: current.publishedBlobSha,
               }
             : current
         );
-        onDraftChange(path, null);
+        onDraftChange(path, null, null);
         await queryClient.invalidateQueries({ queryKey: readOptions.queryKey });
       },
       onStateChange: (state) =>

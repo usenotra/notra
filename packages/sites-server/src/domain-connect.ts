@@ -1,35 +1,31 @@
-import {
-  createHmac,
-  createPrivateKey,
-  type KeyObject,
-  sign,
-  timingSafeEqual,
-} from "node:crypto";
+import { createPrivateKey, type KeyObject, sign } from "node:crypto";
 
 import { fetchPublicUrl } from "@notra/ai/utils/public-fetch";
 
 import {
-  CALLBACK_TOKEN_LABEL,
-  CALLBACK_TOKEN_SECONDS,
   DOMAIN_CONNECT_CALLBACK_PATH,
   DOMAIN_CONNECT_CNAME_TARGET,
   DOMAIN_CONNECT_DISCOVERY_HOST,
   DOMAIN_CONNECT_HTTP_TIMEOUT_MS,
   DOMAIN_CONNECT_MAX_SETTINGS_BYTES,
+  DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE,
   DOMAIN_CONNECT_OWNERSHIP_VARIABLE,
   DOMAIN_CONNECT_RESERVED_PARAMS,
   OWNERSHIP_RECORD_PREFIX,
-  PUBLIC_KEY_CHUNK_LENGTH,
 } from "./constants/domain-connect";
-import { getDashboardUrl, getSitesPreviewSecret, siteCnameTarget } from "./env";
-import { domainConnectSettingsSchema } from "./schemas/domain-connect";
+import { DOMAIN_OWNERSHIP_RECORD_PREFIX } from "./constants/domains";
+import { getDashboardUrl, siteCnameTarget } from "./env";
+import {
+  domainConnectSettingsSchema,
+  domainConnectTemplateSchema,
+} from "./schemas/domain-connect";
 import type {
   BuildApplyUrlParams,
-  DomainConnectCallbackClaims,
   DomainConnectConfig,
   DomainConnectDeps,
   DomainConnectForDomainParams,
   DomainConnectJsonResponse,
+  DomainConnectOwnershipVariables,
   DomainConnectResult,
   DomainConnectSettings,
 } from "./types/domain-connect";
@@ -38,6 +34,7 @@ import {
   normalizeDnsName,
   zoneCandidates,
 } from "./utils/dns";
+import { signDomainConnectCallback } from "./utils/domain-connect-callback";
 import { errorMessage } from "./utils/errors";
 import { safeJson } from "./utils/json";
 import { readBodyUpTo } from "./utils/read-body";
@@ -100,7 +97,7 @@ async function lookupDiscoveryHost(
 
 async function fetchJson(
   url: string,
-  deps: DomainConnectDeps
+  deps: Pick<DomainConnectDeps, "fetch">
 ): Promise<DomainConnectJsonResponse> {
   const response = await deps.fetch(url, {
     headers: { Accept: "application/json" },
@@ -157,11 +154,31 @@ async function isTemplateSupported(
 ): Promise<boolean> {
   const url = `${settings.urlAPI.replace(/\/+$/, "")}/v2/domainTemplates/providers/${encodeURIComponent(template.providerId)}/services/${encodeURIComponent(template.serviceId)}`;
   try {
-    const response = await deps.fetch(url, {
-      signal: AbortSignal.timeout(DOMAIN_CONNECT_HTTP_TIMEOUT_MS),
-    });
-    await response.body?.cancel();
-    return response.ok;
+    const { body } = await fetchJson(url, deps);
+    const parsed = domainConnectTemplateSchema.safeParse(body);
+    if (!parsed.success) {
+      return false;
+    }
+    return (
+      parsed.data.records.some(
+        (record) =>
+          record.type === "CNAME" &&
+          record.host === "@" &&
+          record.pointsTo === DOMAIN_CONNECT_CNAME_TARGET
+      ) &&
+      parsed.data.records.some(
+        (record) =>
+          record.type === "TXT" &&
+          record.host === "_cf-custom-hostname" &&
+          record.data === `%${DOMAIN_CONNECT_OWNERSHIP_VARIABLE}%`
+      ) &&
+      parsed.data.records.some(
+        (record) =>
+          record.type === "TXT" &&
+          record.host === "_notra" &&
+          record.data === `%${DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE}%`
+      )
+    );
   } catch {
     return false;
   }
@@ -204,72 +221,6 @@ export function buildApplyUrl(params: BuildApplyUrlParams): string {
   return `${base}?${signed}&key=${encodeURIComponent(config.keyHost)}&sig=${encodeURIComponent(signature)}`;
 }
 
-export function publicKeyTxtRecords(publicKey: KeyObject): string[] {
-  const der = publicKey
-    .export({ type: "spki", format: "der" })
-    .toString("base64");
-  const records: string[] = [];
-  for (let offset = 0; offset < der.length; offset += PUBLIC_KEY_CHUNK_LENGTH) {
-    records.push(
-      `p=${records.length + 1},a=RS256,d=${der.slice(offset, offset + PUBLIC_KEY_CHUNK_LENGTH)}`
-    );
-  }
-  return records;
-}
-
-function hmac(payload: string, label: string): Buffer {
-  return createHmac("sha256", getSitesPreviewSecret())
-    .update(`${label}${payload}`)
-    .digest();
-}
-
-export function signDomainConnectCallback(
-  claims: Omit<DomainConnectCallbackClaims, "exp">,
-  nowSeconds: number = Math.floor(Date.now() / 1000),
-  label: string = CALLBACK_TOKEN_LABEL
-): string {
-  const payload = Buffer.from(
-    JSON.stringify({ ...claims, exp: nowSeconds + CALLBACK_TOKEN_SECONDS })
-  ).toString("base64url");
-  return `${payload}.${hmac(payload, label).toString("base64url")}`;
-}
-
-export function verifyDomainConnectCallback(
-  token: string,
-  nowSeconds: number = Math.floor(Date.now() / 1000),
-  label: string = CALLBACK_TOKEN_LABEL
-): DomainConnectCallbackClaims | null {
-  const [payload, signature, extra] = token.split(".");
-  if (!(payload && signature) || extra !== undefined) {
-    return null;
-  }
-  const expected = hmac(payload, label);
-  const given = Buffer.from(signature, "base64url");
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
-    return null;
-  }
-  try {
-    const claims = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8")
-    ) as Partial<DomainConnectCallbackClaims>;
-    if (
-      typeof claims.siteId !== "string" ||
-      typeof claims.domainId !== "string" ||
-      typeof claims.exp !== "number" ||
-      claims.exp <= nowSeconds
-    ) {
-      return null;
-    }
-    return {
-      siteId: claims.siteId,
-      domainId: claims.domainId,
-      exp: claims.exp,
-    };
-  } catch {
-    return null;
-  }
-}
-
 function settingsName(
   settings: DomainConnectSettings | null
 ): string | undefined {
@@ -301,14 +252,24 @@ export async function domainConnectForDomain({
       record.type === "TXT" &&
       record.name === `${OWNERSHIP_RECORD_PREFIX}${domain.hostname}`
   );
+  const notraOwnership = domain.verificationRecords.find(
+    (record) =>
+      record.purpose === "ownership" &&
+      record.type === "TXT" &&
+      record.name === `${DOMAIN_OWNERSHIP_RECORD_PREFIX}${domain.hostname}`
+  );
   if (
-    !(config && ownership && settings?.urlSyncUX) ||
+    !(config && ownership && notraOwnership && settings?.urlSyncUX) ||
     siteCnameTarget() !== DOMAIN_CONNECT_CNAME_TARGET ||
     !(await isTemplateSupported(settings, config, deps))
   ) {
     return manual;
   }
   const token = signDomainConnectCallback({ siteId, domainId: domain.id });
+  const variables: DomainConnectOwnershipVariables = {
+    [DOMAIN_CONNECT_OWNERSHIP_VARIABLE]: ownership.value,
+    [DOMAIN_CONNECT_NOTRA_OWNERSHIP_VARIABLE]: notraOwnership.value,
+  };
   return {
     status: "ready",
     providerName: settingsName(settings) ?? settings.providerId,
@@ -317,7 +278,7 @@ export async function domainConnectForDomain({
       config,
       domain: settings.domain,
       host: settings.host,
-      variables: { [DOMAIN_CONNECT_OWNERSHIP_VARIABLE]: ownership.value },
+      variables,
       redirectUri: `${getDashboardUrl()}${DOMAIN_CONNECT_CALLBACK_PATH}/${token}`,
     }),
   };
