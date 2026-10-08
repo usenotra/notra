@@ -40,6 +40,7 @@ import {
 import type { SiteStorageTransaction } from "./types/deployments";
 import type {
   ServingAccess,
+  ServingAccessExecutor,
   ServingSiteRef,
   ServingStateMutation,
   ServingStateObject,
@@ -67,7 +68,7 @@ function samePreviewPassword(
 
 async function readServingAccessFromDb(
   siteId: string,
-  executor: Pick<typeof db, "select">
+  executor: ServingAccessExecutor
 ): Promise<ServingAccess> {
   const [row] = await executor
     .select({
@@ -114,7 +115,7 @@ export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
       state: SiteServingState,
       access: Pick<ServingAccess, "previewVisibility">
     ) => ServingStateMutation<T>,
-    executor: Pick<typeof db, "select"> = db
+    executor: ServingAccessExecutor = db
   ) {
     const current = yield* readServingStateEffect(site.id).pipe(
       Effect.mapError((error): ServingStateAttemptFailure => ({
@@ -190,7 +191,7 @@ export async function mutateServingState<T>(
     state: SiteServingState,
     access: Pick<ServingAccess, "previewVisibility">
   ) => ServingStateMutation<T>,
-  executor: Pick<typeof db, "select"> = db
+  executor: ServingAccessExecutor = db
 ): Promise<T> {
   return runSitesEffect(mutateServingStateEffect(site, mutate, executor));
 }
@@ -252,7 +253,7 @@ export async function activatePreviewDeployment(
   site: ServingSiteRef,
   previewKey: string,
   pointer: Omit<SitePreviewPointer, "activatedAt">,
-  executor: Pick<typeof db, "select"> = db
+  executor: ServingAccessExecutor = db
 ) {
   return await mutateServingState(
     site,
@@ -310,7 +311,7 @@ export async function setServingStatus(
 
 export async function syncServingAccess(
   site: ServingSiteRef,
-  executor: Pick<typeof db, "select"> = db,
+  executor: ServingAccessExecutor = db,
   removePreviewsThrough: number | null = null
 ): Promise<string[]> {
   const candidates =

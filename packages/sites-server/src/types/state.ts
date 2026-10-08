@@ -1,8 +1,10 @@
+import type * as schema from "@notra/db/schema";
 import type {
   SitePreviewPassword,
   SitePreviewPointer,
   SiteServingState,
 } from "@notra/sites-core/types/deployment";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 export interface ServingSiteRef {
   id: string;
@@ -27,3 +29,9 @@ export type ServingStateAttemptFailure = {
   readonly _tag: "CasConflict" | "OperationFailure";
   readonly error: unknown;
 };
+
+/** Named so the inferred effect type does not reach into pg's Pool. */
+export type ServingAccessExecutor = Pick<
+  NodePgDatabase<typeof schema>,
+  "select"
+>;

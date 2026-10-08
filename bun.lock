@@ -66,6 +66,7 @@
       "dependencies": {
         "@notra/ai": "workspace:*",
         "@notra/analytics": "workspace:*",
+        "@notra/db": "workspace:*",
         "@notra/geo-core": "workspace:*",
         "hono": "^4.12.30",
       },

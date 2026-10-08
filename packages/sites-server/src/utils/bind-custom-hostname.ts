@@ -1,5 +1,6 @@
 import { createDb } from "@notra/db/drizzle";
 import { siteDomains } from "@notra/db/schema";
+import type { Database } from "@notra/db/types/database";
 import type { SiteDomainVerificationRecord } from "@notra/db/types/sites";
 import { and, eq, isNull, ne } from "drizzle-orm";
 
@@ -15,9 +16,9 @@ import type {
 } from "../types/cloudflare-saas";
 import type { SiteDomain } from "../types/domains";
 
-let database: ReturnType<typeof createDb> | undefined;
+let database: Database | undefined;
 
-export function customHostnameBindingDatabase() {
+export function customHostnameBindingDatabase(): Database {
   if (database) {
     return database;
   }
