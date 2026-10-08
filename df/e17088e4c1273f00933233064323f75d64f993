@@ -1,0 +1,130 @@
+apps/dashboard/src/components/sites/pages/site-overview-page.tsx
+  s_42c3a3fb97592d::t_6501663cea02d8 118
+apps/sites/src/types/traffic.ts
+  s_42c3a3fb97592d::t_c2c5e769c2e987 37-51
+apps/dashboard/src/lib/sites/serialize.ts
+  s_42c3a3fb97592d::t_2bec7e7a8783d0 53
+packages/sites-server/src/state.ts
+  s_42c3a3fb97592d::t_86812e37e3ca80 42,68,71,76,84,115,132-133,141-143,191,311
+  ai_agent 134-139
+packages/sites-server/src/sites.ts
+  s_42c3a3fb97592d::t_2bec7e7a8783d0 218
+apps/sites/src/handler.ts
+  s_42c3a3fb97592d::t_445674f2f2651f 2-3,16-21,50,172-179,202-217,219-269,319-321,402-404
+  s_42c3a3fb97592d::t_96814dc2217d39 143-146,218
+apps/dashboard/messages/en.json
+  s_42c3a3fb97592d::t_6501663cea02d8 7712-7716
+  s_42c3a3fb97592d::t_fc205f207abdfc 4040-4041,7209-7223,7709-7711
+packages/geo-core/src/geo/web-analytics.ts
+  s_42c3a3fb97592d::t_ad61401f59c8c9 5,12-15,32,51-69,193-200,202,212-222,226-230
+packages/db/src/schema.ts
+  s_42c3a3fb97592d::t_2bec7e7a8783d0 4251
+apps/sites/src/analytics.ts
+  s_42c3a3fb97592d::t_c2c5e769c2e987 1-118
+apps/dashboard/src/types/geo.ts
+  s_42c3a3fb97592d::t_3162e04ba4fafd 1904-1905,1929,1938
+  s_42c3a3fb97592d::t_27b345bb6ef3a8 8
+packages/sites-server/src/types/sites.ts
+  s_42c3a3fb97592d::t_2bec7e7a8783d0 64
+packages/db/migrations/0112_sites.sql
+  ai_agent 112
+packages/geo-core/src/ingest/pipeline.ts
+  s_42c3a3fb97592d::t_5176f3d16c0b59 385-388
+  s_42c3a3fb97592d::t_33b2e174e47042 3,7-10,17-20,142-144,146,292-353,360-363,365
+  ai_agent 61-65,139-141,256-274
+packages/sites-server/src/runner.ts
+  s_42c3a3fb97592d::t_86812e37e3ca80 25
+  ai_agent 104
+packages/analytics/src/tinybird/pipes/web.ts
+  s_42c3a3fb97592d::t_f7737d4689dc23 10-12,429-442,447-457,466-470,474-480,482-495
+  s_42c3a3fb97592d::t_67e1cb3fbba54b 443-446,458-465,473,481
+  s_42c3a3fb97592d::t_c564ae01913c78 471-472
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  s_42c3a3fb97592d::t_6c5275395faf24 28,30,61-77,105-125,184-202
+apps/sites/src/constants/analytics.ts
+  s_42c3a3fb97592d::t_2eb16cb0a314db 1-19,21-32,35-48
+  s_42c3a3fb97592d::t_854c4d9bc3f467 20,33-34
+apps/dashboard/messages/de.json
+  s_42c3a3fb97592d::t_fc205f207abdfc 4040-4041,7209-7223,7709-7711
+  s_42c3a3fb97592d::t_6501663cea02d8 7712-7716
+packages/geo-core/tests/ingest-sites.test.ts
+  s_42c3a3fb97592d::t_8de459b175f1be 41,52,146-155
+apps/dashboard/src/components/geo/web-breakdown-table.tsx
+  s_42c3a3fb97592d::t_27b345bb6ef3a8 23,57-70
+  s_42c3a3fb97592d::t_6501663cea02d8 15
+packages/geo-core/src/ingest/sites.ts
+  s_42c3a3fb97592d::t_5176f3d16c0b59 100-106
+packages/analytics/src/tinybird/client.ts
+  s_42c3a3fb97592d::t_f7737d4689dc23 13-15,48,63,91,134,160,518-538
+packages/geo-core/src/ingest/web.ts
+  s_42c3a3fb97592d::t_33b2e174e47042 4-7,23,26,205-228
+apps/dashboard/tests/sites-get-read-only.test.ts
+  s_42c3a3fb97592d::t_9d0e4a7002d2f5 59
+packages/sites-server/src/types/state.ts
+  s_42c3a3fb97592d::t_86812e37e3ca80 21,24
+apps/sites/src/types/serving.ts
+  s_42c3a3fb97592d::t_c2c5e769c2e987 42,46-48
+apps/sites/tests/handler.test.ts
+  s_42c3a3fb97592d::t_c41e6d7acc847b 466,468-469,474-559
+  s_42c3a3fb97592d::t_ad871dca4b7381 467,470-473
+packages/db/migrations/meta/0112_snapshot.json
+  ai_agent 13473-13479
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_42c3a3fb97592d::t_2bec7e7a8783d0 71
+apps/dashboard/src/components/sites/pages/site-analytics-page.tsx
+  s_42c3a3fb97592d::t_c564ae01913c78 5,48
+  s_42c3a3fb97592d::t_6501663cea02d8 8,11,21,25-27,31,33-47,49-83,102-103,105
+packages/geo-core/src/schemas/geo.ts
+  s_42c3a3fb97592d::t_8a8ed209db7b91 5,10,507-513
+packages/geo-core/tests/ingest-pipeline.test.ts
+  s_42c3a3fb97592d::t_9bb29bd06d6cef 54-65,69,144,155-158,407,412,417,419-420,423,425,431-435,452,455,457,459-469,478-484,486,488,490-500,502-503,505-523
+apps/sites/src/responses.ts
+  s_42c3a3fb97592d::t_96814dc2217d39 11,111-114
+  s_42c3a3fb97592d::t_445674f2f2651f 115-116,143,147-149
+packages/sites-core/src/constants/sites.ts
+  s_42c3a3fb97592d::t_2eb16cb0a314db 187-189
+  s_42c3a3fb97592d::t_8a8ed209db7b91 186,190-192
+packages/geo-core/src/types/geo.ts
+  s_42c3a3fb97592d::t_ad61401f59c8c9 2121-2135,2139
+packages/analytics/src/types/tinybird-endpoints.ts
+  s_42c3a3fb97592d::t_78d23d7d4f656f 25
+  s_42c3a3fb97592d::t_f7737d4689dc23 73
+packages/sites-server/tests/build-telemetry-pipeline.test.ts
+  s_42c3a3fb97592d::t_86812e37e3ca80 149
+apps/dashboard/src/components/geo/web-visitors-section.tsx
+  s_42c3a3fb97592d::t_27b345bb6ef3a8 59-81,86,98-103,124,207-219,232
+  s_42c3a3fb97592d::t_6501663cea02d8 35
+apps/dashboard/src/utils/web-analytics.ts
+  s_42c3a3fb97592d::t_27b345bb6ef3a8 117-127
+packages/analytics/src/tinybird/datasources.ts
+  s_42c3a3fb97592d::t_f7737d4689dc23 339-360
+apps/ai-traffic-ingest/src/index.ts
+  s_42c3a3fb97592d::t_3e7c3743cda334 3-6,46-52,71,127-131
+packages/analytics/src/types/tinybird-datasources.ts
+  s_42c3a3fb97592d::t_78d23d7d4f656f 6-7
+  s_42c3a3fb97592d::t_e481ecb4f7194f 3
+packages/sites-server/tests/state-effect.test.ts
+  s_42c3a3fb97592d::t_86812e37e3ca80 14,32
+  s_42c3a3fb97592d::t_7201d02001c687 116-120,193-197
+packages/geo-core/src/types/ingest.ts
+  s_42c3a3fb97592d::t_8a8ed209db7b91 2-5,9-12
+  s_42c3a3fb97592d::t_33b2e174e47042 90
+  s_42c3a3fb97592d::t_ec66a24a0dc529 130-136
+  s_42c3a3fb97592d::t_3e7c3743cda334 25,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "dfe17088e4c1273f00933233064323f75d64f993",
+  "prompts": {},
+  "sessions": {
+    "s_42c3a3fb97592d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0242f9e8-eead-46de-9e27-e8caede1c967",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
