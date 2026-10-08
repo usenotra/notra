@@ -1,0 +1,44 @@
+apps/dashboard/messages/en.json
+  s_ecf0491e532347::t_9aeb9ee4fd9da2 3975
+  s_ecf0491e532347::t_8cb229154f1e0b 3326
+  s_ecf0491e532347::t_f6735d18e0cf05 3974
+apps/dashboard/src/components/geo/scan-activity-status.tsx
+  s_ecf0491e532347::t_4a00445f42edce 1,4-5,7,11,16-18
+apps/dashboard/src/types/arrived-row-ids.ts
+  s_ecf0491e532347::t_324342dabd7643 6-7
+  s_ecf0491e532347::t_46428265c0dd76 1-5,8-16
+apps/dashboard/src/components/geo/scan-run-detail.tsx
+  s_ecf0491e532347::t_4a00445f42edce 547
+  s_ecf0491e532347::t_46f928235a15a7 45,47,341-342,348-359,365-382,406,408
+  s_ecf0491e532347::t_d59a632f6e5d5b 72
+  s_ecf0491e532347::t_73a6ca4e63d521 320,624,628
+apps/dashboard/src/types/geo-scan-activity.ts
+  s_ecf0491e532347::t_d59a632f6e5d5b 155-158
+apps/dashboard/messages/de.json
+  s_ecf0491e532347::t_f6735d18e0cf05 3974
+  s_ecf0491e532347::t_8cb229154f1e0b 3326
+  s_ecf0491e532347::t_9aeb9ee4fd9da2 3975
+apps/dashboard/src/lib/hooks/use-geo-overview-page.ts
+  s_ecf0491e532347::t_9aeb9ee4fd9da2 30,108,262-267
+apps/dashboard/src/lib/hooks/use-arrived-row-ids.ts
+  s_ecf0491e532347::t_46428265c0dd76 1-17,19-29,31-52,54-58
+  s_ecf0491e532347::t_324342dabd7643 18,30,53
+apps/dashboard/src/utils/geo-scan-activity.ts
+  s_ecf0491e532347::t_d59a632f6e5d5b 10,12-19,39-42,46,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "01c5c8ffce4055d9126713b94170dbca7071802d",
+  "prompts": {},
+  "sessions": {
+    "s_ecf0491e532347": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e31945c6-c22d-4bd5-98c6-604d06275a1e",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
