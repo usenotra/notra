@@ -1,0 +1,9 @@
+apps/dashboard/src/components/sites/site-import-list.tsx
+  ai_agent 170-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0c2cfbcee32fda5df067c2881309718d5af77e77",
+  "prompts": {}
+}
