@@ -73,6 +73,24 @@ export function githubPullRequestUrl(
   return `https://github.com/${repository.owner}/${repository.name}/pull/${pullRequestNumber}`;
 }
 
+const GITHUB_PULL_REQUEST_PATH = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/;
+
+export function parseGithubPullRequestUrl(
+  url: string
+): { owner: string; repo: string; number: number } | null {
+  try {
+    const parsed = new URL(url);
+    const [, owner, repo, number] =
+      GITHUB_PULL_REQUEST_PATH.exec(parsed.pathname) ?? [];
+    if (parsed.hostname !== "github.com" || !(owner && repo && number)) {
+      return null;
+    }
+    return { owner, repo, number: Number(number) };
+  } catch {
+    return null;
+  }
+}
+
 export function siteUrlOnOrigin(origin: string, liveUrl: string): string {
   const base = origin.replace(/\/$/, "");
   try {

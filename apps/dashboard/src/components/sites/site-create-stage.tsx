@@ -20,6 +20,7 @@ export function SiteCreateStage({
   const [position, setPosition] = useState<{
     offset: number;
     top: number;
+    resized: boolean;
   } | null>(null);
 
   useLayoutEffect(() => {
@@ -28,7 +29,7 @@ export function SiteCreateStage({
     if (!(track && column)) {
       return;
     }
-    const measure = () => {
+    const measure = (resized: boolean) => {
       const card = column.children[activeIndex] as HTMLElement | undefined;
       if (!card) {
         return;
@@ -42,10 +43,10 @@ export function SiteCreateStage({
       } else if (tall) {
         offset = SITE_CREATE_STAGE_EDGE_PX - card.offsetTop;
       }
-      setPosition({ offset, top: offset + card.offsetTop });
+      setPosition({ offset, top: offset + card.offsetTop, resized });
     };
-    measure();
-    const observer = new ResizeObserver(measure);
+    measure(false);
+    const observer = new ResizeObserver(() => measure(true));
     observer.observe(track);
     for (const card of column.children) {
       observer.observe(card);
@@ -53,8 +54,10 @@ export function SiteCreateStage({
     return () => observer.disconnect();
   }, [activeIndex]);
 
-  const glide =
-    "transition-[translate] duration-700 ease-(--ease-emphasized) motion-reduce:transition-none";
+  const glide = cn(
+    "transition-[translate] ease-(--ease-emphasized) motion-reduce:transition-none",
+    position?.resized ? "duration-200" : "duration-700"
+  );
   const unplaced = position === null && "invisible duration-0";
 
   return (

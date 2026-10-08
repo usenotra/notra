@@ -76,3 +76,5 @@ export const SITE_CREATE_STAGE_EDGE_PX = 24;
 
 export const SITE_CREATE_STARTER_DEBOUNCE_MS = 400;
 export const SITE_CONFIG_MISSING_DIAGNOSTIC = "config_missing";
+export const SITE_CONFIG_DOCS_URL =
+  "https://www.usenotra.com/docs/sites/match-your-website";

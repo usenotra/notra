@@ -1,7 +1,10 @@
 "use client";
 
 import { Folder01Icon, GitBranchIcon } from "@hugeicons/core-free-icons";
-import { slugifySiteName } from "@notra/sites-core/utils/hosts";
+import {
+  isReservedSiteSlug,
+  slugifySiteName,
+} from "@notra/sites-core/utils/hosts";
 import {
   Field,
   FieldContent,
@@ -38,7 +41,11 @@ export function SiteCreateSourceFields({
   sections,
 }: SiteCreateSourceFieldsProps) {
   const t = useTranslations("sites.new");
-  const slugMessage = errors.slug ?? (slugInvalid ? t("addressInvalid") : null);
+  const slug = form.slug.trim().toLowerCase();
+  const slugInvalidMessage = isReservedSiteSlug(slug)
+    ? t("addressReserved", { slug })
+    : t("addressInvalid");
+  const slugMessage = errors.slug ?? (slugInvalid ? slugInvalidMessage : null);
   const subdirectory = useSiteRootDirectoryToggle(form.rootDirectory, (value) =>
     update("rootDirectory", value)
   );
@@ -108,7 +115,10 @@ export function SiteCreateSourceFields({
           />
         </Field>
         {subdirectory.checked ? (
-          <Field data-invalid={errors.rootDirectory ? true : undefined}>
+          <Field
+            className="animate-in fade-in motion-safe:slide-in-from-top-1 duration-200"
+            data-invalid={errors.rootDirectory ? true : undefined}
+          >
             <FieldLabel htmlFor={`${id}-root`}>
               {t("rootDirectoryPath")}
             </FieldLabel>
