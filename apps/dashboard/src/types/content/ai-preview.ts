@@ -37,6 +37,8 @@ export interface BlogChangelogPreviewProps {
   organizationId: string;
   organizationSlug: string;
   postId?: string;
+  /** Opens the post in the chat's side preview. */
+  onOpenPreview?: () => void;
   onRevise?: () => void;
   state: PreviewIncomingState;
   title: string;

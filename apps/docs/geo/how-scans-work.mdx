@@ -39,7 +39,7 @@ The public API only queues scans and reads results.
 
 <Steps>
   <Step title="Build the task list">
-    The scan takes every enabled prompt (custom and auto-derived), every enabled engine from your Settings and every tracked language. Prompts in languages other than English are translated first. Each engine, prompt and language combination becomes one task. Tasks run four at a time.
+    The scan takes every enabled prompt (custom and auto-derived), every enabled engine from your Settings and every tracked language. Notra writes prompts in your prompt language and translates them into every other tracked language first. Each engine, prompt and language combination becomes one task. Tasks run four at a time.
   </Step>
   <Step title="Ask the engines">
     **Engines** come from the model catalog, a live model list grouped by provider. Every selected engine answers every prompt. Engines that support live web search answer with retrieval: ChatGPT, Claude, Gemini and Perplexity, plus Google AI Overview. Engines without a search route, such as Grok, DeepSeek, Mistral and Cursor, answer from training data and are labelled **No web search**. Coding agents (Cursor, OpenCode, Claude Code and Codex) are available on request. See [Engines](/geo/engines).
@@ -51,7 +51,7 @@ The public API only queues scans and reads results.
     A separate judge model reads each answer. It records whether your brand (company name or any alias) is mentioned, its position and sentiment, which tracked competitors appear and a short excerpt.
   </Step>
   <Step title="Play conversations">
-    During English scans, Notra replays multi-turn prompt sequences (called **Conversations** in the dashboard) turn by turn against the grounded engines. See [Conversations](/geo/conversations).
+    Notra replays multi-turn prompt sequences (called **Conversations** in the dashboard) turn by turn in your prompt language, against the engines with web search. See [Conversations](/geo/conversations).
   </Step>
 </Steps>
 

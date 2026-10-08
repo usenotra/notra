@@ -10,7 +10,7 @@ import { agentReadinessWorkflowPayloadSchema } from "@notra/geo-core/schemas/age
 import {
   geoScanWorkflowPayloadSchema,
   geoWriterWorkflowPayloadSchema,
-} from "@notra/geo-core/schemas/geo";
+} from "@notra/geo-core/schemas/geo-workflows";
 import { gscSyncPayloadSchema } from "@notra/geo-core/schemas/google-search-console";
 import type { AgentReadinessWorkflowPayload } from "@notra/geo-core/types/agent-readiness";
 import type { GeoWriterPayload } from "@notra/geo-core/types/geo";
@@ -38,6 +38,7 @@ import {
 } from "@/constants/workflow-analytics";
 import { trackWorkflowStarted } from "@/lib/analytics/workflow-lifecycle";
 import type { BrandAnalysisPayload } from "@/types/brand-analysis";
+import type { ScheduledPublicationWorkflowInput } from "@/types/content/scheduled-publications";
 import { agentReadinessWorkflow } from "@/workflows/agent-readiness";
 import {
   brandAnalysisPayloadSchema,
@@ -56,6 +57,7 @@ import { irisControllerRun } from "@/workflows/iris-controller";
 import { onDemandContentWorkflow } from "@/workflows/on-demand-content";
 import { onboardingAgentWorkflow } from "@/workflows/onboarding-agent";
 import { scheduleContentWorkflow } from "@/workflows/schedule-content";
+import { scheduledPublicationWorkflow } from "@/workflows/scheduled-publication";
 import { socialAnalyticsSyncWorkflow } from "@/workflows/social-analytics-sync";
 
 export async function startGitHubMentionRun(context: GitHubMentionContext) {
@@ -121,6 +123,13 @@ export async function startContentPublicationSyncRepair(
   await start(contentPublicationSyncRepairWorkflow, [
     publicationSyncRepairSchema.parse(repair),
   ]);
+}
+
+export async function startScheduledPublicationRun(
+  input: ScheduledPublicationWorkflowInput
+): Promise<{ runId: string }> {
+  const run = await start(scheduledPublicationWorkflow, [input]);
+  return { runId: run.runId };
 }
 
 export async function startOnboardingAgentRun(

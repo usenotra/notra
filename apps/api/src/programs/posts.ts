@@ -10,12 +10,11 @@ import {
 } from "@notra/content-generation/jobs";
 import { postCollections, posts } from "@notra/db/schema";
 import { buildPostCollectionName } from "@notra/db/utils/post-collections";
+import { publishedAtForStatusChange } from "@notra/db/utils/post-published-at";
 import {
   ALL_POST_CONTENT_TYPES,
   ALL_POST_STATUSES,
 } from "@notra/schemas/api/content";
-import { publishEventInTransaction } from "@notra/webhooks/drizzle";
-import { postPublishedInput } from "@notra/webhooks/utils/posts";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import { nanoid } from "nanoid";
@@ -355,6 +354,7 @@ export const createPost = Effect.fn("posts.create")(function* (
             markdown,
             contentType: body.contentType,
             status: body.status,
+            publishedAt: body.status === "published" ? now : null,
             sourceMetadata: null,
             createdAt: now,
             updatedAt: now,
@@ -449,6 +449,13 @@ export const preparePatchPost = Effect.fn("posts.preparePatch")(function* (
 
   if (body.status !== undefined) {
     updateData.status = body.status;
+    const publishedAt = publishedAtForStatusChange(
+      existingPost.status,
+      body.status
+    );
+    if (publishedAt !== undefined) {
+      updateData.publishedAt = publishedAt;
+    }
   }
 
   return {
@@ -528,20 +535,6 @@ export const commitPatchPost = Effect.fn("posts.commitPatch")(function* (
             createdAt: posts.createdAt,
             updatedAt: posts.updatedAt,
           });
-        const [updated] = rows;
-        if (
-          updated &&
-          updated.status === "published" &&
-          input.prepared.previousStatus !== "published"
-        ) {
-          await publishEventInTransaction(
-            tx,
-            postPublishedInput({
-              organizationId: input.organizationId,
-              postId: updated.id,
-            })
-          );
-        }
         return rows;
       }),
     catch: (cause) => {

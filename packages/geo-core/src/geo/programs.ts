@@ -1,4 +1,4 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import {
   isTinybirdConfigured,
   queryGeoJourneyDetail,
@@ -18,12 +18,12 @@ import {
   geoScans,
   geoSettings,
 } from "@notra/db/schema";
+import { bumpGeoCheckGeneration } from "@notra/db/utils/geo-check-cache";
 import {
   queryGeoCheckCompetitorPrompts,
   queryGeoCheckCompetitorPromptSummary,
   queryGeoCheckCompetitorShare,
-  queryGeoCheckCompetitorShareTimeseries,
-  queryGeoCheckCompetitorShareTrends,
+  queryGeoCheckCompetitorShareAggregate,
   queryGeoCheckCompetitorTimeseries,
   queryGeoCheckEngineBrandMentions,
   queryGeoCheckEngineTotals,
@@ -111,7 +111,11 @@ import {
   summarizeGeoChanges,
   toGeoScanCheckSnapshot,
 } from "../utils/geo-changes";
-import { competitorCanonicalMap } from "../utils/geo-competitor-names";
+import {
+  competitorCanonicalMap,
+  isGeoOwnBrandName,
+} from "../utils/geo-competitor-names";
+import { summarizeGeoCompetitorShare } from "../utils/geo-competitor-share";
 import {
   normalizeConversionPaths,
   sumConversionVisits,
@@ -691,6 +695,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const existingSettings = yield* geoDb("settings lookup failed", () =>
     db.query.geoSettings.findFirst({
       columns: {
+        companyName: true,
+        aliases: true,
         engines: true,
         nonZdrApprovedEngines: true,
         trackWithoutSearch: true,
@@ -823,6 +829,12 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   yield* Effect.promise(() =>
     invalidateGeoIngestHostsCache(input.organizationId, projectId)
   );
+  const brandNamesChanged =
+    existingSettings?.companyName !== input.companyName ||
+    (existingSettings?.aliases ?? []).join("\n") !== input.aliases.join("\n");
+  if (brandNamesChanged) {
+    yield* Effect.promise(() => bumpGeoCheckGeneration([input.organizationId]));
+  }
 
   yield* reconcileGeoCompetitors(
     { organizationId: input.organizationId, projectId },
@@ -1033,8 +1045,6 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
     const checkWindow = toGeoCheckWindow(window);
 
     if (summaryOnly) {
-      // Callers that only render aggregate shares skip the two additional
-      // full-range scans used for sparklines, charts and change indicators.
       const rows = yield* geoDb("competitor share query failed", () =>
         queryGeoCheckCompetitorShare(
           checkScope,
@@ -1053,46 +1063,14 @@ export const loadGeoCompetitorShare = Effect.fn("geo.competitorShare")(
       return response;
     }
 
-    const [rows, timeseries, trendRows] = yield* Effect.all(
-      [
-        geoDb("competitor share query failed", () =>
-          queryGeoCheckCompetitorShare(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-        geoDb("competitor share timeseries query failed", () =>
-          queryGeoCheckCompetitorShareTimeseries(checkScope, checkWindow)
-        ),
-        geoDb("competitor share trends query failed", () =>
-          queryGeoCheckCompetitorShareTrends(
-            checkScope,
-            checkWindow,
-            GEO_COMPETITOR_SHARE_LIMIT
-          )
-        ),
-      ],
-      { concurrency: "unbounded" }
-    );
-    const trendsByBrand = groupGeoSparklinePoints(
-      trendRows,
-      (point) => point.brand,
-      (point) => ({ day: point.day, value: point.share })
+    const aggregates = yield* geoDb(
+      "competitor share aggregate query failed",
+      () => queryGeoCheckCompetitorShareAggregate(checkScope, checkWindow)
     );
 
     const response: GeoCompetitorShareResponse = {
       configured: true,
-      points: rows.map((row) => ({
-        brand: row.brand,
-        mentions: row.mentions,
-        trend: trendsByBrand.get(row.brand) ?? [],
-      })),
-      timeseries: timeseries.map((row) => ({
-        brand: row.brand,
-        day: row.day,
-        mentions: row.mentions,
-      })),
+      ...summarizeGeoCompetitorShare(aggregates, GEO_COMPETITOR_SHARE_LIMIT),
     };
     return response;
   }
@@ -1166,9 +1144,24 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
       toGeoCheckWindow({ days: GEO_COMPETITOR_DETAIL_DAYS });
 
     const checkScope = geoCheckScope(scope);
+    const settingsRow = scope.projectId
+      ? yield* geoDb("settings lookup failed", () =>
+          findGeoSettingsRow(scope.projectId ?? "")
+        )
+      : null;
+    const own = isGeoOwnBrandName(
+      brand,
+      settingsRow?.companyName,
+      settingsRow?.aliases ?? []
+    );
     if (summaryOnly) {
       const summary = yield* geoDb("competitor summary query failed", () =>
-        queryGeoCheckCompetitorPromptSummary(checkScope, brand, resolvedWindow)
+        queryGeoCheckCompetitorPromptSummary(
+          checkScope,
+          brand,
+          resolvedWindow,
+          own
+        )
       );
       const response: GeoCompetitorDetailResponse = {
         configured: true,
@@ -1187,10 +1180,15 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
     const [timeseries, prompts] = yield* Effect.all(
       [
         geoDb("competitor timeseries query failed", () =>
-          queryGeoCheckCompetitorTimeseries(checkScope, brand, resolvedWindow)
+          queryGeoCheckCompetitorTimeseries(
+            checkScope,
+            brand,
+            resolvedWindow,
+            own
+          )
         ),
         geoDb("competitor prompts query failed", () =>
-          queryGeoCheckCompetitorPrompts(checkScope, brand, resolvedWindow)
+          queryGeoCheckCompetitorPrompts(checkScope, brand, resolvedWindow, own)
         ),
       ],
       { concurrency: "unbounded" }

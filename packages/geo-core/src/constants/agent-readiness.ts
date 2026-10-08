@@ -40,9 +40,3 @@ export const AGENT_READINESS_SKELETON_ROW_KEYS = Array.from(
   { length: 3 },
   (_, index) => `checklist-row-${index}`
 );
-
-export const AGENT_READINESS_BAND_TEXT_CLASS = {
-  great: "text-emerald-500",
-  "needs-improvement": "text-amber-500",
-  poor: "text-red-500",
-} as const;

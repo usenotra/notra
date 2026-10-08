@@ -2,16 +2,15 @@
 
 import { SearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { parseClickHouseDateTime } from "@notra/analytics/utils/datetime";
 import {
   GEO_EMPTY_PROMPT_RESULTS,
   GEO_EMPTY_TIMESERIES,
   GEO_SPARKLINE_MIN_POINTS,
 } from "@notra/geo-core/constants/geo";
 import type { GeoEngineFamily } from "@notra/geo-core/types/geo";
-import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { engineFamilyLabel } from "@notra/geo-core/utils/geo-engine-family";
 import { FadeSwap } from "@notra/ui/components/fade-swap";
-import { GeoBar } from "@notra/ui/components/geo/geo-bar";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -29,6 +28,8 @@ import { EngineFamilySheet } from "@/components/geo/engine-family-sheet";
 import { EngineIcon } from "@/components/geo/engine-icon";
 import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { NoWebSearchBadge } from "@/components/geo/no-web-search-badge";
+import { RelativeTime } from "@/components/relative-time";
 import { EMPTY_STATE_TABLE_COLUMNS } from "@/constants/empty-state";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import type { EngineRateTableProps } from "@/types/geo";
@@ -38,6 +39,7 @@ import {
   engineFamilyLastCheckedAt,
   engineFamilyStatTrends,
   engineFamilyTotals,
+  engineFamilyWithoutWebSearch,
   formatMentionRate,
   groupEngineFamilies,
   keepTrackedFamilies,
@@ -47,7 +49,7 @@ import { tableHeightFor } from "@/utils/table";
 
 const NOT_SCANNED_RATE = -1;
 
-/** Rate bar, rate, how many answers that is, and the change in that count. */
+/** Rate and the change in it. */
 function VisibilityCell({
   family,
   timeseriesPoints,
@@ -57,7 +59,6 @@ function VisibilityCell({
 }) {
   const t = useTranslations("geo.engineRateTable");
   const tGeoShared = useTranslations("geo.shared");
-  const locale = useLocale();
   const totals = engineFamilyTotals(family);
   if (!totals) {
     return (
@@ -71,18 +72,14 @@ function VisibilityCell({
     family.family
   );
   return (
-    <span className="flex min-w-0 items-center gap-2">
-      <GeoBar className="w-16 shrink-0" value={totals.rate} />
+    <span className="flex min-w-0 items-center justify-end gap-2">
       <FadeSwap
-        className="text-sm tabular-nums"
+        className="text-sm font-medium tabular-nums"
         swapKey={formatMentionRate(totals.rate)}
         value={totals.rate}
       >
         {formatMentionRate(totals.rate)}
       </FadeSwap>
-      <span className="text-muted-foreground truncate text-xs tabular-nums">
-        {t("visibleCount", { count: totals.visible })}
-      </span>
       <GeoStatDelta
         animated
         delta={trends.visibilityDelta}
@@ -95,9 +92,13 @@ function VisibilityCell({
   );
 }
 
-function lastCheckedOf(family: GeoEngineFamily, locale: string): string {
+function lastCheckedIso(family: GeoEngineFamily): string | null {
   const value = engineFamilyLastCheckedAt(family);
-  return value ? formatAiTrafficTimestamp(value, locale) : "-";
+  if (!value) {
+    return null;
+  }
+  const date = parseClickHouseDateTime(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function avgPositionOf(family: GeoEngineFamily): string {
@@ -157,9 +158,7 @@ export function EngineRateTable({
             <span className="truncate font-medium">
               {engineFamilyLabel(row.family)}
             </span>
-            <span className="text-muted-foreground shrink-0 text-[0.6875rem] whitespace-nowrap tabular-nums">
-              {lastCheckedOf(row, locale)}
-            </span>
+            {engineFamilyWithoutWebSearch(row) ? <NoWebSearchBadge /> : null}
           </span>
         ),
         sortValue: (row) => engineFamilyLabel(row.family),
@@ -168,12 +167,29 @@ export function EngineRateTable({
         key: "rate",
         header: tGeoShared("brandVisibility"),
         hint: t("hints.rate"),
-        width: "1.6fr",
+        width: "10rem",
+        align: "right",
         sortable: true,
         cell: (row) => (
           <VisibilityCell family={row} timeseriesPoints={timeseriesPoints} />
         ),
         sortValue: (row) => engineFamilyTotals(row)?.rate ?? NOT_SCANNED_RATE,
+      },
+      {
+        key: "lastChecked",
+        collapsePriority: 4,
+        header: t("columns.lastChecked"),
+        width: "8rem",
+        sortable: true,
+        cell: (row) => {
+          const iso = lastCheckedIso(row);
+          return iso ? (
+            <RelativeTime iso={iso} />
+          ) : (
+            <span className="text-muted-foreground text-sm">-</span>
+          );
+        },
+        sortValue: (row) => lastCheckedIso(row) ?? "",
       },
       {
         key: "citations",

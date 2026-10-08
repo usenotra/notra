@@ -2,40 +2,26 @@
 
 import {
   GEO_EMPTY_TRAFFIC_RESPONSE,
-  GEO_SPARKLINE_MIN_POINTS,
-  GEO_SPARKLINE_TREND_CLASS,
   GEO_TRAFFIC_OTHER_GROUP,
 } from "@notra/geo-core/constants/geo";
 import {
   buildTrafficTrendRows,
-  formatAiTrafficTimestamp,
   hasTrafficSourceSeries,
   toGeoTrafficPreviousTotals,
-  sparklineTrend,
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
-import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import {
   InstrumentEmpty,
   InstrumentSection,
 } from "@notra/ui/components/instrument/instrument-module";
-import type { TableColumn } from "@notra/ui/components/ui/data-table";
-import { useIsMobile } from "@notra/ui/hooks/use-mobile";
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
-import { GeoRateSparkline } from "@/components/geo/geo-rate-sparkline";
 import { TrafficHero } from "@/components/geo/traffic-hero";
-import { TrafficPurposeCell } from "@/components/geo/traffic-purpose-cell";
-import { TrafficSourceGroupCell } from "@/components/geo/traffic-source-group-cell";
 import { TrafficSourceSheet } from "@/components/geo/traffic-source-sheet";
 import { TrafficSourcesStack } from "@/components/geo/traffic-sources-group";
-import { TRAFFIC_SOURCE_COLUMN_MIN_WIDTH } from "@/constants/geo-traffic-sources";
-import type {
-  AiTrafficCardProps,
-  GeoTrafficSourceBand,
-  GeoTrafficSourceGroup,
-} from "@/types/geo";
+import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
+import type { AiTrafficCardProps, GeoTrafficSourceBand } from "@/types/geo";
 import {
   buildTrafficGroupSeries,
   groupTrafficSources,
@@ -49,7 +35,6 @@ export function AiTrafficCard({
   settingsHref,
   isPending = false,
 }: AiTrafficCardProps) {
-  const t = useTranslations("geo.aiTrafficCard");
   const tCommon = useTranslations("common");
   const tShared = useTranslations("geo.shared");
   const locale = useLocale();
@@ -78,7 +63,6 @@ export function AiTrafficCard({
       return next;
     });
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
-  const isMobile = useIsMobile();
   const sparklineDays = useMemo(
     () => trafficSparklineDays(points, range?.from, range?.to),
     [points, range?.from, range?.to]
@@ -112,95 +96,7 @@ export function AiTrafficCard({
           (group) => trafficGroupKey(group.band, group.key) === openGroupKey
         ) ?? null);
 
-  const columns = useMemo<TableColumn<GeoTrafficSourceGroup>[]>(() => {
-    const categorySize = isMobile
-      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.categoryMobile
-      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.category;
-    const visitsSize = isMobile
-      ? TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visitsMobile
-      : TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.visits;
-    const next: TableColumn<GeoTrafficSourceGroup>[] = [
-      {
-        key: "source",
-        header: tCommon("labels.source"),
-        width: "1fr",
-        minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.source,
-        sortable: true,
-        cell: (row) => <TrafficSourceGroupCell group={row} />,
-        sortValue: (row) => row.label,
-      },
-      {
-        key: "category",
-        header: tShared("purpose"),
-        width: categorySize,
-        minWidth: categorySize,
-        sortable: true,
-        cell: (row) => <TrafficPurposeCell group={row} />,
-        sortValue: (row) => row.categories.join(","),
-      },
-      {
-        key: "visits",
-        header: tShared("visits"),
-        width: visitsSize,
-        minWidth: visitsSize,
-        sortable: true,
-        cell: (row) => {
-          const series = seriesByGroup.get(trafficGroupKey(row.band, row.key));
-          const showSpark =
-            series !== undefined && series.length >= GEO_SPARKLINE_MIN_POINTS;
-
-          return (
-            <span className="flex items-center gap-2">
-              {showSpark ? (
-                <GeoRateSparkline
-                  className={GEO_SPARKLINE_TREND_CLASS[sparklineTrend(series)]}
-                  label={t("visitTrend", { source: row.label })}
-                  points={series}
-                />
-              ) : null}
-              <span className="text-sm tabular-nums">
-                <AnimatedNumber locale={locale} value={row.visits} />
-              </span>
-            </span>
-          );
-        },
-      },
-    ];
-
-    if (!isMobile) {
-      next.push(
-        {
-          key: "paths",
-          header: tShared("pages"),
-          collapsePriority: 1,
-          width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
-          minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.paths,
-          sortable: true,
-          align: "right",
-          cell: (row) => (
-            <span className="text-sm tabular-nums">
-              <AnimatedNumber locale={locale} value={row.paths} />
-            </span>
-          ),
-        },
-        {
-          key: "lastSeenAt",
-          header: tShared("lastSeen"),
-          collapsePriority: 2,
-          width: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
-          minWidth: TRAFFIC_SOURCE_COLUMN_MIN_WIDTH.lastSeenAt,
-          sortable: true,
-          cell: (row) => (
-            <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
-              {formatAiTrafficTimestamp(row.lastSeenAt, locale)}
-            </span>
-          ),
-        }
-      );
-    }
-
-    return next;
-  }, [isMobile, locale, seriesByGroup, t]);
+  const columns = useTrafficSourceColumns({ seriesByKey: seriesByGroup });
 
   if (sources.length === 0) {
     return (

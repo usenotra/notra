@@ -240,6 +240,7 @@ import { DesignSystemChatQueueDemo } from "@/components/design-system/design-sys
 import { DesignSystemComposerDemo } from "@/components/design-system/design-system-composer-demo";
 import { DesignSystemFrame } from "@/components/design-system/design-system-frame";
 import { DesignSystemSectionHeader } from "@/components/design-system/design-system-section-header";
+import { DesignSystemTodoListDemo } from "@/components/design-system/design-system-todo-list-demo";
 import { GeoRangePickerDemo } from "@/components/design-system/geo-range-picker-demo";
 import { ConfirmDialogSection } from "@/components/design-system/sections/confirm-dialog-section";
 import { CopyButtonSection } from "@/components/design-system/sections/copy-button-section";
@@ -1675,6 +1676,15 @@ export default function DesignSystemClientPage() {
             title="Chat Queue"
           />
           <DesignSystemChatQueueDemo />
+        </section>
+
+        <section className="scroll-mt-10 space-y-6" id="todo-list">
+          <DesignSystemSectionHeader
+            description="The agent's plan for requests with four or more pieces of content. One checklist per reply, updated in place; the running step spins only while the reply runs, and a stopped reply marks where it ended."
+            id="todo-list"
+            title="Todo List"
+          />
+          <DesignSystemTodoListDemo />
         </section>
 
         <section className="scroll-mt-10 space-y-6" id="identity">

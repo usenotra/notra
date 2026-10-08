@@ -95,6 +95,7 @@ export function createEvaluationClient(
           zeroDataRetention: true,
           disallowPromptTraining: true,
           tags: [`evaluation-${params.feature}`],
+          ...(params.organizationId ? { user: params.organizationId } : {}),
         },
       },
     });

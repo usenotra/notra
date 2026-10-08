@@ -5,7 +5,11 @@ import { GPT_6_SOL_CONTEXT_WINDOW_TOKENS } from "./lib/constants/models";
 import { createAgentModel } from "./lib/utils/model";
 
 export default defineAgent({
-  model: createAgentModel("openai/gpt-6-sol", "onboarding-agent"),
+  model: createAgentModel(
+    "openai/gpt-6-sol",
+    "onboarding-agent",
+    GPT_6_SOL_CONTEXT_WINDOW_TOKENS
+  ),
   modelContextWindowTokens: GPT_6_SOL_CONTEXT_WINDOW_TOKENS,
   reasoning: "medium",
   outputSchema: onboardingProfileSchema,

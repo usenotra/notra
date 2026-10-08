@@ -1,51 +1,29 @@
 "use client";
 
+import { geoEngineUsedWebSearch } from "@notra/geo-core/utils/geo-engines";
 import {
-  ArrowDown01Icon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@notra/ui/components/ui/dropdown-menu";
-import {
-  AnimatePresence,
-  domAnimation,
-  LazyMotion,
-  m,
-  useReducedMotion,
-} from "motion/react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { NoWebSearchBadge } from "@/components/geo/no-web-search-badge";
 import type { PromptEngineSwitcherProps } from "@/types/geo";
 import { formatEngineFamily } from "@/utils/geo-charts";
-import { adjacentPromptEngine } from "@/utils/geo-prompt-engines";
-
-const COUNTER_TRANSITION = {
-  type: "spring",
-  bounce: 0,
-  duration: 0.25,
-} as const;
-const INSTANT = { duration: 0 } as const;
 
 export function PromptEngineSwitcher({
   results,
   active,
   onChange,
+  onPrefetch,
 }: PromptEngineSwitcherProps) {
   const t = useTranslations("geo.promptEngineSwitcher");
   const engines = results.map((result) => result.engine);
-  const engineLabel = formatEngineFamily;
   const activeIndex = engines.indexOf(active.engine);
-  const reduceMotion = useReducedMotion();
-  const counterTransition = reduceMotion ? INSTANT : COUNTER_TRANSITION;
 
   if (results.length === 1) {
     return (
@@ -53,106 +31,66 @@ export function PromptEngineSwitcher({
         <span className="bg-background inline-flex h-7 max-w-full min-w-0 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8rem] font-medium">
           <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
           <span className="truncate">{formatEngineFamily(active.engine)}</span>
+          {geoEngineUsedWebSearch(active.engine) ? null : <NoWebSearchBadge />}
         </span>
       </div>
     );
   }
 
-  const stepButtonClassName = "h-full shrink-0 rounded-none active:scale-100";
-
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="bg-background dark:bg-input/30 flex h-8 w-72 max-w-full min-w-0 items-center overflow-hidden rounded-lg border">
-        <Button
-          aria-label={t("previous")}
-          className={`${stepButtonClassName} border-r-border border-r`}
-          onClick={() =>
-            onChange(adjacentPromptEngine(engines, active.engine, -1), -1)
+    <div className="flex min-w-0 flex-1 items-center">
+      <Select
+        onValueChange={(next) => {
+          if (typeof next !== "string" || next === active.engine) {
+            return;
           }
-          size="icon-sm"
-          type="button"
-          variant="ghost"
+          onChange(next, engines.indexOf(next) >= activeIndex ? 1 : -1);
+        }}
+        value={active.engine}
+      >
+        <SelectTrigger
+          aria-label={t("engine", {
+            engine: formatEngineFamily(active.engine),
+          })}
+          className="w-60 max-w-full min-w-0"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                aria-label={t("engine", {
-                  engine: engineLabel(active.engine),
-                })}
-                // The menu anchors to this trigger; scaling it on press drags
-                // the popup with it.
-                className="h-full min-w-0 flex-1 rounded-none active:scale-100"
-                size="sm"
-                variant="ghost"
-              />
-            }
-          >
+          <SelectValue>
             <EngineIcon className="size-3.5 shrink-0" engine={active.engine} />
-            <span className="flex-1 truncate text-left">
-              {engineLabel(active.engine)}
+            <span className="truncate">
+              {formatEngineFamily(active.engine)}
             </span>
-            <span className="text-muted-foreground/70 inline-flex items-center text-xs tabular-nums">
-              <AnimatePresence initial={false} mode="popLayout">
-                <m.span
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  initial={{ opacity: 0, y: 4 }}
-                  key={activeIndex}
-                  transition={counterTransition}
-                >
-                  {activeIndex + 1}
-                </m.span>
-              </AnimatePresence>
-              <span className="mx-0.5 opacity-60">/</span>
-              <span>{results.length}</span>
-            </span>
-            <HugeiconsIcon
-              aria-hidden="true"
-              className="text-muted-foreground size-3.5 shrink-0"
-              icon={ArrowDown01Icon}
-              strokeWidth={2}
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="max-h-[min(60vh,24rem)] w-64 overflow-y-auto"
-          >
-            <DropdownMenuRadioGroup
-              onValueChange={(next) => {
-                const nextIndex = engines.indexOf(next);
-                onChange(next, nextIndex >= activeIndex ? 1 : -1);
-              }}
-              value={active.engine}
-            >
-              {results.map((result) => (
-                <DropdownMenuRadioItem
-                  closeOnClick
-                  key={result.engine}
-                  value={result.engine}
-                >
-                  <EngineIcon className="size-3.5" engine={result.engine} />
-                  <span className="truncate">{engineLabel(result.engine)}</span>
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          aria-label={t("next")}
-          className={`${stepButtonClassName} border-l-border border-l`}
-          onClick={() =>
-            onChange(adjacentPromptEngine(engines, active.engine, 1), 1)
-          }
-          size="icon-sm"
-          type="button"
-          variant="ghost"
+            {geoEngineUsedWebSearch(active.engine) ? null : (
+              <NoWebSearchBadge />
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent
+          align="start"
+          alignItemWithTrigger={false}
+          className="max-h-[min(60vh,24rem)]"
         >
-          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-        </Button>
-      </div>
-    </LazyMotion>
+          {results.map((result) => (
+            <SelectItem
+              key={result.engine}
+              onPointerEnter={() => onPrefetch?.(result.engine)}
+              value={result.engine}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <EngineIcon
+                  className="size-3.5 shrink-0"
+                  engine={result.engine}
+                />
+                <span className="truncate">
+                  {formatEngineFamily(result.engine)}
+                </span>
+                {geoEngineUsedWebSearch(result.engine) ? null : (
+                  <NoWebSearchBadge />
+                )}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

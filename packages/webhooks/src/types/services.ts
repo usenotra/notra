@@ -7,11 +7,20 @@ import type {
 } from "../errors/webhooks";
 import type { DeliveryOutcome, SendRequest } from "./webhooks";
 
+export interface SqlStatement {
+  readonly sql: string;
+  readonly parameters: readonly unknown[];
+}
+
 export interface WebhookDatabaseService {
   readonly query: (
     sql: string,
     parameters: readonly unknown[]
   ) => Effect.Effect<unknown, WebhookStorageError>;
+  /** Runs the statements in order inside one transaction and one round trip. */
+  readonly transaction: (
+    statements: readonly SqlStatement[]
+  ) => Effect.Effect<readonly unknown[], WebhookStorageError>;
 }
 
 export interface WebhookCryptoService {
@@ -36,10 +45,6 @@ export interface WebhookCryptoService {
 }
 
 export interface WebhookQueuesService {
-  readonly event: (eventId: string) => Effect.Effect<void, WebhookQueueError>;
-  readonly delivery: (
-    deliveryId: string
-  ) => Effect.Effect<void, WebhookQueueError>;
   readonly deliveries: (
     deliveryIds: readonly string[]
   ) => Effect.Effect<void, WebhookQueueError>;

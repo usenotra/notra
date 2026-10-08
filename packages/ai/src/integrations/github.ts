@@ -1959,21 +1959,6 @@ export async function hasWebhookConfigured(repositoryId: string) {
   return !!integration?.encryptedWebhookSecret;
 }
 
-export async function getWebhookSecretByRepositoryId(repositoryId: string) {
-  const integration = await db.query.githubIntegrations.findFirst({
-    where: eq(githubIntegrations.id, repositoryId),
-    columns: {
-      encryptedWebhookSecret: true,
-    },
-  });
-
-  if (!integration?.encryptedWebhookSecret) {
-    return null;
-  }
-
-  return decryptToken(integration.encryptedWebhookSecret);
-}
-
 function buildWebhookUrl(
   integrationId: string,
   organizationId: string,

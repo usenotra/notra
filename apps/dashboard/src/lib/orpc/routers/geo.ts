@@ -176,7 +176,6 @@ import {
   geoPromptTranslationSelectInputSchema,
   geoPromptTranslationTargetInputSchema,
   geoPromptTranslationUpdateInputSchema,
-  geoOrganizationInputSchema,
   geoProjectCreateInputSchema,
   geoProjectDeleteInputSchema,
   geoProjectUpdateInputSchema,
@@ -221,6 +220,7 @@ import {
   geoScanRunInputSchema,
   geoScanRunsInputSchema,
 } from "@notra/geo-core/schemas/geo-scan-history";
+import { geoOrganizationInputSchema } from "@notra/geo-core/schemas/geo-scope";
 import { geoSentimentEvidenceInputSchema } from "@notra/geo-core/schemas/geo-sentiment";
 import { gscSelectSiteInputSchema } from "@notra/geo-core/schemas/google-search-console";
 import { GeoSearchConsoleError } from "@notra/geo-core/schemas/search-console-errors";

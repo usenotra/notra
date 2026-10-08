@@ -10,6 +10,7 @@ import {
   getAuthKitContext,
 } from "@workos/authkit-tanstack-react-start";
 
+import { clearHostAuthSessionCookie } from "@/lib/auth/session-cookie";
 import type { SignOutActionOptions } from "@/types/auth/user-actions";
 
 export async function createAuthSignInUrl() {
@@ -43,6 +44,7 @@ export async function signOutAuthSession(options?: SignOutActionOptions) {
   }
   const authkit = await getAuthkit();
   const { logoutUrl } = await authkit.signOut(auth.sessionId, options);
+  clearHostAuthSessionCookie();
   throw redirect({ href: logoutUrl, reloadDocument: true });
 }
 
@@ -56,4 +58,5 @@ export async function saveAuthSession(session: Session) {
     getAuthkit(),
   ]);
   await authkit.saveSession(undefined, encrypted);
+  clearHostAuthSessionCookie();
 }

@@ -1,4 +1,4 @@
-import { geoWriterWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
+import { geoWriterWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo-workflows";
 
 import { verifyInternalWorkflowRequest } from "@/lib/workflows/internal-auth";
 import { startGeoWriterRun } from "@/lib/workflows/start";

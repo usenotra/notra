@@ -24,8 +24,8 @@ import {
   AgentFeedbackSentimentLabel,
   AgentFeedbackStatusBadge,
 } from "@/components/agent-feedback/feedback-badges";
+import { RelativeTime } from "@/components/relative-time";
 import { useAvailableTableHeight } from "@/lib/hooks/use-available-table-height";
-import { useFormatRelative } from "@/lib/hooks/use-format-relative";
 import type {
   AgentFeedbackItem,
   AgentFeedbackTableProps,
@@ -38,7 +38,6 @@ const FEEDBACK_TABLE_ROW_HEIGHT = 48;
 function useFeedbackColumns(): TableColumn<AgentFeedbackItem>[] {
   const t = useTranslations("feedback.columns");
   const tCommon2 = useTranslations("common");
-  const formatRelative = useFormatRelative();
   return [
     {
       key: "feedback",
@@ -108,11 +107,7 @@ function useFeedbackColumns(): TableColumn<AgentFeedbackItem>[] {
       align: "right",
       sortable: true,
       sortValue: (item) => item.createdAt,
-      cell: (item) => (
-        <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
-          {formatRelative(item.createdAt)}
-        </span>
-      ),
+      cell: (item) => <RelativeTime iso={item.createdAt} />,
     },
   ];
 }

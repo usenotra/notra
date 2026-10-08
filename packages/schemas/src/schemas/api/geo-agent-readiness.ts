@@ -53,6 +53,31 @@ const readinessHistoryPointSchema = z.object({
   scannedAt: z.string(),
 });
 
+const readinessChangedCheckSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  tier: z.enum(["essential", "recommended", "bonus"]),
+  previousResult: z.enum(["failed", "partial"]).nullable().openapi({
+    description: "Result on the previous scan; null when the check passed.",
+  }),
+  result: z.enum(["failed", "partial"]).nullable().openapi({
+    description: "Result on the latest scan; null when the check passes now.",
+  }),
+});
+
+const readinessComparisonSchema = z.object({
+  previousScore: z.number().nullable(),
+  previousScannedAt: z.string(),
+  resolved: z.array(readinessChangedCheckSchema),
+  added: z.array(readinessChangedCheckSchema),
+  improved: z.array(readinessChangedCheckSchema).openapi({
+    description: "Checks that went from failed to partial.",
+  }),
+  worsened: z.array(readinessChangedCheckSchema).openapi({
+    description: "Checks that went from partial to failed.",
+  }),
+});
+
 export const agentReadinessResponseSchema = z
   .object({
     targetUrl: z.string(),
@@ -64,6 +89,10 @@ export const agentReadinessResponseSchema = z
     }),
     history: z.array(readinessHistoryPointSchema).openapi({
       description: "Completed scans, oldest first.",
+    }),
+    comparison: readinessComparisonSchema.nullable().openapi({
+      description:
+        "Checks that changed between the latest completed scan and the one before it. Null until there are two completed scans.",
     }),
     organization: organizationResponseSchema,
   })

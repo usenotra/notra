@@ -1,4 +1,4 @@
-import { CpuIcon } from "@hugeicons/core-free-icons";
+import { CpuIcon, File02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ContextItem } from "@notra/ai/types/chat";
 import { Github } from "@notra/ui/components/ui/svgs/github";
@@ -7,8 +7,12 @@ import { Fragment, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { McpIcon } from "@/components/integrations/mcp-icon";
-import { INTEGRATION_REFERENCE_TOKEN_SPLIT_REGEX } from "@/constants/integration-reference";
+import { CHAT_REFERENCE_TOKEN_SPLIT_REGEX } from "@/constants/chat-posts";
 import type { McpIconUrls } from "@/types/integrations/mcp";
+import {
+  getPostReferenceValue,
+  parsePostReferenceValue,
+} from "@/utils/chat-posts";
 import {
   getIntegrationReferenceValue,
   getReferenceDisplay,
@@ -32,7 +36,10 @@ const REFERENCE_LINEAR_ICON_WRAPPER_CLASS =
 const REFERENCE_MCP_ICON_WRAPPER_CLASS =
   "inline-flex size-[1.04em] shrink-0 items-center justify-center text-violet-600 dark:text-violet-400";
 
-type ReferenceKind = "github" | "linear" | "mcp";
+const REFERENCE_POST_ICON_WRAPPER_CLASS =
+  "inline-flex size-[1.04em] shrink-0 items-center justify-center text-muted-foreground";
+
+type ReferenceKind = "github" | "linear" | "mcp" | "post";
 
 const GITHUB_ICON_MARKUP = renderToStaticMarkup(
   <Github className="size-full" />
@@ -43,6 +50,9 @@ const LINEAR_ICON_MARKUP = renderToStaticMarkup(
 const MCP_ICON_MARKUP = renderToStaticMarkup(
   <HugeiconsIcon className="size-full" icon={CpuIcon} />
 );
+const POST_ICON_MARKUP = renderToStaticMarkup(
+  <HugeiconsIcon className="size-full" icon={File02Icon} />
+);
 
 function getReferenceKind(item: ContextItem): ReferenceKind {
   if (item.type === "github-repo") {
@@ -52,6 +62,9 @@ function getReferenceKind(item: ContextItem): ReferenceKind {
 }
 
 function getReferenceIconWrapperClass(kind: ReferenceKind): string {
+  if (kind === "post") {
+    return REFERENCE_POST_ICON_WRAPPER_CLASS;
+  }
   if (kind === "github") {
     return REFERENCE_GITHUB_ICON_WRAPPER_CLASS;
   }
@@ -61,6 +74,9 @@ function getReferenceIconWrapperClass(kind: ReferenceKind): string {
 }
 
 function getReferenceIconMarkup(kind: ReferenceKind): string {
+  if (kind === "post") {
+    return POST_ICON_MARKUP;
+  }
   if (kind === "github") {
     return GITHUB_ICON_MARKUP;
   }
@@ -100,14 +116,28 @@ function ReferenceIcon({
 
 export function renderTextWithIntegrationReferences(
   text: string,
-  mcpIconsByIntegrationId?: ReadonlyMap<string, McpIconUrls>
+  mcpIconsByIntegrationId?: ReadonlyMap<string, McpIconUrls>,
+  postTitlesById?: ReadonlyMap<string, string>
 ): ReactNode[] {
   const nodes: ReactNode[] = [];
   let keySeed = 0;
-  const segments = text.split(INTEGRATION_REFERENCE_TOKEN_SPLIT_REGEX);
+  const segments = text.split(CHAT_REFERENCE_TOKEN_SPLIT_REGEX);
 
   segments.forEach((segment, segmentIndex) => {
     if (!segment) {
+      return;
+    }
+
+    const postId = parsePostReferenceValue(segment);
+    if (postId) {
+      nodes.push(
+        <IntegrationReference
+          display={postTitlesById?.get(postId) ?? segment}
+          key={`ref-${segment}-${keySeed++}`}
+          kind="post"
+          value={getPostReferenceValue(postId)}
+        />
+      );
       return;
     }
 
@@ -144,6 +174,60 @@ export function renderTextWithIntegrationReferences(
   });
 
   return nodes;
+}
+
+/**
+ * Builds the same non-editable chip the message bubble renders, for inserting
+ * into the composer. It serializes to `@post/<id>` through `data-value`.
+ */
+export function createPostReferenceElement(post: {
+  postId: string;
+  title: string;
+}): HTMLSpanElement {
+  const chip = document.createElement("span");
+  chip.className = REFERENCE_CONTAINER_CLASS;
+  chip.contentEditable = "false";
+  chip.setAttribute(REFERENCE_ATTR, "true");
+  chip.dataset.value = getPostReferenceValue(post.postId);
+
+  const icon = document.createElement("span");
+  icon.setAttribute("aria-hidden", "true");
+  icon.className = REFERENCE_POST_ICON_WRAPPER_CLASS;
+  icon.innerHTML = POST_ICON_MARKUP;
+
+  const label = document.createElement("span");
+  label.className = REFERENCE_LABEL_CLASS;
+  label.textContent = post.title;
+
+  chip.append(icon, label);
+  return chip;
+}
+
+/**
+ * Fills the composer from serialized text, turning `@post/<id>` tokens back
+ * into chips. Unknown posts keep the generic label.
+ */
+export function setEditorTextWithPostReferences(
+  editor: HTMLElement,
+  text: string,
+  postTitlesById: ReadonlyMap<string, string>,
+  fallbackTitle: string
+) {
+  editor.replaceChildren();
+  for (const segment of text.split(CHAT_REFERENCE_TOKEN_SPLIT_REGEX)) {
+    if (!segment) {
+      continue;
+    }
+    const postId = parsePostReferenceValue(segment);
+    editor.append(
+      postId
+        ? createPostReferenceElement({
+            postId,
+            title: postTitlesById.get(postId) ?? fallbackTitle,
+          })
+        : document.createTextNode(segment)
+    );
+  }
 }
 
 export function serializeEditorWithReferences(editor: HTMLElement): string {

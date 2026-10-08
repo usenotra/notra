@@ -19,6 +19,12 @@ export const EventType = Schema.Literals([
   "brand_identity.generation.completed",
   "brand_identity.generation.failed",
   "post.published",
+  "post.created",
+  "post.updated",
+  "post.deleted",
+  "post.unpublished",
+  "geo.scan.completed",
+  "geo.scan.failed",
 ]);
 const jobId = Schema.NonEmptyString;
 export const EventData = Schema.Union([
@@ -49,6 +55,45 @@ export const EventData = Schema.Union([
     type: Schema.tag("post.published"),
     data: Schema.Struct({ postId: Schema.NonEmptyString }),
   }),
+  Schema.Struct({
+    type: Schema.tag("post.created"),
+    data: Schema.Struct({ postId: Schema.NonEmptyString }),
+  }),
+  Schema.Struct({
+    type: Schema.tag("post.updated"),
+    data: Schema.Struct({ postId: Schema.NonEmptyString }),
+  }),
+  Schema.Struct({
+    type: Schema.tag("post.deleted"),
+    data: Schema.Struct({ postId: Schema.NonEmptyString }),
+  }),
+  Schema.Struct({
+    type: Schema.tag("post.unpublished"),
+    data: Schema.Struct({ postId: Schema.NonEmptyString }),
+  }),
+  Schema.Struct({
+    type: Schema.tag("geo.scan.completed"),
+    data: Schema.Struct({
+      scanId: Schema.NonEmptyString,
+      projectId: Schema.NonEmptyString,
+      runId: Schema.NullOr(Schema.String),
+      checksTotal: Schema.NullOr(Schema.Number),
+      checksFailed: Schema.NullOr(Schema.Number),
+      mentions: Schema.NullOr(Schema.Number),
+      durationMs: Schema.NullOr(Schema.Number),
+    }),
+  }),
+  Schema.Struct({
+    type: Schema.tag("geo.scan.failed"),
+    data: Schema.Struct({
+      scanId: Schema.NonEmptyString,
+      projectId: Schema.NonEmptyString,
+      errorCode: Schema.NullOr(Schema.String),
+      error: Schema.NullOr(Schema.String),
+      failedStage: Schema.NullOr(Schema.String),
+      retryable: Schema.NullOr(Schema.Boolean),
+    }),
+  }),
 ]).pipe(Schema.toTaggedUnion("type"));
 export const PublishInput = Schema.Struct({
   organizationId: OrganizationId,
@@ -60,7 +105,7 @@ export const EndpointInput = Schema.Struct({
   url: Schema.NonEmptyString,
   events: Schema.Array(EventType).check(
     Schema.isMinLength(1),
-    Schema.isMaxLength(6)
+    Schema.isMaxLength(EventType.literals.length)
   ),
 });
 export const Endpoint = Schema.Struct({
@@ -72,6 +117,11 @@ export const Endpoint = Schema.Struct({
   createdAt: Schema.String,
 });
 export const IdentifierRow = Schema.Struct({ id: Schema.String });
+export const CountRow = Schema.Struct({ count: Schema.Number });
+export const DueDeliveryRow = Schema.Struct({
+  id: Schema.String,
+  dueAt: Schema.String,
+});
 export const StoredDelivery = Schema.Struct({
   id: DeliveryId,
   eventId: EventId,
@@ -115,7 +165,6 @@ export const Attempt = Schema.Struct({
   error: Schema.NullOr(Schema.String),
   durationMs: Schema.NullOr(Schema.Number),
 });
-export const EventMessage = Schema.Struct({ eventId: EventId });
 export const DeliveryMessage = Schema.Struct({ deliveryId: DeliveryId });
 export const DnsResponse = Schema.Struct({
   Status: Schema.Number,
@@ -143,10 +192,7 @@ export const DeliveryActivityDay = Schema.Struct({
 });
 export const PipelineMetrics = Schema.Struct({
   openDeliveries: Schema.Number,
-  dueDeliveries: Schema.Number,
   oldestOpenSeconds: Schema.Number,
-  undispatchedEvents: Schema.Number,
-  oldestUndispatchedSeconds: Schema.Number,
   succeededLastMinute: Schema.Number,
   failedLastMinute: Schema.Number,
 });
