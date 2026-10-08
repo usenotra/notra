@@ -1,0 +1,27 @@
+apps/web/src/styles/globals.css
+  ai_agent 7
+apps/web/src/components/state-of-ai-search/ai-overview-card.tsx
+  ai_agent 3-12,14-16,18,32,39-55,66,72-73,75,78,81-102,104,106-107,109-111,117-118,129,133-134
+apps/web/src/components/state-of-ai-search/brand-sheet.tsx
+  ai_agent 33,111
+apps/web/src/components/state-of-ai-search/report-view.tsx
+  ai_agent 3,5,8,28,31,33,43,53-98,116,119,121,130-135,140-145,152,157-162,166,178,191,242-243,245-249,256-261,284-287
+apps/web/src/constants/state-of-ai-search.ts
+  ai_agent 10-11,13-14,39-45
+apps/web/src/routes/_site/state-of-ai-search/index.tsx
+  ai_agent 2,10,67-69
+apps/web/src/components/state-of-ai-search/source-sheet.tsx
+  ai_agent 1-275
+apps/web/src/components/state-of-ai-search/prompt-sheet.tsx
+  ai_agent 3-4,21,23,30-33,46-52,72-75,87-98,133,138,153-213,216,221,224-230,233-248,250-281,283-314,316-320,322-328,330-331,333-369,378,383,386,388,427,446,452-467,489,495-496,508,511
+apps/web/src/components/state-of-ai-search/report-tables.tsx
+  ai_agent 8-15,17-18,21,26,33,38-44,78-113,118,123,127,134-153,157-160,163-169,174,176,178,181-228,230-242,250,252,255,266-304,306-322,333-357,359-362,364-392,399,403,406-454,456-525
+apps/web/src/styles/ui-sources.css
+  ai_agent 27-32,47-52,72,81,85,90,190-191,202-204,208-210,213,235,239,246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bb0b2e71656be3dc11e506ba51a32413f484a82e",
+  "prompts": {}
+}
