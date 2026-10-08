@@ -94,10 +94,14 @@ export function SiteEditorPage() {
   const rebaseMutation = useRebaseSiteDrafts({
     organizationId,
     siteId,
+    onSettled: (paths) => {
+      const replaced = saves.resetClean(paths);
+      if (selectedPath && replaced.includes(selectedPath)) {
+        setEditorEpoch((epoch) => epoch + 1);
+      }
+    },
     onRebased: () => {
-      saves.reset();
       setConflicts([]);
-      setEditorEpoch((epoch) => epoch + 1);
     },
   });
   const validateMutation = useValidateSiteDrafts({

@@ -10,11 +10,22 @@ import {
   QueryClient,
   QueryObserver,
 } from "@tanstack/react-query";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 import type { DashboardORPCClient } from "../src/lib/orpc/client";
-import type { SiteEditorDraftInput } from "../src/types/site-editor";
+import type {
+  SiteEditorDraftInput,
+  SiteEditorDraftReference,
+  SiteEditorDraftResult,
+} from "../src/types/site-editor";
 import { createSiteEditorSaveQueue } from "../src/utils/site-editor-save-queue";
-import { scope, sourceContext } from "./constants/site-editor";
+import {
+  partialRebasePaths,
+  scope,
+  sourceContext,
+} from "./constants/site-editor";
+import type { SiteEditorQueueHarnessProps } from "./types/site-editor";
 
 function deferred() {
   let resolve = () => {};
@@ -41,6 +52,14 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
   let client: QueryClient;
   let rebase: (path: string) => Promise<void>;
   let read: (path: string) => Promise<void>;
+  let persist: (input: SiteEditorDraftInput) => Promise<SiteEditorDraftResult>;
+  let remove: (
+    input: SiteEditorDraftReference & { path: string }
+  ) => Promise<void>;
+  let readRevision: (path: string) => number;
+  const saveCalls: SiteEditorDraftInput[] = [];
+  const discardCalls: (SiteEditorDraftReference & { path: string })[] = [];
+  const onSettled = mock();
   const readCalls: string[] = [];
   const rpc = createORPCClient<DashboardORPCClient>({
     call: async (path, input) => {
@@ -65,7 +84,7 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
             publishedBlobSha: `new:${file}`,
             hasDraft: true,
             draftId: `drf-${file}`,
-            draftRevision: 2,
+            draftRevision: readRevision(file),
             sourceContext,
           };
         case "sites.editor.files":
@@ -75,6 +94,17 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
             files: [],
             drafts: [],
           };
+        case "sites.editor.saveDraft": {
+          const draft = input as SiteEditorDraftInput;
+          saveCalls.push(draft);
+          return await persist(draft);
+        }
+        case "sites.editor.discardDraft": {
+          const draft = input as SiteEditorDraftReference & { path: string };
+          discardCalls.push(draft);
+          await remove(draft);
+          return { ok: true };
+        }
         default:
           throw new Error(`Unexpected procedure: ${path.join(".")}`);
       }
@@ -101,6 +131,27 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
   }));
   const { useRebaseSiteDrafts } =
     await import("../src/lib/hooks/use-site-editor-files");
+  const { useSiteEditorSaves } =
+    await import("../src/lib/hooks/use-site-editor-saves");
+  const createSaves = () => {
+    let saves: ReturnType<typeof useSiteEditorSaves> | undefined;
+    function Harness({ onReady }: SiteEditorQueueHarnessProps) {
+      const queues = useSiteEditorSaves(scope, () => {});
+      onReady(queues);
+      return null;
+    }
+    renderToStaticMarkup(
+      createElement(Harness, {
+        onReady: (queues) => {
+          saves = queues;
+        },
+      })
+    );
+    if (!saves) {
+      throw new Error("Expected editor queue owner");
+    }
+    return saves;
+  };
 
   const filesOptions = dashboardOrpc.sites.editor.files.queryOptions({
     input: scope,
@@ -138,6 +189,92 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       sourceContext,
     });
   };
+  const documentInput = (
+    path: string,
+    content: string
+  ): SiteEditorDraftInput => {
+    const document = client.getQueryData(readOptions(path).queryKey);
+    if (!document) {
+      throw new Error("Expected authoritative document");
+    }
+    return {
+      ...scope,
+      path,
+      content,
+      baseBlobSha: document.blobSha,
+      baseCommitSha:
+        client.getQueryData(filesOptions.queryKey)?.commitSha ?? null,
+      draftId: document.draftId,
+      draftRevision: document.draftRevision,
+      sourceContext: document.sourceContext,
+    };
+  };
+  const preparePartialRebase = async () => {
+    const { first, second, untouched } = partialRebasePaths;
+    for (const path of [first, second, untouched]) {
+      seed(path);
+    }
+    const revisions = new Map([
+      [first, 0],
+      [second, 1],
+      [untouched, 0],
+    ]);
+    readRevision = (path) => revisions.get(path) ?? 1;
+    persist = async (input) => {
+      if (
+        input.draftId !== `drf-${input.path}` ||
+        input.draftRevision !== revisions.get(input.path)
+      ) {
+        throw new Error("draft conflict");
+      }
+      const revision = (input.draftRevision ?? -1) + 1;
+      revisions.set(input.path, revision);
+      return {
+        path: input.path,
+        draftId: `drf-${input.path}`,
+        draftRevision: revision,
+        updatedAt: new Date(),
+      };
+    };
+    remove = async (input) => {
+      if (
+        input.draftId !== `drf-${input.path}` ||
+        input.draftRevision !== revisions.get(input.path)
+      ) {
+        throw new Error("draft conflict");
+      }
+    };
+    const saves = createSaves();
+    const original = saves.getQueue(first);
+    const unaffected = saves.getQueue(untouched);
+    for (const [path, queue] of [
+      [first, original],
+      [untouched, unaffected],
+    ] as const) {
+      queue.edit({ ...documentInput(path, `draft:${path}`), draftRevision: 0 });
+      await queue.flush();
+      expect(queue.getSnapshot().state.status).toBe("saved");
+    }
+    saveCalls.length = 0;
+    rebase = async (path) => {
+      if (path === second) {
+        throw new Error("rebase failed");
+      }
+      revisions.set(path, (revisions.get(path) ?? 1) + 1);
+    };
+    let replaced: string[] = [];
+    const reconciled = mock((paths: readonly string[]) => {
+      replaced = saves.resetClean(paths);
+    });
+    return {
+      saves,
+      original,
+      unaffected,
+      onRebased: mock(),
+      reconciled,
+      replaced: () => replaced,
+    };
+  };
 
   beforeEach(() => {
     client?.clear();
@@ -148,7 +285,18 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     });
     rebase = async () => {};
     read = async () => {};
+    readRevision = () => 2;
+    persist = async (input) => ({
+      path: input.path,
+      draftId: `drf-${input.path}`,
+      draftRevision: (input.draftRevision ?? -1) + 1,
+      updatedAt: new Date(),
+    });
+    remove = async () => {};
     readCalls.length = 0;
+    saveCalls.length = 0;
+    discardCalls.length = 0;
+    onSettled.mockClear();
     client.setQueryData(filesOptions.queryKey, {
       commitSha: "old-commit",
       sourceContext,
@@ -214,7 +362,7 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
         void queue.flush();
       }
     });
-    await useRebaseSiteDrafts({ ...scope, onRebased }).mutateAsync([
+    await useRebaseSiteDrafts({ ...scope, onRebased, onSettled }).mutateAsync([
       "blog/active.mdx",
       "blog/inactive.mdx",
     ]);
@@ -244,17 +392,21 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       await response.promise;
     };
     const onRebased = mock();
-    const pending = useRebaseSiteDrafts({ ...scope, onRebased }).mutateAsync([
-      "blog/inactive.mdx",
-    ]);
+    const pending = useRebaseSiteDrafts({
+      ...scope,
+      onRebased,
+      onSettled,
+    }).mutateAsync(["blog/inactive.mdx"]);
     await fetching.promise;
     expect(onRebased).not.toHaveBeenCalled();
+    expect(onSettled).not.toHaveBeenCalled();
     expect(
       client.getQueryData(readOptions("blog/inactive.mdx").queryKey)
     ).toBeUndefined();
     response.resolve();
     await pending;
     expect(onRebased).toHaveBeenCalledTimes(1);
+    expect(onSettled).toHaveBeenCalledWith(["blog/inactive.mdx"]);
   });
 
   test("a pre-rebase read in flight cannot overwrite the refreshed base", async () => {
@@ -274,7 +426,9 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       .catch((error: unknown) => error);
     await started.promise;
     const onRebased = mock();
-    await useRebaseSiteDrafts({ ...scope, onRebased }).mutateAsync([path]);
+    await useRebaseSiteDrafts({ ...scope, onRebased, onSettled }).mutateAsync([
+      path,
+    ]);
     response.resolve();
     await obsolete;
     expect(onRebased).toHaveBeenCalledTimes(1);
@@ -299,10 +453,11 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
       await settled.promise;
     };
     const onRebased = mock();
-    const pending = useRebaseSiteDrafts({ ...scope, onRebased }).mutateAsync([
-      "blog/failed.mdx",
-      "blog/settling.mdx",
-    ]);
+    const pending = useRebaseSiteDrafts({
+      ...scope,
+      onRebased,
+      onSettled,
+    }).mutateAsync(["blog/failed.mdx", "blog/settling.mdx"]);
     const rejected = pending.catch((error: unknown) => error);
     await started.promise;
     expect(readCalls).toEqual([]);
@@ -325,7 +480,7 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     };
     const onRebased = mock();
     await expect(
-      useRebaseSiteDrafts({ ...scope, onRebased }).mutateAsync([
+      useRebaseSiteDrafts({ ...scope, onRebased, onSettled }).mutateAsync([
         "blog/failed.mdx",
       ])
     ).rejects.toThrow("read failed");
@@ -337,4 +492,133 @@ if (!process.env.NOTRA_SITE_EDITOR_REBASE_TEST_WORKER) {
     ).toBe("error");
     expect(onRebased).not.toHaveBeenCalled();
   });
+
+  test.each(["save", "discard"])(
+    "a successful path in a partially failed rebase uses its refreshed revision for the next %s",
+    async (action) => {
+      const prepared = await preparePartialRebase();
+      const { first, second, untouched } = partialRebasePaths;
+      await expect(
+        useRebaseSiteDrafts({
+          ...scope,
+          onRebased: prepared.onRebased,
+          onSettled: prepared.reconciled,
+        }).mutateAsync([first, second])
+      ).rejects.toThrow("rebase failed");
+      expect(prepared.reconciled).toHaveBeenCalledWith([first, second]);
+      expect(prepared.onRebased).not.toHaveBeenCalled();
+      expect(prepared.replaced()).toEqual([first]);
+      expect(prepared.saves.getQueue(untouched)).toBe(prepared.unaffected);
+      const fresh = prepared.saves.getQueue(first);
+      expect(fresh).not.toBe(prepared.original);
+      const next = documentInput(first, "next edit");
+      expect(next.draftRevision).toBe(2);
+      expect(next.baseBlobSha).toBe(`new:${first}`);
+      if (action === "save") {
+        fresh.edit(next);
+        await fresh.flush();
+        expect(fresh.getSnapshot().state.status).toBe("saved");
+        expect(saveCalls[0]).toMatchObject({
+          draftId: `drf-${first}`,
+          draftRevision: 2,
+          sourceContext,
+          baseBlobSha: `new:${first}`,
+          baseCommitSha: "new-commit",
+        });
+      } else {
+        await fresh.discard(next);
+        expect(discardCalls[0]).toMatchObject({
+          draftId: `drf-${first}`,
+          draftRevision: 2,
+          sourceContext,
+        });
+        expect(fresh.getSnapshot().state.status).toBe("idle");
+      }
+    }
+  );
+
+  test("failed refresh after partial rebase removes a clean stale queue without fabricating a new observation", async () => {
+    const prepared = await preparePartialRebase();
+    const { first, second } = partialRebasePaths;
+    read = async (path) => {
+      if (path === first) {
+        throw new Error("read failed");
+      }
+    };
+    await expect(
+      useRebaseSiteDrafts({
+        ...scope,
+        onRebased: prepared.onRebased,
+        onSettled: prepared.reconciled,
+      }).mutateAsync([first, second])
+    ).rejects.toThrow("rebase failed");
+    expect(client.getQueryData(readOptions(first).queryKey)).toBeUndefined();
+    expect(client.getQueryState(readOptions(first).queryKey)?.status).toBe(
+      "error"
+    );
+    expect(prepared.replaced()).toEqual([first]);
+    const fresh = prepared.saves.getQueue(first);
+    expect(fresh).not.toBe(prepared.original);
+    expect(fresh.getSnapshot()).toMatchObject({
+      content: null,
+      state: { status: "idle" },
+    });
+    await fresh.flush();
+    expect(saveCalls).toEqual([]);
+    expect(discardCalls).toEqual([]);
+    expect(prepared.onRebased).not.toHaveBeenCalled();
+  });
+
+  test.each(["dirty", "inflight"])(
+    "settled reconciliation retains %s local content and its original CAS observation",
+    async (mode) => {
+      const prepared = await preparePartialRebase();
+      const { first, second } = partialRebasePaths;
+      const response = deferred();
+      const started = deferred();
+      let saving: Promise<void> | undefined;
+      prepared.original.edit(documentInput(first, `${mode} local content`));
+      if (mode === "inflight") {
+        const currentPersist = persist;
+        persist = async (input) => {
+          started.resolve();
+          await response.promise;
+          return await currentPersist(input);
+        };
+        saving = prepared.original.flush();
+        await started.promise;
+      }
+      await expect(
+        useRebaseSiteDrafts({
+          ...scope,
+          onRebased: prepared.onRebased,
+          onSettled: prepared.reconciled,
+        }).mutateAsync([first, second])
+      ).rejects.toThrow("rebase failed");
+      expect(prepared.replaced()).toEqual([]);
+      expect(prepared.saves.getQueue(first)).toBe(prepared.original);
+      expect(prepared.original.getSnapshot()).toMatchObject({
+        content: `${mode} local content`,
+        state: { status: mode === "dirty" ? "dirty" : "saving" },
+      });
+      expect(
+        client.getQueryData(readOptions(first).queryKey)?.draftRevision
+      ).toBe(2);
+      if (mode === "dirty") {
+        prepared.original.edit(documentInput(first, `${mode} local content`));
+      }
+      response.resolve();
+      if (saving) {
+        await saving;
+      } else {
+        await prepared.original.flush();
+      }
+      expect(saveCalls[0]?.draftRevision).toBe(1);
+      expect(prepared.original.getSnapshot()).toMatchObject({
+        content: `${mode} local content`,
+        state: { status: "error" },
+      });
+      expect(prepared.onRebased).not.toHaveBeenCalled();
+    }
+  );
 }

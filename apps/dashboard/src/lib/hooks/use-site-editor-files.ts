@@ -98,6 +98,7 @@ export function useRebaseSiteDrafts({
   organizationId,
   siteId,
   onRebased,
+  onSettled,
 }: UseRebaseSiteDraftsParams) {
   const t = useTranslations("sites.editor");
   const queryClient = useQueryClient();
@@ -147,6 +148,7 @@ export function useRebaseSiteDrafts({
       const failure = [...results, ...refreshed].find(
         (result) => result.status === "rejected"
       );
+      onSettled(paths);
       if (failure?.status === "rejected") {
         throw failure.reason;
       }

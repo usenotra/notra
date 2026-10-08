@@ -19,6 +19,7 @@ export interface UseSiteDomainConnectParams extends SiteScope {
 
 export interface UseRebaseSiteDraftsParams extends SiteScope {
   onRebased: () => void;
+  onSettled: (paths: readonly string[]) => void;
 }
 
 export interface UseValidateSiteDraftsParams extends SiteScope {

@@ -92,5 +92,26 @@ export function useSiteEditorSaves(
       queues.clear();
       setStates({});
     },
+    resetClean: (paths: readonly string[]) => {
+      const removed = paths.filter((path) => {
+        const key = `${scopeKey}${path}`;
+        const queue = queues.get(key);
+        if (!queue || isSiteEditorUnsaved(queue.getSnapshot().state)) {
+          return false;
+        }
+        queues.delete(key);
+        return true;
+      });
+      if (removed.length > 0) {
+        setStates((current) => {
+          const next = { ...current };
+          for (const path of removed) {
+            delete next[`${scopeKey}${path}`];
+          }
+          return next;
+        });
+      }
+      return removed;
+    },
   };
 }
