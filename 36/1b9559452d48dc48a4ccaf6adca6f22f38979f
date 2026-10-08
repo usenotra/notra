@@ -1,0 +1,102 @@
+apps/sites/src/responses.ts
+  s_42c3a3fb97592d::t_d1798dac70c07f 17-19,67,72,76
+packages/sites-server/src/constants/build.ts
+  ai_agent 6-7
+packages/sites-server/src/domains.ts
+  s_42c3a3fb97592d::t_6716baec97dca7 25,27,281,294
+packages/sites-core/src/types/build-metrics.ts
+  s_42c3a3fb97592d::t_afce45beffe419 1
+packages/sites-server/src/constants/github.ts
+  s_42c3a3fb97592d::t_fb647ef12d7bbc 10-12
+packages/sites-server/src/utils/ingest-cache.ts
+  s_42c3a3fb97592d::t_780af865f40bf1 1-13
+packages/sites-server/src/reporting.ts
+  s_42c3a3fb97592d::t_fb647ef12d7bbc 6-9,149
+  s_42c3a3fb97592d::t_2baae56a1f59ee 165-168
+packages/sites-server/src/state.ts
+  s_42c3a3fb97592d::t_8b1a3384a45b46 31,160,335,339,356,388
+packages/geo-core/src/geo/projects.ts
+  s_42c3a3fb97592d::t_f3917ba3bfafb2 184-185
+  s_42c3a3fb97592d::t_0c79822d2e8b68 186-205,274,277,310,334
+packages/sites-core/src/constants/integrations.ts
+  s_42c3a3fb97592d::t_d4d726cff265f7 34-37
+packages/sites-core/src/schemas/site-integrations.ts
+  s_42c3a3fb97592d::t_d4d726cff265f7 2-4,7-10,16,31,44
+apps/sites/src/types/traffic.ts
+  ai_agent 52-60
+packages/sites-core/src/utils/build-target.ts
+  s_42c3a3fb97592d::t_552f8448ec23ac 31-32
+packages/sites-core/src/utils/hosts.ts
+  s_42c3a3fb97592d::t_cf6a3c89848008 2-10
+  s_42c3a3fb97592d::t_c9f942cdc7254d 33
+apps/sites/src/traffic.ts
+  s_42c3a3fb97592d::t_9940b5b3997ada 6,118-124
+apps/sites/src/pages.ts
+  ai_agent 1-4,85
+packages/schemas/src/schemas/dashboard/sites.ts
+  ai_agent 18
+apps/sites/src/analytics.ts
+  ai_agent 13,94-107
+packages/sites-compiler/src/mdx.ts
+  ai_agent 32-35,343
+packages/sites-server/src/editor.ts
+  s_42c3a3fb97592d::t_2baae56a1f59ee 24
+  s_42c3a3fb97592d::t_deee42212ed6ab 219-243,253,342
+packages/sites-server/src/constants/domains.ts
+  s_42c3a3fb97592d::t_6716baec97dca7 3-5
+apps/sites/src/utils/ingest.ts
+  ai_agent 1-24
+packages/sites-core/src/utils/mounts.ts
+  s_42c3a3fb97592d::t_5774e30cd53ff2 1
+packages/analytics/src/constants/web-queries.ts
+  ai_agent 8,20
+packages/sites-server/src/activation.ts
+  s_42c3a3fb97592d::t_780af865f40bf1 24,90,125
+packages/sites-core/src/constants/sites.ts
+  s_42c3a3fb97592d::t_5324a8b9924f15 19
+packages/sites-compiler/src/validate.ts
+  ai_agent 41,173
+packages/geo-core/src/ingest/web.ts
+  s_42c3a3fb97592d::t_d944f429d95f82 18-19,35-36,104-105,169,200-206
+packages/sites-server/src/runner.ts
+  s_42c3a3fb97592d::t_780af865f40bf1 28,118
+packages/sites-compiler/src/utils/errors.ts
+  ai_agent 5-8,10,15
+apps/sites/src/constants/responses.ts
+  s_42c3a3fb97592d::t_d1798dac70c07f 8-13
+packages/geo-core/src/ingest/pipeline.ts
+  s_42c3a3fb97592d::t_e4526d974a1b17 292-314,353,366,446,480
+packages/geo-core/src/constants/web-analytics.ts
+  s_42c3a3fb97592d::t_d944f429d95f82 4-5
+packages/sites-server/src/box-build.ts
+  s_42c3a3fb97592d::t_2baae56a1f59ee 14,39,150,195,256,452
+apps/sites/src/handler.ts
+  s_42c3a3fb97592d::t_d1798dac70c07f 279-280,316,378
+  s_42c3a3fb97592d::t_6213e8b48b469c 23-26,277-278
+packages/sites-server/src/utils/verified-host-claim.ts
+  s_42c3a3fb97592d::t_8b1a3384a45b46 7,71
+packages/sites-server/src/sites.ts
+  s_42c3a3fb97592d::t_fc921ed0116c34 24-30,74,79-81
+  s_42c3a3fb97592d::t_b0a5d2f4b73583 374,388
+  s_42c3a3fb97592d::t_780af865f40bf1 54,167,193,317,389
+packages/sites-server/src/constants/sites.ts
+  s_42c3a3fb97592d::t_fc921ed0116c34 8-12
+packages/sites-server/src/constants/r2.ts
+  s_42c3a3fb97592d::t_8b1a3384a45b46 2-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "361b9559452d48dc48a4ccaf6adca6f22f38979f",
+  "prompts": {},
+  "sessions": {
+    "s_42c3a3fb97592d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0242f9e8-eead-46de-9e27-e8caede1c967",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
