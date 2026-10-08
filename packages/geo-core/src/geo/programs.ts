@@ -18,6 +18,7 @@ import {
   geoScans,
   geoSettings,
 } from "@notra/db/schema";
+import { bumpGeoCheckGeneration } from "@notra/db/utils/geo-check-cache";
 import {
   queryGeoCheckCompetitorPrompts,
   queryGeoCheckCompetitorPromptSummary,
@@ -694,6 +695,8 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   const existingSettings = yield* geoDb("settings lookup failed", () =>
     db.query.geoSettings.findFirst({
       columns: {
+        companyName: true,
+        aliases: true,
         engines: true,
         nonZdrApprovedEngines: true,
         trackWithoutSearch: true,
@@ -826,6 +829,12 @@ export const upsertGeoSettings = Effect.fn("geo.settingsUpsert")(function* (
   yield* Effect.promise(() =>
     invalidateGeoIngestHostsCache(input.organizationId, projectId)
   );
+  const brandNamesChanged =
+    existingSettings?.companyName !== input.companyName ||
+    (existingSettings?.aliases ?? []).join("\n") !== input.aliases.join("\n");
+  if (brandNamesChanged) {
+    yield* Effect.promise(() => bumpGeoCheckGeneration([input.organizationId]));
+  }
 
   yield* reconcileGeoCompetitors(
     { organizationId: input.organizationId, projectId },

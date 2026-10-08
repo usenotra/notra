@@ -696,18 +696,33 @@ function normalizeBrandName(name: string): string {
 function summarizeOwnBrandShare(
   rows: GeoCheckOwnBrandShareRow[]
 ): GeoCheckOwnBrandShare {
-  const names = new Set<string>();
+  const namesByProject = new Map<string, Set<string>>();
   const byBrand = new Map<string, Map<string, number>>();
   for (const row of rows) {
+    const names = namesByProject.get(row.projectId) ?? new Set<string>();
     names.add(normalizeBrandName(row.brand));
     for (const alias of row.aliases ?? []) {
       names.add(normalizeBrandName(alias));
     }
+    namesByProject.set(row.projectId, names);
     const byDay = byBrand.get(row.brand) ?? new Map<string, number>();
     byDay.set(row.day, (byDay.get(row.day) ?? 0) + row.mentions);
     byBrand.set(row.brand, byDay);
   }
-  return { names, byBrand };
+  return { namesByProject, byBrand };
+}
+
+function isOwnBrandInProject(
+  own: GeoCheckOwnBrandShare,
+  projectId: string | null,
+  brand: string
+): boolean {
+  if (!projectId) {
+    return false;
+  }
+  return (
+    own.namesByProject.get(projectId)?.has(normalizeBrandName(brand)) ?? false
+  );
 }
 
 function sumMentions(byDay: Map<string, number>): number {
@@ -716,6 +731,14 @@ function sumMentions(byDay: Map<string, number>): number {
     total += mentions;
   }
   return total;
+}
+
+function addMentions(
+  totals: Map<string, number>,
+  key: string,
+  mentions: number
+): void {
+  totals.set(key, (totals.get(key) ?? 0) + mentions);
 }
 
 async function queryGeoCheckOwnBrandShare(
@@ -728,6 +751,7 @@ async function queryGeoCheckOwnBrandShare(
     scope,
     db
       .select({
+        projectId: geoSettings.projectId,
         brand: geoSettings.companyName,
         aliases: geoSettings.aliases,
         day,
@@ -745,10 +769,16 @@ async function queryGeoCheckOwnBrandShare(
           ne(geoSettings.companyName, "")
         )
       )
-      .groupBy(geoSettings.companyName, geoSettings.aliases, day)
+      .groupBy(
+        geoSettings.projectId,
+        geoSettings.companyName,
+        geoSettings.aliases,
+        day
+      )
   );
   return summarizeOwnBrandShare(
     rows.map((row) => ({
+      projectId: row.projectId,
       brand: row.brand,
       aliases: row.aliases,
       day: toDay(row.day),
@@ -763,30 +793,33 @@ export async function queryGeoCheckCompetitorShare(
   limit: number,
   options?: GeoCheckFilterOptions
 ): Promise<GeoCheckCompetitorShareRow[]> {
-  const rows = await withGeoCheckAggregateCache(
-    scope,
-    db
-      .select({
-        brand: competitorBrand,
-        mentions: countChecks,
-      })
-      .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
-      .where(mentionFilters(scope, window, options))
-      .groupBy(competitorBrand)
-      .orderBy(sql`count(distinct ${checkUnit}) desc`)
-      .limit(limit)
-  );
-  const own = await queryGeoCheckOwnBrandShare(scope, window, options);
-  const competitorRows = rows
-    .filter((row) => !own.names.has(normalizeBrandName(row.brand)))
-    .map((row) => ({ brand: row.brand, mentions: toNumber(row.mentions) }));
-  const ownShareRows = [...own.byBrand].map(([brand, byDay]) => ({
-    brand,
-    mentions: sumMentions(byDay),
-  }));
-
-  return [...competitorRows, ...ownShareRows]
+  const [rows, own] = await Promise.all([
+    withGeoCheckAggregateCache(
+      scope,
+      db
+        .select({
+          projectId: geoMentionChecks.projectId,
+          brand: competitorBrand,
+          mentions: countChecks,
+        })
+        .from(geoMentionChecks)
+        .crossJoinLateral(unnestedCompetitorBrand)
+        .where(mentionFilters(scope, window, options))
+        .groupBy(geoMentionChecks.projectId, competitorBrand)
+    ),
+    queryGeoCheckOwnBrandShare(scope, window, options),
+  ]);
+  const totals = new Map<string, number>();
+  for (const row of rows) {
+    if (!isOwnBrandInProject(own, row.projectId, row.brand)) {
+      addMentions(totals, row.brand, toNumber(row.mentions));
+    }
+  }
+  for (const [brand, byDay] of own.byBrand) {
+    addMentions(totals, brand, sumMentions(byDay));
+  }
+  return [...totals]
+    .map(([brand, mentions]) => ({ brand, mentions }))
     .sort((a, b) => b.mentions - a.mentions)
     .slice(0, limit);
 }
@@ -901,40 +934,66 @@ export async function queryGeoCheckCompetitorShareAggregate(
   window: GeoCheckWindow | undefined
 ): Promise<GeoCheckCompetitorShareAggregateRow[]> {
   const day = sql<string | null>`(${geoMentionChecks.capturedAt})::date`;
-  const rows = await withGeoCheckAggregateCache(
-    scope,
-    db
-      .select({
-        brand: competitorBrand,
-        day,
-        mentions: countChecks,
-      })
-      .from(geoMentionChecks)
-      .crossJoinLateral(unnestedCompetitorBrand)
-      .where(mentionFilters(scope, window))
-      .groupBy(
-        sql`grouping sets ((${competitorBrand}, ${day}), (${competitorBrand}))`
-      )
-      .orderBy(day)
-  );
-  const own = await queryGeoCheckOwnBrandShare(scope, window);
-  const competitorRows = rows
-    .filter((row) => !own.names.has(normalizeBrandName(row.brand)))
-    .map((row) => ({
-      brand: row.brand,
-      day: row.day === null ? null : toDay(row.day),
-      mentions: toNumber(row.mentions),
-    }));
-  const ownShareRows = [...own.byBrand].flatMap(([brand, byDay]) => [
-    ...[...byDay].map(([ownDay, mentions]) => ({
-      brand,
-      day: ownDay,
-      mentions,
-    })),
-    { brand, day: null, mentions: sumMentions(byDay) },
+  const [rows, own] = await Promise.all([
+    withGeoCheckAggregateCache(
+      scope,
+      db
+        .select({
+          projectId: geoMentionChecks.projectId,
+          brand: competitorBrand,
+          day,
+          mentions: countChecks,
+        })
+        .from(geoMentionChecks)
+        .crossJoinLateral(unnestedCompetitorBrand)
+        .where(mentionFilters(scope, window))
+        .groupBy(
+          sql`grouping sets ((${geoMentionChecks.projectId}, ${competitorBrand}, ${day}), (${geoMentionChecks.projectId}, ${competitorBrand}))`
+        )
+    ),
+    queryGeoCheckOwnBrandShare(scope, window),
   ]);
-
-  return [...competitorRows, ...ownShareRows];
+  const totals = new Map<string, Map<string | null, number>>();
+  const add = (brand: string, rowDay: string | null, mentions: number) => {
+    const byDay = totals.get(brand) ?? new Map<string | null, number>();
+    byDay.set(rowDay, (byDay.get(rowDay) ?? 0) + mentions);
+    totals.set(brand, byDay);
+  };
+  for (const row of rows) {
+    if (!isOwnBrandInProject(own, row.projectId, row.brand)) {
+      add(
+        row.brand,
+        row.day === null ? null : toDay(row.day),
+        toNumber(row.mentions)
+      );
+    }
+  }
+  for (const [brand, byDay] of own.byBrand) {
+    for (const [ownDay, mentions] of byDay) {
+      add(brand, ownDay, mentions);
+    }
+    add(brand, null, sumMentions(byDay));
+  }
+  return [...totals]
+    .flatMap(([brand, byDay]) =>
+      [...byDay].map(([rowDay, mentions]) => ({
+        brand,
+        day: rowDay,
+        mentions,
+      }))
+    )
+    .sort((a, b) => {
+      if (a.day === b.day) {
+        return 0;
+      }
+      if (a.day === null) {
+        return 1;
+      }
+      if (b.day === null) {
+        return -1;
+      }
+      return a.day.localeCompare(b.day);
+    });
 }
 
 function brandMentionedWhere(brand: string, own: boolean): SQL {

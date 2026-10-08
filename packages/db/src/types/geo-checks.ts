@@ -172,6 +172,7 @@ export interface GeoCheckEngineTotalRow {
 }
 
 export interface GeoCheckOwnBrandShareRow {
+  projectId: string;
   brand: string;
   aliases: string[] | null;
   day: string;
@@ -179,7 +180,7 @@ export interface GeoCheckOwnBrandShareRow {
 }
 
 export interface GeoCheckOwnBrandShare {
-  names: Set<string>;
+  namesByProject: Map<string, Set<string>>;
   byBrand: Map<string, Map<string, number>>;
 }
 
