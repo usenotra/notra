@@ -57,7 +57,6 @@ function SiteSettingsForm({
   const tPage = useTranslations("sites.settingsPage");
   const tNew = useTranslations("sites.new");
   const tSections = useTranslations("sites.sections");
-  const tAccess = useTranslations("sites.previewAccess");
   const id = useId();
   const invalidateSites = useInvalidateSites();
   const publishModeOptions = useSitePublishModeOptions();
@@ -191,10 +190,26 @@ function SiteSettingsForm({
         <TitleCard as="section" heading={t("previews")} headingAs="h2">
           <SiteSettingsRow
             description={t("previewsEnabledHint")}
-            label={tAccess("title")}
+            label={t("previewBuilds")}
           >
             <div className="flex">
               <SitePreviewAccessControl />
+            </div>
+          </SiteSettingsRow>
+          <SiteSettingsRow
+            description={t("previewCommentsHint")}
+            htmlFor={`${id}-preview-comments`}
+            label={t("previewComments")}
+          >
+            <div className="flex lg:h-full lg:items-center">
+              <Switch
+                aria-label={t("previewComments")}
+                checked={form.previewCommentsEnabled}
+                id={`${id}-preview-comments`}
+                onCheckedChange={(value) =>
+                  update("previewCommentsEnabled", value)
+                }
+              />
             </div>
           </SiteSettingsRow>
         </TitleCard>

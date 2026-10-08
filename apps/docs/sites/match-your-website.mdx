@@ -1,17 +1,28 @@
 ---
 title: "Match your website"
 description: "Your own header, footer and page sections, so the blog looks like the rest of your site."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/match-your-website
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
 ---
 
 Three kinds of files make the blog match your website: your own header, your own footer and slots that fill fixed places on every page.
 
 <Tip>
-When you create a site from a repository without `blog.json`, Notra offers **Create starter from your brand**. It reads your Brand Identity and landing page and opens a pull request with `blog.json`, `header.mdx`, `footer.mdx` and a first post that already use your logo, colors and links.
+  When you create a site from a repository without `blog.json`, Notra offers **Open starter PR (optional)**, which reads your Brand Identity and website and opens a pull request with `blog.json`, `header.mdx`, `footer.mdx` and a first post that already use your logo, colors and links.
 </Tip>
 
 ## Header and footer
 
-Add `header.mdx` or `footer.mdx` next to `blog.json`. Each replaces the theme's own. Write plain markup with Tailwind classes, and paste HTML from your landing page if you like (change `class` to `className`).
+Add `header.mdx` or `footer.mdx` next to `blog.json`, and each replaces the theme's own. Write plain markup with Tailwind classes. You can paste HTML from your landing page if you change `class` to `className`, close empty tags like `<img />` and remove `<!-- -->` comments, because these files are [MDX](/sites/components/overview#mdx-differs-from-markdown).
 
 ```mdx header.mdx
 <header className="border-b border-border">
@@ -34,14 +45,16 @@ Two built-in components cover what the theme's header did:
 
 | Component | What it renders |
 | --- | --- |
-| `<SiteAreas />` | The Blog and Changelog switch, with the current one highlighted |
+| `<SiteAreas />` | The Blog and Changelog switch, with the current one highlighted, and nothing when only one section is on |
 | `<ThemeToggle />` | The light and dark mode button (hidden when `appearance.strict` is set) |
 
-Interactive parts like a mobile menu go in a component in `snippets/` and are imported as usual; see [Components](/sites/components). Wrap your content in `site-container` to give it the same width as the posts below (it follows `layout.width`). Theme colors are available as Tailwind classes: `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-primary`.
+Interactive parts like a mobile menu go in a component in `snippets/` that you import as usual. See [Your own components](/sites/custom-components). Wrap your content in `site-container` to give it the same width as the posts below (it follows `layout.width`). Theme colors are available as these Tailwind classes: `bg-background`, `text-foreground`, `bg-muted`, `text-muted-foreground`, `border-border`, `bg-card`, `bg-primary` and `text-primary`.
+
+The header and footer get no data, so write your site name and links into them directly. With your own header, the navbar IDs like `#topbar-cta-button` don't exist, so use your own class names. When Notra branding is on, Notra adds a small "Powered by Notra" line under your footer.
 
 ## Slots
 
-Slots add your own content at fixed places. Each is a file in `slots/`:
+Slots add your own content at fixed places, and each one is a file in `slots/`:
 
 | File | Where it appears | Data you can use |
 | --- | --- | --- |
@@ -49,10 +62,15 @@ Slots add your own content at fixed places. Each is a file in `slots/`:
 | `slots/changelog-hero.mdx` | Replaces the top of the changelog | `site`, `area` |
 | `slots/before-post.mdx` | Above every post | `post` |
 | `slots/after-post.mdx` | Below every post | `post` |
-| `slots/sidebar.mdx` | Next to every post, under "On this page" | `post` |
-| `slots/after-changelog-entry.mdx` | Below every changelog entry | `entry` |
+| `slots/sidebar.mdx` | Next to every post under "On this page" on wide screens, above the post on phones and below the post in the narrow layout | `post` |
+| `slots/after-changelog-entry.mdx` | Below every changelog entry, on the index and on the entry's page | `entry` |
 
-`post` has `title`, `description`, `date`, `tags`, `authors` and `url`; `entry` has `title`, `version`, `date` and `url`.
+| Data | Fields |
+| --- | --- |
+| `site` | `name`, `description` |
+| `area` | `id` (`blog` or `changelog`), `title`, `description`, `url` |
+| `post` | `title`, `description`, `date` (formatted), `tags`, `authors` (each with `name`, `title`, `url`), `url` |
+| `entry` | `title`, `version`, `date` (formatted), `url` |
 
 ```mdx slots/after-post.mdx
 <div className="mt-12 rounded-xl border border-border p-6">
@@ -62,12 +80,12 @@ Slots add your own content at fixed places. Each is a file in `slots/`:
 </div>
 ```
 
-A call to action under every post, a newsletter form or a product card in the sidebar each fit in a slot. A file in `slots/` with any other name stops the build with the list of valid names.
+A call to action under every post, a newsletter form or a product card in the sidebar each fit in a slot. A file in `slots/` with any other name stops the build with `Unknown slot` and the list of valid names.
 
 ## Your own CSS
 
-For anything the settings and files don't cover, add `style.css`. It loads after the theme, so it can override any style.
+For anything the settings and files don't cover, add `style.css`, which loads after the theme so it can override any style. See [Design and CSS](/sites/customize/design#your-own-css).
 
 ## What isn't allowed
 
-Header, footer and slots are compiled like posts: nothing runs during the build, imports only come from your repository and `<script>` tags aren't allowed. Put JavaScript in `script.js`; see [Analytics and scripts](/sites/analytics-and-scripts).
+Header, footer and slots follow the same rules as posts, so imports only come from your repository and Notra doesn't allow `<script>` tags. Put JavaScript in `script.js` instead. See [Analytics and scripts](/sites/analytics-and-scripts).

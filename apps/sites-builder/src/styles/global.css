@@ -419,7 +419,7 @@ body {
   text-decoration: none;
 }
 
-.prose-notra :where(a):not(:where(.not-prose *)) {
+.prose-notra :where(a):not(:where(.not-prose, .not-prose *)) {
   text-decoration-line: underline;
   text-decoration-color: color-mix(
     in oklab,
@@ -432,7 +432,7 @@ body {
   transition: text-decoration-color 150ms ease-out;
 }
 
-.prose-notra :where(a):not(:where(.not-prose *)):hover {
+.prose-notra :where(a):not(:where(.not-prose, .not-prose *)):hover {
   text-decoration-color: var(--foreground);
 }
 

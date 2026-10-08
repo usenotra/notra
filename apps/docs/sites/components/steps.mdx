@@ -1,0 +1,52 @@
+---
+title: "Steps"
+description: "Number the steps of a setup or a tutorial."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/steps
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+`Steps` numbers the steps of a setup or a tutorial, with a title next to each number.
+
+```mdx
+<Steps>
+  <Step title="Connect GitHub">
+    Install the GitHub App on the repository.
+  </Step>
+  <Step title="Add a post">
+    Push `blog/hello-world.mdx`.
+  </Step>
+  <Step title="Go live">
+    Every push to the production branch deploys the site.
+  </Step>
+</Steps>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/steps-light.webp" alt="Three numbered steps on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/steps-dark.webp" alt="Three numbered steps on a Notra site" className="hidden dark:block" />
+</Frame>
+
+Notra numbers the steps in order, starting at 1.
+
+## Props
+
+### Step
+
+<ResponseField name="title" type="string">
+  The step's headline, next to its number.
+</ResponseField>
+
+`Steps` takes no props.
+
+## Styling
+
+The list carries the class `steps` and each item carries `step`.

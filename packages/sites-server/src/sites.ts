@@ -216,6 +216,7 @@ export async function updateSiteSettings(
         : parseRootDirectory(patch.rootDirectory),
     mounts: patch.mounts ? parseMounts(patch.mounts) : undefined,
     previewsEnabled: patch.previewsEnabled,
+    previewCommentsEnabled: patch.previewCommentsEnabled,
     previewVisibility: patch.previewVisibility,
     publishMode: patch.publishMode,
     showBranding: patch.showBranding,

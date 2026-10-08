@@ -7014,6 +7014,7 @@
       "namePlaceholder": "Acme blog",
       "address": "Address",
       "addressInvalid": "Use 3 to 40 lowercase letters, digits and single dashes.",
+      "addressReserved": "{slug} is reserved. Add more words to the address.",
       "branch": "Production branch",
       "rootDirectoryPlaceholder": "apps/blog",
       "publishMode": "Publishing from the editor",
@@ -7059,11 +7060,13 @@
         "notStarted": "The first build couldn't start. Deploy it from the site."
       },
       "starter": {
-        "missing": "No blog.json? Notra uses the standard layout and configuration immediately. For custom brand, header and footer files, optionally open a starter pull request.",
+        "missingTitle": "No blog.json yet",
+        "missing": "Notra uses the standard layout. A blog.json adds your brand, header and footer.",
+        "why": "Why a blog.json?",
         "create": "Open starter PR (optional)",
         "opened": "Pull request opened",
         "view": "View PR",
-        "optional": "You can create and deploy now with the standard layout and configuration. This pull request adds custom brand, header and footer files; merging it is optional.",
+        "optional": "Merging it is optional. You can create and deploy now.",
         "failed": "Could not open the starter pull request"
       },
       "subdirectory": "Site is in a subdirectory",
@@ -7204,7 +7207,10 @@
       "general": "General",
       "content": "Content",
       "previews": "Previews",
+      "previewBuilds": "Preview builds",
       "previewsEnabledHint": "A preview for every pull request.",
+      "previewComments": "Post PR comments",
+      "previewCommentsHint": "Build status and preview link in your PR.",
       "publishing": "Publishing",
       "saved": "Settings saved",
       "savedRebuilding": "Settings saved. Rebuilding…",
@@ -7342,6 +7348,7 @@
         "phases": {
           "queued": "Queued",
           "preparing": "Preparing source",
+          "preparingShort": "Preparing",
           "building": "Building",
           "deploying": "Deploying",
           "execution": "Build & deploy"

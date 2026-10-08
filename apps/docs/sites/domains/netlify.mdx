@@ -1,0 +1,64 @@
+---
+title: "Serve your site under a path on Netlify"
+sidebarTitle: "Netlify"
+description: "Forward acme.com/blog to Notra with proxy rules in Netlify's _redirects file."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/netlify
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra with proxy rules in Netlify's `_redirects` file. A rule with the status `200` proxies a path to another origin, and the `!` forces the rule even when a file exists at that path. Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+<Steps>
+  <Step title="Add the proxy rules">
+    Put a `_redirects` file in the folder Netlify publishes (often `public/` or `dist/`), or add the rules to an existing one:
+
+    <CodeGroup>
+    ```text _redirects
+    /blog          https://acme.notra.site/blog          200!
+    /blog/*        https://acme.notra.site/blog/:splat   200!
+    /changelog     https://acme.notra.site/changelog     200!
+    /changelog/*   https://acme.notra.site/changelog/:splat  200!
+    ```
+
+    ```toml netlify.toml
+    [[redirects]]
+      from = "/blog"
+      to = "https://acme.notra.site/blog"
+      status = 200
+      force = true
+
+    [[redirects]]
+      from = "/blog/*"
+      to = "https://acme.notra.site/blog/:splat"
+      status = 200
+      force = true
+
+    [[redirects]]
+      from = "/changelog"
+      to = "https://acme.notra.site/changelog"
+      status = 200
+      force = true
+
+    [[redirects]]
+      from = "/changelog/*"
+      to = "https://acme.notra.site/changelog/:splat"
+      status = 200
+      force = true
+    ```
+    </CodeGroup>
+
+    Netlify uses the first rule that matches, so put these above any catch-all rule like `/* /index.html 200`.
+  </Step>
+  <Step title="Deploy and check">
+    Deploy, open `https://www.acme.com/blog/_notra/probe.txt` to confirm the rule works, then click **Check** on the domain in Notra.
+  </Step>
+</Steps>

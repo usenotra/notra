@@ -1,0 +1,240 @@
+---
+title: "blog.json reference"
+sidebarTitle: "blog.json"
+description: "Lists the settings you can put in blog.json, along with their types, limits and defaults."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/reference/blog-json
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+`blog.json` sits at the root of your site folder. Every setting is optional except `name`, and the whole file is optional too, so without it the site builds with the defaults below and the site name from the dashboard.
+
+## JSON Schema
+
+Start the file with `$schema` to get autocomplete and inline errors in VS Code, Cursor, Zed and JetBrains editors:
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme"
+}
+```
+
+Notra publishes the schema at [usenotra.com/schemas/blog.json](https://usenotra.com/schemas/blog.json) (JSON Schema draft 2020-12), and you can also use it to validate the file in CI or generate types:
+
+```bash
+curl -s https://usenotra.com/schemas/blog.json | npx json-schema-to-typescript > blog-config.d.ts
+```
+
+## Validation
+
+Every build checks `blog.json` before it builds anything, and mistakes stop the build, with the deployment log and the GitHub check naming the setting and what to change:
+
+```text
+✖ blog.json  blog.layout: Invalid option: expected one of "grid"|"list"|"magazine"
+```
+
+- Notra ignores an unknown top-level setting with a warning that suggests the closest match, like `Unknown setting "navBar" is ignored. Did you mean "navbar"?`.
+- Unknown keys inside `authors`, `integrations` and `security` stop the build, because a typo there would turn something off without any warning.
+- Notra ignores other unknown nested keys.
+
+The tables below use these shared formats:
+
+| Format | Rule |
+| --- | --- |
+| Color | Hex with 3 or 6 digits, like `#0D9373` |
+| Path | A file in your site, like `/images/logo.svg`, or a full URL |
+| Link | A path starting with `/`, an `http(s)://` URL or a `mailto:` address |
+| Icon | A [Lucide](https://lucide.dev/icons) icon name in kebab case, like `book-open` |
+
+## Site
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `$schema` | string | | The JSON Schema URL, for your editor |
+| `name` | string, 1 to 80 characters | **Required** | Site name in the header, titles, share images and `llms.txt` |
+| `description` | string, up to 300 characters | | Site description, and the fallback for section descriptions |
+| `theme` | `"notra"` | `"notra"` | The only theme so far |
+| `logo` | Path, or `{ light, dark, href? }` | | Header logo, and `href` sets where it links to. See [details](/sites/customize/navigation#logo-and-favicon) |
+| `favicon` | Path, or `{ light, dark }` | | Browser tab icon |
+
+## Design
+
+See [Design and CSS](/sites/customize/design).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `colors.primary` | Color | `#8B5CF6` | Links, highlights and active states |
+| `colors.light` | Color | `primary` | The accent in dark mode |
+| `colors.dark` | Color | `primary` | Button color |
+| `appearance` | `"light" \| "dark" \| "system"` or `{ default, strict }` | `"system"` | Starting mode, and `strict: true` hides the toggle |
+| `fonts.family` | string | Inter | A Google Font, or the name of your own font with `source` |
+| `fonts.weight` | 100 to 900 | | Font weight |
+| `fonts.source` | Path | | Your own font file |
+| `fonts.format` | `"woff2" \| "woff"` | `"woff2"` | Format of `source` |
+| `fonts.heading`, `fonts.body` | `{ family, weight?, source?, format? }` | | A separate font for headings or body text |
+| `background.decoration` | `"none" \| "grid" \| "dots" \| "gradient"` | `"none"` | Page decoration |
+| `background.color` | `{ light?, dark? }` Colors | | Page color per mode |
+| `background.image` | Path, or `{ light, dark }` | | Page background image |
+| `styling.codeblocks` | `"system" \| "dark"`, a Shiki theme, or `{ light, dark }` | `"system"` | [Syntax theme](/sites/components/code#syntax-theme) |
+| `layout.width` | 40 to 120 or `"full"` | `72` | Widest content column, in rem |
+
+## Navigation
+
+See [Logo, navigation and banner](/sites/customize/navigation).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `navbar.links` | Up to 8 of `{ label, href, icon? }` or `{ type, href, label? }` | `[]` | Header links, where `type` is `github`, `discord`, `x`, `linkedin`, `youtube` or `slack` |
+| `navbar.primary` | `{ type, href }` | | Secondary button with a platform icon |
+| `navbar.cta` | `{ label, href }` | | Main call to action |
+| `footer.links` | Up to 16 links, or up to 6 `{ header?, items }` columns with 1 to 12 links | `[]` | Footer links |
+| `footer.socials` | Object of platform → URL | `{}` | `x`, `github`, `linkedin`, `youtube`, `discord`, `slack`, `instagram`, `facebook`, `bluesky`, `threads`, `reddit`, `medium`, `telegram`, `hacker-news`, `website` |
+| `banner.content` | Markdown, 1 to 300 characters | **Required** in `banner` | One line across the top of every page |
+| `banner.type` | `"info" \| "warning" \| "critical"` | `"info"` | Banner color |
+| `banner.color` | Color, or `{ light, dark }` | | Your own banner color |
+| `banner.dismissible` | boolean | `false` | Show a close button |
+| `contextual.options` | Up to 12 of `copy`, `view`, `chatgpt`, `claude`, `t3chat`, `perplexity`, `grok` or `{ title, href, description?, icon? }` | All seven built-ins | The post actions menu |
+| `contextual.display` | `"meta" \| "none"` | `"meta"` | `none` hides the post actions |
+
+Link labels are up to 60 characters.
+
+## Blog
+
+See [Layouts](/sites/customize/layouts#blog).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `blog.title` | string, 1 to 120 characters | `"Blog"` | Index heading |
+| `blog.description` | string, up to 400 characters | Site `description` | Line under the heading |
+| `blog.layout` | `"grid" \| "list" \| "magazine"` | `"grid"` | Index layout |
+| `blog.hero.style` | `"wash" \| "plain" \| "image" \| "none"` | `"wash"` | Index hero |
+| `blog.hero.eyebrow` | string, up to 60 characters | | Line above the heading |
+| `blog.hero.image` | Path | | Image for the `image` style |
+| `blog.featured` | `"latest" \| "none"` or up to 6 post paths | `"none"` | Posts pinned on top |
+| `blog.card.image` | boolean | `false` | Cover image on cards |
+| `blog.card.excerpt` | boolean | `true` | Summary on cards |
+| `blog.card.author` | boolean | `true` | First author on cards |
+| `blog.card.date` | boolean | `true` | Date on cards |
+| `blog.card.readingTime` | boolean | `false` | Reading time on cards |
+| `blog.post.toc` | boolean | `true` | "On this page" |
+| `blog.post.authorCard` | boolean | `true` | Author list beside the post, or under the title |
+| `blog.post.readingTime` | boolean | `true` | Reading time next to the date |
+| `blog.post.pagination` | boolean | `true` | Previous and next post |
+| `blog.post.width` | `"wide" \| "narrow"` | `"wide"` | Post layout |
+
+## Changelog
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `changelog.title` | string, 1 to 120 characters | `"Changelog"` | Index heading |
+| `changelog.description` | string, up to 400 characters | Site `description` | Line under the heading |
+| `changelog.layout` | `"timeline" \| "cards" \| "compact"` | `"timeline"` | Index layout |
+| `changelog.hero` | Same as `blog.hero` | `"wash"` | Index hero |
+
+## Authors
+
+`authors` is an object that maps each author id to an author. See [Authors](/sites/posts#authors).
+
+| Setting | Type | Description |
+| --- | --- | --- |
+| id | Lowercase letters, digits and dashes, 1 to 40 characters | Used in a post's `author` |
+| `name` | string, 1 to 80 characters, **required** | Display name |
+| `title` | string, up to 80 characters | Role, like "Engineer" |
+| `avatar` | `/path` or `https://` URL | Profile picture |
+| `bio` | string, up to 300 characters | Short bio on the author page |
+| `url`, `x`, `linkedin`, `github` | URL | Profile links |
+
+## SEO
+
+See [SEO, share images and redirects](/sites/customize/seo).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `seo.metatags` | Object of name → value, with values up to 500 characters | `{}` | Extra `<meta>` tags |
+| `seo.indexing` | `"navigable" \| "all"` | `"navigable"` | `all` also indexes author pages |
+| `seo.organization` | `{ name, legalName?, url?, logo?, sameAs? }` | From `name`, `logo` and `footer.socials` | The publisher for structured data, with up to 12 `sameAs` URLs |
+| `thumbnails.enabled` | boolean | `true` | Generated share images |
+| `thumbnails.appearance` | `"light" \| "dark"` | `"light"` | Share image colors |
+| `thumbnails.background` | Path to a PNG, JPEG or SVG | | Share image background |
+| `errors.404.title` | string, up to 120 characters | "This page doesn't exist" | 404 heading |
+| `errors.404.description` | string, up to 300 characters | | 404 text |
+| `errors.404.redirect` | boolean | `false` | Send readers to the section home instead |
+| `metadata.timestamp` | boolean | `true` | Show "Updated" dates |
+| `markdown.instructions` | string of up to 2000 characters, or up to 20 strings of up to 500 characters each | | Instructions for AI agents in `llms.txt` and every Markdown page |
+
+## Redirects
+
+`redirects` is a list of up to 500 rules. See [Redirects](/sites/customize/seo#redirects).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `source` | Path starting with `/` | **Required** | Full path on your domain, ending in `/*` to match everything below it |
+| `destination` | `/path` or `https://` URL | **Required** | Where to send readers, ending in `/*` to keep the rest of the path |
+| `permanent` | boolean | `true` | `308` when true, `307` when false |
+
+## Variables
+
+`variables` is an object that maps names to values, which you use as `{{ name }}` in posts. See [Variables](/sites/posts#variables).
+
+Names start with a letter and use letters, digits, `_` and `-`, up to 40 characters, and values are up to 500 characters. Variables also work in `description`, `banner.content` and the `title` and `description` of `blog` and `changelog`.
+
+## Integrations
+
+See [Analytics and scripts](/sites/analytics-and-scripts#analytics-integrations).
+
+| Setting | Format |
+| --- | --- |
+| `integrations.databuddy.clientId` | 8 to 64 letters, digits, `_` or `-` |
+| `integrations.plausible.domain` | Your domain as added in Plausible, like `acme.com` |
+| `integrations.posthog.apiKey` | Starts with `phc_` |
+| `integrations.posthog.apiHost` | An `https://` URL, with the default `https://us.i.posthog.com` |
+| `integrations.ga4.measurementId` | Like `G-ABC123XYZ9` |
+
+## Security
+
+See [Content-Security-Policy](/sites/analytics-and-scripts#content-security-policy).
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `security.contentSecurityPolicy` | boolean | `true` | Send a `Content-Security-Policy` header |
+| `security.allowedOrigins` | Up to 32 `https://` or `wss://` origins, `*.` wildcards allowed | `[]` | Extra hosts scripts may load from and connect to |
+
+## Full example
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "description": "Notes from the Acme team.",
+  "logo": { "light": "/images/logo.svg", "dark": "/images/logo-dark.svg", "href": "https://acme.com" },
+  "favicon": "/images/favicon.svg",
+  "colors": { "primary": "#0D9373", "light": "#55D799" },
+  "fonts": { "family": "Inter" },
+  "navbar": {
+    "links": [{ "label": "Docs", "href": "https://acme.com/docs" }],
+    "primary": { "type": "github", "href": "https://github.com/acme/acme" },
+    "cta": { "label": "Sign up", "href": "https://acme.com/signup" }
+  },
+  "footer": {
+    "links": [{ "label": "Privacy", "href": "https://acme.com/privacy" }],
+    "socials": { "x": "https://x.com/acme", "github": "https://github.com/acme" }
+  },
+  "blog": { "title": "Acme Blog", "layout": "magazine", "card": { "image": true } },
+  "changelog": { "title": "What's new", "layout": "timeline" },
+  "authors": {
+    "jan": { "name": "Jan Burzinski", "title": "Engineer", "avatar": "/images/team/jan.jpg" }
+  },
+  "variables": { "product": "Acme Flow" },
+  "redirects": [{ "source": "/blog/old-post", "destination": "/blog/new-post" }],
+  "integrations": { "plausible": { "domain": "acme.com" } }
+}
+```

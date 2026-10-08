@@ -1,0 +1,134 @@
+---
+title: "Your own components"
+description: "Write React components and reusable MDX snippets, and use them in any post."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/custom-components
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+You can write your own React components for anything the [built-in components](/sites/components/overview) don't cover, such as a newsletter form, a pricing table or an interactive demo. Notra renders them to HTML at build time, and they become interactive in the browser.
+
+## A component in a snippet
+
+Put the component in `snippets/` as a `.jsx` file with a **named export**:
+
+```jsx snippets/counter.jsx
+export const Counter = ({ start = 0 }) => {
+  const [count, setCount] = useState(start);
+  return (
+    <button className="rounded-lg border border-border px-3 py-1" onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
+};
+```
+
+Import it by name in any post, with a path from the root of the site:
+
+```mdx blog/launch.mdx
+import { Counter } from "/snippets/counter.jsx";
+
+<Counter start={3} />
+```
+
+## A component inside a post
+
+For a component you only need once, export it right in the `.mdx` file:
+
+```mdx blog/launch.mdx
+export const Highlight = ({ children }) => (
+  <span className="rounded bg-primary/10 px-1 text-primary">{children}</span>
+);
+
+This is <Highlight>important</Highlight>.
+```
+
+An inline component can't use anything imported in the same file, so move it into a snippet when it needs to.
+
+## Rules
+
+- **React hooks need no import.** `useState`, `useEffect`, `useRef`, `useCallback`, `useMemo`, `useContext`, `useReducer`, `useId`, `useLayoutEffect`, `useTransition` and `useDeferredValue` are available without importing them, and in a `.jsx` snippet you can import anything else from `"react"`.
+- **Use named exports.** Notra doesn't support `export default` or `export *`.
+- **Import only from your repository.** Paths start with `/` (from the site root), `./` or `../`, and Notra doesn't support npm packages, JSON files or dynamic `import()`. A `.jsx` snippet can only import from `"react"`, so import every snippet you need in the MDX file.
+- **No Node.js.** `process`, `require`, `Buffer`, `eval`, `new Function` and `import.meta` stop the build.
+- **Tailwind classes work.** This includes the theme colors `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary` and `text-primary`, and you can also style class names from any `.css` file.
+
+The build checks every rule without running your code and names the file and line of each problem.
+
+## Browser-only code
+
+Components render once during the build and again in the browser, so code that reads `window`, `document` or `localStorage` while rendering breaks the build. Read them in `useEffect`:
+
+```jsx snippets/local-time.jsx
+export const LocalTime = ({ iso }) => {
+  const [text, setText] = useState(iso);
+  useEffect(() => setText(new Date(iso).toLocaleString()), [iso]);
+  return <time dateTime={iso}>{text}</time>;
+};
+```
+
+Or render the component only in the browser with `client:only="react"`:
+
+```mdx
+<LocalTime iso="2026-10-08T09:00:00Z" client:only="react" />
+```
+
+Every imported or inline component becomes interactive as soon as the page loads. To load one later, add `client:visible` (when it scrolls into view) or `client:idle` (when the browser is idle).
+
+## Reusable content
+
+MDX files in `snippets/` hold text you repeat across posts, and you import them as a component and pass props to fill in the blanks:
+
+```mdx snippets/install.mdx
+Install **{packageName}** with your package manager. You need version {version} or newer.
+```
+
+```mdx blog/launch.mdx
+import Install from "/snippets/install.mdx";
+
+<Install packageName="acme-flow" version="2.0" />
+```
+
+MDX snippets can import other snippets and use built-in components. Variables like `{{ product }}` only work in posts rather than snippets, so pass a prop instead.
+
+## Your own buttons
+
+Give your component class names and style them in any `.css` file:
+
+```jsx snippets/button.jsx
+export const Button = ({ href, variant = "primary", children }) => (
+  <a className={`brand-button brand-button-${variant}`} href={href}>
+    {children}
+  </a>
+);
+```
+
+```css buttons.css
+.brand-button {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  padding: 0 0.875rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+.brand-button-primary { background: var(--primary); color: white; }
+```
+
+```mdx
+import { Button } from "/snippets/button.jsx";
+
+<Button href="https://acme.com/signup">Start free</Button>
+```
+
+## Security
+
+Builds run in a sandbox without network access, but Notra serves your components from your domain, so anyone who can commit to the repository can run JavaScript on `acme.com/blog`. Only give write access to people you trust with your website.

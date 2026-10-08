@@ -73,7 +73,7 @@ export function SiteDeploymentTimeline({
               <li
                 aria-current={phase.state === "active" ? "step" : undefined}
                 aria-label={`${label} · ${state}${duration ? ` · ${duration}` : ""}`}
-                className="min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
+                className="@container/phase min-w-24 grow-(--phase-duration) basis-0 space-y-1.5"
                 data-phase={phase.id}
                 data-state={phase.state}
                 key={phase.id}
@@ -83,15 +83,32 @@ export function SiteDeploymentTimeline({
                   } as CSSProperties
                 }
               >
-                <div className="text-muted-foreground truncate text-xs">
-                  {label}
+                <div
+                  className="text-muted-foreground truncate text-xs"
+                  title={label}
+                >
+                  {phase.id === "preparing" ? (
+                    <>
+                      <span className="@min-[8rem]/phase:hidden">
+                        {t("phases.preparingShort")}
+                      </span>
+                      <span className="hidden @min-[8rem]/phase:inline">
+                        {label}
+                      </span>
+                    </>
+                  ) : (
+                    label
+                  )}
                 </div>
                 <div
                   className={cn(
-                    "bg-background flex h-8 items-center justify-end gap-2 rounded-md border px-2",
-                    phase.state === "pending" && "bg-muted/40",
-                    phase.state === "active" && "border-primary/40",
-                    phase.state === "failed" && "border-destructive/40"
+                    "bg-muted/40 text-muted-foreground relative isolate flex h-8 items-center justify-end gap-2 overflow-hidden rounded-md border px-2 inset-shadow-sm inset-shadow-white/15 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[repeating-linear-gradient(135deg,currentColor_0px,currentColor_3px,transparent_3px,transparent_8px)] before:opacity-15",
+                    phase.state === "complete" &&
+                      "border-geo-up/30 bg-geo-up/5 text-geo-up",
+                    (phase.state === "active" || phase.state === "stopped") &&
+                      "border-warning/30 bg-warning/5 text-warning",
+                    phase.state === "failed" &&
+                      "border-destructive/40 bg-destructive/5 text-destructive"
                   )}
                 >
                   <span
@@ -106,10 +123,10 @@ export function SiteDeploymentTimeline({
                       className={cn(
                         "size-3.5 shrink-0",
                         phase.state === "active" &&
-                          "text-primary motion-safe:animate-spin",
+                          "text-warning motion-safe:animate-spin",
                         phase.state === "complete" && "text-geo-up",
                         phase.state === "failed" && "text-destructive",
-                        phase.state === "stopped" && "text-muted-foreground"
+                        phase.state === "stopped" && "text-warning"
                       )}
                       icon={icon}
                     />
