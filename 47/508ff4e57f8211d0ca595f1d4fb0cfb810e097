@@ -1,0 +1,195 @@
+apps/dashboard/src/lib/sites/serialize.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 49
+apps/docs/sites/domains/netlify.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-64
+apps/docs/sites/domains/vercel.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-59
+apps/onboarding-agent/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 26,31
+apps/docs/sites/repository.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 3-14,17,20-36,39,41,43,45,49-50,54,56,58,60-64,66-69,71,73,75,77-78,81,83,85-95
+packages/sites-server/README.md
+  s_c919a343b1b3a7::t_751e6a572d2507 27,126-134
+apps/docs/sites/domains/cloudflare.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-92
+packages/sites-server/src/types/sites.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 61
+packages/webhooks/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 35-36
+apps/dashboard/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 29,37-38,85,87,108-109,112,122,131,142
+apps/docs/sites/analytics-and-scripts.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 4-14,17-22,25,37,41-44,49,54,63,65-67,81,83-85,101,111
+apps/dashboard/src/types/sites.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 109,138
+apps/docs/sites/customize/seo.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-82
+apps/web/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 25,35-36,65,80,86
+packages/analytics/src/tinybird/datasources.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 236-239,271-274,308-311
+packages/sites-server/src/utils/preview-comment.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 1-36
+apps/docs/sites/components/steps.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-52
+package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 40,51,65
+packages/schemas/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 30
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 97,1326-1328,2376-2382,2709,2804
+apps/dashboard/src/components/sites/site-create-stage.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 23,32,46,48-49,57-60
+packages/ai/package.json
+  s_c919a343b1b3a7::t_890672ce756c06 40,67,73-74,91
+apps/docs/sites/components/cards.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-70
+packages/db/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 26,28,33
+apps/dashboard/src/utils/site-proxy-recipes.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 116-117,121
+apps/dashboard/src/utils/site-links.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 76-93
+apps/dashboard/src/components/sites/site-import-list.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 11-14,28,36,39-59,76-77,92-106,147-157,162-165,171-176,199-226,228-243,245-265
+packages/sites-server/src/reporting.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 2-3,14,20,55,139,178-247
+apps/api/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 38,40,48
+apps/agent/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 33-34,42
+packages/db/src/schema.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 4242-4244
+packages/email/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 37
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 68
+apps/dashboard/messages/en.json
+  s_c919a343b1b3a7::t_751e6a572d2507 7017,7063-7065,7069,7210,7212-7213,7351
+apps/docs/sites/components/accordions.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-53
+apps/docs/sites/publishing.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 2-15,18-64,66,68,70,72,74-78,80,82,84,86,88
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 193,199-212
+apps/dashboard/messages/de.json
+  s_c919a343b1b3a7::t_751e6a572d2507 7017,7063-7065,7069,7210-7213,7351
+apps/docs/sites/match-your-website.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 4-14,20,25,48,51-53,57,65-66,68-73,83,87,91
+apps/sites-builder/src/styles/global.css
+  s_c919a343b1b3a7::t_751e6a572d2507 422,435
+packages/sites-server/src/constants/moderation.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 14-15
+packages/sites-server/src/github.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 2-5,32,291-352
+apps/docs/sites/agents.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 2-15,18,22,24-25,31,33,37,44,48-50,52,57,59-66,69
+apps/docs/sites/domains/nextjs.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-64
+apps/docs/sites/reference/blog-json.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-240
+packages/sites-server/src/types/github.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 79-86
+apps/docs/sites/domains/tanstack-start.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-95
+apps/docs/sites/customize/layouts.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-92
+apps/docs/sites/posts.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-141
+apps/docs/sites/customize/navigation.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 2-15,18,20,23-26,30-31,33,39,44-59,69-70,82-88,92,98,103-105
+packages/kiwi/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 24-25
+packages/db/migrations/meta/_journal.json
+  ai_agent 795-801
+packages/sites-core/src/utils/hosts.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 49,53-54
+packages/posthog/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 21
+apps/docs/sites/customize/design.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-124
+apps/docs/sites/components/media.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-78
+packages/db/tests/build-telemetry-migration.test.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 60-62
+apps/docs/sites/components/overview.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-85
+packages/analytics/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 24
+apps/docs/sites/previews.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-44
+packages/db/migrations/0113_site_preview_comments.sql
+  ai_agent 1
+packages/ui/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 30-31,52,75,78
+packages/utils/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 32
+apps/dashboard/tests/sites-get-read-only.test.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 56
+apps/docs/sites/domains/subpath.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-131
+packages/db/migrations/meta/0113_snapshot.json
+  ai_agent 1-15480
+apps/docs/sites/domains/subdomain.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-77
+apps/dashboard/src/components/sites/site-create-starter.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 6,18,24,45,54-55,57,64-81,85,93-109
+bun.lock
+  ai_agent 12,23,49-50,58,107,109,117,135,143-144,191,193,214-215,218,228,237,248,298,303,401,411-412,441,456,462,505,511-512,529,545,570,572,577,592,655-656,668,688,764,780-781,802,825,828,838,856-857,895,1483,2877,2879,2881,2883,2885,2887,3003,3017,4327,4501,4665,4867,5091,5093,5095,5101,5147,5481,5765,5877,6267-6268,6357,6737,7161-7162,7203,7639-7640,8549
+apps/dashboard/src/components/sites/site-create-source-fields.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 5-7,44-48,118-146
+apps/docs/sites/reference/limits.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-73
+apps/docs/sites/quickstart.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-93
+apps/dashboard/src/components/evilcharts/ui/echarts-scrub.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 8-12,212,238
+apps/dashboard/src/components/sites/site-deployment-timeline.tsx
+  s_c919a343b1b3a7::t_751e6a572d2507 76,86-101,105-111,126,129
+packages/tools/package.json
+  s_c919a343b1b3a7::t_751e6a572d2507 25
+apps/docs/sites/components/callouts.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-75
+packages/sites-server/src/moderation.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 44-48
+packages/sites-server/src/constants/github.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 13-18
+packages/sites-server/src/sites.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 219
+apps/dashboard/src/constants/site-create.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 79-80
+apps/docs/sites/overview.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 3-6,8-16,18,20-22,24,26-31,33,36-37,39-40,42-43,45-46,49-71
+apps/docs/sites/domains/overview.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-59
+apps/docs/sites/components/tabs.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-53
+apps/docs/sites/domains/nginx.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-74
+apps/docs/sites/custom-components.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 2-14,17,19,21,23-31,34,36-37,39-49,51,54-74,78,80-81,84,86,88-104,117,119,121,123,129,134
+apps/docs/sites/components/code.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 2-14,17,19,21,23-27,29-32,34-37,39,41,43-46,49-65,68-69,72,74,76,78,80-81
+apps/docs/docs.json
+  s_c919a343b1b3a7::t_751e6a572d2507 94-105,317-390
+apps/dashboard/src/utils/site-settings.ts
+  s_c919a343b1b3a7::t_751e6a572d2507 31,67-68
+apps/docs/sites/components/badges-and-updates.mdx
+  s_c919a343b1b3a7::t_751e6a572d2507 1-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "47508ff4e57f8211d0ca595f1d4fb0cfb810e097",
+  "prompts": {},
+  "sessions": {
+    "s_c919a343b1b3a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d702b52-a27a-4406-bcdc-2ff9e43a1186",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
