@@ -726,7 +726,6 @@
         "@notra/geo-core": "workspace:*",
         "@notra/sites-compiler": "workspace:*",
         "@notra/sites-core": "workspace:*",
-        "@upstash/box": "^0.5.0",
         "drizzle-orm": "^0.45.2",
         "effect": "4.0.0",
         "zod": "^4.6.5",
