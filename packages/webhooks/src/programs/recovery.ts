@@ -1,6 +1,10 @@
 import { Effect } from "effect";
 
-import { RECOVERY_BATCH_SIZE, RETENTION_DAYS } from "../constants/delivery";
+import {
+  DUE_DELIVERIES_PER_SWEEP,
+  RECOVERY_BATCH_SIZE,
+  RETENTION_DAYS,
+} from "../constants/delivery";
 import { CountRow, IdentifierRow, PipelineMetrics } from "../schemas/webhooks";
 import { decodeRows, WebhookDatabase } from "../services/database";
 import { WebhookQueues } from "../services/queue";
@@ -48,8 +52,8 @@ const removeExpiredEvents: SqlStatement = {
 
 const selectDueDeliveries: SqlStatement = {
   sql: `SELECT id FROM webhook_deliveries WHERE status IN ('pending', 'retrying') AND next_attempt_at <= now()
-    ORDER BY attempt_count, next_attempt_at, id LIMIT $1`,
-  parameters: [RECOVERY_BATCH_SIZE],
+    ORDER BY next_attempt_at, id LIMIT $1`,
+  parameters: [DUE_DELIVERIES_PER_SWEEP],
 };
 
 const selectMetrics: SqlStatement = {

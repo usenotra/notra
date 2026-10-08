@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect";
 
+import { DELIVERY_CONCURRENCY } from "../constants/delivery";
 import { DELIVERY_QUEUE_NAME } from "../constants/queues";
 import { WebhookValidationError } from "../errors/webhooks";
 import { deliver } from "../programs/deliveries";
@@ -7,8 +8,6 @@ import { DeliveryMessage } from "../schemas/webhooks";
 
 export const processQueueBatch = Effect.fn("webhooks.processQueueBatch")(
   function* (batch: MessageBatch<unknown>) {
-    // A batch holds at most `max_batch_size` (10) messages and each delivery
-    // mostly waits on I/O, so all of them run at once.
     yield* Effect.forEach(
       batch.messages,
       (message) =>
@@ -37,7 +36,7 @@ export const processQueueBatch = Effect.fn("webhooks.processQueueBatch")(
             })
           )
         ),
-      { concurrency: "unbounded", discard: true }
+      { concurrency: DELIVERY_CONCURRENCY, discard: true }
     );
   }
 );
