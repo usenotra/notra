@@ -1,0 +1,9 @@
+apps/dashboard/src/constants/site-create.ts
+  ai_agent 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "edaaa85ffb0867d25993f5027322b7ac59a9d862",
+  "prompts": {}
+}
