@@ -118,6 +118,7 @@ export default {
     return fetch(new URL(url.pathname + url.search, SITE_ORIGIN), {
       method: request.method,
       headers,
+      body: request.body,
       redirect: "manual",
     });
   },
