@@ -1397,6 +1397,22 @@
         "noAssetsTitle": "Richtlinien sind leer",
         "noAssetsDescription": "Für diese Identität wurden noch keine Marken-Assets gefunden. Aktualisiere, um die neuesten Logos, Farben und Screenshots zu übernehmen."
       },
+      "pdf": {
+        "title": "Richtlinien-PDF",
+        "uploadLabel": "Markenrichtlinien-PDF hochladen",
+        "sizeHint": "PDF, max. {maxMb} MB",
+        "notPdf": "Lade eine PDF-Datei hoch",
+        "tooLarge": "Das Richtlinien-PDF darf höchstens {maxMb}MB groß sein",
+        "badFilename": "Der PDF-Dateiname muss zwischen 1 und 200 Zeichen lang sein",
+        "saved": "Richtlinien-PDF gespeichert",
+        "saveFailed": "Das PDF konnte nicht gespeichert werden",
+        "removed": "Richtlinien-PDF entfernt",
+        "removeFailed": "Das PDF konnte nicht entfernt werden",
+        "replace": "Richtlinien-PDF ersetzen",
+        "remove": "{filename} entfernen",
+        "open": "{filename} öffnen",
+        "untitled": "PDF"
+      },
       "tokens": {
         "title": "UI-Tokens"
       },

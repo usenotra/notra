@@ -8,6 +8,8 @@ import type {
   ContextDevErrorResponse,
   ContextDevFetchWebpageInput,
   ContextDevFetchWebpageResponse,
+  ContextDevParsePdfInput,
+  ContextDevParsePdfResponse,
   ContextDevScrapingResult,
   ContextDevScreenshotInput,
   ContextDevScreenshotResponse,
@@ -551,6 +553,56 @@ export async function searchBrands(
     `/brand/search?${params.toString()}`,
     { method: "GET", signal: options?.signal }
   );
+}
+
+export function normalizeParsePdfResponse(
+  response: ContextDevParsePdfResponse | null | undefined
+): string {
+  if (!response) {
+    return "";
+  }
+  const pages = Array.isArray(response.pages) ? response.pages : [];
+  const pageText = pages
+    .map((page) => page?.markdown || page?.text || "")
+    .filter((text) => text.length > 0)
+    .join("\n");
+  const text = pageText || response.markdown || response.text || "";
+  return text.trim();
+}
+
+export interface ContextDevParsePdfResult {
+  text: string;
+  pageCount: number | null;
+}
+
+// PDF text extraction via context.dev Parse (pdfs-and-ocr): the file must
+// already be publicly reachable, so callers pass the uploaded file URL.
+// Throws on transport errors and empty results; callers fall back to local
+// parsing when the service is unavailable. pageCount is null when the
+// response carries whole-document text only, so callers enforce their own
+// page limits when a count is available.
+export async function parsePdfDocument(
+  input: ContextDevParsePdfInput
+): Promise<ContextDevParsePdfResult> {
+  const response = await requestContextDev<ContextDevParsePdfResponse>(
+    "/parse",
+    {
+      body: JSON.stringify({
+        url: input.url,
+        ocr: input.ocr ?? true,
+        timeoutMS: input.timeoutMS ?? 30_000,
+      }),
+      method: "POST",
+    }
+  );
+  const text = normalizeParsePdfResponse(response);
+  if (!text) {
+    throw new Error("PDF parse returned no text");
+  }
+  return {
+    text,
+    pageCount: Array.isArray(response.pages) ? response.pages.length : null,
+  };
 }
 
 export async function retrieveStyleguide(

@@ -97,6 +97,10 @@ export function demoContextDevResponse(
     }
     case "/web/styleguide":
       return { status: "ok", domain, styleguide: DEMO_STYLEGUIDE };
+    case "/parse":
+      return {
+        markdown: `# Fieldnote brand guidelines\n\nPrimary voice: clear, direct, and helpful.`,
+      };
     case "/web/screenshot":
       return {
         status: "ok",

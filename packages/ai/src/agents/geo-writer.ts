@@ -49,13 +49,14 @@ import type {
   PostToolsResult,
 } from "@notra/ai/types/post-tools";
 import type { RouteUsageSummary } from "@notra/ai/types/router";
+import { formatBrandGuidelineSourceInstructions } from "@notra/ai/utils/brand-guideline-source";
 import { updatePostRecord } from "@notra/ai/utils/post-service";
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { logWarn } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
 import { db } from "@notra/db/drizzle";
-import { posts } from "@notra/db/schema";
+import { brandGuidelines, posts } from "@notra/db/schema";
 import {
   generateText,
   type FinishReason,
@@ -546,6 +547,10 @@ export async function runGeoWriter(
     log
   );
 
+  const guideline = await db.query.brandGuidelines.findFirst({
+    where: eq(brandGuidelines.brandSettingsId, brandSettingsId),
+    columns: { sourcePdfText: true },
+  });
   const instructions = buildGeoWriterInstructions({
     brief,
     brandName,
@@ -555,6 +560,9 @@ export async function runGeoWriter(
     today: now.toISOString().slice(0, 10),
     monthYear: formatMonthYear(now),
     language,
+    guidelineDocument: formatBrandGuidelineSourceInstructions(
+      guideline?.sourcePdfText
+    ),
   });
 
   const postToolsResult: PostToolsResult = {};

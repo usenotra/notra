@@ -1397,6 +1397,22 @@
         "noAssetsTitle": "Guidelines are empty",
         "noAssetsDescription": "No brand assets found for this identity yet. Refresh to pull the latest logos, colors and screenshots."
       },
+      "pdf": {
+        "title": "Guideline PDF",
+        "uploadLabel": "Upload brand guideline PDF",
+        "sizeHint": "PDF, max {maxMb} MB",
+        "notPdf": "Upload a PDF file",
+        "tooLarge": "Brand guideline PDF must be less than {maxMb}MB",
+        "badFilename": "PDF filename must be between 1 and 200 characters",
+        "saved": "Brand guideline PDF saved",
+        "saveFailed": "Failed to save the PDF",
+        "removed": "Brand guideline PDF removed",
+        "removeFailed": "Failed to remove the PDF",
+        "replace": "Replace guideline PDF",
+        "remove": "Remove {filename}",
+        "open": "Open {filename}",
+        "untitled": "PDF"
+      },
       "tokens": {
         "title": "UI Tokens"
       },

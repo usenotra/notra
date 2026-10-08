@@ -4,6 +4,7 @@ import { getValidToneProfile } from "@notra/ai/schemas/tone";
 import type { PostSourceMetadata } from "@notra/db/schema";
 import { flushPostHogServer } from "@notra/posthog/server";
 
+import { loadBrandGuidelineSourceInstructionsSafely } from "@/lib/brand-guidelines";
 import { generateEventBasedContent } from "@/lib/workflows/event/handlers";
 import type { EventGenerationStepInput } from "@/types/workflows/event-generation";
 import type { EventGenerationResult } from "@/types/workflows/workflows";
@@ -21,6 +22,16 @@ export async function runEventGeneration(
     eventData,
     chargeAiCredits,
   } = input;
+
+  const guidelineInstructions =
+    await loadBrandGuidelineSourceInstructionsSafely(brand?.id);
+  const customInstructions = [
+    brand?.customInstructions ?? "",
+    guidelineInstructions,
+  ]
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .join("\n\n");
 
   const sourceMetadata: PostSourceMetadata = {
     triggerId: trigger.id,
@@ -53,7 +64,7 @@ export async function runEventGeneration(
         companyName: brand?.companyName ?? undefined,
         companyDescription: brand?.companyDescription ?? undefined,
         audience: brand?.audience ?? undefined,
-        customInstructions: brand?.customInstructions ?? null,
+        customInstructions: customInstructions || null,
         customTone: brand?.customTone ?? null,
       },
       sourceMetadata,

@@ -136,6 +136,21 @@ export interface ContextDevBrandSearchResponse {
   results: ContextDevBrandSearchResult[];
 }
 
+export interface ContextDevParsePdfInput {
+  url: string;
+  ocr?: boolean;
+  timeoutMS?: number;
+}
+
+export interface ContextDevParsePdfResponse {
+  markdown?: string | null;
+  text?: string | null;
+  pages?: Array<{
+    markdown?: string | null;
+    text?: string | null;
+  } | null> | null;
+}
+
 export interface ContextDevStyleguideResponse {
   status: "ok";
   domain?: string;
