@@ -60,5 +60,5 @@ This guide forwards `acme.com/blog` to Notra with `rewrites` in `next.config.ts`
 
 - **`trailingSlash: true`** redirects `/blog` to `/blog/` and the check fails, so leave it off.
 - **`basePath`** is prefixed to every rewrite `source`, so with `basePath: "/app"` the rewrites match `/app/blog`. Use a [Vercel](/sites/domains/vercel) or [Cloudflare](/sites/domains/cloudflare) rewrite in front of the app instead.
-- **Security headers**: if you set a `Content-Security-Policy` for every route in `headers()`, exclude the section paths so it can never replace Notra's own policy for the site.
+- **Security headers.** If you set a `Content-Security-Policy` for every route in `headers()`, exclude the section paths so it can never replace Notra's own policy for the site.
 - Next.js passes Notra's redirects back to the browser and keeps the `Accept` header, so Markdown for AI agents works.

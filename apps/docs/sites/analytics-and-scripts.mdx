@@ -18,7 +18,7 @@ Every site comes with built-in analytics, and this page covers how to send visit
 
 ## Built-in analytics
 
-Every site counts its own visitors and their time on page with nothing to install, and you can turn this off under **Settings → Danger zone**. Open the site's **Analytics** page for people and AI agents on the site, or **Traffic** in GEO for AI crawlers and referrals across all your domains, while previews never count. See [AI agents and search](/sites/agents#ai-traffic-analytics).
+Every site counts its own visitors and their time on page with nothing to install, and you can turn this off under **Settings → Danger zone**. Open the site's **Analytics** page for people and AI agents on the site, or **Traffic** in GEO for AI crawlers and referrals across all your domains. Neither page counts visits to previews. See [AI agents and search](/sites/agents#ai-traffic-analytics).
 
 ## Analytics integrations
 
@@ -62,9 +62,9 @@ scripts/tracking/hotjar.js
 
 Notra loads every script on every page with `defer` from your site's own address, and the scripts run in the order shown above once the HTML has been parsed.
 
-- **Plain browser JavaScript**: these files are not modules, so `import` and `export` don't work in them, and `document.createElement("script")` loads a library from another host.
-- **Syntax check only**: the build checks the syntax and never runs your scripts, and a syntax error fails the build and shows the file and line.
-- **No imports from MDX**: your MDX can't import these files, so for a component, use a [snippet](/sites/custom-components) in `snippets/` instead.
+- These files are plain browser JavaScript rather than modules, so `import` and `export` don't work in them. To load a library from another host, use `document.createElement("script")`.
+- The build checks the syntax without running your scripts, and a syntax error fails the build and shows the file and line.
+- Your MDX can't import these files, so for a component, use a [snippet](/sites/custom-components) in `snippets/` instead.
 
 ```js scripts/external-links.js
 // Open links to other sites in a new tab.
@@ -80,9 +80,9 @@ for (const link of document.querySelectorAll("main a[href^='http']")) {
 
 Every page comes with a `Content-Security-Policy` header that says where scripts may come from and which servers they may connect to, and Notra builds it from your repository.
 
-- **Scripts**: they can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Notra allows inline scripts only if they were on the page at build time and hashes each of them, so a script injected later doesn't run.
-- **Connections**: `fetch`, beacons and WebSockets may connect to your site, your integrations and your `allowedOrigins`.
-- **Images, styles, fonts, videos and embeds**: the policy doesn't limit them, so posts can still show images and videos from anywhere.
+- **Scripts** can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Notra allows inline scripts only if they were on the page at build time and hashes each of them, so a script injected later doesn't run.
+- **Connections** from `fetch`, beacons and WebSockets may go to your site, your integrations and your `allowedOrigins`.
+- The policy doesn't limit **images, styles, fonts, videos and embeds**, so posts can still show images and videos from anywhere.
 
 If your custom scripts or components load code from another host or call an API, add that origin:
 
