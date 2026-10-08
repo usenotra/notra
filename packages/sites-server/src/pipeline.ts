@@ -1,7 +1,7 @@
 import { SITE_DEPLOYMENT_PHASES } from "@notra/sites-core/constants/deployment-timeline";
 import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
 import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
-import { Effect, Exit } from "effect";
+import { Effect, Exit, Option } from "effect";
 
 import { activateDeployment } from "./activation";
 import { runSandboxBuildEffect } from "./box-build";
@@ -22,6 +22,7 @@ import { r2PutEffect } from "./r2";
 import { openCheckRun, reportOutcome } from "./reporting";
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
 import type { SiteRepositoryAccess } from "./types/github";
+import type { BuildAndPublishOutcome } from "./types/pipeline";
 import type { Site } from "./types/sites";
 import { redactBuildLog } from "./utils/build-log";
 import { summarizeDiagnostics } from "./utils/diagnostics";
@@ -89,7 +90,10 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
         catch: (error) => error,
       })
     );
-    return { kind: "skipped" as const, reason: "The site is offline." };
+    return {
+      outcome: { kind: "skipped" as const, reason: "The site is offline." },
+      pendingTelemetryError: Option.none<unknown>(),
+    } satisfies BuildAndPublishOutcome;
   }
   const startedAt = new Date();
 
@@ -287,6 +291,7 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
   return yield* Effect.uninterruptibleMask((restore) =>
     Effect.gen(function* () {
       const result = yield* Effect.exit(restore(operation));
+      let pendingTelemetryError = Option.none<unknown>();
       if (Exit.isFailure(result)) {
         telemetryAvailable = true;
         const failure = result.cause.reasons.find(
@@ -301,7 +306,10 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
         yield* saveBuildTelemetryEffect(deployment.id, metrics, log).pipe(
           Effect.catch((error) => {
             if (Exit.isSuccess(result)) {
-              return Effect.fail(error);
+              if (result.value !== null) {
+                return Effect.fail(error);
+              }
+              pendingTelemetryError = Option.some(error);
             }
             const persistenceFailure = redactBuildLog(errorMessage(error), [
               accessToken,
@@ -315,7 +323,10 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
           })
         );
       }
-      return yield* result;
+      return {
+        outcome: yield* result,
+        pendingTelemetryError,
+      } satisfies BuildAndPublishOutcome;
     })
   );
 });
@@ -342,9 +353,9 @@ export const runDeploymentPipelineEffect = Effect.fn(
     try: () => openCheckRun(site, queued),
     catch: (error) => error,
   });
-  const ended =
+  const build =
     deployment.status === "ready"
-      ? null
+      ? { outcome: null, pendingTelemetryError: Option.none<unknown>() }
       : yield* buildAndPublish(site, deployment);
   const finished =
     (yield* Effect.tryPromise({
@@ -352,11 +363,14 @@ export const runDeploymentPipelineEffect = Effect.fn(
       catch: (error) => error,
     })) ?? deployment;
   const outcome: DeploymentOutcome =
-    ended ?? (yield* activationOutcome(site, finished));
+    build.outcome ?? (yield* activationOutcome(site, finished));
   yield* Effect.tryPromise({
     try: () => reportOutcome(site, finished, outcome),
     catch: (error) => error,
   });
+  if (Option.isSome(build.pendingTelemetryError)) {
+    return yield* Effect.fail(build.pendingTelemetryError.value);
+  }
   return outcome;
 });
 
