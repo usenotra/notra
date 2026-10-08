@@ -148,6 +148,10 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
         expect(html).toContain('href="https://site.example"');
       } else {
         expect(html).toContain(messages.sites.new.deploy.failed);
+        expect(html).toContain(
+          'class="inline-flex items-center gap-2 text-destructive"'
+        );
+        expect(html).not.toContain("mt-0.5 size-4 shrink-0");
         expect(html).toContain(messages.sites.new.deploy.viewDeployment);
         expect(html).not.toContain(messages.sites.new.deploy.openSite);
         expect(html).not.toContain('href="https://site.example"');

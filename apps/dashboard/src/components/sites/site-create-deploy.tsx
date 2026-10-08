@@ -99,7 +99,7 @@ export function SiteCreateDeploy({
     <span
       aria-live="polite"
       className={cn(
-        "inline-flex items-start gap-2",
+        "inline-flex items-center gap-2",
         ready && "text-success",
         failed && "text-destructive",
         !(ready || failed) && "text-muted-foreground"
@@ -108,7 +108,7 @@ export function SiteCreateDeploy({
       <HugeiconsIcon
         aria-hidden="true"
         className={cn(
-          "mt-0.5 size-4 shrink-0",
+          "size-4 shrink-0",
           !(ready || failed) && "motion-safe:animate-spin"
         )}
         icon={icon}
