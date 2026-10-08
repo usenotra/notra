@@ -23,10 +23,16 @@ import { useTranslations } from "use-intl";
 
 import { GeoCountCell } from "@/components/geo/geo-count-cell";
 import { TrafficPageSourcesCell } from "@/components/geo/traffic-page-sources-cell";
-import { GEO_COUNT_COLUMN_WIDTH } from "@/constants/geo-table";
+import {
+  PAGE_SKELETON_ROWS,
+  PAGE_COLUMN_WIDTH,
+  SOURCE_COLUMN_WIDTH,
+  GEO_COUNT_COLUMN_WIDTH,
+} from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import type {
+  TrafficPageColumnLabels,
   GeoTrafficPageGroup,
   TrafficPagesCardProps,
   TrafficPagesFiltersProps,
@@ -39,15 +45,9 @@ import {
 } from "@/utils/ai-traffic-pages";
 import { tableHeightFor } from "@/utils/table";
 
-const PAGE_SKELETON_ROWS = 4;
-const PAGE_COLUMN_WIDTH = "1fr";
-const SOURCE_COLUMN_WIDTH = "1fr";
-
-function trafficPageColumns(labels: {
-  page: string;
-  sources: string;
-  visits: string;
-}): TableColumn<GeoTrafficPageGroup>[] {
+function trafficPageColumns(
+  labels: TrafficPageColumnLabels
+): TableColumn<GeoTrafficPageGroup>[] {
   return [
     {
       key: "path",

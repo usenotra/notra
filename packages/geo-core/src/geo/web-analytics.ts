@@ -18,23 +18,19 @@ import {
   WEB_SOURCES_LIMIT,
 } from "../constants/web-analytics";
 import type {
+  GeoScopeInput,
   GeoWindowInput,
+  SiteAnalyticsInput,
   SiteAnalyticsResponse,
   WebAnalyticsBreakdown,
   WebAnalyticsResponse,
   WebAnalyticsScope,
 } from "../types/geo";
-import { trafficLogHostFilter } from "../utils/geo-project-domains";
-import { urlHost } from "../utils/url-host";
+import { webHostFilter } from "../utils/geo-project-domains";
 import { geoQuery } from "./effect";
 import { loadAiTraffic } from "./programs";
 import { resolveGeoScope } from "./projects";
 import { geoTrafficWindowParams } from "./window";
-
-export function webHostFilter(host: string | undefined): string[] {
-  const bare = trafficLogHostFilter(host);
-  return bare.length === 0 ? [] : [bare];
-}
 
 function toBreakdown(
   rows: readonly WebAudienceRow[] | undefined
@@ -155,7 +151,7 @@ const loadWebAnalyticsForScope = Effect.fn("web.analytics")(function* (
 });
 
 export const loadWebAnalytics = Effect.fn("web.projectAnalytics")(function* (
-  input: { organizationId: string; projectId?: string },
+  input: GeoScopeInput,
   window: GeoWindowInput,
   host: string | undefined
 ) {
@@ -167,15 +163,9 @@ export const loadWebAnalytics = Effect.fn("web.projectAnalytics")(function* (
 });
 
 export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
-  site: {
-    id: string;
-    organizationId: string;
-    projectId: string | null;
-    publicOrigin: string;
-  },
+  site: SiteAnalyticsInput,
   window: GeoWindowInput
 ) {
-  const host = urlHost(site.publicOrigin);
   const [web, traffic] = yield* Effect.all(
     [
       loadWebAnalyticsForScope(
@@ -194,7 +184,8 @@ export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
           ...(site.projectId ? { projectId: site.projectId } : {}),
         },
         window,
-        host ? [host] : []
+        [],
+        site.id
       ),
     ],
     { concurrency: "unbounded" }

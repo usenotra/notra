@@ -1,6 +1,6 @@
 import { redis } from "@notra/ai/utils/redis";
 import { db } from "@notra/db/drizzle";
-import { projects, sites } from "@notra/db/schema";
+import { projects, siteDeployments, sites } from "@notra/db/schema";
 import {
   GEO_INGEST_IDENTITY_ACTIVE_TTL_SECONDS,
   GEO_INGEST_SITE_INACTIVE_TTL_SECONDS,
@@ -81,18 +81,26 @@ export async function loadIngestSite(
 
 function lookupIngestSite(siteId: string): Promise<GeoIngestSite | null> {
   return cached(`${GEO_INGEST_SITE_CACHE_PREFIX}:${siteId}`, async () => {
-    const site = await db.query.sites.findFirst({
-      columns: {
-        id: true,
-        organizationId: true,
-        projectId: true,
-        publicOrigin: true,
-        status: true,
-      },
-      where: eq(sites.id, siteId),
-    });
-    const host = site ? urlHost(site.publicOrigin) : null;
-    if (!(site && host) || site.status !== "active") {
+    const [site] = await db
+      .select({
+        id: sites.id,
+        organizationId: sites.organizationId,
+        projectId: sites.projectId,
+        target: siteDeployments.target,
+      })
+      .from(sites)
+      .innerJoin(
+        siteDeployments,
+        and(
+          eq(sites.activeProductionDeploymentId, siteDeployments.id),
+          eq(sites.id, siteDeployments.siteId),
+          eq(siteDeployments.kind, "production")
+        )
+      )
+      .where(and(eq(sites.id, siteId), eq(sites.status, "active")))
+      .limit(1);
+    const host = site ? urlHost(site.target.publicOrigin) : null;
+    if (!(site && host)) {
       return null;
     }
     const projectId =
@@ -112,6 +120,7 @@ function lookupIngestSite(siteId: string): Promise<GeoIngestSite | null> {
       organizationId: site.organizationId,
       projectId,
       hosts: [host],
+      mounts: listMountedAreas(site.target.mounts).map(({ mount }) => mount),
     };
   });
 }
@@ -124,8 +133,16 @@ export async function loadOrganizationSitePrefixes(
       `${GEO_INGEST_ORGANIZATION_SITES_CACHE_PREFIX}:${organizationId}`,
       async () => {
         const rows = await db
-          .select({ publicOrigin: sites.publicOrigin, mounts: sites.mounts })
+          .select({ target: siteDeployments.target })
           .from(sites)
+          .innerJoin(
+            siteDeployments,
+            and(
+              eq(sites.activeProductionDeploymentId, siteDeployments.id),
+              eq(sites.id, siteDeployments.siteId),
+              eq(siteDeployments.kind, "production")
+            )
+          )
           .where(
             and(
               eq(sites.organizationId, organizationId),
@@ -134,11 +151,13 @@ export async function loadOrganizationSitePrefixes(
           );
         const prefixes: GeoIngestSitePrefix[] = [];
         for (const row of rows) {
-          const host = urlHost(row.publicOrigin);
+          const host = urlHost(row.target.publicOrigin);
           if (host) {
             prefixes.push({
               host,
-              mounts: listMountedAreas(row.mounts).map(({ mount }) => mount),
+              mounts: listMountedAreas(row.target.mounts).map(
+                ({ mount }) => mount
+              ),
             });
           }
         }

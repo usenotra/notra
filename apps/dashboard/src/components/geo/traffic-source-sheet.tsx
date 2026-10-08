@@ -32,10 +32,13 @@ import { DailyTrendChart } from "@/components/geo/daily-trend-chart";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import { AI_TRAFFIC_PURPOSE_LABEL_KEYS } from "@/constants/ai-traffic-purposes";
+import { TOP_PAGES_LIMIT, SHEET_TABLE_MAX_ROWS } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
+  TrafficSourceMemberColumnLabels,
+  TrafficSourcePageColumnLabels,
   GeoTrafficGroupPage,
   SheetStat,
   TrafficSourceSheetContentProps,
@@ -50,20 +53,10 @@ import {
 import { aiTrafficPurposeKey } from "@/utils/ai-traffic-purpose";
 import { tableHeightFor } from "@/utils/table";
 
-const TOP_PAGES_LIMIT = 10;
-const SHEET_TABLE_MAX_ROWS = 6;
-
 function memberColumns(
   total: number,
   visitorType: GeoVisitorType,
-  labels: {
-    bot: string;
-    source: string;
-    purpose: string;
-    visits: string;
-    lastSeen: string;
-    purposeLabel: (category: string) => string;
-  },
+  labels: TrafficSourceMemberColumnLabels,
   locale: string
 ): TableColumn<GeoTrafficSource>[] {
   const isCrawler = visitorType === "crawler";
@@ -130,10 +123,7 @@ function memberColumns(
 }
 
 function pageColumns(
-  labels: {
-    page: string;
-    visits: string;
-  },
+  labels: TrafficSourcePageColumnLabels,
   locale: string
 ): TableColumn<GeoTrafficGroupPage>[] {
   return [

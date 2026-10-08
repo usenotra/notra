@@ -43,8 +43,12 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
     queryWebPages: query,
     queryWebSources: query,
     queryWebTimeseries: query,
+    queryGeoTrafficOverview: query,
+    queryGeoTrafficTimeseries: query,
+    queryGeoTrafficPages: query,
   }));
-  const { loadWebAnalytics } = await import("../src/geo/web-analytics");
+  const { loadWebAnalytics, loadSiteAnalytics } =
+    await import("../src/geo/web-analytics");
   const { GeoProjectNotFoundError } = await import("../src/geo/errors");
 
   beforeAll(initializeDatabase, 30_000);
@@ -94,6 +98,36 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
       GeoProjectNotFoundError
     );
     expect(requests).toEqual([]);
+  });
+
+  test("site queries keep stable identity across origins and sibling sites", async () => {
+    const scope = await seedProject("site-data");
+    for (const [siteId, publicOrigin] of [
+      ["site-a", "https://shared.example"],
+      ["site-b", "https://shared.example"],
+      ["site-a", "https://changed.example"],
+    ] as const) {
+      requests.length = 0;
+      await Effect.runPromise(
+        loadSiteAnalytics(
+          {
+            ...scope,
+            id: siteId,
+            publicOrigin,
+          },
+          { days: 7 }
+        )
+      );
+      expect(requests).toHaveLength(10);
+      for (const params of requests) {
+        expect(params).toMatchObject({
+          organization_id: scope.organizationId,
+          project_id: "",
+          site_id: siteId,
+          hosts: "",
+        });
+      }
+    }
   });
 
   test("a project without recorded visitors returns empty analytics, not a tracking flag", async () => {

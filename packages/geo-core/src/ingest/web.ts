@@ -1,14 +1,12 @@
 import { createHmac } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
-import type { WebPageViewRow } from "@notra/analytics/tinybird/datasources";
+import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
 import { toClickHouseDateTime } from "@notra/analytics/utils/datetime";
-import { GEO_NON_AI_BOT_PATTERNS } from "@notra/geo-core/constants/geo";
 import {
   ISO_DATE_LENGTH,
   WEB_AI_PRODUCTS,
   WEB_BROWSERS,
-  WEB_MACHINE_PATH_PATTERN,
   WEB_OPERATING_SYSTEMS,
   WEB_SEARCH_HOSTS,
   WEB_SESSION_KEY_PREFIX,
@@ -25,33 +23,7 @@ import type {
   WebReferrer,
   WebSession,
 } from "../types/ingest";
-
-export function isHumanPageView(
-  input: Pick<WebPageViewInput, "classification" | "payload" | "url">
-): boolean {
-  const { classification, payload, url } = input;
-  if (
-    classification.visitorType !== "human" &&
-    classification.visitorType !== "ai_referral"
-  ) {
-    return false;
-  }
-  if (payload.method.toUpperCase() !== "GET" || payload.signals?.prefetch) {
-    return false;
-  }
-  if (
-    payload.status !== undefined &&
-    payload.status >= 300 &&
-    payload.status !== 404
-  ) {
-    return false;
-  }
-  const userAgent = payload.userAgent?.toLowerCase() ?? "";
-  if (GEO_NON_AI_BOT_PATTERNS.some((pattern) => userAgent.includes(pattern))) {
-    return false;
-  }
-  return !WEB_MACHINE_PATH_PATTERN.test(url.pathname);
-}
+import { isHumanPageView } from "../utils/web-page-view";
 
 export function webVisitorId(
   scope: string,
@@ -190,10 +162,15 @@ export async function buildWebPageView(
   const fromOutside =
     utmSource.length > 0 ||
     (referrer.group !== "direct" && referrer.group !== "internal");
-  const session = await resolveSession(
-    visitorId,
-    fromOutside ? `${utmSource}|${referrer.group}|${referrer.source}` : null
-  );
+  const session =
+    payload.status === 404
+      ? { id: "", index: 0 }
+      : await resolveSession(
+          visitorId,
+          fromOutside
+            ? `${utmSource}|${referrer.group}|${referrer.source}`
+            : null
+        );
   const agent = describeUserAgent(payload.userAgent);
   return {
     organization_id: identity.organizationId,

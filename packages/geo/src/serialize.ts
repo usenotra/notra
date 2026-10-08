@@ -1,3 +1,4 @@
+import { PREFETCH_PURPOSE_HEADERS } from "./constants";
 import type {
   GeoLocation,
   GeoRequestPayload,
@@ -46,8 +47,6 @@ function readGeo(headers: Headers): GeoLocation | undefined {
 }
 
 const TRACING_HEADERS = ["traceparent", "b3", "x-b3-traceid"];
-
-const PREFETCH_PURPOSE_HEADERS = ["sec-purpose", "purpose", "x-moz"];
 
 function isPrefetch(headers: Headers): boolean {
   return (

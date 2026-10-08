@@ -7,27 +7,8 @@ import {
 } from "@notra/geo-core/utils/ai-traffic";
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
 
+import { points, providers } from "../../tests/constants/geo-traffic";
 import { buildTrafficTrendRowsForProviders } from "./ai-traffic-trend";
-
-const points: GeoTrafficPoint[] = [
-  { day: "2026-10-01", source: "openai", visitorType: "crawler", visits: 4 },
-  {
-    day: "2026-10-03",
-    source: "openai",
-    visitorType: "ai_referral",
-    visits: 2,
-  },
-  { day: "2026-10-03", source: "", visitorType: "crawler", visits: 8 },
-];
-const providers = [
-  {
-    key: "provider-openai",
-    label: "OpenAI",
-    icon: null,
-    visits: 6,
-    sources: ["openai"],
-  },
-];
 
 test.each([
   [],

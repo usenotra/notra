@@ -1254,6 +1254,7 @@ export interface GeoIngestIdentity {
 export interface GeoIngestSiteScope {
   id: string;
   hosts: string[];
+  mounts: string[];
 }
 
 export interface GeoIngestSite extends GeoIngestSiteScope {
@@ -2107,6 +2108,13 @@ export interface WebAnalyticsResponse {
   countries: WebAnalyticsBreakdown[];
   devices: WebAnalyticsBreakdown[];
   outcomes: WebAnalyticsOutcome[];
+}
+
+export interface SiteAnalyticsInput {
+  id: string;
+  organizationId: string;
+  projectId: string | null;
+  publicOrigin: string;
 }
 
 export interface SiteAnalyticsResponse {

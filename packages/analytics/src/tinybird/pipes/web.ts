@@ -12,18 +12,19 @@ import {
   GEO_DAY_CURRENT_CONDITION,
   GEO_DAY_PREVIOUS_CONDITION,
   GEO_DAY_WINDOW_SQL,
-  GEO_PROJECT_SCOPE_PARAMS,
   GEO_PROJECT_SCOPE_SQL,
-  GEO_WINDOW_PARAMS,
 } from "../../constants/geo-queries";
-import { WEB_SCOPE_PARAMS, WEB_SCOPE_SQL } from "../../constants/web-queries";
+import {
+  WEB_LANDING_SQL,
+  WEB_QUERY_PARAMS,
+  WEB_PAGES_WHERE,
+  WEB_SCOPE_SQL,
+} from "../../constants/web-queries";
 import {
   webAudienceDaily,
   webPagesDaily,
   webSourcesDaily,
 } from "../datasources";
-
-const LANDING = "session_page_index <= 1";
 
 export const webPagesDailyMv = defineMaterializedView("web_pages_daily_mv", {
   description: "Rolls web_page_views into web_pages_daily on every ingest",
@@ -42,8 +43,8 @@ export const webPagesDailyMv = defineMaterializedView("web_pages_daily_mv", {
           status,
           countState() AS views_state,
           uniqState(visitor_id) AS visitors_state,
-          countIfState(toUInt8(${LANDING})) AS sessions_state,
-          countIfState(toUInt8(session_page_index = 2)) AS engaged_sessions_state,
+          countIfState(toUInt8(status < 400 AND ${WEB_LANDING_SQL})) AS sessions_state,
+          countIfState(toUInt8(status < 400 AND session_page_index = 2)) AS engaged_sessions_state,
           uniqIfState(visitor_id, toUInt8(referrer_group = 'ai')) AS ai_visitors_state
         FROM web_page_views
         GROUP BY day, organization_id, project_id, site_id, host, path, status
@@ -77,7 +78,7 @@ export const webSourcesDailyMv = defineMaterializedView(
             countState() AS sessions_state,
             uniqState(visitor_id) AS visitors_state
           FROM web_page_views
-          WHERE ${LANDING} AND status < 400
+          WHERE ${WEB_LANDING_SQL} AND status < 400
           GROUP BY day, organization_id, project_id, site_id, host,
             referrer_group, referrer_source, ai_product,
             utm_source, utm_medium, utm_campaign
@@ -118,21 +119,10 @@ export const webAudienceDailyMv = defineMaterializedView(
   }
 );
 
-const WEB_PARAMS = {
-  organization_id: p.string().describe("Organization id"),
-  ...GEO_PROJECT_SCOPE_PARAMS,
-  ...WEB_SCOPE_PARAMS,
-  ...GEO_WINDOW_PARAMS,
-};
-
-const WEB_PAGES_WHERE = `WHERE organization_id = {{String(organization_id)}}
-          ${GEO_PROJECT_SCOPE_SQL}
-          ${WEB_SCOPE_SQL}`;
-
 export const webOverview = defineEndpoint("web_overview", {
   description:
     "Views, visitors, sessions and engaged sessions for the window and the window before it",
-  params: WEB_PARAMS,
+  params: WEB_QUERY_PARAMS,
   nodes: [
     node({
       name: "overview",
@@ -169,7 +159,7 @@ export const webOverview = defineEndpoint("web_overview", {
 
 export const webTimeseries = defineEndpoint("web_timeseries", {
   description: "Daily human views and visitors",
-  params: WEB_PARAMS,
+  params: WEB_QUERY_PARAMS,
   nodes: [
     node({
       name: "daily",
@@ -198,7 +188,7 @@ export const webPages = defineEndpoint("web_pages", {
   description:
     "Top pages by human views, with visitors, sessions that started there and AI-referred visitors; status 404 lists missing pages",
   params: {
-    ...WEB_PARAMS,
+    ...WEB_QUERY_PARAMS,
     not_found: p
       .int32()
       .optional(0)
@@ -243,7 +233,7 @@ export const webSources = defineEndpoint("web_sources", {
   description:
     "Where sessions came from: referrer group and source (AI products included), counted on each session's first page",
   params: {
-    ...WEB_PARAMS,
+    ...WEB_QUERY_PARAMS,
     limit: p.int32().optional(20).describe("Max rows"),
   },
   nodes: [
@@ -281,7 +271,7 @@ export const webSources = defineEndpoint("web_sources", {
 export const webCampaigns = defineEndpoint("web_campaigns", {
   description: "Sessions per UTM source, medium and campaign",
   params: {
-    ...WEB_PARAMS,
+    ...WEB_QUERY_PARAMS,
     limit: p.int32().optional(20).describe("Max rows"),
   },
   nodes: [
@@ -316,7 +306,7 @@ export const webCampaigns = defineEndpoint("web_campaigns", {
 export const webAudience = defineEndpoint("web_audience", {
   description: "Visitors per country, device, browser or OS",
   params: {
-    ...WEB_PARAMS,
+    ...WEB_QUERY_PARAMS,
     dimension: p
       .string()
       .optional("country")
@@ -358,7 +348,7 @@ export const webAudience = defineEndpoint("web_audience", {
 export const webHosts = defineEndpoint("web_hosts", {
   description:
     "Hosts and sites with human views in the window, for the domain selector",
-  params: WEB_PARAMS,
+  params: WEB_QUERY_PARAMS,
   nodes: [
     node({
       name: "hosts",
@@ -385,15 +375,15 @@ export const webHosts = defineEndpoint("web_hosts", {
 export const webAiOutcomes = defineEndpoint("web_ai_outcomes", {
   description:
     "Pages per session and the share of sessions that read two or more pages, per AI source and for all sessions",
-  params: WEB_PARAMS,
+  params: WEB_QUERY_PARAMS,
   nodes: [
     node({
       name: "outcome_sessions",
       sql: `
         SELECT
           session_id,
-          anyIf(referrer_group, ${LANDING}) AS landing_group,
-          anyIf(referrer_source, ${LANDING}) AS landing_source,
+          anyIf(referrer_group, ${WEB_LANDING_SQL}) AS landing_group,
+          anyIf(referrer_source, ${WEB_LANDING_SQL}) AS landing_source,
           count() AS pages
         FROM web_page_views
         WHERE organization_id = {{String(organization_id)}}

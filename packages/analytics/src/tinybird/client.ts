@@ -9,6 +9,7 @@ import {
 
 import { bumpAnalyticsVersions, cachedQuery } from "../cache/query-cache";
 import type { AnalyticsCacheScope } from "../types/cache";
+import type { WebPageViewRow } from "../types/tinybird-datasources";
 import type {
   AccountLeaderboardParams,
   AccountLeaderboardRow,
@@ -55,7 +56,6 @@ import {
   socialPostSources,
   socialPostStats,
   socialPosts,
-  type WebPageViewRow,
   webPageViews,
 } from "./datasources";
 import { queryDemoPipe } from "./demo-geo-traffic";

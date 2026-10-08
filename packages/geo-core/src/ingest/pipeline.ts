@@ -2,10 +2,8 @@ import {
   ingestGeoTrafficEvents,
   ingestWebPageViews,
 } from "@notra/analytics/tinybird/client";
-import type {
-  GeoTrafficEventRow,
-  WebPageViewRow,
-} from "@notra/analytics/tinybird/datasources";
+import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
+import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
 import { GEO_INGEST_BEARER_PREFIX } from "@notra/geo-core/constants/geo";
 import {
   isGeoIngestSiteToken,
@@ -31,6 +29,7 @@ import type {
 } from "../types/ingest";
 import { geoIngestAdmissionKey } from "../utils/geo-ingest-admission-key";
 import { logGeoFailure } from "../utils/geo-log";
+import { isHumanPageView } from "../utils/web-page-view";
 import { trackGeoIngestAnalytics } from "./analytics";
 import { classifyVisitor } from "./classify-visitor";
 import {
@@ -52,7 +51,7 @@ import {
   webIngestRatelimit,
 } from "./ratelimit";
 import { loadIngestSite, loadOrganizationSitePrefixes } from "./sites";
-import { buildWebPageView, isHumanPageView } from "./web";
+import { buildWebPageView } from "./web";
 
 const readSiteIdentity = Effect.fn("geoIngest.readSiteIdentity")(function* (
   token: string
@@ -72,7 +71,7 @@ const readSiteIdentity = Effect.fn("geoIngest.readSiteIdentity")(function* (
     organizationId: site.organizationId,
     projectId: site.projectId,
     generation: 0,
-    site: { id: site.id, hosts: site.hosts },
+    site: { id: site.id, hosts: site.hosts, mounts: site.mounts },
   } satisfies GeoIngestIdentity;
 });
 
@@ -322,7 +321,13 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
       })
     );
   }
-  if (!acceptsIngestHost(url.hostname, allowedHosts)) {
+  if (
+    !acceptsIngestHost(url.hostname, allowedHosts) ||
+    (identity.site &&
+      !isServedBySite(url, [
+        { host: url.hostname, mounts: identity.site.mounts },
+      ]))
+  ) {
     return droppedResult(
       identity,
       classification.visitorType,
@@ -377,6 +382,7 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   const event = buildGeoTrafficEvent({
     organizationId: identity.organizationId,
     projectId: identity.projectId,
+    siteId: identity.site?.id,
     payload,
     url,
     capturedAt,

@@ -1,7 +1,5 @@
-import type {
-  GeoTrafficEventRow,
-  WebPageViewRow,
-} from "@notra/analytics/tinybird/datasources";
+import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
+import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
 import type { GeoRequestPayload } from "@usenotra/geo";
 import type { z } from "zod";
 
@@ -65,6 +63,7 @@ export interface GeoJourneyTuning {
 export interface GeoTrafficEventInput {
   organizationId: string;
   projectId: string | null;
+  siteId?: string;
   payload: GeoRequestPayload;
   url: URL;
   capturedAt: Date;

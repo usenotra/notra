@@ -19,7 +19,7 @@ import {
   WEB_TREND_AGENTS_KEY,
   WEB_TREND_PEOPLE_KEY,
 } from "@/constants/web-analytics";
-import type { WebTrendRow } from "@/types/geo";
+import type { WebTrendRow, WebTrendShare } from "@/types/geo";
 
 export function buildWebTrendRows(
   webPoints: readonly WebAnalyticsPoint[],
@@ -52,7 +52,7 @@ export function buildWebTrendRows(
 
 export function webTrendShare(
   rows: readonly WebTrendRow[]
-): { people: number; agents: number } | null {
+): WebTrendShare | null {
   let people = 0;
   let agents = 0;
   for (const row of rows) {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import type { WebPageViewRow } from "@notra/analytics/tinybird/datasources";
+import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
 import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 import type { Ratelimit } from "@upstash/ratelimit";
 import { Effect } from "effect";
@@ -38,6 +38,7 @@ const loadIngestSite = mock(async (siteId: string) =>
         organizationId: "org_2",
         projectId: "proj_2",
         hosts: ["acme.com"],
+        mounts: ["/"],
       }
     : null
 );
@@ -141,6 +142,17 @@ describe("runGeoIngest ordering", () => {
     ratelimitLimit.mockImplementation(async () => ({ success: true }));
     ingestGeoTrafficEvents.mockImplementation(async () => STORED);
     loadOrganizationSitePrefixes.mockImplementation(async () => []);
+    loadIngestSite.mockImplementation(async (siteId: string) =>
+      siteId === "site_1"
+        ? {
+            id: "site_1",
+            organizationId: "org_2",
+            projectId: "proj_2",
+            hosts: ["acme.com"],
+            mounts: ["/"],
+          }
+        : null
+    );
   });
 
   test("fails instead of acknowledging when Tinybird is not configured", async () => {
@@ -300,6 +312,9 @@ describe("runGeoIngest ordering", () => {
       },
     });
     expect(verifyGeoIngestToken).not.toHaveBeenCalled();
+    expect(ingestGeoTrafficEvents).toHaveBeenCalledWith([
+      expect.objectContaining({ site_id: "site_1", project_id: "proj_2" }),
+    ]);
 
     const elsewhere = await run(
       ingestRequest({ ...page, url: "https://example.com/" }, "nst.site_1.good")
@@ -308,6 +323,32 @@ describe("runGeoIngest ordering", () => {
       _tag: "Success",
       success: { outcome: "dropped", reason: "host" },
     });
+  });
+
+  test("a site token cannot ingest outside its published mounts", async () => {
+    loadIngestSite.mockImplementation(async () => ({
+      id: "site_1",
+      organizationId: "org_2",
+      projectId: "proj_2",
+      hosts: ["acme.com"],
+      mounts: ["/blog"],
+    }));
+    loadIngestAllowedHosts.mockImplementation(async () => ["acme.com"]);
+    const outcome = await run(
+      ingestRequest(
+        {
+          method: "GET",
+          url: "https://acme.com/blogroll/a",
+          userAgent: "GPTBot",
+        },
+        "nst.site_1.good"
+      )
+    );
+    expect(outcome).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "host" },
+    });
+    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
   });
 
   test("a site counts its human visitors in web_page_views only", async () => {

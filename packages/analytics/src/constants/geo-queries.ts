@@ -14,6 +14,15 @@ export const GEO_PROJECT_SCOPE_PARAMS = {
     .describe("Set to 1 to include rows captured before project scoping"),
 };
 
+export const GEO_SITE_SCOPE_PARAMS = {
+  site_id: p
+    .string()
+    .optional("")
+    .describe("Site id filter, empty for every site and SDK host"),
+};
+
+export const GEO_SITE_SCOPE_SQL = `AND ({{String(site_id, '')}} = '' OR site_id = {{String(site_id, '')}})`;
+
 export const GEO_EXCLUDED_SOURCES_PARAMS = {
   excluded_sources: p
     .string()

@@ -147,10 +147,7 @@ import {
   dismissSuggestion,
   listSuggestions,
 } from "@notra/geo-core/geo/suggestions";
-import {
-  loadWebAnalytics,
-  webHostFilter,
-} from "@notra/geo-core/geo/web-analytics";
+import { loadWebAnalytics } from "@notra/geo-core/geo/web-analytics";
 import { geoWindow } from "@notra/geo-core/geo/window";
 import {
   approveAndStartGeoWriter,
@@ -244,6 +241,7 @@ import type {
   GscSitesResponse,
   GscSyncResult,
 } from "@notra/geo-core/types/google-search-console";
+import { webHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { geoScanStartInputSchema } from "@notra/schemas/dashboard/geo-analytics";
 import {

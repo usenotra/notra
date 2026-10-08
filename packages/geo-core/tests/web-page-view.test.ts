@@ -3,13 +3,11 @@ import { describe, expect, test } from "bun:test";
 import {
   classifyWebReferrer,
   describeUserAgent,
-  isHumanPageView,
   webVisitorId,
 } from "../src/ingest/web";
 import type { WebPageViewInput } from "../src/types/ingest";
-
-const CHROME =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+import { isHumanPageView } from "../src/utils/web-page-view";
+import { CHROME } from "./constants/web-page-view";
 
 function input(overrides: Partial<WebPageViewInput> = {}): WebPageViewInput {
   return {

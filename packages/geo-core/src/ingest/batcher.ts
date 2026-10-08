@@ -11,58 +11,25 @@ import {
   GEO_INGEST_MAX_BUFFERED_EVENTS,
 } from "../constants/ingest";
 import type { BatchedRow } from "../types/ingest";
+import type {
+  EventBatcher,
+  EventBatcherOptions,
+  GeoChunkResult,
+  GeoEventBatcher,
+  GeoFlushTrigger,
+  GeoWriteCounts,
+} from "../types/ingest-batcher";
 import { logGeoFailure } from "../utils/geo-log";
 import {
   getGeoIngestRegion,
   getGeoIngestRuntime,
 } from "../utils/ingest-runtime";
 
-type GeoEventWriteResult = Awaited<ReturnType<typeof ingestGeoTrafficEvents>>;
-
-interface EventBatcherOptions<R extends BatchedRow> {
-  intervalMs: number;
-  maxBufferedEvents?: number;
-  maxRowsPerWrite?: number;
-  write?: (rows: R[]) => Promise<GeoEventWriteResult>;
-  /** Called with every chunk Tinybird accepted, e.g. to announce it live. */
-  onWritten?: (rows: R[]) => void;
-  now?: () => number;
-  liveFlushDelayMs?: number;
-  liveRetryDelayMs?: number;
-}
-
-type GeoFlushTrigger = "window" | "live" | "shutdown";
-
-interface GeoWriteCounts {
-  written: number;
-  quarantined: number;
-  rejected: number;
-}
-
-interface GeoChunkResult<R> extends GeoWriteCounts {
-  /** Rows a retryable failure left unwritten, in their original order. */
-  pending: R[];
-  error?: unknown;
-}
-
 const EMPTY_COUNTS: GeoWriteCounts = {
   written: 0,
   quarantined: 0,
   rejected: 0,
 };
-
-export interface EventBatcher<R extends BatchedRow> {
-  enqueue: (event: R) => boolean;
-  /**
-   * Writes the organization's buffered events within about a second instead
-   * of at the next window, for organizations with an open live view.
-   */
-  expedite: (organizationId: string) => void;
-  flush: () => Promise<void>;
-  /** Stops the timers and writes whatever is still buffered or in flight. */
-  stop: () => Promise<void>;
-  size: () => number;
-}
 
 /** A write that may succeed if tried again later. */
 class RetryableWriteError extends Error {}
@@ -372,8 +339,6 @@ export function createEventBatcher<R extends BatchedRow>(
     size: () => buffer.length,
   };
 }
-
-export type GeoEventBatcher = EventBatcher<GeoTrafficEventRow>;
 
 export function createGeoEventBatcher(
   options: EventBatcherOptions<GeoTrafficEventRow>

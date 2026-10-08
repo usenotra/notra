@@ -209,6 +209,7 @@ export const geoTrafficEvents = defineDatasource("geo_traffic_events", {
   schema: {
     organization_id: t.string(),
     project_id: t.string().lowCardinality(),
+    site_id: t.string().lowCardinality().default(""),
     captured_at: t.dateTime(),
     visitor_type: t.string().lowCardinality(),
     source: t.string().lowCardinality(),
@@ -241,6 +242,7 @@ export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
     day: t.date(),
     organization_id: t.string(),
     project_id: t.string().lowCardinality(),
+    site_id: t.string().lowCardinality().default(""),
     visitor_type: t.string().lowCardinality(),
     source: t.string().lowCardinality(),
     visits_state: t.aggregateFunction("count"),
@@ -255,6 +257,7 @@ export const geoTrafficDaily = defineDatasource("geo_traffic_daily", {
     sortingKey: [
       "organization_id",
       "project_id",
+      "site_id",
       "visitor_type",
       "source",
       "day",
@@ -273,6 +276,7 @@ export const geoTrafficPagesByHostDaily = defineDatasource(
       day: t.date(),
       organization_id: t.string(),
       project_id: t.string().lowCardinality(),
+      site_id: t.string().lowCardinality().default(""),
       visitor_type: t.string().lowCardinality(),
       source: t.string().lowCardinality(),
       host: t.string(),
@@ -284,6 +288,7 @@ export const geoTrafficPagesByHostDaily = defineDatasource(
       sortingKey: [
         "organization_id",
         "project_id",
+        "site_id",
         "visitor_type",
         "source",
         "host",
@@ -390,7 +395,10 @@ export const webSourcesDaily = defineDatasource("web_sources_daily", {
       "day",
       "referrer_group",
       "referrer_source",
+      "ai_product",
       "utm_source",
+      "utm_medium",
+      "utm_campaign",
     ],
     partitionKey: "toYYYYMM(day)",
   }),
@@ -423,6 +431,7 @@ export const webAudienceDaily = defineDatasource("web_audience_daily", {
       "country",
       "device",
       "browser",
+      "os",
     ],
     partitionKey: "toYYYYMM(day)",
   }),
@@ -435,4 +444,3 @@ export type SocialPostRow = InferRow<typeof socialPosts>;
 export type SocialPostStatsRow = InferRow<typeof socialPostStats>;
 export type SocialPostSourceRow = InferRow<typeof socialPostSources>;
 export type GeoTrafficEventRow = InferRow<typeof geoTrafficEvents>;
-export type WebPageViewRow = InferRow<typeof webPageViews>;

@@ -685,6 +685,26 @@ export interface TrafficPageSourcesCellProps {
   group: GeoTrafficPageGroup;
 }
 
+export interface TrafficPageColumnLabels {
+  page: string;
+  sources: string;
+  visits: string;
+}
+
+export interface TrafficSourceMemberColumnLabels {
+  bot: string;
+  source: string;
+  purpose: string;
+  visits: string;
+  lastSeen: string;
+  purposeLabel: (category: string) => string;
+}
+
+export interface TrafficSourcePageColumnLabels {
+  page: string;
+  visits: string;
+}
+
 export interface TrafficPagesCardProps {
   pages: readonly GeoTrafficPage[];
   isPending?: boolean;
@@ -1829,6 +1849,11 @@ export interface PromptTranslationTextProps {
   translating: boolean;
   onEdit: () => void;
   onReset: () => void;
+}
+
+export interface WebTrendShare {
+  people: number;
+  agents: number;
 }
 
 export interface WebTrendRow {

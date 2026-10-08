@@ -1219,12 +1219,16 @@ export const loadGeoCompetitorDetail = Effect.fn("geo.competitorDetail")(
 export const loadAiTraffic = Effect.fn("geo.aiTraffic")(function* (
   input: GeoScopeInput,
   window: GeoWindowInput,
-  hosts: readonly string[] = []
+  hosts: readonly string[] = [],
+  siteId = ""
 ) {
   const scope = yield* resolveGeoScope(input);
   const windowParams = {
     ...geoTrafficWindowParams(window, AI_TRAFFIC_DEFAULT_DAYS),
     hosts: hosts.join(","),
+    ...(siteId
+      ? { site_id: siteId, project_id: "", include_unassigned: 0 }
+      : {}),
   };
   const settingsRow = scope.projectId
     ? yield* geoDb("settings lookup failed", () =>

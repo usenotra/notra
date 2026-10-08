@@ -5,10 +5,8 @@ import { fileURLToPath } from "node:url";
 import { WEB_SESSION_TTL_SECONDS } from "../src/constants/web-analytics";
 import { WEB_SESSION_RESOLVE_SCRIPT } from "../src/constants/web-session";
 import type { WebPageViewInput, WebSession } from "../src/types/ingest";
+import { CHROME } from "./constants/web-page-view";
 import { deferred } from "./utils/deferred";
-
-const CHROME =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
 function view(path: string, referer?: string): WebPageViewInput {
   const url = new URL(`https://acme.com${path}`);
@@ -117,6 +115,31 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
         .sort((a, b) => (a ?? 0) - (b ?? 0))
     ).toEqual(Array.from({ length: 20 }, (_, index) => index + 1));
     expect(rows.filter((row) => row?.session_page_index === 2)).toHaveLength(1);
+  });
+
+  test("404 facts do not advance successful-content sessions", async () => {
+    const missing = view("/missing", "https://www.google.com/");
+    missing.payload.status = 404;
+    const error = await buildWebPageView(missing);
+    expect(error).toMatchObject({
+      status: 404,
+      session_id: "",
+      session_page_index: 0,
+    });
+    expect(store.size).toBe(0);
+    const landing = await buildWebPageView(
+      view("/", "https://www.google.com/")
+    );
+    const next = await buildWebPageView(view("/pricing", "https://acme.com/"));
+    expect(landing?.session_page_index).toBe(1);
+    expect(next?.session_page_index).toBe(2);
+    expect(next?.session_id).toBe(landing?.session_id);
+    const laterMissing = await buildWebPageView(missing);
+    expect(laterMissing?.session_id).toBe("");
+    const third = await buildWebPageView(
+      view("/about", "https://acme.com/pricing")
+    );
+    expect(third?.session_page_index).toBe(3);
   });
 
   test("concurrent continuations count the engaged session only once", async () => {

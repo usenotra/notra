@@ -12,15 +12,15 @@ import type { GeoIngestIdentity } from "@notra/geo-core/types/geo";
 export async function isGeoIngestIdentityActive(
   identity: GeoIngestIdentity
 ): Promise<boolean> {
-  if (identity.site) {
-    return true;
-  }
   try {
     const generation = await getGeoIngestTokenGeneration(
       identity.organizationId,
       identity.projectId
     );
-    return generation !== null && generation === identity.generation;
+    return (
+      generation !== null &&
+      (identity.site !== undefined || generation === identity.generation)
+    );
   } catch {
     return false;
   }
