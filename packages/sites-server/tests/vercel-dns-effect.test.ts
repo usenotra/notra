@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, spyOn, test } from "bun:test";
 
 import { Deferred, Effect, Fiber } from "effect";
 import { TestClock } from "effect/testing";
@@ -254,18 +254,31 @@ test("interrupting DNS aborts the current lookup without starting another candid
 });
 
 test("uninstall retains best-effort status and transport failure policy", async () => {
-  await removeVercelInstallation(grant, {
-    fetch: async (input, init) => {
-      expect(String(input)).toContain("install%2Fa?teamId=team%2Fa");
-      expect(init?.method).toBe("DELETE");
-      return new Response("secret", { status: 500 });
-    },
-  });
-  await removeVercelInstallation(grant, {
-    fetch: async () => {
-      throw new Error("secret");
-    },
-  });
+  const warning = spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    await removeVercelInstallation(grant, {
+      fetch: async (input, init) => {
+        expect(String(input)).toContain("install%2Fa?teamId=team%2Fa");
+        expect(init?.method).toBe("DELETE");
+        return new Response("secret", { status: 500 });
+      },
+    });
+    await removeVercelInstallation(grant, {
+      fetch: async () => {
+        throw new Error("secret");
+      },
+    });
+    expect(warning).toHaveBeenCalledTimes(2);
+    expect(warning).toHaveBeenCalledWith("sites.vercel_dns_uninstall_failed", {
+      error: "Vercel installation cleanup failed (500)",
+    });
+    expect(warning).toHaveBeenCalledWith("sites.vercel_dns_uninstall_failed", {
+      error: "Vercel request failed",
+    });
+    expect(JSON.stringify(warning.mock.calls)).not.toContain("secret");
+  } finally {
+    warning.mockRestore();
+  }
 });
 
 test("Effect cancellation aborts the injected transport without retry", async () => {

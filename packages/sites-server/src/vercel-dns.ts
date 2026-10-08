@@ -329,8 +329,25 @@ export const removeVercelInstallationEffect = Effect.fn(
       grant.teamId
     )
   ).pipe(HttpClientRequest.bearerToken(grant.accessToken));
-  yield* vercelRequest(request, "uninstall", deps, () => Effect.void).pipe(
-    Effect.catchTag("SiteProviderRequestError", () => Effect.void)
+  yield* vercelRequest(request, "uninstall", deps, (response) =>
+    (response.status >= 200 && response.status < 300) || response.status === 404
+      ? Effect.void
+      : Effect.fail(
+          new SiteProviderRequestError({
+            provider: "vercel",
+            operation: "uninstall",
+            status: response.status,
+            message: `Vercel installation cleanup failed (${response.status})`,
+          })
+        )
+  ).pipe(
+    Effect.catchTag("SiteProviderRequestError", (error) =>
+      Effect.sync(() => {
+        console.warn("sites.vercel_dns_uninstall_failed", {
+          error: error.message,
+        });
+      })
+    )
   );
 });
 
