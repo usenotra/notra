@@ -170,7 +170,7 @@ export function SentimentResultsTable({
         ),
       },
     ],
-    [isMobile, t]
+    [isMobile, t, tCommon]
   );
 
   return (

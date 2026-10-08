@@ -273,11 +273,7 @@ export function DataTableRoot<T>({
               skeletonRows={skeletonRows}
             />
           </table>
-          <TableScrollFade
-            edge="bottom"
-            hidden={atEnd || !scrolls}
-            scrollFade={scrollFade}
-          />
+          <TableScrollFade edge="bottom" hidden={atEnd} scrollFade={scrollFade} />
         </TableBodySurface>
         <TableFooterSurface footer={footerContent} />
       </TableFrame>
