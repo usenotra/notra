@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import { defineConfig } from "nitro";
 import type { ModuleOptions } from "workflow/nitro";
 
@@ -44,7 +46,27 @@ export default defineConfig({
     },
   },
   serverAssets: [{ baseName: "images", dir: "./public" }],
+  modules: [
+    (nitro) => {
+      nitro.hooks.hook("build:before", () => {
+        if (nitro.options.dev) {
+          return;
+        }
+        const assetsDir = nitro.options.buildAssetsDir ?? "assets";
+        nitro.options.publicAssets.push({
+          dir: join(nitro.options.output.publicDir, assetsDir),
+          baseURL: `/${assetsDir}`,
+          maxAge: 31_536_000,
+          fallthrough: false,
+        });
+      });
+    },
+  ],
   handlers: [
+    {
+      route: "/api/client-update",
+      handler: "./src/lib/framework/client-update.ts",
+    },
     {
       route: "/**",
       middleware: true,
@@ -65,6 +87,8 @@ export default defineConfig({
       : {}),
   },
   vercel: {
+    immutableStaticFiles:
+      process.env.VERCEL_IMMUTABLE_STATIC_FILES_ENABLED === "1",
     config: headerRouting.vercelConfig,
     functions: {
       runtime: "nodejs24.x",
