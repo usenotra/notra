@@ -3,10 +3,10 @@ import {
   SITE_NAME_MODERATION_FEATURE,
   SITE_NAME_MODERATION_TIMEOUT_MS,
   SITE_NAME_OFFENSIVE_THRESHOLD,
+  SITE_NAME_MODERATION_QUESTIONS,
 } from "@notra/ai/constants/site-name-moderation";
 import { getEvaluationClient } from "@notra/ai/evaluation/client";
 import { log } from "@notra/ai/evlog";
-import { SITE_NAME_MODERATION_QUESTIONS } from "@notra/ai/prompts/site-name-moderation";
 import type {
   ModerateSiteNameParams,
   SiteNameModerationVerdict,
