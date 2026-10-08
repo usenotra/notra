@@ -39,7 +39,7 @@ import {
 } from "@notra/ui/components/ui/select";
 import type { ChatStatus, FileUIPart } from "ai";
 
-import { nanoid } from "nanoid";
+import { createPromptInputAttachments } from "@notra/ui/lib/prompt-input-attachments";
 import { Image } from "@notra/ui/components/framework-provider";
 import {
   type ChangeEvent,
@@ -143,6 +143,7 @@ export function PromptInputProvider({
   const [attachmentFiles, setAttachmentFiles] = useState<
     (FileUIPart & { id: string })[]
   >([]);
+  const attachmentsRef = useRef<(FileUIPart & { id: string })[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const openRef = useRef<() => void>(() => {});
 
@@ -152,48 +153,40 @@ export function PromptInputProvider({
       return;
     }
 
-    setAttachmentFiles((prev) =>
-      prev.concat(
-        incoming.map((file) => ({
-          id: nanoid(),
-          type: "file" as const,
-          url: URL.createObjectURL(file),
-          mediaType: file.type,
-          filename: file.name,
-        })),
-      ),
+    const next = attachmentsRef.current.concat(
+      createPromptInputAttachments(incoming),
     );
+    attachmentsRef.current = next;
+    setAttachmentFiles(next);
   }, []);
 
   const remove = useCallback((id: string) => {
-    setAttachmentFiles((prev) => {
-      const found = prev.find((f) => f.id === id);
-      if (found?.url) {
-        URL.revokeObjectURL(found.url);
-      }
-      return prev.filter((f) => f.id !== id);
-    });
+    const found = attachmentsRef.current.find((file) => file.id === id);
+    const next = attachmentsRef.current.filter((file) => file.id !== id);
+    attachmentsRef.current = next;
+    setAttachmentFiles(next);
+    if (found?.url) {
+      URL.revokeObjectURL(found.url);
+    }
   }, []);
 
   const clear = useCallback(() => {
-    setAttachmentFiles((prev) => {
-      for (const f of prev) {
-        if (f.url) {
-          URL.revokeObjectURL(f.url);
-        }
+    const previous = attachmentsRef.current;
+    attachmentsRef.current = [];
+    setAttachmentFiles([]);
+    for (const file of previous) {
+      if (file.url) {
+        URL.revokeObjectURL(file.url);
       }
-      return [];
-    });
+    }
   }, []);
-
-  // Keep a ref to attachments for cleanup on unmount (avoids stale closure)
-  const attachmentsRef = useRef(attachmentFiles);
-  attachmentsRef.current = attachmentFiles;
 
   // Cleanup blob URLs on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
-      for (const f of attachmentsRef.current) {
+      const previous = attachmentsRef.current;
+      attachmentsRef.current = [];
+      for (const f of previous) {
         if (f.url) {
           URL.revokeObjectURL(f.url);
         }
@@ -468,11 +461,8 @@ export const PromptInput = ({
 
   // ----- Local attachments (only used when no provider)
   const [items, setItems] = useState<(FileUIPart & { id: string })[]>([]);
+  const itemsRef = useRef<(FileUIPart & { id: string })[]>([]);
   const files = usingProvider ? controller.attachments.files : items;
-
-  // Keep a ref to files for cleanup on unmount (avoids stale closure)
-  const filesRef = useRef(files);
-  filesRef.current = files;
 
   const openFileDialogLocal = useCallback(() => {
     inputRef.current?.click();
@@ -522,59 +512,45 @@ export const PromptInput = ({
         return;
       }
 
-      setItems((prev) => {
-        const capacity =
-          typeof maxFiles === "number"
-            ? Math.max(0, maxFiles - prev.length)
-            : undefined;
-        const capped =
-          typeof capacity === "number" ? sized.slice(0, capacity) : sized;
-        if (typeof capacity === "number" && sized.length > capacity) {
-          onError?.({
-            code: "max_files",
-            message: "Too many files. Some were not added.",
-          });
-        }
-        const next: (FileUIPart & { id: string })[] = [];
-        for (const file of capped) {
-          next.push({
-            id: nanoid(),
-            type: "file",
-            url: URL.createObjectURL(file),
-            mediaType: file.type,
-            filename: file.name,
-          });
-        }
-        return prev.concat(next);
-      });
+      const capacity =
+        typeof maxFiles === "number"
+          ? Math.max(0, maxFiles - itemsRef.current.length)
+          : undefined;
+      const capped =
+        typeof capacity === "number" ? sized.slice(0, capacity) : sized;
+      const next = itemsRef.current.concat(createPromptInputAttachments(capped));
+      itemsRef.current = next;
+      setItems(next);
+      if (typeof capacity === "number" && sized.length > capacity) {
+        onError?.({
+          code: "max_files",
+          message: "Too many files. Some were not added.",
+        });
+      }
     },
     [matchesAccept, maxFiles, maxFileSize, onError],
   );
 
-  const removeLocal = useCallback(
-    (id: string) =>
-      setItems((prev) => {
-        const found = prev.find((file) => file.id === id);
-        if (found?.url) {
-          URL.revokeObjectURL(found.url);
-        }
-        return prev.filter((file) => file.id !== id);
-      }),
-    [],
-  );
+  const removeLocal = useCallback((id: string) => {
+    const found = itemsRef.current.find((file) => file.id === id);
+    const next = itemsRef.current.filter((file) => file.id !== id);
+    itemsRef.current = next;
+    setItems(next);
+    if (found?.url) {
+      URL.revokeObjectURL(found.url);
+    }
+  }, []);
 
-  const clearLocal = useCallback(
-    () =>
-      setItems((prev) => {
-        for (const file of prev) {
-          if (file.url) {
-            URL.revokeObjectURL(file.url);
-          }
-        }
-        return [];
-      }),
-    [],
-  );
+  const clearLocal = useCallback(() => {
+    const previous = itemsRef.current;
+    itemsRef.current = [];
+    setItems([]);
+    for (const file of previous) {
+      if (file.url) {
+        URL.revokeObjectURL(file.url);
+      }
+    }
+  }, []);
 
   const add = usingProvider ? controller.attachments.add : addLocal;
   const remove = usingProvider ? controller.attachments.remove : removeLocal;
@@ -658,16 +634,15 @@ export const PromptInput = ({
 
   useEffect(
     () => () => {
-      if (!usingProvider) {
-        for (const f of filesRef.current) {
-          if (f.url) {
-            URL.revokeObjectURL(f.url);
-          }
+      const previous = itemsRef.current;
+      itemsRef.current = [];
+      for (const f of previous) {
+        if (f.url) {
+          URL.revokeObjectURL(f.url);
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- cleanup only on unmount; filesRef always current
-    [usingProvider],
+    [],
   );
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
