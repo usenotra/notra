@@ -1,6 +1,6 @@
 "use client";
 
-import { Tick02Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CtaButton,
@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { useTranslations } from "use-intl";
 
-import { Button, buttonVariants } from "@/components/button";
+import { Button } from "@/components/button";
 import { authClient } from "@/lib/auth/client";
 import {
   acceptInvitation,
@@ -28,6 +28,10 @@ import { nameInitials } from "@/utils/name-initials";
 
 type Decision = "idle" | "working" | "accepted" | "declined";
 type PendingInvitation = Extract<InvitationPageData, { status: "pending" }>;
+
+/** Squircle corners where the browser supports them, plain rounding elsewhere. */
+const SQUIRCLE_AVATAR =
+  "corner-squircle rounded-xl supports-[corner-shape:squircle]:rounded-2xl after:corner-squircle";
 
 const KNOWN_ROLES = ["member", "admin", "owner"] as const;
 
@@ -43,9 +47,13 @@ function OrganizationAvatar({
   size: string;
 }) {
   return (
-    <Avatar className={`rounded-2xl after:rounded-2xl ${size}`}>
-      <AvatarImage alt="" src={organization.logo ?? undefined} />
-      <AvatarFallback className="rounded-2xl">
+    <Avatar className={`${SQUIRCLE_AVATAR} ${size}`}>
+      <AvatarImage
+        alt=""
+        className="corner-squircle"
+        src={organization.logo ?? undefined}
+      />
+      <AvatarFallback className="corner-squircle">
         {nameInitials(organization.name)}
       </AvatarFallback>
     </Avatar>
@@ -54,25 +62,46 @@ function OrganizationAvatar({
 
 function InviterAvatar({ name }: { name: string }) {
   return (
-    <Avatar className="size-16 rounded-2xl after:rounded-2xl">
-      <AvatarFallback className="rounded-2xl">
+    <Avatar className={`${SQUIRCLE_AVATAR} size-16`}>
+      <AvatarFallback className="corner-squircle">
         {nameInitials(name)}
       </AvatarFallback>
     </Avatar>
   );
 }
 
+/** The same round badge as a toast: a check for success, a cross otherwise. */
+function OutcomeIcon({ outcome }: { outcome: "success" | "failure" }) {
+  const success = outcome === "success";
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`corner-squircle flex size-12 items-center justify-center rounded-xl supports-[corner-shape:squircle]:rounded-2xl ${
+        success
+          ? "bg-primary/10 text-primary"
+          : "bg-destructive/10 text-destructive"
+      }`}
+    >
+      <HugeiconsIcon icon={success ? Tick02Icon : Cancel01Icon} size={24} />
+    </span>
+  );
+}
+
 function Message({
   title,
   description,
+  outcome,
   children,
 }: {
   title: string;
   description: string;
+  outcome?: "success" | "failure";
   children?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-6 text-center" role="status">
+      {outcome ? <OutcomeIcon outcome={outcome} /> : null}
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight text-balance">
           {title}
@@ -95,11 +124,12 @@ function Unavailable({
   const key = reason === "missing" ? "not-found" : reason;
 
   return (
-    <Message description={t(`${key}.description`)} title={t(`${key}.title`)}>
-      <a
-        className={buttonVariants({ size: "lg", variant: "outline" })}
-        href="/"
-      >
+    <Message
+      description={t(`${key}.description`)}
+      outcome="failure"
+      title={t(`${key}.title`)}
+    >
+      <a className={ctaButtonVariants()} href="/">
         {t("home")}
       </a>
     </Message>
@@ -124,18 +154,18 @@ function Mismatch({
         current: currentEmail,
         organization: data.organization.name,
       })}
+      outcome="failure"
       title={t("title")}
     >
-      <Button
+      <CtaButton
         loading={isSigningOut}
         onClick={() => {
           setIsSigningOut(true);
           signOut().catch(() => setIsSigningOut(false));
         }}
-        size="lg"
       >
         {t("signOut")}
-      </Button>
+      </CtaButton>
     </Message>
   );
 }
@@ -144,19 +174,15 @@ function Joined({ organization }: { organization: InvitationOrganization }) {
   const t = useTranslations("auth.invitation.joined");
 
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
-      <span className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-full">
-        <HugeiconsIcon icon={Tick02Icon} size={24} />
-      </span>
-      <Message
-        description={t("description")}
-        title={t("title", { organization: organization.name })}
-      >
-        <a className={ctaButtonVariants()} href={`/${organization.slug}`}>
-          {t("open", { organization: organization.name })}
-        </a>
-      </Message>
-    </div>
+    <Message
+      description={t("description")}
+      outcome="success"
+      title={t("title", { organization: organization.name })}
+    >
+      <a className={ctaButtonVariants()} href={`/${organization.slug}`}>
+        {t("open", { organization: organization.name })}
+      </a>
+    </Message>
   );
 }
 
@@ -214,6 +240,7 @@ function PendingInvitationCard({ data }: { data: PendingInvitation }) {
     return (
       <Message
         description={t("declined.description")}
+        outcome="failure"
         title={t("declined.title")}
       />
     );
