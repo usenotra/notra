@@ -14,13 +14,21 @@ docolin:
   status: stable
 ---
 
-A conversation (a **prompt sequence** in the API) is a multi-turn exchange of up to five turns. It captures how an engine answers once a buyer has narrowed the question, for example "what tools automate changelogs" followed by "which of those integrate with linear". A project can hold up to ten conversations.
+A conversation is a multi-turn exchange of up to five turns. It captures how an engine answers once a buyer has narrowed the question, for example "what tools automate changelogs" followed by "which of those integrate with linear". A project can hold up to ten conversations.
+
+<Visibility for="agents">
+
+In the API a conversation is called a **prompt sequence**.
+
+</Visibility>
 
 The **Conversations** card on the Prompts page lists each sequence with its **Turns** count and whether it is **Included in scans** or paused. **New conversation** opens a dialog with **Name** and **Turns** fields. Every English scan replays conversations against the grounded engines. The per-turn results appear as a replay thread.
 
 ## Running a conversation now
 
-The play button on a row runs that conversation immediately. The API equivalent is synchronous:
+The play button on a row runs that conversation immediately.
+
+<Visibility for="agents">
 
 ```bash
 curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences \
@@ -65,3 +73,5 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/sequences/$SEQ
 </Warning>
 
 `PATCH /geo/sequences/{sequenceId}` accepts `name`, `steps` (1 to 5) and `enabled`. `DELETE` removes the sequence.
+
+</Visibility>

@@ -18,34 +18,35 @@ Every enabled engine answers every enabled prompt on each scan. Pick them under 
 
 ## Default engines
 
-New projects start with Claude Opus 5.5, GPT-5.6 Sol, Gemini 3.8 Flash and Grok 4.7. Commerce brands also get Google AI Overview.
+New projects start with Claude Opus 5.5, GPT-5.6 Sol and Gemini 3.8 Flash. Brands that sell to consumers (products people buy, book or visit) also get Google AI Overview. Notra decides this from your website during onboarding.
 
-## Available providers
+## Engines with web search
 
-Notra loads the model list live from the AI gateway and groups it by provider:
+Notra runs every engine you select. Engines that can search the live web always run with search turned on, because that is how buyers see answers in ChatGPT, Claude, Gemini and Perplexity today.
 
-| Provider | Example models |
+| Provider | Models |
 | --- | --- |
-| Anthropic | Claude Opus, Sonnet, Haiku |
-| OpenAI | GPT-6, GPT-5.6 |
+| OpenAI | GPT-6, GPT-5.6, GPT-5.5, GPT-5.4 |
+| Anthropic | Claude Opus, Fable, Sonnet, Haiku |
 | Google | Gemini Flash and Pro |
 | Perplexity | Sonar |
-| SpaceXAI | Grok |
-| Meta | Muse Spark |
-| Moonshot AI | Kimi |
-| Z.AI | GLM |
-| DeepSeek | DeepSeek V4 |
-| Mistral AI | Mistral Large, Medium, Small |
+| Google AI Overview | Fetched from Google search results |
 
-Engines with live web search answer with retrieval and save their search queries and citations. See [How scans work](/geo/how-scans-work).
+These engines save the search queries they ran and the sources they cited. See [How scans work](/geo/how-scans-work) and [Citations](/geo/metrics/citations).
+
+## Engines without web search
+
+Some providers have no web search route in Notra: xAI Grok, Meta, Moonshot AI (Kimi), Z.AI (GLM), DeepSeek, Mistral AI and Cursor. Notra still runs them, but they answer from what the model learned in training. Their answers have no sources or search queries.
+
+The model picker and the results label these engines **No web search**. Compare them with each other rather than with search engines, because a model without search can't see pages you published recently.
 
 ## Google AI Overview and coding agents
 
-Notra fetches Google AI Overview from Google search results, not a model API. Notra can also scan coding agents that research live (Cursor, OpenCode, Claude Code and Codex). These engines are rolling out to selected workspaces.
+Notra fetches Google AI Overview from Google search results, not a model API. Notra can also scan coding agents. OpenCode, Claude Code and Codex research live. Cursor answers without web search.
 
-<Note>
-  TODO: confirm which coding-agent engines are generally available before publishing this list.
-</Note>
+<Info>
+  Coding-agent engines are available on request. Ask in [Discord](https://www.usenotra.com/discord) to enable them for your workspace.
+</Info>
 
 ## Zero data retention
 

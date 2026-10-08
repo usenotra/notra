@@ -12,17 +12,42 @@ docolin:
   applies_to:
     - notra
   language: en
-  status: draft
+  status: stable
 ---
 
-An AI referral is a person who clicked a link in an AI answer and landed on your site. Notra recognizes them by referrer host: chatgpt.com, perplexity.ai, gemini.google.com, claude.ai, copilot.microsoft.com, you.com, chat.deepseek.com, chat.mistral.ai, grok.com, chat.qwen.ai and Meta AI.
+An AI referral is a person who clicked a link in an AI answer and landed on your site. Notra recognizes them by the referrer host:
 
-Add **Conversion paths** in [Brand and domains](/geo/brand-and-domains) (for example `/signup` or `/checkout`) to count referrals that reached them.
+| Engine | Hosts |
+| --- | --- |
+| ChatGPT | chatgpt.com, chat.openai.com |
+| Perplexity | perplexity.ai |
+| Gemini | gemini.google.com, bard.google.com |
+| Claude | claude.ai |
+| Microsoft Copilot | copilot.microsoft.com, bing.com/chat |
+| You.com | you.com |
+| DeepSeek | chat.deepseek.com |
+| Mistral | chat.mistral.ai |
+| Grok | grok.com, x.ai |
+| Qwen | chat.qwen.ai |
+| Meta AI | meta.ai |
 
-<Warning>
-  This page is a placeholder. The outline below is what it will cover.
-</Warning>
+Subdomains of these hosts also count. Notra does not read `utm_source` parameters.
 
-- Where conversions show up in the dashboard and API.
-- Attribution window and how a referral is tied to a later conversion.
-- Apps that strip the referrer and how that undercounts referrals.
+## Conversions
+
+Add **Conversion paths** in [Brand and domains](/geo/brand-and-domains), for example `/signup` or `/pricing`. You can add up to 20.
+
+A conversion is an AI referral that lands on one of those paths. Paths match by prefix, so `/pricing` also counts `/pricing/teams`. `/` only matches the home page.
+
+Conversions show up as the **Conversions** stage in the hero of the [Traffic](/ai-traffic/overview) page, for the selected date range.
+
+<Visibility for="agents">
+
+`GET /v1/projects/{projectId}/geo/traffic/overview` returns `totals.conversions`. It is `null` when the project has no conversion paths.
+
+</Visibility>
+
+## Limits
+
+- Notra only counts the page the referral landed on. A visitor who lands on a blog post and signs up later is not a conversion.
+- Apps that strip the referrer header, and AI engines not in the table, are not counted as referrals.

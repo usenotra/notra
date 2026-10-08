@@ -26,6 +26,8 @@ Each competitor has:
 
 The table has **Domain**, **Type** and **Synonyms** columns with a name filter and an **All types** / Direct / Indirect filter. **Add Competitor** (shortcut `C`) opens the edit form. Below the table, the **Share of voice** card compares mention counts for the selected range.
 
+<Visibility for="agents">
+
 ## Create, rename and delete
 
 The API uses a single `PUT` for create and update. It matches on `name`, case-insensitively, and returns the full competitor list.
@@ -35,10 +37,10 @@ curl -X PUT https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors \
   -H "Authorization: Bearer $NOTRA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Beamer",
-    "domain": "beamer.com",
+    "name": "Globex",
+    "domain": "globex.com",
     "kind": "direct",
-    "synonyms": ["getbeamer"],
+    "synonyms": ["getglobex"],
     "color": "#7c3aed"
   }'
 ```
@@ -49,7 +51,7 @@ To rename, send the new `name` and the old one as `previousName`:
 curl -X PUT https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors \
   -H "Authorization: Bearer $NOTRA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "name": "Beamer Changelog", "previousName": "Beamer", "domain": "beamer.com" }'
+  -d '{ "name": "Globex Changelog", "previousName": "Globex", "domain": "globex.com" }'
 ```
 
 <ParamField body="name" type="string" required>
@@ -73,9 +75,13 @@ curl -X PUT https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors \
 
 `DELETE /v1/projects/{projectId}/geo/competitors/{name}` stops tracking a competitor. It matches the name case-insensitively.
 
+</Visibility>
+
 ## Suggestions for a domain
 
 Notra can suggest likely competitors for a website. It caches results per organization and domain.
+
+<Visibility for="agents">
 
 ```bash
 curl "https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/suggestions?domain=usenotra.com" \
@@ -87,7 +93,7 @@ curl "https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/suggestio
   "domain": "usenotra.com",
   "field": "content automation",
   "competitors": [
-    { "name": "Beamer", "domain": "beamer.com", "description": "Changelog and product update tool", "confidence": "high" }
+    { "name": "Globex", "domain": "globex.com", "description": "Changelog and product update tool", "confidence": "high" }
   ],
   "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
 }
@@ -95,9 +101,15 @@ curl "https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/suggestio
 
 `confidence` is `high`, `medium` or `null`. This endpoint allows 10 requests per 10 minutes per organization.
 
+</Visibility>
+
 ## Bulk import
 
-**Import CSV** on the Competitors page and the API import endpoint follow the same rules. A `name` column is required. `domain`, `kind` and `synonyms` are optional. Import updates existing competitors in place instead of duplicating them.
+**Import CSV** on the Competitors page requires a `name` column. `domain`, `kind` and `synonyms` are optional. Import updates existing competitors in place instead of duplicating them.
+
+<Visibility for="agents">
+
+The API import endpoint follows the same rules.
 
 <ParamField body="rows" type="array">
   1 to 2,000 objects with `name` (required), `domain`, `kind` and `synonyms` (up to 8).
@@ -112,16 +124,24 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/im
   -H "Content-Type: application/json" \
   -d '{
     "rows": [
-      { "name": "Beamer", "domain": "beamer.com", "kind": "direct" },
-      { "name": "Headway", "domain": "headwayapp.co", "kind": "direct", "synonyms": ["headway app"] }
+      { "name": "Globex", "domain": "globex.com", "kind": "direct" },
+      { "name": "Initech", "domain": "initech.com", "kind": "direct", "synonyms": ["initech app"] }
     ]
   }'
 ```
 
 The response contains `imported`, `updated`, `skipped`, `issues[]` and the full `competitors[]` list. One request takes up to 2,000 rows, so send the whole list at once instead of splitting it. Import allows 10 requests per 10 minutes per organization.
 
+</Visibility>
+
 ## Competitor detail
 
 Click a competitor to open its detail view. It opens as a modal from the Competitors page or as a full page at `/geo/competitors/{name}`. The view shows a **Mentions** chart, over the last 30 days by default. Below it, a table lists the prompts that produced those mentions, with **Engine**, **Position** (the numeric position, **Mentioned** or **Absent**) and **Last seen** columns. **Edit competitor** opens the same form as the table.
 
+Your own brand also appears in share of voice. Clicking it opens the same view, filled with the answers that mention you.
+
+<Visibility for="agents">
+
 The API equivalent is `GET /v1/projects/{projectId}/geo/visibility/competitors/{brand}`, where `brand` is the name that `competitor-share` reports. Without a window it uses the 30-day competitor-detail default, not the project default.
+
+</Visibility>

@@ -14,11 +14,15 @@ docolin:
   status: stable
 ---
 
-All GEO data is scoped to a project. A project links a name to one brand identity. An organization can track several brands or products side by side without mixing prompts, competitors or scan results. Every GEO page in the dashboard reads the active project from the sidebar's **Projects** menu, and every project-scoped API route takes `projectId` in its path.
+All GEO data is scoped to a project. A project links a name to one brand identity. An organization can track several brands or products side by side without mixing prompts, competitors or scan results. Every GEO page in the dashboard reads the active project from the sidebar's **Projects** menu.
 
 - Onboarding creates your first project.
 - **New project** in the sidebar opens a dialog with two fields: **Project name** and **Brand identity**.
 - Deleting a project cascades to its GEO settings, prompts, sequences, competitors, scans, checks and reports. You cannot delete the organization's last project.
+
+<Visibility for="agents">
+
+Every project-scoped API route takes `projectId` in its path.
 
 ```bash
 curl https://api.usenotra.com/v1/projects \
@@ -33,6 +37,8 @@ curl -X POST https://api.usenotra.com/v1/projects \
 ```
 
 `brandSettingsId` is optional and defaults to the organization's default brand identity. `PATCH /v1/projects/{projectId}` renames a project or relinks its brand identity.
+
+</Visibility>
 
 <Info>
   How many projects you can create depends on your plan. See [Billing](/organization/billing).

@@ -220,8 +220,7 @@
               "ai-traffic/install/nuxt",
               "ai-traffic/install/astro",
               "ai-traffic/install/sveltekit",
-              "ai-traffic/install/netlify",
-              "ai-traffic/install/other-platforms"
+              "ai-traffic/install/netlify"
             ]
           },
           {

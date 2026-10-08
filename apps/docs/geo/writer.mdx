@@ -33,7 +33,15 @@ Writing is a two-step flow: plan a brief, then approve it. Approval hands the br
 
 ## Billing
 
-Planning a brief reserves AI credits and does not count toward a plan quota. Notra bills the approved writer run as a long-form post. It draws from the plan's long-form post quota first and falls back to AI credits when the quota is used up. Both steps fail with `402` when neither is available. See [Billing](/organization/billing).
+Planning a brief reserves AI credits and does not count toward a plan quota. Notra bills the approved writer run as a long-form post. It draws from the plan's long-form post quota first and falls back to AI credits when the quota is used up. Both steps fail when neither is available. See [Billing](/organization/billing).
+
+<Visibility for="agents">
+
+The API returns `402` in that case.
+
+</Visibility>
+
+<Visibility for="agents">
 
 ## Plan a brief from the API
 
@@ -120,6 +128,8 @@ curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/briefs/$BRIEF_
 The response is `202 Accepted`. You can only approve briefs in `draft` or `failed`. Any other status returns `409`. The limit is 20 requests per 10 minutes per organization.
 
 Poll `GET /v1/projects/{projectId}/geo/briefs/{briefId}` until `status` is `completed` or `failed`. The brief object carries `status`, `autoApproved`, `runId`, `postId`, `humanized`, `error`, `createdAt`, `updatedAt` and `completedAt`. `GET /v1/projects/{projectId}/geo/briefs` lists every brief with `id`, `topic`, `workingTitle`, `status`, `postId` and `createdAt`. Once `postId` is set, read the article through the [Posts API](/api-reference/content/list-posts).
+
+</Visibility>
 
 <CardGroup cols={2}>
   <Card title="Plan a content brief" icon="code" href="/api-reference/geo/plan-a-content-brief">

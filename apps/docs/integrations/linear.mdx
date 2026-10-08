@@ -54,7 +54,11 @@ The connection is read-only. Notra requests Linear's `read` scope and nothing el
 
 The Linear page lists every connected workspace. From the card menu you can enable or disable the workspace, open its detail page or delete it. The edit dialog lets you rename the integration and toggle it on or off. The detail page shows the Linear workspace name and when the connection was created.
 
+<Visibility for="agents">
+
 The API exposes the same integrations. `GET /v1/integrations` returns connected Linear workspaces with their `linearOrganizationId` and `linearOrganizationName`, and `DELETE /v1/integrations/{integrationId}` removes one.
+
+</Visibility>
 
 ## Limits
 

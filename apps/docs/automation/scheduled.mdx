@@ -23,7 +23,13 @@ docolin:
   prev: ./event-based.mdx
 ---
 
-Schedules generate content at a fixed cadence from activity over a lookback window. Use them for regular output, such as weekly progress posts, monthly changelog roundups or a daily social image during a launch. You manage them under **Automation > Schedules** in the dashboard, through the `/v1/schedules` API or with `notra schedules` in the [CLI](/devtools/cli).
+Schedules generate content at a fixed cadence from activity over a lookback window. Use them for regular output, such as weekly progress posts, monthly changelog roundups or a daily social image during a launch. You manage them under **Automation > Schedules** in the dashboard or with `notra schedules` in the [CLI](/devtools/cli).
+
+<Visibility for="agents">
+
+You can also manage them through the `/v1/schedules` API.
+
+</Visibility>
 
 ## How schedules work
 
@@ -193,6 +199,8 @@ A schedule needs at least one GitHub repository. Pick them in the **Sources** st
   </Step>
 </Steps>
 
+<Visibility for="agents">
+
 ### Through the API
 
 The same schedule through the public API (scope `schedules.write`):
@@ -243,6 +251,8 @@ const { schedule } = await response.json();
 </CodeGroup>
 
 `repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `dayOfWeek` is required for weekly schedules and `dayOfMonth` for monthly ones. `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`. `lookbackWindow` defaults to `last_7_days` and `autoPublish` to `false`. List, update and delete schedules with `GET /v1/schedules?repositoryIds=repo_123`, `PATCH /v1/schedules/{scheduleId}` (full body) and `DELETE /v1/schedules/{scheduleId}`. A duplicate configuration returns `409`.
+
+</Visibility>
 
 ## Content generation context
 

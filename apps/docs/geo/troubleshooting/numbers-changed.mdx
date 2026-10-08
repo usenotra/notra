@@ -38,14 +38,13 @@ The card needs two scans before it shows anything. Each row is one prompt and en
 | --- | --- |
 | Engines answered differently | What changed shows gained or lost mentions on the same prompts |
 | You added or paused prompts | Every saved answer has equal weight, so new prompts change the rate |
-| You added or removed engines | Mention rate is per engine; the total mixes them |
-| You changed aliases or competitors | Matching only applies to answers judged after the change |
+| You added or removed engines | Mention rate is per engine. The total mixes them |
+| You changed your company name or aliases | Only new scans use the new names. Past answers keep their result |
 | Manual scans | Repeated manual scans count again in the selected range |
 | A partial scan | Answers from an unfinished scan can appear before it completes |
 
-<Warning>
-  This page is a placeholder. The outline below is what it will cover.
-</Warning>
+## Notra never re-judges old answers
 
-- Whether past answers are re-judged after alias or competitor edits.
-- How judge model upgrades affect history.
+Each answer keeps the result it got when the scan saved it: whether you were mentioned, your position and the competitors it named. Changing aliases, adding competitors or upgrading the judge model only affects new scans.
+
+Competitor edits are the one exception. Share of voice and the competitor matrix match saved names against your current competitor list and synonyms when they load, so a new synonym also groups older mentions. **Competitor cited** in What changed also uses your current competitor domains.

@@ -15,7 +15,13 @@ docolin:
   status: stable
 ---
 
-AI traffic tracking shows which AI systems fetch your pages and which people arrive from an AI answer. A small request-capture SDK on your site sends a neutral request envelope to Notra. Notra classifies every request at ingest. The results appear on the **Traffic** page (titled **AI Traffic**) and under `/geo/traffic` in the API.
+AI traffic tracking shows which AI systems fetch your pages and which people arrive from an AI answer. A small request-capture SDK on your site sends a neutral request envelope to Notra. Notra classifies every request at ingest. The results appear on the **Traffic** page (titled **AI Traffic**).
+
+<Visibility for="agents">
+
+The results are also available under `/geo/traffic` in the API.
+
+</Visibility>
 
 ## What is captured
 
@@ -57,8 +63,6 @@ The `@usenotra/geo` tracker runs inside your app's request pipeline. Pick your f
   </Card>
 </Columns>
 
-Not on this list? See [Other platforms](/ai-traffic/install/other-platforms).
-
 ## Recognized AI agents
 
 Notra recognizes more than 60 AI crawlers and agents from OpenAI, Anthropic, Google, Perplexity, Meta, Apple, Amazon and others. See the full [AI crawler directory](/ai-traffic/crawlers).
@@ -68,9 +72,11 @@ Notra recognizes more than 60 AI crawlers and agents from OpenAI, Anthropic, Goo
 Once events arrive, the page shows the sections below. Each one follows the range picker.
 
 - A hero row with **Crawlers**, **Referrals** and **Total** visit counts, each compared "vs. previous period", and a daily trend chart.
-- **Sources** has three groups: **Crawlers** (training and search-index bots), **Cited** (assistant-browse fetches while an engine answered someone) and **Referrals**. Columns are **Source**, **Purpose**, **Visits**, **Markdown** (visits that asked for Markdown, crawlers and cited only), **Pages** and **Last seen**. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Instagram, Amazon, Apple, ByteDance and Common Crawl. Instagram is its own source, not folded into Meta.
+- **Sources** has three groups: **Crawlers** (training and search-index bots), **Cited** (assistant-browse fetches while an engine answered someone) and **Referrals**. Columns are **Source**, **Purpose**, **Visits**, **Pages** and **Last seen**. Open a source to see the share of its visits that asked for Markdown. Log rows that asked for Markdown carry a **Markdown** badge. Sources group by operator, for example OpenAI, Anthropic, Google, Perplexity, Microsoft, Meta, Instagram, Amazon, Apple, ByteDance and Common Crawl. Instagram is its own source, not folded into Meta.
 - **Top pages by AI source** has the columns **Page** (host and path), **Sources** and **Visits**. When a project tracks more than one domain, a domain filter narrows the table.
 - **Recent citations** is the live event log, with **All visitors** (AI crawler, AI referral) and **All purposes** (Model training, Search index, Cited in answer) filters. The domain filter on top pages also narrows this log. Live updates refresh every few seconds, and you can pause them.
+
+<Visibility for="agents">
 
 ## Reading traffic from the API
 
@@ -96,6 +102,8 @@ const { log } = await response.json();
 
 Every traffic response includes `configured`. When it is `false`, the deployment has no traffic backend configured, and the payload is empty instead of an error.
 
+</Visibility>
+
 ## Limits to keep in mind
 
 <AccordionGroup>
@@ -115,6 +123,12 @@ Every traffic response includes `configured`. When it is `false`, the deployment
     Only journeys that followed a tagged `ntr` link are exact. Fingerprinted journeys group requests by heuristic and can merge or split real sessions.
   </Accordion>
   <Accordion title="Sampling reduces counts">
-    If you set `sample` below 1, every count in the Traffic page and API reflects the sampled fraction. Notra does not scale the numbers back up.
+    If you set `sample` below 1, every count in the Traffic page reflects the sampled fraction. Notra does not scale the numbers back up.
+
+    <Visibility for="agents">
+
+    API counts reflect the sampled fraction too.
+
+    </Visibility>
   </Accordion>
 </AccordionGroup>

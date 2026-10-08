@@ -24,7 +24,13 @@ docolin:
   next: ./scheduled.mdx
 ---
 
-Event triggers generate content in response to GitHub activity: a published release, or a push to the repository's default branch. Each trigger listens on one or more repositories, fires for one event type and produces one output format. You manage them under **Automation > Events** in the dashboard or through the `/v1/event-triggers` API.
+Event triggers generate content in response to GitHub activity: a published release, or a push to the repository's default branch. Each trigger listens on one or more repositories, fires for one event type and produces one output format. You manage them under **Automation > Events** in the dashboard.
+
+<Visibility for="agents">
+
+You can also manage them through the `/v1/event-triggers` API.
+
+</Visibility>
 
 ## How event triggers work
 
@@ -168,6 +174,8 @@ Notra receives events through a webhook you add to each repository. Installing t
   </Step>
 </Steps>
 
+<Visibility for="agents">
+
 ### Through the API
 
 To create the same trigger through the public API, use the `event-triggers.write` scope:
@@ -210,6 +218,8 @@ const { eventTrigger } = await response.json();
 </CodeGroup>
 
 `repositoryIds` are GitHub integration IDs from `GET /v1/integrations`. `eventTypes` accepts `release` and `push`. The dashboard creates one event type per trigger, but the API accepts both in one trigger. `outputType` is one of `changelog`, `blog_post`, `linkedin_post`, `twitter_post` or `image`. List triggers with `GET /v1/event-triggers`. Read, update and delete one with `GET`/`PATCH`/`DELETE /v1/event-triggers/{triggerId}`. A `PATCH` takes the full body. A duplicate configuration returns `409`.
+
+</Visibility>
 
 ## Content generation context
 

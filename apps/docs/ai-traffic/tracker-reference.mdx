@@ -53,9 +53,15 @@ Both return `ingestUrl`, `snippet` (the Next.js snippet) and `snippets` with `ne
 
 ## Rotating the token
 
+Open **API Keys** and press **Rotate** on the tracking token card. Rotation covers the whole organization, so every project gets a new token.
+
+<Visibility for="agents">
+
 ```bash
 curl -X POST "https://api.usenotra.com/v1/geo/ingest/rotate-token?projectId=$PROJECT_ID" \
   -H "Authorization: Bearer $NOTRA_API_KEY"
 ```
+
+</Visibility>
 
 Rotation invalidates every tracking token previously issued for the organization and returns a fresh one. Notra immediately rejects events from deployments that still send the old token, so update `NOTRA_GEO_TOKEN` everywhere before you rotate.

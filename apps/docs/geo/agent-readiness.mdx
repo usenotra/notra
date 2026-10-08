@@ -42,7 +42,11 @@ The score breaks down into three tiers. The dashboard shows them as:
 | `recommended` | **Should do** | Makes the site easier for agents |
 | `bonus` | **Bonus** | Positive signals that add points on top |
 
+<Visibility for="agents">
+
 For each of the essential and recommended tiers the report carries `earned`, `available`, `passing` and `total`. The bonus tier carries `points` and `positiveSignals`. `eligibleChecks` is the number of checks that applied to your site.
+
+</Visibility>
 
 <Note>
   The check list belongs to is-agentic.com and changes over time. Notra stores whatever the current report contains rather than a fixed list, so the checks you see may change between scans.
@@ -102,6 +106,8 @@ The **Checklist** groups issues under **Must do** and **Should do**, failed item
 
 **Copy full backlog** copies the same items as a plain list.
 
+<Visibility for="agents">
+
 ## Start a scan from the API
 
 Both routes are project-scoped. They need the `agent-readiness.read` scope to read reports and `agent-readiness.write` to start scans.
@@ -154,9 +160,17 @@ if (scan?.status === "running") {
 
 `reportUrl` links to the public report on is-agentic.com.
 
+</Visibility>
+
 ## Rate limits
 
-The dashboard does not throttle readiness scans. It relies on reusing an in-flight scan for the same URL. The API caps `POST /geo/agent-readiness/scan` at 10 requests per hour per organization and answers `429` beyond that. See [Rate limits](/api/rate-limits) for the headers that accompany every limited response.
+The dashboard does not throttle readiness scans. It relies on reusing an in-flight scan for the same URL.
+
+<Visibility for="agents">
+
+The API caps `POST /geo/agent-readiness/scan` at 10 requests per hour per organization and answers `429` beyond that. See [Rate limits](/api/rate-limits) for the headers that accompany every limited response.
+
+</Visibility>
 
 <CardGroup cols={2}>
   <Card title="Start an agent readiness scan" icon="code" href="/api-reference/geo/start-an-agent-readiness-scan">

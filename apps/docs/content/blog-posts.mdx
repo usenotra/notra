@@ -43,7 +43,13 @@ Posts in Notra have one of these content types:
 | `twitter_post`  | Post for X                                         |
 | `image`         | Generated social image (1200 x 630)                |
 
-Every post has a status of `draft` or `published`. The API also accepts `investor_update` as a filter value for older posts, but the dashboard no longer generates that type.
+Every post has a status of `draft` or `published`.
+
+<Visibility for="agents">
+
+The API also accepts `investor_update` as a filter value for older posts, but the dashboard no longer generates that type.
+
+</Visibility>
 
 Blog posts can also carry a subtype: `guide`, `comparison`, `listicle`, `how-to`, `faq` or `alternatives`. Posts written through GEO Write get one of these. Posts generated from repository activity do not.
 
@@ -149,8 +155,13 @@ The agent edits the document directly. You can also edit the Markdown yourself a
 Clicking **Publish** sets the post status to `published`. Notra does not push the post to a site by itself. Published posts reach your site through:
 
 * **Framer.** The Notra plugin imports posts into a Framer site. See [Framer](/integrations/framer).
-* **Your own site or CMS.** Fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API Getting Started](/api/getting-started).
 * **Manual.** Copy the Markdown from the editor.
+
+<Visibility for="agents">
+
+* **Your own site or CMS.** Fetch posts with `GET /v1/posts?status=published&contentType=blog_post` and render them. See [API Getting Started](/api/getting-started).
+
+</Visibility>
 
 **Move to draft** takes a post back to `draft`.
 

@@ -11,22 +11,30 @@ docolin:
   applies_to:
     - notra
   language: en
-  status: draft
+  status: stable
 ---
 
-Grounded engines search the web before they answer. Notra saves the search queries they ran and the sources they cited for every answer.
+Engines with web search look up pages before they answer. Notra saves the search queries they ran and the sources they cited for every answer.
+
+A mention means the answer names your brand. A citation means the engine linked a page as a source. You can be mentioned without being cited, and an engine can cite your page without recommending you.
+
+## Which engines return citations
+
+ChatGPT, Claude, Gemini, Perplexity and Google AI Overview all return their sources. So do OpenCode, Claude Code and Codex when they are enabled. Engines labelled **No web search**, such as Grok, DeepSeek, Mistral and Cursor, answer without searching, so their answers never have citations.
+
+## Your own pages
+
+Notra marks an answer as citing you when any source URL is on your brand website or one of your [tracked domains](/geo/brand-and-domains). The Overview page counts these citations per engine. There is no separate citation rate metric yet.
 
 ## Where to find them
 
 - Answer details on the [Prompts](/geo/prompts) page list the cited sources and search queries.
 - [Shelf Space](/geo/shelf-space) groups cited third-party pages and tracks whether you are listed on them.
 - The **What changed** card flags **Citation gained**, **Citation lost** and **Competitor cited**.
+
+<Visibility for="agents">
+
 - `sources[]` and `searchQueries` in `GET /v1/projects/{projectId}/geo/visibility/prompt-results`.
 
-<Warning>
-  This page is a placeholder. It will cover the topics below.
-</Warning>
+</Visibility>
 
-- Mention vs citation: being named in an answer vs having your page cited.
-- Own-site citation rate and how it is calculated.
-- Which engines return citations (grounded engines only).

@@ -30,12 +30,15 @@ Agencies can track every client in one workspace. Each client gets its own [proj
     Use daily scans for active campaigns and weekly scans for retainers. Fewer scans use fewer AI answers. See [How scans work](/geo/how-scans-work#recurring-scans).
   </Step>
   <Step title="Install the tracker on the client site">
-    Bind an ingest token to the client's project. See [AI traffic](/ai-traffic/overview).
+    Select the client's project, then open **Traffic**. The token shown there is bound to that project. See [AI traffic](/ai-traffic/overview).
   </Step>
 </Steps>
 
 ## Reporting
 
+- Lock each client's prompt set before the first report. Changing prompts changes the numbers, so month-over-month comparisons only work on a fixed set.
+- Report per engine, not one blended number. Engines answer differently and move independently.
+- Scan weekly or daily and report monthly. Answers vary from run to run, so more scans give steadier numbers.
 - The [What changed](/geo/troubleshooting/numbers-changed#what-changed) card on the Overview page is the core of a monthly client report.
 - Pull numbers into your own reports with the [API](/api/getting-started) or ask an agent through the [MCP server](/devtools/mcp).
 - Use API keys with **GEO Access** so reporting tools cannot touch content.

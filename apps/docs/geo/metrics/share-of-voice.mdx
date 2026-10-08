@@ -18,7 +18,7 @@ Share of voice puts your mentions next to your competitors'. Mention rate tells 
 
 ## How it is calculated
 
-Share of voice = your mentions / mentions of every tracked brand, including yours, over the selected range.
+Share of voice = your mentions / mentions of every tracked brand, including yours, over the selected range. Your brand counts once per answer that mentions it, the same rule as competitors.
 
 - Only [tracked competitors](/geo/competitors) count. A brand you do not track does not appear here, so keep the list complete and add synonyms.
 - The dashboard breaks out the top five brands and groups the rest under **Other**.
@@ -26,8 +26,13 @@ Share of voice = your mentions / mentions of every tracked brand, including your
 ## Where to find it
 
 - **Share of voice** donut and table on the GEO **Overview** page and the Competitors page.
+
+<Visibility for="agents">
+
 - `GET /v1/projects/{projectId}/geo/visibility/competitor-share`.
 
-<Note>
-  TODO: confirm whether share of voice counts one mention per answer per brand or every occurrence, and document it here.
-</Note>
+</Visibility>
+
+## What counts as a mention
+
+A brand counts once per answer that names it, no matter how many times the answer repeats it. The judge matches names and synonyms, and the dashboard merges saved names onto your current competitor list, so adding a synonym later also groups older mentions under the right competitor.

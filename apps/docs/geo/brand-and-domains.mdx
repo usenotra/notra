@@ -30,6 +30,8 @@ Open GEO settings from the settings menu (**Brand**, **Languages** and **Models*
 
 You can also delete a project from this section. See [Projects](/geo/projects).
 
+<Visibility for="agents">
+
 ## From the API
 
 `PATCH` writes the full settings document and re-arms the recurring scan.
@@ -82,3 +84,5 @@ curl -X PATCH https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/settings \
 </ParamField>
 
 The response returns the stored `settings` plus `scanStartedAt`, `lastScanAt` and `isScanning`. It also includes a `competitors` array, which is read-only on this route. Both routes need the `geo-settings` scope.
+
+</Visibility>
