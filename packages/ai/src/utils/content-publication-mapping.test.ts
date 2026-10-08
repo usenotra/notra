@@ -178,6 +178,28 @@ if (process.env.NOTRA_PUBLICATION_MAPPING_SQL_WORKER !== "1") {
   afterAll(async () => client.close());
 
   describe("record/reconcile mapping against PostgreSQL indexes", () => {
+    test("a foreign workspace cannot claim a post or retire its publication", async () => {
+      await insert("A", at(1));
+      const before = await rows();
+      expect(
+        await recordContentPublication(
+          { ...publication("B"), organizationId: "foreign-org" },
+          at(2)
+        )
+      ).toBeNull();
+      expect(await rows()).toEqual(before);
+    });
+
+    test("a missing post cannot create a publication", async () => {
+      expect(
+        await recordContentPublication(
+          { ...publication("A"), postId: "missing-post" },
+          at(1)
+        )
+      ).toBeNull();
+      expect(await rows()).toEqual([]);
+    });
+
     test("reconciliation closes old A before inserting open B", async () => {
       await insert("A", at(1));
       await reconcileContentPublication({

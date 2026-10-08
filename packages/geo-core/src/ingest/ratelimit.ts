@@ -6,6 +6,8 @@ import {
   GEO_INGEST_ADMISSION_RATELIMIT_PREFIX,
   GEO_INGEST_RATELIMIT_TIMEOUT_MS,
   GEO_INGEST_REDIS_RETRIES,
+  WEB_INGEST_RATELIMIT_MAX_REQUESTS,
+  WEB_INGEST_RATELIMIT_PREFIX,
 } from "../constants/ingest";
 
 const redis = Redis.fromEnv({ retry: { retries: GEO_INGEST_REDIS_RETRIES } });
@@ -27,5 +29,12 @@ export const geoIngestAdmissionRatelimit = new Ratelimit({
     GEO_INGEST_ADMISSION_RATELIMIT_MAX_REQUESTS,
     "1m"
   ),
+  timeout: GEO_INGEST_RATELIMIT_TIMEOUT_MS,
+});
+
+export const webIngestRatelimit = new Ratelimit({
+  redis,
+  prefix: WEB_INGEST_RATELIMIT_PREFIX,
+  limiter: Ratelimit.slidingWindow(WEB_INGEST_RATELIMIT_MAX_REQUESTS, "1m"),
   timeout: GEO_INGEST_RATELIMIT_TIMEOUT_MS,
 });

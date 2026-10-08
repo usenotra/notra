@@ -3,6 +3,10 @@ import type { GeoWriterBrief } from "@notra/ai/types/geo-writer";
 import type { GeoWriterSourceKind } from "@notra/db/types/geo-writer";
 import type {
   AiTrafficResponse,
+  WebAnalyticsOutcome,
+  WebAnalyticsResponse,
+  WebEngagement,
+  WebAnalyticsSource,
   GeoAnswerSource,
   GeoChangeEvent,
   GeoChangesSummary,
@@ -55,7 +59,6 @@ import type {
   GeoTrafficSource,
   GeoTrafficSourceGroupDefinition,
   GeoTrafficTotals,
-  GeoTrafficTrendRow,
   GeoVisitorType,
   MentionProviderRow,
   ShareOfVoiceRow,
@@ -161,11 +164,11 @@ export interface TrafficPageViewProps {
   geoRange: GeoRangeControl;
   traffic: AiTrafficResponse | undefined;
   isTrafficPending: boolean;
-  inventoryPages: readonly GeoTrafficPage[];
   knownHosts: readonly string[];
   isPagesPending: boolean;
   trafficPages: readonly GeoTrafficPage[];
   ingestSetup: GeoIngestSetupResponse | undefined;
+  web: WebAnalyticsResponse | undefined;
 }
 
 export interface GeoTrafficSkeletonProps {
@@ -601,10 +604,11 @@ export interface DailyTrendChartProps {
   label: string;
 }
 
-export interface JourneyCountCellProps {
+export interface GeoCountCellProps {
   label: string;
-  journeys: number;
-  previousJourneys: number;
+  value: number;
+  previousValue?: number | null;
+  unavailableHint?: string;
 }
 
 export interface JourneyPathPillProps {
@@ -669,6 +673,7 @@ export interface AiTrafficCardProps {
   pages: readonly GeoTrafficPage[];
   settingsHref: string;
   isPending?: boolean;
+  showHero?: boolean;
 }
 
 export interface GeoTrafficPageSource {
@@ -691,10 +696,29 @@ export interface TrafficPageSourcesCellProps {
   group: GeoTrafficPageGroup;
 }
 
+export interface TrafficPageColumnLabels {
+  page: string;
+  sources: string;
+  visits: string;
+}
+
+export interface TrafficSourceMemberColumnLabels {
+  bot: string;
+  source: string;
+  purpose: string;
+  visits: string;
+  lastSeen: string;
+  purposeLabel: (category: string) => string;
+}
+
+export interface TrafficSourcePageColumnLabels {
+  page: string;
+  visits: string;
+}
+
 export interface TrafficPagesCardProps {
   pages: readonly GeoTrafficPage[];
   isPending?: boolean;
-  hosts?: readonly string[];
 }
 
 export interface TrafficPagesResultsProps {
@@ -704,10 +728,6 @@ export interface TrafficPagesResultsProps {
 }
 
 export interface TrafficPagesFiltersProps {
-  showHostFilter: boolean;
-  hostSelectValue: string;
-  hostOptions: readonly string[];
-  onHostChange: (value: string) => void;
   pathQuery: string;
   onPathQueryChange: (value: string) => void;
 }
@@ -1722,7 +1742,7 @@ export interface TrafficTrendMetric {
 export interface TrafficHeroProps {
   totals: GeoTrafficTotals;
   previousTotals: GeoTrafficTotals | null;
-  rows: readonly GeoTrafficTrendRow[];
+  days: readonly string[];
   groups: readonly GeoTrafficSourceGroup[];
   points: readonly GeoTrafficPoint[];
   settingsHref: string;
@@ -1862,4 +1882,64 @@ export interface PromptTranslationTextProps {
   translating: boolean;
   onEdit: () => void;
   onReset: () => void;
+}
+
+export interface WebTrendShare {
+  people: number;
+  agents: number;
+}
+
+export interface WebTrendRow {
+  day: string;
+  rawDay: string;
+  people: number;
+  agents: number;
+  [key: string]: string | number;
+}
+
+export interface WebVisitorsSectionProps {
+  web: WebAnalyticsResponse;
+  traffic: AiTrafficResponse | undefined;
+  range?: GeoRangeQuery;
+  /** Notra Sites only: visible time per view, replaces the AI-referred metric. */
+  engagement?: WebEngagement;
+}
+
+export interface WebMetricProps {
+  label: string;
+  value: number;
+  previous: number;
+  /** Durations are in seconds and skip the delta until both periods have data. */
+  format?: "count" | "duration";
+}
+
+export interface WebOutcomesTableProps {
+  outcomes: readonly WebAnalyticsOutcome[];
+}
+
+export interface WebReferrerIconProps {
+  source: WebAnalyticsSource;
+}
+
+export interface WebBreakdownRow {
+  key: string;
+  label: ReactNode;
+  sortLabel: string;
+  value: number;
+  previous?: number | null;
+  fromAi?: number;
+  avgSeconds?: number | null;
+}
+
+export interface WebBreakdownTableProps {
+  title: string;
+  nameHeader: string;
+  valueHeader: string;
+  rows: readonly WebBreakdownRow[];
+  showFromAi?: boolean;
+  showAvgTime?: boolean;
+}
+
+export interface TrafficDomainSelectProps {
+  hosts: readonly string[];
 }

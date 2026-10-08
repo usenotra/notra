@@ -1,8 +1,15 @@
 import { flushGeoLog, geoLog } from "@notra/ai/evlog";
 import { logError } from "@notra/ai/utils/server-log";
+import {
+  ingestWebPageEngagement,
+  ingestWebPageViews,
+} from "@notra/analytics/tinybird/client";
 import { getGeoTrafficFlushIntervalMs } from "@notra/analytics/utils/geo-flush-interval";
 import { db } from "@notra/db/drizzle";
-import { createGeoEventBatcher } from "@notra/geo-core/ingest/batcher";
+import {
+  createEventBatcher,
+  createGeoEventBatcher,
+} from "@notra/geo-core/ingest/batcher";
 import { announceGeoTrafficRows } from "@notra/geo-core/ingest/live";
 import {
   getGeoIngestRegion,
@@ -42,15 +49,42 @@ const batcher =
         onWritten: announceGeoTrafficRows,
       })
     : null;
+const webBatcher =
+  flushIntervalMs > 0
+    ? createEventBatcher({
+        intervalMs: flushIntervalMs,
+        write: ingestWebPageViews,
+      })
+    : null;
+const engagementBatcher =
+  flushIntervalMs > 0
+    ? createEventBatcher({
+        intervalMs: flushIntervalMs,
+        write: ingestWebPageEngagement,
+      })
+    : null;
 
-const app = createIngestApp((task) => {
-  const promise = task()
-    .catch((error) => {
-      logError("[geo-ingest] Background task failed", error);
-    })
-    .finally(() => pending.delete(promise));
-  pending.add(promise);
-}, batcher ?? undefined);
+const app = createIngestApp(
+  (task) => {
+    const promise = task()
+      .catch((error) => {
+        logError("[geo-ingest] Background task failed", error);
+      })
+      .finally(() => pending.delete(promise));
+    pending.add(promise);
+  },
+  batcher
+    ? {
+        enqueue: batcher.enqueue,
+        expedite: (organizationId) => {
+          batcher.expedite(organizationId);
+          webBatcher?.expedite(organizationId);
+        },
+        enqueueWeb: webBatcher?.enqueue,
+        enqueueEngagement: engagementBatcher?.enqueue,
+      }
+    : undefined
+);
 
 const server = Bun.serve({
   hostname: "0.0.0.0",
@@ -128,6 +162,15 @@ async function shutdown() {
       `[geo-ingest] Drain exceeded ${INGEST_DRAIN_TIMEOUT_MS}ms, closing connections`
     );
     server.stop(true);
+  }
+  if (webBatcher) {
+    await withDeadline(() => webBatcher.stop(), INGEST_EVENTS_FLUSH_TIMEOUT_MS);
+  }
+  if (engagementBatcher) {
+    await withDeadline(
+      () => engagementBatcher.stop(),
+      INGEST_EVENTS_FLUSH_TIMEOUT_MS
+    );
   }
   if (batcher) {
     const flushed = await withDeadline(

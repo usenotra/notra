@@ -25,6 +25,14 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/sites",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/sites-cleanup",
+      "schedule": "30 3 * * *"
+    },
+    {
       "path": "/api/cron/geo-recap",
       "schedule": "0 8 * * *"
     },

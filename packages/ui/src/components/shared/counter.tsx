@@ -33,11 +33,10 @@ function Number({ mv, number, height }: NumberProps) {
 }
 
 interface DigitProps {
-  place: PlaceValue;
+  place: number;
   value: number;
   height: number;
   digitStyle?: React.CSSProperties;
-  decimalSeparator: string;
 }
 
 function Separator({ symbol, height, digitStyle }: { symbol: string; height: number; digitStyle?: React.CSSProperties }) {
@@ -51,13 +50,7 @@ function Separator({ symbol, height, digitStyle }: { symbol: string; height: num
   );
 }
 
-function Digit({ place, value, height, digitStyle, decimalSeparator }: DigitProps) {
-  // Decimal point digit
-  if (place === '.') {
-    return <Separator symbol={decimalSeparator} height={height} digitStyle={digitStyle} />;
-  }
-
-  // Numeric digit
+function Digit({ place, value, height, digitStyle }: DigitProps) {
   const valueRoundedToPlace = Math.floor(value / place);
   const animatedValue = useSpring(valueRoundedToPlace);
 
@@ -202,13 +195,16 @@ export default function Counter({
       <span style={{ ...defaultCounterStyle, ...counterStyle }}>
         {places.map((place, index) => (
           <span key={index} style={{ display: 'contents' }}>
-            <Digit
-              place={place}
-              value={value}
-              height={height}
-              digitStyle={digitStyle}
-              decimalSeparator={separators.decimal}
-            />
+            {place === '.' ? (
+              <Separator symbol={separators.decimal} height={height} digitStyle={digitStyle} />
+            ) : (
+              <Digit
+                place={place}
+                value={value}
+                height={height}
+                digitStyle={digitStyle}
+              />
+            )}
             {separators.group && startsDigitGroup(place) ? (
               <Separator symbol={separators.group} height={height} digitStyle={digitStyle} />
             ) : null}

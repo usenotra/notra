@@ -25,3 +25,16 @@ export interface TriggerHashInput extends TriggerConfigInput {
   /** Selected brand voice. Two otherwise identical schedules with different voices are distinct. */
   brandVoiceId?: string;
 }
+
+export interface ScheduleHashInput {
+  sourceType: "cron";
+  sourceConfig: { cron: TriggerCronConfig };
+  targets: TriggerHashTargets;
+  outputType: string;
+  lookbackWindow: string;
+  outputConfig?: {
+    publishDestination?: "webflow" | "framer" | "custom";
+    brandVoiceId?: string;
+    instructions?: string;
+  } | null;
+}

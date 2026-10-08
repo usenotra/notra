@@ -84,6 +84,9 @@ async function lookupAllowedHosts(
 export async function loadIngestAllowedHosts(
   identity: GeoIngestIdentity
 ): Promise<string[] | null> {
+  if (identity.site) {
+    return identity.site.hosts;
+  }
   const key = geoIngestHostsCacheKey(
     identity.organizationId,
     identity.projectId

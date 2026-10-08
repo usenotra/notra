@@ -62,6 +62,8 @@ export function uiPageParams(
     handle: params.handle ?? "",
     competitor: params.competitor ?? "",
     integrationSlug: params.integrationSlug ?? "",
+    siteId: params.siteId ?? "",
+    deploymentId: params.deploymentId ?? "",
   };
 }
 

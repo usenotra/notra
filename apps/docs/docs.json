@@ -275,6 +275,21 @@
             ]
           },
           {
+            "group": "Sites",
+            "icon": "globe",
+            "pages": [
+              "sites/overview",
+              "sites/repository",
+              "sites/customize",
+              "sites/match-your-website",
+              "sites/components",
+              "sites/analytics-and-scripts",
+              "sites/publishing",
+              "sites/domains",
+              "sites/agents"
+            ]
+          },
+          {
             "group": "Automation",
             "icon": "bolt",
             "pages": [

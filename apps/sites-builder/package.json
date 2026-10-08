@@ -1,0 +1,55 @@
+{
+  "name": "@notra/sites-builder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Notra Sites toolchain: validates a customer repo and builds it into static blog/changelog output.",
+  "bin": {
+    "notra-sites": "./dist/cli.mjs"
+  },
+  "type": "module",
+  "scripts": {
+    "bundle": "bun build compiler/cli.ts --target=node --format=esm --outfile=dist/cli.mjs --external astro --external satori --external @resvg/resvg-js",
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests",
+    "fixture:build": "bun compiler/cli.ts build --source fixtures/acme --target fixtures/acme.target.json --out .notra/fixture-out",
+    "fixture:dev": "bun compiler/cli.ts dev --source fixtures/acme",
+    "demo:dev": "bun compiler/cli.ts dev --source fixtures/demo",
+    "snapshot": "bun scripts/create-box-snapshot.ts"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "8.0.2",
+    "@astrojs/react": "7.0.0",
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/typography": "0.5.20",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.3.5",
+    "hast-util-from-html": "2.0.3",
+    "hast-util-to-mdast": "10.1.0",
+    "mdast-util-from-markdown": "2.0.3",
+    "mdast-util-gfm": "3.1.0",
+    "mdast-util-mdx": "3.0.0",
+    "mdast-util-to-markdown": "2.1.2",
+    "micromark-extension-gfm": "3.0.0",
+    "micromark-extension-mdxjs": "3.0.0",
+    "parse5-sax-parser": "8.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "satori": "^0.26.0",
+    "tailwindcss": "4.3.3",
+    "unist-util-visit": "5.1.0"
+  },
+  "devDependencies": {
+    "@notra/sites-compiler": "workspace:*",
+    "@notra/sites-core": "workspace:*",
+    "@notra/typescript-config": "workspace:*",
+    "@types/hast": "3.0.4",
+    "@types/mdast": "4.0.4",
+    "@types/react": "^19.2.2",
+    "@upstash/box": "^0.5.0",
+    "bun-types": "1.4.0",
+    "typescript": "7.0.2",
+    "zod": "^4.6.5"
+  }
+}

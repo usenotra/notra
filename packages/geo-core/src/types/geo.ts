@@ -1249,6 +1249,23 @@ export interface GeoIngestIdentity {
   organizationId: string;
   projectId: string | null;
   generation: number;
+  site?: GeoIngestSiteScope;
+}
+
+export interface GeoIngestSiteScope {
+  id: string;
+  hosts: string[];
+  mounts: string[];
+}
+
+export interface GeoIngestSite extends GeoIngestSiteScope {
+  organizationId: string;
+  projectId: string;
+}
+
+export interface GeoIngestSitePrefix {
+  host: string;
+  mounts: string[];
 }
 
 /** Everything needed to install tracking except the token itself. */
@@ -2016,4 +2033,108 @@ export interface GeoWebsiteGenerationWrite {
   seedEngines: string[] | null;
   /** Null for projects created before prompt languages; first = prompt language. */
   seedLanguages: readonly string[] | null;
+}
+
+export interface WebAnalyticsScope {
+  organizationId: string;
+  projectId: string | null;
+  includeUnassigned: boolean;
+  siteId: string;
+  hosts: string[];
+}
+
+export interface WebAnalyticsTotals {
+  views: number;
+  previousViews: number;
+  visitors: number;
+  previousVisitors: number;
+  sessions: number;
+  previousSessions: number;
+  engagedSessions: number;
+  aiVisitors: number;
+  previousAiVisitors: number;
+}
+
+export interface WebAnalyticsPoint {
+  day: string;
+  views: number;
+  visitors: number;
+}
+
+export interface WebAnalyticsPage {
+  host: string;
+  path: string;
+  views: number;
+  previousViews: number;
+  visitors: number;
+  landings: number;
+  aiVisitors: number;
+}
+
+export interface WebAnalyticsSource {
+  group: string;
+  source: string;
+  aiProduct: string;
+  sessions: number;
+  previousSessions: number;
+  visitors: number;
+}
+
+export interface WebAnalyticsBreakdown {
+  value: string;
+  visitors: number;
+  previousVisitors?: number | null;
+}
+
+export interface WebAnalyticsOutcome {
+  source: string;
+  sessions: number;
+  pagesPerSession: number;
+  engagedRate: number;
+}
+
+export interface WebAnalyticsHost {
+  host: string;
+  siteId: string;
+  views: number;
+}
+
+export interface WebAnalyticsResponse {
+  configured: boolean;
+  hosts: WebAnalyticsHost[];
+  totals: WebAnalyticsTotals;
+  points: WebAnalyticsPoint[];
+  pages: WebAnalyticsPage[];
+  sources: WebAnalyticsSource[];
+  countries: WebAnalyticsBreakdown[];
+  devices: WebAnalyticsBreakdown[];
+  outcomes: WebAnalyticsOutcome[];
+}
+
+export interface SiteAnalyticsInput {
+  id: string;
+  organizationId: string;
+  projectId: string | null;
+  publicOrigin: string;
+}
+
+export interface WebEngagementPage {
+  host: string;
+  path: string;
+  views: number;
+  avgSeconds: number;
+}
+
+export interface WebEngagement {
+  /** Page views that reported a visible time; zero before the script ran. */
+  views: number;
+  avgSeconds: number;
+  previousAvgSeconds: number;
+  pages: WebEngagementPage[];
+}
+
+export interface SiteAnalyticsResponse {
+  web: WebAnalyticsResponse;
+  traffic: AiTrafficResponse;
+  engagement: WebEngagement;
 }

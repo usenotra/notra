@@ -8,6 +8,7 @@ import { logError } from "@notra/ai/utils/server-log";
 import {
   hashTrigger,
   normalizeTriggerConfig,
+  scheduleDedupeHashes,
 } from "@notra/ai/utils/trigger-hash";
 import { db } from "@notra/db/drizzle";
 import {
@@ -578,7 +579,7 @@ export const automationRouter = {
         const existing = await db.query.contentTriggers.findFirst({
           where: and(
             eq(contentTriggers.organizationId, input.organizationId),
-            eq(contentTriggers.dedupeHash, dedupeHash)
+            inArray(contentTriggers.dedupeHash, scheduleDedupeHashes(input))
           ),
         });
 
@@ -731,7 +732,7 @@ export const automationRouter = {
         const duplicate = await db.query.contentTriggers.findFirst({
           where: and(
             eq(contentTriggers.organizationId, input.organizationId),
-            eq(contentTriggers.dedupeHash, dedupeHash),
+            inArray(contentTriggers.dedupeHash, scheduleDedupeHashes(input)),
             ne(contentTriggers.id, input.triggerId)
           ),
         });

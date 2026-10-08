@@ -1,0 +1,419 @@
+import { db } from "@notra/db/drizzle";
+import { siteDeployments, sites } from "@notra/db/schema";
+import { buildGeoIngestSiteToken } from "@notra/geo-core/geo/ingest";
+import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
+import {
+  siteHostRecordSchema,
+  siteServingStateSchema,
+} from "@notra/sites-core/schemas/deployment";
+import type {
+  SiteHostRecord,
+  SitePreviewPassword,
+  SitePreviewPointer,
+  SiteServingState,
+} from "@notra/sites-core/types/deployment";
+import type {
+  PreviewActivationResult,
+  ProductionActivationResult,
+  ProductionPointerInput,
+} from "@notra/sites-core/types/serving-state";
+import {
+  activatePreviewInState,
+  activateProductionInState,
+  createInitialServingState,
+  removePreviewFromState,
+  setPreviewVisibilityInState,
+} from "@notra/sites-core/utils/serving-state";
+import { and, eq, isNotNull, lte } from "drizzle-orm";
+import { Effect } from "effect";
+
+import { JSON_CONTENT_TYPE } from "./constants/content-types";
+import { R2_CONTROL_CACHE_CONTROL } from "./constants/r2";
+import { SERVING_STATE_RETRY_SCHEDULE } from "./constants/state";
+import { R2PreconditionFailedError, SiteHostConflictError } from "./errors";
+import {
+  r2DeleteKey,
+  r2GetText,
+  r2GetTextEffect,
+  r2Put,
+  r2PutEffect,
+} from "./r2";
+import type { SiteStorageTransaction } from "./types/deployments";
+import type {
+  ServingAccess,
+  ServingAccessExecutor,
+  ServingSiteRef,
+  ServingStateMutation,
+  ServingStateObject,
+  ServingStateAttemptFailure,
+} from "./types/state";
+import { runSitesEffect } from "./utils/run-sites-effect";
+import { withSiteHostLock } from "./utils/site-host-lock";
+
+function samePreviewPassword(
+  a: SitePreviewPassword | null,
+  b: SitePreviewPassword | null
+): boolean {
+  if (a === null || b === null) {
+    return a === b;
+  }
+  return (
+    a.version === b.version &&
+    a.hash === b.hash &&
+    a.salt === b.salt &&
+    a.iterations === b.iterations &&
+    a.algorithm === b.algorithm &&
+    a.updatedAt === b.updatedAt
+  );
+}
+
+async function readServingAccessFromDb(
+  siteId: string,
+  executor: ServingAccessExecutor
+): Promise<ServingAccess> {
+  const [row] = await executor
+    .select({
+      previewPassword: sites.previewPassword,
+      previewVisibility: sites.previewVisibility,
+      analyticsEnabled: sites.analyticsEnabled,
+    })
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .limit(1);
+  return {
+    previewPassword: row?.previewPassword ?? null,
+    previewVisibility: row?.previewVisibility ?? null,
+    analyticsEnabled: row?.analyticsEnabled ?? false,
+  };
+}
+
+export const readServingStateEffect = Effect.fn("Sites.readServingState")(
+  function* (siteId: string) {
+    const object = yield* r2GetTextEffect(SITE_R2_KEYS.state(siteId));
+    if (!object) {
+      return null;
+    }
+    return yield* Effect.try({
+      try: () => ({
+        state: siteServingStateSchema.parse(JSON.parse(object.text)),
+        etag: object.etag,
+      }),
+      catch: (error) => error,
+    });
+  }
+);
+
+export async function readServingState(
+  siteId: string
+): Promise<ServingStateObject | null> {
+  return runSitesEffect(readServingStateEffect(siteId));
+}
+
+export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
+  function* <T>(
+    site: ServingSiteRef,
+    mutate: (
+      state: SiteServingState,
+      access: Pick<ServingAccess, "previewVisibility">
+    ) => ServingStateMutation<T>,
+    executor: ServingAccessExecutor = db
+  ) {
+    const current = yield* readServingStateEffect(site.id).pipe(
+      Effect.mapError((error): ServingStateAttemptFailure => ({
+        _tag: "OperationFailure",
+        error,
+      }))
+    );
+    const state =
+      current?.state ??
+      createInitialServingState({
+        siteId: site.id,
+        slug: site.slug,
+        now: new Date(),
+      });
+    const { previewPassword, previewVisibility, analyticsEnabled } =
+      yield* Effect.tryPromise({
+        try: () => readServingAccessFromDb(site.id, executor),
+        catch: (error): ServingStateAttemptFailure => ({
+          _tag: "OperationFailure",
+          error,
+        }),
+      });
+    const outcome = mutate(state, { previewVisibility });
+    const trafficToken = analyticsEnabled
+      ? buildGeoIngestSiteToken(site.id)
+      : null;
+    const derivedInSync =
+      samePreviewPassword(state.previewPassword, previewPassword) &&
+      state.trafficToken === trafficToken;
+    if ("skip" in outcome && (!current || derivedInSync)) {
+      return outcome.result;
+    }
+    const write: SiteServingState = {
+      ...("skip" in outcome ? state : outcome.write),
+      previewPassword,
+      trafficToken,
+    };
+    const body = JSON.stringify(write);
+    yield* r2PutEffect(SITE_R2_KEYS.state(site.id), body, {
+      contentType: JSON_CONTENT_TYPE,
+      cacheControl: R2_CONTROL_CACHE_CONTROL,
+      ...(current ? { ifMatch: current.etag } : { ifNoneMatch: "*" }),
+    }).pipe(
+      Effect.mapError((error): ServingStateAttemptFailure => ({
+        _tag:
+          error instanceof R2PreconditionFailedError
+            ? "CasConflict"
+            : "OperationFailure",
+        error,
+      }))
+    );
+    return outcome.result;
+  },
+  (effect, site) =>
+    effect.pipe(
+      Effect.retry({
+        schedule: SERVING_STATE_RETRY_SCHEDULE,
+        while: (error) => error._tag === "CasConflict",
+      }),
+      Effect.mapError((failure) =>
+        failure._tag === "CasConflict"
+          ? new Error(
+              `Could not update serving state for ${site.id}: too much contention`
+            )
+          : failure.error
+      )
+    )
+);
+
+export async function mutateServingState<T>(
+  site: ServingSiteRef,
+  mutate: (
+    state: SiteServingState,
+    access: Pick<ServingAccess, "previewVisibility">
+  ) => ServingStateMutation<T>,
+  executor: ServingAccessExecutor = db
+): Promise<T> {
+  return runSitesEffect(mutateServingStateEffect(site, mutate, executor));
+}
+
+function writeIfActivated<
+  T extends ProductionActivationResult | PreviewActivationResult,
+>(outcome: T): ServingStateMutation<T> {
+  return outcome.outcome === "activated"
+    ? { write: outcome.state, result: outcome }
+    : { skip: true, result: outcome };
+}
+
+export async function activateProductionDeployment(
+  site: ServingSiteRef,
+  pointer: ProductionPointerInput,
+  executor: SiteStorageTransaction
+) {
+  const outcome = await mutateServingState(
+    site,
+    (state) =>
+      writeIfActivated(activateProductionInState(state, pointer, new Date())),
+    executor
+  );
+  if (outcome.outcome === "activated" || outcome.outcome === "already_active") {
+    await executor
+      .update(sites)
+      .set({ activeProductionDeploymentId: pointer.deploymentId })
+      .where(eq(sites.id, site.id));
+  }
+  return outcome;
+}
+
+export async function reconcileProductionProjection(
+  site: ServingSiteRef,
+  executor: SiteStorageTransaction
+): Promise<void> {
+  const serving = await readServingState(site.id);
+  const deploymentId = serving?.state.production?.deploymentId;
+  const [deployment] = deploymentId
+    ? await executor
+        .select({ id: siteDeployments.id })
+        .from(siteDeployments)
+        .where(
+          and(
+            eq(siteDeployments.id, deploymentId),
+            eq(siteDeployments.siteId, site.id),
+            eq(siteDeployments.kind, "production")
+          )
+        )
+        .limit(1)
+    : [];
+  await executor
+    .update(sites)
+    .set({ activeProductionDeploymentId: deployment?.id ?? null })
+    .where(eq(sites.id, site.id));
+}
+
+export async function activatePreviewDeployment(
+  site: ServingSiteRef,
+  previewKey: string,
+  pointer: Omit<SitePreviewPointer, "activatedAt">,
+  executor: ServingAccessExecutor = db
+) {
+  return await mutateServingState(
+    site,
+    (state, access) =>
+      writeIfActivated(
+        activatePreviewInState(
+          state,
+          previewKey,
+          {
+            ...pointer,
+            visibility: access.previewVisibility ?? pointer.visibility,
+          },
+          new Date()
+        )
+      ),
+    executor
+  );
+}
+
+export async function removePreviewDeployment(
+  site: ServingSiteRef,
+  previewKey: string,
+  generation: number
+) {
+  await mutateServingState(site, (state) => ({
+    write: removePreviewFromState(state, previewKey, generation, new Date()),
+    result: undefined,
+  }));
+}
+
+export async function setServingStatus(
+  site: ServingSiteRef,
+  status: SiteServingState["status"],
+  tx?: SiteStorageTransaction
+) {
+  await mutateServingState(
+    site,
+    (state) => {
+      if (state.status === status && state.slug === site.slug) {
+        return { skip: true, result: undefined };
+      }
+      return {
+        write: {
+          ...state,
+          status,
+          slug: site.slug,
+          updatedAt: new Date().toISOString(),
+        },
+        result: undefined,
+      };
+    },
+    tx ?? db
+  );
+}
+
+export async function syncServingAccess(
+  site: ServingSiteRef,
+  executor: ServingAccessExecutor = db,
+  removePreviewsThrough: number | null = null
+): Promise<string[]> {
+  const candidates =
+    removePreviewsThrough === null
+      ? []
+      : await executor
+          .select({ previewKey: siteDeployments.previewKey })
+          .from(siteDeployments)
+          .where(
+            and(
+              eq(siteDeployments.siteId, site.id),
+              eq(siteDeployments.kind, "preview"),
+              isNotNull(siteDeployments.previewKey),
+              lte(siteDeployments.generation, removePreviewsThrough)
+            )
+          );
+  return await mutateServingState(
+    site,
+    (state, access) => {
+      const now = new Date();
+      let write = setPreviewVisibilityInState(
+        state,
+        access.previewVisibility ?? "protected",
+        now
+      );
+      const keys = new Set<string>();
+      if (removePreviewsThrough !== null) {
+        for (const key of Object.keys(state.previews)) {
+          keys.add(key);
+        }
+        for (const { previewKey } of candidates) {
+          if (previewKey) {
+            keys.add(previewKey);
+          }
+        }
+        for (const key of keys) {
+          write = removePreviewFromState(
+            write,
+            key,
+            removePreviewsThrough,
+            now
+          );
+        }
+      }
+      return { write, result: [...keys] };
+    },
+    executor
+  );
+}
+
+async function readHostRecord(
+  hostname: string
+): Promise<SiteHostRecord | null> {
+  const existing = await r2GetText(SITE_R2_KEYS.host(hostname));
+  if (!existing) {
+    return null;
+  }
+  const parsed = siteHostRecordSchema.safeParse(JSON.parse(existing.text));
+  return parsed.success ? parsed.data : null;
+}
+
+export async function claimHostRecord(
+  hostname: string,
+  record: Omit<SiteHostRecord, "version">
+): Promise<void> {
+  const body = JSON.stringify({
+    version: 1,
+    ...record,
+  } satisfies SiteHostRecord);
+  try {
+    await r2Put(SITE_R2_KEYS.host(hostname), body, {
+      contentType: JSON_CONTENT_TYPE,
+      cacheControl: R2_CONTROL_CACHE_CONTROL,
+      ifNoneMatch: "*",
+    });
+  } catch (error) {
+    if (!(error instanceof R2PreconditionFailedError)) {
+      throw error;
+    }
+    const existing = await readHostRecord(hostname);
+    if (existing?.siteId === record.siteId && existing.kind === record.kind) {
+      return;
+    }
+    throw new SiteHostConflictError(
+      `${hostname} already belongs to another site`
+    );
+  }
+}
+
+export async function releaseHostRecord(
+  hostname: string,
+  siteId: string,
+  tx?: SiteStorageTransaction
+): Promise<void> {
+  await withSiteHostLock(
+    hostname,
+    async () => {
+      if ((await readHostRecord(hostname))?.siteId === siteId) {
+        await r2DeleteKey(SITE_R2_KEYS.host(hostname));
+      }
+    },
+    { tx }
+  );
+}

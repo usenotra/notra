@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 
+import { scheduleDedupeHashes } from "@notra/ai/utils/trigger-hash";
 import {
   contentTriggerLookbackWindows,
   contentTriggers,
@@ -255,7 +256,7 @@ async function executePatchSchedule({
   env,
 }: PatchScheduleProgramInput) {
   const normalized = normalizeSchedule(body);
-  const dedupeHash = hashSchedule(body);
+  const dedupeHash = hashSchedule(normalized);
   const affectedQstashIds = new Set<string>();
   let committed = false;
 
@@ -483,13 +484,13 @@ export const createSchedule = Effect.fn("schedules.create")(function* ({
   env,
 }: CreateScheduleProgramInput) {
   const normalized = normalizeSchedule(body);
-  const dedupeHash = hashSchedule(body);
+  const dedupeHash = hashSchedule(normalized);
 
   const existing = yield* database(() =>
     db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.organizationId, organizationId),
-        eq(contentTriggers.dedupeHash, dedupeHash)
+        inArray(contentTriggers.dedupeHash, scheduleDedupeHashes(normalized))
       ),
     })
   );
@@ -664,13 +665,11 @@ export const patchSchedule = Effect.fn("schedules.patch")(function* ({
   env,
 }: PatchScheduleProgramInput) {
   const normalized = normalizeSchedule(body);
-  const dedupeHash = hashSchedule(body);
-
   const duplicate = yield* database(() =>
     db.query.contentTriggers.findFirst({
       where: and(
         eq(contentTriggers.organizationId, organizationId),
-        eq(contentTriggers.dedupeHash, dedupeHash),
+        inArray(contentTriggers.dedupeHash, scheduleDedupeHashes(normalized)),
         ne(contentTriggers.id, scheduleId)
       ),
     })

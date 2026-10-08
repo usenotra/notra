@@ -2,10 +2,12 @@ import { GEO_BRIEF_MAX_TITLE_LENGTH } from "@notra/ai/constants/geo-writer";
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
 import { geoContentSubtypeSchema } from "@notra/ai/schemas/geo-writer";
 import { POST_MARKDOWN_MAX_LENGTH } from "@notra/ai/schemas/limits";
+import { SITE_ENGAGEMENT_VIEW_ID_PATTERN } from "@notra/sites-core/constants/sites";
 import {
   array,
   boolean,
   enum as enumType,
+  literal,
   number,
   object,
   string,
@@ -454,6 +456,12 @@ export const geoJudgeResultSchema = object({
 export const aiTrafficInputSchema = geoOrganizationInputSchema.extend({
   ...geoWindowFields,
   limit: number().int().min(1).max(MAX_AI_TRAFFIC_LOG_LIMIT).optional(),
+  host: string().trim().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
+});
+
+export const webAnalyticsInputSchema = geoOrganizationInputSchema.extend({
+  ...geoWindowFields,
+  host: string().trim().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
 });
 
 export const geoTrafficLogInputSchema = geoOrganizationInputSchema.extend({
@@ -487,11 +495,22 @@ export const geoRequestPayloadSchema = object({
   accept: string().max(MAX_GEO_FIELD_LENGTH).optional(),
   acceptLanguage: string().max(MAX_GEO_FIELD_LENGTH).optional(),
   requestId: string().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
+  status: number().int().min(100).max(599).optional(),
   signals: object({
     clientHints: boolean(),
     fetchMode: string().max(GEO_SHORT_FIELD_MAX_LENGTH).nullable(),
     tracing: boolean(),
+    prefetch: boolean().optional(),
   }).optional(),
+});
+
+export const webEngagementPayloadSchema = object({
+  type: literal("engagement"),
+  timestamp: string().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
+  url: string().min(1).max(MAX_GEO_URL_LENGTH),
+  viewId: string().regex(SITE_ENGAGEMENT_VIEW_ID_PATTERN),
+  visibleMs: number().int().min(0),
+  scrollDepth: number().int().min(0).max(100),
 });
 
 export const geoTrafficJourneysInputSchema = geoOrganizationInputSchema.extend({

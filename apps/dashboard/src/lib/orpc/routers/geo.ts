@@ -147,6 +147,7 @@ import {
   dismissSuggestion,
   listSuggestions,
 } from "@notra/geo-core/geo/suggestions";
+import { loadWebAnalytics } from "@notra/geo-core/geo/web-analytics";
 import { geoWindow } from "@notra/geo-core/geo/window";
 import {
   approveAndStartGeoWriter,
@@ -204,6 +205,7 @@ import {
   geoTrafficJourneysInputSchema,
   geoTrafficLogInputSchema,
   geoTrafficPagesInputSchema,
+  webAnalyticsInputSchema,
   geoWriterBriefIdInputSchema,
   geoWriterPlanInputSchema,
   geoWriterUpdateInputSchema,
@@ -239,6 +241,7 @@ import type {
   GscSitesResponse,
   GscSyncResult,
 } from "@notra/geo-core/types/google-search-console";
+import { webHostFilter } from "@notra/geo-core/utils/geo-project-domains";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
 import { geoScanStartInputSchema } from "@notra/schemas/dashboard/geo-analytics";
 import {
@@ -1165,7 +1168,18 @@ export const geoRouter = {
     ),
   aiTraffic: authorizedProcedure
     .input(aiTrafficInputSchema)
-    .handler(geoHandler((input) => loadAiTraffic(input, geoWindow(input)))),
+    .handler(
+      geoHandler((input) =>
+        loadAiTraffic(input, geoWindow(input), webHostFilter(input.host))
+      )
+    ),
+  webAnalytics: authorizedProcedure
+    .input(webAnalyticsInputSchema)
+    .handler(
+      geoHandler((input) =>
+        loadWebAnalytics(input, geoWindow(input), input.host)
+      )
+    ),
   trafficLog: authorizedProcedure
     .input(geoTrafficLogInputSchema)
     .handler(

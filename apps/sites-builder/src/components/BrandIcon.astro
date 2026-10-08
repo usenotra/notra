@@ -1,0 +1,10 @@
+---
+import type { BrandIconProps as Props } from "../types/icons";
+import { BRAND_ICONS } from "../constants/icons";
+
+const { name, size = 16, class: className } = Astro.props;
+---
+
+<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class={className}>
+  <path d={BRAND_ICONS[name]}></path>
+</svg>

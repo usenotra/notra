@@ -1,7 +1,7 @@
 ---
-title: "AI traffic and crawler logs"
+title: "Traffic and AI crawler logs"
 sidebarTitle: "Overview"
-description: "See which AI crawlers read your site, which pages assistants fetch while answering someone and which people click through from an AI answer."
+description: "Capture human visits, AI crawlers and AI referrals automatically with the @usenotra/geo tracker."
 authors:
   - handle: dominik
 
@@ -15,7 +15,7 @@ docolin:
   status: stable
 ---
 
-AI traffic tracking shows which AI systems fetch your pages and which people arrive from an AI answer. A small request-capture SDK on your site sends a neutral request envelope to Notra, which classifies every request at ingest and shows the results on the **Traffic** page, titled **AI Traffic**.
+Traffic tracking shows human visits alongside the AI systems fetching your pages and people arriving from AI answers. A small request-capture SDK on your site sends a neutral request envelope to Notra, which classifies every request at ingest and shows the results on the **Traffic** page. Human page views are collected automatically once the SDK is installed. The dashboard shows visitor statistics when there are views in the selected period and domain; no tracking switch is required.
 
 <img
   src="/images/ai-traffic/traffic-light.webp"
@@ -36,12 +36,13 @@ The results are also available under `/geo/traffic` in the API.
 
 ## What is captured
 
-Notra classifies every captured request as one of two tracked visitor types:
+Notra classifies captured requests into these visitor types:
 
 - **AI crawler**: bots fetching your pages to train models or build a search index. Each crawler carries a **Purpose**: **Model training** (collects pages for training corpora), **Search index** (builds the index an AI answer engine searches) or **Cited in answer** (fetched while an assistant was answering someone).
 - **AI referral**: a person who clicked through to your site from an AI answer. Notra detects referrals by referrer host, for example chatgpt.com, perplexity.ai, gemini.google.com, claude.ai, copilot.microsoft.com, you.com, chat.deepseek.com, chat.mistral.ai, grok.com and chat.qwen.ai.
+- **Human visitor**: an ordinary person opening a page. Valid human page views are stored separately from AI crawler events. Prefetches, non-page requests and ordinary bots are excluded.
 
-Notra discards requests it classifies as human at ingest and never stores them. Each stored event carries:
+Human visitor analytics use a daily rotating, keyed visitor identifier; raw IP addresses are not stored in page-view rows. Collection needs no browser script or cookies. Each AI event carries:
 
 - the source, the agent and the purpose
 - a **Confidence** of **Verified**, **Reported** or **Heuristic**, which records where the agent's signature came from
@@ -125,7 +126,7 @@ Every traffic response includes `configured`. When it is `false`, the deployment
     The **Cited in answer** purpose means an assistant fetched the page while answering someone, but it doesn't prove the answer quoted or linked the page.
   </Accordion>
   <Accordion title="Some agents cannot be detected">
-    The signature table leaves out agents that a user agent can't honestly identify, including Pi, ChatGPT Atlas, `Google-Extended` and `Applebot-Extended`. Notra either discards their traffic as human or attributes it to a generic browser.
+    The signature table leaves out agents that a user agent can't honestly identify, including Pi, ChatGPT Atlas, `Google-Extended` and `Applebot-Extended`. Notra cannot reliably attribute their traffic to a specific AI agent; eligible human page views are recorded separately.
   </Accordion>
   <Accordion title="Referrals depend on the referrer header">
     Notra recognizes AI referrals by referrer host, so it doesn't count clicks from apps that strip the referrer or from hosts that aren't in the list.

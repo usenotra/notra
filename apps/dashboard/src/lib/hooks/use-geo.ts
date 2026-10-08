@@ -14,6 +14,7 @@ import {
 import type { AgentReadinessResponse } from "@notra/geo-core/types/agent-readiness";
 import type {
   AiTrafficResponse,
+  WebAnalyticsResponse,
   GeoBrandSearchResponse,
   GeoChangesResponse,
   GeoCompetitorDetailResponse,
@@ -90,6 +91,7 @@ import {
   withoutSupersededNoSearchResults,
 } from "@/utils/geo-prompt-history";
 import {
+  geoHostQueryInput,
   geoOverviewQueryInput,
   geoSettingsQueryInput,
   geoTrafficJourneysQueryInput,
@@ -884,19 +886,43 @@ function useGeoTrafficPollInterval(): number {
     : GEO_TRAFFIC_LIVE_INTERVAL_MS;
 }
 
-export function useAiTraffic(organizationId: string, range?: GeoRangeQuery) {
+export function useAiTraffic(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  host?: string
+) {
   const tToast = useTranslations("geo.toasts");
   const { projectId } = useGeoProjectScope();
   const trafficPollInterval = useGeoTrafficPollInterval();
   return useQuery<AiTrafficResponse>({
     ...dashboardOrpc.geo.aiTraffic.queryOptions({
-      input: geoOverviewQueryInput({ organizationId, projectId }, range),
+      input: geoHostQueryInput({ organizationId, projectId }, range, host),
     }),
     enabled: !!organizationId,
     placeholderData: useScopedPreviousData<AiTrafficResponse>(projectId),
     refetchInterval: trafficPollInterval,
     refetchIntervalInBackground: false,
     meta: { errorMessage: tToast("loadAITrafficFailed") },
+  });
+}
+
+export function useWebAnalytics(
+  organizationId: string,
+  range?: GeoRangeQuery,
+  host?: string
+) {
+  const tToast = useTranslations("geo.toasts");
+  const { projectId } = useGeoProjectScope();
+  const trafficPollInterval = useGeoTrafficPollInterval();
+  return useQuery<WebAnalyticsResponse>({
+    ...dashboardOrpc.geo.webAnalytics.queryOptions({
+      input: geoHostQueryInput({ organizationId, projectId }, range, host),
+    }),
+    enabled: !!organizationId,
+    placeholderData: useScopedPreviousData<WebAnalyticsResponse>(projectId),
+    refetchInterval: trafficPollInterval,
+    refetchIntervalInBackground: false,
+    meta: { errorMessage: tToast("loadVisitorsFailed") },
   });
 }
 

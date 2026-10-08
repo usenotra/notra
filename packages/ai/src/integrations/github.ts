@@ -188,6 +188,19 @@ function createGitHubAppJwt() {
   return `${header}.${payload}.${signature}`;
 }
 
+export async function createScopedGitHubAppInstallationToken(
+  installationId: string,
+  scope: GitHubInstallationTokenScope
+) {
+  return runGitHubEffect(
+    createGitHubAppInstallationTokenEffect(
+      installationId,
+      undefined,
+      scope
+    ).pipe(Effect.mapError((error) => error.cause))
+  );
+}
+
 async function createGitHubAppInstallationToken(installationId: string) {
   return runGitHubEffect(
     createGitHubAppInstallationTokenEffect(installationId).pipe(

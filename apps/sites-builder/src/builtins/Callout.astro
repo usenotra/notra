@@ -1,0 +1,16 @@
+---
+import type { CalloutProps as Props } from "../types/builtins";
+import Icon from "../components/Icon.astro";
+import { CALLOUT_TONES } from "../constants/builtins";
+
+const { variant = "note", title } = Astro.props;
+const tone = CALLOUT_TONES[variant];
+---
+
+<aside class="callout not-prose my-6 flex gap-3 rounded-lg border border-border px-4 py-3 text-[0.9375rem] leading-relaxed" aria-label={title ?? tone.label}>
+  <span class="mt-[0.2rem] shrink-0" style={`color: ${tone.tone}`}><Icon name={tone.icon} size={15} /></span>
+  <div class="min-w-0 text-[color-mix(in_oklab,var(--foreground)_85%,transparent)] [&_a]:font-medium [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:text-[0.875em] [&>p]:my-0 [&>p+p]:mt-2">
+    {title && <p class="mb-0.5 font-medium text-foreground" data-callout-title>{title}</p>}
+    <slot />
+  </div>
+</aside>

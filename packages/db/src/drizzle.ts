@@ -12,8 +12,15 @@ const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const dbByUrl = new Map<string, Database>();
 
-export function createDb(databaseUrl: string): Database {
-  const cached = dbByUrl.get(databaseUrl);
+export function createDb(
+  databaseUrl: string,
+  maximumConnections?: number
+): Database {
+  const connectionKey = JSON.stringify([
+    databaseUrl,
+    maximumConnections ?? null,
+  ]);
+  const cached = dbByUrl.get(connectionKey);
   if (cached) {
     return cached;
   }
@@ -22,6 +29,7 @@ export function createDb(databaseUrl: string): Database {
     connection: {
       connectionString: databaseUrl,
       connectionTimeoutMillis: 10_000,
+      max: maximumConnections,
     },
     cache:
       upstashUrl && upstashToken
@@ -45,7 +53,7 @@ export function createDb(databaseUrl: string): Database {
   client.$client.on("error", (error) => {
     console.error("[db] Idle client error", error);
   });
-  dbByUrl.set(databaseUrl, client);
+  dbByUrl.set(connectionKey, client);
   return client;
 }
 

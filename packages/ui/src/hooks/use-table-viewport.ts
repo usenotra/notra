@@ -12,6 +12,7 @@ import { getTableViewportLayout } from "@notra/ui/lib/data-table";
 export function useTableViewport<T>({
   rows,
   rowHeight,
+  headerHeight,
   rowSizing,
   height,
   minHeight,
@@ -38,6 +39,7 @@ export function useTableViewport<T>({
   const layout = getTableViewportLayout({
     rowCount: rows.length,
     rowHeight,
+    headerHeight,
     rowSizing,
     height,
     minHeight,
