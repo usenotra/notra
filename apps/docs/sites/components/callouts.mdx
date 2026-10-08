@@ -1,0 +1,75 @@
+---
+title: "Callouts"
+description: "Highlight a note, tip, warning or success message in a post."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/callouts
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Callouts set a short message apart from the text around it, with an icon and a color for its kind.
+
+```mdx
+<Note>Posts are sorted by their `date`, newest first.</Note>
+
+<Tip>Add `$schema` to blog.json to get autocomplete.</Tip>
+
+<Info>Previews are never indexed by search engines.</Info>
+
+<Warning title="Back up first">Restoring replaces the live version.</Warning>
+
+<Check>Your domain is verified.</Check>
+
+<Danger>Deleting a site can't be undone.</Danger>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/callouts-light.webp" alt="Note, Tip, Info, Warning, Check, Danger and Callout on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/callouts-dark.webp" alt="Note, Tip, Info, Warning, Check, Danger and Callout on a Notra site" className="hidden dark:block" />
+</Frame>
+
+| Component | Icon | Color | Read aloud as |
+| --- | --- | --- | --- |
+| `Note` | Info circle | Muted | "Note" |
+| `Info` | Info circle | Blue | "Info" |
+| `Tip` | Light bulb | Green | "Tip" |
+| `Check` | Check circle | Green | "Done" |
+| `Warning` | Triangle | Amber | "Warning" |
+| `Danger` | Octagon | Red | "Danger" |
+
+## Props
+
+<ResponseField name="title" type="string">
+  A bold first line, which screen readers announce instead of the default label.
+</ResponseField>
+
+## Callout
+
+`Callout` renders any of the kinds above with `variant`:
+
+```mdx
+<Callout variant="tip" title="Shortcut">Press ⌘K to search.</Callout>
+```
+
+<ResponseField name="variant" type="&quot;note&quot; | &quot;info&quot; | &quot;tip&quot; | &quot;check&quot; | &quot;warning&quot; | &quot;danger&quot;" default="note">
+  The kind of callout, and any other value stops the build.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  A bold first line.
+</ResponseField>
+
+## Styling
+
+Every callout carries the class `callout`:
+
+```css style.css
+.callout { border-radius: 1rem; }
+```

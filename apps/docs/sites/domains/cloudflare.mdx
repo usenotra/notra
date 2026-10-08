@@ -1,0 +1,91 @@
+---
+title: "Serve your site under a path with Cloudflare"
+sidebarTitle: "Cloudflare"
+description: "Forward acme.com/blog to Notra with a Cloudflare Worker on your zone, whatever hosts the rest of your website."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/cloudflare
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra with a Cloudflare Worker, which works when your domain is on Cloudflare with the proxy turned on (orange cloud), whatever hosts your website. The Worker forwards the section paths to Notra before the request reaches your website, while everything else still goes to your normal host. Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+<Steps>
+  <Step title="Create the Worker">
+    In the Cloudflare dashboard, open **Workers & Pages → Create → Worker**, name it `notra-site-proxy` and replace its code with:
+
+    ```javascript worker.js
+    const SITE_ORIGIN = "https://acme.notra.site";
+    const MOUNTS = ["/blog", "/changelog"];
+
+    export default {
+      async fetch(request) {
+        const url = new URL(request.url);
+        const mounted = MOUNTS.some(
+          (mount) => url.pathname === mount || url.pathname.startsWith(`${mount}/`)
+        );
+        if (!mounted) {
+          return fetch(request);
+        }
+        const headers = new Headers(request.headers);
+        // Your visitors' sessions stay on your domain.
+        headers.delete("cookie");
+        headers.delete("authorization");
+        // Lets site analytics see the visitor, not Cloudflare.
+        headers.set("x-forwarded-for", request.headers.get("cf-connecting-ip") ?? "");
+        return fetch(new URL(url.pathname + url.search, SITE_ORIGIN), {
+          method: request.method,
+          headers,
+          redirect: "manual",
+        });
+      },
+    };
+    ```
+
+    `redirect: "manual"` passes Notra's redirects to the browser instead of following them.
+  </Step>
+  <Step title="Route it on your domain">
+    Open the Worker's **Settings → Domains & Routes → Add → Route**, pick your zone and add one route per section:
+
+    ```text
+    www.acme.com/blog*
+    www.acme.com/changelog*
+    ```
+
+    The `*` covers `/blog` and every path below it, and the Worker passes any other request it receives straight through.
+  </Step>
+  <Step title="Check">
+    Open `https://www.acme.com/blog/_notra/probe.txt` to confirm the Worker answers, then click **Check** on the domain in Notra.
+  </Step>
+</Steps>
+
+## With Wrangler
+
+To deploy the same Worker from your repository, add the routes to its Wrangler config:
+
+```jsonc wrangler.jsonc
+{
+  "name": "notra-site-proxy",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "routes": [
+    { "pattern": "www.acme.com/blog*", "zone_name": "acme.com" },
+    { "pattern": "www.acme.com/changelog*", "zone_name": "acme.com" }
+  ]
+}
+```
+
+Then run `npx wrangler deploy`.
+
+## Limits to keep in mind
+
+- **Bot Fight Mode** and WAF rules run before the Worker and can block the check and AI crawlers, so allow your section paths, or at least the user agent `NotraSitesVerifier/1.0`.
+- **Cache rules** that cache everything on your zone can keep old pages after you publish. Notra already sends the right `Cache-Control` for every file, so exclude the section paths from such rules.
+- **Already on Cloudflare Pages or Workers?** Put the same check at the top of your own Worker's `fetch` handler, or into a Pages Function at `functions/blog/[[path]].js` and `functions/changelog/[[path]].js`.

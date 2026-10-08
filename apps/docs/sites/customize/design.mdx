@@ -1,0 +1,124 @@
+---
+title: "Design and CSS"
+description: "Colors, fonts, dark mode, background, page width and your own CSS."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/customize/design
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every site uses one theme with a light and a dark mode, which you fit to your brand with a few settings in `blog.json` and CSS for everything else.
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "colors": { "primary": "#0D9373", "light": "#55D799", "dark": "#0D9373" },
+  "appearance": { "default": "system", "strict": false },
+  "fonts": { "family": "Inter", "heading": { "family": "Instrument Sans", "weight": 600 } },
+  "background": { "decoration": "grid", "color": { "light": "#FAFAF9", "dark": "#0C0A09" } },
+  "layout": { "width": 72 }
+}
+```
+
+## Colors
+
+| Setting | What it colors | Default |
+| --- | --- | --- |
+| `colors.primary` | Links, highlights and active states | `#8B5CF6` |
+| `colors.light` | The same in dark mode, so pick a lighter shade of your brand color | `primary` |
+| `colors.dark` | Buttons, and the text on them turns black or white for contrast | `primary` |
+
+Colors are hex values with 3 or 6 digits, like `#0D9373`.
+
+## Light and dark mode
+
+`appearance.default` is `"system"` (follows the reader's device), `"light"` or `"dark"`. Readers switch with the toggle in the header, and the site remembers their choice. `"strict": true` hides the toggle and always uses the default, and the short form `"appearance": "dark"` works too.
+
+## Fonts
+
+`fonts.family` loads any [Google Font](https://fonts.google.com) by name, while `heading` and `body` set a different font for each:
+
+```json blog.json
+"fonts": {
+  "heading": { "family": "Instrument Serif", "weight": 400 },
+  "body": { "family": "Inter" }
+}
+```
+
+To use your own font file, put it in `public/` and point `source` at it:
+
+```json blog.json
+"fonts": { "family": "Acme Sans", "source": "/fonts/acme-sans.woff2", "format": "woff2" }
+```
+
+`weight` is a number from 100 to 900 and `format` is `woff2` (default) or `woff`, while code always uses the system's monospace font.
+
+## Background
+
+| Setting | Values |
+| --- | --- |
+| `background.decoration` | `none` (default), `grid`, `dots` or `gradient` |
+| `background.color` | `{ "light": "#FAFAF9", "dark": "#0C0A09" }`, the page color per mode |
+| `background.image` | A path like `/images/bg.png`, or `{ "light": ..., "dark": ... }` |
+
+## Width
+
+`layout.width` sets the widest content column in rem, from 40 to 120, or `"full"`, and the default is `72`. Set it to the width of your landing page so the blog lines up with it. Index pages, posts and the reading column all scale with it, and with `"full"` the reading column keeps its default width.
+
+## Code blocks
+
+`styling.codeblocks` picks the syntax theme. See [Code](/sites/components/code#syntax-theme).
+
+## Your own CSS
+
+Every `.css` file in the site loads on every page after the theme, so it can override anything, whether it's `style.css`, `styles/brand.css` or `buttons.css` next to a component.
+
+```css style.css
+#navbar { border-bottom: 1px solid var(--border); }
+.callout { border-radius: 1rem; }
+```
+
+The theme's colors are CSS variables that switch with light and dark mode, and you can use `--background`, `--foreground`, `--muted`, `--muted-foreground`, `--border`, `--accent`, `--card`, `--success`, `--warning`, `--info` and `--destructive`. `--accent` is your brand color for the current mode, while `--primary` always holds `colors.primary`. Use `html.dark` to style dark mode only.
+
+Tailwind classes also work in your MDX, header, footer and components.
+
+## Styling hooks
+
+These IDs and class names stay stable, so your CSS keeps working when the theme updates.
+
+| ID | Element |
+| --- | --- |
+| `#banner` | Announcement banner above the navbar |
+| `#navbar` | Top navigation bar |
+| `#topbar-cta-button` | Call to action in the navbar, and `#topbar-cta-button > a` styles the link |
+| `#topbar-primary-button` | The button next to it, for example GitHub |
+| `#mobile-nav`, `#mobile-nav-content` | The mobile menu and its links |
+| `#body-content` | The `<body>` with banner, navbar, content and footer |
+| `#content-area`, `#content` | The main column and its inner content |
+| `#header`, `#page-title` | A post's header and its title |
+| `#table-of-contents` | "On this page" next to a post |
+| `#pagination` | Previous and next post |
+| `#footer` | Page footer |
+
+The navbar IDs only exist in the built-in header and `#footer` only in the built-in footer, so with your own [`header.mdx`](/sites/match-your-website), use your own class names.
+
+| Class | Element |
+| --- | --- |
+| `mdx-content` | The text of a post |
+| `eyebrow` | The small line above a title |
+| `callout` | [Callouts](/sites/components/callouts) |
+| `card`, `card-group`, `columns` | [Cards](/sites/components/cards) |
+| `tabs`, `tab` | [Tabs](/sites/components/tabs) |
+| `steps`, `step` | [Steps](/sites/components/steps) |
+| `accordion`, `accordion-group` | [Accordions](/sites/components/accordions) |
+| `code-block`, `code-block-copy-button`, `code-group` | [Code](/sites/components/code) |
+| `frame` | [Frame](/sites/components/media#frame) |
+| `update` | [Update](/sites/components/badges-and-updates#update) |

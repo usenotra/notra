@@ -1,0 +1,92 @@
+---
+title: "Blog and changelog layouts"
+sidebarTitle: "Layouts"
+description: "Choose how the blog index, posts and the changelog look."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/customize/layouts
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+The `blog` and `changelog` objects in `blog.json` set how the blog index, its post cards, every post and the changelog look, and each table lists the default for every setting.
+
+## Blog
+
+```json blog.json
+"blog": {
+  "title": "Acme Blog",
+  "description": "Product notes, engineering and launches.",
+  "layout": "grid",
+  "hero": { "style": "wash", "eyebrow": "The Acme journal" },
+  "featured": "latest",
+  "card": { "image": true, "excerpt": true, "author": true, "date": true, "readingTime": false },
+  "post": { "toc": true, "authorCard": true, "readingTime": true, "pagination": true, "width": "wide" }
+}
+```
+
+### The index page
+
+| Setting | Values | Default |
+| --- | --- | --- |
+| `title` | The heading, up to 120 characters | `"Blog"` |
+| `description` | The line under it, up to 400 characters | The site's `description` |
+| `layout` | `grid`: cards in columns. `list`: date and title rows. `magazine`: one large card, then a grid | `grid` |
+| `hero.style` | `wash`: a tinted panel. `plain`: title only. `image`: `hero.image` behind the title. `none`: no hero | `wash` |
+| `hero.eyebrow` | A short line above the title, up to 60 characters | none |
+| `hero.image` | Background for the `image` style, like `/images/hero.jpg` | none |
+| `featured` | `"latest"`, `"none"` or up to 6 post paths like `["2026/launch"]`, pinned on top | `"none"` |
+
+`magazine` features the latest post when `featured` is `"none"`, and Notra skips a featured path that doesn't match a post and shows a warning in the build log.
+
+### Cards
+
+`card` turns parts of each post card on or off.
+
+| Setting | Shows | Default |
+| --- | --- | --- |
+| `card.image` | The post's `image` as a cover (not in `list`) | `false` |
+| `card.excerpt` | The `description`, or the start of the first paragraph | `true` |
+| `card.author` | The first author | `true` |
+| `card.date` | The date | `true` |
+| `card.readingTime` | "5 min read" | `false` |
+
+### Posts
+
+| Setting | Shows | Default |
+| --- | --- | --- |
+| `post.toc` | "On this page" next to the post on wide screens when it has at least two `##` or `###` headings, only in the `wide` layout | `true` |
+| `post.authorCard` | The authors with avatar and title, beside the post (`wide`) or under the title (`narrow`) | `true` |
+| `post.readingTime` | The reading time next to the date | `true` |
+| `post.pagination` | The previous and next post at the end | `true` |
+| `post.width` | `wide`: a sidebar with the table of contents. `narrow`: one reading column | `wide` |
+
+To hide the "Updated" date, set `"metadata": { "timestamp": false }`.
+
+## Changelog
+
+```json blog.json
+"changelog": {
+  "title": "Changelog",
+  "description": "Everything we shipped.",
+  "layout": "timeline",
+  "hero": { "style": "plain" }
+}
+```
+
+| Setting | Values | Default |
+| --- | --- | --- |
+| `title` | The heading | `"Changelog"` |
+| `description` | The line under it | The site's `description` |
+| `layout` | `timeline`: a date column next to each entry. `cards`: one card per entry. `compact`: title, date, version and summary only | `timeline` |
+| `hero` | Works like the blog's | `wash` |
+
+## Your own hero
+
+To replace the top of the blog or changelog index with your own markup, add `slots/blog-hero.mdx` or `slots/changelog-hero.mdx`. See [Slots](/sites/match-your-website#slots).

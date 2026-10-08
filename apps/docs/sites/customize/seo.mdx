@@ -1,0 +1,82 @@
+---
+title: "SEO, share images and redirects"
+sidebarTitle: "SEO and redirects"
+description: "Meta tags, your company as publisher, generated share images, the 404 page and redirects from old URLs."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/customize/seo
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every site comes with sitemaps, RSS feeds, canonical URLs, Open Graph tags and schema.org data, and the settings on this page fine-tune them. See [AI agents and search](/sites/agents) for everything that's automatic.
+
+## SEO
+
+```json blog.json
+"seo": {
+  "metatags": { "google-site-verification": "abc123" },
+  "indexing": "navigable",
+  "organization": {
+    "name": "Acme",
+    "legalName": "Acme Inc.",
+    "url": "https://acme.com",
+    "logo": "/images/logo.png",
+    "sameAs": ["https://x.com/acme", "https://www.linkedin.com/company/acme"]
+  }
+}
+```
+
+| Setting | What it does |
+| --- | --- |
+| `metatags` | Adds `<meta>` tags to every page, where keys starting with `og:`, `article:`, `fb:`, `profile:` or `book:` become `property` and the rest `name` |
+| `indexing` | `navigable` (default) lets search engines index posts and index pages, while `all` also indexes author pages |
+| `organization` | The publisher search engines and AI answers attribute your posts to, with a required `name` and up to 12 `sameAs` profiles. Without it, Notra uses `name`, `logo` and `footer.socials` |
+
+## Share images
+
+Posts and entries without an `image` get a generated 1200×630 share image with your site name, the section, the title and your brand color.
+
+```json blog.json
+"thumbnails": { "appearance": "dark", "background": "/images/og-background.png" }
+```
+
+- `appearance` is `light` (default) or `dark`.
+- `background` is a PNG, JPEG or SVG in `public/` behind the text.
+- `"enabled": false` turns them off, and pages without an image then use your logo.
+
+## 404 page
+
+```json blog.json
+"errors": { "404": { "title": "Nothing here", "description": "The post may have moved." } }
+```
+
+With `"redirect": true`, an unknown page sends readers to the blog or changelog home instead of showing the 404 page, while search engines still get a `404` status.
+
+## Redirects
+
+Redirects let you move or rename a post without breaking links.
+
+```json blog.json
+"redirects": [
+  { "source": "/blog/old-post", "destination": "/blog/new-post" },
+  { "source": "/blog/2025/*", "destination": "/blog/archive/*" },
+  { "source": "/blog/webinar", "destination": "https://acme.com/events", "permanent": false }
+]
+```
+
+- `source` is a full path on your domain, including the section path, like `/blog/old-post`.
+- A `source` ending in `/*` matches every path below it, and when `destination` also ends in `/*`, Notra carries the rest of the path over.
+- `destination` is a path or an `https://` URL.
+- `permanent` is `true` by default (`308`), so set it to `false` for a temporary redirect (`307`).
+- The first matching rule wins and redirects win over existing pages. Notra doesn't carry query strings over, and a site can have up to 500 rules.
+
+## Dates
+
+`"metadata": { "timestamp": false }` hides the "Updated" date on posts, while the sitemap still tells search engines when a post changed.

@@ -1,11 +1,28 @@
 ---
 title: "Analytics and scripts"
 description: "Add an analytics provider, run your own JavaScript and control which origins your site may load from."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/analytics-and-scripts
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
 ---
+
+Every site comes with built-in analytics, and this page covers how to send visits to your own analytics tool as well, run your own JavaScript and control which origins your pages may load code from.
+
+## Built-in analytics
+
+Every site counts its own visitors with nothing to install. Open the site's **Analytics** page for people and AI agents on the site, or **Traffic** in GEO for AI crawlers and referrals across all your domains, while previews never count. See [AI agents and search](/sites/agents#ai-traffic-analytics).
 
 ## Analytics integrations
 
-Add an analytics provider under `integrations` in `blog.json`. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
+To also send visits to your own analytics tool, add it on the site's **Integrations** page or under `integrations` in `blog.json`. The Integrations page saves a draft of `blog.json` that goes live when you publish it from the editor. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
 
 ```json blog.json
 {
@@ -17,24 +34,24 @@ Add an analytics provider under `integrations` in `blog.json`. Notra adds the pr
 }
 ```
 
-You can turn on several providers at once. Notra checks every ID against the provider's format. If an ID is wrong or a key is unknown, the build fails with an error that points to the setting.
+You can turn on several providers at once, and Notra checks every ID against the provider's format. If an ID is wrong or a key is unknown, the build fails with an error that points to the setting.
 
 | Integration | Settings | Notes |
 | --- | --- | --- |
-| `databuddy` | `clientId` | The client ID from Databuddy. |
-| `plausible` | `domain` | The site's domain as you added it in Plausible. |
-| `posthog` | `apiKey`, `apiHost` | `apiKey` is the project API key (`phc_…`). `apiHost` defaults to `https://us.i.posthog.com`. Set it to `https://eu.i.posthog.com` for EU Cloud, or to your reverse proxy. |
-| `ga4` | `measurementId` | Google Analytics 4, for example `G-ABC123XYZ9`. |
+| `databuddy` | `clientId` | The client ID from Databuddy |
+| `plausible` | `domain` | The site's domain as you added it in Plausible |
+| `posthog` | `apiKey`, `apiHost` | `apiKey` is the project API key (`phc_…`), and `apiHost` defaults to `https://us.i.posthog.com`, so set it to `https://eu.i.posthog.com` for EU Cloud or to your reverse proxy |
+| `ga4` | `measurementId` | Google Analytics 4, for example `G-ABC123XYZ9` |
 
 Another tool, such as a chat widget or a tag manager, goes in a [custom script](#custom-scripts).
 
 <Note>
-Previews use the same integrations as your live site. To keep previews out of your numbers, filter by hostname in your analytics tool. Preview hosts look like `pr-7--acme.notra.site`.
+  Previews use the same integrations as your live site, so filter by hostname in your analytics tool to keep previews out of your numbers. Preview hosts look like `pr-7--acme.notra.site`.
 </Note>
 
 ## Custom scripts
 
-Every `.js` file outside the content folders runs on every page: `script.js`, a `scripts/` folder or a file like `analytics.js` at the root. They work like [custom CSS](/sites/repository#custom-css), but for JavaScript. A `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
+Every `.js` file outside the content folders runs on every page, whether it's `script.js`, a file in a `scripts/` folder or a file like `analytics.js` at the root. These files work like [custom CSS](/sites/customize/design#your-own-css) for JavaScript, while a `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
 
 ```text
 script.js               # runs first
@@ -43,11 +60,11 @@ scripts/chat-widget.js
 scripts/tracking/hotjar.js
 ```
 
-Notra loads every script on every page with `defer`, from your site's own address. They run in the order shown above after the page has loaded.
+Notra loads every script on every page with `defer` from your site's own address, and the scripts run in the order shown above once the HTML has been parsed.
 
-- Write plain browser JavaScript. These files are not modules, so `import` and `export` don't work in them. Use `document.createElement("script")` to load a library from another host.
-- The build only checks the syntax and never runs your scripts. A syntax error fails the build and shows the file and line.
-- Your MDX can't import these files. For a component, use a [snippet](/sites/components) in `snippets/` instead.
+- **Plain browser JavaScript**: these files are not modules, so `import` and `export` don't work in them, and `document.createElement("script")` loads a library from another host.
+- **Syntax check only**: the build checks the syntax and never runs your scripts, and a syntax error fails the build and shows the file and line.
+- **No imports from MDX**: your MDX can't import these files, so for a component, use a [snippet](/sites/custom-components) in `snippets/` instead.
 
 ```js scripts/external-links.js
 // Open links to other sites in a new tab.
@@ -61,11 +78,11 @@ for (const link of document.querySelectorAll("main a[href^='http']")) {
 
 ## Content-Security-Policy
 
-Every page comes with a `Content-Security-Policy` header that says where scripts may come from and which servers they may connect to. Notra builds it from your repository:
+Every page comes with a `Content-Security-Policy` header that says where scripts may come from and which servers they may connect to, and Notra builds it from your repository.
 
-- **Scripts** can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Inline scripts are allowed only if they were on the page at build time. Notra hashes each of them, so a script injected later doesn't run.
-- **Connections** (`fetch`, beacons, WebSockets) are allowed to your site, your integrations and your `allowedOrigins`.
-- **Images, styles, fonts, videos and embeds** are not limited, so posts can still show images and videos from anywhere.
+- **Scripts**: they can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Notra allows inline scripts only if they were on the page at build time and hashes each of them, so a script injected later doesn't run.
+- **Connections**: `fetch`, beacons and WebSockets may connect to your site, your integrations and your `allowedOrigins`.
+- **Images, styles, fonts, videos and embeds**: the policy doesn't limit them, so posts can still show images and videos from anywhere.
 
 If your custom scripts or components load code from another host or call an API, add that origin:
 
@@ -81,7 +98,7 @@ If your custom scripts or components load code from another host or call an API,
 }
 ```
 
-Origins must start with `https://` or `wss://` and have no path. `https://*.example.com` covers every subdomain. A `wss://` origin only allows connections, not scripts. You can list up to 32 origins.
+Origins must start with `https://` or `wss://` and have no path, and `https://*.example.com` covers every subdomain. A `wss://` origin only allows connections rather than scripts, and you can list up to 32 origins.
 
 To turn the policy off entirely:
 
@@ -91,4 +108,4 @@ To turn the policy off entirely:
 }
 ```
 
-If a script doesn't run, open your browser's developer console. Any request the policy blocked is listed there with the origin you need to add.
+If a script doesn't run, open your browser's developer console, which lists any request the policy blocked with the origin you need to add.
