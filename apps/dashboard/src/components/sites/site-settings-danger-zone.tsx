@@ -25,7 +25,9 @@ export function SiteSettingsDangerZone({
   const invalidateSites = useInvalidateSites();
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const suspended = site.status === "suspended";
+  const analyticsOn = site.analyticsEnabled;
 
   const suspendMutation = useMutation({
     mutationFn: (next: boolean) =>
@@ -56,6 +58,23 @@ export function SiteSettingsDangerZone({
     },
   });
 
+  const analyticsMutation = useMutation({
+    mutationFn: (analyticsEnabled: boolean) =>
+      dashboardOrpc.sites.update.call({
+        organizationId,
+        siteId,
+        analyticsEnabled,
+      }),
+    onSuccess: async (_result, next) => {
+      toast.success(next ? t("analytics.enabled") : t("analytics.done"));
+      setAnalyticsOpen(false);
+      await invalidateSites();
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, t("analytics.failed")));
+    },
+  });
+
   return (
     <>
       <TitleCard
@@ -81,6 +100,27 @@ export function SiteSettingsDangerZone({
               {site.showBranding
                 ? tPage("brandingRemove")
                 : tPage("brandingShow")}
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-sm font-medium">
+                {analyticsOn
+                  ? t("analytics.title")
+                  : t("analytics.enableTitle")}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {analyticsOn
+                  ? t("analytics.description")
+                  : t("analytics.enableDescription")}
+              </p>
+            </div>
+            <Button
+              onClick={() => setAnalyticsOpen(true)}
+              type="button"
+              variant="outline"
+            >
+              {analyticsOn ? t("analytics.action") : t("analytics.enable")}
             </Button>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -140,6 +180,26 @@ export function SiteSettingsDangerZone({
         open={offlineOpen}
         pending={suspendMutation.isPending}
         title={t("offline.confirmTitle")}
+      />
+      <ConfirmDialog
+        confirmLabel={
+          analyticsOn ? t("analytics.action") : t("analytics.enable")
+        }
+        description={
+          analyticsOn
+            ? t("analytics.confirmDescription")
+            : t("analytics.enableConfirmDescription")
+        }
+        variant={analyticsOn ? "destructive" : "default"}
+        onConfirm={() => analyticsMutation.mutate(!analyticsOn)}
+        onOpenChange={setAnalyticsOpen}
+        open={analyticsOpen}
+        pending={analyticsMutation.isPending}
+        title={
+          analyticsOn
+            ? t("analytics.confirmTitle")
+            : t("analytics.enableConfirmTitle")
+        }
       />
       <SiteDeleteDialog
         onOpenChange={setDeleteOpen}

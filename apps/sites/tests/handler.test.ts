@@ -463,6 +463,100 @@ describe("production serving", () => {
     expect(reports).toHaveLength(0);
   });
 
+  test("analytics on: pages carry the script, its beacon reaches ingest", async () => {
+    const { deps, put, request, reports, settle } = setup({
+      trafficToken: "nst.site_a.sig",
+    });
+    put(
+      `deployments/${SITE}/dep_live/files/blog/post/index.html`,
+      "<html><body><p>Hi</p></body></html>"
+    );
+    const page = await request("https://blog.acme.com/blog/post");
+    const html = await page.text();
+    expect(html).toContain(
+      '<script src="/blog/_notra/insights.js" data-endpoint="/blog/_notra/e" defer></script>'
+    );
+    expect(page.headers.get("etag")).toEndWith('-a"');
+    const script = await request(
+      "https://blog.acme.com/blog/_notra/insights.js"
+    );
+    expect(script.headers.get("content-type")).toStartWith("text/javascript");
+    expect(await script.text()).toContain("sendBeacon");
+
+    const beacon = await handleSiteRequest(
+      new Request("https://blog.acme.com/blog/_notra/e", {
+        method: "POST",
+        body: JSON.stringify({
+          v: "a1b2c3d4e5f6a7b8c9d0e1f2",
+          p: "/blog/post",
+          ms: 12_345.6,
+          sd: 140,
+        }),
+      }),
+      deps
+    );
+    expect(beacon.status).toBe(204);
+    await settle();
+    const engagement = reports
+      .map((report) => JSON.parse(String(report.init.body)))
+      .find((body) => body.type === "engagement");
+    expect(engagement).toMatchObject({
+      url: "https://acme.com/blog/post",
+      viewId: "a1b2c3d4e5f6a7b8c9d0e1f2",
+      visibleMs: 12_346,
+      scrollDepth: 100,
+    });
+  });
+
+  test("analytics off: no script, beacons are swallowed", async () => {
+    const { deps, request, reports, settle } = setup();
+    const page = await request("https://blog.acme.com/blog/post");
+    expect(await page.text()).not.toContain("insights.js");
+    const script = await request(
+      "https://blog.acme.com/blog/_notra/insights.js"
+    );
+    expect(script.status).toBe(404);
+    const beacon = await handleSiteRequest(
+      new Request("https://blog.acme.com/blog/_notra/e", {
+        method: "POST",
+        body: JSON.stringify({
+          v: "a1b2c3d4e5f6a7b8",
+          p: "/blog/",
+          ms: 5,
+          sd: 0,
+        }),
+      }),
+      deps
+    );
+    expect(beacon.status).toBe(204);
+    await settle();
+    expect(reports).toHaveLength(0);
+  });
+
+  test("malformed beacons and previews never reach ingest", async () => {
+    const { deps, reports, settle } = setup({
+      trafficToken: "nst.site_a.sig",
+    });
+    const post = (url: string, body: string) =>
+      handleSiteRequest(new Request(url, { method: "POST", body }), deps);
+    expect(
+      (await post("https://blog.acme.com/blog/_notra/e", "{")).status
+    ).toBe(204);
+    expect(
+      (
+        await post(
+          "https://blog.acme.com/blog/_notra/e",
+          JSON.stringify({ v: "short", p: "/blog/", ms: 5, sd: 0 })
+        )
+      ).status
+    ).toBe(204);
+    expect((await post("https://blog.acme.com/blog/post", "{}")).status).toBe(
+      405
+    );
+    await settle();
+    expect(reports).toHaveLength(0);
+  });
+
   test("the bare hosting domain names an abuse contact", async () => {
     const { request } = setup();
     const home = await request("https://notra.site/");

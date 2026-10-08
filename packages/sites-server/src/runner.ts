@@ -22,7 +22,7 @@ import { failDeployment, runDeploymentPipeline } from "./pipeline";
 import {
   reconcileProductionProjection,
   removePreviewDeployment,
-  syncServingPreviewAccess,
+  syncServingAccess,
 } from "./state";
 import type { JobDeployment, SiteJob, SiteJobOutcome } from "./types/jobs";
 import { errorMessage } from "./utils/errors";
@@ -101,11 +101,7 @@ async function runSettingsJob(job: SiteJob): Promise<SiteJobOutcome> {
     if (!current) {
       return null;
     }
-    const keys = await syncServingPreviewAccess(
-      current,
-      tx,
-      removePreviewsThrough
-    );
+    const keys = await syncServingAccess(current, tx, removePreviewsThrough);
     if (removePreviewsThrough !== null) {
       await Promise.all(
         keys.map((key) =>

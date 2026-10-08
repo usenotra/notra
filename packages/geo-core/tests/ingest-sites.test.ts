@@ -38,6 +38,7 @@ await postgres.exec(`
     project_id text,
     public_origin text NOT NULL,
     status text NOT NULL,
+    analytics_enabled boolean NOT NULL DEFAULT true,
     mounts jsonb NOT NULL,
     active_production_deployment_id text
   );
@@ -48,7 +49,7 @@ await postgres.exec(`
     ('dep-b', 'site-b', 'production', '{"publicOrigin":"https://other.com","mounts":{"blog":"/"}}'),
     ('dep-off', 'site-off', 'production', '{"publicOrigin":"https://off.com","mounts":{"blog":"/"}}'),
     ('dep-preview', 'site-preview', 'preview', '{"publicOrigin":"https://preview.com","mounts":{"blog":"/"}}');
-  INSERT INTO sites VALUES
+  INSERT INTO sites (id, organization_id, project_id, public_origin, status, mounts, active_production_deployment_id) VALUES
     ('site-a', 'org-a', 'project-a', 'https://example.com', 'active', '{"blog":"/blog"}', 'dep-a'),
     ('site-b', 'org-b', 'project-b', 'https://other.com', 'active', '{"blog":"/"}', 'dep-b'),
     ('site-off', 'org-a', 'project-a', 'https://off.com', 'suspended', '{"blog":"/"}', 'dep-off'),
@@ -141,4 +142,15 @@ test("unbuilt, foreign and preview pointers do not claim ingest ownership or sup
   expect(
     isServedBySite(new URL("https://preview.com/page"), prefixes ?? [])
   ).toBe(false);
+});
+
+test("turning analytics off invalidates the site token right away", async () => {
+  await postgres.exec("UPDATE sites SET status = 'active' WHERE id = 'site-b'");
+  await invalidateIngestSiteCaches("site-b", "org-b");
+  expect(await loadIngestSite("site-b")).toMatchObject({ id: "site-b" });
+  await postgres.exec(
+    "UPDATE sites SET analytics_enabled = false WHERE id = 'site-b'"
+  );
+  await invalidateIngestSiteCaches("site-b", "org-b");
+  expect(await loadIngestSite("site-b")).toBeNull();
 });

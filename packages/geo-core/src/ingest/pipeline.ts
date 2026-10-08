@@ -1,16 +1,23 @@
 import {
   ingestGeoTrafficEvents,
+  ingestWebPageEngagement,
   ingestWebPageViews,
 } from "@notra/analytics/tinybird/client";
 import type { GeoTrafficEventRow } from "@notra/analytics/tinybird/datasources";
-import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
+import type {
+  WebPageEngagementRow,
+  WebPageViewRow,
+} from "@notra/analytics/types/tinybird-datasources";
 import { GEO_INGEST_BEARER_PREFIX } from "@notra/geo-core/constants/geo";
 import {
   isGeoIngestSiteToken,
   verifyGeoIngestSiteToken,
   verifyGeoIngestToken,
 } from "@notra/geo-core/geo/ingest";
-import { geoRequestPayloadSchema } from "@notra/geo-core/schemas/geo";
+import {
+  geoRequestPayloadSchema,
+  webEngagementPayloadSchema,
+} from "@notra/geo-core/schemas/geo";
 import type {
   GeoIngestIdentity,
   GeoVisitorType,
@@ -51,7 +58,11 @@ import {
   webIngestRatelimit,
 } from "./ratelimit";
 import { loadIngestSite, loadOrganizationSitePrefixes } from "./sites";
-import { buildWebPageView } from "./web";
+import {
+  buildWebEngagementRow,
+  buildWebPageView,
+  isWebEngagementBody,
+} from "./web";
 
 const readSiteIdentity = Effect.fn("geoIngest.readSiteIdentity")(function* (
   token: string
@@ -125,10 +136,15 @@ const enforceRateLimit = Effect.fn("geoIngest.rateLimit")(function* (
   }
 });
 
+const readBody = Effect.fn("geoIngest.readBody")(function* (request: Request) {
+  return yield* Effect.promise((): Promise<unknown> =>
+    request.json().catch(() => null)
+  );
+});
+
 const readPayload = Effect.fn("geoIngest.readPayload")(function* (
-  request: Request
+  body: unknown
 ) {
-  const body = yield* Effect.promise(() => request.json().catch(() => null));
   const parsed = geoRequestPayloadSchema.safeParse(body);
   if (!parsed.success) {
     return yield* Effect.fail(
@@ -237,6 +253,26 @@ const failWithAuthPrecedence = Effect.fn("geoIngest.failWithAuthPrecedence")(
   }
 );
 
+const storeWebEngagement = Effect.fn("geoIngest.storeWebEngagement")(function* (
+  row: WebPageEngagementRow,
+  buffer: GeoIngestBuffer | undefined
+) {
+  if (buffer?.enqueueEngagement?.(row)) {
+    return;
+  }
+  yield* Effect.promise(() =>
+    ingestWebPageEngagement([row]).catch((error: unknown) => {
+      logGeoFailure(
+        "geo.ingest.engagement_write_failed",
+        "Web engagement write failed",
+        error,
+        { organizationId: row.organization_id }
+      );
+      return null;
+    })
+  );
+});
+
 function droppedResult(
   identity: GeoIngestIdentity,
   visitorType: GeoVisitorType,
@@ -253,14 +289,80 @@ function droppedResult(
   };
 }
 
+// The Notra Sites script reports how long a page stayed visible. Only site
+// tokens may send it: the worker forwards it from its own first-party path.
+const runWebEngagementIngest = Effect.fn("geoIngest.engagement")(function* (
+  identity: GeoIngestIdentity,
+  body: unknown,
+  buffer: GeoIngestBuffer | undefined
+) {
+  if (!identity.site) {
+    return droppedResult(identity, "human", "not_site");
+  }
+  const parsed = webEngagementPayloadSchema.safeParse(body);
+  if (!parsed.success) {
+    return yield* failWithAuthPrecedence(
+      identity,
+      new GeoIngestInvalidPayloadError({ issues: parsed.error.issues })
+    );
+  }
+  const payload = parsed.data;
+  const urlResult = yield* Effect.result(parseUrl(payload.url));
+  if (urlResult._tag === "Failure") {
+    return yield* failWithAuthPrecedence(identity, urlResult.failure);
+  }
+  const url = urlResult.success;
+  if (!(yield* admitWebPageView(geoIngestAdmissionKey(identity)))) {
+    return droppedResult(identity, "human", "web_rate_limited");
+  }
+  const [active, allowedHosts] = yield* Effect.all(
+    [
+      Effect.promise(() => isGeoIngestIdentityActive(identity)),
+      Effect.promise(() => loadIngestAllowedHosts(identity)),
+    ],
+    { concurrency: "unbounded" }
+  );
+  if (!active) {
+    return yield* Effect.fail(new GeoIngestInvalidTokenError({}));
+  }
+  if (
+    !acceptsIngestHost(url.hostname, allowedHosts) ||
+    !isServedBySite(url, [{ host: url.hostname, mounts: identity.site.mounts }])
+  ) {
+    return droppedResult(identity, "human", "host", url.hostname);
+  }
+  yield* storeWebEngagement(
+    buildWebEngagementRow({
+      identity,
+      payload,
+      url,
+      capturedAt: toCapturedDate(payload.timestamp),
+    }),
+    buffer
+  );
+  return {
+    outcome: "ingested",
+    organizationId: identity.organizationId,
+    projectId: identity.projectId,
+    visitorType: "human",
+    source: "",
+    agent: "",
+    ingestMs: 0,
+  } satisfies GeoIngestResult;
+});
+
 export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
   request: Request,
   defer: GeoIngestDefer,
   buffer?: GeoIngestBuffer
 ) {
   const identity = yield* readBearerIdentity(request);
+  const body = yield* readBody(request);
+  if (isWebEngagementBody(body)) {
+    return yield* runWebEngagementIngest(identity, body, buffer);
+  }
 
-  const payloadResult = yield* Effect.result(readPayload(request));
+  const payloadResult = yield* Effect.result(readPayload(body));
   if (payloadResult._tag === "Failure") {
     return yield* failWithAuthPrecedence(identity, payloadResult.failure);
   }
@@ -280,7 +382,10 @@ export const runGeoIngest = Effect.fn("geoIngest.run")(function* (
     signals: payload.signals,
   });
   const isAi = isTrackedGeoVisitorType(classification.visitorType);
-  const countsVisitors = isHumanPageView({ classification, payload, url });
+  // People are only counted on Notra Sites; SDK installs report AI traffic.
+  const countsVisitors =
+    identity.site !== undefined &&
+    isHumanPageView({ classification, payload, url });
   if (!(isAi || countsVisitors)) {
     return droppedResult(identity, classification.visitorType, "visitor_type");
   }

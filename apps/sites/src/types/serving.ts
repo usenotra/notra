@@ -39,7 +39,13 @@ export interface ServeFileParams {
   status: number;
   isPreview: boolean;
   contentSecurityPolicy?: string;
+  analytics?: AnalyticsScriptTag | null;
   extraHeaders?: Record<string, string>;
+}
+
+export interface AnalyticsScriptTag {
+  scriptSrc: string;
+  eventPath: string;
 }
 
 export interface RedirectMatch {

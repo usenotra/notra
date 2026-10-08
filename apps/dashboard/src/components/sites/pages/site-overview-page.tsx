@@ -115,7 +115,7 @@ export function SiteOverviewPage() {
 
       <SiteOverviewHero />
 
-      <SiteVisitorsCard />
+      {site.analyticsEnabled ? <SiteVisitorsCard /> : null}
 
       <InstrumentSection
         action={

@@ -7,6 +7,9 @@ import {
 } from "@tinybirdco/sdk";
 
 import {
+  GEO_CAPTURED_COMPARISON_WINDOW_SQL,
+  GEO_CAPTURED_CURRENT_CONDITION,
+  GEO_CAPTURED_PREVIOUS_CONDITION,
   GEO_CAPTURED_WINDOW_SQL,
   GEO_DAY_COMPARISON_WINDOW_SQL,
   GEO_DAY_CURRENT_CONDITION,
@@ -421,5 +424,74 @@ export const webAiOutcomes = defineEndpoint("web_ai_outcomes", {
     sessions: t.uint64(),
     pages_per_session: t.float64(),
     engaged_rate: t.float64(),
+  },
+});
+
+export const webEngagement = defineEndpoint("web_engagement", {
+  description:
+    "Average visible seconds per page view on Notra Sites, overall (empty path, with the window before) and per page",
+  params: {
+    ...WEB_QUERY_PARAMS,
+    limit: p.int32().optional(50).describe("Max page rows"),
+  },
+  nodes: [
+    node({
+      name: "engagement_views",
+      sql: `
+        SELECT
+          view_id,
+          any(host) AS view_host,
+          any(path) AS view_path,
+          min(captured_at) AS view_at,
+          max(visible_ms) AS view_ms
+        FROM web_page_engagement
+        WHERE organization_id = {{String(organization_id)}}
+          ${GEO_PROJECT_SCOPE_SQL}
+          ${WEB_SCOPE_SQL}
+          ${GEO_CAPTURED_COMPARISON_WINDOW_SQL}
+        GROUP BY view_id
+      `,
+    }),
+    node({
+      name: "engagement",
+      sql: `
+        WITH viewed AS (
+          SELECT
+            view_host AS host,
+            view_path AS path,
+            view_at AS captured_at,
+            view_ms AS visible_ms
+          FROM engagement_views
+        )
+        SELECT * FROM (
+          SELECT
+            '' AS host,
+            '' AS path,
+            countIf(${GEO_CAPTURED_CURRENT_CONDITION}) AS views,
+            ifNotFinite(avgIf(visible_ms, ${GEO_CAPTURED_CURRENT_CONDITION}), 0) / 1000 AS avg_seconds,
+            ifNotFinite(avgIf(visible_ms, ${GEO_CAPTURED_PREVIOUS_CONDITION}), 0) / 1000 AS previous_avg_seconds
+          FROM viewed
+          UNION ALL
+          SELECT
+            host,
+            path,
+            count() AS views,
+            avg(visible_ms) / 1000 AS avg_seconds,
+            0 AS previous_avg_seconds
+          FROM viewed
+          WHERE ${GEO_CAPTURED_CURRENT_CONDITION}
+          GROUP BY host, path
+          ORDER BY views DESC
+          LIMIT {{Int32(limit, 50)}}
+        )
+      `,
+    }),
+  ],
+  output: {
+    host: t.string(),
+    path: t.string(),
+    views: t.uint64(),
+    avg_seconds: t.float64(),
+    previous_avg_seconds: t.float64(),
   },
 });

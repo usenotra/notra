@@ -51,9 +51,22 @@ const ingestWebPageViews = mock(async (_rows: WebPageViewRow[]) => ({
   quarantined_rows: 0,
 }));
 const webRatelimitLimit = mock(async () => ({ success: true }));
+const ingestWebPageEngagement = mock(async (_rows: unknown[]) => ({
+  successful_rows: 1,
+  quarantined_rows: 0,
+}));
+
+const SITE_TOKEN = "nst.site_1.good";
+const HUMAN_USER_AGENT = "Mozilla/5.0 Chrome/130.0 Safari/537.36";
+const SITE_PAGE = {
+  method: "GET",
+  url: "https://acme.com/blog/a",
+  userAgent: HUMAN_USER_AGENT,
+};
 
 mock.module("@notra/analytics/tinybird/client", () => ({
   ingestGeoTrafficEvents,
+  ingestWebPageEngagement,
   ingestWebPageViews,
 }));
 mock.module("@notra/geo-core/geo/ingest", () => ({
@@ -128,6 +141,7 @@ describe("runGeoIngest ordering", () => {
       m.mockClear();
     }
     ingestWebPageViews.mockClear();
+    ingestWebPageEngagement.mockClear();
     webRatelimitLimit.mockClear();
     webRatelimitLimit.mockImplementation(async () => ({ success: true }));
     verifyGeoIngestToken.mockClear();
@@ -138,7 +152,10 @@ describe("runGeoIngest ordering", () => {
     }));
     resolveJourneyId.mockClear();
     isGeoIngestIdentityActive.mockImplementation(async () => true);
-    loadIngestAllowedHosts.mockImplementation(async () => ["example.com"]);
+    loadIngestAllowedHosts.mockImplementation(
+      async (identity?: GeoIngestIdentity) =>
+        identity?.site ? identity.site.hosts : ["example.com"]
+    );
     ratelimitLimit.mockImplementation(async () => ({ success: true }));
     ingestGeoTrafficEvents.mockImplementation(async () => STORED);
     loadOrganizationSitePrefixes.mockImplementation(async () => []);
@@ -387,46 +404,35 @@ describe("runGeoIngest ordering", () => {
     });
   });
 
-  test("the SDK automatically counts valid human page views without an opt-in lookup", async () => {
+  test("the SDK never counts people, only AI traffic", async () => {
     const outcome = await run(
       ingestRequest({
         method: "GET",
         url: "https://example.com/pricing",
-        userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+        userAgent: HUMAN_USER_AGENT,
       })
     );
     expect(outcome).toMatchObject({
       _tag: "Success",
-      success: { outcome: "ingested", visitorType: "human" },
+      success: { outcome: "dropped", reason: "visitor_type" },
     });
-    expect(ingestGeoTrafficEvents).not.toHaveBeenCalled();
-    expect(ingestWebPageViews).toHaveBeenCalledTimes(1);
-    expect(ingestWebPageViews.mock.calls[0]?.[0]).toMatchObject([
-      {
-        organization_id: "org_1",
-        project_id: "proj_1",
-        site_id: "",
-        host: "example.com",
-        path: "/pricing",
-      },
-    ]);
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
+    expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
   });
 
-  test("automatic human counting still rejects revoked tokens and ignores wrong hosts", async () => {
-    const page = {
-      method: "GET",
-      url: "https://example.com/",
-      userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
-    };
+  test("site visitor counting still rejects revoked tokens and ignores wrong hosts", async () => {
     isGeoIngestIdentityActive.mockImplementation(async () => false);
-    const revoked = await run(ingestRequest(page));
+    const revoked = await run(ingestRequest(SITE_PAGE, SITE_TOKEN));
     expect(revoked._tag === "Failure" && revoked.failure).toBeInstanceOf(
       GeoIngestInvalidTokenError
     );
     expect(ingestWebPageViews).not.toHaveBeenCalled();
     isGeoIngestIdentityActive.mockImplementation(async () => true);
-    loadIngestAllowedHosts.mockImplementation(async () => ["other.example"]);
-    expect(await run(ingestRequest(page))).toMatchObject({
+    expect(
+      await run(
+        ingestRequest({ ...SITE_PAGE, url: "https://example.com/" }, SITE_TOKEN)
+      )
+    ).toMatchObject({
       _tag: "Success",
       success: { outcome: "dropped", reason: "host" },
     });
@@ -443,42 +449,24 @@ describe("runGeoIngest ordering", () => {
         prefetch: true,
       },
     },
-    { url: "https://example.com/llms.txt" },
+    { url: "https://acme.com/llms.txt" },
     { method: "POST" },
     { status: 302 },
-  ])(
-    "automatic human counting filters non-page traffic %j",
-    async (override) => {
-      expect(
-        await run(
-          ingestRequest({
-            method: "GET",
-            url: "https://example.com/",
-            userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
-            ...override,
-          })
-        )
-      ).toMatchObject({
-        _tag: "Success",
-        success: { outcome: "dropped", reason: "visitor_type" },
-      });
-      expect(ingestWebPageViews).not.toHaveBeenCalled();
-      expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
-      expect(loadIngestAllowedHosts).not.toHaveBeenCalled();
-    }
-  );
-
-  test("automatic human counting retains the independent web admission limit", async () => {
-    webRatelimitLimit.mockImplementation(async () => ({ success: false }));
+  ])("site visitor counting filters non-page traffic %j", async (override) => {
     expect(
-      await run(
-        ingestRequest({
-          method: "GET",
-          url: "https://example.com/",
-          userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
-        })
-      )
+      await run(ingestRequest({ ...SITE_PAGE, ...override }, SITE_TOKEN))
     ).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "visitor_type" },
+    });
+    expect(ingestWebPageViews).not.toHaveBeenCalled();
+    expect(isGeoIngestIdentityActive).not.toHaveBeenCalled();
+    expect(loadIngestAllowedHosts).not.toHaveBeenCalled();
+  });
+
+  test("site visitor counting retains the independent web admission limit", async () => {
+    webRatelimitLimit.mockImplementation(async () => ({ success: false }));
+    expect(await run(ingestRequest(SITE_PAGE, SITE_TOKEN))).toMatchObject({
       _tag: "Success",
       success: { outcome: "dropped", reason: "web_rate_limited" },
     });
@@ -487,31 +475,52 @@ describe("runGeoIngest ordering", () => {
     expect(ratelimitLimit).not.toHaveBeenCalled();
   });
 
-  test("legacy SDK tokens count humans only after validating their scoped host", async () => {
-    verifyGeoIngestToken.mockImplementation(() => ({
-      organizationId: "org_1",
-      projectId: null,
-      generation: 1,
-    }));
-    const page = {
-      method: "GET",
-      url: "https://example.com/",
-      userAgent: "Mozilla/5.0 Chrome/130.0 Safari/537.36",
+  test("a site reports visible time per view, capped and scoped to its pages", async () => {
+    const engagement = {
+      type: "engagement",
+      url: "https://acme.com/blog/a",
+      viewId: "a1b2c3d4e5f6a7b8c9d0e1f2",
+      visibleMs: 5 * 60 * 60 * 1000,
+      scrollDepth: 80,
     };
-    expect(await run(ingestRequest(page))).toMatchObject({
+    expect(await run(ingestRequest(engagement, SITE_TOKEN))).toMatchObject({
       _tag: "Success",
-      success: { outcome: "ingested", projectId: null },
+      success: { outcome: "ingested", visitorType: "human" },
     });
-    expect(ingestWebPageViews.mock.calls[0]?.[0]).toMatchObject([
-      { organization_id: "org_1", project_id: "", host: "example.com" },
+    expect(ingestWebPageEngagement.mock.calls[0]?.[0]).toMatchObject([
+      {
+        organization_id: "org_2",
+        project_id: "proj_2",
+        site_id: "site_1",
+        host: "acme.com",
+        path: "/blog/a",
+        view_id: "a1b2c3d4e5f6a7b8c9d0e1f2",
+        visible_ms: 30 * 60 * 1000,
+        scroll_depth: 80,
+      },
     ]);
-    ingestWebPageViews.mockClear();
-    loadIngestAllowedHosts.mockImplementation(async () => null);
-    const unavailable = await run(ingestRequest(page));
+    ingestWebPageEngagement.mockClear();
+
     expect(
-      unavailable._tag === "Failure" && unavailable.failure
-    ).toBeInstanceOf(GeoIngestFailedError);
-    expect(ingestWebPageViews).not.toHaveBeenCalled();
+      await run(
+        ingestRequest(
+          { ...engagement, url: "https://example.com/blog/a" },
+          SITE_TOKEN
+        )
+      )
+    ).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "host" },
+    });
+    expect(await run(ingestRequest(engagement))).toMatchObject({
+      _tag: "Success",
+      success: { outcome: "dropped", reason: "not_site" },
+    });
+    const malformed = await run(
+      ingestRequest({ ...engagement, viewId: "x" }, SITE_TOKEN)
+    );
+    expect(malformed._tag).toBe("Failure");
+    expect(ingestWebPageEngagement).not.toHaveBeenCalled();
   });
 
   test("a forged or orphaned site token is a 401", async () => {

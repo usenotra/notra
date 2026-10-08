@@ -4037,6 +4037,8 @@
       "noData": "Keine Besucher in diesem Zeitraum",
       "columnViews": "Aufrufe",
       "columnFromAi": "Aus AI",
+      "avgTime": "Ø Zeit auf der Seite",
+      "columnAvgTime": "Ø Zeit",
       "columnSource": "Quelle",
       "columnCountry": "Land",
       "columnDevice": "Gerät",
@@ -7204,6 +7206,21 @@
         "restored": "Site ist wieder online",
         "failed": "Status der Site konnte nicht geändert werden"
       },
+      "analytics": {
+        "title": "Analytics ausschalten",
+        "description": "Keine Besucher und AI-Agents mehr auf dieser Site zählen.",
+        "action": "Ausschalten",
+        "confirmTitle": "Analytics für diese Site ausschalten?",
+        "confirmDescription": "Notra zählt ab sofort keine Besucher und AI-Agents mehr und entfernt das Mess-Script von allen Seiten. Bisher gesammelte Daten bleiben in Analytics, und solange Analytics aus ist, wird nichts aufgezeichnet. Du kannst es jederzeit wieder einschalten.",
+        "done": "Analytics ist aus",
+        "enableTitle": "Analytics einschalten",
+        "enableDescription": "Besucher, Zeit auf der Seite und AI-Agents auf dieser Site zählen.",
+        "enable": "Einschalten",
+        "enableConfirmTitle": "Analytics für diese Site einschalten?",
+        "enableConfirmDescription": "Notra zählt Seitenaufrufe beim Ausliefern, ohne Cookies, und bindet ein kleines Script ein, das misst, wie lange jede Seite sichtbar ist. AI-Agents werden ebenfalls erfasst. Gezählt wird ab jetzt, die Zeit, in der Analytics aus war, bleibt leer.",
+        "enabled": "Analytics ist an",
+        "failed": "Analytics konnte nicht geändert werden"
+      },
       "delete": {
         "title": "Site löschen",
         "summary": "Entfernt die Site, ihre Deployments und Domains. Dein Repository bleibt unverändert.",
@@ -7689,7 +7706,14 @@
       "overviewTitle": "Letzte 7 Tage",
       "viewAnalytics": "Analytics ansehen",
       "errorTitle": "Analytics konnten nicht geladen werden",
-      "errorDescription": "Versuch es gleich noch einmal."
+      "errorDescription": "Versuch es gleich noch einmal.",
+      "offTitle": "Analytics ist aus",
+      "offDescription": "Schalte es in den Einstellungen ein, um Besucher, Zeit auf der Seite und AI-Agents zu zählen.",
+      "offAction": "Einstellungen öffnen",
+      "emptyRangeTitle": "Keine Besuche in diesem Zeitraum",
+      "emptyRangeDescription": "Wähl einen längeren Zeitraum.",
+      "notPublishedTitle": "Noch nicht veröffentlicht",
+      "notPublishedDescription": "Besucher erscheinen hier, sobald das erste Deployment live ist."
     }
   }
 }

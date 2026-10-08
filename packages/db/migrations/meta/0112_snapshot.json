@@ -13470,6 +13470,13 @@
           "notNull": true,
           "default": true
         },
+        "analytics_enabled": {
+          "name": "analytics_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "preview_password": {
           "name": "preview_password",
           "type": "jsonb",

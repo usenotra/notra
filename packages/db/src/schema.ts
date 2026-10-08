@@ -4248,6 +4248,7 @@ export const sites = pgTable(
       .notNull()
       .default("pull_request"),
     showBranding: boolean("show_branding").notNull().default(true),
+    analyticsEnabled: boolean("analytics_enabled").notNull().default(true),
     previewPassword: jsonb("preview_password").$type<SitePreviewPassword>(),
     status: text("status", { enum: SITE_STATUSES }).notNull().default("active"),
     suspendedReason: text("suspended_reason"),

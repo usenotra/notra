@@ -1,7 +1,10 @@
 import { createHmac } from "node:crypto";
 
 import { redis } from "@notra/ai/utils/redis";
-import type { WebPageViewRow } from "@notra/analytics/types/tinybird-datasources";
+import type {
+  WebPageEngagementRow,
+  WebPageViewRow,
+} from "@notra/analytics/types/tinybird-datasources";
 import { toClickHouseDateTime } from "@notra/analytics/utils/datetime";
 import {
   ISO_DATE_LENGTH,
@@ -17,8 +20,10 @@ import {
 import { WEB_SESSION_RESOLVE_SCRIPT } from "@notra/geo-core/constants/web-session";
 import { getGeoIngestSecret } from "@notra/geo-core/geo/ingest";
 import { urlHost } from "@notra/geo-core/utils/url-host";
+import { SITE_ENGAGEMENT_MAX_VISIBLE_MS } from "@notra/sites-core/constants/sites";
 
 import type {
+  WebEngagementInput,
   WebPageViewInput,
   WebReferrer,
   WebSession,
@@ -195,5 +200,31 @@ export async function buildWebPageView(
     browser: agent.browser,
     os: agent.os,
     request_id: payload.requestId ?? "",
+  };
+}
+
+export function isWebEngagementBody(body: unknown): boolean {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "type" in body &&
+    body.type === "engagement"
+  );
+}
+
+export function buildWebEngagementRow(
+  input: WebEngagementInput
+): WebPageEngagementRow {
+  const { identity, payload, url, capturedAt } = input;
+  return {
+    organization_id: identity.organizationId,
+    project_id: identity.projectId ?? "",
+    site_id: identity.site?.id ?? "",
+    captured_at: toClickHouseDateTime(capturedAt),
+    host: url.hostname.toLowerCase(),
+    path: url.pathname,
+    view_id: payload.viewId,
+    visible_ms: Math.min(payload.visibleMs, SITE_ENGAGEMENT_MAX_VISIBLE_MS),
+    scroll_depth: payload.scrollDepth,
   };
 }

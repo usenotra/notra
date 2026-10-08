@@ -2,10 +2,12 @@ import { GEO_BRIEF_MAX_TITLE_LENGTH } from "@notra/ai/constants/geo-writer";
 import { SUPPORTED_LANGUAGES } from "@notra/ai/constants/languages";
 import { geoContentSubtypeSchema } from "@notra/ai/schemas/geo-writer";
 import { POST_MARKDOWN_MAX_LENGTH } from "@notra/ai/schemas/limits";
+import { SITE_ENGAGEMENT_VIEW_ID_PATTERN } from "@notra/sites-core/constants/sites";
 import {
   array,
   boolean,
   enum as enumType,
+  literal,
   number,
   object,
   string,
@@ -500,6 +502,15 @@ export const geoRequestPayloadSchema = object({
     tracing: boolean(),
     prefetch: boolean().optional(),
   }).optional(),
+});
+
+export const webEngagementPayloadSchema = object({
+  type: literal("engagement"),
+  timestamp: string().max(GEO_SHORT_FIELD_MAX_LENGTH).optional(),
+  url: string().min(1).max(MAX_GEO_URL_LENGTH),
+  viewId: string().regex(SITE_ENGAGEMENT_VIEW_ID_PATTERN),
+  visibleMs: number().int().min(0),
+  scrollDepth: number().int().min(0).max(100),
 });
 
 export const geoTrafficJourneysInputSchema = geoOrganizationInputSchema.extend({

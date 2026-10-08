@@ -97,7 +97,13 @@ function lookupIngestSite(siteId: string): Promise<GeoIngestSite | null> {
           eq(siteDeployments.kind, "production")
         )
       )
-      .where(and(eq(sites.id, siteId), eq(sites.status, "active")))
+      .where(
+        and(
+          eq(sites.id, siteId),
+          eq(sites.status, "active"),
+          eq(sites.analyticsEnabled, true)
+        )
+      )
       .limit(1);
     const host = site ? urlHost(site.target.publicOrigin) : null;
     if (!(site && host)) {

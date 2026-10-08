@@ -11,7 +11,7 @@ import { TestClock } from "effect/testing";
 import { CAS_ATTEMPTS, CAS_BACKOFF_MS } from "../src/constants/state";
 import { R2PreconditionFailedError } from "../src/errors";
 import type { R2PutOptions } from "../src/types/r2";
-import type { ServingPreviewAccess } from "../src/types/state";
+import type { ServingAccess } from "../src/types/state";
 
 if (process.env.NOTRA_SITES_STATE_EFFECT_TEST_WORKER !== "1") {
   test("serving-state effects with isolated database and R2 adapters", () => {
@@ -29,7 +29,7 @@ if (process.env.NOTRA_SITES_STATE_EFFECT_TEST_WORKER !== "1") {
   const site = { id: "site1", slug: "site1" };
   const key = SITE_R2_KEYS.state(site.id);
   const objects = new Map<string, { text: string; etag: string }>();
-  let access: ServingPreviewAccess;
+  let access: ServingAccess;
   let reads = 0;
   let accessReads = 0;
   let writes: R2PutOptions[] = [];
@@ -113,7 +113,11 @@ if (process.env.NOTRA_SITES_STATE_EFFECT_TEST_WORKER !== "1") {
 
   beforeEach(() => {
     objects.clear();
-    access = { previewPassword: null, previewVisibility: "protected" };
+    access = {
+      previewPassword: null,
+      previewVisibility: "protected",
+      analyticsEnabled: true,
+    };
     reads = 0;
     accessReads = 0;
     writes = [];
@@ -186,7 +190,11 @@ if (process.env.NOTRA_SITES_STATE_EFFECT_TEST_WORKER !== "1") {
               text: JSON.stringify({ ...initial(), slug: "contender" }),
               etag: "contender-etag",
             });
-            access = { previewPassword: null, previewVisibility: "public" };
+            access = {
+              previewPassword: null,
+              previewVisibility: "public",
+              analyticsEnabled: true,
+            };
             await Effect.runPromise(Deferred.succeed(failed, undefined));
           }
         };

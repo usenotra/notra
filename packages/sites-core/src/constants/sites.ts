@@ -183,3 +183,10 @@ export const SITE_R2_KEYS = {
   buildLog: (siteId: string, deploymentId: string) =>
     `logs/${siteId}/${deploymentId}.log`,
 } as const;
+
+/** Files below each mount that the worker answers for the analytics script. */
+export const SITE_ANALYTICS_SCRIPT_FILE = "_notra/insights.js";
+export const SITE_ANALYTICS_EVENT_FILE = "_notra/e";
+/** Longer visible times are capped: a tab left open overnight is not reading. */
+export const SITE_ENGAGEMENT_MAX_VISIBLE_MS = 30 * 60 * 1000;
+export const SITE_ENGAGEMENT_VIEW_ID_PATTERN = /^[a-z0-9]{16,32}$/;

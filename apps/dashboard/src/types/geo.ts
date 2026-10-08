@@ -5,6 +5,7 @@ import type {
   AiTrafficResponse,
   WebAnalyticsOutcome,
   WebAnalyticsResponse,
+  WebEngagement,
   WebAnalyticsSource,
   GeoAnswerSource,
   GeoChangeEvent,
@@ -1900,6 +1901,8 @@ export interface WebVisitorsSectionProps {
   web: WebAnalyticsResponse;
   traffic: AiTrafficResponse | undefined;
   range?: GeoRangeQuery;
+  /** Notra Sites only: visible time per view, replaces the AI-referred metric. */
+  engagement?: WebEngagement;
 }
 
 export interface WebMetricProps {
@@ -1923,6 +1926,7 @@ export interface WebBreakdownRow {
   value: number;
   previous?: number | null;
   fromAi?: number;
+  avgSeconds?: number | null;
 }
 
 export interface WebBreakdownTableProps {
@@ -1931,6 +1935,7 @@ export interface WebBreakdownTableProps {
   valueHeader: string;
   rows: readonly WebBreakdownRow[];
   showFromAi?: boolean;
+  showAvgTime?: boolean;
 }
 
 export interface TrafficDomainSelectProps {

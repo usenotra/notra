@@ -34,3 +34,18 @@ export interface TrafficReport {
   proxied: boolean;
   status: number;
 }
+
+export interface AnalyticsEvent {
+  viewId: string;
+  path: string;
+  visibleMs: number;
+  scrollDepth: number;
+}
+
+export interface EngagementReport {
+  fetch: (url: string, init: RequestInit) => Promise<Response>;
+  ingestUrl: string;
+  token: string;
+  publicOrigin: string;
+  event: AnalyticsEvent;
+}

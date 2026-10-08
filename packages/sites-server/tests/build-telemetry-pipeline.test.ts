@@ -146,7 +146,7 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
     removePreviewDeployment: () => {
       throw new Error("Unexpected preview removal");
     },
-    syncServingPreviewAccess: () => {
+    syncServingAccess: () => {
       throw new Error("Unexpected preview access sync");
     },
   }));

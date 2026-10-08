@@ -18,9 +18,10 @@ export type ServingStateMutation<T> =
   | { write: SiteServingState; result: T }
   | { skip: true; result: T };
 
-export interface ServingPreviewAccess {
+export interface ServingAccess {
   previewPassword: SitePreviewPassword | null;
   previewVisibility: SitePreviewPointer["visibility"] | null;
+  analyticsEnabled: boolean;
 }
 export type ServingStateAttemptFailure = {
   readonly _tag: "CasConflict" | "OperationFailure";

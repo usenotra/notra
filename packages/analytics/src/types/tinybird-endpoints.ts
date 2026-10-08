@@ -22,6 +22,7 @@ import type {
 } from "../tinybird/pipes/social";
 import type {
   webAiOutcomes,
+  webEngagement,
   webAudience,
   webHosts,
   webOverview,
@@ -69,3 +70,4 @@ export type WebSourcesRow = InferOutputRow<typeof webSources>;
 export type WebAudienceRow = InferOutputRow<typeof webAudience>;
 export type WebHostsRow = InferOutputRow<typeof webHosts>;
 export type WebAiOutcomesRow = InferOutputRow<typeof webAiOutcomes>;
+export type WebEngagementRow = InferOutputRow<typeof webEngagement>;

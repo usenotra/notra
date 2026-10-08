@@ -50,6 +50,7 @@ export function serializeSite(
     previewPasswordSetAt: site.previewPassword?.updatedAt ?? null,
     publishMode: site.publishMode,
     showBranding: site.showBranding,
+    analyticsEnabled: site.analyticsEnabled,
     liveDeploymentId: state?.production?.deploymentId ?? null,
     createdAt: site.createdAt,
   };

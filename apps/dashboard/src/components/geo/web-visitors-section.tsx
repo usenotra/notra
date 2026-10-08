@@ -32,7 +32,7 @@ import type {
   WebVisitorsSectionProps,
 } from "@/types/geo";
 import { countryName } from "@/utils/country";
-import { webSourceName } from "@/utils/web-analytics";
+import { formatVisibleDuration, webSourceName } from "@/utils/web-analytics";
 
 function WebMetric({ label, value, previous }: WebMetricProps) {
   const tShared = useTranslations("geo.shared");
@@ -56,10 +56,34 @@ function WebMetric({ label, value, previous }: WebMetricProps) {
   );
 }
 
+function WebTimeMetric({ label, value, previous }: WebMetricProps) {
+  const tShared = useTranslations("geo.shared");
+  return (
+    <div className={TRAFFIC_HERO_METRIC_CELL_CLASS}>
+      <p className="text-foreground/75 text-sm leading-5 font-semibold tracking-tight">
+        {label}
+      </p>
+      <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-2 self-start">
+        <span className={TRAFFIC_HERO_METRIC_VALUE_CLASS}>
+          {value > 0 ? formatVisibleDuration(value) : "-"}
+        </span>
+        {previous > 0 && value > 0 ? (
+          <GeoStatDelta
+            delta={trafficVisitDelta(value, previous)}
+            hint={tShared("vsPreviousPeriodOfThe")}
+            label={label}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function WebVisitorsSection({
   web,
   traffic,
   range,
+  engagement,
 }: WebVisitorsSectionProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
@@ -71,6 +95,12 @@ export function WebVisitorsSection({
   );
 
   const showPageHost = new Set(web.pages.map((page) => page.host)).size > 1;
+  const pageSeconds = new Map(
+    (engagement?.pages ?? []).map((page) => [
+      `${page.host}${page.path}`,
+      page.avgSeconds,
+    ])
+  );
   const pageRows: WebBreakdownRow[] = web.pages
     .slice(0, WEB_LIST_LIMIT)
     .map((page) => {
@@ -91,6 +121,7 @@ export function WebVisitorsSection({
         value: page.views,
         previous: page.previousViews,
         fromAi: page.aiVisitors,
+        avgSeconds: pageSeconds.get(url) ?? null,
       };
     });
   const sourceRows: WebBreakdownRow[] = web.sources
@@ -173,11 +204,19 @@ export function WebVisitorsSection({
             previous={totals.previousViews}
             value={totals.views}
           />
-          <WebMetric
-            label={t("fromAi")}
-            previous={totals.previousAiVisitors}
-            value={totals.aiVisitors}
-          />
+          {engagement ? (
+            <WebTimeMetric
+              label={t("avgTime")}
+              previous={engagement.previousAvgSeconds}
+              value={engagement.avgSeconds}
+            />
+          ) : (
+            <WebMetric
+              label={t("fromAi")}
+              previous={totals.previousAiVisitors}
+              value={totals.aiVisitors}
+            />
+          )}
           <WebMetric
             label={t("agents")}
             previous={previousAi?.crawler ?? 0}
@@ -190,6 +229,7 @@ export function WebVisitorsSection({
         <WebBreakdownTable
           nameHeader={t("page")}
           rows={pageRows}
+          showAvgTime={engagement !== undefined}
           showFromAi
           title={t("topPages")}
           valueHeader={t("columnViews")}

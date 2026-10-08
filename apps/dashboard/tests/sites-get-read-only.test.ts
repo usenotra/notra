@@ -56,6 +56,7 @@ if (process.env.NOTRA_SITES_GET_READ_ONLY_TEST_WORKER !== "1") {
     previewVisibility: "protected",
     publishMode: "pull_request",
     showBranding: true,
+    analyticsEnabled: true,
     previewPassword: {
       algorithm: "PBKDF2-SHA256",
       iterations: 1,

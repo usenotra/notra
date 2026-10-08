@@ -4037,6 +4037,8 @@
       "noData": "No visitors in this period",
       "columnViews": "Views",
       "columnFromAi": "From AI",
+      "avgTime": "Avg. time on page",
+      "columnAvgTime": "Avg. time",
       "columnSource": "Source",
       "columnCountry": "Country",
       "columnDevice": "Device",
@@ -7204,6 +7206,21 @@
         "restored": "Site is back online",
         "failed": "Couldn't change the site status"
       },
+      "analytics": {
+        "title": "Turn off analytics",
+        "description": "Stop counting visitors and AI agents on this site.",
+        "action": "Turn off",
+        "confirmTitle": "Turn off analytics for this site?",
+        "confirmDescription": "Notra stops counting visitors and AI agents right away and removes the measuring script from every page. Data collected so far stays in Analytics, and nothing is recorded while analytics is off. You can turn it back on at any time.",
+        "done": "Analytics is off",
+        "enableTitle": "Turn on analytics",
+        "enableDescription": "Count visitors, time on page and AI agents on this site.",
+        "enable": "Turn on",
+        "enableConfirmTitle": "Turn on analytics for this site?",
+        "enableConfirmDescription": "Notra counts page views as they are served, without cookies, and adds a small script that measures how long each page stays visible. AI agents are recorded too. Counting starts now; the time analytics was off stays empty.",
+        "enabled": "Analytics is on",
+        "failed": "Couldn't change analytics"
+      },
       "delete": {
         "title": "Delete site",
         "summary": "Removes the site, its deployments and domains. Your repository stays as it is.",
@@ -7689,7 +7706,14 @@
       "overviewTitle": "Last 7 days",
       "viewAnalytics": "View analytics",
       "errorTitle": "Couldn't load analytics",
-      "errorDescription": "Try again in a moment."
+      "errorDescription": "Try again in a moment.",
+      "offTitle": "Analytics is off",
+      "offDescription": "Turn it on in settings to count visitors, time on page and AI agents.",
+      "offAction": "Open settings",
+      "emptyRangeTitle": "No visits in this period",
+      "emptyRangeDescription": "Try a longer date range.",
+      "notPublishedTitle": "Not published yet",
+      "notPublishedDescription": "Visitors show up here once the first deployment is live."
     }
   }
 }

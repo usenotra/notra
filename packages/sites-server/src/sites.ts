@@ -215,6 +215,7 @@ export async function updateSiteSettings(
     previewVisibility: patch.previewVisibility,
     publishMode: patch.publishMode,
     showBranding: patch.showBranding,
+    analyticsEnabled: patch.analyticsEnabled,
     publicOrigin:
       patch.publicOrigin === undefined
         ? undefined

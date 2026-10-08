@@ -9,7 +9,10 @@ import {
 
 import { bumpAnalyticsVersions, cachedQuery } from "../cache/query-cache";
 import type { AnalyticsCacheScope } from "../types/cache";
-import type { WebPageViewRow } from "../types/tinybird-datasources";
+import type {
+  WebPageEngagementRow,
+  WebPageViewRow,
+} from "../types/tinybird-datasources";
 import type {
   AccountLeaderboardParams,
   AccountLeaderboardRow,
@@ -42,6 +45,7 @@ import type {
   WebAudienceRow,
   WebHostsRow,
   WebAiOutcomesRow,
+  WebEngagementRow,
 } from "../types/tinybird-endpoints";
 import {
   type GeoTrafficEventRow,
@@ -56,6 +60,7 @@ import {
   socialPostSources,
   socialPostStats,
   socialPosts,
+  webPageEngagement,
   webPageViews,
 } from "./datasources";
 import { queryDemoPipe } from "./demo-geo-traffic";
@@ -83,6 +88,7 @@ import {
 import {
   webAiOutcomes,
   webAudience,
+  webEngagement,
   webHosts,
   webOverview,
   webPages,
@@ -125,6 +131,7 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       socialPostSources,
       geoTrafficEvents,
       webPageViews,
+      webPageEngagement,
     },
     pipes: {
       socialOverview,
@@ -150,6 +157,7 @@ function createTinybirdClient(fetch?: typeof globalThis.fetch) {
       webAudience,
       webHosts,
       webAiOutcomes,
+      webEngagement,
     },
   });
 }
@@ -504,6 +512,30 @@ export function ingestWebPageViews(
     "geo",
     rows.map((row) => row.organization_id),
     (client, batch) => client.webPageViews.ingestBatch(batch, { wait: false })
+  );
+}
+
+export function ingestWebPageEngagement(
+  rows: WebPageEngagementRow[]
+): Promise<IngestResult | null> {
+  return ingestRows(
+    rows,
+    "geo",
+    rows.map((row) => row.organization_id),
+    (client, batch) =>
+      client.webPageEngagement.ingestBatch(batch, { wait: false })
+  );
+}
+
+export function queryWebEngagement(
+  params: InferParams<typeof webEngagement>
+): Promise<QueryResult<WebEngagementRow> | null> {
+  return cachedPipeQuery(
+    "geo",
+    "web_engagement",
+    params,
+    params.organization_id,
+    (client) => client.webEngagement.query(params)
   );
 }
 

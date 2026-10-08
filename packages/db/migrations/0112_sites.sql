@@ -109,6 +109,7 @@ CREATE TABLE "sites" (
 	"preview_visibility" text DEFAULT 'protected' NOT NULL,
 	"publish_mode" text DEFAULT 'pull_request' NOT NULL,
 	"show_branding" boolean DEFAULT true NOT NULL,
+	"analytics_enabled" boolean DEFAULT true NOT NULL,
 	"preview_password" jsonb,
 	"status" text DEFAULT 'active' NOT NULL,
 	"suspended_reason" text,

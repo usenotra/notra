@@ -114,3 +114,14 @@ export function webSourceName(
 export function webTableHeight(rowCount: number): number {
   return (Math.max(rowCount, WEB_TABLE_MIN_ROWS) + 1) * WEB_TABLE_ROW_HEIGHT;
 }
+
+/** Visible time as "42s" or "3m 05s". */
+export function formatVisibleDuration(seconds: number): string {
+  const rounded = Math.max(0, Math.round(seconds));
+  if (rounded < 60) {
+    return `${rounded}s`;
+  }
+  const minutes = Math.floor(rounded / 60);
+  const rest = String(rounded % 60).padStart(2, "0");
+  return `${minutes}m ${rest}s`;
+}

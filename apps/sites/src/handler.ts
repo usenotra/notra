@@ -1,4 +1,6 @@
 import {
+  SITE_ANALYTICS_EVENT_FILE,
+  SITE_ANALYTICS_SCRIPT_FILE,
   SITE_PREVIEW_AUTH_PATH,
   SITE_PREVIEW_SIGN_OUT_PATH,
 } from "@notra/sites-core/constants/sites";
@@ -11,6 +13,12 @@ import {
 } from "@notra/sites-core/utils/mounts";
 import { isPreviewExpired } from "@notra/sites-core/utils/serving-state";
 
+import {
+  analyticsScriptResponse,
+  isAnalyticsEventPath,
+  readAnalyticsEvent,
+  reportEngagement,
+} from "./analytics";
 import {
   loadHost,
   loadManifest,
@@ -39,6 +47,7 @@ import {
 } from "./responses";
 import { isReportablePageView, reportTraffic } from "./traffic";
 import type {
+  AnalyticsScriptTag,
   LoadedManifest,
   ResolvedDeployment,
   SiteRequestContext,
@@ -131,7 +140,10 @@ async function resolveDeployment(
   if (parsedHost.kind === "preview") {
     return await resolvePreview(context, state, siteId, parsedHost.previewKey);
   }
-  if (request.method === "POST") {
+  if (
+    request.method === "POST" &&
+    !isAnalyticsEventPath(context.url.pathname)
+  ) {
     return methodNotAllowed("GET, HEAD");
   }
   if (!state.production) {
@@ -157,6 +169,14 @@ async function serveDeployment(
       `Manifest missing for active deployment ${deploymentId}`
     );
   }
+  const analyticsAnswer = await answerAnalyticsRequest(
+    context,
+    resolved,
+    loaded
+  );
+  if (analyticsAnswer) {
+    return analyticsAnswer;
+  }
   const response = await serveFromManifest(context, resolved, loaded);
   if (
     trafficToken &&
@@ -177,6 +197,74 @@ async function serveDeployment(
     );
   }
   return response;
+}
+
+function analyticsMount(
+  loaded: LoadedManifest,
+  pathname: string
+): string | null {
+  const path = normalizeRequestPath(pathname);
+  if (path === null) {
+    return null;
+  }
+  return resolveAreaForPath(loaded.manifest.target.mounts, path)?.mount ?? "/";
+}
+
+function analyticsScriptTag(
+  resolved: ResolvedDeployment,
+  loaded: LoadedManifest,
+  pathname: string
+): AnalyticsScriptTag | null {
+  const mount = resolved.trafficToken ? analyticsMount(loaded, pathname) : null;
+  return mount === null
+    ? null
+    : {
+        scriptSrc: joinMountPath(mount, SITE_ANALYTICS_SCRIPT_FILE),
+        eventPath: joinMountPath(mount, SITE_ANALYTICS_EVENT_FILE),
+      };
+}
+
+// The script and its beacon live below each mount so a proxied site only
+// needs to forward the mount it already forwards.
+async function answerAnalyticsRequest(
+  context: SiteRequestContext,
+  resolved: ResolvedDeployment,
+  loaded: LoadedManifest
+): Promise<Response | null> {
+  const { deps, request, url } = context;
+  const tag = analyticsScriptTag(resolved, loaded, url.pathname);
+  const isScript = tag !== null && url.pathname === tag.scriptSrc;
+  const isEvent = isAnalyticsEventPath(url.pathname);
+  if (!(isScript || isEvent)) {
+    return null;
+  }
+  if (isScript) {
+    return request.method === "POST"
+      ? methodNotAllowed("GET, HEAD")
+      : analyticsScriptResponse();
+  }
+  if (request.method !== "POST") {
+    return methodNotAllowed("POST");
+  }
+  const event =
+    tag !== null && url.pathname === tag.eventPath
+      ? await readAnalyticsEvent(request)
+      : null;
+  if (event && resolved.trafficToken && deps.trafficIngestUrl) {
+    deps.waitUntil(
+      reportEngagement({
+        fetch: deps.fetch,
+        ingestUrl: deps.trafficIngestUrl,
+        token: resolved.trafficToken,
+        publicOrigin: loaded.manifest.target.publicOrigin,
+        event,
+      })
+    );
+  }
+  return new Response(null, {
+    status: 204,
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 function hostingApexResponse(deps: SitesDeps, url: URL): Response {
@@ -228,6 +316,9 @@ async function serveFromManifest(
     deploymentId: resolved.deploymentId,
     isPreview: resolved.isPreview,
     contentSecurityPolicy: manifest.contentSecurityPolicy,
+    analytics: resolved.isPreview
+      ? null
+      : analyticsScriptTag(resolved, { manifest, files }, url.pathname),
     status: 200,
   };
   const markdownFile = resolveMarkdownFile(files, path);
@@ -308,7 +399,9 @@ export async function handleSiteRequest(
   deps: SitesDeps
 ): Promise<Response> {
   const url = new URL(request.url);
-  const allowsPost = url.pathname === SITE_PREVIEW_AUTH_PATH;
+  const allowsPost =
+    url.pathname === SITE_PREVIEW_AUTH_PATH ||
+    isAnalyticsEventPath(url.pathname);
   const allowed = allowsPost ? ["GET", "HEAD", "POST"] : ["GET", "HEAD"];
   if (!allowed.includes(request.method)) {
     return methodNotAllowed(allowed.join(", "));

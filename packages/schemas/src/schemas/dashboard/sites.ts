@@ -68,6 +68,7 @@ export const updateSiteInputSchema = siteScopeInputSchema.extend({
   previewVisibility: z.enum(["public", "protected"]).optional(),
   publishMode: z.enum(["pull_request", "direct"]).optional(),
   showBranding: z.boolean().optional(),
+  analyticsEnabled: z.boolean().optional(),
   previewPassword: previewPassword.optional(),
 });
 

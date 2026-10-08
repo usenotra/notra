@@ -8,6 +8,7 @@ import {
   listMountedAreas,
 } from "@notra/sites-core/utils/mounts";
 
+import { injectAnalyticsScript } from "./analytics";
 import {
   AI_USER_AGENTS,
   ASSET_SEGMENT,
@@ -107,7 +108,12 @@ async function readFileBody(
 export async function serveFile(params: ServeFileParams): Promise<Response> {
   const { deps, request, siteId, deploymentId, file, status, isPreview } =
     params;
-  const etag = `"${file.sha256}"`;
+  const analytics =
+    status === 200 && file.contentType.startsWith("text/html")
+      ? (params.analytics ?? null)
+      : null;
+  // The injected tag changes the body, so it must change the validator too.
+  const etag = analytics ? `"${file.sha256}-a"` : `"${file.sha256}"`;
   const headers = new Headers({
     "Content-Type": file.contentType,
     "Cache-Control": fileCacheControl(file, isPreview),
@@ -134,10 +140,13 @@ export async function serveFile(params: ServeFileParams): Promise<Response> {
   if (!body) {
     return html(serviceErrorPage(), 503);
   }
-  return new Response(request.method === "HEAD" ? null : body, {
+  const response = new Response(request.method === "HEAD" ? null : body, {
     status,
     headers,
   });
+  return analytics && request.method !== "HEAD"
+    ? injectAnalyticsScript(response, analytics.scriptSrc, analytics.eventPath)
+    : response;
 }
 
 export function markdownNotFound(params: MarkdownNotFoundParams): Response {

@@ -61,6 +61,7 @@ export interface SiteSettingsPatch {
   previewVisibility?: Site["previewVisibility"];
   publishMode?: Site["publishMode"];
   showBranding?: boolean;
+  analyticsEnabled?: boolean;
   previewPassword?: string | null;
   publicOrigin?: string;
 }

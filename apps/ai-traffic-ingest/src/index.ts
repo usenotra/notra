@@ -1,6 +1,9 @@
 import { flushGeoLog } from "@notra/ai/evlog";
 import { logError } from "@notra/ai/utils/server-log";
-import { ingestWebPageViews } from "@notra/analytics/tinybird/client";
+import {
+  ingestWebPageEngagement,
+  ingestWebPageViews,
+} from "@notra/analytics/tinybird/client";
 import { getGeoTrafficFlushIntervalMs } from "@notra/analytics/utils/geo-flush-interval";
 import {
   createEventBatcher,
@@ -40,6 +43,13 @@ const webBatcher =
         write: ingestWebPageViews,
       })
     : null;
+const engagementBatcher =
+  flushIntervalMs > 0
+    ? createEventBatcher({
+        intervalMs: flushIntervalMs,
+        write: ingestWebPageEngagement,
+      })
+    : null;
 
 const app = createIngestApp(
   (task) => {
@@ -58,6 +68,7 @@ const app = createIngestApp(
           webBatcher?.expedite(organizationId);
         },
         enqueueWeb: webBatcher?.enqueue,
+        enqueueEngagement: engagementBatcher?.enqueue,
       }
     : undefined
 );
@@ -112,6 +123,12 @@ async function shutdown() {
   }
   if (webBatcher) {
     await withDeadline(() => webBatcher.stop(), INGEST_EVENTS_FLUSH_TIMEOUT_MS);
+  }
+  if (engagementBatcher) {
+    await withDeadline(
+      () => engagementBatcher.stop(),
+      INGEST_EVENTS_FLUSH_TIMEOUT_MS
+    );
   }
   if (batcher) {
     const flushed = await withDeadline(

@@ -336,6 +336,28 @@ export const webPageViews = defineDatasource("web_page_views", {
   }),
 });
 
+export const webPageEngagement = defineDatasource("web_page_engagement", {
+  description:
+    "Time a Notra Sites page stayed visible, reported by the site script whenever the tab hides; one view can report several times, read the max per view_id",
+  schema: {
+    organization_id: t.string(),
+    project_id: t.string().lowCardinality(),
+    site_id: t.string().lowCardinality(),
+    captured_at: t.dateTime(),
+    host: t.string().lowCardinality(),
+    path: t.string(),
+    view_id: t.string(),
+    visible_ms: t.uint32(),
+    scroll_depth: t.uint8(),
+  },
+  engine: engine.mergeTree({
+    sortingKey: ["organization_id", "site_id", "captured_at"],
+    partitionKey: "toYYYYMM(captured_at)",
+    ttl: "captured_at + toIntervalDay(90)",
+    settings: { ttl_only_drop_parts: 1 },
+  }),
+});
+
 export const webPagesDaily = defineDatasource("web_pages_daily", {
   description:
     "Daily rollup of web_page_views per site, host, path and status; read with countMerge/uniqMerge/countIfMerge/uniqIfMerge",

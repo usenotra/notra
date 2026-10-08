@@ -12,7 +12,7 @@ import { GEO_COUNT_COLUMN_WIDTH } from "@/constants/geo-table";
 import { WEB_TABLE_ROW_HEIGHT } from "@/constants/web-analytics";
 import type { WebBreakdownRow, WebBreakdownTableProps } from "@/types/geo";
 import { formatChartInteger } from "@/utils/geo-charts";
-import { webTableHeight } from "@/utils/web-analytics";
+import { formatVisibleDuration, webTableHeight } from "@/utils/web-analytics";
 
 export function WebBreakdownTable({
   title,
@@ -20,6 +20,7 @@ export function WebBreakdownTable({
   valueHeader,
   rows,
   showFromAi = false,
+  showAvgTime = false,
 }: WebBreakdownTableProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
@@ -51,6 +52,22 @@ export function WebBreakdownTable({
         </span>
       ),
       sortValue: (row) => row.fromAi ?? 0,
+    });
+  }
+  if (showAvgTime) {
+    columns.push({
+      key: "avgTime",
+      header: t("columnAvgTime"),
+      width: "5.5rem",
+      align: "right",
+      sortable: true,
+      collapsePriority: 2,
+      cell: (row) => (
+        <span className="text-muted-foreground text-sm tabular-nums">
+          {row.avgSeconds ? formatVisibleDuration(row.avgSeconds) : "-"}
+        </span>
+      ),
+      sortValue: (row) => row.avgSeconds ?? 0,
     });
   }
   columns.push({

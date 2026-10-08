@@ -2118,7 +2118,23 @@ export interface SiteAnalyticsInput {
   publicOrigin: string;
 }
 
+export interface WebEngagementPage {
+  host: string;
+  path: string;
+  views: number;
+  avgSeconds: number;
+}
+
+export interface WebEngagement {
+  /** Page views that reported a visible time; zero before the script ran. */
+  views: number;
+  avgSeconds: number;
+  previousAvgSeconds: number;
+  pages: WebEngagementPage[];
+}
+
 export interface SiteAnalyticsResponse {
   web: WebAnalyticsResponse;
   traffic: AiTrafficResponse;
+  engagement: WebEngagement;
 }

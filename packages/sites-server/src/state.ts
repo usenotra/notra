@@ -39,7 +39,7 @@ import {
 } from "./r2";
 import type { SiteStorageTransaction } from "./types/deployments";
 import type {
-  ServingPreviewAccess,
+  ServingAccess,
   ServingSiteRef,
   ServingStateMutation,
   ServingStateObject,
@@ -65,14 +65,15 @@ function samePreviewPassword(
   );
 }
 
-async function readPreviewAccessFromDb(
+async function readServingAccessFromDb(
   siteId: string,
   executor: Pick<typeof db, "select">
-): Promise<ServingPreviewAccess> {
+): Promise<ServingAccess> {
   const [row] = await executor
     .select({
       previewPassword: sites.previewPassword,
       previewVisibility: sites.previewVisibility,
+      analyticsEnabled: sites.analyticsEnabled,
     })
     .from(sites)
     .where(eq(sites.id, siteId))
@@ -80,6 +81,7 @@ async function readPreviewAccessFromDb(
   return {
     previewPassword: row?.previewPassword ?? null,
     previewVisibility: row?.previewVisibility ?? null,
+    analyticsEnabled: row?.analyticsEnabled ?? false,
   };
 }
 
@@ -110,7 +112,7 @@ export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
     site: ServingSiteRef,
     mutate: (
       state: SiteServingState,
-      access: Pick<ServingPreviewAccess, "previewVisibility">
+      access: Pick<ServingAccess, "previewVisibility">
     ) => ServingStateMutation<T>,
     executor: Pick<typeof db, "select"> = db
   ) {
@@ -127,15 +129,18 @@ export const mutateServingStateEffect = Effect.fn("Sites.mutateServingState")(
         slug: site.slug,
         now: new Date(),
       });
-    const { previewPassword, previewVisibility } = yield* Effect.tryPromise({
-      try: () => readPreviewAccessFromDb(site.id, executor),
-      catch: (error): ServingStateAttemptFailure => ({
-        _tag: "OperationFailure",
-        error,
-      }),
-    });
+    const { previewPassword, previewVisibility, analyticsEnabled } =
+      yield* Effect.tryPromise({
+        try: () => readServingAccessFromDb(site.id, executor),
+        catch: (error): ServingStateAttemptFailure => ({
+          _tag: "OperationFailure",
+          error,
+        }),
+      });
     const outcome = mutate(state, { previewVisibility });
-    const trafficToken = buildGeoIngestSiteToken(site.id);
+    const trafficToken = analyticsEnabled
+      ? buildGeoIngestSiteToken(site.id)
+      : null;
     const derivedInSync =
       samePreviewPassword(state.previewPassword, previewPassword) &&
       state.trafficToken === trafficToken;
@@ -183,7 +188,7 @@ export async function mutateServingState<T>(
   site: ServingSiteRef,
   mutate: (
     state: SiteServingState,
-    access: Pick<ServingPreviewAccess, "previewVisibility">
+    access: Pick<ServingAccess, "previewVisibility">
   ) => ServingStateMutation<T>,
   executor: Pick<typeof db, "select"> = db
 ): Promise<T> {
@@ -303,7 +308,7 @@ export async function setServingStatus(
   );
 }
 
-export async function syncServingPreviewAccess(
+export async function syncServingAccess(
   site: ServingSiteRef,
   executor: Pick<typeof db, "select"> = db,
   removePreviewsThrough: number | null = null
