@@ -1,0 +1,29 @@
+packages/webhooks/src/utils/queue.ts
+  s_1312d0dab4bfc6::t_e57d573907c3ff 3,19
+packages/webhooks/README.md
+  s_1312d0dab4bfc6::t_e57d573907c3ff 23-25
+packages/webhooks/src/constants/queues.ts
+  s_1312d0dab4bfc6::t_e57d573907c3ff 3
+packages/webhooks/src/constants/delivery.ts
+  s_1312d0dab4bfc6::t_932bf0378ee8b2 6-9
+packages/webhooks/src/programs/recovery.ts
+  s_1312d0dab4bfc6::t_932bf0378ee8b2 3-7,55-56
+packages/webhooks/src/runtime/handler.ts
+  s_1312d0dab4bfc6::t_932bf0378ee8b2 3,39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fd76170fe8843337ec75d01594c7e36bec485822",
+  "prompts": {},
+  "sessions": {
+    "s_1312d0dab4bfc6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b094b550-b102-4aa3-a737-62fb473c04fa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
