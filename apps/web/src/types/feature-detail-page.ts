@@ -13,7 +13,7 @@ interface FeatureDetailMeta {
   path: string;
   title: string;
   description: string;
-  ogImageKey: "personas" | "conversations" | "aiCrawlerLogs";
+  ogImageKey: "personas" | "conversations" | "aiCrawlerLogs" | "features";
 }
 
 export interface FeatureDetailCopy {
@@ -39,8 +39,9 @@ export interface FeatureDetailPageProps {
   copy: FeatureDetailCopy;
   title: ReactNode;
   stage: ReactNode;
-  overviewVisual: ReactNode;
+  overviewVisual?: ReactNode;
   overviewVisualFirst?: boolean;
+  children?: ReactNode;
 }
 
 export interface FeaturePersona {
@@ -106,9 +107,17 @@ export interface FeatureEngineLabel {
   label: string;
 }
 
+interface FeatureStageImageCredit {
+  author: string;
+  authorUrl: string;
+  photoUrl: string;
+}
+
 export interface FeatureStageShellProps {
   className?: string;
   children: ReactNode;
+  image?: string;
+  credit?: FeatureStageImageCredit | null;
 }
 
 export interface FeatureTableCardProps {

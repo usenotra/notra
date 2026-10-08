@@ -7,6 +7,10 @@ import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { NumberedStepCard } from "@/components/numbered-step-card";
 import { TrackedSignupLink } from "@/components/tracked-signup-link";
 import {
+  FEATURE_SECTION_CLASS,
+  FEATURE_SECTION_HEADING_CLASS,
+} from "@/constants/feature-pages/layout";
+import {
   CTA_BANNER_CONTACT_HREF,
   CTA_BANNER_PRIMARY_LABEL,
   CTA_BANNER_SECONDARY_LABEL,
@@ -15,17 +19,13 @@ import type { FeatureDetailPageProps } from "@/types/feature-detail-page";
 import { buildFeatureDetailBreadcrumb } from "@/utils/feature-detail-page";
 import { serializeJsonLd } from "@/utils/jsonld";
 
-const SECTION_CLASS = "mx-auto w-full max-w-312 px-6";
-
-const SECTION_HEADING_CLASS =
-  "font-display text-[2rem] leading-[1.15] font-semibold tracking-[-0.015em] text-balance text-[#1E1E1E] md:text-[2.625rem]/12 dark:text-white";
-
 export function FeatureDetailPage({
   copy,
   title,
   stage,
   overviewVisual,
   overviewVisualFirst = false,
+  children,
 }: FeatureDetailPageProps) {
   return (
     <div className="flex w-full flex-col items-center gap-20 pb-20 antialiased [font-synthesis:none] lg:gap-24 lg:pb-28">
@@ -60,44 +60,48 @@ export function FeatureDetailPage({
         </CtaButton>
       </MarketingHeroWash>
 
-      <section
-        className={cn(
-          SECTION_CLASS,
-          "flex flex-col gap-12 xl:flex-row xl:items-center xl:gap-18"
-        )}
-      >
-        <div className="flex max-w-2xl flex-col gap-9 xl:w-105 xl:shrink-0">
-          <div className="flex flex-col gap-3">
-            <h2 className={SECTION_HEADING_CLASS}>{copy.overview.heading}</h2>
-            <p className="font-sans text-[1.0625rem]/6.75 text-[#6B6B6B] dark:text-white/60">
-              {copy.overview.description}
-            </p>
-          </div>
-          <dl className="flex flex-col gap-5">
-            {copy.overview.facts.map((fact) => (
-              <div className="flex flex-col gap-1" key={fact.title}>
-                <dt className="font-sans text-base/5.5 font-semibold text-[#1E1E1E] dark:text-white">
-                  {fact.title}
-                </dt>
-                <dd className="font-sans text-[0.9375rem]/6 text-[#6B6B6B] dark:text-white/60">
-                  {fact.description}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div
+      {children ?? (
+        <section
           className={cn(
-            "min-w-0 flex-1",
-            overviewVisualFirst && "xl:order-first"
+            FEATURE_SECTION_CLASS,
+            "flex flex-col gap-12 xl:flex-row xl:items-center xl:gap-18"
           )}
         >
-          {overviewVisual}
-        </div>
-      </section>
+          <div className="flex max-w-2xl flex-col gap-9 xl:w-105 xl:shrink-0">
+            <div className="flex flex-col gap-3">
+              <h2 className={FEATURE_SECTION_HEADING_CLASS}>
+                {copy.overview.heading}
+              </h2>
+              <p className="font-sans text-[1.0625rem]/6.75 text-[#6B6B6B] dark:text-white/60">
+                {copy.overview.description}
+              </p>
+            </div>
+            <dl className="flex flex-col gap-5">
+              {copy.overview.facts.map((fact) => (
+                <div className="flex flex-col gap-1" key={fact.title}>
+                  <dt className="font-sans text-base/5.5 font-semibold text-[#1E1E1E] dark:text-white">
+                    {fact.title}
+                  </dt>
+                  <dd className="font-sans text-[0.9375rem]/6 text-[#6B6B6B] dark:text-white/60">
+                    {fact.description}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div
+            className={cn(
+              "min-w-0 flex-1",
+              overviewVisualFirst && "xl:order-first"
+            )}
+          >
+            {overviewVisual}
+          </div>
+        </section>
+      )}
 
-      <section className={cn(SECTION_CLASS, "flex flex-col gap-14")}>
-        <h2 className={SECTION_HEADING_CLASS}>{copy.steps.heading}</h2>
+      <section className={cn(FEATURE_SECTION_CLASS, "flex flex-col gap-14")}>
+        <h2 className={FEATURE_SECTION_HEADING_CLASS}>{copy.steps.heading}</h2>
         <ol className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {copy.steps.items.map((step, index) => (
             <NumberedStepCard

@@ -44,6 +44,7 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
           { label: "AI Traffic", href: "/features/ai-crawler-logs" },
           { label: "Personas", href: "/features/personas" },
           { label: "Conversations", href: "/features/conversations" },
+          { label: "Sites", href: "/features/sites" },
           { label: "Pricing", href: "/pricing" },
           { label: "Compare", href: "/compare" },
           { label: "Changelog", href: "/changelog/notra" },
