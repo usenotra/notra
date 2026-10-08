@@ -171,6 +171,18 @@ export interface GeoCheckEngineTotalRow {
   mentions: number;
 }
 
+export interface GeoCheckOwnBrandShareRow {
+  brand: string;
+  aliases: string[] | null;
+  day: string;
+  mentions: number;
+}
+
+export interface GeoCheckOwnBrandShare {
+  names: Set<string>;
+  byBrand: Map<string, Map<string, number>>;
+}
+
 export interface GeoCheckCompetitorShareAggregateRow {
   brand: string;
   day: string | null;
