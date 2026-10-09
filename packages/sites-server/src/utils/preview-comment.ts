@@ -1,4 +1,7 @@
-import { PREVIEW_COMMENT_TITLES } from "../constants/github";
+import {
+  PREVIEW_COMMENT_TITLES,
+  UNCHANGED_BUILD_TITLE,
+} from "../constants/github";
 import type { DeploymentOutcome, SiteDeployment } from "../types/deployments";
 import type { Site } from "../types/sites";
 import { primaryMountUrl } from "./urls";
@@ -9,9 +12,12 @@ export function previewCommentBody(
   buildUrl: string,
   outcome?: DeploymentOutcome
 ): string {
-  const status = outcome
+  let status = outcome
     ? PREVIEW_COMMENT_TITLES[outcome.kind]
     : "⏳ Building preview";
+  if (outcome?.kind === "skipped" && deployment.status === "skipped") {
+    status = `⏭️ ${UNCHANGED_BUILD_TITLE}`;
+  }
   const links = [`[View build](<${buildUrl}>)`];
   const previewAvailable =
     outcome?.kind === "live" ||

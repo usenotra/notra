@@ -192,6 +192,9 @@ Git blob IDs, repository/root identity, the complete build target, draft visibil
 builder snapshot ID and UTC year. Path selection is shared with the compiler.
 
 Identical inputs produce a terminal `skipped` deployment with an explicit reason.
+GitHub checks and PR comments show **Skipped – no site changes** and link to the
+existing published Site or preview. Canceled and superseded builds remain separate
+skip reasons and do not advertise a preview that they did not publish.
 The serving pointer retains its deployment ID and files while advancing its
 generation, preventing an older concurrent build from replacing the current Site.
 The comparison is fenced again under the existing storage lock and R2 CAS before

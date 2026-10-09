@@ -7,6 +7,7 @@ export const GITHUB_API_VERSION_HEADER = {
 } as const;
 export const MAX_TARBALL_BYTES = SITE_BUILD_LIMITS.maxSourceBytes;
 export const CHECK_RUN_NAME = "Notra Sites";
+export const UNCHANGED_BUILD_TITLE = "Skipped – no site changes";
 /** GitHub rejects check run summaries above 65535 characters. */
 export const CHECK_RUN_SUMMARY_MAX_LENGTH = 60_000;
 export const CHECK_RUN_ANNOTATION_MAX_LENGTH = 1000;
