@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { SiteIntegrationProvider } from "@/types/site-integrations";
 import type {
   RepositorySuggestionsResult,
+  SiteBuildAgentPromptInput,
   SiteBuildLogEntry,
   SiteBuildLogFold,
   SiteBuildLogLine,
@@ -366,6 +367,11 @@ export interface SiteDeploymentRecordProps {
   deployment: SiteDeploymentRecord;
 }
 
+export interface SiteDeploymentFailureProps extends SiteDeploymentRecordProps {
+  site: SiteBuildAgentPromptInput["site"];
+  log: string | null;
+}
+
 export interface SiteRollbackDialogProps extends SiteScope {
   deployment: SiteDeployment | null;
   onOpenChange: (open: boolean) => void;
@@ -595,7 +601,15 @@ export interface SiteCreateStageProps {
 export interface SiteCreateDeployProps {
   organizationId: string;
   organizationSlug: string;
-  site: { id: string; liveUrl: string };
+  site: Pick<
+    SiteRecord,
+    | "id"
+    | "name"
+    | "liveUrl"
+    | "repository"
+    | "productionBranch"
+    | "rootDirectory"
+  >;
   deploymentQueued: boolean;
   starterPullRequestUrl?: string | null;
 }

@@ -1,5 +1,7 @@
 export const TIMESTAMP_PREFIX = /^(\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?) (.*)$/;
-export const ERROR_LINE = /\[error\]|\berror\b|\bERR!|✘|✖/i;
+export const ERROR_LINE =
+  /\[error\]|\berror\b|\bERR!|\bbuild failed\b|✘|✖|^\s*×\s+/i;
+export const LOG_STATUS_PREFIX = /^\s*[✘✖×]\s+/;
 export const WARNING_LINE = /\[warn\]|\bwarn(?:ing)?\b/i;
 export const SUCCESS_LINE = /[✓✔]/;
 export const CONTINUATION_LINE = /^[\s│╭╰─┬┴├└┌]/;

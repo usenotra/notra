@@ -1,0 +1,132 @@
+{
+  "slug": "app-hosting",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-08",
+  "subject": "App hosting",
+  "noun": "app hosting platform",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 200,
+      "brandsPerAnswer": 4.8,
+      "sourcesPerAnswer": 17
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 200,
+      "brandsPerAnswer": 7.9,
+      "sourcesPerAnswer": 10.1
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "model": "google/gemini-3.8-flash",
+      "answers": 200,
+      "brandsPerAnswer": 8.3,
+      "sourcesPerAnswer": 4
+    },
+    {
+      "id": "perplexity",
+      "label": "Perplexity",
+      "model": "perplexity/sonar",
+      "answers": 200,
+      "brandsPerAnswer": 3.1,
+      "sourcesPerAnswer": 15
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 18,
+      "brandsPerAnswer": 4.3,
+      "sourcesPerAnswer": 6.8
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 1,
+      "visibility": 73,
+      "topPick": 25,
+      "ownSiteCited": 34,
+      "byEngine": {
+        "chatgpt": 79,
+        "claude": 87,
+        "gemini": 90,
+        "perplexity": 65,
+        "ai-overview": 44
+      },
+      "delta": null
+    },
+    {
+      "name": "Railway",
+      "domain": "railway.com",
+      "rank": 2,
+      "visibility": 61,
+      "topPick": 9,
+      "ownSiteCited": 29,
+      "byEngine": {
+        "chatgpt": 62,
+        "claude": 86,
+        "gemini": 79,
+        "perplexity": 46,
+        "ai-overview": 33
+      },
+      "delta": null
+    },
+    {
+      "name": "Vercel",
+      "domain": "vercel.com",
+      "rank": 3,
+      "visibility": 56,
+      "topPick": 25,
+      "ownSiteCited": 16,
+      "byEngine": {
+        "chatgpt": 51,
+        "claude": 70,
+        "gemini": 72,
+        "perplexity": 40,
+        "ai-overview": 50
+      },
+      "delta": null
+    },
+    {
+      "name": "Fly.io",
+      "domain": "fly.io",
+      "rank": 4,
+      "visibility": 53,
+      "topPick": 4,
+      "ownSiteCited": 20,
+      "byEngine": {
+        "chatgpt": 37,
+        "claude": 76,
+        "gemini": 70,
+        "perplexity": 43,
+        "ai-overview": 39
+      },
+      "delta": null
+    },
+    {
+      "name": "AWS",
+      "domain": "aws.amazon.com",
+      "rank": 5,
+      "visibility": 50,
+      "topPick": 7,
+      "ownSiteCited": 10,
+      "byEngine": {
+        "chatgpt": 53,
+        "claude": 57,
+        "gemini": 74,
+        "perplexity": 16,
+        "ai-overview": 50
+      },
+      "delta": null
+    }
+  ]
+}

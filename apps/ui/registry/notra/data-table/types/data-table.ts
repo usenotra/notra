@@ -19,6 +19,7 @@ export interface TablePaginationRange {
 export interface DataTableLabels {
   /** BCP 47 locale for numbers in the footer. */
   locale?: string;
+  table: string;
   noData: string;
   selectAllRows: string;
   selectRow: (row: string) => string;
@@ -265,7 +266,19 @@ export interface TableBodySurfaceProps {
   onScroll: UIEventHandler<HTMLDivElement>;
   scrollRef: RefObject<HTMLDivElement | null>;
   style: CSSProperties;
+  /**
+   * Draw `TableCornerScrollbar` instead of the native scrollbar. Off when the
+   * rows scroll sideways, since it only covers the vertical axis.
+   */
+  cornerScrollbar: boolean;
   children: ReactNode;
+}
+
+export interface TableCornerScrollbarProps {
+  scrollId: string;
+  scrollRef: RefObject<HTMLDivElement | null>;
+  /** Element that receives the hover listeners and the corner data attributes. */
+  wrapperRef: RefObject<HTMLDivElement | null>;
 }
 
 export interface TableColumnGroupProps<T> {

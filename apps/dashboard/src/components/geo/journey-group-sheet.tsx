@@ -23,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
@@ -31,7 +32,6 @@ import { EngineIcon } from "@/components/geo/engine-icon";
 import { JourneyPathSummary } from "@/components/geo/journey-path-summary";
 import { SheetStatGrid } from "@/components/geo/sheet-stat-grid";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   GeoJourneyPathRow,
   GeoJourneySourceRow,

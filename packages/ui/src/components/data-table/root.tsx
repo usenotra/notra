@@ -160,6 +160,7 @@ export function DataTableRoot<T>({
     paddingBottom,
     atEnd,
     atStart,
+    overflowsX,
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
@@ -240,6 +241,7 @@ export function DataTableRoot<T>({
           </div>
         </TableHeaderSurface>
         <TableBodySurface
+          cornerScrollbar={!overflowsX}
           dimRows={dimRows}
           isEmpty={isEmpty}
           loadingState={loadingState}

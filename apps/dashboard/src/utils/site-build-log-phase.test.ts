@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 
-import { parseBuildLog } from "@/utils/site-build-log";
+import { countLogLines, parseBuildLog } from "@/utils/site-build-log";
 
 test("phase telemetry stays out of displayed build output", () => {
   const lines = parseBuildLog(
@@ -31,4 +31,22 @@ test("similar text inside actual builder output is not deleted", () => {
   );
   expect(lines).toHaveLength(2);
   expect(lines[1]?.text).toContain("[deployment:building]");
+});
+
+test("multiplication signs in ordinary output do not count as errors", () => {
+  const lines = parseBuildLog(
+    "Generated image: 1200 × 630\n12:00:05 [build] Rendered image: 800 × 600"
+  );
+  expect(lines.map((line) => line.tone)).toEqual(["default", "default"]);
+  expect(countLogLines(lines, "error")).toBe(0);
+});
+
+test.each([
+  "× blog/example.mdx",
+  "  × blog/example.mdx",
+  "12:00:05 × blog/example.mdx",
+])("a leading failure marker remains an error: %s", (log) => {
+  const lines = parseBuildLog(log);
+  expect(lines[0]?.tone).toBe("error");
+  expect(countLogLines(lines, "error")).toBe(1);
 });

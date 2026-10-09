@@ -172,7 +172,7 @@ export const SITE_OVERVIEW_LINK_CLASS =
   "text-foreground decoration-foreground/25 hover:decoration-foreground min-w-0 truncate underline underline-offset-4 transition-colors duration-150";
 
 export const SITE_BUILD_LOG_ROW_GRID =
-  "grid grid-cols-[2rem_0.875rem_minmax(0,1fr)] gap-x-2 px-2 sm:grid-cols-[2.5rem_0.875rem_minmax(0,1fr)] sm:gap-x-2.5 sm:px-3";
+  "grid grid-cols-[2rem_0.875rem_minmax(0,1fr)] gap-x-2 px-3 sm:grid-cols-[2.5rem_0.875rem_minmax(0,1fr)] group-data-[timestamps=false]/log:grid-cols-[0.875rem_minmax(0,1fr)]";
 
 export const SITE_BUILD_LOG_FRAME_FOLD_MIN = 3;
 export const SITE_BUILD_LOG_NOISE_FOLD_MIN = 6;

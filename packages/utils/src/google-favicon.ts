@@ -1,3 +1,5 @@
+import { FAVICON_DOMAIN_OVERRIDES } from "./constants/favicon.js";
+
 const GOOGLE_FAVICON_SIZE = 128;
 
 // RFC 2606 reserves the `.example` TLD (the demo's fictional brands) and
@@ -14,7 +16,8 @@ export function googleFaviconUrl(domain: string | null): string | null {
   }
 
   const url = new URL("https://www.google.com/s2/favicons");
-  url.searchParams.set("domain", domain);
+  const host = domain.toLowerCase().replace(/^www\./, "");
+  url.searchParams.set("domain", FAVICON_DOMAIN_OVERRIDES[host] ?? domain);
   url.searchParams.set("sz", String(GOOGLE_FAVICON_SIZE));
   return url.toString();
 }

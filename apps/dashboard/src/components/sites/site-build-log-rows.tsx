@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useState } from "react";
 import { useTranslations } from "use-intl";
 
+import { LOG_STATUS_PREFIX } from "@/constants/site-build-log";
 import { SITE_BUILD_LOG_ROW_GRID } from "@/constants/sites";
 import { cn } from "@/lib/utils";
 import type {
@@ -39,12 +40,13 @@ function Highlighted({ text, query }: SiteBuildLogHighlightProps) {
 }
 
 function LineText({ line, query }: SiteBuildLogLineTextProps) {
-  if (line.continued) {
+  if (line.continued || query) {
     return <Highlighted query={query} text={line.text} />;
   }
-  const { tag, rest } = splitLogTag(line.text);
+  const text = line.text.replace(LOG_STATUS_PREFIX, "");
+  const { tag, rest } = splitLogTag(text);
   if (!tag) {
-    return <Highlighted query={query} text={line.text} />;
+    return <Highlighted query={query} text={text} />;
   }
   return (
     <>
@@ -69,7 +71,7 @@ function LogLine({ line, offset, query }: SiteBuildLogLineProps) {
       data-line={line.number}
     >
       <span
-        className="text-muted-foreground/60 text-right tabular-nums select-none"
+        className="text-muted-foreground/60 text-right tabular-nums select-none group-data-[timestamps=false]/log:hidden"
         title={line.timestamp ?? undefined}
       >
         {offset}
@@ -114,7 +116,10 @@ function FoldRow({ entry, offsets }: SiteBuildLogFoldRowProps) {
   }
   return (
     <div className={SITE_BUILD_LOG_ROW_GRID}>
-      <span aria-hidden="true" />
+      <span
+        aria-hidden="true"
+        className="group-data-[timestamps=false]/log:hidden"
+      />
       <span aria-hidden="true" />
       <button
         className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 w-fit rounded-sm text-left font-sans transition-colors duration-150 outline-none focus-visible:ring-[3px]"

@@ -1,0 +1,132 @@
+{
+  "slug": "postgres",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-08",
+  "subject": "Postgres",
+  "noun": "Postgres provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 200,
+      "brandsPerAnswer": 3.7,
+      "sourcesPerAnswer": 17.4
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 200,
+      "brandsPerAnswer": 6.4,
+      "sourcesPerAnswer": 9.4
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "model": "google/gemini-3.8-flash",
+      "answers": 200,
+      "brandsPerAnswer": 5.5,
+      "sourcesPerAnswer": 3.6
+    },
+    {
+      "id": "perplexity",
+      "label": "Perplexity",
+      "model": "perplexity/sonar",
+      "answers": 200,
+      "brandsPerAnswer": 2.4,
+      "sourcesPerAnswer": 14.6
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 17,
+      "brandsPerAnswer": 4.4,
+      "sourcesPerAnswer": 8
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Neon",
+      "domain": "neon.com",
+      "rank": 1,
+      "visibility": 88,
+      "topPick": 50,
+      "ownSiteCited": 31,
+      "byEngine": {
+        "chatgpt": 76,
+        "claude": 96,
+        "gemini": 91,
+        "perplexity": 82,
+        "ai-overview": 94
+      },
+      "delta": null
+    },
+    {
+      "name": "Supabase",
+      "domain": "supabase.com",
+      "rank": 2,
+      "visibility": 79,
+      "topPick": 11,
+      "ownSiteCited": 26,
+      "byEngine": {
+        "chatgpt": 73,
+        "claude": 95,
+        "gemini": 87,
+        "perplexity": 70,
+        "ai-overview": 71
+      },
+      "delta": null
+    },
+    {
+      "name": "Amazon RDS",
+      "domain": "aws.amazon.com",
+      "rank": 3,
+      "visibility": 66,
+      "topPick": 24,
+      "ownSiteCited": 17,
+      "byEngine": {
+        "chatgpt": 59,
+        "claude": 81,
+        "gemini": 75,
+        "perplexity": 44,
+        "ai-overview": 71
+      },
+      "delta": null
+    },
+    {
+      "name": "Render",
+      "domain": "render.com",
+      "rank": 4,
+      "visibility": 39,
+      "topPick": 1,
+      "ownSiteCited": 10,
+      "byEngine": {
+        "chatgpt": 36,
+        "claude": 57,
+        "gemini": 56,
+        "perplexity": 10,
+        "ai-overview": 35
+      },
+      "delta": null
+    },
+    {
+      "name": "Google Cloud SQL",
+      "domain": "cloud.google.com",
+      "rank": 5,
+      "visibility": 38,
+      "topPick": 1,
+      "ownSiteCited": 8,
+      "byEngine": {
+        "chatgpt": 34,
+        "claude": 48,
+        "gemini": 51,
+        "perplexity": 10,
+        "ai-overview": 47
+      },
+      "delta": null
+    }
+  ]
+}

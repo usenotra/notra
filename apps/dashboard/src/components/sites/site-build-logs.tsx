@@ -175,7 +175,9 @@ export function SiteBuildLogs({
           aria-label={t("label")}
           className={cn(
             "scrollbar-floating overflow-auto py-2.5 font-mono text-xs leading-5",
-            heading ? "h-72" : "max-h-[min(30rem,60vh)]"
+            heading
+              ? "max-h-48 min-h-24 group-data-[streaming=true]/log:h-48"
+              : "max-h-[min(30rem,60vh)]"
           )}
           onScroll={(event) => {
             const element = event.currentTarget;
@@ -214,10 +216,14 @@ export function SiteBuildLogs({
     );
 
   return (
-    <div className="min-w-0">
+    <div
+      className="group/log min-w-0"
+      data-streaming={inProgress}
+      data-timestamps={offsets.size > 0}
+    >
       <div className="border-border/60 bg-muted/40 overflow-hidden border-b">
-        <div className="flex h-9 min-w-0 items-center gap-2 ps-3 pe-1">
-          <div className="text-muted-foreground min-w-0 flex-1 truncate text-xs tabular-nums">
+        <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-2 py-1 ps-3 pe-1">
+          <div className="text-muted-foreground min-w-0 flex-[1_1_12rem] text-xs tabular-nums">
             {heading ?? (
               <BuildLogSummary inProgress={inProgress} lines={lines} />
             )}
@@ -236,12 +242,7 @@ export function SiteBuildLogs({
           <BuildLogCopyButton log={log} />
         </div>
       </div>
-      <div
-        className={cn(
-          "bg-background relative min-w-0 overflow-hidden",
-          heading && lines.length === 0 && "h-44"
-        )}
-      >
+      <div className="bg-background relative min-w-0 overflow-hidden">
         {body}
       </div>
     </div>
