@@ -1113,6 +1113,11 @@
           "target": "components/data-table/components/data-table-root.tsx"
         },
         {
+          "path": "registry/notra/data-table/components/data-table-corner-scrollbar.tsx",
+          "type": "registry:component",
+          "target": "components/data-table/components/data-table-corner-scrollbar.tsx"
+        },
+        {
           "path": "registry/notra/data-table/components/data-table-surfaces.tsx",
           "type": "registry:component",
           "target": "components/data-table/components/data-table-surfaces.tsx"

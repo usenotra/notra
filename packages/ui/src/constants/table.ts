@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 /** Grey shell around every table: 1px outer border plus a 2px rim on all sides. */
 export const TABLE_FRAME_CLASS =
   "rounded-2xl border border-shell-border bg-shell p-0.5";
@@ -70,3 +72,28 @@ export const TABLE_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50] as const;
 
 /** Sideways overflow below this many px is rounding, not columns that don't fit. */
 export const HORIZONTAL_OVERFLOW_TOLERANCE_PX = 2;
+
+/** Outer radius of the white card (`rounded-[14px]`). */
+export const TABLE_BODY_RADIUS_PX = 14;
+/** Corner scrollbar: gap between the card's outer edge and the thumb. */
+export const CORNER_SCROLLBAR_GAP_PX = 3;
+/** Corner scrollbar thumb width. */
+export const CORNER_SCROLLBAR_WIDTH_PX = 4;
+/** Shell border (1px) plus rim (2px) between the shell edge and the body card. */
+export const TABLE_SHELL_INSET_PX = 3;
+/** Shortest thumb, so a long table still has something to grab. */
+export const CORNER_SCROLLBAR_MIN_THUMB_PX = 28;
+/** How long the thumb stays visible after the last scroll event. */
+export const CORNER_SCROLLBAR_IDLE_MS = 900;
+
+/**
+ * Corner-morph geometry as CSS variables, set on the table frame so both the
+ * shell and the body read them. The tightened card radius is concentric with
+ * the thumb's round end; the shell's adds its own inset on top.
+ */
+export const CORNER_SCROLLBAR_VARS = {
+  "--corner-scrollbar-gap": `${CORNER_SCROLLBAR_GAP_PX}px`,
+  "--corner-scrollbar-width": `${CORNER_SCROLLBAR_WIDTH_PX}px`,
+  "--corner-card-radius": `${CORNER_SCROLLBAR_GAP_PX + CORNER_SCROLLBAR_WIDTH_PX / 2}px`,
+  "--corner-shell-radius": `${CORNER_SCROLLBAR_GAP_PX + CORNER_SCROLLBAR_WIDTH_PX / 2 + TABLE_SHELL_INSET_PX}px`,
+} as CSSProperties;
