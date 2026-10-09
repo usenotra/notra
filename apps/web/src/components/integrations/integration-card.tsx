@@ -26,11 +26,10 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
         mask={{
           to: "/integrations/$id",
           params: { id: getIntegrationSlug(integration) },
+          unmaskOnReload: true,
         }}
-        search={(prev) => ({
-          ...prev,
-          integration: getIntegrationSlug(integration),
-        })}
+        resetScroll={false}
+        state={{ integrationModal: getIntegrationSlug(integration) }}
         to="/integrations"
       />
       <div className="pointer-events-none relative z-10 flex flex-col gap-3">
