@@ -134,7 +134,7 @@ test("local options use schema-sized names, target config and enabled normalized
 test("validate CLI accepts no config and target snapshots without changing source; real config wins", async () => {
   const { root, source, targetPath } = await fixture();
   try {
-    const before = await readdir(source, { recursive: true });
+    const before = (await readdir(source, { recursive: true })).sort();
     const bytes = await sourceSnapshot(source);
     for (const args of [[], ["--target", targetPath]]) {
       const result = await run(
@@ -148,7 +148,7 @@ test("validate CLI accepts no config and target snapshots without changing sourc
       expect(JSON.parse(result.stdout).ok).toBe(true);
       expect(JSON.parse(result.stdout).entries).toHaveLength(2);
     }
-    expect(await readdir(source, { recursive: true })).toEqual(before);
+    expect((await readdir(source, { recursive: true })).sort()).toEqual(before);
     expect(await sourceSnapshot(source)).toEqual(bytes);
     expect(await readFile(join(source, "blog/hello.md"), "utf8")).toBe(post);
     await writeFile(
