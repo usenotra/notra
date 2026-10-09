@@ -1,0 +1,19 @@
+apps/dashboard/src/components/sites/site-integration-save-status.tsx
+  s_0b65a9e5b79b9a::t_746eefa773d03e 28-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1369480e590799a9d2daa6b741fc1e038522b3f7",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
