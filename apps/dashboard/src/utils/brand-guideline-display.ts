@@ -53,7 +53,7 @@ export function cssFontFamily(family: string): string {
   return `"${family}", system-ui, sans-serif`;
 }
 
-export function googleFontHref(family: string): string {
+export function brandFontHref(family: string): string {
   return `/api/brand-font/css?family=${encodeURIComponent(family)}`;
 }
 

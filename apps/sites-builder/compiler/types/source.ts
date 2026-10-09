@@ -30,6 +30,7 @@ export interface PreparedSite {
   collectDiagnostics: SiteDiagnostic[];
   publicFiles: string[];
   customScripts: string[];
+  fontStylesheet?: string;
 }
 
 export type Inspected =

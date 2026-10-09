@@ -44,7 +44,7 @@ Colors are hex values with 3 or 6 digits, like `#0D9373`.
 
 ## Fonts
 
-`fonts.family` loads any [Google Font](https://fonts.google.com) by name, while `heading` and `body` set a different font for each:
+`fonts.family` selects a [Google Font](https://fonts.google.com) by name, while `heading` and `body` set a different font for each. Notra downloads the fonts and their licenses during the build and serves them from your site, so visitors don't make requests to Google. If a download fails, the build reports a warning and the site uses system fonts:
 
 ```json blog.json
 "fonts": {

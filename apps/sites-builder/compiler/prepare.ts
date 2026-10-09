@@ -16,6 +16,7 @@ import type {
   SiteFiles,
 } from "./types/source";
 import { writeFileEnsured } from "./utils/fs";
+import { prepareSiteFonts } from "./utils/site-fonts";
 
 export async function readSiteFiles(siteRoot: string): Promise<SiteFiles> {
   const collected = await collectSiteSource(siteRoot);
@@ -61,7 +62,7 @@ export async function prepareSite(
     .filter((file) => file.path.startsWith("public/"))
     .map((file) => file.path.slice("public".length));
 
-  if (!validation.ok) {
+  if (!(validation.ok && validation.config)) {
     return {
       validation,
       collectDiagnostics: collected.diagnostics,
@@ -142,10 +143,13 @@ export async function prepareSite(
       )
     )
   );
+  const fonts = await prepareSiteFonts(validation.config, params.workDir);
+  validation.diagnostics.push(...fonts.diagnostics);
   return {
     validation,
     collectDiagnostics: collected.diagnostics,
-    publicFiles,
+    publicFiles: [...publicFiles, ...fonts.publicFiles],
     customScripts,
+    fontStylesheet: fonts.stylesheet,
   };
 }

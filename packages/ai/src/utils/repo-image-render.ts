@@ -1,7 +1,6 @@
 import {
   DISPLAY_STYLE_RE,
   FONT_SPECS,
-  GOOGLE_FONT_URL_REGEX,
   LEADING_STYLE_SEPARATOR_RE,
   REPO_IMAGE_HEIGHT,
   REPO_IMAGE_WIDTH,
@@ -9,45 +8,12 @@ import {
   STYLE_ATTR_RE,
 } from "@notra/ai/constants/repo-image";
 import type { VNode } from "@notra/ai/types/repo-image-render";
+import { loadRenderFont } from "@notra/ai/utils/render-font";
 import { logWarn } from "@notra/ai/utils/server-log";
 import { Resvg } from "@resvg/resvg-js";
 import { createElement, Fragment, type ReactNode } from "react";
 import satori from "satori";
 import { html as parseHtml } from "satori-html";
-
-const fontCache = new Map<string, ArrayBuffer>();
-
-export async function loadGoogleFont(familySpec: string): Promise<ArrayBuffer> {
-  const cached = fontCache.get(familySpec);
-  if (cached) {
-    return cached;
-  }
-
-  const url = `https://fonts.googleapis.com/css2?family=${familySpec.replace(
-    / /g,
-    "+"
-  )}`;
-
-  const cssResponse = await fetch(url);
-  if (!cssResponse.ok) {
-    throw new Error(`Failed to fetch Google Font CSS for ${familySpec}`);
-  }
-
-  const css = await cssResponse.text();
-  const fontUrl = css.match(GOOGLE_FONT_URL_REGEX)?.[1];
-  if (!fontUrl) {
-    throw new Error(`Failed to resolve font URL for ${familySpec}`);
-  }
-
-  const fontResponse = await fetch(fontUrl);
-  if (!fontResponse.ok) {
-    throw new Error(`Failed to fetch font file for ${familySpec}`);
-  }
-
-  const buffer = await fontResponse.arrayBuffer();
-  fontCache.set(familySpec, buffer);
-  return buffer;
-}
 
 async function loadAllFonts() {
   const results = await Promise.allSettled(
@@ -55,7 +21,7 @@ async function loadAllFonts() {
       name: spec.name,
       weight: spec.weight,
       style: "normal" as const,
-      data: await loadGoogleFont(spec.family),
+      data: await loadRenderFont(spec.family),
     }))
   );
   const loaded = results

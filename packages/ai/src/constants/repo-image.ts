@@ -16,9 +16,6 @@ export const TRAILING_SLASH_RE = /\/$/;
 export const REPO_IMAGE_WIDTH = 1200;
 export const REPO_IMAGE_HEIGHT = 630;
 
-export const GOOGLE_FONT_URL_REGEX =
-  /src: url\((.+?)\) format\('(opentype|truetype)'\)/;
-
 export const FONT_SPECS = [
   { name: "Inter", weight: 400, family: "Inter" },
   { name: "Inter", weight: 700, family: "Inter:wght@700" },

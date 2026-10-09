@@ -68,6 +68,7 @@ export function createDevRefresh(options: DevRefreshOptions) {
     const params = {
       ...options.params,
       config,
+      fontStylesheet: prepared.fontStylesheet,
       publicFiles: [
         ...new Set([
           ...prepared.publicFiles,

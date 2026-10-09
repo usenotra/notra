@@ -12,7 +12,7 @@ import { THEME_AREAS } from "../constants/areas";
 import { absoluteUrl, areaTitle, config, llmsHref, namedAreaTitle, params } from "../lib/params";
 import { extraMetaTags, socialImage, structuredData, themeColors, touchIcon, twitterHandle } from "../lib/seo";
 import { chromeComponent } from "../lib/site-files";
-import { decorationClass, faviconFor, fontFaces, googleFontsUrl, themeStyle } from "../lib/theme";
+import { decorationClass, faviconFor, fontFaces, fontStylesheetUrl, themeStyle } from "../lib/theme";
 import { mountPath } from "../utils/paths";
 
 const { title, description, image, generatedImage, type = "website", noindex = false, publishedTime, modifiedTime, tags = [], markdown, jsonLd } = Astro.props;
@@ -27,7 +27,7 @@ const feeds = THEME_AREAS.flatMap((area) => {
   const mount = params.mounts[area];
   return mount ? [{ title: namedAreaTitle(area), href: mountPath(mount, "feed.xml") }] : [];
 });
-const fontsUrl = googleFontsUrl();
+const fontsUrl = fontStylesheetUrl();
 const appearance = config.appearance;
 const codeDark = config.styling.codeblocks === "dark";
 const lightFavicon = faviconFor("light");
@@ -73,7 +73,6 @@ const customFooter = Boolean(chromeComponent("footer"));
     <meta name="generator" content="Notra Sites" />
     {metaTags.map((tag) => (tag.key === "property" ? <meta property={tag.value} content={tag.content} /> : <meta name={tag.value} content={tag.content} />))}
     {jsonLd && <script type="application/ld+json" set:html={structuredData(jsonLd)} />}
-    {fontsUrl && <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />}
     {fontsUrl && <link rel="stylesheet" href={fontsUrl} />}
     <style is:inline set:html={`${fontFaces()}${themeStyle()}`}></style>
     <script is:inline define:vars={{ appearance }}>

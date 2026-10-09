@@ -165,6 +165,7 @@ export async function buildSite(
       branding: options.target.branding,
       workDir,
       publicFiles: publicFileList,
+      fontStylesheet: prepared.fontStylesheet,
       mounts,
       config,
       headScripts: siteHeadScripts(

@@ -70,8 +70,11 @@ export interface ImageRevisionToolConfig {
 export interface FontSpec {
   name: string;
   weight: 400 | 500 | 700;
-  family: string;
+  family: RenderFontId;
 }
+
+export type RenderFontId =
+  keyof typeof import("@notra/ai/constants/render-font-data").RENDER_FONT_DATA;
 
 export type RepoImageSourceContext =
   | { mode: "prompt"; prompt: string }

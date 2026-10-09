@@ -1,4 +1,6 @@
+import { BRAND_FONT_FILE_PATH_RE } from "@/constants/brand-font";
 import { getServerSession } from "@/lib/auth/session";
+import { loadBrandFontFile } from "@/utils/brand-font.server";
 
 export async function GET(request: Request) {
   const { session, user } = await getServerSession({
@@ -9,30 +11,17 @@ export async function GET(request: Request) {
   }
 
   const path = new URL(request.url).searchParams.get("path");
-  if (!path || !/^\/s\/[\w/-]+\.(?:woff2?|ttf)$/.test(path)) {
+  if (!path || !BRAND_FONT_FILE_PATH_RE.test(path)) {
     return new Response("Invalid font path", { status: 400 });
   }
 
   try {
-    const upstream = await fetch(`https://fonts.gstatic.com${path}`, {
-      redirect: "error",
-    });
-    if (
-      !upstream.ok ||
-      Number(upstream.headers.get("content-length")) > 1_000_000
-    ) {
-      return new Response("Font unavailable", { status: 502 });
-    }
-
-    const body = await upstream.arrayBuffer();
-    if (body.byteLength > 1_000_000) {
-      return new Response("Font unavailable", { status: 502 });
-    }
-
+    const body = await loadBrandFontFile(path);
     return new Response(body, {
       headers: {
         "Content-Type": `font/${path.split(".").at(-1)}`,
-        "Cache-Control": "private, no-store",
+        "Cache-Control": "private, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {
