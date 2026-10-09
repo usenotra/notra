@@ -103,6 +103,14 @@
     {
       "source": "/sites/customize",
       "destination": "/sites/customize/design"
+    },
+    {
+      "source": "/sites/analytics-and-scripts",
+      "destination": "/sites/custom-scripts"
+    },
+    {
+      "source": "/sites/integrations/analytics",
+      "destination": "/sites/integrations/analytics/overview"
     }
   ],
   "api": {
@@ -210,6 +218,100 @@
         ]
       },
       {
+        "tab": "Sites",
+        "icon": "globe",
+        "groups": [
+          {
+            "group": "Get started",
+            "icon": "rocket",
+            "pages": ["sites/overview", "sites/quickstart"]
+          },
+          {
+            "group": "Domains",
+            "icon": "globe",
+            "pages": [
+              "sites/domains/overview",
+              "sites/domains/subdomain",
+              "sites/domains/subpath",
+              {
+                "group": "Path guides",
+                "pages": [
+                  "sites/domains/vercel",
+                  "sites/domains/nextjs",
+                  "sites/domains/tanstack-start",
+                  "sites/domains/netlify",
+                  "sites/domains/cloudflare",
+                  "sites/domains/nginx"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Write content",
+            "icon": "pen-nib",
+            "pages": [
+              "sites/repository",
+              "sites/posts",
+              "sites/custom-components"
+            ]
+          },
+          {
+            "group": "Components",
+            "icon": "shapes",
+            "pages": [
+              "sites/components/overview",
+              "sites/components/callouts",
+              "sites/components/cards",
+              "sites/components/tabs",
+              "sites/components/steps",
+              "sites/components/accordions",
+              "sites/components/code",
+              "sites/components/media",
+              "sites/components/badges-and-updates"
+            ]
+          },
+          {
+            "group": "Customize",
+            "icon": "palette",
+            "pages": [
+              "sites/customize/design",
+              "sites/customize/layouts",
+              "sites/customize/navigation",
+              "sites/match-your-website",
+              "sites/customize/seo",
+              "sites/custom-scripts"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "icon": "plug",
+            "pages": [
+              {
+                "group": "Analytics",
+                "icon": "chart-line",
+                "pages": [
+                  "sites/integrations/analytics/overview",
+                  "sites/integrations/analytics/google-analytics",
+                  "sites/integrations/analytics/posthog",
+                  "sites/integrations/analytics/plausible",
+                  "sites/integrations/analytics/umami"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Publish",
+            "icon": "paper-plane",
+            "pages": ["sites/publishing", "sites/previews", "sites/agents"]
+          },
+          {
+            "group": "Reference",
+            "icon": "book",
+            "pages": ["sites/reference/blog-json", "sites/reference/limits"]
+          }
+        ]
+      },
+      {
         "tab": "AI Traffic",
         "icon": "robot",
         "groups": [
@@ -311,83 +413,6 @@
               "integrations/granola",
               "integrations/framer"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Sites",
-        "icon": "globe",
-        "groups": [
-          {
-            "group": "Get started",
-            "icon": "rocket",
-            "pages": ["sites/overview", "sites/quickstart"]
-          },
-          {
-            "group": "Domains",
-            "icon": "globe",
-            "pages": [
-              "sites/domains/overview",
-              "sites/domains/subdomain",
-              "sites/domains/subpath",
-              {
-                "group": "Path guides",
-                "pages": [
-                  "sites/domains/vercel",
-                  "sites/domains/nextjs",
-                  "sites/domains/tanstack-start",
-                  "sites/domains/netlify",
-                  "sites/domains/cloudflare",
-                  "sites/domains/nginx"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Write content",
-            "icon": "pen-nib",
-            "pages": [
-              "sites/repository",
-              "sites/posts",
-              "sites/custom-components"
-            ]
-          },
-          {
-            "group": "Components",
-            "icon": "shapes",
-            "pages": [
-              "sites/components/overview",
-              "sites/components/callouts",
-              "sites/components/cards",
-              "sites/components/tabs",
-              "sites/components/steps",
-              "sites/components/accordions",
-              "sites/components/code",
-              "sites/components/media",
-              "sites/components/badges-and-updates"
-            ]
-          },
-          {
-            "group": "Customize",
-            "icon": "palette",
-            "pages": [
-              "sites/customize/design",
-              "sites/customize/layouts",
-              "sites/customize/navigation",
-              "sites/match-your-website",
-              "sites/customize/seo",
-              "sites/analytics-and-scripts"
-            ]
-          },
-          {
-            "group": "Publish",
-            "icon": "paper-plane",
-            "pages": ["sites/publishing", "sites/previews", "sites/agents"]
-          },
-          {
-            "group": "Reference",
-            "icon": "book",
-            "pages": ["sites/reference/blog-json", "sites/reference/limits"]
           }
         ]
       },

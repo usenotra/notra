@@ -1,0 +1,93 @@
+---
+title: "Analytics integrations"
+sidebarTitle: "Overview"
+description: "Send visits on your Notra site to Google Analytics 4, PostHog, Plausible or Umami without adding a script tag."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/integrations/analytics/overview
+  type: concept
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every site counts its own visitors and their time on page with nothing to install. Analytics integrations also send each visit to your own analytics tool, so you can report on your blog and changelog in the same place as your product.
+
+## Built-in analytics
+
+Open the site's **Analytics** page for people and AI agents on the site, or **Traffic** in GEO for AI crawlers and referrals across all your domains. Neither page counts visits to previews, and you can turn built-in analytics off under **Settings → Danger zone**. See [AI agents and search](/sites/agents#ai-traffic-analytics).
+
+## How integrations work
+
+You set up a provider in the dashboard or add it under `integrations` in `blog.json`, and both methods write the same configuration. Notra installs the provider's script on every live page and adds the hosts it needs to the [Content-Security-Policy](/sites/custom-scripts#content-security-policy), so you never add a script tag or install an SDK. You can enable several providers at once.
+
+<Note>
+  Analytics integrations are disabled on preview deployments and during local development. Custom scripts still run there, so if you install analytics through a [custom script](/sites/custom-scripts), you control when it sends events.
+</Note>
+
+## Supported providers
+
+<CardGroup cols={2}>
+  <Card title="Google Analytics 4" icon="/images/integrations/google-analytics.svg" href="/sites/integrations/analytics/google-analytics" horizontal />
+  <Card title="PostHog" icon="/images/integrations/posthog.svg" href="/sites/integrations/analytics/posthog" horizontal />
+  <Card title="Plausible" icon="/images/integrations/plausible.svg" href="/sites/integrations/analytics/plausible" horizontal />
+  <Card title="Umami" icon="/images/integrations/umami.svg" href="/sites/integrations/analytics/umami" horizontal />
+</CardGroup>
+
+## Set up in the dashboard
+
+<Steps>
+  <Step title="Copy your provider's ID">
+    Create or select your site in the analytics provider and copy its public ID, using the provider pages above to find it.
+  </Step>
+  <Step title="Enter the settings">
+    In Notra, open **Studio → Sites**, select your site and open **Integrations**. Click **Add** next to the provider and paste its ID into the matching field.
+
+    The dialog shows the corresponding `blog.json` configuration, which you can copy to use the same setup in your repository.
+  </Step>
+  <Step title="Wait for the draft to save">
+    Valid settings save automatically, so there is no Save button. Saving creates a draft of `blog.json` and doesn't create a GitHub commit or change your live site. You can click **Close** to leave the draft for later, or continue with **Create PR** in the same dialog.
+
+    Closing the dialog or navigating within the dashboard finishes a pending save. If saving fails, the dialog stays open so you can retry, and invalid settings show a validation error instead of saving.
+  </Step>
+  <Step title="Review and publish">
+    Click **Create PR** in the provider dialog or the draft bar on the Integrations page. Notra finishes any pending save and opens a preview of all saved drafts, including `blog.json`. Review the changes and commit message, click **Open pull request** and merge the PR into the production branch to deploy it.
+
+    To edit other files or commit directly, click **Open editor**, review the changes and click **Publish → Commit and deploy**. Direct commits are available only when **Settings → Publishing** allows them and the GitHub branch is not protected. Publishing includes the editor's pending changes, so review any other drafts first. See [Publishing and deployments](/sites/publishing#the-editor).
+  </Step>
+  <Step title="Verify on the live site">
+    Wait for a successful production deployment, open your live site and check the provider's incoming traffic. **Draft saved** only confirms that Notra saved the configuration, not that the provider received an event, and a PR preview can't verify analytics because provider scripts are disabled there.
+  </Step>
+</Steps>
+
+To change a provider, open its options menu and choose **Edit**. **Remove** updates the draft too, and either change only reaches the live site once you publish and deploy it.
+
+## Set up in blog.json
+
+Add the provider to the `integrations` object in `blog.json` at the root of your [site folder](/sites/repository). If the file already exists, add the provider next to your other settings, and use the provider pages for a full example of each.
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "ga4": { "measurementId": "G-ABC123XYZ9" },
+    "plausible": { "domain": "blog.acme.com" }
+  }
+}
+```
+
+The `$schema` line enables autocomplete and validation in your editor. Commit the file to your production branch, or open a PR and merge it into that branch, and Notra activates the provider after the production deployment succeeds.
+
+Notra validates provider settings in the dashboard, when saving and during builds. Invalid IDs, unexpected keys and invalid hostnames stop the change with an error. To disable a provider, remove its object, then publish and deploy the configuration. See [`integrations` in blog.json](/sites/reference/blog-json#integrations) for every setting.
+
+## If no events arrive
+
+- Confirm that you published the draft and the production deployment succeeded. A saved draft or an unmerged PR hasn't changed the live site.
+- Test the live URL, not a PR preview, branch preview or local development server.
+- Check that the ID belongs to the provider site or project whose dashboard you're viewing. For PostHog, also check the US or EU **API host**.
+- Temporarily disable your browser's analytics blocker for the test and check the Network tab for failed provider requests.

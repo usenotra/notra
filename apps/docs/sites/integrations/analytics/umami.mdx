@@ -1,0 +1,62 @@
+---
+title: "Umami"
+description: "Send visits on your Notra site to Umami Cloud or a self-hosted Umami instance with your Website ID."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/integrations/analytics/umami
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra loads the Umami tracker on every live page and allows its script and collection origins in the CSP, and the only value it needs is your public Website ID, not an API key.
+
+<Steps>
+  <Step title="Copy your Website ID">
+    In Umami, edit the website you want to track, open **Tracking code** and copy the UUID from `data-website-id`. See [Umami's tracking setup](https://docs.umami.is/docs/collect-data).
+  </Step>
+  <Step title="Add it to Notra">
+    Open **Studio → Sites**, select your site, open **Integrations** and click **Add Umami**. Paste the UUID into **Website ID** and leave the URL fields empty for Umami Cloud. To configure it in your repository instead, add it to `blog.json`:
+
+    ```json blog.json
+    {
+      "$schema": "https://usenotra.com/schemas/blog.json",
+      "name": "Acme",
+      "integrations": {
+        "umami": {
+          "websiteId": "94db1cb1-74f4-4a40-ad6c-962362670409"
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Publish and verify">
+    After you [publish the change](/sites/integrations/analytics/overview#set-up-in-the-dashboard) and the production deployment finishes, visit your live site and check that the visit appears in the matching Umami website dashboard.
+  </Step>
+</Steps>
+
+With no URLs set, Notra loads `https://cloud.umami.is/script.js` and allows the collection endpoint at `https://gateway.umami.is`.
+
+## Self-hosted Umami
+
+Copy the full HTTPS script URL from your tracking code into **Script URL** or set `scriptUrl`, which can include a custom path and HTTPS port.
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "umami": {
+      "websiteId": "94db1cb1-74f4-4a40-ad6c-962362670409",
+      "scriptUrl": "https://stats.acme.com/script.js"
+    }
+  }
+}
+```
+
+Self-hosted scripts send events to their own origin by default. If your tracking code uses `data-host-url`, for example because a reverse proxy sends events to a different endpoint, enter its HTTPS base URL in **Collection URL** or set `hostUrl`. See [Umami's tracker configuration](https://docs.umami.is/docs/tracker-configuration).

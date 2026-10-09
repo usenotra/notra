@@ -1,0 +1,52 @@
+---
+title: "PostHog"
+description: "Send visits and session recordings on your Notra site to PostHog with your public project API key."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/integrations/analytics/posthog
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra loads the PostHog snippet on every live page and sends events directly to your PostHog instance. Session recording is on by default, and you can turn it off while keeping analytics.
+
+<Steps>
+  <Step title="Copy your project API key">
+    Copy the public project API key, which starts with `phc_`, from your [PostHog project settings](https://posthog.com/docs/settings/projects). This integration uses the public browser key, so don't enter a personal or secret API key.
+  </Step>
+  <Step title="Add it to Notra">
+    Open **Studio → Sites**, select your site, open **Integrations** and click **Add PostHog**. Paste the key into **Project API key**. To configure it in your repository instead, add it to `blog.json`:
+
+    ```json blog.json
+    {
+      "$schema": "https://usenotra.com/schemas/blog.json",
+      "name": "Acme",
+      "integrations": {
+        "posthog": {
+          "apiKey": "phc_abcdefghijklmnopqrstuvwxyz0123",
+          "apiHost": "https://eu.i.posthog.com",
+          "sessionRecording": false
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Publish and verify">
+    After you [publish the change](/sites/integrations/analytics/overview#set-up-in-the-dashboard) and the production deployment finishes, visit your live site and check **Activity** in PostHog for the pageview.
+  </Step>
+</Steps>
+
+## Options
+
+| Setting | Dashboard field | Description |
+| --- | --- | --- |
+| `apiKey` | **Project API key** | Public project API key, starting with `phc_` |
+| `apiHost` | **API host** | Optional. Defaults to `https://us.i.posthog.com`. Use `https://eu.i.posthog.com` for EU Cloud, or the HTTPS URL of your self-hosted instance or reverse proxy. See [PostHog's ingestion endpoints](https://posthog.com/docs/api) |
+| `sessionRecording` | **Session recording** | Defaults to `true`. Set to `false` to disable recording while keeping analytics. Your PostHog project must also allow recording for your site's domain |
+
