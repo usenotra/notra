@@ -13,6 +13,8 @@ import { demoPoolSize } from "../../src/utils/demo-limits";
 const originalPoolSize = process.env.NOTRA_DEMO_POOL_SIZE;
 let total = 300;
 let pooled = 3;
+let lockedPoolRows = 0;
+let transactionActive = false;
 const afterResponse = mock((_task: () => unknown) => {});
 const findMany = mock(
   async (input = { where: sql``, limit: 0, orderBy: [sql``] }) => {
@@ -49,8 +51,55 @@ const deleteOrganization = mock(async (condition = sql``) => {
   total -= 1;
 });
 
+const transaction = mock(async (work: (tx: unknown) => Promise<unknown>) => {
+  transactionActive = true;
+  try {
+    return await work({
+      select: (selection = {}) => ({
+        from: () => ({
+          where: (where = sql``) => {
+            if (Object.hasOwn(selection, "userId")) {
+              expect(transactionActive).toBe(true);
+              return Promise.resolve([]);
+            }
+            return {
+              orderBy: (...orderBy: SQL[]) => ({
+                limit: (limit: number) => ({
+                  for: async (strength: string, options: unknown) => {
+                    expect(transactionActive).toBe(true);
+                    expect(strength).toBe("update");
+                    const { demoSandboxes } = await import("@notra/db/schema");
+                    expect(options).toEqual({
+                      of: demoSandboxes,
+                      skipLocked: true,
+                    });
+                    return findMany({
+                      where,
+                      orderBy,
+                      limit: Math.min(limit, pooled - lockedPoolRows),
+                    });
+                  },
+                }),
+              }),
+            };
+          },
+        }),
+      }),
+      delete: () => ({
+        where: (condition = sql``) => {
+          expect(transactionActive).toBe(true);
+          return deleteOrganization(condition);
+        },
+      }),
+    });
+  } finally {
+    transactionActive = false;
+  }
+});
+
 mock.module("@notra/db/drizzle", () => ({
   db: {
+    transaction,
     select: (selection = {}) => ({
       from: () => ({
         where: (condition = sql``) => {
@@ -67,7 +116,13 @@ mock.module("@notra/db/drizzle", () => ({
         },
       }),
     }),
-    delete: () => ({ where: deleteOrganization }),
+    delete: () => ({
+      where: (condition = sql``) => {
+        const [organizationId] = new PgDialect().sqlToQuery(condition).params;
+        expect(String(organizationId).startsWith("pool-")).toBe(false);
+        return deleteOrganization(condition);
+      },
+    }),
     query: { demoSandboxes: { findMany } },
   },
 }));
@@ -95,6 +150,9 @@ beforeEach(() => {
   process.env.NOTRA_DEMO_POOL_SIZE = "3";
   total = 300;
   pooled = 3;
+  lockedPoolRows = 0;
+  transactionActive = false;
+  transaction.mockClear();
   afterResponse.mockClear();
   findMany.mockClear();
   deleteOrganization.mockClear();
@@ -158,6 +216,24 @@ test("removes excess ready workspaces before the oldest visitors while keeping t
   expect(deleted.slice(7)).toEqual(
     Array.from({ length: 13 }, (_, index) => `visitor-workspace-${index}`)
   );
+});
+
+test("locked ready workspaces defer trimming without evicting the new visitor", async () => {
+  pooled = 60;
+  total = 61;
+  lockedPoolRows = 55;
+  maintainDemoSandboxPool();
+  await afterResponse.mock.calls[0]?.[0]();
+  expect(total).toBe(56);
+  expect(pooled).toBe(55);
+  expect(deleteOrganization).toHaveBeenCalledTimes(5);
+  expect(transaction).toHaveBeenCalledTimes(1);
+
+  lockedPoolRows = 0;
+  maintainDemoSandboxPool();
+  await afterResponse.mock.calls[1]?.[0]();
+  expect(total).toBe(DEMO_MAX_ACTIVE_SANDBOXES);
+  expect(pooled).toBe(DEMO_MAX_ACTIVE_SANDBOXES - 1);
 });
 
 test("maintenance keeps all workspaces when already at the cap", async () => {

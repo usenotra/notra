@@ -237,14 +237,23 @@ async function enforceDemoSandboxCap(reservedSlots = 1) {
     )
   );
   if (excessPoolSize > 0) {
-    const excessPool = await db.query.demoSandboxes.findMany({
-      where: like(demoSandboxes.anonymousId, POOLED_ID_PATTERN),
-      orderBy: [asc(demoSandboxes.createdAt)],
-      limit: excessPoolSize,
+    const removed = await db.transaction(async (tx) => {
+      const excessPool = await tx
+        .select()
+        .from(demoSandboxes)
+        .where(like(demoSandboxes.anonymousId, POOLED_ID_PATTERN))
+        .orderBy(asc(demoSandboxes.createdAt))
+        .limit(excessPoolSize)
+        .for("update", { of: demoSandboxes, skipLocked: true });
+      for (const sandbox of excessPool) {
+        await deleteDemoSandbox(sandbox, tx);
+      }
+      return excessPool.length;
     });
-    await Promise.all(excessPool.map(deleteDemoSandbox));
-    overflow -= excessPool.length;
-    if (overflow <= 0) {
+    overflow = (await countDemoSandboxes()) - cap;
+    // A claim or another cleanup holds the remaining ready rows. Retry on
+    // the next maintenance pass instead of evicting visitors in their place.
+    if (overflow <= 0 || removed < excessPoolSize) {
       return;
     }
   }
@@ -255,7 +264,7 @@ async function enforceDemoSandboxCap(reservedSlots = 1) {
     orderBy: [asc(demoSandboxes.lastSeenAt)],
     limit: overflow,
   });
-  await Promise.all(oldest.map(deleteDemoSandbox));
+  await Promise.all(oldest.map((sandbox) => deleteDemoSandbox(sandbox)));
 }
 
 async function seedDemoSandbox(
@@ -687,26 +696,34 @@ async function moveDemoApiKey(
  * but in the demo database each one (owner and seeded teammates) belongs to
  * exactly one sandbox.
  */
-async function deleteDemoOrganization(organizationId: string) {
-  const memberRows = await db
+async function deleteDemoOrganization(
+  organizationId: string,
+  executor: typeof db | DemoTransaction = db
+) {
+  const memberRows = await executor
     .select({ userId: members.userId })
     .from(members)
     .where(eq(members.organizationId, organizationId));
   // Organization cascades every org-scoped row, memberships included.
-  await db.delete(organizations).where(eq(organizations.id, organizationId));
+  await executor
+    .delete(organizations)
+    .where(eq(organizations.id, organizationId));
   const userIds = memberRows.map((row) => row.userId);
   if (userIds.length > 0) {
-    await db.delete(users).where(inArray(users.id, userIds));
+    await executor.delete(users).where(inArray(users.id, userIds));
   }
 }
 
-async function deleteDemoSandbox(sandbox: DemoSandbox) {
+async function deleteDemoSandbox(
+  sandbox: DemoSandbox,
+  executor: typeof db | DemoTransaction = db
+) {
   if (sandbox.apiKeyId) {
     await deleteDemoApiKey(sandbox.apiKeyId).catch((error: unknown) => {
       logError("[demo] Failed to delete sandbox API key", error);
     });
   }
-  await deleteDemoOrganization(sandbox.organizationId);
+  await deleteDemoOrganization(sandbox.organizationId, executor);
 }
 
 /**
@@ -747,7 +764,7 @@ async function cleanupExpiredDemoSandboxes(limit: number): Promise<number> {
   });
 
   const [, orphaned] = await Promise.all([
-    Promise.all(expired.map(deleteDemoSandbox)),
+    Promise.all(expired.map((sandbox) => deleteDemoSandbox(sandbox))),
     cleanupOrphanedDemoOrganizations(limit, now),
   ]);
 
