@@ -1,11 +1,12 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
+import { anthropic } from "@ai-sdk/anthropic";
 /**
  * Collects answers for the public "State of AI Search" reports.
  *
- * Asks every prompt of every category to ChatGPT and Claude (both with web
- * search, like the consumer apps) and fetches Google's AI Overview through
+ * Asks every prompt of every category to ChatGPT, Claude, grounded Gemini
+ * and Perplexity, and fetches Google's AI Overview through
  * SerpApi. Raw answers are cached per prompt, engine and sample, so a rerun
  * only fills the gaps and `build.ts` can re-aggregate for free.
  *
@@ -14,10 +15,11 @@ import { dirname, join } from "node:path";
  *
  * Needs AI_GATEWAY_API_KEY and SERPAPI_API_KEY.
  */
-import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { gateway, generateText } from "ai";
 
+import { extractGrounding } from "../../src/geo/grounding";
 import { parseGoogleAiOverview } from "../../src/utils/geo-ai-overview";
 import { REPORT_CATEGORIES } from "./categories";
 import {
@@ -29,6 +31,7 @@ import {
   type ReportEngine,
   SAMPLES_PER_ENGINE,
 } from "./shared";
+import { resolveGroundedSources } from "./utils/grounded-sources";
 
 const CONCURRENCY = Number(process.env.SOAS_CONCURRENCY ?? 16);
 const SERPAPI_RESERVE = 10;
@@ -40,8 +43,14 @@ const only = process.env.SOAS_ONLY?.split(",");
 const engines = (process.env.SOAS_ENGINES?.split(",") ?? [
   "chatgpt",
   "claude",
+  "gemini",
+  "perplexity",
   "ai-overview",
 ]) as ReportEngine[];
+const start = Number(process.env.SOAS_START ?? 0);
+const sampleLimit = Number(
+  process.env.SOAS_SAMPLES ?? Number.POSITIVE_INFINITY
+);
 const limit = Number(process.env.SOAS_LIMIT ?? Number.POSITIVE_INFINITY);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -57,31 +66,42 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-function domainOf(url: string): string | null {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
-}
-
 async function askModel(
-  engine: "chatgpt" | "claude",
+  engine: Exclude<ReportEngine, "ai-overview">,
   prompt: string
-): Promise<Pick<RawAnswer, "text" | "sources" | "searchQueries">> {
+): Promise<
+  Pick<
+    RawAnswer,
+    "text" | "sources" | "searchQueries" | "billing" | "providerMetadata"
+  >
+> {
   const model = ENGINE_MODELS[engine];
-  const tools =
-    engine === "chatgpt"
-      ? { web_search: openai.tools.webSearch({}) }
-      : {
-          web_search: anthropic.tools.webSearch_20250305({ maxUses: 5 }),
-        };
+  const tools = {} as Record<
+    string,
+    | ReturnType<typeof openai.tools.webSearch>
+    | ReturnType<typeof anthropic.tools.webSearch_20250305>
+    | ReturnType<typeof google.tools.googleSearch>
+  >;
+  if (engine === "chatgpt") {
+    tools.web_search = openai.tools.webSearch({});
+  }
+  if (engine === "claude") {
+    tools.web_search = anthropic.tools.webSearch_20250305({ maxUses: 5 });
+  }
+  if (engine === "gemini") {
+    tools.google_search = google.tools.googleSearch({});
+  }
   const result = await generateText({
     model: gateway(model),
-    instructions: SYSTEM,
+    instructions:
+      engine === "gemini"
+        ? `${SYSTEM} Always use Google Search to verify current providers and cite your sources before answering.`
+        : SYSTEM,
     prompt,
     tools,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    maxRetries: 3,
+    abortSignal: AbortSignal.timeout(240_000),
     providerOptions: {
       gateway: { tags: ["state-of-ai-search"] },
     },
@@ -90,18 +110,88 @@ async function askModel(
   if (!text) {
     throw new Error(`${engine} returned no text (${result.finishReason})`);
   }
-  const seen = new Set<string>();
-  const sources = result.sources.flatMap((source) => {
-    if (source.sourceType !== "url" || seen.has(source.url)) {
-      return [];
-    }
-    seen.add(source.url);
-    const domain = domainOf(source.url);
-    return domain
-      ? [{ url: source.url, title: source.title ?? null, domain }]
-      : [];
+  const grounding = extractGrounding(result);
+  const body = isRecord(result.response.body) ? result.response.body : {};
+  const searchResults = Array.isArray(body.search_results)
+    ? body.search_results
+    : [];
+  const sources = grounding.sources.map((source) => {
+    const match = searchResults.find(
+      (item) => isRecord(item) && item.url === source.url
+    );
+    return {
+      ...source,
+      title:
+        isRecord(match) && typeof match.title === "string"
+          ? match.title
+          : source.title,
+    };
   });
-  return { text, sources, searchQueries: readSearchQueries(result.steps) };
+  const searchQueries = [
+    ...new Set([...grounding.queries, ...readSearchQueries(result.steps)]),
+  ];
+  // Perplexity exposes citations and search counts, but not necessarily query strings.
+  // Preserve an empty query list rather than pretending the user prompt was a search.
+  const metadata = result.providerMetadata ?? {};
+  const gatewayMetadata = isRecord(metadata.gateway) ? metadata.gateway : {};
+  const perplexityMetadata = isRecord(metadata.perplexity)
+    ? metadata.perplexity
+    : {};
+  const perplexityCost = isRecord(perplexityMetadata.cost)
+    ? perplexityMetadata.cost.totalCost
+    : undefined;
+  const reportedCost = Number(
+    gatewayMetadata.gatewayCost ?? gatewayMetadata.cost ?? perplexityCost
+  );
+  const routing = isRecord(gatewayMetadata.routing)
+    ? gatewayMetadata.routing
+    : {};
+  const attempts = Array.isArray(routing.modelAttempts)
+    ? routing.modelAttempts
+    : [];
+  const successfulProvider = attempts
+    .flatMap((attempt) =>
+      isRecord(attempt) && Array.isArray(attempt.providerAttempts)
+        ? attempt.providerAttempts
+        : []
+    )
+    .findLast((attempt) => isRecord(attempt) && attempt.success === true);
+  const byok =
+    isRecord(successfulProvider) &&
+    successfulProvider.credentialType === "byok";
+  const externalCost = byok ? Number(gatewayMetadata.marketCost ?? 0) : 0;
+  const inputTokens = result.totalUsage.inputTokens ?? 0;
+  const outputTokens = result.totalUsage.outputTokens ?? 0;
+  const price = prices.get(model);
+  // Fallback includes the maximum configured search calls, conservatively.
+  const estimatedCost =
+    inputTokens * Number(price?.input ?? 0) +
+    outputTokens * Number(price?.output ?? 0) +
+    (5 * Number(price?.web_search ?? 0)) / 1000;
+  const billing = {
+    cost: Number.isFinite(reportedCost)
+      ? reportedCost + externalCost
+      : estimatedCost,
+    inputTokens,
+    outputTokens,
+    reported: Number.isFinite(reportedCost),
+  };
+  spend += billing.cost;
+  await appendFile(
+    spendPath,
+    `${JSON.stringify({
+      cost: billing.cost,
+      engine,
+      collectedAt: new Date().toISOString(),
+    })}\n`
+  );
+  return {
+    text,
+    sources: await resolveGroundedSources(sources),
+    searchQueries,
+    billing,
+    providerMetadata: metadata,
+  };
 }
 
 /**
@@ -134,6 +224,23 @@ function readSearchQueries(steps: readonly { content: readonly unknown[] }[]) {
 }
 
 let serpApiCalls = 0;
+let serpApiLeft = Number.POSITIVE_INFINITY;
+const budget = Math.min(400, Number(process.env.SOAS_BUDGET ?? 400));
+const spendPath = join(
+  dirname(dirname(rawAnswerPath("x", "chatgpt", 0, 0))),
+  "..",
+  "gateway-spend.jsonl"
+);
+let spend = 0;
+let reserved = 0;
+const prices = new Map<string, Record<string, string>>();
+// Reserve enough for a 6k-token answer plus search input; stop before $400.
+const requestReserve: Record<Exclude<ReportEngine, "ai-overview">, number> = {
+  chatgpt: 1,
+  claude: 1,
+  gemini: 0.25,
+  perplexity: 0.15,
+};
 
 async function serpApi(params: Record<string, string>): Promise<unknown> {
   const key = process.env.SERPAPI_API_KEY;
@@ -145,8 +252,11 @@ async function serpApi(params: Record<string, string>): Promise<unknown> {
     url.searchParams.set(name, value);
   }
   url.searchParams.set("api_key", key);
+  if (serpApiLeft - serpApiCalls <= SERPAPI_RESERVE) {
+    throw new Error("SerpApi reserve reached");
+  }
   serpApiCalls += 1;
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!response.ok) {
     throw new Error(`SerpApi responded with ${response.status}`);
   }
@@ -157,6 +267,9 @@ async function serpApiSearchesLeft(): Promise<number> {
   const response = await fetch(
     `https://serpapi.com/account.json?api_key=${process.env.SERPAPI_API_KEY}`
   );
+  if (!response.ok) {
+    throw new Error(`SerpApi account responded with ${response.status}`);
+  }
   const account = (await response.json()) as { total_searches_left?: number };
   return account.total_searches_left ?? 0;
 }
@@ -216,31 +329,61 @@ interface Job {
   path: string;
 }
 
-async function runPool<T>(items: T[], worker: (item: T) => Promise<void>) {
+async function runPool<T>(
+  items: T[],
+  worker: (item: T) => Promise<void>,
+  concurrency = CONCURRENCY
+) {
   let next = 0;
   await Promise.all(
-    Array.from({ length: CONCURRENCY }, async () => {
+    Array.from({ length: concurrency }, async () => {
       while (next < items.length) {
         const item = items[next];
         next += 1;
-        await worker(item);
+        if (item !== undefined) {
+          await worker(item);
+        }
       }
     })
   );
 }
 
 async function main() {
+  await mkdir(dirname(spendPath), { recursive: true });
+  try {
+    spend = (await readFile(spendPath, "utf8"))
+      .trim()
+      .split("\n")
+      .reduce((sum, line) => sum + JSON.parse(line).cost, 0);
+  } catch (error) {
+    if (!isRecord(error) || error.code !== "ENOENT") {
+      throw error;
+    }
+  }
+  const catalog = (await (
+    await fetch("https://ai-gateway.vercel.sh/v1/models")
+  ).json()) as { data: { id: string; pricing: Record<string, string> }[] };
+  for (const model of catalog.data) {
+    prices.set(model.id, model.pricing);
+  }
   const jobs: Job[] = [];
   for (const category of REPORT_CATEGORIES) {
     if (only && !only.includes(category.slug)) {
       continue;
     }
     for (const [promptIndex, prompt] of category.prompts.entries()) {
-      if (promptIndex >= limit) {
+      if (promptIndex < start) {
+        continue;
+      }
+      if (promptIndex >= start + limit) {
         break;
       }
       for (const engine of engines) {
-        for (let sample = 0; sample < SAMPLES_PER_ENGINE[engine]; sample += 1) {
+        for (
+          let sample = 0;
+          sample < Math.min(sampleLimit, SAMPLES_PER_ENGINE[engine]);
+          sample += 1
+        ) {
           const path = rawAnswerPath(
             category.slug,
             engine,
@@ -262,6 +405,8 @@ async function main() {
     }
   }
 
+  // Fill lower sample indices across categories first if a budget-limited rerun is needed.
+  jobs.sort((a, b) => a.sample - b.sample || a.promptIndex - b.promptIndex);
   const overviewJobs = jobs.filter((job) => job.engine === "ai-overview");
   if (overviewJobs.length > 0) {
     const left = await serpApiSearchesLeft();
@@ -280,19 +425,26 @@ async function main() {
   );
   let done = 0;
   let failed = 0;
-  let serpApiLeft = Number.POSITIVE_INFINITY;
   if (overviewJobs.length > 0) {
     serpApiLeft = await serpApiSearchesLeft();
   }
-
-  await runPool(jobs, async (job) => {
+  const failures: Job[] = [];
+  let skipped = 0;
+  const worker = async (job: Job) => {
+    if (
+      job.engine === "ai-overview" &&
+      serpApiLeft - serpApiCalls < SERPAPI_RESERVE + 2
+    ) {
+      skipped += 1;
+      return;
+    }
+    const hold = job.engine === "ai-overview" ? 0 : requestReserve[job.engine];
+    if (hold && spend + reserved + hold > budget) {
+      skipped += 1;
+      return;
+    }
+    reserved += hold;
     try {
-      if (
-        job.engine === "ai-overview" &&
-        serpApiLeft - serpApiCalls < SERPAPI_RESERVE
-      ) {
-        return;
-      }
       const answer =
         job.engine === "ai-overview"
           ? await askAiOverview(job.prompt)
@@ -312,25 +464,64 @@ async function main() {
         ...answer,
       };
       await mkdir(dirname(job.path), { recursive: true });
-      await writeFile(job.path, JSON.stringify(raw, null, 2));
+      await writeFile(job.path, JSON.stringify(raw, null, 2), { flag: "wx" });
       done += 1;
-      if (done % 10 === 0) {
+      if (done % 25 === 0) {
         console.log(
-          `${done}/${jobs.length} (${failed} failed, ${serpApiCalls} SerpApi calls)`
+          `${done}/${jobs.length}, charged/estimated $${spend.toFixed(2)}, ${serpApiCalls} SerpApi calls`
         );
       }
     } catch (error) {
-      failed += 1;
-      console.error(
-        `✗ ${job.category} ${job.engine} #${job.promptIndex}.${job.sample}:`,
-        error instanceof Error ? error.message : error
+      // Conservatively account for potentially billed requests without a response.
+      spend += hold;
+      await appendFile(
+        spendPath,
+        `${JSON.stringify({
+          cost: hold,
+          engine: job.engine,
+          estimatedFailure: true,
+          collectedAt: new Date().toISOString(),
+        })}\n`
       );
+      failures.push(job);
+      console.error(
+        `Failed ${job.category} ${job.engine} #${job.promptIndex}.${job.sample}: ${error instanceof Error ? error.message : "request failed"}`
+      );
+    } finally {
+      reserved -= hold;
     }
-  });
-
-  console.log(
-    `Done: ${done} collected, ${failed} failed, ${serpApiCalls} SerpApi calls`
+  };
+  await runPool(
+    jobs.filter((job) => job.engine !== "ai-overview"),
+    worker
   );
+  // Serial Google requests avoid the free-plan two-request concurrency ceiling.
+  await runPool(
+    overviewJobs.sort((a, b) => a.promptIndex - b.promptIndex),
+    worker,
+    1
+  );
+  for (let round = 0; round < 2 && failures.length > 0; round += 1) {
+    const retry = failures.splice(0);
+    console.log(`Retry round ${round + 1}: ${retry.length} failed answers`);
+    await new Promise((resolve) => setTimeout(resolve, 2000 * 2 ** round));
+    await runPool(
+      retry.filter((job) => job.engine !== "ai-overview"),
+      worker
+    );
+    await runPool(
+      retry.filter((job) => job.engine === "ai-overview"),
+      worker,
+      1
+    );
+  }
+  failed = failures.length;
+  console.log(
+    `Done: ${done} collected, ${failed} failed, ${skipped} budget/reserve skips, ${serpApiCalls} SerpApi calls; cumulative gateway charge/estimate $${spend.toFixed(2)}`
+  );
+  if (failed > 0) {
+    process.exitCode = 1;
+  }
   console.log(
     `Raw answers in ${join(dirname(rawAnswerPath("x", "chatgpt", 0, 0)), "..", "..")}`
   );

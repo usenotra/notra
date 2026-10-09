@@ -32,6 +32,8 @@ import {
   REPORT_EDITION,
   type RawAnswer,
 } from "./shared";
+import { brandMatchers, firstMention } from "./utils/brand-matching";
+import { resolveGroundedSources } from "./utils/grounded-sources";
 
 const OUTPUT_ROOT = join(
   import.meta.dir,
@@ -41,11 +43,15 @@ const OUTPUT_ROOT = join(
 const ENGINE_ORDER: StateOfAiSearchEngineId[] = [
   "chatgpt",
   "claude",
+  "gemini",
+  "perplexity",
   "ai-overview",
 ];
 const ENGINE_LABELS: Record<StateOfAiSearchEngineId, string> = {
   chatgpt: "ChatGPT",
   claude: "Claude",
+  gemini: "Gemini",
+  perplexity: "Perplexity",
   "ai-overview": "AI Overview",
 };
 
@@ -77,34 +83,6 @@ function cleanAnswer(text: string): string {
     .replace(BARE_URL, "");
 }
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function brandMatchers(brand: ReportBrand): RegExp[] {
-  const flags = brand.caseSensitive ? "gu" : "giu";
-  return [brand.name, ...(brand.aliases ?? [])].map(
-    (name) =>
-      new RegExp(
-        `(?<![\\p{L}\\p{N}])${escapeRegex(name)}(?![\\p{L}\\p{N}])`,
-        flags
-      )
-  );
-}
-
-/** Index of the brand's first mention, or -1. */
-function firstMention(text: string, matchers: RegExp[]): number {
-  let first = -1;
-  for (const matcher of matchers) {
-    matcher.lastIndex = 0;
-    const match = matcher.exec(text);
-    if (match && (first === -1 || match.index < first)) {
-      first = match.index;
-    }
-  }
-  return first;
-}
-
 function percent(part: number, whole: number): number {
   return whole === 0 ? 0 : Math.round((part / whole) * 100);
 }
@@ -130,9 +108,11 @@ async function loadAnswers(category: string): Promise<RawAnswer[]> {
       continue;
     }
     for (const file of files.filter((name) => name.endsWith(".json")).sort()) {
-      answers.push(
-        JSON.parse(await readFile(join(dir, file), "utf8")) as RawAnswer
-      );
+      const raw = JSON.parse(
+        await readFile(join(dir, file), "utf8")
+      ) as RawAnswer;
+      raw.sources = await resolveGroundedSources(raw.sources);
+      answers.push(raw);
     }
   }
   return answers;
@@ -160,7 +140,13 @@ function toBrand(brand: ReportBrand): StateOfAiSearchBrand {
 }
 
 function emptyByEngine(): Record<StateOfAiSearchEngineId, number | null> {
-  return { chatgpt: null, claude: null, "ai-overview": null };
+  return {
+    chatgpt: null,
+    claude: null,
+    gemini: null,
+    perplexity: null,
+    "ai-overview": null,
+  };
 }
 
 function mostCommon<T>(values: T[], key: (value: T) => string): T | null {
@@ -196,26 +182,27 @@ function buildRanking(
         list.length
       );
     }
-    const engineRates = engines.map((engine) => rates[engine] ?? 0);
-    const visibility = Math.round(
-      engineRates.reduce((sum, rate) => sum + rate, 0) /
-        Math.max(1, engineRates.length)
-    );
+    // Every brand metric weights each answering engine equally, regardless
+    // of sample count: AI Overview's one answer per prompt counts as much as
+    // an LLM's ten. Means use unrounded engine rates.
+    const engineMean = (matches: (answer: AnalyzedAnswer) => boolean) =>
+      Math.round(
+        (engines.reduce((sum, engine) => {
+          const list = byEngine.get(engine) ?? [];
+          return sum + list.filter(matches).length / list.length;
+        }, 0) /
+          Math.max(1, engines.length)) *
+          100
+      );
     return {
       ...toBrand(brand),
       rank: 0,
-      visibility,
-      topPick: percent(
-        answered.filter((answer) => answer.mentioned[0] === brand).length,
-        answered.length
-      ),
-      ownSiteCited: percent(
-        answered.filter((answer) =>
-          answer.raw.sources.some((source) =>
-            ownsDomain(source.domain, brand.domain)
-          )
-        ).length,
-        answered.length
+      visibility: engineMean((answer) => answer.mentioned.includes(brand)),
+      topPick: engineMean((answer) => answer.mentioned[0] === brand),
+      ownSiteCited: engineMean((answer) =>
+        answer.raw.sources.some((source) =>
+          ownsDomain(source.domain, brand.domain)
+        )
       ),
       byEngine: rates,
       delta: null,
@@ -245,6 +232,7 @@ function buildPrompts(
       .map(([brand]) => toBrand(brand));
     const firsts = answers.flatMap((answer) => answer.mentioned.slice(0, 1));
     const topPick = mostCommon(firsts, (brand) => brand.name);
+    // One vote per answering engine: its modal first-mentioned brand across samples.
     const engineFirsts = ENGINE_ORDER.flatMap((engine) => {
       const engineAnswers = answers.filter(
         (answer) => answer.raw.engine === engine
@@ -330,10 +318,32 @@ function buildSources(
       counts.set(domain, (counts.get(domain) ?? 0) + 1);
     }
   }
+  // Same weighting as brand visibility: the mean of each engine's citation
+  // rate, so AI Overview's single sample per prompt counts as much as an
+  // engine with ten.
+  const answering = ENGINE_ORDER.flatMap((engine) => {
+    const list = byEngine.get(engine) ?? [];
+    return list.length > 0 ? [list] : [];
+  });
+  const engineDomainCounts = answering.map((list) => {
+    const perDomain = new Map<string, number>();
+    for (const answer of list) {
+      for (const domain of domainsOf(answer)) {
+        perDomain.set(domain, (perDomain.get(domain) ?? 0) + 1);
+      }
+    }
+    return { size: list.length, perDomain };
+  });
+  const shareOf = (domain: string) =>
+    engineDomainCounts.reduce(
+      (sum, { size, perDomain }) => sum + (perDomain.get(domain) ?? 0) / size,
+      0
+    ) / Math.max(1, engineDomainCounts.length);
   const top = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .map(([domain, count]) => ({ domain, count, share: shareOf(domain) }))
+    .sort((a, b) => b.share - a.share || b.count - a.count)
     .slice(0, MAX_SOURCES);
-  const sources = top.map(([domain, count]) => {
+  const sources = top.map(({ domain, count, share }) => {
     const rates = emptyByEngine();
     for (const engine of ENGINE_ORDER) {
       const list = byEngine.get(engine) ?? [];
@@ -383,7 +393,7 @@ function buildSources(
     }
     return {
       domain,
-      share: percent(count, answered.length),
+      share: Math.round(share * 100),
       byEngine: rates,
       citations: count,
       pages: [...pages.values()]
@@ -585,7 +595,7 @@ function buildQuotes(
 }
 
 function editionLabel(edition: string): string {
-  const [year, month] = edition.split("-").map(Number);
+  const [year = 2026, month = 10] = edition.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
@@ -672,6 +682,7 @@ async function buildReport(
         prompts.filter((prompt) => prompt.consensus).length,
         prompts.length
       ),
+      // Display rate among checked queries; unqueried prompts are not absences.
       aiOverviewShown: percent(
         overviewShown.size,
         Math.max(1, overviewAnswers.length)

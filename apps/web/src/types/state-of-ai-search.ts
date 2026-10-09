@@ -1,4 +1,9 @@
-export type StateOfAiSearchEngineId = "chatgpt" | "claude" | "ai-overview";
+export type StateOfAiSearchEngineId =
+  | "chatgpt"
+  | "claude"
+  | "gemini"
+  | "perplexity"
+  | "ai-overview";
 
 export interface StateOfAiSearchBrand {
   name: string;
@@ -71,7 +76,7 @@ export interface StateOfAiSearchPromptRow {
 
 export interface StateOfAiSearchSource {
   domain: string;
-  /** Percent of answers citing the domain at least once. */
+  /** Percent of answers citing the domain, averaged across engines like visibility. */
   share: number;
   byEngine: Record<StateOfAiSearchEngineId, number | null>;
   /** Answers citing the domain at least once. */
