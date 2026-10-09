@@ -1,10 +1,3 @@
-export const SITE_INTEGRATION_NAMES = [
-  "databuddy",
-  "plausible",
-  "posthog",
-  "ga4",
-] as const;
-
 export const DATABUDDY_SCRIPT_URL = "https://cdn.databuddy.cc/databuddy.js";
 export const DATABUDDY_CONNECT_ORIGIN = "https://basket.databuddy.cc";
 

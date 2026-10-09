@@ -195,8 +195,10 @@ See [Analytics and scripts](/sites/analytics-and-scripts#analytics-integrations)
 | --- | --- |
 | `integrations.databuddy.clientId` | 8 to 64 letters, digits, `_` or `-` |
 | `integrations.plausible.domain` | Your domain as added in Plausible, like `acme.com` |
+| `integrations.plausible.server` | Optional self-hosted server hostname without a protocol or path, otherwise `plausible.io` |
 | `integrations.posthog.apiKey` | Starts with `phc_` |
 | `integrations.posthog.apiHost` | An `https://` URL, with the default `https://us.i.posthog.com` |
+| `integrations.posthog.sessionRecording` | Boolean, defaults to `true`. Set to `false` to disable recording while keeping analytics |
 | `integrations.ga4.measurementId` | Like `G-ABC123XYZ9` |
 
 ## Security

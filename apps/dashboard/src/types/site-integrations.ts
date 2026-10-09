@@ -1,4 +1,4 @@
-import type { SiteIntegrationName } from "@notra/sites-server/types/integrations";
+import type { SiteIntegrationName } from "@notra/sites-core/types/site-integrations";
 import type { ComponentType, SVGProps } from "react";
 
 export type { SiteIntegrationName };
@@ -7,6 +7,8 @@ interface SiteIntegrationField {
   key: string;
   placeholder?: string;
   optional?: boolean;
+  type?: "text" | "boolean";
+  defaultValue?: boolean;
 }
 
 export interface SiteIntegrationProvider {
@@ -17,4 +19,4 @@ export interface SiteIntegrationProvider {
   fields: readonly SiteIntegrationField[];
 }
 
-export type SiteIntegrationValues = Record<string, string>;
+export type SiteIntegrationValues = Record<string, string | boolean>;

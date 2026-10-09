@@ -41,12 +41,17 @@ export function integrationHeadScripts(
   if (plausible) {
     scripts.push({
       kind: "external",
-      src: PLAUSIBLE_SCRIPT_URL,
+      src: plausible.server
+        ? `https://${plausible.server}/js/script.js`
+        : PLAUSIBLE_SCRIPT_URL,
       attributes: { "data-domain": plausible.domain, defer: true },
     });
   }
   if (posthog) {
-    const options = { api_host: posthog.apiHost ?? POSTHOG_DEFAULT_API_HOST };
+    const options = {
+      api_host: posthog.apiHost ?? POSTHOG_DEFAULT_API_HOST,
+      disable_session_recording: posthog.sessionRecording === false,
+    };
     scripts.push({
       kind: "inline",
       code: `${POSTHOG_LOADER}posthog.init(${inlineScriptLiteral(posthog.apiKey)},${inlineScriptLiteral(options)});`,
@@ -81,7 +86,9 @@ export function integrationCspSources(
     connectSrc.push(DATABUDDY_CONNECT_ORIGIN);
   }
   if (plausible) {
-    const origin = new URL(PLAUSIBLE_SCRIPT_URL).origin;
+    const origin = plausible.server
+      ? `https://${plausible.server}`
+      : new URL(PLAUSIBLE_SCRIPT_URL).origin;
     scriptSrc.push(origin);
     connectSrc.push(origin);
   }

@@ -151,6 +151,36 @@ test("MDX and stable-name asset edits leave unchanged params to native hot reloa
   }
 });
 
+test("local development never loads analytics providers after startup or config edits", async () => {
+  const { state, owner } = setup();
+  try {
+    const config = state.source.validation.config;
+    if (!config) {
+      throw new Error("Missing development config");
+    }
+    config.integrations = {
+      ga4: { measurementId: "G-ABC123XYZ9" },
+    };
+    await owner.refresh();
+    config.integrations = {
+      plausible: { domain: "acme.com" },
+    };
+    await owner.refresh();
+    for (const params of state.starts) {
+      expect(params.headScripts).toEqual([
+        {
+          kind: "external",
+          src: "/blog/_notra/assets/custom-scripts-first.js",
+          attributes: { defer: true },
+        },
+      ]);
+    }
+    expect(state.starts).toHaveLength(2);
+  } finally {
+    await owner.shutdown();
+  }
+});
+
 test("edits during preparation coalesce without overlapping or publishing the stale run", async () => {
   const { state, owner } = setup();
   const entered = Promise.withResolvers<void>();

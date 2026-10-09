@@ -18,7 +18,10 @@ export const SITE_INTEGRATION_PROVIDERS: readonly SiteIntegrationProvider[] = [
     name: "Plausible",
     logo: Plausible,
     docsUrl: "https://plausible.io/docs",
-    fields: [{ key: "domain", placeholder: "acme.com" }],
+    fields: [
+      { key: "domain", placeholder: "acme.com" },
+      { key: "server", placeholder: "plausible.acme.com", optional: true },
+    ],
   },
   {
     id: "posthog",
@@ -29,10 +32,10 @@ export const SITE_INTEGRATION_PROVIDERS: readonly SiteIntegrationProvider[] = [
       { key: "apiKey", placeholder: "phc_…" },
       {
         key: "apiHost",
-
         placeholder: "https://us.i.posthog.com",
         optional: true,
       },
+      { key: "sessionRecording", type: "boolean", defaultValue: true },
     ],
   },
   {

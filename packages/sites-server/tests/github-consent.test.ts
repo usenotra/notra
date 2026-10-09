@@ -45,7 +45,9 @@ if (!databaseUrl) {
   mock.module("@notra/ai/integrations/github", () => ({
     createScopedGitHubAppInstallationToken: mint,
   }));
+  const octokit = await import("@notra/ai/utils/octokit");
   mock.module("@notra/ai/utils/octokit", () => ({
+    ...octokit,
     createOctokit: () => {
       throw new Error("Unexpected GitHub request");
     },

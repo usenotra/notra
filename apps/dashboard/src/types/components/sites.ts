@@ -553,6 +553,7 @@ export interface SiteIntegrationLogoProps {
 export interface SiteIntegrationRowProps {
   provider: SiteIntegrationProvider;
   isSetUp: boolean;
+  disabled: boolean;
   onOpen: () => void;
   onRemove: () => void;
 }

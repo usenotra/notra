@@ -75,6 +75,7 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
   const logDefect = new Error("log adapter defect");
   const r2Logs: string[] = [];
   const saved: { metrics: SiteBuildMetrics; log: string }[] = [];
+  const buildTargets: SandboxBuildEffectParams["target"][] = [];
   const telemetry = {
     saveBuildTelemetry: async (
       id: string,
@@ -180,6 +181,7 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
   mock.module("../src/box-build", () => ({
     runSandboxBuildEffect: (params: SandboxBuildEffectParams) =>
       Effect.gen(function* () {
+        buildTargets.push(params.target);
         const build: SandboxBuildResult = {
           result: {
             ok: mode !== "compiler",
@@ -332,6 +334,7 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
   const { runSiteJob } = await import("../src/runner");
   beforeEach(() => {
     saved.length = 0;
+    buildTargets.length = 0;
     r2Logs.length = 0;
     r2Fails = false;
     persistenceFails = false;
@@ -386,6 +389,17 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
       updatedAt: new Date(),
     };
   });
+  test.each(["production", "preview"] as const)(
+    "%s builds only enable analytics for production",
+    async (kind) => {
+      deployment.kind = kind;
+      expect(await runDeploymentPipeline(site, deployment)).toEqual({
+        kind: "live",
+      });
+      expect(buildTargets).toHaveLength(1);
+      expect(buildTargets[0]?.analytics).toBe(kind === "production");
+    }
+  );
   test("final metrics include source, sandbox and publication while logs survive R2 failure", async () => {
     r2Fails = true;
     expect(await runDeploymentPipeline(site, deployment)).toEqual({

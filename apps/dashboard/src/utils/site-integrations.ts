@@ -1,4 +1,4 @@
-import { siteIntegrationsSchema } from "@notra/sites-core/schemas/site-integrations";
+import { siteIntegrationSchemas } from "@notra/sites-core/schemas/site-integrations";
 
 import type {
   SiteIntegrationProvider,
@@ -22,7 +22,12 @@ export function siteIntegrationFormValues(
   const values: SiteIntegrationValues = {};
   for (const field of provider.fields) {
     const value = settings?.[field.key];
-    values[field.key] = typeof value === "string" ? value : "";
+    if (field.type === "boolean") {
+      values[field.key] =
+        typeof value === "boolean" ? value : (field.defaultValue ?? false);
+    } else {
+      values[field.key] = typeof value === "string" ? value : "";
+    }
   }
   return values;
 }
@@ -33,8 +38,9 @@ export function siteIntegrationSettingsFromValues(
 ): Record<string, unknown> {
   const settings: Record<string, unknown> = {};
   for (const field of provider.fields) {
-    const value = values[field.key]?.trim();
-    if (value) {
+    const raw = values[field.key];
+    const value = typeof raw === "string" ? raw.trim() : raw;
+    if (typeof value === "boolean" || value) {
       settings[field.key] = value;
     }
   }
@@ -45,13 +51,13 @@ export function siteIntegrationFieldErrors(
   provider: SiteIntegrationProvider,
   settings: Record<string, unknown>
 ): Record<string, string> {
-  const result = siteIntegrationsSchema.safeParse({ [provider.id]: settings });
+  const result = siteIntegrationSchemas[provider.id].safeParse(settings);
   const errors: Record<string, string> = {};
   if (result.success) {
     return errors;
   }
   for (const issue of result.error.issues) {
-    const key = issue.path[1];
+    const key = issue.path[0];
     if (typeof key === "string" && !errors[key]) {
       errors[key] = issue.message;
     }

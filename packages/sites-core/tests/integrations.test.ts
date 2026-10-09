@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Script } from "node:vm";
 
 import { siteConfigSchema } from "../src/schemas/site-config";
+import { siteIntegrationUpdateSchema } from "../src/schemas/site-integrations";
 import { buildSiteContentSecurityPolicy } from "../src/utils/content-security-policy";
 import { sortCustomScriptPaths } from "../src/utils/custom-scripts";
 import {
@@ -25,16 +26,21 @@ describe("integrations schema", () => {
     const result = parse({
       integrations: {
         databuddy: { clientId: "3ed1fce1-5a56" },
-        plausible: { domain: "Acme.com" },
+        plausible: { domain: "Acme.com", server: "Plausible.Acme.com" },
         posthog: {
           apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
           apiHost: "https://acme.com/ingest/",
+          sessionRecording: false,
         },
         ga4: { measurementId: "G-ABC123XYZ9" },
       },
     });
     expect(result.success).toBe(true);
     expect(result.data?.integrations.plausible?.domain).toBe("acme.com");
+    expect(result.data?.integrations.plausible?.server).toBe(
+      "plausible.acme.com"
+    );
+    expect(result.data?.integrations.posthog?.sessionRecording).toBe(false);
     expect(result.data?.integrations.posthog?.apiHost).toBe(
       "https://acme.com/ingest"
     );
@@ -42,6 +48,43 @@ describe("integrations schema", () => {
       contentSecurityPolicy: true,
       allowedOrigins: [],
     });
+  });
+
+  test("provider updates validate the matching settings and accept removal", () => {
+    expect(
+      siteIntegrationUpdateSchema.safeParse({
+        provider: "ga4",
+        settings: { domain: "acme.com" },
+      }).success
+    ).toBe(false);
+    expect(
+      siteIntegrationUpdateSchema.safeParse({
+        provider: "posthog",
+        settings: {
+          apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
+          sessionRecording: "false",
+        },
+      }).success
+    ).toBe(false);
+    expect(
+      siteIntegrationUpdateSchema.safeParse({
+        provider: "plausible",
+        settings: {
+          domain: "acme.com",
+          server: "https://plausible.acme.com/path",
+        },
+      }).success
+    ).toBe(false);
+    for (const provider of [
+      "ga4",
+      "posthog",
+      "plausible",
+      "databuddy",
+    ] as const) {
+      expect(
+        siteIntegrationUpdateSchema.parse({ provider, settings: null })
+      ).toEqual({ provider, settings: null });
+    }
   });
 
   test("rejects ids that could break out of HTML or JS, and unknown keys", () => {
@@ -94,6 +137,90 @@ describe("integrations schema", () => {
 });
 
 describe("head scripts", () => {
+  test("GA4 initializes its queue with exactly one page-view configuration", () => {
+    const scripts = integrationHeadScripts({
+      ga4: { measurementId: "G-ABC123XYZ9" },
+    });
+    const window: { dataLayer?: IArguments[] } = {};
+    for (const script of scripts) {
+      if (script.kind === "inline") {
+        new Script(script.code).runInNewContext({
+          window,
+          Date,
+          get dataLayer() {
+            return window.dataLayer;
+          },
+        });
+      }
+    }
+    expect(window.dataLayer?.map((args) => Array.from(args))).toEqual([
+      ["js", expect.any(Date)],
+      ["config", "G-ABC123XYZ9"],
+    ]);
+  });
+
+  test("PostHog initializes the configured endpoint and recording option", () => {
+    for (const sessionRecording of [undefined, true, false]) {
+      const window: { posthog?: { _i: unknown[][] } } = {};
+      const scriptElement = {
+        type: "",
+        src: "",
+        crossOrigin: "",
+        async: false,
+      };
+      const document = {
+        createElement: () => scriptElement,
+        getElementsByTagName: () => [
+          { parentNode: { insertBefore: () => {} } },
+        ],
+      };
+      const scripts = integrationHeadScripts({
+        posthog: {
+          apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
+          apiHost: "https://eu.i.posthog.com",
+          sessionRecording,
+        },
+      });
+      for (const script of scripts) {
+        if (script.kind === "inline") {
+          new Script(script.code).runInNewContext({
+            window,
+            document,
+            get posthog() {
+              return window.posthog;
+            },
+          });
+        }
+      }
+      expect(scriptElement.src).toBe(
+        "https://eu-assets.i.posthog.com/static/array.js"
+      );
+      expect(window.posthog?._i[0]?.slice(0, 2)).toEqual([
+        "phc_abcdefghijklmnopqrstuvwxyz0123",
+        {
+          api_host: "https://eu.i.posthog.com",
+          disable_session_recording: sessionRecording === false,
+        },
+      ]);
+    }
+  });
+
+  test("self-hosted Plausible uses its server for both script and events", () => {
+    const integrations = {
+      plausible: { domain: "acme.com", server: "stats.acme.com" },
+    };
+    expect(integrationHeadScripts(integrations)).toEqual([
+      {
+        kind: "external",
+        src: "https://stats.acme.com/js/script.js",
+        attributes: { "data-domain": "acme.com", defer: true },
+      },
+    ]);
+    expect(integrationCspSources(integrations)).toEqual({
+      scriptSrc: ["https://stats.acme.com"],
+      connectSrc: ["https://stats.acme.com"],
+    });
+  });
   test("inline values are JSON-encoded and cannot close the script", () => {
     expect(inlineScriptLiteral("</script><script>alert(1)")).toBe(
       '"\\u003c/script>\\u003cscript>alert(1)"'
@@ -169,10 +296,38 @@ describe("content security policy", () => {
       [
         "script-src 'self' 'sha256-aaa=' 'sha256-bbb=' https://*.posthog.com https://acme.com https://plausible.io https://widget.example.com",
         "connect-src 'self' https://*.posthog.com https://acme.com https://plausible.io https://widget.example.com wss://ws.example.com",
+        "worker-src 'self' blob: data:",
         "object-src 'none'",
         "base-uri 'self'",
       ].join("; ")
     );
+  });
+
+  test("PostHog replay workers are allowed only when recordings are enabled", () => {
+    for (const sessionRecording of [undefined, true, false]) {
+      const policy = buildSiteContentSecurityPolicy({
+        integrations: {
+          posthog: {
+            apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
+            sessionRecording,
+          },
+        },
+        security: { contentSecurityPolicy: true, allowedOrigins: [] },
+        scriptHashes: [],
+      });
+      expect(policy?.includes("worker-src 'self' blob: data:")).toBe(
+        sessionRecording !== false
+      );
+      expect(policy).not.toContain("'unsafe-inline'");
+      expect(policy).not.toContain("'unsafe-eval'");
+    }
+    expect(
+      buildSiteContentSecurityPolicy({
+        integrations: {},
+        security: { contentSecurityPolicy: true, allowedOrigins: [] },
+        scriptHashes: [],
+      })
+    ).not.toContain("worker-src");
   });
 
   test("turned off in blog.json", () => {

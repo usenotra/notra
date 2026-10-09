@@ -2,6 +2,7 @@
 
 import { Alert02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { siteIntegrationSchemas } from "@notra/sites-core/schemas/site-integrations";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import {
   Alert,
@@ -13,7 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
-import { buttonVariants } from "@/components/button";
+import { Button, buttonVariants } from "@/components/button";
 import Link from "@/components/framework/link";
 import { useSite } from "@/components/sites/site-context";
 import { SiteIntegrationDialog } from "@/components/sites/site-integration-dialog";
@@ -43,6 +44,25 @@ export function SiteIntegrationsPage() {
     <div className="flex flex-1 flex-col gap-6" data-site-fill>
       <PageHeading description={t("description")} title={t("title")} />
 
+      <p className="text-muted-foreground text-sm">{t("previewDescription")}</p>
+
+      {query.isError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t("loadFailed")}</AlertTitle>
+          <AlertDescription>
+            <p>{toErrorMessage(query.error, t("loadFailed"))}</p>
+            <Button
+              disabled={query.isFetching}
+              onClick={() => query.refetch()}
+              size="sm"
+              variant="outline"
+            >
+              {t("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {query.data?.invalid ? (
         <Alert variant="warning">
           <HugeiconsIcon
@@ -51,7 +71,15 @@ export function SiteIntegrationsPage() {
             strokeWidth={1.5}
           />
           <AlertTitle>{t("invalidTitle")}</AlertTitle>
-          <AlertDescription>{t("invalidDescription")}</AlertDescription>
+          <AlertDescription>
+            <p>{t("invalidDescription")}</p>
+            <Link
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              href={siteHref(organizationSlug, siteId, "editor")}
+            >
+              {t("openEditor")}
+            </Link>
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -60,20 +88,20 @@ export function SiteIntegrationsPage() {
           ? SITE_INTEGRATION_PROVIDERS.map((provider) => (
               <div className="flex items-center gap-4 p-3" key={provider.id}>
                 <Skeleton className="size-11 rounded-xl" />
-                <div className="flex-1 space-y-2">
+                <div className="min-w-0 flex-1 space-y-2">
                   <Skeleton className="h-3.5 w-28" />
-                  <Skeleton className="h-3.5 w-56" />
+                  <Skeleton className="h-3.5 w-56 max-w-full" />
                 </div>
               </div>
             ))
           : SITE_INTEGRATION_PROVIDERS.map((provider) => (
               <SiteIntegrationRow
                 isSetUp={
-                  siteIntegrationSettings(
-                    query.data?.integrations,
-                    provider
-                  ) !== null
+                  siteIntegrationSchemas[provider.id].safeParse(
+                    query.data?.integrations[provider.id]
+                  ).success
                 }
+                disabled={query.isError || save.isPending}
                 key={provider.id}
                 onOpen={() => setOpenId(provider.id)}
                 onRemove={() =>
@@ -96,7 +124,7 @@ export function SiteIntegrationsPage() {
 
       {query.data?.hasDraft ? (
         <div className="pointer-events-none sticky bottom-4 z-10 mt-auto flex justify-center">
-          <div className="bg-background/90 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 pointer-events-auto flex max-w-full items-center gap-6 rounded-xl border py-2 pr-2 pl-4 shadow-lg backdrop-blur motion-safe:duration-200">
+          <div className="bg-background/90 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 pointer-events-auto flex max-w-full min-w-0 flex-col items-stretch gap-3 rounded-xl border p-3 shadow-lg backdrop-blur motion-safe:duration-200 sm:flex-row sm:items-center sm:gap-6 sm:py-2 sm:pr-2 sm:pl-4">
             <p className="text-muted-foreground flex items-center gap-2 text-sm">
               <span
                 aria-hidden="true"

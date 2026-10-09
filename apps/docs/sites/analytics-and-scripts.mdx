@@ -22,32 +22,85 @@ Every site counts its own visitors and their time on page with nothing to instal
 
 ## Analytics integrations
 
-To also send visits to your own analytics tool, add it on the site's **Integrations** page or under `integrations` in `blog.json`. The Integrations page saves a draft of `blog.json` that goes live when you publish it from the editor. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
+Add a provider under `integrations` in `blog.json`, commit the file and deploy your site. Notra loads the provider on every live page and adds the hosts it needs to the [Content-Security-Policy](#content-security-policy). You can enable several providers at once.
+
+The site's **Integrations** page edits the same configuration. Enter your provider's ID, review the JSON example and save. This creates a draft of `blog.json`. Open **Review and publish** to publish it through your site's usual GitHub workflow. The new settings take effect after the production deployment succeeds. Removing a provider follows the same process.
+
+<Note>
+  Analytics integrations are disabled on preview deployments and during local development. Custom scripts still run there. If you install analytics through a custom script, you control when it sends events.
+</Note>
+
+### Google Analytics 4
+
+In Google Analytics, open **Admin → Data streams**, create or select a web stream for your live site's URL, and copy its **Measurement ID**. It starts with `G-`.
 
 ```json blog.json
 {
   "name": "Acme",
   "integrations": {
-    "databuddy": { "clientId": "your-client-id" },
-    "plausible": { "domain": "acme.com" }
+    "ga4": {
+      "measurementId": "G-ABC123XYZ9"
+    }
   }
 }
 ```
 
-You can turn on several providers at once, and Notra checks every ID against the provider's format. If an ID is wrong or a key is unknown, the build fails with an error that points to the setting.
+Publish the configuration, visit your live site and check Google Analytics Realtime. Standard reports can take time to update.
 
-| Integration | Settings | Notes |
-| --- | --- | --- |
-| `databuddy` | `clientId` | The client ID from Databuddy |
-| `plausible` | `domain` | The site's domain as you added it in Plausible |
-| `posthog` | `apiKey`, `apiHost` | `apiKey` is the project API key (`phc_…`), and `apiHost` defaults to `https://us.i.posthog.com`, so set it to `https://eu.i.posthog.com` for EU Cloud or to your reverse proxy |
-| `ga4` | `measurementId` | Google Analytics 4, for example `G-ABC123XYZ9` |
+### PostHog
 
-Another tool, such as a chat widget or a tag manager, goes in a [custom script](#custom-scripts).
+Copy the public project API key from your PostHog project settings. It starts with `phc_`.
 
-<Note>
-  Previews use the same integrations as your live site, so filter by hostname in your analytics tool to keep previews out of your numbers. Preview hosts look like `pr-7--acme.notra.site`.
-</Note>
+```json blog.json
+{
+  "name": "Acme",
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_abcdefghijklmnopqrstuvwxyz0123",
+      "apiHost": "https://eu.i.posthog.com",
+      "sessionRecording": false
+    }
+  }
+}
+```
+
+`apiHost` is optional and defaults to `https://us.i.posthog.com`. Set it to `https://eu.i.posthog.com` for EU Cloud, or to your self-hosted instance or HTTPS reverse proxy. Events go directly to this endpoint.
+
+Session recording is enabled by default. Set `sessionRecording` to `false` to disable recording while keeping analytics enabled. Your PostHog project must also allow recording for your site's domain.
+
+### Plausible
+
+Use the domain you added to Plausible, without `https://`.
+
+```json blog.json
+{
+  "name": "Acme",
+  "integrations": {
+    "plausible": {
+      "domain": "blog.acme.com"
+    }
+  }
+}
+```
+
+For self-hosted Plausible, add `"server": "plausible.acme.com"`. Use the server's hostname without a protocol or path. Notra loads its script and sends events to that server. When omitted, the server is `plausible.io`.
+
+### Databuddy
+
+Copy the Client ID from your Databuddy dashboard.
+
+```json blog.json
+{
+  "name": "Acme",
+  "integrations": {
+    "databuddy": {
+      "clientId": "3ed1fce1-5a56-4db3-8df5-a1036322c999"
+    }
+  }
+}
+```
+
+Notra validates provider settings in the dashboard, when saving and during builds. Invalid IDs, unexpected keys and invalid hostnames stop the change with an error. Remove a provider's object to disable it, then publish and deploy the configuration.
 
 ## Custom scripts
 
