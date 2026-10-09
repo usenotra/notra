@@ -3,6 +3,7 @@ import {
   HOSTNAME,
   HOSTNAME_WITH_PORT,
   HTTPS_BASE_URL,
+  HTTPS_SCRIPT_URL,
   POSTHOG_API_KEY,
 } from "@notra/sites-core/constants/integrations";
 import { SITE_CSP_MAX_ALLOWED_ORIGINS } from "@notra/sites-core/constants/security";
@@ -42,8 +43,8 @@ const posthogSchema = z.strictObject({
   apiHost: z
     .string()
     .trim()
-    .overwrite((value) => value.replace(/\/+$/, ""))
     .regex(HTTPS_BASE_URL, "Use an https:// URL without query or hash")
+    .overwrite((value) => value.replace(/\/+$/, ""))
     .optional()
     .describe(
       "PostHog ingestion URL. Defaults to https://us.i.posthog.com; use https://eu.i.posthog.com for EU Cloud or your self-hosted HTTPS endpoint."
@@ -68,18 +69,18 @@ const umamiSchema = z.strictObject({
     .string()
     .trim()
     .regex(
-      HTTPS_BASE_URL,
-      "Use the full https:// script URL without query or hash"
+      HTTPS_SCRIPT_URL,
+      "Use the full https:// script URL including its path, without query or hash"
     )
     .optional()
     .describe(
-      "Tracker script URL. Defaults to https://cloud.umami.is/script.js; use your self-hosted HTTPS script URL when needed."
+      "Tracker script URL including a non-root path. Defaults to https://cloud.umami.is/script.js; use your self-hosted HTTPS script URL when needed."
     ),
   hostUrl: z
     .string()
     .trim()
-    .overwrite((value) => value.replace(/\/+$/, ""))
     .regex(HTTPS_BASE_URL, "Use an https:// URL without query or hash")
+    .overwrite((value) => value.replace(/\/+$/, ""))
     .optional()
     .describe(
       "Optional collection endpoint base URL (data-host-url). Only needed when events should go to a different endpoint, such as a reverse proxy."

@@ -13,7 +13,10 @@ const PORT = String.raw`(?::(?:\d{1,4}|[0-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0
 export const HOSTNAME = new RegExp(`^${HOST}$`);
 export const HOSTNAME_WITH_PORT = new RegExp(`^${HOST}${PORT}$`);
 export const HTTPS_BASE_URL = new RegExp(
-  String.raw`^https:\/\/${HOST}${PORT}(?:\/[A-Za-z0-9._~-]+)*$`
+  String.raw`^https:\/\/${HOST}${PORT}(?:\/[A-Za-z0-9._~-]+)*\/*$`
+);
+export const HTTPS_SCRIPT_URL = new RegExp(
+  String.raw`^https:\/\/${HOST}${PORT}(?:\/(?!\.{1,2}(?:\/|$))[A-Za-z0-9._~-]+)+$`
 );
 export const CSP_ORIGIN = new RegExp(
   String.raw`^(?:https|wss):\/\/(?:\*\.)?${HOST}${PORT}$`

@@ -94,6 +94,9 @@ describe("integrations schema", () => {
     expect(result.data?.integrations.posthog?.apiHost).toBe(
       "https://acme.com/ingest"
     );
+    expect(result.data?.integrations.umami?.hostUrl).toBe(
+      "https://events.acme.com"
+    );
     expect(result.data?.security).toEqual({
       contentSecurityPolicy: true,
       allowedOrigins: [],
@@ -167,6 +170,25 @@ describe("integrations schema", () => {
           .success
       ).toBe(false);
     }
+  });
+
+  test.each([
+    "https://stats.acme.com",
+    "https://stats.acme.com/",
+    "https://stats.acme.com/.",
+    "https://stats.acme.com/..",
+    "https://stats.acme.com/tracker/..",
+  ])("rejects Umami script URLs without a tracker path: %s", (scriptUrl) => {
+    expect(
+      issuePaths({
+        integrations: {
+          umami: {
+            websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+            scriptUrl,
+          },
+        },
+      })
+    ).toEqual(["integrations.umami.scriptUrl"]);
   });
 
   test.each([
