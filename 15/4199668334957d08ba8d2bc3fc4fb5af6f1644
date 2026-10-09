@@ -1,0 +1,146 @@
+packages/sites-server/src/constants/smart-deployments.ts
+  ai_agent 1-2,6-7
+  s_f69c9ff79f8921::t_fcf6ffa3069f8d 3-5,8-9
+packages/sites-server/src/utils/preview-comment.ts
+  ai_agent 16-18
+  s_f69c9ff79f8921::t_da4574eaff33bd 19,32
+  s_f69c9ff79f8921::t_f0a244b11c4772 31
+packages/sites-server/README.md
+  s_f69c9ff79f8921::t_f7ba8b734d371e 183-206,208-225
+packages/sites-server/src/pipeline.ts
+  s_f69c9ff79f8921::t_1c4223443ce5c3 172
+  s_f69c9ff79f8921::t_a176bd062f966a 156
+  s_f69c9ff79f8921::t_3e28eb1115aaad 10,25-28,158-161,163,314-318,391-393,398-404
+  s_f69c9ff79f8921::t_b2d0e2b05ef797 162
+  s_f69c9ff79f8921::t_fc281a243bc2b2 177-183,394-397
+  s_f69c9ff79f8921::t_f0a244b11c4772 33,124,138-141
+  s_f69c9ff79f8921::t_fcf6ffa3069f8d 14,164-168,205,319
+apps/dashboard/src/utils/site-settings.ts
+  ai_agent 21-23
+  s_f69c9ff79f8921::t_f0a244b11c4772 34,73-74
+  s_f69c9ff79f8921::t_da7b96543b6872 8,40
+packages/sites-core/src/constants/source.ts
+  s_f69c9ff79f8921::t_1ac370335854dc 1-2,6
+  ai_agent 3-5
+packages/sites-core/src/utils/source-files.ts
+  ai_agent 2-5,27-35,40-44
+  s_f69c9ff79f8921::t_1ac370335854dc 23-26,36-39
+packages/sites-server/src/constants/jobs.ts
+  s_f69c9ff79f8921::t_fc281a243bc2b2 12-13
+packages/db/migrations/meta/_journal.json
+  ai_agent 802-808,811
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  ai_agent 222-227,230-235
+  s_f69c9ff79f8921::t_f0a244b11c4772 5,219-221,228-229,236-237
+apps/dashboard/src/constants/sites.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 117,150
+packages/sites-core/src/utils/stable-stringify.ts
+  s_f69c9ff79f8921::t_1ac370335854dc 1-12
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_f69c9ff79f8921::t_f0a244b11c4772 320
+apps/dashboard/messages/de.json
+  s_f69c9ff79f8921::t_2e253f36b02edb 6945-6946,7240-7243,7312-7313,7375-7376
+packages/sites-server/src/box-build.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 290
+packages/sites-server/src/deployments.ts
+  s_f69c9ff79f8921::t_fc281a243bc2b2 126-127,173-178,194-198,212-215,222-241,244-260,263-274
+  s_f69c9ff79f8921::t_85950a1cbc484f 182-184
+  s_f69c9ff79f8921::t_59e17420be763a 16,129-130,147,179-181,185-193,199-211,216-221,242-243,261-262,275
+packages/db/src/schema.ts
+  ai_agent 4395-4400
+  s_f69c9ff79f8921::t_454fef70129afb 18,4243,4393-4394,4448
+packages/sites-server/src/reporting.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 227
+apps/dashboard/tests/sites-get-read-only.test.ts
+  s_f69c9ff79f8921::t_6ab9d7837554f8 56,102-105
+packages/sites-server/tests/build-telemetry-pipeline.test.ts
+  ai_agent 126-132
+  s_f69c9ff79f8921::t_6ab9d7837554f8 120-123,125,133-134
+packages/sites-server/tests/deployment-timeline.test.ts
+  ai_agent 70-77
+  s_f69c9ff79f8921::t_6ab9d7837554f8 63-66,68-69,78-79
+apps/dashboard/src/types/components/sites.ts
+  s_f69c9ff79f8921::t_c52218d458bed1 140
+apps/dashboard/messages/en.json
+  s_f69c9ff79f8921::t_2e253f36b02edb 6945-6946,7240-7243,7312-7313,7375-7376
+apps/sites-builder/compiler/collect.ts
+  s_f69c9ff79f8921::t_454fef70129afb 2,9
+  s_f69c9ff79f8921::t_77b6ee1da292b8 5,31,34,61
+apps/dashboard/src/lib/sites/serialize.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 49,90
+apps/sites-builder/tests/source-fingerprint.test.ts
+  s_f69c9ff79f8921::t_77e68f5cf512a3 1-11,31-36,43-46
+  ai_agent 12-30,37-42
+packages/sites-server/src/sites.ts
+  s_f69c9ff79f8921::t_454fef70129afb 219
+packages/sites-server/src/smart-deployments.ts
+  s_f69c9ff79f8921::t_22f13e7caed21a 2-5,12-15,29-34,36-42,46-50,57-59,65-86,90-104,112-116,119-124,127-130,136-146,151-188,191-204,207-268
+  s_f69c9ff79f8921::t_c52218d458bed1 149
+  s_f69c9ff79f8921::t_fcf6ffa3069f8d 1,6-11,16-28,35,43-45,51-56,60-64,87-89,105-111,117-118,125-126,131-135,147-148,150,189-190,205-206,269-270
+packages/sites-server/src/types/build.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 21
+apps/dashboard/src/types/sites.ts
+  ai_agent 125-134
+  s_f69c9ff79f8921::t_f0a244b11c4772 122,163,228
+  s_f69c9ff79f8921::t_da7b96543b6872 135
+apps/dashboard/src/utils/site-settings.test.ts
+  s_f69c9ff79f8921::t_da7b96543b6872 1-5,10,20-26,34-40,51
+  ai_agent 6-9,11-19,27-33,41-50
+apps/dashboard/src/utils/site-deployment-timeline.ts
+  s_f69c9ff79f8921::t_da4574eaff33bd 75
+packages/db/migrations/0114_site_smart_deployments.sql
+  ai_agent 1-13
+packages/sites-core/src/types/smart-deployments.ts
+  s_f69c9ff79f8921::t_1ac370335854dc 1-27
+packages/sites-core/src/constants/sites.ts
+  s_f69c9ff79f8921::t_1ac370335854dc 131,146
+packages/sites-server/tests/smart-deployments-postgres.test.ts
+  s_f69c9ff79f8921::t_9449ea044a2aed 46,59,73-75,113-115,224,233,260-265,278-280,299,369-376,379-380,408-417,423-435,437-438,443-451,460-462,576-578,585-603,619-629,659-677,679-686,688-697,699-710,712-714
+  s_f69c9ff79f8921::t_77e68f5cf512a3 231,558-560,569-571,575,579-581
+  s_f69c9ff79f8921::t_ea53ed967055c2 418-422,439-442,452-459,499-510,512-514,531-534,536-538,641-643,645-647,650-652
+  s_f69c9ff79f8921::t_a925bc0407ef3e 60,121-123,300,630-640,644,654
+  s_f69c9ff79f8921::t_a176bd062f966a 436
+  s_f69c9ff79f8921::t_3cbd8fa749876a 1-8,13-23,42-45,48-58,62-68,99-100,109,116,124-125,142,156,201,229-230,232,252-259,310-316,320,325,328,331-332,364,582-584,604,608-609,716-717
+  s_f69c9ff79f8921::t_054bee6bb07620 61,106-108,301,496-498,511,515-530,535,539-543
+  s_f69c9ff79f8921::t_19dc68b3f6f7d5 281
+  s_f69c9ff79f8921::t_22f13e7caed21a 9-12,24-41,47,69-72,76-98,101-105,110-112,117-120,126-141,143-155,157-200,202-223,225-228,234-251,266-277,282-298,302-309,317-319,321-324,326-327,329-330,333-363,365-368,377-378,381-407,463-495,544-557,561-568,572-574,605-607,610-618,648-649,653,655-658,678,687,698,711,715
+packages/sites-server/src/types/sites.ts
+  s_f69c9ff79f8921::t_454fef70129afb 61
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_f69c9ff79f8921::t_f0a244b11c4772 68
+packages/sites-server/src/types/smart-deployments.ts
+  s_f69c9ff79f8921::t_fcf6ffa3069f8d 1-9
+packages/sites-core/src/utils/input-fingerprint.ts
+  ai_agent 14-20
+  s_f69c9ff79f8921::t_2c773906b36f12 12-13,21-22
+  s_f69c9ff79f8921::t_85950a1cbc484f 37-40
+  s_f69c9ff79f8921::t_1ac370335854dc 1-7,11,30-36,41-49,59-64,69-74,89
+  s_f69c9ff79f8921::t_22f13e7caed21a 8-10,23-29,50-58,65-68,75-88
+packages/db/migrations/meta/0114_snapshot.json
+  ai_agent 1-15512
+packages/db/tests/build-telemetry-postgres.test.ts
+  s_f69c9ff79f8921::t_19dc68b3f6f7d5 72-73
+packages/sites-core/tests/input-fingerprint.test.ts
+  s_f69c9ff79f8921::t_bf52eee9bc3047 1-3,5-7,17-19,26-30,48-49,58,65-67,77-79,97-101,117-121,134-137,169
+  ai_agent 159-167
+  s_f69c9ff79f8921::t_2c773906b36f12 8-16,20-25,31-47,50-57,59-64,68-76,80-96,102-116,122-133,138-158,168
+  s_f69c9ff79f8921::t_135a6e85567eca 4
+packages/sites-server/tests/github-consent.test.ts
+  s_f69c9ff79f8921::t_19dc68b3f6f7d5 48,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "154199668334957d08ba8d2bc3fc4fb5af6f1644",
+  "prompts": {},
+  "sessions": {
+    "s_f69c9ff79f8921": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f51-95c8-7300-9435-f09005fb79f7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
