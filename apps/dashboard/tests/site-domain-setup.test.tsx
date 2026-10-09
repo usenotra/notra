@@ -266,6 +266,10 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
       )?.[0];
       expect(link).toBeDefined();
       expect(link).not.toContain('target="_blank"');
+      const logo = html.match(/<svg\b[^>]*data-icon="inline-start"[^>]*>/)?.[0];
+      expect(logo).toContain(
+        providerName === "Vercel" ? "size-3 -translate-y-px" : "size-3.5"
+      );
       expect(html).toContain(
         en.sites.domainsPage.dns.automaticDescription.replace(
           "{provider}",

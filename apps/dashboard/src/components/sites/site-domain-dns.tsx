@@ -158,9 +158,21 @@ function ProviderButton({
   const t = useTranslations("sites.domainsPage.dns");
   let logo: ReactNode = null;
   if (SITE_CLOUDFLARE_PROVIDER_PATTERN.test(providerName)) {
-    logo = <Cloudflare aria-hidden="true" data-icon="inline-start" />;
+    logo = (
+      <Cloudflare
+        aria-hidden="true"
+        className="size-3.5"
+        data-icon="inline-start"
+      />
+    );
   } else if (SITE_VERCEL_PROVIDER_PATTERN.test(providerName)) {
-    logo = <Vercel aria-hidden="true" data-icon="inline-start" />;
+    logo = (
+      <Vercel
+        aria-hidden="true"
+        className="size-3 -translate-y-px"
+        data-icon="inline-start"
+      />
+    );
   }
   return (
     <a
@@ -177,6 +189,7 @@ function ProviderButton({
         ? t("connect", { provider: providerName })
         : t("openProvider", { provider: providerName })}
       <HugeiconsIcon
+        className="size-3.5"
         data-icon="inline-end"
         icon={ArrowUpRight01Icon}
         strokeWidth={1.5}
