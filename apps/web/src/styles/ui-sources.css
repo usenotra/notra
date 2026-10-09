@@ -46,6 +46,7 @@
 @source "../../../../packages/ui/src/components/ai-skins/perplexity/perplexity-sources-sheet.tsx";
 @source "../../../../packages/ui/src/components/data-table/body.tsx";
 @source "../../../../packages/ui/src/components/data-table/column-group.tsx";
+@source "../../../../packages/ui/src/components/data-table/corner-scrollbar.tsx";
 @source "../../../../packages/ui/src/components/data-table/header.tsx";
 @source "../../../../packages/ui/src/components/data-table/pager.tsx";
 @source "../../../../packages/ui/src/components/data-table/root.tsx";
