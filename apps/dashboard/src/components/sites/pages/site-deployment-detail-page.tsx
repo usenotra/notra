@@ -169,7 +169,11 @@ function DeploymentDetail({
         urls={urls}
       />
 
-      <SiteDeploymentFailure deployment={deployment} />
+      <SiteDeploymentFailure
+        deployment={deployment}
+        log={log}
+        site={detail.site}
+      />
 
       <section aria-label={t("log.title")}>
         <div className={TABLE_FRAME_CLASS}>

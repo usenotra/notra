@@ -12,6 +12,7 @@ import { useTranslations } from "use-intl";
 
 import { buttonVariants } from "@/components/button";
 import Link from "@/components/framework/link";
+import { CopyPromptButton } from "@/components/geo/code-snippet";
 import { SiteBuildLogs } from "@/components/sites/site-build-logs";
 import {
   SITE_CONFIG_MISSING_DIAGNOSTIC,
@@ -23,6 +24,7 @@ import { useSiteDeployment } from "@/lib/hooks/use-site-deployments";
 import { dashboardOrpc } from "@/lib/orpc/query";
 import { cn } from "@/lib/utils";
 import type { SiteCreateDeployProps } from "@/types/components/sites";
+import { buildSiteBuildAgentPrompt } from "@/utils/site-build-agent-prompt";
 import {
   deploymentElapsedMs,
   formatBuildDuration,
@@ -106,7 +108,7 @@ export function SiteCreateDeploy({
       <HugeiconsIcon
         aria-hidden="true"
         className={cn(
-          "size-4",
+          "size-4 shrink-0",
           !(ready || failed) && "motion-safe:animate-spin"
         )}
         icon={icon}
@@ -156,32 +158,54 @@ export function SiteCreateDeploy({
       ) : null}
 
       {ready || failed ? (
-        <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap justify-end gap-2 duration-300">
-          {failed && deploymentId ? (
-            <Link
-              className={buttonVariants({ variant: "outline" })}
-              href={siteDeploymentHref(organizationSlug, site.id, deploymentId)}
-            >
-              {t("viewDeployment")}
-            </Link>
-          ) : null}
-          {ready ? (
-            <a
-              className={buttonVariants({ variant: "outline" })}
-              href={site.liveUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {t("visit")}
-              <HugeiconsIcon data-icon="inline-end" icon={ArrowUpRight01Icon} />
-            </a>
-          ) : null}
-          <Link
-            className={buttonVariants()}
-            href={siteHref(organizationSlug, site.id)}
-          >
-            {t("openSite")}
-          </Link>
+        <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap items-center justify-end gap-2 duration-300">
+          {failed ? (
+            <>
+              <CopyPromptButton
+                className="me-auto"
+                prompt={buildSiteBuildAgentPrompt({
+                  site,
+                  deployment: record,
+                  log: deployment.data?.log ?? null,
+                })}
+              />
+              <Link
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href={
+                  deploymentId
+                    ? siteDeploymentHref(
+                        organizationSlug,
+                        site.id,
+                        deploymentId
+                      )
+                    : siteHref(organizationSlug, site.id, "deployments")
+                }
+              >
+                {t("viewDeployment")}
+              </Link>
+            </>
+          ) : (
+            <>
+              <a
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href={site.liveUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t("visit")}
+                <HugeiconsIcon
+                  data-icon="inline-end"
+                  icon={ArrowUpRight01Icon}
+                />
+              </a>
+              <Link
+                className={buttonVariants({ size: "sm" })}
+                href={siteHref(organizationSlug, site.id)}
+              >
+                {t("openSite")}
+              </Link>
+            </>
+          )}
         </div>
       ) : null}
     </div>
