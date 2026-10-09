@@ -28,18 +28,20 @@ export function SiteEditorConflictBanner({
       <AlertDescription>
         {t("conflict.description")}
         {paths.length > 0 ? (
-          <ul className="flex flex-wrap gap-1.5 pt-2">
+          <ul className="text-foreground flex flex-wrap gap-1.5 pt-2">
             {paths.map((path) => (
               <li className="min-w-0" key={path}>
-                <button
-                  className="bg-background text-foreground hover:bg-muted focus-visible:ring-ring/50 max-w-full truncate rounded-md border px-2 py-0.5 font-mono text-xs transition-colors duration-150 outline-none focus-visible:ring-[3px]"
+                <Button
+                  className="max-w-full"
                   disabled={isRebasing}
                   onClick={() => onSelect(path)}
                   title={path}
                   type="button"
+                  size="xs"
+                  variant="outline"
                 >
-                  {path}
-                </button>
+                  <span className="truncate font-mono">{path}</span>
+                </Button>
               </li>
             ))}
           </ul>

@@ -2,6 +2,12 @@
 
 import { Cancel01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@notra/ui/components/ui/input-group";
 import type { KeyboardEvent } from "react";
 import { useTranslations } from "use-intl";
 
@@ -21,16 +27,18 @@ export function SiteBuildLogFilter({
   };
 
   return (
-    <label className="text-muted-foreground focus-within:text-foreground relative flex h-7 w-32 items-center sm:w-44">
-      <HugeiconsIcon
-        aria-hidden="true"
-        className="pointer-events-none absolute start-2 size-3.5"
-        icon={Search01Icon}
-        strokeWidth={1.75}
-      />
-      <input
+    <InputGroup className="h-7 w-32 sm:w-44">
+      <InputGroupAddon>
+        <HugeiconsIcon
+          aria-hidden="true"
+          className="size-3.5"
+          icon={Search01Icon}
+          strokeWidth={1.5}
+        />
+      </InputGroupAddon>
+      <InputGroupInput
         aria-label={t("filter")}
-        className="text-foreground placeholder:text-muted-foreground hover:bg-background/60 focus:bg-background focus:border-border h-full w-full rounded-md border border-transparent bg-transparent ps-7 pe-6 text-xs transition-colors duration-150 outline-none"
+        className="h-full"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={onKeyDown}
         placeholder={t("filter")}
@@ -39,20 +47,21 @@ export function SiteBuildLogFilter({
         value={value}
       />
       {value ? (
-        <button
-          aria-label={t("clearFilter")}
-          className="hover:text-foreground focus-visible:ring-ring/50 absolute end-1 flex size-5 items-center justify-center rounded-sm outline-none focus-visible:ring-[3px]"
-          onClick={() => onChange("")}
-          type="button"
-        >
-          <HugeiconsIcon
-            aria-hidden="true"
-            className="size-3"
-            icon={Cancel01Icon}
-            strokeWidth={2}
-          />
-        </button>
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            aria-label={t("clearFilter")}
+            onClick={() => onChange("")}
+            size="icon-xs"
+          >
+            <HugeiconsIcon
+              aria-hidden="true"
+              className="size-3"
+              icon={Cancel01Icon}
+              strokeWidth={1.5}
+            />
+          </InputGroupButton>
+        </InputGroupAddon>
       ) : null}
-    </label>
+    </InputGroup>
   );
 }

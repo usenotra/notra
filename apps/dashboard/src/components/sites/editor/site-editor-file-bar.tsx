@@ -75,7 +75,7 @@ export function SiteEditorFileBar({
   const canDiscard = hasDraft;
 
   const breadcrumb = (
-    <span className="flex min-w-0 items-center gap-1 truncate text-[13px]">
+    <span className="flex min-w-0 items-center gap-1 truncate text-sm">
       {segments.slice(0, -1).map((segment, index) => (
         <Fragment key={segments.slice(0, index + 1).join("/")}>
           <span className="text-muted-foreground hidden sm:inline">
@@ -97,12 +97,14 @@ export function SiteEditorFileBar({
     <div className="flex h-11 shrink-0 items-center gap-3 border-b ps-3.5 pe-1.5">
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
         {onOpenFilePicker ? (
-          <button
+          <Button
             aria-haspopup="dialog"
-            className="hover:bg-muted focus-visible:ring-ring/50 -ms-1.5 flex min-w-0 items-center gap-1 rounded-md px-1.5 py-1 transition-colors duration-150 outline-none focus-visible:ring-[3px] md:hidden"
+            className="-ms-1.5 min-w-0 shrink md:hidden"
             onClick={onOpenFilePicker}
             title={path}
             type="button"
+            size="sm"
+            variant="ghost"
           >
             {breadcrumb}
             <HugeiconsIcon
@@ -111,7 +113,7 @@ export function SiteEditorFileBar({
               icon={ArrowDown01Icon}
               size={13}
             />
-          </button>
+          </Button>
         ) : null}
         <div
           className={cn(
@@ -131,24 +133,15 @@ export function SiteEditorFileBar({
           onValueChange={(value) => onModeChange(value as SiteEditorMode)}
           value={mode}
         >
-          <TabsList aria-label={t("view")} className="h-7!">
-            <TabsTrigger className="px-2 text-xs" value="edit">
-              {t("edit")}
-            </TabsTrigger>
-            <TabsTrigger className="px-2 text-xs" value="changes">
-              {t("changes")}
-            </TabsTrigger>
+          <TabsList aria-label={t("view")}>
+            <TabsTrigger value="edit">{t("edit")}</TabsTrigger>
+            <TabsTrigger value="changes">{t("changes")}</TabsTrigger>
           </TabsList>
         </Tabs>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                aria-label={t("more")}
-                className="text-muted-foreground"
-                size="icon-sm"
-                variant="ghost"
-              />
+              <Button aria-label={t("more")} size="icon-sm" variant="ghost" />
             }
           >
             <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
