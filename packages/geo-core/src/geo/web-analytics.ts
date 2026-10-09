@@ -13,6 +13,7 @@ import type {
   WebAudienceRow,
   WebEngagementRow,
 } from "@notra/analytics/types/tinybird-endpoints";
+import { isDemoMode } from "@notra/utils/demo-mode";
 import { Effect } from "effect";
 
 import {
@@ -80,7 +81,8 @@ const loadWebAnalyticsForScope = Effect.fn("web.analytics")(function* (
   };
   const params = { ...base, hosts: scope.hosts.join(",") };
   const configured = isTinybirdConfigured();
-  const query = configured ? geoRequiredQuery : geoQuery;
+  // Demo traffic is generated locally; unsupported web pipes return null.
+  const query = configured && !isDemoMode() ? geoRequiredQuery : geoQuery;
 
   const [
     overview,
@@ -199,7 +201,8 @@ export const loadSiteAnalytics = Effect.fn("web.siteAnalytics")(function* (
     siteId: site.id,
     hosts: [],
   };
-  const query = isTinybirdConfigured() ? geoRequiredQuery : geoQuery;
+  const query =
+    isTinybirdConfigured() && !isDemoMode() ? geoRequiredQuery : geoQuery;
   const [web, traffic, engagement] = yield* Effect.all(
     [
       loadWebAnalyticsForScope(scope, window),

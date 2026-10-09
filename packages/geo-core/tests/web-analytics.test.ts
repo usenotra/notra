@@ -26,12 +26,20 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
   const requests: Record<string, unknown>[] = [];
   let views = 0;
   let configured = true;
+  let demo = false;
   let failedQuery = "";
   const query = mock(async (params: Record<string, unknown>) => {
     requests.push(params);
     return configured ? { data: [] } : null;
   });
   const client = await import("@notra/analytics/tinybird/client");
+  const demoMode = await import("@notra/utils/demo-mode");
+  mock.module("@notra/utils/demo-mode", () => ({
+    ...demoMode,
+    isDemoMode: () => demo,
+  }));
+  const webQuery = (params: Record<string, unknown>) =>
+    demo ? Promise.resolve(null) : query(params);
   mock.module("@notra/analytics/tinybird/client", () => ({
     ...client,
     isTinybirdConfigured: () => configured,
@@ -40,24 +48,26 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
       if (failedQuery === "overview") {
         throw new Error("Tinybird unavailable");
       }
-      return configured ? { data: [{ views, visitors: views }] } : null;
+      return configured && !demo
+        ? { data: [{ views, visitors: views }] }
+        : null;
     },
-    queryWebAiOutcomes: query,
-    queryWebAudience: query,
-    queryWebHosts: query,
-    queryWebPages: query,
-    queryWebSources: query,
+    queryWebAiOutcomes: webQuery,
+    queryWebAudience: webQuery,
+    queryWebHosts: webQuery,
+    queryWebPages: webQuery,
+    queryWebSources: webQuery,
     queryWebTimeseries: (params: Record<string, unknown>) => {
       if (failedQuery === "timeseries") {
         return Promise.reject(new Error("Tinybird unavailable"));
       }
-      return query(params);
+      return webQuery(params);
     },
     queryWebEngagement: (params: Record<string, unknown>) => {
       if (failedQuery === "engagement") {
         return Promise.resolve(null);
       }
-      return query(params);
+      return webQuery(params);
     },
     queryGeoTrafficOverview: (params: Record<string, unknown>) => {
       if (failedQuery === "traffic") {
@@ -80,6 +90,7 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
     requests.length = 0;
     views = 0;
     configured = true;
+    demo = false;
     failedQuery = "";
   });
 
@@ -184,6 +195,25 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
     );
     expect(response.web.configured).toBe(false);
     expect(response.web.totals.views).toBe(0);
+  });
+
+  test("demo analytics tolerates unsupported web pipes without hiding live failures", async () => {
+    const scope = await seedProject("demo-web");
+    demo = true;
+    const web = await Effect.runPromise(
+      loadWebAnalytics(scope, { days: 7 }, undefined)
+    );
+    expect(web.configured).toBe(true);
+    expect(web.totals.views).toBe(0);
+    expect(web.points).toEqual([]);
+    const site = await Effect.runPromise(
+      loadSiteAnalytics(
+        { ...scope, id: "site-test", publicOrigin: "https://site.example" },
+        { days: 7 }
+      )
+    );
+    expect(site.web.configured).toBe(true);
+    expect(site.engagement.views).toBe(0);
   });
 
   test("a project without recorded visitors returns empty analytics, not a tracking flag", async () => {
