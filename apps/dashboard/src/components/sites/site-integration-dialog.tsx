@@ -312,7 +312,7 @@ export function SiteIntegrationDialog({
               {t("close")}
             </Button>
             <Button
-              disabled={busy || removalFailed || hasErrors}
+              disabled={busy || removalFailed}
               loading={publishing}
               onClick={() => {
                 void publish();
