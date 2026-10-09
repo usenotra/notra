@@ -2,28 +2,21 @@
 
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
-import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
 import { buttonVariants } from "@/components/button";
 import { EmptyState } from "@/components/empty-state";
-import { EmptyStateTablePreview } from "@/components/empty-state-preview";
 import Link from "@/components/framework/link";
 import { GeoRangePicker } from "@/components/geo/geo-range-picker";
 import { WebVisitorsSection } from "@/components/geo/web-visitors-section";
 import { useSite } from "@/components/sites/site-context";
-import {
-  EMPTY_STATE_TABLE_COLUMNS,
-  EMPTY_STATE_TABLE_ROWS,
-} from "@/constants/empty-state";
 import { useGeoRange } from "@/lib/hooks/use-geo-range";
 import { useSiteAnalytics } from "@/lib/hooks/use-sites";
 import { siteHref } from "@/utils/site-links";
 
 export function SiteAnalyticsPage() {
   const t = useTranslations("sites.analyticsPage");
-  const { organizationId, organizationSlug, siteId, detail, liveDeployment } =
-    useSite();
+  const { organizationId, organizationSlug, siteId, detail } = useSite();
   const analyticsOn = detail.site.analyticsEnabled;
   const geoRange = useGeoRange();
   const query = useSiteAnalytics(organizationId, siteId, geoRange.query);
@@ -32,10 +25,6 @@ export function SiteAnalyticsPage() {
     data !== undefined &&
     (data.web.totals.views > 0 ||
       data.traffic.sources.some((source) => source.visits > 0));
-  const hadVisitsBefore =
-    data !== undefined &&
-    (data.web.totals.previousViews > 0 ||
-      data.traffic.sources.some((source) => (source.previousVisits ?? 0) > 0));
   const settingsLink = (
     <Link
       className={buttonVariants({ variant: "outline" })}
@@ -44,43 +33,6 @@ export function SiteAnalyticsPage() {
       {t("offAction")}
     </Link>
   );
-
-  let emptyState: ReactNode = null;
-  if (data !== undefined && !hasVisits) {
-    if (!analyticsOn) {
-      emptyState = (
-        <EmptyState
-          action={settingsLink}
-          description={t("offDescription")}
-          title={t("offTitle")}
-        />
-      );
-    } else if (hadVisitsBefore) {
-      emptyState = (
-        <EmptyState
-          description={t("emptyRangeDescription")}
-          title={t("emptyRangeTitle")}
-        />
-      );
-    } else {
-      emptyState = (
-        <EmptyState
-          description={
-            liveDeployment
-              ? t("emptyDescription")
-              : t("notPublishedDescription")
-          }
-          preview={
-            <EmptyStateTablePreview
-              columns={EMPTY_STATE_TABLE_COLUMNS.traffic}
-              rows={EMPTY_STATE_TABLE_ROWS}
-            />
-          }
-          title={liveDeployment ? t("emptyTitle") : t("notPublishedTitle")}
-        />
-      );
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -99,8 +51,14 @@ export function SiteAnalyticsPage() {
           <Skeleton className="h-64 w-full rounded-2xl" />
         </div>
       ) : null}
-      {emptyState}
-      {data !== undefined && hasVisits ? (
+      {data !== undefined && !hasVisits && !analyticsOn ? (
+        <EmptyState
+          action={settingsLink}
+          description={t("offDescription")}
+          title={t("offTitle")}
+        />
+      ) : null}
+      {data !== undefined && (hasVisits || analyticsOn) ? (
         <WebVisitorsSection
           engagement={data.engagement}
           range={geoRange.query}

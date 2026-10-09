@@ -4,10 +4,13 @@ import { GEO_MAX_RANGE_DAYS } from "@notra/geo-core/constants/geo";
 import type { WebAnalyticsResponse } from "@notra/geo-core/types/geo";
 import { trafficSparklineDays } from "@notra/geo-core/utils/ai-traffic";
 
+import { WEB_TABLE_EMPTY_HEIGHT } from "@/constants/web-analytics";
+
 import {
   buildWebTrendRows,
   hasWebAnalytics,
   webSourceName,
+  webTableHeight,
 } from "./web-analytics";
 
 test.each([
@@ -96,6 +99,12 @@ test("visitor statistics appear only with views in the selected scope", () => {
   expect(hasWebAnalytics(undefined)).toBe(false);
   expect(hasWebAnalytics(analytics(0))).toBe(false);
   expect(hasWebAnalytics(analytics(1))).toBe(true);
+});
+
+test("empty visitor tables leave room for the default empty state", () => {
+  expect(webTableHeight(0)).toBe(WEB_TABLE_EMPTY_HEIGHT);
+  expect(webTableHeight(1)).toBe(176);
+  expect(webTableHeight(8)).toBe(396);
 });
 
 test("unlisted referrer names never resolve through the object prototype", () => {

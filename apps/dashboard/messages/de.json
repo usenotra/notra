@@ -4084,6 +4084,7 @@
       "pagesPerSession": "Seiten pro Besuch",
       "engagedRate": "Weitergelesen",
       "noData": "Keine Besucher in diesem Zeitraum",
+      "noDataDescription": "Hier erscheinen Besuchsdaten, sobald Traffic erfasst wird. Wähle einen längeren Zeitraum.",
       "columnViews": "Aufrufe",
       "columnFromAi": "Aus AI",
       "avgTime": "Ø Zeit auf der Seite",

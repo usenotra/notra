@@ -11,6 +11,7 @@ import {
 import { useLocale, useTranslations } from "use-intl";
 
 import { EngineIcon } from "@/components/geo/engine-icon";
+import { WebAnalyticsEmpty } from "@/components/geo/web-analytics-empty";
 import { WEB_TABLE_ROW_HEIGHT } from "@/constants/web-analytics";
 import type { WebOutcomesTableProps } from "@/types/geo";
 import { webTableHeight } from "@/utils/web-analytics";
@@ -71,7 +72,7 @@ export function WebOutcomesTable({ outcomes }: WebOutcomesTableProps) {
       <DataTable
         columns={columns}
         data={rows}
-        emptyState={t("noData")}
+        emptyState={<WebAnalyticsEmpty />}
         getRowId={(row) => row.source || "all"}
         height={webTableHeight(rows.length)}
         rowHeight={WEB_TABLE_ROW_HEIGHT}
