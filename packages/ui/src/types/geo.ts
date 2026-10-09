@@ -143,6 +143,11 @@ export interface PromptEngineSwitcherProps {
   labels?: Partial<PromptEngineSwitcherLabels>;
   /** Pill slide between engines; defaults to the flat indicator spring. */
   transition?: Transition;
+  /**
+   * Keeps every engine on one row on small screens: inactive pills show
+   * only their icon there, the active one keeps its name.
+   */
+  compactOnMobile?: boolean;
 }
 
 export interface PromptEngineSwitcherLabels {

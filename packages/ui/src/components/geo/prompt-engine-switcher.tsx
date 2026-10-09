@@ -29,6 +29,7 @@ export function PromptEngineSwitcher({
   onChange,
   labels,
   transition,
+  compactOnMobile = false,
 }: PromptEngineSwitcherProps) {
   const resolvedLabels = {
     ...DEFAULT_PROMPT_ENGINE_SWITCHER_LABELS,
@@ -47,7 +48,10 @@ export function PromptEngineSwitcher({
       <LayoutGroup id={layoutId}>
         <div
           aria-label={resolvedLabels.engines}
-          className="flex min-w-0 flex-1 flex-wrap items-center gap-1 p-0.5"
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-1 p-0.5",
+            compactOnMobile ? "max-sm:flex-nowrap sm:flex-wrap" : "flex-wrap"
+          )}
           role="tablist"
         >
           {items.map((item, index) => {
@@ -81,7 +85,12 @@ export function PromptEngineSwitcher({
                 ) : null}
                 <span className="relative z-10 inline-flex items-center gap-1.5">
                   <EngineIcon className="size-3.5" engine={item.engine} />
-                  <span className="inline-flex items-center gap-1">
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1",
+                      compactOnMobile && !selected && "max-sm:sr-only"
+                    )}
+                  >
                     <span>{item.family}</span>
                     {item.showSearchIcon ? (
                       <Tooltip>
