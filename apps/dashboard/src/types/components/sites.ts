@@ -1,7 +1,10 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
-import type { SiteIntegrationProvider } from "@/types/site-integrations";
+import type {
+  SiteIntegrationProvider,
+  SiteIntegrationAutosaveState,
+} from "@/types/site-integrations";
 import type {
   RepositorySuggestionsResult,
   SiteBuildAgentPromptInput,
@@ -564,6 +567,13 @@ export interface SiteIntegrationDialogProps {
   settings: Record<string, unknown> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+export interface SiteIntegrationSaveStatusProps {
+  state: SiteIntegrationAutosaveState;
+  invalid: boolean;
+  busy: boolean;
+  onRetry: () => void;
 }
 
 export interface SiteImportListProps {

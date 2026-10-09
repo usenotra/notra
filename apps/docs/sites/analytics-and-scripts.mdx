@@ -24,7 +24,7 @@ Every site counts its own visitors and their time on page with nothing to instal
 
 Add a provider under `integrations` in `blog.json`, commit the file and deploy your site. Notra loads the provider on every live page and adds the hosts it needs to the [Content-Security-Policy](#content-security-policy). You can enable several providers at once.
 
-The site's **Integrations** page edits the same configuration. Enter your provider's ID, review the JSON example and save. This creates a draft of `blog.json`. Open **Review and publish** to publish it through your site's usual GitHub workflow. The new settings take effect after the production deployment succeeds. Removing a provider follows the same process.
+The site's **Integrations** page edits the same configuration. Enter your provider's ID and review the JSON example. Valid changes save automatically as a draft of `blog.json`. The dialog shows whether changes are waiting, saving or saved. Closing it finishes any pending save; failed saves stay open so you can retry. Open **Review and publish** to publish your saved changes through your site's usual GitHub workflow, either as a pull request or a direct commit when allowed. The new settings take effect after the production deployment succeeds. Removing a provider also updates the draft and requires publishing.
 
 <Note>
   Analytics integrations are disabled on preview deployments and during local development. Custom scripts still run there. If you install analytics through a custom script, you control when it sends events.

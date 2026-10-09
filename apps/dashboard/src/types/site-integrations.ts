@@ -1,4 +1,7 @@
-import type { SiteIntegrationName } from "@notra/sites-core/types/site-integrations";
+import type {
+  SiteIntegrationName,
+  SiteIntegrationUpdate,
+} from "@notra/sites-core/types/site-integrations";
 import type { ComponentType, SVGProps } from "react";
 
 export type { SiteIntegrationName };
@@ -20,3 +23,16 @@ export interface SiteIntegrationProvider {
 }
 
 export type SiteIntegrationValues = Record<string, string | boolean>;
+
+export interface SiteIntegrationAutosaveState {
+  status: "idle" | "pending" | "saving" | "saved" | "error";
+  dirty: boolean;
+  hasIntegration: boolean;
+  error: unknown;
+}
+
+export interface SiteIntegrationAutosaveOptions {
+  initial: SiteIntegrationUpdate;
+  save: (update: SiteIntegrationUpdate) => Promise<unknown>;
+  onChange: (state: SiteIntegrationAutosaveState) => void;
+}

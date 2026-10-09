@@ -7639,12 +7639,9 @@
     },
     "integrationsPage": {
       "title": "Integrations",
-      "description": "Analytics for this site. Settings are saved in blog.json and go live when you publish.",
+      "description": "Analytics for this site. Valid settings save automatically to a blog.json draft and go live when you publish.",
       "optional": "Optional",
-      "connect": "Connect",
-      "save": "Save",
       "remove": "Remove",
-      "saved": "Integration saved",
       "removed": "Integration removed",
       "savedDescription": "It's a draft of blog.json until you publish it from the editor.",
       "saveFailed": "Couldn't save the integration",
@@ -7701,7 +7698,14 @@
           "apiHost": "Leave empty for US Cloud. Use https://eu.i.posthog.com for EU Cloud or your own HTTPS endpoint.",
           "sessionRecording": "Record visitor sessions when recording is enabled for this domain in PostHog."
         }
-      }
+      },
+      "close": "Close",
+      "autosaveDescription": "Valid changes save automatically as a draft. Publish them when you are ready.",
+      "autosavePending": "Waiting to save…",
+      "autosaveSaving": "Saving draft…",
+      "autosaveSaved": "Draft saved. Publish to apply these settings to your live site.",
+      "autosaveInvalid": "Enter valid settings to save your changes.",
+      "discardUnsaved": "Discard unsaved changes"
     },
     "repositoryCard": {
       "private": "Private",

@@ -2,10 +2,7 @@
 
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  siteIntegrationSchemas,
-  siteIntegrationUpdateSchema,
-} from "@notra/sites-core/schemas/site-integrations";
+import { siteIntegrationSchemas } from "@notra/sites-core/schemas/site-integrations";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -29,15 +26,16 @@ import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
 import { SiteIntegrationLogo } from "@/components/sites/site-integration-logo";
-import { useSaveSiteIntegration } from "@/lib/hooks/use-site-integrations";
+import { SiteIntegrationSaveStatus } from "@/components/sites/site-integration-save-status";
+import { useSiteIntegrationAutosave } from "@/lib/hooks/use-site-integration-autosave";
 import type { SiteIntegrationDialogProps } from "@/types/components/sites";
 import type { SiteIntegrationValues } from "@/types/site-integrations";
 import { toastCopyError } from "@/utils/copy-to-clipboard";
-import { toErrorMessage } from "@/utils/error-message";
 import {
   siteIntegrationFieldErrors,
   siteIntegrationFormValues,
   siteIntegrationSettingsFromValues,
+  siteIntegrationUpdateFromValues,
 } from "@/utils/site-integrations";
 
 export function SiteIntegrationDialog({
@@ -48,13 +46,20 @@ export function SiteIntegrationDialog({
   onOpenChange,
 }: SiteIntegrationDialogProps) {
   const t = useTranslations("sites.integrationsPage");
-  const tCommon = useTranslations("common");
   const id = useId();
   const [values, setValues] = useState<SiteIntegrationValues>(() =>
     siteIntegrationFormValues(provider, settings)
   );
   const [showErrors, setShowErrors] = useState(false);
-  const save = useSaveSiteIntegration(scope);
+  const [closing, setClosing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const autosave = useSiteIntegrationAutosave(
+    scope,
+    siteIntegrationUpdateFromValues(provider, values) ?? {
+      provider: provider.id,
+      settings: null,
+    }
+  );
   const next = siteIntegrationSettingsFromValues(provider, values);
   const errors = siteIntegrationFieldErrors(provider, next);
   const hasErrors = Object.keys(errors).length > 0;
@@ -64,33 +69,57 @@ export function SiteIntegrationDialog({
     null,
     2
   );
-  const connected = settings !== null;
-  const removing = save.isPending && save.variables?.settings === null;
+  const connected = settings !== null || autosave.state.hasIntegration;
+  const busy = closing || removing;
 
-  const submit = (nextSettings: Record<string, unknown> | null) => {
-    const update = siteIntegrationUpdateSchema.safeParse({
-      provider: provider.id,
-      settings: nextSettings,
-    });
-    if (!update.success) {
+  const change = (key: string, value: string | boolean) => {
+    const changed = { ...values, [key]: value };
+    setValues(changed);
+    autosave.update(siteIntegrationUpdateFromValues(provider, changed));
+  };
+
+  const close = async () => {
+    if (busy) {
+      return;
+    }
+    if (autosave.state.dirty && hasErrors) {
       setShowErrors(true);
       return;
     }
-    save.mutate(update.data, {
-      onSuccess: () => {
-        toast.success(nextSettings ? t("saved") : t("removed"), {
-          description: t("savedDescription"),
-        });
-        onOpenChange(false);
-      },
-      onError: (error) => {
-        toast.error(toErrorMessage(error, t("saveFailed")));
-      },
-    });
+    setClosing(true);
+    const saved = !autosave.state.dirty || (await autosave.flush());
+    setClosing(false);
+    if (saved) {
+      onOpenChange(false);
+    }
+  };
+
+  const remove = async () => {
+    setRemoving(true);
+    autosave.update({ provider: provider.id, settings: null });
+    const removed = await autosave.flush();
+    setRemoving(false);
+    if (removed) {
+      toast.success(t("removed"), { description: t("savedDescription") });
+      onOpenChange(false);
+    }
+  };
+
+  const discard = async () => {
+    setClosing(true);
+    await autosave.cancel();
+    onOpenChange(false);
   };
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
+    <ResponsiveDialog
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          void close();
+        }
+      }}
+      open={open}
+    >
       <ResponsiveDialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-md">
         <ResponsiveDialogHeader className="shrink-0">
           <div className="flex items-center gap-3">
@@ -109,17 +138,7 @@ export function SiteIntegrationDialog({
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            if (hasErrors) {
-              setShowErrors(true);
-              const invalidField = provider.fields.find(
-                (field) => errors[field.key]
-              );
-              if (invalidField) {
-                document.getElementById(`${id}-${invalidField.key}`)?.focus();
-              }
-              return;
-            }
-            submit(next);
+            void close();
           }}
         >
           {provider.fields.map((field) => {
@@ -144,14 +163,9 @@ export function SiteIntegrationDialog({
                     aria-label={label}
                     checked={values[field.key] === true}
                     aria-describedby={`${fieldId}-description`}
-                    disabled={save.isPending}
+                    disabled={busy}
                     id={fieldId}
-                    onCheckedChange={(checked) =>
-                      setValues((current) => ({
-                        ...current,
-                        [field.key]: checked,
-                      }))
-                    }
+                    onCheckedChange={(checked) => change(field.key, checked)}
                   />
                 ) : (
                   <Input
@@ -159,14 +173,14 @@ export function SiteIntegrationDialog({
                     aria-invalid={error ? true : undefined}
                     autoCapitalize="none"
                     autoComplete="off"
-                    disabled={save.isPending}
+                    disabled={busy}
                     id={fieldId}
-                    onChange={(event) =>
-                      setValues((current) => ({
-                        ...current,
-                        [field.key]: event.target.value,
-                      }))
-                    }
+                    onBlur={() => {
+                      if (autosave.state.dirty) {
+                        setShowErrors(true);
+                      }
+                    }}
+                    onChange={(event) => change(field.key, event.target.value)}
                     placeholder={field.placeholder}
                     spellCheck={false}
                     value={typeof value === "string" ? value : ""}
@@ -217,12 +231,22 @@ export function SiteIntegrationDialog({
             </a>
           </FieldDescription>
         </form>
-        <ResponsiveDialogFooter className="shrink-0 sm:justify-between">
+        <SiteIntegrationSaveStatus
+          state={autosave.state}
+          invalid={hasErrors}
+          busy={busy}
+          onRetry={() => {
+            void autosave.flush();
+          }}
+        />
+        <ResponsiveDialogFooter className="shrink-0 sm:flex-wrap sm:justify-between">
           {connected ? (
             <Button
-              disabled={save.isPending && !removing}
+              disabled={busy}
               loading={removing}
-              onClick={() => submit(null)}
+              onClick={() => {
+                void remove();
+              }}
               type="button"
               variant="destructive"
             >
@@ -231,22 +255,27 @@ export function SiteIntegrationDialog({
           ) : (
             <span aria-hidden="true" />
           )}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <div className="flex min-w-0 flex-col-reverse gap-2 sm:ml-auto sm:flex-row">
+            {autosave.state.dirty &&
+            (hasErrors || autosave.state.status === "error") ? (
+              <Button
+                disabled={busy}
+                onClick={() => {
+                  void discard();
+                }}
+                type="button"
+                variant="outline"
+              >
+                {t("discardUnsaved")}
+              </Button>
+            ) : null}
             <Button
-              disabled={save.isPending}
-              onClick={() => onOpenChange(false)}
-              type="button"
-              variant="outline"
-            >
-              {tCommon("actions.cancel")}
-            </Button>
-            <Button
-              disabled={removing}
+              disabled={busy}
               form={`${id}-form`}
-              loading={save.isPending && !removing}
+              loading={closing}
               type="submit"
             >
-              {connected ? t("save") : t("connect")}
+              {t("close")}
             </Button>
           </div>
         </ResponsiveDialogFooter>

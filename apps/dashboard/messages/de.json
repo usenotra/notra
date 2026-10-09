@@ -7639,12 +7639,9 @@
     },
     "integrationsPage": {
       "title": "Integrationen",
-      "description": "Analytics für diese Site. Die Einstellungen landen in blog.json und gehen beim Veröffentlichen live.",
+      "description": "Analytics für diese Site. Gültige Einstellungen werden automatisch als blog.json-Entwurf gespeichert und beim Veröffentlichen übernommen.",
       "optional": "Optional",
-      "connect": "Verbinden",
-      "save": "Speichern",
       "remove": "Entfernen",
-      "saved": "Integration gespeichert",
       "removed": "Integration entfernt",
       "savedDescription": "Bis du sie im Editor veröffentlichst, ist sie ein Entwurf von blog.json.",
       "saveFailed": "Integration konnte nicht gespeichert werden",
@@ -7701,7 +7698,14 @@
           "apiHost": "Leer lassen für US Cloud. Für EU Cloud nutze https://eu.i.posthog.com oder deinen eigenen HTTPS-Endpunkt.",
           "sessionRecording": "Zeichnet Besuchersitzungen auf, wenn Aufzeichnungen für diese Domain in PostHog aktiviert sind."
         }
-      }
+      },
+      "close": "Schließen",
+      "autosaveDescription": "Gültige Änderungen werden automatisch als Entwurf gespeichert. Veröffentliche sie, wenn sie bereit sind.",
+      "autosavePending": "Warten auf Speicherung…",
+      "autosaveSaving": "Entwurf wird gespeichert…",
+      "autosaveSaved": "Entwurf gespeichert. Veröffentliche ihn, um diese Einstellungen auf der Live-Site anzuwenden.",
+      "autosaveInvalid": "Gib gültige Einstellungen ein, um deine Änderungen zu speichern.",
+      "discardUnsaved": "Ungespeicherte Änderungen verwerfen"
     },
     "repositoryCard": {
       "private": "Privat",

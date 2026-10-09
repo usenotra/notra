@@ -5,6 +5,16 @@ import { PostHog } from "@notra/ui/components/ui/svgs/posthog";
 
 import type { SiteIntegrationProvider } from "@/types/site-integrations";
 
+export const SITE_INTEGRATION_AUTOSAVE_DELAY_MS = 600;
+
+export const SITE_INTEGRATION_AUTOSAVE_MESSAGES = {
+  idle: "autosaveDescription",
+  pending: "autosavePending",
+  saving: "autosaveSaving",
+  saved: "autosaveSaved",
+  error: "saveFailed",
+} as const;
+
 export const SITE_INTEGRATION_PROVIDERS: readonly SiteIntegrationProvider[] = [
   {
     id: "databuddy",

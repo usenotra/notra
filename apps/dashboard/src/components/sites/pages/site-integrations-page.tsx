@@ -144,7 +144,7 @@ export function SiteIntegrationsPage() {
 
       {open ? (
         <SiteIntegrationDialog
-          key={open.id}
+          key={`${organizationId}:${siteId}:${open.id}`}
           onOpenChange={(next) => {
             if (!next) {
               setOpenId(null);

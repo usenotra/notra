@@ -1,4 +1,7 @@
-import { siteIntegrationSchemas } from "@notra/sites-core/schemas/site-integrations";
+import {
+  siteIntegrationSchemas,
+  siteIntegrationUpdateSchema,
+} from "@notra/sites-core/schemas/site-integrations";
 
 import type {
   SiteIntegrationProvider,
@@ -45,6 +48,17 @@ export function siteIntegrationSettingsFromValues(
     }
   }
   return settings;
+}
+
+export function siteIntegrationUpdateFromValues(
+  provider: SiteIntegrationProvider,
+  values: SiteIntegrationValues
+) {
+  const result = siteIntegrationUpdateSchema.safeParse({
+    provider: provider.id,
+    settings: siteIntegrationSettingsFromValues(provider, values),
+  });
+  return result.success ? result.data : null;
 }
 
 export function siteIntegrationFieldErrors(
