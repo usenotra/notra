@@ -31,6 +31,7 @@ import {
   useState,
 } from "react";
 import { withLocaleTooltip, withLocaleValueAxis } from "@/utils/chart-locale";
+import { buildZeroBaselineAxisLine } from "@/utils/chart-zero-baseline";
 import { EChartsPlotFrame } from "@/components/charts/echarts-plot-frame";
 import { CHART_SCRUB_POSITION_LERP } from "@/constants/charts";
 import {
@@ -1034,7 +1035,15 @@ function buildMainAxes(ctx: OptionBuildContext): {
     nameLocation: "middle",
     nameGap: 30,
     nameTextStyle: { color: axisLabelColor, fontSize: 10 },
-    axisLine: { show: false },
+    axisLine: buildZeroBaselineAxisLine(
+      ctx.data,
+      isLoading
+        ? []
+        : ctx.areas
+            .filter((area) => area.visible !== false)
+            .map((area) => area.dataKey),
+      axisLabelColor
+    ),
     // Tick DOTS: a near-zero-length tick whose round caps form a true circle,
     // in the gridline gray (flattened opaque so the caps don't stack).
     axisTick: {
