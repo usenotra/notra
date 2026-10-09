@@ -1,4 +1,11 @@
 import {
+  DIAGRAM_CHECK_SCRIPT,
+  DIAGRAM_CHECK_SCRIPT_PATH,
+  DIAGRAM_SKILL_CONTENT,
+  DIAGRAM_SKILL_DIR,
+  DIAGRAM_SKILL_PATH,
+} from "@notra/ai/constants/excalidraw-diagram";
+import {
   ASSET_KIND_FILENAME_PREFIX,
   BRAND_IDENTITY_ASSET_DIR,
   BRAND_IDENTITY_GUIDELINES_PATH,
@@ -60,6 +67,27 @@ export async function injectHumanizerSkill(params: {
   organizationId: string;
 }) {
   await Effect.runPromise(injectHumanizerSkillEffect(params));
+}
+
+export async function injectExcalidrawDiagramSkill(params: {
+  box: RepoImageBox;
+}) {
+  await Effect.runPromise(
+    Effect.all([
+      writeSandboxSkillEffect({
+        box: params.box,
+        dir: DIAGRAM_SKILL_DIR,
+        path: DIAGRAM_SKILL_PATH,
+        content: DIAGRAM_SKILL_CONTENT,
+      }),
+      writeSandboxTextFileEffect({
+        box: params.box,
+        dir: DIAGRAM_SKILL_DIR,
+        path: DIAGRAM_CHECK_SCRIPT_PATH,
+        content: DIAGRAM_CHECK_SCRIPT,
+      }),
+    ])
+  );
 }
 
 const injectBrandIdentitySkillEffect = Effect.fn("injectBrandIdentitySkill")(

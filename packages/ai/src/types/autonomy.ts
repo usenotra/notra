@@ -72,6 +72,11 @@ export interface RecordSignalResult {
   deduplicated: boolean;
 }
 
+export interface RecordSignalsInput {
+  organizationId: string;
+  signals: readonly Omit<RecordSignalInput, "organizationId">[];
+}
+
 export interface SignalSummary {
   signalId: string;
   source: string;

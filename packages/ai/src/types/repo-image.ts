@@ -1,11 +1,17 @@
 import type {
   generateRepoImageInputSchema,
+  repoImageFormatSchema,
   repoImageModeSchema,
 } from "@notra/ai/schemas/repo-image";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import type {
+  DiagramSpec,
+  ExcalidrawScene,
+} from "@notra/ai/types/excalidraw-diagram";
 import type * as z from "zod";
 
 export type RepoImageMode = z.infer<typeof repoImageModeSchema>;
+export type RepoImageFormat = z.infer<typeof repoImageFormatSchema>;
 
 export type RepoImageErrorCode =
   | "missing_config"
@@ -19,9 +25,14 @@ export type GenerateRepoImageInput = z.infer<
 >;
 
 export interface GenerateRepoImageResult {
+  format: RepoImageFormat;
   pngBase64: string;
   svg: string;
   html: string;
+  /** Editable Excalidraw scene, only for the diagram format. */
+  excalidrawScene?: ExcalidrawScene;
+  /** Compact spec the scene was built from; the source of truth for edits. */
+  diagramSpec?: DiagramSpec;
   brandIdentityId?: string;
   sandbox: {
     boxId?: string;
@@ -32,6 +43,14 @@ export interface GenerateRepoImageResult {
   } | null;
   usage?: AgentTokenUsage;
 }
+
+export type RepoImageUsage = AgentTokenUsage | undefined;
+
+/** What one format run produces; generateRepoImage adds format and sandbox. */
+export type RepoImageRender = Pick<
+  GenerateRepoImageResult,
+  "pngBase64" | "svg" | "html" | "excalidrawScene" | "diagramSpec"
+> & { usage: RepoImageUsage };
 
 export interface ImageToolConfig {
   chatId?: string;
@@ -44,11 +63,8 @@ export interface ImageRevisionToolConfig {
   organizationId: string;
   userId: string;
   postId: string;
-  title: string;
-  integrationId: string;
-  branch: string;
-  brandIdentityId?: string;
   useMarkup?: boolean;
+  chargeAiCredits?: boolean;
 }
 
 export interface FontSpec {

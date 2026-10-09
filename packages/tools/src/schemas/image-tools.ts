@@ -19,4 +19,10 @@ export const reviseImageInputSchema = z.object({
     .max(120)
     .optional()
     .describe("Optional updated title for the image post"),
+  useRepository: z
+    .boolean()
+    .optional()
+    .describe(
+      "Diagrams only. Diagram edits normally take a few seconds and change the existing diagram directly. Set true only when the change needs new facts from the repository code (for example add the steps of a function the diagram does not show yet); this restores the sandbox and takes minutes."
+    ),
 });

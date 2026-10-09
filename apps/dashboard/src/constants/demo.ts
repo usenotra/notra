@@ -27,10 +27,9 @@ export const DEMO_EMBED_COOKIE_ATTRIBUTES = {
 } as const;
 
 const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
 
-/** Hard cap regardless of activity: no demo data lives longer than a day. */
-export const DEMO_SANDBOX_MAX_AGE_MS = DAY_MS;
+/** Enough time to explore; activity never extends the storage lifetime. */
+export const DEMO_SANDBOX_MAX_AGE_MS = 6 * HOUR_MS;
 export const DEMO_SESSION_COOKIE_MAX_AGE_SECONDS =
   DEMO_SANDBOX_MAX_AGE_MS / 1000;
 /** `last_seen_at` is only written when it is older than this. */
@@ -46,6 +45,9 @@ export const DEMO_ANONYMOUS_ID_LENGTH = 16;
  * cookie's id pattern, so an unclaimed sandbox is unreachable.
  */
 export const DEMO_POOL_ID_PREFIX = "pool_";
+/** In-flight seeds count toward the budget but cannot be claimed or evicted. */
+export const DEMO_SEED_ID_PREFIX = "seed_";
+export const DEMO_STORAGE_LOCK_KEY = "notra:demo-storage";
 /** Ready sandboxes kept in reserve; NOTRA_DEMO_POOL_SIZE overrides it. */
 export const DEMO_DEFAULT_POOL_SIZE = 3;
 /**
@@ -142,8 +144,8 @@ export const DEMO_BLOCKED_PATH =
 
 export const DEMO_BLOCKED_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Not available in the demo</title><style>body{font:15px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;padding:24px;color:#1a1d1f;background:#fafafa}main{max-width:26rem;text-align:center}a,button{font:inherit;border:0;border-radius:8px;padding:8px 14px;margin:4px;cursor:pointer}a{background:#7c5cfc;color:#fff;text-decoration:none}button{background:#eee}</style></head><body><main><h1 style="font-size:18px">Connecting accounts is off in the demo</h1><p>The demo uses sample integrations so nothing leaves this sandbox. Start free to connect your own GitHub, Slack, Linear and more.</p><a href="${DEMO_SIGNUP_URL}" rel="noopener" target="_top">Start free</a><button onclick="window.opener?window.close():history.back()">Go back</button></main></body></html>`;
 
-/** About 5 MB each, so the default keeps the demo database near 1.5 GB. */
-export const DEMO_DEFAULT_MAX_ACTIVE_SANDBOXES = 300;
+/** About 5 MB each; includes the ready pool, not just visitor workspaces. */
+export const DEMO_MAX_ACTIVE_SANDBOXES = 50;
 
 export const DEMO_PERSONALIZATION_NAME_MAX = 40;
 export const DEMO_PERSONALIZATION_COMPANY_MAX = 60;

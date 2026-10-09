@@ -287,7 +287,7 @@ export const runSandboxBuildEffect = Effect.fn("Sites.Sandbox.build")(
             catch: (error) => error,
           });
           metrics.snapshotId = yield* Effect.try({
-            try: getSitesBuilderSnapshotId,
+            try: () => params.snapshotId ?? getSitesBuilderSnapshotId(),
             catch: (error) => error,
           });
           const allocated = yield* sandboxRequestEffect(

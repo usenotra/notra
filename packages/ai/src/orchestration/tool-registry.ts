@@ -56,8 +56,9 @@ export function buildToolSet(
     contentType,
     currentPostId,
     userId,
-    imageDefaults,
+    imageContext,
     useMarkup,
+    chargeAiCredits,
     onMarkdownUpdate,
     validatedIntegrations,
   } = params;
@@ -80,24 +81,21 @@ export function buildToolSet(
   registerBrandAndGeoTools(tools, descriptions, organizationId, contentType);
 
   if (isImageContent) {
-    if (currentPostId && userId && imageDefaults) {
+    if (currentPostId && userId && imageContext?.canRevise) {
       tools.reviseImage = createImageRevisionTool({
         organizationId,
         userId,
         postId: currentPostId,
-        title: imageDefaults.title,
-        integrationId: imageDefaults.integrationId,
-        branch: imageDefaults.branch,
-        brandIdentityId: imageDefaults.brandIdentityId,
         useMarkup,
+        chargeAiCredits,
       });
       descriptions.unshift(
-        "**Image Editing**: Revise the current image using reviseImage. It restores the saved sandbox snapshot, applies the visual change, saves the updated image back to this content item, and stores a new snapshot."
+        "**Image Editing**: Revise the current image using reviseImage. Marketing images restore the saved sandbox snapshot, apply the visual change, and store a new snapshot. Diagrams are edited directly in seconds; set useRepository only when the change needs new facts from the code. Call reviseImage once per request and describe the whole change in one prompt."
       );
     } else {
       tools.reviseImage = createUnavailableImageRevisionTool();
       descriptions.unshift(
-        "**Image Editing**: Image revision is unavailable because the saved sandbox metadata is missing. Call reviseImage to explain the missing metadata."
+        "**Image Editing**: Image revision is unavailable because there is neither a valid editable diagram nor the sandbox metadata needed for marketing-image edits. Call reviseImage to explain this limitation."
       );
     }
   } else {
@@ -259,12 +257,12 @@ function brandAgentTypeFromContent(
 function createUnavailableImageRevisionTool(): Tool {
   return tool({
     description:
-      "Explain why this generated image cannot be revised because its saved sandbox metadata is missing.",
+      "Explain why this image cannot be revised without an editable diagram or saved sandbox metadata.",
     inputSchema: unavailableImageRevisionToolInputSchema,
     execute: async () => ({
       status: "unavailable",
       message:
-        "This image cannot be revised because the saved sandbox metadata is missing.",
+        "This image has no editable diagram or saved sandbox metadata needed to revise it.",
     }),
   });
 }

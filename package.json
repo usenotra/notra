@@ -38,7 +38,7 @@
     "@commitlint/config-conventional": "^21.2.3",
     "@effect/tsgo": "0.47.2",
     "@shadcn/lint": "0.1.0",
-    "@types/node": "24.13.2",
+    "@types/node": "24.13.6",
     "bun-types": "1.4.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
@@ -49,7 +49,7 @@
     "oxfmt": "0.64.0",
     "oxlint": "1.82.0",
     "oxlint-tsgolint": "7.0.2001",
-    "turbo": "^2.11.4",
+    "turbo": "2.11.5",
     "typescript": "7.0.2",
     "ultracite": "7.10.6"
   },
@@ -63,7 +63,7 @@
     "js-yaml@4": "4.3.2",
     "nf3": "0.3.17",
     "protobufjs@7": "7.6.5",
-    "seroval": "1.6.7",
+    "seroval": "1.6.8",
     "sharp": "^0.35.5"
   },
   "engines": {

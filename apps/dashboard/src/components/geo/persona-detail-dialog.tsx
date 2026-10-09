@@ -38,6 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@notra/ui/components/ui/tooltip";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
@@ -53,7 +54,6 @@ import { GEO_PERSONA_DIALOG_VIEWS } from "@/constants/geo-personas";
 import { useIsGeoScanning } from "@/lib/hooks/use-geo";
 import { useGeoPersonasGenerate } from "@/lib/hooks/use-geo-personas";
 import { usePersonaConversation } from "@/lib/hooks/use-persona-conversation";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type { GeoSequenceEngineThread } from "@/types/geo";
 import type {
   PersonaDetailDialogProps,

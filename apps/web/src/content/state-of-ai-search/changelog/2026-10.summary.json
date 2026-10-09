@@ -1,0 +1,132 @@
+{
+  "slug": "changelog",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-08",
+  "subject": "Changelog",
+  "noun": "changelog tool",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 200,
+      "brandsPerAnswer": 2.4,
+      "sourcesPerAnswer": 13.7
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 200,
+      "brandsPerAnswer": 5.6,
+      "sourcesPerAnswer": 7.5
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "model": "google/gemini-3.8-flash",
+      "answers": 200,
+      "brandsPerAnswer": 4.7,
+      "sourcesPerAnswer": 5.7
+    },
+    {
+      "id": "perplexity",
+      "label": "Perplexity",
+      "model": "perplexity/sonar",
+      "answers": 200,
+      "brandsPerAnswer": 1.7,
+      "sourcesPerAnswer": 13.8
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 17,
+      "brandsPerAnswer": 1.7,
+      "sourcesPerAnswer": 6.6
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Beamer",
+      "domain": "getbeamer.com",
+      "rank": 1,
+      "visibility": 54,
+      "topPick": 19,
+      "ownSiteCited": 18,
+      "byEngine": {
+        "chatgpt": 43,
+        "claude": 83,
+        "gemini": 80,
+        "perplexity": 37,
+        "ai-overview": 29
+      },
+      "delta": null
+    },
+    {
+      "name": "Headway",
+      "domain": "headwayapp.co",
+      "rank": 2,
+      "visibility": 50,
+      "topPick": 20,
+      "ownSiteCited": 9,
+      "byEngine": {
+        "chatgpt": 33,
+        "claude": 80,
+        "gemini": 57,
+        "perplexity": 38,
+        "ai-overview": 41
+      },
+      "delta": null
+    },
+    {
+      "name": "Canny",
+      "domain": "canny.io",
+      "rank": 3,
+      "visibility": 42,
+      "topPick": 3,
+      "ownSiteCited": 20,
+      "byEngine": {
+        "chatgpt": 32,
+        "claude": 70,
+        "gemini": 59,
+        "perplexity": 25,
+        "ai-overview": 24
+      },
+      "delta": null
+    },
+    {
+      "name": "LaunchNotes",
+      "domain": "launchnotes.com",
+      "rank": 4,
+      "visibility": 35,
+      "topPick": 2,
+      "ownSiteCited": 14,
+      "byEngine": {
+        "chatgpt": 31,
+        "claude": 56,
+        "gemini": 53,
+        "perplexity": 18,
+        "ai-overview": 18
+      },
+      "delta": null
+    },
+    {
+      "name": "Featurebase",
+      "domain": "featurebase.app",
+      "rank": 5,
+      "visibility": 30,
+      "topPick": 6,
+      "ownSiteCited": 21,
+      "byEngine": {
+        "chatgpt": 22,
+        "claude": 59,
+        "gemini": 58,
+        "perplexity": 9,
+        "ai-overview": 0
+      },
+      "delta": null
+    }
+  ]
+}

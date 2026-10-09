@@ -83,6 +83,7 @@ import { Route as SiteNotraVsChar123slugChar125IndexRouteImport } from './routes
 import { Route as SiteNotraVsChar123slugChar125OpengraphImageRouteImport } from './routes/_site/notra-vs-{$slug}/opengraph-image'
 import { Route as SiteOfferingIndexRouteImport } from './routes/_site/offering/index'
 import { Route as SiteOfferingReportRouteImport } from './routes/_site/offering/report'
+import { Route as SiteStateOfAiSearchIndexRouteImport } from './routes/_site/state-of-ai-search/index'
 import { Route as AgentAuthAuthorizeRouteImport } from './routes/agent/auth/authorize'
 import { Route as AgentAuthClaimRouteImport } from './routes/agent/auth/claim'
 import { Route as AgentAuthRegisterRouteImport } from './routes/agent/auth/register'
@@ -98,6 +99,7 @@ import { Route as SiteChangelogChangelogIndexRouteImport } from './routes/_site/
 import { Route as SiteFeaturesMarketingAssetsRouteImport } from './routes/_site/features/marketing/assets'
 import { Route as SiteMcpUseCasesIndexRouteImport } from './routes/_site/mcp/use-cases/index'
 import { Route as SiteMcpUseCasesSlugRouteImport } from './routes/_site/mcp/use-cases/$slug'
+import { Route as SiteStateOfAiSearchCategoryIndexRouteImport } from './routes/_site/state-of-ai-search/$category/index'
 import { Route as ApiStarVideoGithubAuthorizeRouteImport } from './routes/api/star-video/github/authorize'
 import { Route as ApiStarVideoGithubCallbackRouteImport } from './routes/api/star-video/github/callback'
 import { Route as SiteBlogBlogSlugIndexRouteImport } from './routes/_site/_blog/blog/$slug/index'
@@ -106,6 +108,9 @@ import { Route as SiteChangelogChangelogNameIndexRouteImport } from './routes/_s
 import { Route as SiteChangelogChangelogNameSlugRouteImport } from './routes/_site/_changelog/changelog/$name/$slug'
 import { Route as SiteChangelogChangelogNotraIndexRouteImport } from './routes/_site/_changelog/changelog/notra/index'
 import { Route as SiteChangelogChangelogNotraSlugRouteImport } from './routes/_site/_changelog/changelog/notra/$slug'
+import { Route as SiteStateOfAiSearchCategoryEditionIndexRouteImport } from './routes/_site/state-of-ai-search/$category/$edition/index'
+import { Route as SiteStateOfAiSearchCategoryEditionDataDotcsvRouteImport } from './routes/_site/state-of-ai-search/$category/$edition/data[.]csv'
+import { Route as SiteStateOfAiSearchCategoryEditionOpengraphImageRouteImport } from './routes/_site/state-of-ai-search/$category/$edition/opengraph-image'
 import { Route as SiteBlogBlogAuthorSlugIndexRouteImport } from './routes/_site/_blog/blog/author/$slug/index'
 import { Route as SiteBlogBlogAuthorSlugOpengraphImageRouteImport } from './routes/_site/_blog/blog/author/$slug/opengraph-image'
 
@@ -486,6 +491,12 @@ const SiteOfferingReportRoute = SiteOfferingReportRouteImport.update({
   path: '/offering/report',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteStateOfAiSearchIndexRoute =
+  SiteStateOfAiSearchIndexRouteImport.update({
+    id: '/state-of-ai-search/',
+    path: '/state-of-ai-search/',
+    getParentRoute: () => SiteRoute,
+  } as any)
 const AgentAuthAuthorizeRoute = AgentAuthAuthorizeRouteImport.update({
   id: '/agent/auth/authorize',
   path: '/agent/auth/authorize',
@@ -564,6 +575,12 @@ const SiteMcpUseCasesSlugRoute = SiteMcpUseCasesSlugRouteImport.update({
   path: '/mcp/use-cases/$slug',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteStateOfAiSearchCategoryIndexRoute =
+  SiteStateOfAiSearchCategoryIndexRouteImport.update({
+    id: '/state-of-ai-search/$category/',
+    path: '/state-of-ai-search/$category/',
+    getParentRoute: () => SiteRoute,
+  } as any)
 const ApiStarVideoGithubAuthorizeRoute =
   ApiStarVideoGithubAuthorizeRouteImport.update({
     id: '/api/star-video/github/authorize',
@@ -610,6 +627,24 @@ const SiteChangelogChangelogNotraSlugRoute =
     id: '/changelog/notra/$slug',
     path: '/changelog/notra/$slug',
     getParentRoute: () => SiteChangelogRoute,
+  } as any)
+const SiteStateOfAiSearchCategoryEditionIndexRoute =
+  SiteStateOfAiSearchCategoryEditionIndexRouteImport.update({
+    id: '/state-of-ai-search/$category/$edition/',
+    path: '/state-of-ai-search/$category/$edition/',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SiteStateOfAiSearchCategoryEditionDataDotcsvRoute =
+  SiteStateOfAiSearchCategoryEditionDataDotcsvRouteImport.update({
+    id: '/state-of-ai-search/$category/$edition/data.csv',
+    path: '/state-of-ai-search/$category/$edition/data.csv',
+    getParentRoute: () => SiteRoute,
+  } as any)
+const SiteStateOfAiSearchCategoryEditionOpengraphImageRoute =
+  SiteStateOfAiSearchCategoryEditionOpengraphImageRouteImport.update({
+    id: '/state-of-ai-search/$category/$edition/opengraph-image',
+    path: '/state-of-ai-search/$category/$edition/opengraph-image',
+    getParentRoute: () => SiteRoute,
   } as any)
 const SiteBlogBlogAuthorSlugIndexRoute =
   SiteBlogBlogAuthorSlugIndexRouteImport.update({
@@ -703,6 +738,7 @@ export interface FileRoutesByFullPath {
   '/mcp/': typeof SiteMcpIndexRoute
   '/notra-vs-{$slug}/': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/offering/': typeof SiteOfferingIndexRoute
+  '/state-of-ai-search/': typeof SiteStateOfAiSearchIndexRoute
   '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
@@ -711,12 +747,16 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof SiteBlogBlogIndexRoute
   '/changelog/': typeof SiteChangelogChangelogIndexRoute
   '/mcp/use-cases/': typeof SiteMcpUseCasesIndexRoute
+  '/state-of-ai-search/$category/': typeof SiteStateOfAiSearchCategoryIndexRoute
   '/blog/$slug/opengraph-image': typeof SiteBlogBlogSlugOpengraphImageRoute
   '/changelog/$name/$slug': typeof SiteChangelogChangelogNameSlugRoute
   '/changelog/notra/$slug': typeof SiteChangelogChangelogNotraSlugRoute
+  '/state-of-ai-search/$category/$edition/data.csv': typeof SiteStateOfAiSearchCategoryEditionDataDotcsvRoute
+  '/state-of-ai-search/$category/$edition/opengraph-image': typeof SiteStateOfAiSearchCategoryEditionOpengraphImageRoute
   '/blog/$slug/': typeof SiteBlogBlogSlugIndexRoute
   '/changelog/$name/': typeof SiteChangelogChangelogNameIndexRoute
   '/changelog/notra/': typeof SiteChangelogChangelogNotraIndexRoute
+  '/state-of-ai-search/$category/$edition/': typeof SiteStateOfAiSearchCategoryEditionIndexRoute
   '/blog/author/$slug/opengraph-image': typeof SiteBlogBlogAuthorSlugOpengraphImageRoute
   '/blog/author/$slug/': typeof SiteBlogBlogAuthorSlugIndexRoute
 }
@@ -799,6 +839,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof SiteMcpIndexRoute
   '/notra-vs-{$slug}': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/offering': typeof SiteOfferingIndexRoute
+  '/state-of-ai-search': typeof SiteStateOfAiSearchIndexRoute
   '/api/offering-check': typeof ApiOfferingCheckIndexRoute
   '/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
@@ -807,12 +848,16 @@ export interface FileRoutesByTo {
   '/blog': typeof SiteBlogBlogIndexRoute
   '/changelog': typeof SiteChangelogChangelogIndexRoute
   '/mcp/use-cases': typeof SiteMcpUseCasesIndexRoute
+  '/state-of-ai-search/$category': typeof SiteStateOfAiSearchCategoryIndexRoute
   '/blog/$slug/opengraph-image': typeof SiteBlogBlogSlugOpengraphImageRoute
   '/changelog/$name/$slug': typeof SiteChangelogChangelogNameSlugRoute
   '/changelog/notra/$slug': typeof SiteChangelogChangelogNotraSlugRoute
+  '/state-of-ai-search/$category/$edition/data.csv': typeof SiteStateOfAiSearchCategoryEditionDataDotcsvRoute
+  '/state-of-ai-search/$category/$edition/opengraph-image': typeof SiteStateOfAiSearchCategoryEditionOpengraphImageRoute
   '/blog/$slug': typeof SiteBlogBlogSlugIndexRoute
   '/changelog/$name': typeof SiteChangelogChangelogNameIndexRoute
   '/changelog/notra': typeof SiteChangelogChangelogNotraIndexRoute
+  '/state-of-ai-search/$category/$edition': typeof SiteStateOfAiSearchCategoryEditionIndexRoute
   '/blog/author/$slug/opengraph-image': typeof SiteBlogBlogAuthorSlugOpengraphImageRoute
   '/blog/author/$slug': typeof SiteBlogBlogAuthorSlugIndexRoute
 }
@@ -901,6 +946,7 @@ export interface FileRoutesById {
   '/_site/mcp/': typeof SiteMcpIndexRoute
   '/_site/notra-vs-{$slug}/': typeof SiteNotraVsChar123slugChar125IndexRoute
   '/_site/offering/': typeof SiteOfferingIndexRoute
+  '/_site/state-of-ai-search/': typeof SiteStateOfAiSearchIndexRoute
   '/api/offering-check/': typeof ApiOfferingCheckIndexRoute
   '/_site/features/marketing/assets': typeof SiteFeaturesMarketingAssetsRoute
   '/_site/mcp/use-cases/$slug': typeof SiteMcpUseCasesSlugRoute
@@ -909,12 +955,16 @@ export interface FileRoutesById {
   '/_site/_blog/blog/': typeof SiteBlogBlogIndexRoute
   '/_site/_changelog/changelog/': typeof SiteChangelogChangelogIndexRoute
   '/_site/mcp/use-cases/': typeof SiteMcpUseCasesIndexRoute
+  '/_site/state-of-ai-search/$category/': typeof SiteStateOfAiSearchCategoryIndexRoute
   '/_site/_blog/blog/$slug/opengraph-image': typeof SiteBlogBlogSlugOpengraphImageRoute
   '/_site/_changelog/changelog/$name/$slug': typeof SiteChangelogChangelogNameSlugRoute
   '/_site/_changelog/changelog/notra/$slug': typeof SiteChangelogChangelogNotraSlugRoute
+  '/_site/state-of-ai-search/$category/$edition/data.csv': typeof SiteStateOfAiSearchCategoryEditionDataDotcsvRoute
+  '/_site/state-of-ai-search/$category/$edition/opengraph-image': typeof SiteStateOfAiSearchCategoryEditionOpengraphImageRoute
   '/_site/_blog/blog/$slug/': typeof SiteBlogBlogSlugIndexRoute
   '/_site/_changelog/changelog/$name/': typeof SiteChangelogChangelogNameIndexRoute
   '/_site/_changelog/changelog/notra/': typeof SiteChangelogChangelogNotraIndexRoute
+  '/_site/state-of-ai-search/$category/$edition/': typeof SiteStateOfAiSearchCategoryEditionIndexRoute
   '/_site/_blog/blog/author/$slug/opengraph-image': typeof SiteBlogBlogAuthorSlugOpengraphImageRoute
   '/_site/_blog/blog/author/$slug/': typeof SiteBlogBlogAuthorSlugIndexRoute
 }
@@ -999,6 +1049,7 @@ export interface FileRouteTypes {
     | '/mcp/'
     | '/notra-vs-{$slug}/'
     | '/offering/'
+    | '/state-of-ai-search/'
     | '/api/offering-check/'
     | '/features/marketing/assets'
     | '/mcp/use-cases/$slug'
@@ -1007,12 +1058,16 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/changelog/'
     | '/mcp/use-cases/'
+    | '/state-of-ai-search/$category/'
     | '/blog/$slug/opengraph-image'
     | '/changelog/$name/$slug'
     | '/changelog/notra/$slug'
+    | '/state-of-ai-search/$category/$edition/data.csv'
+    | '/state-of-ai-search/$category/$edition/opengraph-image'
     | '/blog/$slug/'
     | '/changelog/$name/'
     | '/changelog/notra/'
+    | '/state-of-ai-search/$category/$edition/'
     | '/blog/author/$slug/opengraph-image'
     | '/blog/author/$slug/'
   fileRoutesByTo: FileRoutesByTo
@@ -1095,6 +1150,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/notra-vs-{$slug}'
     | '/offering'
+    | '/state-of-ai-search'
     | '/api/offering-check'
     | '/features/marketing/assets'
     | '/mcp/use-cases/$slug'
@@ -1103,12 +1159,16 @@ export interface FileRouteTypes {
     | '/blog'
     | '/changelog'
     | '/mcp/use-cases'
+    | '/state-of-ai-search/$category'
     | '/blog/$slug/opengraph-image'
     | '/changelog/$name/$slug'
     | '/changelog/notra/$slug'
+    | '/state-of-ai-search/$category/$edition/data.csv'
+    | '/state-of-ai-search/$category/$edition/opengraph-image'
     | '/blog/$slug'
     | '/changelog/$name'
     | '/changelog/notra'
+    | '/state-of-ai-search/$category/$edition'
     | '/blog/author/$slug/opengraph-image'
     | '/blog/author/$slug'
   id:
@@ -1196,6 +1256,7 @@ export interface FileRouteTypes {
     | '/_site/mcp/'
     | '/_site/notra-vs-{$slug}/'
     | '/_site/offering/'
+    | '/_site/state-of-ai-search/'
     | '/api/offering-check/'
     | '/_site/features/marketing/assets'
     | '/_site/mcp/use-cases/$slug'
@@ -1204,12 +1265,16 @@ export interface FileRouteTypes {
     | '/_site/_blog/blog/'
     | '/_site/_changelog/changelog/'
     | '/_site/mcp/use-cases/'
+    | '/_site/state-of-ai-search/$category/'
     | '/_site/_blog/blog/$slug/opengraph-image'
     | '/_site/_changelog/changelog/$name/$slug'
     | '/_site/_changelog/changelog/notra/$slug'
+    | '/_site/state-of-ai-search/$category/$edition/data.csv'
+    | '/_site/state-of-ai-search/$category/$edition/opengraph-image'
     | '/_site/_blog/blog/$slug/'
     | '/_site/_changelog/changelog/$name/'
     | '/_site/_changelog/changelog/notra/'
+    | '/_site/state-of-ai-search/$category/$edition/'
     | '/_site/_blog/blog/author/$slug/opengraph-image'
     | '/_site/_blog/blog/author/$slug/'
   fileRoutesById: FileRoutesById
@@ -1783,6 +1848,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteOfferingReportRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/state-of-ai-search/': {
+      id: '/_site/state-of-ai-search/'
+      path: '/state-of-ai-search'
+      fullPath: '/state-of-ai-search/'
+      preLoaderRoute: typeof SiteStateOfAiSearchIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/agent/auth/authorize': {
       id: '/agent/auth/authorize'
       path: '/agent/auth/authorize'
@@ -1888,6 +1960,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteMcpUseCasesSlugRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/state-of-ai-search/$category/': {
+      id: '/_site/state-of-ai-search/$category/'
+      path: '/state-of-ai-search/$category'
+      fullPath: '/state-of-ai-search/$category/'
+      preLoaderRoute: typeof SiteStateOfAiSearchCategoryIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/api/star-video/github/authorize': {
       id: '/api/star-video/github/authorize'
       path: '/api/star-video/github/authorize'
@@ -1943,6 +2022,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/changelog/notra/$slug'
       preLoaderRoute: typeof SiteChangelogChangelogNotraSlugRouteImport
       parentRoute: typeof SiteChangelogRoute
+    }
+    '/_site/state-of-ai-search/$category/$edition/': {
+      id: '/_site/state-of-ai-search/$category/$edition/'
+      path: '/state-of-ai-search/$category/$edition'
+      fullPath: '/state-of-ai-search/$category/$edition/'
+      preLoaderRoute: typeof SiteStateOfAiSearchCategoryEditionIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/state-of-ai-search/$category/$edition/data.csv': {
+      id: '/_site/state-of-ai-search/$category/$edition/data.csv'
+      path: '/state-of-ai-search/$category/$edition/data.csv'
+      fullPath: '/state-of-ai-search/$category/$edition/data.csv'
+      preLoaderRoute: typeof SiteStateOfAiSearchCategoryEditionDataDotcsvRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/state-of-ai-search/$category/$edition/opengraph-image': {
+      id: '/_site/state-of-ai-search/$category/$edition/opengraph-image'
+      path: '/state-of-ai-search/$category/$edition/opengraph-image'
+      fullPath: '/state-of-ai-search/$category/$edition/opengraph-image'
+      preLoaderRoute: typeof SiteStateOfAiSearchCategoryEditionOpengraphImageRouteImport
+      parentRoute: typeof SiteRoute
     }
     '/_site/_blog/blog/author/$slug/': {
       id: '/_site/_blog/blog/author/$slug/'
@@ -2068,9 +2168,14 @@ interface SiteRouteChildren {
   SiteMcpIndexRoute: typeof SiteMcpIndexRoute
   SiteNotraVsChar123slugChar125IndexRoute: typeof SiteNotraVsChar123slugChar125IndexRoute
   SiteOfferingIndexRoute: typeof SiteOfferingIndexRoute
+  SiteStateOfAiSearchIndexRoute: typeof SiteStateOfAiSearchIndexRoute
   SiteFeaturesMarketingAssetsRoute: typeof SiteFeaturesMarketingAssetsRoute
   SiteMcpUseCasesSlugRoute: typeof SiteMcpUseCasesSlugRoute
   SiteMcpUseCasesIndexRoute: typeof SiteMcpUseCasesIndexRoute
+  SiteStateOfAiSearchCategoryIndexRoute: typeof SiteStateOfAiSearchCategoryIndexRoute
+  SiteStateOfAiSearchCategoryEditionDataDotcsvRoute: typeof SiteStateOfAiSearchCategoryEditionDataDotcsvRoute
+  SiteStateOfAiSearchCategoryEditionOpengraphImageRoute: typeof SiteStateOfAiSearchCategoryEditionOpengraphImageRoute
+  SiteStateOfAiSearchCategoryEditionIndexRoute: typeof SiteStateOfAiSearchCategoryEditionIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -2110,9 +2215,17 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteNotraVsChar123slugChar125IndexRoute:
     SiteNotraVsChar123slugChar125IndexRoute,
   SiteOfferingIndexRoute: SiteOfferingIndexRoute,
+  SiteStateOfAiSearchIndexRoute: SiteStateOfAiSearchIndexRoute,
   SiteFeaturesMarketingAssetsRoute: SiteFeaturesMarketingAssetsRoute,
   SiteMcpUseCasesSlugRoute: SiteMcpUseCasesSlugRoute,
   SiteMcpUseCasesIndexRoute: SiteMcpUseCasesIndexRoute,
+  SiteStateOfAiSearchCategoryIndexRoute: SiteStateOfAiSearchCategoryIndexRoute,
+  SiteStateOfAiSearchCategoryEditionDataDotcsvRoute:
+    SiteStateOfAiSearchCategoryEditionDataDotcsvRoute,
+  SiteStateOfAiSearchCategoryEditionOpengraphImageRoute:
+    SiteStateOfAiSearchCategoryEditionOpengraphImageRoute,
+  SiteStateOfAiSearchCategoryEditionIndexRoute:
+    SiteStateOfAiSearchCategoryEditionIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)

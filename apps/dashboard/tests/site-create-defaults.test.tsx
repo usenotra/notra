@@ -26,6 +26,14 @@ if (!process.env.NOTRA_SITE_DEFAULTS_TEST_WORKER) {
 } else {
   let hasConfig = false;
   let diagnosticCode = "config_missing";
+  const site = {
+    id: "site",
+    name: "Example blog",
+    liveUrl: "https://site.example",
+    repository: { owner: "example", name: "blog" },
+    productionBranch: "main",
+    rootDirectory: "",
+  };
   const mutate = mock(() => {});
   mock.module("../src/lib/hooks/use-site-starter", () => ({
     useSiteStarterStatus: () => ({ data: { hasConfig } }),
@@ -42,8 +50,17 @@ if (!process.env.NOTRA_SITE_DEFAULTS_TEST_WORKER) {
       data: {
         deployment: {
           status: "failed",
+          branch: "main",
+          commitSha: "abc123",
+          errorMessage: null,
           createdAt: "2026-10-07T00:00:00Z",
-          diagnostics: [{ code: diagnosticCode }],
+          diagnostics: [
+            {
+              code: diagnosticCode,
+              severity: "error",
+              message: "Example build diagnostic",
+            },
+          ],
         },
         log: null,
       },
@@ -119,12 +136,14 @@ if (!process.env.NOTRA_SITE_DEFAULTS_TEST_WORKER) {
             deploymentQueued
             organizationId="organization"
             organizationSlug="organization"
-            site={{ id: "site", liveUrl: "https://site.example" }}
+            site={site}
           />
         </IntlProvider>
       );
       expect(html).toContain(messages.sites.new.deploy.configMissingRetry);
       expect(html).toContain(messages.sites.new.deploy.viewDeployment);
+      expect(html).toContain(messages.common.labels.copyAgentPrompt);
+      expect(html).not.toContain(messages.sites.new.deploy.openSite);
       expect(html).not.toContain(messages.sites.new.deploy.viewPullRequest);
     });
   });
@@ -155,7 +174,7 @@ if (!process.env.NOTRA_SITE_DEFAULTS_TEST_WORKER) {
           deploymentQueued
           organizationId="organization"
           organizationSlug="organization"
-          site={{ id: "site", liveUrl: "https://site.example" }}
+          site={site}
           starterPullRequestUrl="https://github.example/repository/pull/1"
         />
       </IntlProvider>

@@ -1,11 +1,17 @@
 import { toast } from "sonner";
 
-import type { ImageExportTarget } from "@/types/content/image-export";
+import { EXCALIDRAW_CLIPBOARD_TYPE } from "@/constants/image-export";
+import type {
+  DiagramExportTarget,
+  ImageExportTarget,
+} from "@/types/content/image-export";
+import { writeClipboardText } from "@/utils/copy-to-clipboard";
 import {
   buildImageDownloadFilename,
   downloadBlob,
   sanitizeDownloadFilename,
 } from "@/utils/download";
+import { isDiagramExportTarget } from "@/utils/image-export";
 import { sanitizeExportHtml } from "@/utils/sanitize-export-html";
 import {
   commonLabelToastMessage,
@@ -67,7 +73,8 @@ export function isImageExportCopyReady(target: ImageExportTarget): boolean {
   if (target === "paper") {
     return copyAsPaperFn !== null;
   }
-  return false;
+  // The scene is fetched inside the click; nothing to preload.
+  return isDiagramExportTarget(target);
 }
 
 /** Warm the Figma/Paper chunk on hover/focus so click keeps clipboard activation. */
@@ -87,7 +94,7 @@ export function preloadImageExportCopy(
       .then(() => true)
       .catch(() => false);
   }
-  return Promise.resolve(false);
+  return Promise.resolve(isDiagramExportTarget(target));
 }
 
 function createExportElement(html: string): HTMLDivElement {
@@ -211,6 +218,59 @@ export async function copyImageAsPaper(
   } catch (error) {
     console.error("Failed to copy image for Paper", error);
     toast.error(imageExportToastMessage("paperCopyFailed"));
+  }
+}
+
+async function fetchExcalidrawClipboardBlob(sceneUrl: string): Promise<Blob> {
+  const response = await fetch(sceneUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Excalidraw scene: ${response.status}`);
+  }
+  const scene: unknown = await response.json();
+  if (
+    typeof scene !== "object" ||
+    scene === null ||
+    !("elements" in scene) ||
+    !Array.isArray(scene.elements)
+  ) {
+    throw new Error("Excalidraw scene has no elements");
+  }
+  const files = "files" in scene ? scene.files : {};
+  // Excalidraw and tldraw both read this shape from text/plain on paste.
+  const payload = JSON.stringify({
+    type: EXCALIDRAW_CLIPBOARD_TYPE,
+    elements: scene.elements,
+    files,
+  });
+  return new Blob([payload], { type: "text/plain" });
+}
+
+/** Copies the editable diagram scene so it pastes as native shapes in Excalidraw or tldraw. */
+export async function copyDiagramScene(
+  sceneUrl: string,
+  target: DiagramExportTarget
+): Promise<void> {
+  try {
+    // Hand the clipboard a pending blob so the write starts inside the click
+    // and keeps user activation while the scene downloads.
+    const blob = fetchExcalidrawClipboardBlob(sceneUrl);
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "text/plain": blob }),
+      ]);
+    } catch {
+      // The scene is plain text; ClipboardItem support or permission is not
+      // required when the browser's text/native copy path is available.
+      await writeClipboardText(await (await blob).text());
+    }
+    toast.success(
+      imageExportToastMessage(
+        target === "excalidraw" ? "excalidrawCopied" : "tldrawCopied"
+      )
+    );
+  } catch (error) {
+    console.error(`Failed to copy diagram for ${target}`, error);
+    toast.error(imageExportToastMessage("diagramCopyFailed"));
   }
 }
 

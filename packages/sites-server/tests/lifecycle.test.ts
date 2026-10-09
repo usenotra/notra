@@ -55,7 +55,12 @@ if (process.env.NOTRA_SITES_LIFECYCLE_TEST_WORKER !== "1") {
             (job) =>
               job.status === "running" &&
               job.kind === "build" &&
-              (job.leaseUntil?.getTime() ?? 0) > Date.now()
+              (job.leaseUntil?.getTime() ?? 0) > Date.now() &&
+              !deployments.some(
+                (deployment) =>
+                  deployment.id === job.deploymentId &&
+                  deployment.status === "skipped"
+              )
           );
           const siteId = dialect.sqlToQuery(selection.site as SQL).params[0];
           return [

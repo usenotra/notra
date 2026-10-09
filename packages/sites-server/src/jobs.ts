@@ -1,5 +1,5 @@
 import { db } from "@notra/db/drizzle";
-import { siteJobs } from "@notra/db/schema";
+import { siteDeployments, siteJobs } from "@notra/db/schema";
 import { SITE_BUILD_LIMITS } from "@notra/sites-core/constants/sites";
 import {
   and,
@@ -29,10 +29,30 @@ async function reserveBuildCapacity(
   tx: SiteStorageTransaction,
   job: SiteJob
 ): Promise<boolean> {
+  if (job.deploymentId) {
+    const [deployment] = await tx
+      .select()
+      .from(siteDeployments)
+      .where(
+        and(
+          eq(siteDeployments.id, job.deploymentId),
+          eq(siteDeployments.siteId, job.siteId)
+        )
+      )
+      .limit(1);
+    if (deployment?.status === "skipped") {
+      return true;
+    }
+  }
   const running = and(
     eq(siteJobs.status, "running"),
     eq(siteJobs.kind, "build"),
-    gt(siteJobs.leaseUntil, sql`now()`)
+    gt(siteJobs.leaseUntil, sql`now()`),
+    sql`not exists (
+      select 1 from ${siteDeployments}
+      where ${siteDeployments.id} = ${siteJobs.deploymentId}
+      and ${siteDeployments.status} = 'skipped'
+    )`
   );
   const [counts] = await tx
     .select({

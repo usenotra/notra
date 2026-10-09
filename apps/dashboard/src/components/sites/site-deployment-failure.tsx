@@ -13,8 +13,10 @@ import {
 } from "@notra/ui/components/ui/alert";
 import { useTranslations } from "use-intl";
 
+import { CopyPromptButton } from "@/components/geo/code-snippet";
 import { cn } from "@/lib/utils";
-import type { SiteDeploymentRecordProps } from "@/types/components/sites";
+import type { SiteDeploymentFailureProps } from "@/types/components/sites";
+import { buildSiteBuildAgentPrompt } from "@/utils/site-build-agent-prompt";
 import {
   siteDiagnosticLocation,
   sortSiteDiagnostics,
@@ -23,7 +25,9 @@ import {
 
 export function SiteDeploymentFailure({
   deployment,
-}: SiteDeploymentRecordProps) {
+  site,
+  log,
+}: SiteDeploymentFailureProps) {
   const t = useTranslations("sites.deploymentPage");
   const tDiagnostics = useTranslations("sites.diagnostics");
   const failed = deployment.status === "failed";
@@ -45,7 +49,16 @@ export function SiteDeploymentFailure({
         strokeWidth={1.5}
       />
       <AlertTitle>
-        {failed ? t("notice.failed") : t("diagnostics.title")}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span>{failed ? t("notice.failed") : t("diagnostics.title")}</span>
+          {failed ? (
+            <div className="text-foreground ms-auto shrink-0">
+              <CopyPromptButton
+                prompt={buildSiteBuildAgentPrompt({ site, deployment, log })}
+              />
+            </div>
+          ) : null}
+        </div>
       </AlertTitle>
       <AlertDescription className="text-foreground space-y-2 [&_p:not(:last-child)]:mb-0">
         {failed && deployment.errorMessage && diagnostics.length === 0 ? (

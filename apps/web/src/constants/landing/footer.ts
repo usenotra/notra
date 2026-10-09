@@ -120,7 +120,10 @@ export const FOOTER_LINK_COLUMNS: readonly FooterLinkColumn[] = [
       },
       {
         title: "Community",
-        links: [{ label: "Contributors", href: "/contributors" }],
+        links: [
+          { label: "Contributors", href: "/contributors" },
+          { label: "State of AI Search", href: "/state-of-ai-search" },
+        ],
       },
       {
         title: "Free Tools",

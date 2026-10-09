@@ -38,6 +38,18 @@ export type SiteEditorDraft = SiteEditorFiles["drafts"][number];
 export type SiteEditorDocument = SitesOutputs["editor"]["read"];
 export type SiteDiagnostic = SiteDeploymentRecord["diagnostics"][number];
 
+export interface SiteBuildAgentPromptInput {
+  site: Pick<
+    SiteRecord,
+    "name" | "repository" | "productionBranch" | "rootDirectory"
+  >;
+  deployment: Pick<
+    SiteDeploymentRecord,
+    "status" | "branch" | "commitSha" | "diagnostics" | "errorMessage"
+  > | null;
+  log: string | null;
+}
+
 export type SiteDeploymentStatus = (typeof SITE_DEPLOYMENT_STATUSES)[number];
 export type SiteSection = (typeof SITE_DETAIL_TABS)[number];
 
@@ -107,7 +119,19 @@ export interface SiteSettingsForm {
   changelogPath: string;
   publishMode: SitePublishMode;
   previewCommentsEnabled: boolean;
+  smartDeployments: boolean;
 }
+
+export type SiteSettingsSource = Pick<
+  SiteRecord,
+  | "name"
+  | "productionBranch"
+  | "rootDirectory"
+  | "mounts"
+  | "publishMode"
+  | "previewCommentsEnabled"
+  | "smartDeployments"
+>;
 
 export interface SiteCreateFormValues {
   repositoryId: string | null;
@@ -136,6 +160,7 @@ export interface SiteSettingsPatch {
   mounts?: { blog?: string; changelog?: string };
   publishMode?: SitePublishMode;
   previewCommentsEnabled?: boolean;
+  smartDeployments?: boolean;
 }
 
 export type SiteDomainRecord = SiteDomain["records"][number];
@@ -200,6 +225,7 @@ export type SiteDeploymentStatusFilter =
   | "failed"
   | "canceled"
   | "superseded"
+  | "skipped"
   | "expired";
 
 export type SiteDeploymentEnvironmentFilter = SiteDeploymentKind | "all";

@@ -114,7 +114,18 @@ function SheetContent({
   useSheetStack(popup);
   return (
     <SheetPortal keepMounted={keepMounted}>
-      <SheetOverlay />
+      {stack?.parent ? (
+        // Base UI skips the backdrop of a nested dialog and only dismisses
+        // on a press on the dialog's own backdrop, so a stacked sheet would
+        // ignore clicks beside it. A transparent one closes it without
+        // dimming the page twice.
+        <SheetOverlay
+          className="bg-transparent supports-backdrop-filter:backdrop-blur-none"
+          forceRender
+        />
+      ) : (
+        <SheetOverlay />
+      )}
       <SheetPrimitive.Popup
         className={cn(
           "panel-motion sheet-motion fixed z-50 flex flex-col gap-4 bg-background bg-clip-padding text-sm shadow-lg data-[side=bottom]:inset-x-0 data-[side=top]:inset-x-0 data-[side=left]:inset-y-0 data-[side=right]:inset-y-0 data-[side=top]:top-0 data-[side=right]:right-0 data-[side=bottom]:bottom-0 data-[side=left]:left-0 data-[side=bottom]:h-auto data-[side=left]:h-full data-[side=right]:h-full data-[side=top]:h-auto data-[side=left]:w-full data-[side=right]:w-full data-[side=bottom]:border-t data-[side=left]:border-r data-[side=top]:border-b data-[side=right]:border-l data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",

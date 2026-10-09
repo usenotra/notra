@@ -1,5 +1,8 @@
 import { SITE_DEPLOYMENT_PHASES } from "@notra/sites-core/constants/deployment-timeline";
-import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
+import {
+  SITE_DEPLOYMENT_IN_PROGRESS_STATUSES,
+  SITE_R2_KEYS,
+} from "@notra/sites-core/constants/sites";
 import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
 import { Effect, Exit, Option } from "effect";
 
@@ -7,9 +10,11 @@ import { activateDeployment } from "./activation";
 import { runSandboxBuildEffect } from "./box-build";
 import { saveBuildTelemetryEffect } from "./build-telemetry";
 import { CANCELED_OUTCOME } from "./constants/deployments";
+import { SMART_DEPLOYMENT_SKIP_REASON } from "./constants/smart-deployments";
 import {
   getDeployment,
   hasNewerDeployment,
+  startDeploymentBuild,
   transitionDeployment,
 } from "./deployments";
 import {
@@ -20,10 +25,15 @@ import {
 import { publishDeploymentFilesEffect } from "./publish";
 import { r2PutEffect } from "./r2";
 import { openCheckRun, reportOutcome } from "./reporting";
+import {
+  compareSmartDeployment,
+  skipUnchangedDeployment,
+} from "./smart-deployments";
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
 import type { SiteRepositoryAccess } from "./types/github";
 import type { BuildAndPublishOutcome } from "./types/pipeline";
 import type { Site } from "./types/sites";
+import type { SmartDeploymentComparison } from "./types/smart-deployments";
 import { redactBuildLog } from "./utils/build-log";
 import { summarizeDiagnostics } from "./utils/diagnostics";
 import { errorMessage, isNotFoundError } from "./utils/errors";
@@ -53,7 +63,11 @@ const whyNotBuild = Effect.fn("Sites.whyNotBuild")(function* (
   access: SiteRepositoryAccess,
   deployment: SiteDeployment
 ) {
-  if (deployment.status !== "queued") {
+  if (
+    !SITE_DEPLOYMENT_IN_PROGRESS_STATUSES.some(
+      (status) => status === deployment.status
+    )
+  ) {
     return null;
   }
   const head = yield* currentBranchHead(access, deployment.branch);
@@ -114,6 +128,7 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
   let sandboxLog = "";
   let telemetryAvailable = false;
   let accessToken = "";
+  let smartComparison: SmartDeploymentComparison | null = null;
   const operation = Effect.gen(function* () {
     const accessStarted = performance.now();
     const access = yield* Effect.tryPromise({
@@ -127,7 +142,15 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
       )
     );
     accessToken = access.token;
-    const skipReason = yield* whyNotBuild(access, deployment);
+    let skipReason = yield* whyNotBuild(access, deployment);
+    if (!skipReason) {
+      smartComparison = yield* Effect.tryPromise({
+        try: () => compareSmartDeployment(site, deployment, access),
+        catch: (error) => error,
+      });
+      // The head or a newer deployment may change during comparison.
+      skipReason = yield* whyNotBuild(access, deployment);
+    }
     if (skipReason) {
       yield* Effect.uninterruptible(
         Effect.tryPromise({
@@ -141,18 +164,49 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
       );
       return { kind: "skipped" as const, reason: skipReason };
     }
+    // A failed skip may already have advanced R2. Retry instead of building.
+    if (
+      yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () => skipUnchangedDeployment(site, deployment, smartComparison),
+          catch: (error) => error,
+        })
+      )
+    ) {
+      phaseLog += `[deployment:skipped] ${SMART_DEPLOYMENT_SKIP_REASON}\n`;
+      yield* writeBuildLog(site.id, deployment.id, phaseLog);
+      return { kind: "skipped" as const, reason: SMART_DEPLOYMENT_SKIP_REASON };
+    }
     if (
       !(yield* Effect.uninterruptible(
         Effect.tryPromise({
-          try: () =>
-            transitionDeployment(deployment.id, "building", {
-              startedAt: deployment.startedAt ?? startedAt,
-            }),
+          try: () => startDeploymentBuild(deployment, startedAt),
           catch: (error) => error,
         })
       ))
     ) {
-      return CANCELED_OUTCOME;
+      const current = yield* Effect.tryPromise({
+        try: () => getDeployment(deployment.id),
+        catch: (error) => error,
+      });
+      if (current?.status === "failed") {
+        return {
+          kind: "failed" as const,
+          summary: current.errorMessage ?? "The build failed.",
+          diagnostics: current.diagnostics ?? [],
+        };
+      }
+      if (current?.status === "skipped") {
+        return {
+          kind: "skipped" as const,
+          reason: current.skipReason ?? SMART_DEPLOYMENT_SKIP_REASON,
+        };
+      }
+      return (current?.status === "canceled" ||
+        current?.status === "superseded") &&
+        current.errorMessage
+        ? { kind: "skipped" as const, reason: current.errorMessage }
+        : CANCELED_OUTCOME;
     }
     yield* writeBuildLog(site.id, deployment.id, phaseLog);
     const sourceStarted = performance.now();
@@ -174,6 +228,7 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
     const build = yield* runSandboxBuildEffect({
       sourceArchive,
       rootDirectory: site.rootDirectory,
+      snapshotId: smartComparison?.snapshotId ?? undefined,
       target: {
         siteId: site.id,
         deploymentId: deployment.id,
@@ -238,11 +293,31 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
               errorMessage: summary.slice(0, 4000),
               buildDurationMs: build.durationMs,
               toolchainVersion: build.toolchainVersion,
+              smartDeploymentEvaluation: smartComparison?.evaluation ?? null,
             }),
           catch: (error) => error,
         })
       );
       return { kind: "failed" as const, summary, diagnostics };
+    }
+
+    // Compilation can outlast the branch head or a newer deployment.
+    skipReason = yield* whyNotBuild(access, deployment);
+    if (skipReason) {
+      yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () =>
+            transitionDeployment(deployment.id, "superseded", {
+              finishedAt: new Date(),
+              errorMessage: skipReason,
+              buildDurationMs: build.durationMs,
+              toolchainVersion: build.toolchainVersion,
+              smartDeploymentEvaluation: smartComparison?.evaluation ?? null,
+            }),
+          catch: (error) => error,
+        })
+      );
+      return { kind: "skipped" as const, reason: skipReason };
     }
 
     if (
@@ -282,6 +357,12 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
             toolchainVersion: build.toolchainVersion,
             diagnostics: result.diagnostics,
             finishedAt: new Date(),
+            inputFingerprint:
+              smartComparison?.year === new Date().getUTCFullYear() &&
+              smartComparison.snapshotId === build.metrics?.snapshotId
+                ? smartComparison.fingerprint
+                : null,
+            smartDeploymentEvaluation: smartComparison?.evaluation ?? null,
           }),
         catch: (error) => error,
       })
@@ -353,10 +434,20 @@ export const runDeploymentPipelineEffect = Effect.fn(
     try: () => openCheckRun(site, queued),
     catch: (error) => error,
   });
-  const build =
-    deployment.status === "ready"
-      ? { outcome: null, pendingTelemetryError: Option.none<unknown>() }
-      : yield* buildAndPublish(site, deployment);
+  let build: BuildAndPublishOutcome;
+  if (deployment.status === "skipped") {
+    build = {
+      outcome: {
+        kind: "skipped",
+        reason: deployment.skipReason ?? SMART_DEPLOYMENT_SKIP_REASON,
+      },
+      pendingTelemetryError: Option.none<unknown>(),
+    };
+  } else if (deployment.status === "ready") {
+    build = { outcome: null, pendingTelemetryError: Option.none<unknown>() };
+  } else {
+    build = yield* buildAndPublish(site, deployment);
+  }
   const finished =
     (yield* Effect.tryPromise({
       try: () => getDeployment(deployment.id),

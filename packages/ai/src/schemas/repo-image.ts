@@ -4,6 +4,8 @@ import * as z from "zod";
 export const repoImageModeSchema = z.enum(["prompt", "pr", "commit"]);
 export const REPO_IMAGE_MODES = repoImageModeSchema.options;
 
+export const repoImageFormatSchema = z.enum(["marketing", "diagram"]);
+
 const repoImageRequestFields = {
   integrationId: z.string().min(1, "Integration ID is required"),
   branch: z.string().trim().min(1, "Branch is required"),
@@ -16,6 +18,11 @@ const repoImageRequestFields = {
       "Optional brand identity id to inject into the image sandbox. Omit to use the default brand identity."
     ),
   mode: repoImageModeSchema,
+  format: repoImageFormatSchema
+    .optional()
+    .describe(
+      "marketing (default): a polished 1200x630 social card in the product's own UI style. diagram: a hand-drawn Excalidraw explainer diagram (flow, architecture, state machine, before/after) that the user can also paste into Excalidraw or tldraw and edit. Pick diagram when the user asks how something works, for an architecture or flow diagram, or mentions Excalidraw, tldraw, a whiteboard, or a sketch."
+    ),
   prompt: z.string().trim().max(500).optional(),
   prNumber: z.number().int().positive().optional(),
   commitSha: z
@@ -98,6 +105,12 @@ export const imageRevisionToolInputSchema = z.object({
     .max(120)
     .optional()
     .describe("Optional updated title for the image content"),
+  useRepository: z
+    .boolean()
+    .optional()
+    .describe(
+      "Diagrams only. Diagram edits normally take a few seconds and change the existing diagram directly. Set true only when the change needs new facts from the repository code; this restores the sandbox and takes minutes."
+    ),
 });
 
 export const unavailableImageRevisionToolInputSchema = z.object({

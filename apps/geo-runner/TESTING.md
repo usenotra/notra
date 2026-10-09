@@ -117,6 +117,12 @@ and moves the adhoc migration to `0114_geo_adhoc_scans`. The guard validates
 tests skipped without `SITES_TEST_DATABASE_URL`. The Sites telemetry test uses
 main's check for its journal entry rather than requiring it to be last.
 
+The merge at `1d7afaaa9` preserves `0114_site_smart_deployments` and moves
+the adhoc migration to `0115_geo_adhoc_scans`. The guard validates 116 migrations;
+all main migration files and journal entries remain unchanged. The DB suite,
+runner tests, types and isolated Docker install/build pass with the updated
+dependencies. No Alpine image or live database was used for these local checks.
+
 On 2026-10-07, a separate Daytona run exercised one real grounded model answer
 and its Judge through the CLI against isolated PGlite fixtures. Same-key replay
 made no additional external requests; authentication, organization boundaries

@@ -1,14 +1,14 @@
 import { lstat, opendir } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { join } from "node:path";
 
 import { SITE_BUILD_LIMITS } from "@notra/sites-core/constants/sites";
+import { SITE_SOURCE_SAFE_SEGMENT } from "@notra/sites-core/constants/source";
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
 import {
   isSiteContentPath,
-  isSiteSourcePath,
+  isCollectedSiteSourcePath,
 } from "@notra/sites-core/utils/source-files";
 
-import { ALLOWED_EXTENSIONS, SAFE_SEGMENT } from "./constants/source";
 import type {
   CollectedSource,
   Inspected,
@@ -28,10 +28,10 @@ export async function collectSiteSource(
       return { kind: "skip" };
     }
     const content = isSiteContentPath(relativePath);
-    if (!(content || SAFE_SEGMENT.test(name))) {
+    if (!(content || SITE_SOURCE_SAFE_SEGMENT.test(name))) {
       return { kind: "skip" };
     }
-    if (!SAFE_SEGMENT.test(name)) {
+    if (!SITE_SOURCE_SAFE_SEGMENT.test(name)) {
       return {
         kind: "diagnostic",
         diagnostic: {
@@ -58,11 +58,7 @@ export async function collectSiteSource(
     if (stats.isDirectory()) {
       return { kind: "directory", path: relativePath };
     }
-    if (
-      !stats.isFile() ||
-      !ALLOWED_EXTENSIONS.has(extname(name).toLowerCase()) ||
-      !isSiteSourcePath(relativePath)
-    ) {
+    if (!stats.isFile() || !isCollectedSiteSourcePath(relativePath)) {
       return { kind: "skip" };
     }
     if (stats.size > SITE_BUILD_LIMITS.maxSingleFileBytes) {

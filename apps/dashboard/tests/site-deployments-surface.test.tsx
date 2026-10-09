@@ -7,7 +7,13 @@ import { IntlProvider } from "use-intl";
 
 import messages from "../messages/en.json";
 import type { SiteDeploymentsTableProps } from "../src/types/components/sites";
-import type { SiteDeployment, SiteDetail } from "../src/types/sites";
+import type { CopyPromptButtonProps } from "../src/types/geo";
+import type {
+  SiteDeployment,
+  SiteDeploymentRecord,
+  SiteDetail,
+} from "../src/types/sites";
+import { buildSiteBuildAgentPrompt } from "../src/utils/site-build-agent-prompt";
 
 if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   test("unified deployments surface", () => {
@@ -24,6 +30,17 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   });
 } else {
   let environment: string | null = null;
+  let copiedPrompt: string | null = null;
+  mock.module("../src/components/geo/code-snippet", () => ({
+    CopyPromptButton: ({ prompt, className }: CopyPromptButtonProps) => {
+      copiedPrompt = prompt;
+      return (
+        <button className={className} type="button">
+          {messages.common.labels.copyAgentPrompt}
+        </button>
+      );
+    },
+  }));
   const deployments = [
     { id: "production", kind: "production", status: "ready" },
     {
@@ -96,6 +113,8 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
   }));
   const { SiteDeploymentsPage } =
     await import("../src/components/sites/pages/site-deployments-page");
+  const { SiteDeploymentFailure } =
+    await import("../src/components/sites/site-deployment-failure");
   const render = () =>
     renderToStaticMarkup(
       <IntlProvider locale="en" messages={messages} timeZone="UTC">
@@ -140,4 +159,102 @@ if (!process.env.NOTRA_DEPLOYMENTS_SURFACE_TEST_WORKER) {
     expect(html).toContain("data-preview-controls");
     expect(html).toContain("old-live");
   });
+
+  test.each([true, false])(
+    "failed deployment notices include the repair action with diagnostics: %s",
+    (withDiagnostics) => {
+      const site = {
+        name: "Example blog",
+        repository: { owner: "example", name: "blog" },
+        productionBranch: "main",
+        rootDirectory: "apps/blog",
+      };
+      const deployment = {
+        status: "failed",
+        branch: "preview/fix-blog",
+        commitSha: "abc123",
+        errorMessage: "Build failed",
+        diagnostics: withDiagnostics
+          ? [
+              {
+                severity: "error",
+                code: "slug_duplicate",
+                file: "blog/example.mdx",
+                message: "Same URL as blog/example.md",
+              },
+            ]
+          : [],
+      } as SiteDeploymentRecord;
+      const log =
+        "✘ blog/example.mdx  Same URL as blog/example.md\nBuild failed";
+      const html = renderToStaticMarkup(
+        <IntlProvider locale="en" messages={messages} timeZone="UTC">
+          <SiteDeploymentFailure
+            deployment={deployment}
+            log={log}
+            site={site}
+          />
+        </IntlProvider>
+      );
+      expect(html).toContain('role="alert"');
+      expect(html).toContain(messages.sites.deploymentPage.notice.failed);
+      expect(html).toContain(messages.common.labels.copyAgentPrompt);
+      expect(html).toContain(
+        "flex flex-wrap items-center justify-between gap-2"
+      );
+      expect(html).toContain('type="button"');
+      expect(copiedPrompt).toBe(
+        buildSiteBuildAgentPrompt({ site, deployment, log })
+      );
+      expect(copiedPrompt).toContain('Branch: "preview/fix-blog"');
+      expect(copiedPrompt).toContain('Commit: "abc123"');
+      expect(copiedPrompt).toContain(JSON.stringify(log));
+      expect(html).toContain(
+        withDiagnostics ? "Same URL as blog/example.md" : "Build failed"
+      );
+    }
+  );
+
+  test.each(["ready", "building", "canceled"] as const)(
+    "%s deployments never show the repair action, even with warnings",
+    (status) => {
+      copiedPrompt = null;
+      const deployment = {
+        status,
+        diagnostics: [
+          { severity: "warning", code: "warning", message: "Example warning" },
+        ],
+      } as SiteDeploymentRecord;
+      const site = {
+        name: "Example blog",
+        repository: null,
+        productionBranch: "main",
+        rootDirectory: "",
+      };
+      const html = renderToStaticMarkup(
+        <IntlProvider locale="en" messages={messages} timeZone="UTC">
+          <SiteDeploymentFailure
+            deployment={deployment}
+            log={null}
+            site={site}
+          />
+        </IntlProvider>
+      );
+      expect(html).toContain('role="status"');
+      expect(html).toContain("Example warning");
+      expect(html).not.toContain(messages.common.labels.copyAgentPrompt);
+      expect(copiedPrompt).toBeNull();
+      expect(
+        renderToStaticMarkup(
+          <IntlProvider locale="en" messages={messages} timeZone="UTC">
+            <SiteDeploymentFailure
+              deployment={{ ...deployment, diagnostics: [] }}
+              log={null}
+              site={site}
+            />
+          </IntlProvider>
+        )
+      ).toBe("");
+    }
+  );
 }

@@ -65,7 +65,7 @@ function useSignOut() {
   const invalidateSession = useSessionInvalidation();
 
   return async (options?: SignOutOptions) => {
-    await signOutAction();
+    await signOutAction({ returnTo: options?.returnTo });
     invalidateSession();
     resetPostHogIdentity();
     options?.fetchOptions?.onSuccess?.();
