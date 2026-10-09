@@ -39,14 +39,16 @@ export function SitePublishDialog({
   onPublished,
   onConflict,
   unsaved = false,
+  pullRequestOnly = false,
+  initialMessage = "",
 }: SitePublishDialogProps) {
   const t = useTranslations("sites.publish");
   const tModes = useTranslations("sites.publishModes");
   const tCommon = useTranslations("common");
   const tChanges = useTranslations("sites.editorPage.publishDialog");
   const id = useId();
-  const directAllowed = site.publishMode === "direct";
-  const [message, setMessage] = useState("");
+  const directAllowed = !pullRequestOnly && site.publishMode === "direct";
+  const [message, setMessage] = useState(initialMessage);
   const [mode, setMode] = useState<SitePublishMode>(
     directAllowed ? "direct" : "pull_request"
   );
@@ -91,16 +93,30 @@ export function SitePublishDialog({
   });
 
   return (
-    <ResponsiveDialog onOpenChange={onOpenChange} open={open}>
-      <ResponsiveDialogContent className="sm:max-w-2xl">
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>{t("title")}</ResponsiveDialogTitle>
+    <ResponsiveDialog
+      onOpenChange={(next) => {
+        if (!publishMutation.isPending) {
+          onOpenChange(next);
+        }
+      }}
+      open={open}
+    >
+      <ResponsiveDialogContent className="flex max-h-[85svh] flex-col overflow-hidden sm:max-w-2xl">
+        <ResponsiveDialogHeader className="shrink-0">
+          <ResponsiveDialogTitle>
+            {pullRequestOnly ? t("openPullRequest") : t("title")}
+          </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {t("description", { count: draftCount })}
+            {t(
+              pullRequestOnly ? "pullRequestReviewDescription" : "description",
+              {
+                count: draftCount,
+              }
+            )}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <form
-          className="space-y-4"
+          className="min-h-0 min-w-0 space-y-4 overflow-y-auto"
           id={`${id}-form`}
           onSubmit={(event) => {
             event.preventDefault();
@@ -137,30 +153,36 @@ export function SitePublishDialog({
               value={message}
             />
           </div>
-          <SiteChoiceGroup
-            label={t("mode")}
-            onValueChange={setMode}
-            options={[
-              {
-                value: "pull_request",
-                title: tModes("pull_request.title"),
-                description: t("pullRequestDescription", {
-                  branch: site.productionBranch,
-                }),
-              },
-              {
-                value: "direct",
-                title: tModes("direct.title"),
-                description: directAllowed
-                  ? t("directDescription", { branch: site.productionBranch })
-                  : t("directDisabled"),
-                disabled: !directAllowed,
-              },
-            ]}
-            value={effectiveMode}
-          />
+          {pullRequestOnly ? (
+            <p className="text-muted-foreground text-sm">
+              {t("pullRequestDescription", { branch: site.productionBranch })}
+            </p>
+          ) : (
+            <SiteChoiceGroup
+              label={t("mode")}
+              onValueChange={setMode}
+              options={[
+                {
+                  value: "pull_request",
+                  title: tModes("pull_request.title"),
+                  description: t("pullRequestDescription", {
+                    branch: site.productionBranch,
+                  }),
+                },
+                {
+                  value: "direct",
+                  title: tModes("direct.title"),
+                  description: directAllowed
+                    ? t("directDescription", { branch: site.productionBranch })
+                    : t("directDisabled"),
+                  disabled: !directAllowed,
+                },
+              ]}
+              value={effectiveMode}
+            />
+          )}
         </form>
-        <ResponsiveDialogFooter>
+        <ResponsiveDialogFooter className="shrink-0">
           <Button
             disabled={publishMutation.isPending}
             onClick={() => onOpenChange(false)}

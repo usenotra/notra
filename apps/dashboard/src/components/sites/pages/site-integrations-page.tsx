@@ -10,6 +10,7 @@ import {
   AlertTitle,
 } from "@notra/ui/components/ui/alert";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
@@ -19,26 +20,59 @@ import Link from "@/components/framework/link";
 import { useSite } from "@/components/sites/site-context";
 import { SiteIntegrationDialog } from "@/components/sites/site-integration-dialog";
 import { SiteIntegrationRow } from "@/components/sites/site-integration-row";
+import { SitePublishDialog } from "@/components/sites/site-publish-dialog";
 import { SITE_INTEGRATION_PROVIDERS } from "@/constants/site-integrations";
 import {
   useSaveSiteIntegration,
   useSiteIntegrations,
 } from "@/lib/hooks/use-site-integrations";
+import { dashboardOrpc } from "@/lib/orpc/query";
 import type { SiteIntegrationName } from "@/types/site-integrations";
+import type { SiteEditorFiles } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
 import { siteIntegrationSettings } from "@/utils/site-integrations";
 import { siteHref } from "@/utils/site-links";
 
 export function SiteIntegrationsPage() {
   const t = useTranslations("sites.integrationsPage");
-  const { organizationId, organizationSlug, siteId } = useSite();
+  const { organizationId, organizationSlug, siteId, detail } = useSite();
+  const queryClient = useQueryClient();
   const scope = { organizationId, siteId };
   const query = useSiteIntegrations(scope);
   const save = useSaveSiteIntegration(scope);
   const [openId, setOpenId] = useState<SiteIntegrationName | null>(null);
+  const [publishFiles, setPublishFiles] = useState<SiteEditorFiles | null>(
+    null
+  );
+  const [preparingPublish, setPreparingPublish] = useState(false);
   const open = SITE_INTEGRATION_PROVIDERS.find(
     (provider) => provider.id === openId
   );
+
+  const openPublish = () => {
+    setPreparingPublish(true);
+    return queryClient
+      .fetchQuery({
+        ...dashboardOrpc.sites.editor.files.queryOptions({ input: scope }),
+        staleTime: 0,
+      })
+      .then(
+        (files) => {
+          if (files.drafts.length === 0) {
+            toast.error(t("noDrafts"));
+            return false;
+          }
+          setPublishFiles(files);
+          setOpenId(null);
+          return true;
+        },
+        (error: unknown) => {
+          toast.error(toErrorMessage(error, t("preparePublishFailed")));
+          return false;
+        }
+      )
+      .finally(() => setPreparingPublish(false));
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6" data-site-fill>
@@ -101,7 +135,7 @@ export function SiteIntegrationsPage() {
                     query.data?.integrations[provider.id]
                   ).success
                 }
-                disabled={query.isError || save.isPending}
+                disabled={query.isError || save.isPending || preparingPublish}
                 key={provider.id}
                 onOpen={() => setOpenId(provider.id)}
                 onRemove={() =>
@@ -132,12 +166,24 @@ export function SiteIntegrationsPage() {
               />
               {t("draftDescription")}
             </p>
-            <Link
-              className={buttonVariants({ size: "sm" })}
-              href={siteHref(organizationSlug, siteId, "editor")}
-            >
-              {t("reviewAndPublish")}
-            </Link>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link
+                className={buttonVariants({ size: "sm", variant: "outline" })}
+                href={siteHref(organizationSlug, siteId, "editor")}
+              >
+                {t("openEditor")}
+              </Link>
+              <Button
+                disabled={preparingPublish || save.isPending}
+                loading={preparingPublish}
+                onClick={() => {
+                  void openPublish();
+                }}
+                size="sm"
+              >
+                {t("createPullRequest")}
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -154,6 +200,34 @@ export function SiteIntegrationsPage() {
           provider={open}
           scope={scope}
           settings={siteIntegrationSettings(query.data?.integrations, open)}
+          onPublish={openPublish}
+        />
+      ) : null}
+      {publishFiles ? (
+        <SitePublishDialog
+          draftCount={publishFiles.drafts.length}
+          drafts={publishFiles.drafts}
+          initialMessage={t("publishMessage")}
+          onConflict={() => {
+            setPublishFiles(null);
+            toast.error(t("publishConflict"));
+          }}
+          onOpenChange={(next) => {
+            if (!next) {
+              setPublishFiles(null);
+            }
+          }}
+          onPublished={() => {
+            void queryClient.invalidateQueries({
+              queryKey: dashboardOrpc.sites.key(),
+            });
+          }}
+          open
+          organizationId={organizationId}
+          pullRequestOnly
+          site={detail.site}
+          siteId={siteId}
+          sourcePaths={new Set(publishFiles.files.map((file) => file.path))}
         />
       ) : null}
     </div>

@@ -429,6 +429,8 @@ export interface SiteSettingsSaveBarProps {
 }
 
 export interface SitePublishDialogProps extends SiteScope {
+  pullRequestOnly?: boolean;
+  initialMessage?: string;
   unsaved?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -567,6 +569,7 @@ export interface SiteIntegrationDialogProps {
   settings: Record<string, unknown> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPublish: () => Promise<boolean>;
 }
 
 export interface SiteIntegrationSaveStatusProps {

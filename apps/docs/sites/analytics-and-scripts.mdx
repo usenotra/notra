@@ -40,15 +40,14 @@ Set up a provider in the dashboard or add it under `integrations` in `blog.json`
     The dialog shows the corresponding `blog.json` configuration. You can copy it to use the same setup in your repository.
   </Step>
   <Step title="Wait for the draft to save">
-    Valid settings save automatically. Wait for **Draft saved**, then click **Close**. There is no Save button. Saving creates a draft of `blog.json`; it does not create a GitHub commit or change your live site.
+    Valid settings save automatically. There is no Save button. Saving creates a draft of `blog.json`; it does not create a GitHub commit or change your live site. You can click **Close** to leave the draft for later, or continue with **Create pull request** in the same dialog.
 
     Closing the dialog or navigating within the dashboard finishes a pending save. If saving fails, the dialog stays open so you can retry. Invalid settings show a validation error and do not save.
   </Step>
   <Step title="Review and publish">
-    Click **Review and publish** to open the editor, review the `blog.json` change and click **Publish**.
+    Click **Create pull request** in the provider dialog or the draft bar on the Integrations page. Notra finishes any pending save and opens a preview of all saved drafts, including `blog.json`. Review the changes and commit message, then click **Open pull request**. Review and merge the PR into the production branch to deploy it.
 
-    - **Open pull request** creates a PR with your changes. Review and merge it into the production branch to deploy them.
-    - **Commit and deploy** commits to the production branch. This option is available only when **Settings → Publishing** allows direct commits and the GitHub branch is not protected.
+    To edit other files or commit directly, click **Open editor**, review the changes and click **Publish → Commit and deploy**. Direct commits are available only when **Settings → Publishing** allows them and the GitHub branch is not protected.
 
     See [Publishing and deployments](/sites/publishing#the-editor). Publishing includes the editor's pending changes, so review any other drafts before you publish.
   </Step>
