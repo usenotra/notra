@@ -47,6 +47,7 @@ import {
 import {
   markdownNotFound,
   methodNotAllowed,
+  noStoreRedirect,
   robotsTxt,
   serveFile,
 } from "./responses";
@@ -364,6 +365,12 @@ async function serveFromManifest(
           }
         : undefined,
     });
+  }
+  if (path === "/" && !area) {
+    const home = mounts.blog ?? mounts.changelog;
+    if (home) {
+      return noStoreRedirect(`${home}${url.search}`, 302);
+    }
   }
   if (wantsMarkdown || path.endsWith(".md")) {
     const notFound = area ? files.get(markdownNotFoundPath) : undefined;
