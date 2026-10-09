@@ -12,6 +12,10 @@ export interface DemoOrganizationInput {
   timeZone: string;
   now: Date;
   personalization: DemoPersonalization | null;
+  reservation?: {
+    anonymousId: string;
+    ipHash: string | null;
+  };
 }
 
 export interface CreateDemoSandboxInput {

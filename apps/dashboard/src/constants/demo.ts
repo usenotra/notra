@@ -45,6 +45,9 @@ export const DEMO_ANONYMOUS_ID_LENGTH = 16;
  * cookie's id pattern, so an unclaimed sandbox is unreachable.
  */
 export const DEMO_POOL_ID_PREFIX = "pool_";
+/** In-flight seeds count toward the budget but cannot be claimed or evicted. */
+export const DEMO_SEED_ID_PREFIX = "seed_";
+export const DEMO_STORAGE_LOCK_KEY = "notra:demo-storage";
 /** Ready sandboxes kept in reserve; NOTRA_DEMO_POOL_SIZE overrides it. */
 export const DEMO_DEFAULT_POOL_SIZE = 3;
 /**
