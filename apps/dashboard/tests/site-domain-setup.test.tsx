@@ -132,6 +132,16 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
       expect(html).not.toContain(messages.sites.domainsPage.status.verifying);
       expect(html).not.toContain("<ol");
       expect(html).not.toContain(messages.sites.domainsPage.verifyNow);
+      expect(html).toContain("justify-end gap-x-4");
+      expect(html).toContain(
+        'href="https://dash.cloudflare.com/?to=/:account/example.com/dns/records"'
+      );
+      expect(html).not.toContain(
+        messages.sites.domainsPage.dns.connect.replace(
+          "{provider}",
+          "Cloudflare"
+        )
+      );
       expect(mutate).not.toHaveBeenCalled();
     });
 
@@ -153,6 +163,11 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
         messages.sites.domainsPage.dns.proxyNotApplicable
       );
       expect(rows[2]).not.toContain(messages.sites.domainsPage.dns.dnsOnly);
+      expect(rows[1]).toContain('data-slot="tooltip-trigger"');
+      expect(rows[1]).toContain('type="button"');
+      expect(rows[1]).toContain("fill-muted-foreground/20");
+      expect(rows[2]).toContain("—");
+      expect(html).not.toContain(">N/A<");
       const copyButtons = [...html.matchAll(/<button\b[^>]*>/g)].filter(
         (match) =>
           [
@@ -169,7 +184,7 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
     });
 
     test.each(["pending", "verifying", "failed"] as const)(
-      "%s check details retain their severity with less default information",
+      "%s only shows check errors for failed domains",
       (status) => {
         const html = renderToStaticMarkup(
           <IntlProvider locale={locale} messages={messages} timeZone="UTC">
@@ -187,21 +202,14 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
             />
           </IntlProvider>
         );
-        expect(html).toContain("DNS record is not visible yet");
         expect(html).not.toContain('data-slot="alert"');
+        expect(html).not.toContain("<details");
         if (status === "failed") {
+          expect(html).toContain("DNS record is not visible yet");
           expect(html).toContain('role="alert"');
           expect(html).toContain(messages.sites.domainsPage.lastErrorTitle);
-          expect(html).not.toContain("<details");
         } else {
-          const details = html.match(
-            /<details\b[^>]*>[\s\S]*?<\/details>/
-          )?.[0];
-          expect(details).toContain(
-            messages.sites.domainsPage.lastCheckDetails
-          );
-          expect(details).toContain("DNS record is not visible yet");
-          expect(details).not.toContain("<details open");
+          expect(html).not.toContain("DNS record is not visible yet");
           expect(html).not.toContain('role="alert"');
           expect(html).not.toContain("text-destructive");
         }
@@ -232,26 +240,41 @@ if (!process.env.NOTRA_DOMAIN_SETUP_TEST_WORKER) {
     });
   });
 
-  test("Domain Connect retains the explicit provider approval action", () => {
-    connection = {
-      status: "ready",
-      providerName: "Vercel",
-      applyUrl: "https://dns.example/connect",
-    };
-    const html = renderToStaticMarkup(
-      <IntlProvider locale="en" messages={en} timeZone="UTC">
-        <SiteDomainSetup
-          aliasOrigin="https://alias.example.com"
-          domain={domain}
-          mounts={{ blog: "/" }}
-          organizationId="organization"
-          siteId="site"
-        />
-      </IntlProvider>
-    );
-    expect(html).toContain("Connect with Vercel");
-    expect(html).toContain(en.sites.domainsPage.dns.dnsOnly);
-  });
+  test.each(["Cloudflare", "Vercel"])(
+    "%s Connect links directly to provider approval",
+    (providerName) => {
+      connection = {
+        status: "ready",
+        providerName,
+        applyUrl: "https://dns.example/connect",
+      };
+      const html = renderToStaticMarkup(
+        <IntlProvider locale="en" messages={en} timeZone="UTC">
+          <SiteDomainSetup
+            aliasOrigin="https://alias.example.com"
+            domain={domain}
+            mounts={{ blog: "/" }}
+            organizationId="organization"
+            siteId="site"
+          />
+        </IntlProvider>
+      );
+      expect(html).toContain(`Connect with ${providerName}`);
+      expect(html).toContain('href="https://dns.example/connect"');
+      const link = html.match(
+        /<a\b[^>]*href="https:\/\/dns.example\/connect"[^>]*>/
+      )?.[0];
+      expect(link).toBeDefined();
+      expect(link).not.toContain('target="_blank"');
+      expect(html).toContain(
+        en.sites.domainsPage.dns.automaticDescription.replace(
+          "{provider}",
+          providerName
+        )
+      );
+      expect(html).toContain(en.sites.domainsPage.dns.dnsOnly);
+    }
+  );
 
   test("proxy domains keep their rewrite recipe and verification action", () => {
     const html = renderToStaticMarkup(

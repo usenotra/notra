@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon, CloudIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CopyButton } from "@notra/ui/components/ui/copy-button";
 import { Cloudflare } from "@notra/ui/components/ui/svgs/cloudflare";
@@ -13,10 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@notra/ui/components/ui/table";
-import { type ReactNode, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@notra/ui/components/ui/tooltip";
+import type { ReactNode } from "react";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
+import { buttonVariants } from "@/components/button";
 import {
   SITE_CLOUDFLARE_PROVIDER_PATTERN,
   SITE_VERCEL_PROVIDER_PATTERN,
@@ -61,7 +66,7 @@ export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
         <col className="w-18" />
         <col className="w-[25%]" />
         <col />
-        <col className="w-36" />
+        <col className="w-44" />
       </colgroup>
       <TableHeader>
         <TableRow>
@@ -86,13 +91,57 @@ export function SiteDnsRecordsTable({ records }: SiteDnsRecordsTableProps) {
               <RecordValue label={t("value")} value={record.value} />
             </TableCell>
             <TableCell>
-              <span className="text-muted-foreground text-xs">
-                {record.type === "CNAME" ? (
-                  <span title={t("proxyRequirement")}>{t("dnsOnly")}</span>
-                ) : (
-                  t("proxyNotApplicable")
-                )}
-              </span>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      aria-label={
+                        record.type === "CNAME"
+                          ? `${t("dnsOnly")}. ${t("proxyRequirement")}`
+                          : t("proxyNotApplicable")
+                      }
+                      className="text-muted-foreground focus-visible:outline-ring inline-flex min-h-6 min-w-6 cursor-help items-center gap-1.5 rounded-sm text-xs focus-visible:outline-2"
+                      type="button"
+                    />
+                  }
+                >
+                  {record.type === "CNAME" ? (
+                    <>
+                      <HugeiconsIcon
+                        aria-hidden="true"
+                        className="fill-muted-foreground/20 size-4"
+                        icon={CloudIcon}
+                        strokeWidth={1.5}
+                      />
+                      {t("dnsOnly")}
+                    </>
+                  ) : (
+                    <span aria-hidden="true">—</span>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent className="max-w-64">
+                  {record.type === "CNAME" ? (
+                    <div className="space-y-2 py-1">
+                      <div className="flex items-center gap-2">
+                        <HugeiconsIcon
+                          aria-hidden="true"
+                          className="size-4 fill-current/20"
+                          icon={CloudIcon}
+                          strokeWidth={1.5}
+                        />
+                        <span className="font-medium">{t("dnsOnly")}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Cloudflare aria-hidden="true" className="size-4" />
+                        <span className="line-through">{t("proxied")}</span>
+                      </div>
+                      <p>{t("proxyRequirement")}</p>
+                    </div>
+                  ) : (
+                    t("proxyNotApplicableDescription")
+                  )}
+                </TooltipContent>
+              </Tooltip>
             </TableCell>
           </TableRow>
         ))}
@@ -107,7 +156,6 @@ function ProviderButton({
   oneClick,
 }: SiteDnsProviderButtonProps) {
   const t = useTranslations("sites.domainsPage.dns");
-  const [navigating, setNavigating] = useState(false);
   let logo: ReactNode = null;
   if (SITE_CLOUDFLARE_PROVIDER_PATTERN.test(providerName)) {
     logo = <Cloudflare aria-hidden="true" data-icon="inline-start" />;
@@ -115,18 +163,14 @@ function ProviderButton({
     logo = <Vercel aria-hidden="true" data-icon="inline-start" />;
   }
   return (
-    <Button
-      loading={navigating}
-      onClick={() => {
-        if (oneClick) {
-          setNavigating(true);
-          window.location.assign(href);
-        } else {
-          window.open(href, "_blank", "noopener,noreferrer");
-        }
-      }}
-      size="sm"
-      variant={oneClick ? "default" : "outline"}
+    <a
+      className={buttonVariants({
+        size: "sm",
+        variant: oneClick ? "default" : "outline",
+      })}
+      href={href}
+      rel={oneClick ? undefined : "noopener noreferrer"}
+      target={oneClick ? undefined : "_blank"}
     >
       {logo}
       {oneClick
@@ -137,7 +181,7 @@ function ProviderButton({
         icon={ArrowUpRight01Icon}
         strokeWidth={1.5}
       />
-    </Button>
+    </a>
   );
 }
 
@@ -147,6 +191,7 @@ export function SiteDnsSetup({
   domain,
   checkAction,
 }: SiteDnsSetupProps) {
+  const t = useTranslations("sites.domainsPage.dns");
   const connect = useSiteDomainConnect({ organizationId, siteId, domain });
   const result = connect.data;
   const ready = result?.status === "ready" ? result : null;
@@ -171,9 +216,16 @@ export function SiteDnsSetup({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {action}
-        {checkAction}
+      <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+        {ready ? (
+          <p className="text-muted-foreground me-auto text-xs">
+            {t("automaticDescription", { provider: ready.providerName })}
+          </p>
+        ) : null}
+        <div className="flex items-center gap-2">
+          {action}
+          {checkAction}
+        </div>
       </div>
       <SiteDnsRecordsTable records={domain.records} />
     </div>

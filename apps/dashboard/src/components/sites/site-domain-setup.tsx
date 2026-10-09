@@ -73,14 +73,6 @@ export function SiteDomainSetup({
         <div className="flex justify-end">{checkAction}</div>
       ) : null}
       {setup}
-      {!isActive && domain.status !== "failed" && domain.lastError ? (
-        <details className="text-muted-foreground text-xs">
-          <summary className="hover:text-foreground cursor-pointer">
-            {t("lastCheckDetails")}
-          </summary>
-          <p className="pt-2 break-words">{domain.lastError}</p>
-        </details>
-      ) : null}
     </div>
   );
 }
