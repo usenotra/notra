@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { Suspense } from "react";
 
 import { ConsoleCallout } from "@/components/integrations/console-callout";
@@ -6,9 +6,11 @@ import { IntegrationModal } from "@/components/integrations/integration-modal";
 import { IntegrationsMarketplace } from "@/components/integrations/integrations-marketplace";
 import { IntegrationsMarketplaceFallback } from "@/components/integrations/integrations-marketplace-fallback";
 import { DYNAMIC_PAGE_CACHE_CONTROL } from "@/constants/proxy";
-import { getIntegration, getIntegrations } from "@/lib/integrations/functions";
-import { buildCategoryFilters } from "@/lib/integrations/helpers";
-import { integrationsSearchSchema } from "@/schemas/integrations";
+import { getIntegrations } from "@/lib/integrations/functions";
+import {
+  buildCategoryFilters,
+  getIntegrationSlug,
+} from "@/lib/integrations/helpers";
 import type { Metadata } from "@/types/metadata";
 import { buildHead } from "@/utils/head";
 import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
@@ -52,24 +54,23 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 ]);
 
 export const Route = createFileRoute("/_site/integrations/")({
-  validateSearch: integrationsSearchSchema,
-  loaderDeps: ({ search }) => ({ integration: search.integration }),
-  loader: async ({ deps }) => {
-    const [integrations, modalIntegration] = await Promise.all([
-      getIntegrations(),
-      deps.integration
-        ? getIntegration({ data: { id: deps.integration } }).catch(() => null)
-        : null,
-    ]);
-    return { integrations, modalIntegration };
-  },
+  loader: () => getIntegrations(),
   head: () => buildHead(metadata),
   headers: () => ({ "Cache-Control": DYNAMIC_PAGE_CACHE_CONTROL }),
   component: IntegrationsPage,
 });
 
 function IntegrationsPage() {
-  const { integrations, modalIntegration } = Route.useLoaderData();
+  const integrations = Route.useLoaderData();
+  const modalSlug = useLocation({
+    select: (location) =>
+      location.maskedLocation ? location.state.integrationModal : undefined,
+  });
+  const modalIntegration = modalSlug
+    ? integrations.find(
+        (integration) => getIntegrationSlug(integration) === modalSlug
+      )
+    : undefined;
   const categories = buildCategoryFilters(integrations);
 
   return (

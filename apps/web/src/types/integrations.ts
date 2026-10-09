@@ -106,3 +106,9 @@ export interface IntegrationDraftCardProps {
   body: string;
   meta: string;
 }
+
+declare module "@tanstack/react-router" {
+  interface HistoryState {
+    integrationModal?: string;
+  }
+}
