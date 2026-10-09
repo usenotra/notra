@@ -7,7 +7,12 @@ export function buildZeroBaselineAxisLine(
   return {
     show:
       seriesKeys.length > 0 &&
-      data.every((row) => seriesKeys.every((key) => row[key] === 0)),
+      data.every((row) =>
+        seriesKeys.every((key) => {
+          const value = row[key];
+          return value !== null && value !== undefined && Number(value) === 0;
+        })
+      ),
     onZero: true,
     lineStyle: { color, width: 1.5 },
   };
