@@ -37,11 +37,11 @@ import { NavbarChevron } from "./navbar-glyphs";
 import { NavbarHref } from "./navbar-href";
 import { TrackedSignupLink } from "./tracked-signup-link";
 
-const CARD_CLASSNAME =
-  "flex min-w-0 items-start gap-3 rounded-2xl border border-[#1E1E1E1A] bg-[#C8B2EE40] px-3.5 py-3 shadow-[0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] transition-[background,border-color,transform] hover:bg-[linear-gradient(180deg,#C8B2EE40_0%,#C8B2EE66_100%)] active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:bg-white/10 dark:hover:bg-none";
+const LINK_CLASSNAME =
+  "flex min-h-12 items-center gap-3 rounded-xl px-1 py-2 transition-colors hover:bg-[#C8B2EE26] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none active:bg-[#C8B2EE33] dark:hover:bg-white/6 dark:active:bg-white/10";
 
-const RAIL_CLASSNAME =
-  "flex min-h-9 items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#C8B2EE26] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none dark:hover:bg-white/6";
+const SECTION_CLASSNAME =
+  "px-1 pt-3 pb-1 font-sans text-sm leading-5 font-medium tracking-[-0.02em] text-[#1E1E1EA6] dark:text-neutral-400";
 
 const TRIGGER_CLASSNAME =
   "flex min-h-14 w-full cursor-pointer items-center justify-between py-3 text-left font-sans text-[1.375rem] leading-none font-medium tracking-[-0.03em] text-[#1E1E1E] focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none dark:text-white";
@@ -286,81 +286,62 @@ function GroupPanel({
   return (
     <m.div
       animate="visible"
-      className="flex flex-col gap-2 pt-1 pb-5"
+      className="flex flex-col pb-3"
       initial="hidden"
       variants={stagger}
     >
-      <m.div className="flex flex-col gap-2" variants={stagger}>
+      <m.ul className="flex list-none flex-col" variants={stagger}>
         {group.cards.map((card) => (
-          <m.div key={card.href} variants={item}>
-            <MobileNavCard card={card} onSelect={onSelect} />
-          </m.div>
+          <m.li key={card.href} variants={item}>
+            <MobileNavLink item={card} onSelect={onSelect} />
+          </m.li>
         ))}
-      </m.div>
+      </m.ul>
       {group.rail.length > 0 ? (
-        <m.div className="mt-1 flex flex-col" variants={stagger}>
-          {group.rail.map((railItem) => (
-            <m.div key={railItem.href} variants={item}>
-              <MobileRailItem item={railItem} onSelect={onSelect} />
-            </m.div>
-          ))}
+        <m.div className="flex flex-col" variants={stagger}>
+          <m.p
+            className={SECTION_CLASSNAME}
+            id={`${group.label}-secondary`}
+            variants={item}
+          >
+            {group.railHeading}
+          </m.p>
+          <m.ul
+            aria-labelledby={`${group.label}-secondary`}
+            className="flex list-none flex-col"
+            variants={stagger}
+          >
+            {group.rail.map((railItem) => (
+              <m.li key={railItem.href} variants={item}>
+                <MobileNavLink item={railItem} onSelect={onSelect} />
+              </m.li>
+            ))}
+          </m.ul>
         </m.div>
       ) : null}
     </m.div>
   );
 }
 
-function MobileNavCard({
-  card,
-  onSelect,
-}: {
-  card: MarketingNavCard;
-  onSelect: () => void;
-}) {
-  return (
-    <NavbarHref
-      className={CARD_CLASSNAME}
-      external={card.external}
-      href={card.href}
-      onClick={onSelect}
-    >
-      <span className="flex size-7 shrink-0 items-center justify-center leading-none [&_svg]:block">
-        <HugeiconsIcon
-          className="size-7 text-[#1E1E1E] dark:text-white"
-          icon={card.icon}
-        />
-      </span>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="font-sans text-base leading-5 font-semibold text-[#1E1E1E] dark:text-white">
-          {card.label}
-        </span>
-        <span className="font-sans text-sm leading-5 font-medium text-[#1E1E1EBF] dark:text-neutral-400">
-          {card.description}
-        </span>
-      </span>
-    </NavbarHref>
-  );
-}
-
-function MobileRailItem({
+function MobileNavLink({
   item,
   onSelect,
 }: {
-  item: MarketingNavRailItem;
+  item: MarketingNavCard | MarketingNavRailItem;
   onSelect: () => void;
 }) {
   return (
     <NavbarHref
-      className={RAIL_CLASSNAME}
+      className={LINK_CLASSNAME}
       external={item.external}
       href={item.href}
       onClick={onSelect}
     >
       <HugeiconsIcon
-        className="size-5 shrink-0 text-[#1E1E1E99] dark:text-neutral-400"
+        className="size-5 shrink-0 text-[#1E1E1E] dark:text-white"
         icon={item.icon}
       />
-      <span className="font-sans text-sm leading-5 font-medium tracking-[-0.02em] text-[#1E1E1EA6] dark:text-neutral-400">
+      <span className="min-w-0 font-sans text-base leading-5 font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-white">
         {item.label}
       </span>
     </NavbarHref>
