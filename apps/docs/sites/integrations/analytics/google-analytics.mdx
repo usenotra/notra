@@ -1,0 +1,45 @@
+---
+title: "Google Analytics 4"
+description: "Send visits on your Notra site to a Google Analytics 4 property with your Measurement ID."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/integrations/analytics/google-analytics
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra loads Google's `gtag.js`, initializes the data layer and configures your Measurement ID on every live page. You don't need another Google tag, and Notra adds the script and collection origins to the CSP for you.
+
+<Steps>
+  <Step title="Copy your Measurement ID">
+    In Google Analytics, open **Admin → Data streams**, select your web stream and copy its **Measurement ID**, which starts with `G-`. This is the public web stream ID, not an API secret or a Universal Analytics `UA-` ID. See [Google's Measurement ID guide](https://support.google.com/analytics/answer/9539598).
+  </Step>
+  <Step title="Add it to Notra">
+    Open **Studio → Sites**, select your site, open **Integrations** and click **Add Google Analytics 4**. Paste the ID into **Measurement ID**. To configure it in your repository instead, add it to `blog.json`:
+
+    ```json blog.json
+    {
+      "$schema": "https://usenotra.com/schemas/blog.json",
+      "name": "Acme",
+      "integrations": {
+        "ga4": {
+          "measurementId": "G-ABC123XYZ9"
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Publish and verify">
+    After you [publish the change](/sites/integrations/analytics/overview#set-up-in-the-dashboard) and the production deployment finishes, check the live site with [Google Tag Assistant](https://tagassistant.google.com/) and look for incoming events in your GA4 property.
+  </Step>
+</Steps>
+
+<Note>
+  Google Analytics doesn't load on PR previews or during local development, so always verify on the live site.
+</Note>

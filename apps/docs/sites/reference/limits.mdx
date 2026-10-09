@@ -57,7 +57,7 @@ A failed build lists every problem with its file, line and code in three places:
 | `default_export` | `Default exports are not supported` | Use `export const Counter = ...` |
 | `snippet_import` | `Snippets cannot import "x"` | A `.jsx` snippet can only import from `"react"`, so import every snippet in the MDX file |
 | `forbidden_syntax` | `require() is not supported` and similar | Node.js APIs, `eval` and dynamic `import()` aren't available. See [Rules](/sites/custom-components#rules) |
-| `blocked_element` | `<script> is not allowed in content` | Move the script to `script.js`. See [Custom scripts](/sites/analytics-and-scripts#custom-scripts) |
+| `blocked_element` | `<script> is not allowed in content` | Move the script to `script.js`. See [Custom scripts](/sites/custom-scripts#custom-scripts) |
 | `slot_unknown` | `Unknown slot "x"` | Rename the file to one of the [slot names](/sites/match-your-website#slots) |
 | `import_cycle` | `Import cycle: a → b → a` | MDX files import each other in a loop |
 | `file_too_large` | `File is larger than 25 MB` | Compress the file or host it elsewhere |
