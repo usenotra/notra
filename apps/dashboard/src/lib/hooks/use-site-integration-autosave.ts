@@ -1,4 +1,5 @@
 import type { SiteIntegrationUpdate } from "@notra/sites-core/types/site-integrations";
+import { useBlocker } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { useSaveSiteIntegration } from "@/lib/hooks/use-site-integrations";
@@ -33,6 +34,11 @@ export function useSiteIntegrationAutosave(
     [autosave]
   );
   useWarnBeforeUnload(state.dirty);
+  useBlocker({
+    disabled: !state.dirty,
+    enableBeforeUnload: false,
+    shouldBlockFn: async () => !(await autosave.flush()),
+  });
 
   return { ...autosave, state };
 }

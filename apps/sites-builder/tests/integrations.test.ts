@@ -93,12 +93,14 @@ test("real live builds include every provider while previews omit them and their
           .find((directive) => directive.startsWith("script-src "))
           ?.split(" ")
           .slice(1) ?? [];
-      expect(scriptSources.includes("https://stats.acme.com:8443")).toBe(
-        enabled
-      );
-      expect(scriptSources.includes("https://www.googletagmanager.com")).toBe(
-        enabled
-      );
+      expect(
+        scriptSources.some((source) => source === "https://stats.acme.com:8443")
+      ).toBe(enabled);
+      expect(
+        scriptSources.some(
+          (source) => source === "https://www.googletagmanager.com"
+        )
+      ).toBe(enabled);
       expect(result.contentSecurityPolicy).not.toContain("'unsafe-inline'");
       expect(result.contentSecurityPolicy).toContain("'sha256-");
       expect(
