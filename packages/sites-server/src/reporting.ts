@@ -14,11 +14,11 @@ import {
   upsertPreviewComment,
 } from "./github";
 import type { DeploymentOutcome, SiteDeployment } from "./types/deployments";
-import type { CheckReport } from "./types/reporting";
 import type { Site } from "./types/sites";
+import { deploymentCheckReport } from "./utils/deployment-check-report";
 import { errorMessage } from "./utils/errors";
 import { previewCommentBody } from "./utils/preview-comment";
-import { deploymentDashboardUrl, primaryMountUrl } from "./utils/urls";
+import { deploymentDashboardUrl } from "./utils/urls";
 
 async function safely<T>(
   label: string,
@@ -82,55 +82,6 @@ export async function openCheckRun(
   return { ...deployment, checkRunId };
 }
 
-function checkFor(
-  deployment: SiteDeployment,
-  outcome: DeploymentOutcome
-): CheckReport {
-  switch (outcome.kind) {
-    case "live": {
-      const url = primaryMountUrl(
-        deployment.target.publicOrigin,
-        deployment.target.mounts
-      );
-      const isProduction = deployment.kind === "production";
-      return {
-        conclusion: "success",
-        title: isProduction ? "Live" : "Preview ready",
-        summary: `${isProduction ? "Published" : "Preview"}: ${url}\n\n${deployment.fileCount ?? 0} files, built in ${Math.round((deployment.buildDurationMs ?? 0) / 1000)} s.`,
-        liveUrl: url,
-      };
-    }
-    case "not_live":
-      return {
-        conclusion: "neutral",
-        title: "Superseded by a newer commit",
-        summary:
-          "A newer deployment was already live, so this build was not published.",
-        liveUrl: null,
-      };
-    case "skipped":
-      return {
-        conclusion: "skipped",
-        title: "Skipped",
-        summary: outcome.reason,
-        liveUrl: null,
-      };
-    case "failed":
-      return {
-        conclusion: "failure",
-        title: "Build failed",
-        summary: outcome.summary,
-        liveUrl: null,
-      };
-    default: {
-      const unhandled: never = outcome;
-      throw new Error(
-        `Unhandled deployment outcome ${JSON.stringify(unhandled)}`
-      );
-    }
-  }
-}
-
 export async function reportOutcome(
   site: Site,
   deployment: SiteDeployment,
@@ -141,7 +92,7 @@ export async function reportOutcome(
   if (!checkRunId) {
     return;
   }
-  const check = checkFor(deployment, outcome);
+  const check = deploymentCheckReport(deployment, outcome);
   await safely("check_complete", async () => {
     const { repository, token } = await siteRepositoryAccess(site, {
       checks: "write",
