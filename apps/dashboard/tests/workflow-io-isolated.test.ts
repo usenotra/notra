@@ -1,28 +1,36 @@
 /// <reference lib="es2024.promise" />
 import { afterAll, beforeEach, expect, mock, spyOn, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { WORKFLOW_OPTIMIZATION_BASELINE_SHA } from "../../../tests/constants/workflow-optimizations";
 
 if (process.env.NOTRA_WORKFLOW_IO_WORKER !== "1") {
   test("isolated agent and X regressions", () => {
-    const result = spawnSync(
-      process.execPath,
-      ["test", fileURLToPath(import.meta.url)],
-      {
-        env: {
-          PATH: process.env.PATH,
-          HOME: process.env.HOME,
-          TMPDIR: process.env.TMPDIR,
-          NODE_ENV: "test",
-          NOTRA_WORKFLOW_IO_WORKER: "1",
-        },
-        timeout: 25_000,
-      }
+    const baselineDirectory = mkdtempSync(
+      fileURLToPath(new URL("../.isolated-baselines-", import.meta.url))
     );
-    expect(result.status, result.stderr.toString()).toBe(0);
+    try {
+      const result = spawnSync(
+        process.execPath,
+        ["test", fileURLToPath(import.meta.url)],
+        {
+          env: {
+            PATH: process.env.PATH,
+            HOME: process.env.HOME,
+            TMPDIR: process.env.TMPDIR,
+            NODE_ENV: "test",
+            NOTRA_WORKFLOW_IO_WORKER: "1",
+            NOTRA_WORKFLOW_IO_BASELINE_DIRECTORY: baselineDirectory,
+          },
+          timeout: 25_000,
+        }
+      );
+      expect(result.status, result.stderr.toString()).toBe(0);
+    } finally {
+      rmSync(baselineDirectory, { recursive: true, force: true });
+    }
   }, 30_000);
 } else {
   globalThis.fetch = mock(() => {
@@ -78,38 +86,35 @@ if (process.env.NOTRA_WORKFLOW_IO_WORKER !== "1") {
   mock.module("@/utils/twitter-fetcher", () => ({
     twitterAppFetch: (url: string) => twitterFetch(url),
   }));
+  const baselineDirectory =
+    process.env.NOTRA_WORKFLOW_IO_BASELINE_DIRECTORY ??
+    mkdtempSync(
+      fileURLToPath(new URL("../.isolated-baselines-", import.meta.url))
+    );
+  afterAll(() => {
+    rmSync(baselineDirectory, { recursive: true, force: true });
+  });
   const baselines = [
-    "apps/dashboard/src/lib/agent/client",
-    "apps/dashboard/src/lib/analytics/twitter-sync",
-  ];
-  const root = fileURLToPath(new URL("../../../", import.meta.url));
-  for (const path of baselines) {
-    const output = `${root}${path}.isolated-baseline.ts`;
-    if (existsSync(output)) {
-      throw new Error(`Refusing to overwrite ${output}`);
-    }
+    ["apps/dashboard/src/lib/agent/client", "client"],
+    ["apps/dashboard/src/lib/analytics/twitter-sync", "twitter-sync"],
+  ] as const;
+  for (const [sourcePath, name] of baselines) {
     writeFileSync(
-      output,
+      `${baselineDirectory}/${name}.ts`,
       execFileSync(
         "git",
-        ["show", `${WORKFLOW_OPTIMIZATION_BASELINE_SHA}:${path}.ts`],
+        ["show", `${WORKFLOW_OPTIMIZATION_BASELINE_SHA}:${sourcePath}.ts`],
         {
           cwd: fileURLToPath(new URL("../../../", import.meta.url)),
         }
       )
     );
   }
-  afterAll(() => {
-    for (const path of baselines) {
-      unlinkSync(`${root}${path}.isolated-baseline.ts`);
-    }
-  });
   const candidate = await import("../src/lib/agent/client");
-  const baselinePath = "../src/lib/agent/client.isolated-baseline.ts";
+  const baselinePath = `${baselineDirectory}/client.ts`;
   const baseline: typeof candidate = await import(baselinePath);
   const twitter = await import("../src/lib/analytics/twitter-sync");
-  const twitterBaselinePath =
-    "../src/lib/analytics/twitter-sync.isolated-baseline.ts";
+  const twitterBaselinePath = `${baselineDirectory}/twitter-sync.ts`;
   const twitterBaseline: typeof twitter = await import(twitterBaselinePath);
   const { readAgentTaskStream } =
     await import("../src/utils/read-agent-task-stream");

@@ -1,28 +1,36 @@
 /// <reference lib="es2024.promise" />
 import { afterAll, beforeEach, expect, mock, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { WORKFLOW_OPTIMIZATION_BASELINE_SHA } from "../../../tests/constants/workflow-optimizations";
 
 if (process.env.NOTRA_POSTHOG_FLUSH_WORKER !== "1") {
   test("isolated PostHog flush barriers", () => {
-    const result = spawnSync(
-      process.execPath,
-      ["test", fileURLToPath(import.meta.url)],
-      {
-        env: {
-          PATH: process.env.PATH,
-          HOME: process.env.HOME,
-          TMPDIR: process.env.TMPDIR,
-          NODE_ENV: "test",
-          NOTRA_POSTHOG_FLUSH_WORKER: "1",
-        },
-        timeout: 25_000,
-      }
+    const baselineDirectory = mkdtempSync(
+      fileURLToPath(new URL("../.isolated-baselines-", import.meta.url))
     );
-    expect(result.status, result.stderr.toString()).toBe(0);
+    try {
+      const result = spawnSync(
+        process.execPath,
+        ["test", fileURLToPath(import.meta.url)],
+        {
+          env: {
+            PATH: process.env.PATH,
+            HOME: process.env.HOME,
+            TMPDIR: process.env.TMPDIR,
+            NODE_ENV: "test",
+            NOTRA_POSTHOG_FLUSH_WORKER: "1",
+            NOTRA_POSTHOG_BASELINE_DIRECTORY: baselineDirectory,
+          },
+          timeout: 25_000,
+        }
+      );
+      expect(result.status, result.stderr.toString()).toBe(0);
+    } finally {
+      rmSync(baselineDirectory, { recursive: true, force: true });
+    }
   }, 30_000);
 } else {
   globalThis.fetch = mock(() => {
@@ -32,6 +40,7 @@ if (process.env.NOTRA_POSTHOG_FLUSH_WORKER !== "1") {
   const flushes: ReturnType<typeof Promise.withResolvers<void>>[] = [];
   let captures = 0;
   let shutdowns = 0;
+  let shutdownGate: ReturnType<typeof Promise.withResolvers<void>> | undefined;
   mock.module("posthog-node", () => ({
     PostHog: class {
       capture() {
@@ -53,15 +62,19 @@ if (process.env.NOTRA_POSTHOG_FLUSH_WORKER !== "1") {
       }
       async shutdown() {
         shutdowns += 1;
+        await shutdownGate?.promise;
       }
     },
   }));
-  const path = fileURLToPath(
-    new URL("../src/server.isolated-baseline.ts", import.meta.url)
-  );
-  if (existsSync(path)) {
-    throw new Error(`Refusing to overwrite ${path}`);
-  }
+  const baselineDirectory =
+    process.env.NOTRA_POSTHOG_BASELINE_DIRECTORY ??
+    mkdtempSync(
+      fileURLToPath(new URL("../.isolated-baselines-", import.meta.url))
+    );
+  afterAll(() => {
+    rmSync(baselineDirectory, { recursive: true, force: true });
+  });
+  const path = `${baselineDirectory}/server.ts`;
   writeFileSync(
     path,
     execFileSync(
@@ -75,11 +88,8 @@ if (process.env.NOTRA_POSTHOG_FLUSH_WORKER !== "1") {
       }
     )
   );
-  afterAll(() => {
-    unlinkSync(path);
-  });
   const changed = await import("../src/server");
-  const baselinePath = "../src/server.isolated-baseline.ts";
+  const baselinePath = path;
   const original: typeof changed = await import(baselinePath);
   const drainMicrotasks = async () => {
     for (let i = 0; i < 8; i++) {
@@ -186,6 +196,68 @@ if (process.env.NOTRA_POSTHOG_FLUSH_WORKER !== "1") {
     expect(flushes).toHaveLength(2);
     flushes[1]?.resolve();
     await recovery;
+  });
+  test.each(["before", "after"] as const)(
+    "shutdown waits for a late revision caller registered %s shutdown",
+    async (order) => {
+      const first = changed.flushPostHogServer();
+      await drainMicrotasks();
+      changed.captureServerEvent({
+        event: "geo_scan_completed",
+        organizationId: "org",
+      });
+      const late =
+        order === "before" ? changed.flushPostHogServer() : undefined;
+      let finished = false;
+      const stopping = changed.shutdownPostHogServer().then(() => {
+        finished = true;
+      });
+      const later =
+        order === "after" ? changed.flushPostHogServer() : undefined;
+      flushes[0]?.resolve();
+      await first;
+      await drainMicrotasks();
+      expect(flushes).toHaveLength(2);
+      expect(shutdowns).toBe(0);
+      expect(finished).toBe(false);
+      flushes[1]?.resolve();
+      await Promise.all([late, later, stopping]);
+      expect(shutdowns).toBe(1);
+      expect(finished).toBe(true);
+    }
+  );
+  test("concurrent shutdown and new flush callers share the SDK shutdown", async () => {
+    shutdownGate = Promise.withResolvers<void>();
+    try {
+      changed.getPostHogServer();
+      const stopping = changed.shutdownPostHogServer();
+      await drainMicrotasks();
+      expect(shutdowns).toBe(1);
+      changed.captureServerEvent({
+        event: "geo_scan_completed",
+        organizationId: "org",
+      });
+      let flushFinished = false;
+      let shutdownFinished = false;
+      const flushing = changed.flushPostHogServer().then(() => {
+        flushFinished = true;
+      });
+      const concurrent = changed.shutdownPostHogServer().then(() => {
+        shutdownFinished = true;
+      });
+      await drainMicrotasks();
+      expect(flushes).toHaveLength(0);
+      expect(shutdowns).toBe(1);
+      expect(flushFinished).toBe(false);
+      expect(shutdownFinished).toBe(false);
+      shutdownGate.resolve();
+      await Promise.all([stopping, flushing, concurrent]);
+      expect(flushFinished).toBe(true);
+      expect(shutdownFinished).toBe(true);
+    } finally {
+      shutdownGate.resolve();
+      shutdownGate = undefined;
+    }
   });
   test("shutdown waits for its active flush and a new client does not join the old barrier", async () => {
     const flushing = changed.flushPostHogServer();

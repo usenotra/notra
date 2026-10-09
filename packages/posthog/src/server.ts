@@ -23,6 +23,7 @@ let client: PostHog | null | undefined;
 let warnedMissingToken = false;
 let captureRevision = 0;
 let activeFlush: PostHogServerFlush | undefined;
+let activeShutdown: Promise<void> | undefined;
 
 function readHost(): string {
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim();
@@ -197,6 +198,9 @@ export function setServerPersonProperties(
 }
 
 export async function flushPostHogServer(): Promise<void> {
+  if (activeShutdown) {
+    return activeShutdown;
+  }
   const posthog = getPostHogServer();
   if (!posthog) {
     return;
@@ -235,17 +239,23 @@ export async function flushPostHogServer(): Promise<void> {
 }
 
 export async function shutdownPostHogServer(): Promise<void> {
+  if (activeShutdown) {
+    return activeShutdown;
+  }
   const posthog = getPostHogServer();
   if (!posthog) {
     return;
   }
-  try {
-    if (activeFlush?.client === posthog) {
-      await activeFlush.promise;
-    }
-    await posthog.shutdown();
-  } catch (error) {
-    console.error("[posthog] shutdown failed", error);
-  }
-  client = undefined;
+  const draining =
+    activeFlush?.client === posthog ? flushPostHogServer() : Promise.resolve();
+  activeShutdown = draining
+    .then(() => posthog.shutdown())
+    .catch((error) => {
+      console.error("[posthog] shutdown failed", error);
+    })
+    .finally(() => {
+      client = undefined;
+      activeShutdown = undefined;
+    });
+  return activeShutdown;
 }

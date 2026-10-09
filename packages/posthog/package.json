@@ -11,6 +11,7 @@
     "./constants/*": "./src/constants/*.ts"
   },
   "scripts": {
+    "test": "bun test tests",
     "check-types": "tsc --noEmit --incremental --tsBuildInfoFile .cache/typecheck.tsbuildinfo"
   },
   "dependencies": {
