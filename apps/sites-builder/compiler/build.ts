@@ -167,7 +167,12 @@ export async function buildSite(
       publicFiles: publicFileList,
       mounts,
       config,
-      headScripts: siteHeadScripts(config, mount, prepared.customScripts),
+      headScripts: siteHeadScripts(
+        config,
+        mount,
+        prepared.customScripts,
+        options.target.analytics
+      ),
     });
     const started = Date.now();
     let log = "";
@@ -258,7 +263,7 @@ export async function buildSite(
     });
   } else {
     contentSecurityPolicy = buildSiteContentSecurityPolicy({
-      integrations: config.integrations,
+      integrations: options.target.analytics ? config.integrations : {},
       security: config.security,
       scriptHashes,
     });

@@ -22,32 +22,153 @@ Every site counts its own visitors and their time on page with nothing to instal
 
 ## Analytics integrations
 
-To also send visits to your own analytics tool, add it on the site's **Integrations** page or under `integrations` in `blog.json`. The Integrations page saves a draft of `blog.json` that goes live when you publish it from the editor. Notra adds the provider's script tag to the `<head>` of every page and allows its hosts in the [Content-Security-Policy](#content-security-policy).
+Set up a provider in the dashboard or add it under `integrations` in `blog.json`. Both methods use the same configuration. Notra installs the provider's script on every live page and adds the hosts it needs to the [Content-Security-Policy](#content-security-policy). You can enable several providers at once.
+
+<Note>
+  Analytics integrations are disabled on preview deployments and during local development. Custom scripts still run there. If you install analytics through a custom script, you control when it sends events.
+</Note>
+
+### Set up in the dashboard
+
+<Steps>
+  <Step title="Copy your provider's ID">
+    Create or select your site in the analytics provider. Copy the Measurement ID for Google Analytics 4, public project API key for PostHog, site domain for Plausible or Website ID for Umami. The provider examples below show where to find each value.
+  </Step>
+  <Step title="Enter the settings">
+    In Notra, open **Studio → Sites**, select your site and open **Integrations**. Click **Add** next to the provider and paste its ID into the matching field. For example, click **Add Umami** and enter the ID from `data-website-id` in **Website ID**. For Umami Cloud, leave the optional URL fields empty.
+
+    The dialog shows the corresponding `blog.json` configuration. You can copy it to use the same setup in your repository.
+  </Step>
+  <Step title="Wait for the draft to save">
+    Valid settings save automatically. There is no Save button. Saving creates a draft of `blog.json`; it does not create a GitHub commit or change your live site. You can click **Close** to leave the draft for later, or continue with **Create PR** in the same dialog.
+
+    Closing the dialog or navigating within the dashboard finishes a pending save. If saving fails, the dialog stays open so you can retry. Invalid settings show a validation error and do not save.
+  </Step>
+  <Step title="Review and publish">
+    Click **Create PR** in the provider dialog or the draft bar on the Integrations page. Notra finishes any pending save and opens a preview of all saved drafts, including `blog.json`. Review the changes and commit message, then click **Open pull request**. Review and merge the PR into the production branch to deploy it.
+
+    To edit other files or commit directly, click **Open editor**, review the changes and click **Publish → Commit and deploy**. Direct commits are available only when **Settings → Publishing** allows them and the GitHub branch is not protected.
+
+    See [Publishing and deployments](/sites/publishing#the-editor). Publishing includes the editor's pending changes, so review any other drafts before you publish.
+  </Step>
+  <Step title="Verify on the live site">
+    Wait for a successful production deployment, open your live site and check the provider's incoming traffic. A PR preview cannot verify analytics because provider scripts are disabled there. **Draft saved** confirms that Notra saved the configuration; it does not confirm that the provider received an event.
+  </Step>
+</Steps>
+
+To change a provider, open its options menu and choose **Edit**. **Remove** updates the draft too. Publish and deploy either change before it affects the live site.
+
+### Set up in blog.json
+
+Use one of the examples below in `blog.json` at the root of your [site folder](/sites/repository). Replace the example values with your provider's settings. If the file already exists, add the provider to its existing `integrations` object and keep your other settings.
+
+The `$schema` line enables autocomplete and validation in your editor. Commit the file to your production branch, or open a PR and merge it into that branch. Notra activates the provider after the production deployment succeeds. You do not need to add a script tag or install an SDK.
+
+### Google Analytics 4
+
+In Google Analytics, open **Admin → Data streams**, select your web stream and copy its **Measurement ID**. It starts with `G-`. Enter it in **Measurement ID** in Notra, or use it below. This is the public web stream ID, not an API secret or a Universal Analytics `UA-` ID. See [Google's Measurement ID guide](https://support.google.com/analytics/answer/9539598).
 
 ```json blog.json
 {
+  "$schema": "https://usenotra.com/schemas/blog.json",
   "name": "Acme",
   "integrations": {
-    "databuddy": { "clientId": "your-client-id" },
-    "plausible": { "domain": "acme.com" }
+    "ga4": {
+      "measurementId": "G-ABC123XYZ9"
+    }
   }
 }
 ```
 
-You can turn on several providers at once, and Notra checks every ID against the provider's format. If an ID is wrong or a key is unknown, the build fails with an error that points to the setting.
+Notra loads Google's `gtag.js`, initializes the data layer and configures your Measurement ID on every live page. You do not need to add another Google tag or install an SDK. The integration adds the script and collection origins needed for analytics to the CSP automatically.
 
-| Integration | Settings | Notes |
-| --- | --- | --- |
-| `databuddy` | `clientId` | The client ID from Databuddy |
-| `plausible` | `domain` | The site's domain as you added it in Plausible |
-| `posthog` | `apiKey`, `apiHost` | `apiKey` is the project API key (`phc_…`), and `apiHost` defaults to `https://us.i.posthog.com`, so set it to `https://eu.i.posthog.com` for EU Cloud or to your reverse proxy |
-| `ga4` | `measurementId` | Google Analytics 4, for example `G-ABC123XYZ9` |
+Publish and deploy the configuration, then verify the live site with [Google Tag Assistant](https://tagassistant.google.com/) and check incoming events in your GA4 property. Provider scripts do not load on PR previews or during local development.
 
-Another tool, such as a chat widget or a tag manager, goes in a [custom script](#custom-scripts).
+### PostHog
 
-<Note>
-  Previews use the same integrations as your live site, so filter by hostname in your analytics tool to keep previews out of your numbers. Preview hosts look like `pr-7--acme.notra.site`.
-</Note>
+Copy the public project API key from your [PostHog project settings](https://posthog.com/docs/settings/projects). It starts with `phc_`. Enter it in **Project API key** in Notra, or use it as `apiKey` below. This integration uses the public browser key, so do not enter a personal or secret API key.
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_abcdefghijklmnopqrstuvwxyz0123",
+      "apiHost": "https://eu.i.posthog.com",
+      "sessionRecording": false
+    }
+  }
+}
+```
+
+`apiHost` is optional and defaults to `https://us.i.posthog.com`. Set it to `https://eu.i.posthog.com` for EU Cloud, or to your self-hosted instance or HTTPS reverse proxy. In the dashboard, this field is **API host**. Events go directly to this endpoint. See [PostHog's ingestion endpoints](https://posthog.com/docs/api).
+
+Session recording is enabled by default. Set `sessionRecording` to `false` to disable recording while keeping analytics enabled. Your PostHog project must also allow recording for your site's domain.
+
+### Plausible
+
+Use the [domain you added to Plausible](https://plausible.io/docs/add-website), without `https://`. For a separate blog dashboard, register a domain such as `blog.acme.com`. Enter it in **Domain** in Notra, or use it below.
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "plausible": {
+      "domain": "blog.acme.com"
+    }
+  }
+}
+```
+
+For self-hosted Plausible, add `"server": "plausible.acme.com"` or enter the value in **Self-hosted server**. Use the server's hostname without a protocol or path, and include its port when needed (for example, `plausible.acme.com:8443`). Notra uses HTTPS to load its script and send events to that server. Leave the field empty for Plausible Cloud at `plausible.io`.
+
+### Umami
+
+In Umami, edit the website you want to track and open **Tracking code**. Copy the UUID from `data-website-id`. Enter it in **Website ID** in Notra, or use it below. You only need the public Website ID, with no API key. See [Umami's tracking setup](https://docs.umami.is/docs/collect-data).
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "umami": {
+      "websiteId": "94db1cb1-74f4-4a40-ad6c-962362670409"
+    }
+  }
+}
+```
+
+Leave **Script URL** and **Collection URL** empty for Umami Cloud. Notra loads `https://cloud.umami.is/script.js` and allows its collection endpoint at `https://gateway.umami.is` in the CSP.
+
+For self-hosted Umami, copy the full HTTPS script URL from your tracking code into **Script URL**, or set `scriptUrl`:
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "umami": {
+      "websiteId": "94db1cb1-74f4-4a40-ad6c-962362670409",
+      "scriptUrl": "https://stats.acme.com/script.js"
+    }
+  }
+}
+```
+
+Custom script paths and HTTPS ports are supported. Self-hosted scripts send events to their own origin by default. If your tracking code uses `data-host-url`, enter its HTTPS base URL in **Collection URL**, or set `hostUrl`. This is useful when a reverse proxy sends events to a different endpoint. Notra adds the script and collection origins to the CSP automatically. See [Umami's tracker configuration](https://docs.umami.is/docs/tracker-configuration).
+
+Publish the configuration and visit your live site. Check that the visit appears in the matching Umami website dashboard.
+
+Notra validates provider settings in the dashboard, when saving and during builds. Invalid IDs, unexpected keys and invalid hostnames stop the change with an error. Remove a provider's object to disable it, then publish and deploy the configuration.
+
+### If no events arrive
+
+- Confirm that you published the draft and the production deployment succeeded. A saved draft or an unmerged PR has not changed the live site.
+- Test the live URL, not a PR preview, branch preview or local development server.
+- Check that the ID belongs to the provider site or project whose dashboard you are viewing. For PostHog, also check the US or EU **API host**.
+- Temporarily disable your browser's analytics blocker for the test and check the Network tab for failed provider requests.
 
 ## Custom scripts
 

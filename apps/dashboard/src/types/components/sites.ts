@@ -1,7 +1,10 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
-import type { SiteIntegrationProvider } from "@/types/site-integrations";
+import type {
+  SiteIntegrationProvider,
+  SiteIntegrationAutosaveState,
+} from "@/types/site-integrations";
 import type {
   RepositorySuggestionsResult,
   SiteBuildAgentPromptInput,
@@ -426,6 +429,8 @@ export interface SiteSettingsSaveBarProps {
 }
 
 export interface SitePublishDialogProps extends SiteScope {
+  pullRequestOnly?: boolean;
+  initialMessage?: string;
   unsaved?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -553,6 +558,7 @@ export interface SiteIntegrationLogoProps {
 export interface SiteIntegrationRowProps {
   provider: SiteIntegrationProvider;
   isSetUp: boolean;
+  disabled: boolean;
   onOpen: () => void;
   onRemove: () => void;
 }
@@ -563,6 +569,15 @@ export interface SiteIntegrationDialogProps {
   settings: Record<string, unknown> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPublish: () => Promise<boolean>;
+}
+
+export interface SiteIntegrationSaveStatusProps {
+  state: SiteIntegrationAutosaveState;
+  invalid: boolean;
+  busy: boolean;
+  removalFailed: boolean;
+  onRetry: () => void;
 }
 
 export interface SiteImportListProps {

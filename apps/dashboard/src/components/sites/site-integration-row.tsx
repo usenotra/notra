@@ -23,6 +23,7 @@ import type { SiteIntegrationRowProps } from "@/types/components/sites";
 export function SiteIntegrationRow({
   provider,
   isSetUp,
+  disabled,
   onOpen,
   onRemove,
 }: SiteIntegrationRowProps) {
@@ -34,6 +35,7 @@ export function SiteIntegrationRow({
         <button
           className="focus-visible:ring-ring/50 rounded-sm text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:ring-[3px]"
           onClick={onOpen}
+          disabled={disabled}
           type="button"
         >
           {provider.name}
@@ -51,6 +53,7 @@ export function SiteIntegrationRow({
                 className="relative"
                 size="icon-sm"
                 variant="ghost"
+                disabled={disabled}
               />
             }
           >
@@ -81,6 +84,7 @@ export function SiteIntegrationRow({
           aria-label={t("add", { provider: provider.name })}
           className="relative"
           onClick={onOpen}
+          disabled={disabled}
           size="icon-sm"
           variant="ghost"
         >

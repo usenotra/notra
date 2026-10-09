@@ -77,7 +77,8 @@ export function createDevRefresh(options: DevRefreshOptions) {
       headScripts: siteHeadScripts(
         config,
         options.params.mount,
-        prepared.customScripts
+        prepared.customScripts,
+        false
       ),
     };
     const snapshot = JSON.stringify(params);
