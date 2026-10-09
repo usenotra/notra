@@ -7552,7 +7552,6 @@
       "notVerifiedYet": "Noch nicht verifiziert",
       "verifyNow": "Jetzt prüfen",
       "lastErrorTitle": "Details zur Domainprüfung:",
-      "lastCheckDetails": "Details zur letzten Prüfung",
       "remove": "Entfernen",
       "removeConfirm": "Domain entfernen",
       "removeTitle": "Domain entfernen?",
@@ -7573,11 +7572,14 @@
         "value": "Wert",
         "noRecords": "Keine Einträge nötig",
         "connect": "Mit {provider} verbinden",
+        "automaticDescription": "Melde dich bei {provider} an, um diese Einträge automatisch hinzuzufügen.",
         "openProvider": "{provider}-DNS öffnen",
         "proxy": "Proxy",
         "dnsOnly": "Nur DNS (erforderlich)",
-        "proxyRequirement": "Deaktiviere den Proxy für diesen CNAME. Dies ist die erforderliche Einstellung, kein beobachteter DNS-Status.",
-        "proxyNotApplicable": "Nicht zutreffend"
+        "proxyRequirement": "Schalte die orange Wolke in Cloudflare aus, damit Notra dein HTTPS-Zertifikat ausstellen kann. Dies ist die erforderliche Einstellung, kein Live-Status.",
+        "proxied": "Mit Proxy",
+        "proxyNotApplicable": "Proxy nicht anwendbar",
+        "proxyNotApplicableDescription": "TXT-Einträge bestätigen den Domainbesitz. Cloudflare unterstützt den Proxy nur für A-, AAAA- und CNAME-Einträge."
       },
       "proxy": {
         "agentPromptDescription": "Lass deinen Coding-Agent den Proxy einrichten.",

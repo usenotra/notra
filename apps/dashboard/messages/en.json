@@ -7552,7 +7552,6 @@
       "notVerifiedYet": "Not verified yet",
       "verifyNow": "Check now",
       "lastErrorTitle": "Domain check details:",
-      "lastCheckDetails": "Last check details",
       "remove": "Remove",
       "removeConfirm": "Remove domain",
       "removeTitle": "Remove this domain?",
@@ -7573,11 +7572,14 @@
         "value": "Value",
         "noRecords": "No records needed",
         "connect": "Connect with {provider}",
+        "automaticDescription": "Sign in to {provider} to add these records automatically.",
         "openProvider": "Open {provider} DNS",
         "proxy": "Proxy",
         "dnsOnly": "DNS only (required)",
-        "proxyRequirement": "Disable the proxy for this CNAME. This is the required setting, not an observed DNS status.",
-        "proxyNotApplicable": "N/A"
+        "proxyRequirement": "Turn off the orange cloud in Cloudflare so Notra can issue your HTTPS certificate. This is the required setting, not a live status.",
+        "proxied": "Proxied",
+        "proxyNotApplicable": "Proxy not applicable",
+        "proxyNotApplicableDescription": "TXT records verify domain ownership. Cloudflare only proxies A, AAAA and CNAME records."
       },
       "proxy": {
         "agentPromptDescription": "Let your coding agent set up the proxy.",
