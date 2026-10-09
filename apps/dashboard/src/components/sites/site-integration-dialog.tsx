@@ -241,7 +241,6 @@ export function SiteIntegrationDialog({
             <pre className="bg-muted overflow-x-auto rounded-lg p-3 text-xs">
               <code>{configExample}</code>
             </pre>
-            <FieldDescription>{t("previewDescription")}</FieldDescription>
           </div>
           <FieldDescription>
             <a
