@@ -1,0 +1,314 @@
+packages/ai/package.json
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 75,77,87,89
+apps/dashboard/src/schemas/invitation.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-5
+apps/dashboard/src/utils/diagram-editor-fonts.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-16
+packages/sites-server/src/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 219
+packages/ai/src/utils/content-image-context.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-79
+packages/sites-core/tests/input-fingerprint.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-50,52-170
+  s_0b65a9e5b79b9a::t_fcc9857ad7e84d 51
+apps/dashboard/src/utils/image-content.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 29-45
+packages/ai/src/agents/repo-image-diagram.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-237
+packages/sites-core/src/types/smart-deployments.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-27
+packages/ai/src/agents/repo-image-agent.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-165
+apps/dashboard/messages/en.json
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 859-908,6158-6177,6356-6358,6725,7018-7019,7313-7316,7385-7386,7448-7449
+packages/ai/src/utils/excalidraw-diagram.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-364
+apps/dashboard/src/types/components/diagram-editor.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-28
+packages/sites-core/src/constants/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 131,145-146
+apps/dashboard/src/schemas/diagram-editor.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-19
+packages/sites-server/src/utils/preview-comment.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 16-19,31-32
+apps/dashboard/src/utils/image-export.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-40
+apps/dashboard/src/utils/site-deployment-timeline.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 75
+apps/dashboard/src/lib/analytics/twitter-sync.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 105-107,114,122-127
+apps/dashboard/src/lib/sites/serialize.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 49,90
+apps/dashboard/src/constants/auth-routes.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 4
+packages/ai/src/prompts/content-editor.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-64
+packages/ai/src/utils/image-assets.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,144-160
+apps/dashboard/src/constants/diagram-editor.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-12
+packages/db/src/schema.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 18,4243,4393-4400,4448
+packages/sites-server/src/types/smart-deployments.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-9
+packages/db/migrations/meta/0114_snapshot.json
+  ai_agent 1-15512
+apps/agent/agent/subagents/image-designer/instructions.md
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,7-8
+apps/sites-builder/tests/source-fingerprint.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-128
+packages/ai/src/autonomy/poll.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2,31-33,40-41,43
+apps/dashboard/messages/de.json
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 859-908,6158-6177,6356-6358,6725,7018-7019,7313-7316,7385-7386,7448-7449
+apps/dashboard/src/components/content/image-export-target-icon.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1,4,16-19
+apps/dashboard/src/utils/copy-to-clipboard.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 6-36
+packages/sites-core/src/utils/input-fingerprint.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-89
+packages/ai/src/utils/excalidraw-layout-check.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-288
+packages/sites-server/src/constants/jobs.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 12-13
+packages/sites-server/src/constants/smart-deployments.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-9
+packages/sites-server/tests/deployment-timeline.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 63-66,68-79
+packages/ai/src/orchestration/orchestrate.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 46,48,118,120,135
+packages/ai/src/orchestration/tool-registry.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 59,61,84,90,93,98,260,265
+packages/ai/src/types/repo-image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,7-10,14,28,32-35,47-54,67
+apps/dashboard/src/types/components/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 143
+packages/ai/src/utils/repo-image-render.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 20
+packages/ai/src/utils/image-post-service.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-2,12-17,19,32-63,84-88,92,103-107,229-235,262-265,268,279-285,287,307,368
+apps/dashboard/src/utils/read-agent-task-stream.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-86
+packages/posthog/src/server.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 16,24-26,135,163,179,197,201-203,208-231,233-237,242-244,249-260
+packages/ai/src/prompts/marketing-assets.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 8
+apps/dashboard/src/routes/-invitation-loaders.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-40
+packages/ai/src/utils/diagram-edit.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-513
+packages/ai/src/types/orchestration.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 7,9,119-124,126-128,152,161-162,193,195-196
+apps/dashboard/src/lib/hooks/use-content-detail-chat.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 43,94-97,820
+packages/sites-server/src/jobs.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2,32-46,50-55
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 5,219-237
+apps/dashboard/src/components/chat-input.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 7,66,157,161,185-189,207-209,296,318-319,335,342,344-355
+apps/dashboard/src/types/agent.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 39-43
+apps/dashboard/src/types/invitation.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-43
+apps/dashboard/src/app/(auth)/signup/page.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,6
+apps/dashboard/src/components/sites/pages/site-deployment-detail-page.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 320
+packages/ai/src/utils/image-revision.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-144
+apps/dashboard/tests/sites-get-read-only.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 56,102-105
+apps/agent/agent/instructions.md
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 15
+apps/dashboard/src/types/auth/client.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-3
+packages/ai/src/constants/autonomy-signals.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2
+packages/db/tests/build-telemetry-postgres.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 72-73
+packages/sites-server/src/box-build.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 290
+packages/sites-server/src/types/build.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 21
+packages/ui/src/components/ui/avatar.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 11,15,20-23,27,38,54
+bun.lock
+  ai_agent 140,513,515,525,527,1125,1433-1442,2263,2275,2285-2287,2295-2296,2303-2304,2319,2325,3427-3428,3477-3478,3499-3500,3613-3616,3929-3930,4155-4156,4203-4204,4333-4334,4339-4340,4505-4506,4567-4568,4639-4640,4859-4860,4967-4968,5033,5089-5090,5107-5108,5131-5136,5223-5224,5445-5446,5537-5538,5983-5984,6193-6206,6419-6420,6427-6428,6455-6483,6485-6489,6493-6508,6523-6536,7105-7108,7141-7142,7269-7270,7361-7362,7587-7588,7791-7792,7797-7817,7825-7844,8325-8326,8531-8542,8635-8638,9115-9117,9119,9387-9388,9647-9649
+packages/db/migrations/meta/_journal.json
+  ai_agent 802-808,811
+packages/ui/src/components/ui/svgs/tldraw.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-13
+packages/sites-server/README.md
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 182-225
+apps/dashboard/src/utils/site-settings.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 8,21-23,34,40,73-74
+packages/ai/src/agents/repo-image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2-9,22,26-27,37,42-45,63,244-248,250-251,253-254,326,335-345,370,381,397-398
+apps/dashboard/src/types/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 122,125-135,163,228
+packages/ai/src/types/prompts.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 6,31
+packages/sites-server/src/types/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 61
+packages/ai/src/agents/repo-image-marketing.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-194
+apps/dashboard/src/components/invitation/invitation-confirm.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-308
+apps/dashboard/src/types/content/image-export.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-4,8
+packages/ai/src/autonomy/signals.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2,9,111-245
+packages/sites-server/tests/build-telemetry-pipeline.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 5,121-124,126-135,300,303,306-308
+apps/dashboard/src/components/auth/auth-split-shell.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-29
+apps/dashboard/src/routes/api.organizations.$organizationId.content.$contentId.excalidraw.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-17
+apps/dashboard/src/lib/agent/client.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-2,44,160-163,166,168-169,181,183-196,211-222
+apps/dashboard/tests/diagram-scene-route.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-137
+packages/ai/src/utils/content-image-context.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-31
+packages/ai/src/types/excalidraw-diagram.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-113
+packages/sites-server/src/reporting.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 227
+apps/sites-builder/compiler/collect.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2,5,9,31,34,61
+packages/sites-core/src/utils/stable-stringify.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-12
+packages/ai/src/prompts/diagram-edit.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-40
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/chat/route.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 26,163,168-173,175,178,213-214,226,234
+apps/dashboard/src/components/content/content-detail-chat-shell.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 16-19,43
+apps/dashboard/src/utils/diagram-editor-fonts.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-49
+packages/ai/src/utils/unknown-record.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-18
+AGENTS.md
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 96-106
+apps/dashboard/src/constants/image-export.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-12,20-21
+packages/ai/src/utils/diagram-post.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-174
+apps/dashboard/src/routeTree.gen.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 86,497-502,598,678,759,841,921,1001,1071,1595-1601,1805-1806
+apps/dashboard/src/constants/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 117,150
+packages/sites-server/tests/smart-deployments-postgres.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-935
+packages/ai/src/utils/diagram-metadata.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-40
+apps/dashboard/src/types/components/chat-input.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 49-53,73,133
+apps/dashboard/src/components/content/diagram-editor-dialog.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-214
+packages/schemas/src/schemas/dashboard/sites.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 68
+packages/sites-core/src/utils/source-files.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2-5,23-43
+apps/dashboard/src/types/components/toast-message.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 16-18
+packages/ai/src/prompts/diagram-assets.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-120
+apps/dashboard/src/components/content/diagram-editor-canvas.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-115
+packages/ai/src/utils/diagram-scene-import.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-421
+packages/posthog/src/types/posthog.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,55-58
+apps/dashboard/src/components/content/editors/image-editor.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3,21-24,28-58,64
+packages/ai/src/utils/excalidraw-render.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-473
+packages/sites-server/src/deployments.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 16,126-127,129-130,147,173-275
+packages/ai/src/tools/image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1,16,24,26,45-46,52,63,105,109,112-113,117-119,121-122
+packages/sites-server/src/pipeline.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2-5,13,17,28-31,36,66-70,131,145-153,167-179,183,188-209,231,297,305-323,361-366,438-451
+packages/tools/src/image/generate-image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 68-69,75,87
+packages/tools/src/image/revise-image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1,19,21,34,36,46,65,69-71
+apps/dashboard/package.json
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 34
+apps/dashboard/src/components/content/content-detail-toolbar.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 17,21,30,44-49,51,59,63,69-73,75-78,83-91,97-102,104,117-123,139-140,143-144,148,150,155,163,165
+packages/ai/src/utils/excalidraw-diagram-check-script.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-152
+packages/ai/src/utils/repo-image-skills.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2-7,72-90
+packages/ai/src/schemas/repo-image.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 7-8,21-25,108-113
+apps/dashboard/src/utils/site-settings.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-51
+packages/tools/src/schemas/image-tools.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 22-27
+packages/ai/src/prompts/content-editor.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 11,41-46,97-98,116-117
+apps/dashboard/src/app/api/organizations/[organizationId]/content/[contentId]/excalidraw/route.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-164
+apps/dashboard/src/lib/content/image-export.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 3-8,14,76-77,97,224-273
+packages/ui/src/components/ui/svgs/excalidraw.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-14
+apps/dashboard/src/lib/content/image-export.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-146
+packages/ai/src/constants/excalidraw-diagram.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-272
+packages/sites-server/src/smart-deployments.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-270
+apps/dashboard/src/types/components/content-detail-toolbar.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 15
+packages/ai/src/utils/diagram-edit.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-208
+apps/dashboard/src/lib/hooks/use-content-detail-chat-labels.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-34
+packages/ai/src/utils/excalidraw-diagram.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-603
+packages/sites-core/src/constants/source.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-6
+apps/dashboard/src/utils/image-export.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 2,6-9,18-31
+apps/dashboard/src/routes/-entry-ui.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 10,16,29,47-53,96-104,136-144
+apps/dashboard/src/lib/invitations/invitations.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-235
+apps/dashboard/src/lib/auth/client.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 68
+apps/dashboard/tests/image-editor-layout.test.tsx
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-51
+packages/ai/src/orchestration/tool-registry.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-54
+packages/ai/src/types/autonomy.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 75-79
+packages/db/migrations/0114_site_smart_deployments.sql
+  ai_agent 1-13
+packages/sites-server/tests/lifecycle.test.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 58-63
+packages/utils/src/google-favicon.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1
+packages/ai/src/schemas/excalidraw-diagram.ts
+  s_0b65a9e5b79b9a::t_c8aa0bb0dcee9b 1-127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "53b254a97036f070d01df021ec85afee807e1506",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
