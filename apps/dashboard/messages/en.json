@@ -7251,6 +7251,7 @@
       "messagePlaceholder": "Update blog posts",
       "mode": "How to publish",
       "pullRequestDescription": "Opens a pull request into {branch}. It goes live when merged.",
+      "pullRequestReviewDescription": "{count, plural, one {Review the saved draft} other {Review all # saved drafts}} before opening the pull request.",
       "directDescription": "Commits to {branch} and goes live right away.",
       "directDisabled": "Turned off for this site. Change it in settings.",
       "openPullRequest": "Open pull request",
@@ -7720,36 +7721,42 @@
     },
     "integrationsPage": {
       "title": "Integrations",
-      "description": "Analytics for this site. Settings are saved in blog.json and go live when you publish.",
+      "description": "Analytics for this site. Valid settings save automatically to a blog.json draft and go live when you publish.",
       "optional": "Optional",
-      "connect": "Connect",
-      "save": "Save",
       "remove": "Remove",
-      "saved": "Integration saved",
       "removed": "Integration removed",
-      "savedDescription": "It's a draft of blog.json until you publish it from the editor.",
+      "savedDescription": "It's a draft of blog.json until you publish it.",
       "saveFailed": "Couldn't save the integration",
       "docs": "{provider} docs",
       "draftDescription": "blog.json has changes that aren't live yet",
       "reviewAndPublish": "Review and publish",
-      "invalidTitle": "blog.json can't be read",
-      "invalidDescription": "It isn't valid JSON. Fix it in the editor, then come back.",
+      "createPullRequest": "Create PR",
+      "preparePublishFailed": "Couldn't load changes for the pull request",
+      "noDrafts": "There are no changes to include in a pull request.",
+      "publishMessage": "Update site",
+      "publishConflict": "These drafts conflict with changes on GitHub. Open the editor to reload the files and reapply your changes.",
+      "invalidTitle": "Invalid blog.json configuration",
+      "invalidDescription": "The JSON or integration settings are invalid. Fix them in the editor, then come back.",
       "providers": {
-        "databuddy": "Privacy-first web analytics.",
         "plausible": "Lightweight, cookie-free analytics.",
         "posthog": "Product analytics, session replay and feature flags.",
+        "umami": "Lightweight, cookie-free web analytics.",
         "ga4": "Google's web analytics."
       },
       "fields": {
-        "databuddy": {
-          "clientId": "Client ID"
-        },
         "plausible": {
-          "domain": "Domain"
+          "domain": "Domain",
+          "server": "Self-hosted server"
         },
         "posthog": {
           "apiKey": "Project API key",
-          "apiHost": "API host"
+          "apiHost": "API host",
+          "sessionRecording": "Session recording"
+        },
+        "umami": {
+          "websiteId": "Website ID",
+          "scriptUrl": "Script URL",
+          "hostUrl": "Collection URL"
         },
         "ga4": {
           "measurementId": "Measurement ID"
@@ -7757,7 +7764,39 @@
       },
       "add": "Add {provider}",
       "more": "{provider} options",
-      "edit": "Edit"
+      "edit": "Edit",
+      "configExample": "Configuration in blog.json",
+      "copyConfig": "Copy configuration",
+      "previewDescription": "Analytics integrations run on the live site only. Previews and local development do not send events.",
+      "loadFailed": "Couldn't load integrations",
+      "retry": "Try again",
+      "openEditor": "Open editor",
+      "fieldDescriptions": {
+        "plausible": {
+          "domain": "Use the domain you added to Plausible, without https://.",
+          "server": "For self-hosted Plausible, enter its hostname and optional port (e.g. plausible.acme.com:8443), without https://. Leave empty for plausible.io."
+        },
+        "posthog": {
+          "apiKey": "Copy the public project API key from your PostHog project settings.",
+          "apiHost": "Leave empty for US Cloud. Use https://eu.i.posthog.com for EU Cloud or your own HTTPS endpoint.",
+          "sessionRecording": "Record visitor sessions when recording is enabled for this domain in PostHog."
+        },
+        "umami": {
+          "websiteId": "In Umami, edit your website and copy data-website-id from Tracking code.",
+          "scriptUrl": "Leave empty for Umami Cloud. For self-hosting, copy the full HTTPS script URL from your tracking code.",
+          "hostUrl": "Usually empty. Set an HTTPS base URL only when events should go to a different endpoint, such as a reverse proxy."
+        },
+        "ga4": {
+          "measurementId": "In Google Analytics, open Admin → Data streams → your web stream and copy the Measurement ID."
+        }
+      },
+      "close": "Close",
+      "autosavePending": "Waiting to save…",
+      "autosaveSaving": "Saving draft…",
+      "autosaveSaved": "Draft saved. Create a pull request, then merge it to go live.",
+      "autosaveInvalid": "Enter valid settings to save your changes.",
+      "discardUnsaved": "Discard unsaved changes",
+      "removeFailedDescription": "The integration was not removed. Retry the removal or discard the unsaved changes."
     },
     "repositoryCard": {
       "private": "Private",

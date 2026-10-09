@@ -1,6 +1,4 @@
-import type { SITE_INTEGRATION_NAMES } from "@notra/sites-core/constants/integrations";
-
-export type SiteIntegrationName = (typeof SITE_INTEGRATION_NAMES)[number];
+import type { SiteIntegrationUpdate } from "@notra/sites-core/types/site-integrations";
 
 export interface SiteIntegrationsState {
   integrations: Record<string, unknown>;
@@ -8,8 +6,6 @@ export interface SiteIntegrationsState {
   invalid: boolean;
 }
 
-export interface SaveSiteIntegrationsInput {
-  provider: SiteIntegrationName;
-  settings: Record<string, unknown> | null;
+export type SaveSiteIntegrationsInput = SiteIntegrationUpdate & {
   userId: string;
-}
+};

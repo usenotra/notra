@@ -835,8 +835,7 @@ export const sitesRouter = {
         assertNotDemo();
         const { site, userId } = await requireSite(context, input);
         return await saveSiteIntegration(site, {
-          provider: input.provider,
-          settings: input.settings,
+          ...input,
           userId,
         });
       }),

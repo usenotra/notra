@@ -1,12 +1,12 @@
 import {
-  DATABUDDY_CONNECT_ORIGIN,
-  DATABUDDY_SCRIPT_URL,
   GOOGLE_ANALYTICS_CONNECT_ORIGINS,
   GOOGLE_TAG_ORIGIN,
   PLAUSIBLE_SCRIPT_URL,
   POSTHOG_CSP_ORIGIN,
   POSTHOG_DEFAULT_API_HOST,
   POSTHOG_LOADER,
+  UMAMI_CONNECT_ORIGIN,
+  UMAMI_SCRIPT_URL,
 } from "@notra/sites-core/constants/integrations";
 import type {
   SiteCspSources,
@@ -25,39 +25,12 @@ export function integrationHeadScripts(
   integrations: SiteIntegrations
 ): SiteHeadScript[] {
   const scripts: SiteHeadScript[] = [];
-  const { databuddy, plausible, posthog, ga4 } = integrations;
-
-  if (databuddy) {
-    scripts.push({
-      kind: "external",
-      src: DATABUDDY_SCRIPT_URL,
-      attributes: {
-        "data-client-id": databuddy.clientId,
-        crossorigin: "anonymous",
-        async: true,
-      },
-    });
-  }
-  if (plausible) {
-    scripts.push({
-      kind: "external",
-      src: PLAUSIBLE_SCRIPT_URL,
-      attributes: { "data-domain": plausible.domain, defer: true },
-    });
-  }
-  if (posthog) {
-    const options = { api_host: posthog.apiHost ?? POSTHOG_DEFAULT_API_HOST };
-    scripts.push({
-      kind: "inline",
-      code: `${POSTHOG_LOADER}posthog.init(${inlineScriptLiteral(posthog.apiKey)},${inlineScriptLiteral(options)});`,
-    });
-  }
+  const { ga4, plausible, posthog, umami } = integrations;
   if (ga4) {
-    const id = encodeURIComponent(ga4.measurementId);
     scripts.push(
       {
         kind: "external",
-        src: `${GOOGLE_TAG_ORIGIN}/gtag/js?id=${id}`,
+        src: `${GOOGLE_TAG_ORIGIN}/gtag/js?id=${encodeURIComponent(ga4.measurementId)}`,
         attributes: { async: true },
       },
       {
@@ -65,6 +38,36 @@ export function integrationHeadScripts(
         code: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config",${inlineScriptLiteral(ga4.measurementId)});`,
       }
     );
+  }
+  if (plausible) {
+    scripts.push({
+      kind: "external",
+      src: plausible.server
+        ? `https://${plausible.server}/js/script.js`
+        : PLAUSIBLE_SCRIPT_URL,
+      attributes: { "data-domain": plausible.domain, defer: true },
+    });
+  }
+  if (posthog) {
+    const options = {
+      api_host: posthog.apiHost ?? POSTHOG_DEFAULT_API_HOST,
+      disable_session_recording: posthog.sessionRecording === false,
+    };
+    scripts.push({
+      kind: "inline",
+      code: `${POSTHOG_LOADER}posthog.init(${inlineScriptLiteral(posthog.apiKey)},${inlineScriptLiteral(options)});`,
+    });
+  }
+  if (umami) {
+    scripts.push({
+      kind: "external",
+      src: umami.scriptUrl ?? UMAMI_SCRIPT_URL,
+      attributes: {
+        "data-website-id": umami.websiteId,
+        ...(umami.hostUrl ? { "data-host-url": umami.hostUrl } : {}),
+        defer: true,
+      },
+    });
   }
   return scripts;
 }
@@ -74,14 +77,15 @@ export function integrationCspSources(
 ): SiteCspSources {
   const scriptSrc: string[] = [];
   const connectSrc: string[] = [];
-  const { databuddy, plausible, posthog, ga4 } = integrations;
-
-  if (databuddy) {
-    scriptSrc.push(new URL(DATABUDDY_SCRIPT_URL).origin);
-    connectSrc.push(DATABUDDY_CONNECT_ORIGIN);
+  const { ga4, plausible, posthog, umami } = integrations;
+  if (ga4) {
+    scriptSrc.push(GOOGLE_TAG_ORIGIN);
+    connectSrc.push(...GOOGLE_ANALYTICS_CONNECT_ORIGINS);
   }
   if (plausible) {
-    const origin = new URL(PLAUSIBLE_SCRIPT_URL).origin;
+    const origin = plausible.server
+      ? `https://${plausible.server}`
+      : new URL(PLAUSIBLE_SCRIPT_URL).origin;
     scriptSrc.push(origin);
     connectSrc.push(origin);
   }
@@ -94,9 +98,16 @@ export function integrationCspSources(
       connectSrc.push(origin);
     }
   }
-  if (ga4) {
-    scriptSrc.push(GOOGLE_TAG_ORIGIN);
-    connectSrc.push(...GOOGLE_ANALYTICS_CONNECT_ORIGINS);
+  if (umami) {
+    const scriptOrigin = new URL(umami.scriptUrl ?? UMAMI_SCRIPT_URL).origin;
+    let connectOrigin = scriptOrigin;
+    if (umami.hostUrl) {
+      connectOrigin = new URL(umami.hostUrl).origin;
+    } else if (scriptOrigin === new URL(UMAMI_SCRIPT_URL).origin) {
+      connectOrigin = UMAMI_CONNECT_ORIGIN;
+    }
+    scriptSrc.push(scriptOrigin);
+    connectSrc.push(connectOrigin);
   }
   return { scriptSrc, connectSrc };
 }

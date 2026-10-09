@@ -7,10 +7,11 @@ import { joinMountPath } from "@notra/sites-core/utils/mounts";
 export function siteHeadScripts(
   config: SiteConfig,
   mount: string,
-  customScripts: readonly string[]
+  customScripts: readonly string[],
+  analytics: boolean
 ): SiteHeadScript[] {
   return [
-    ...integrationHeadScripts(config.integrations),
+    ...(analytics ? integrationHeadScripts(config.integrations) : []),
     ...customScripts.map((fileName): SiteHeadScript => ({
       kind: "external",
       src: joinMountPath(mount, `${SITE_ASSETS_DIR}/${fileName}`),
