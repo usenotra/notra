@@ -1,0 +1,40 @@
+apps/dashboard/messages/de.json
+  s_0b65a9e5b79b9a::t_bab31edc2d19d1 7726,7731-7735,7792,7795
+  s_0b65a9e5b79b9a::t_0404eadf13cd7f 7254
+apps/docs/sites/analytics-and-scripts.mdx
+  s_0b65a9e5b79b9a::t_bab31edc2d19d1 43,48,50
+apps/dashboard/messages/en.json
+  s_0b65a9e5b79b9a::t_bab31edc2d19d1 7254,7726,7731-7735,7792,7795
+apps/dashboard/src/types/components/sites.ts
+  s_0b65a9e5b79b9a::t_aa769469582fb5 432-433,572
+apps/dashboard/src/types/sites.ts
+  s_0b65a9e5b79b9a::t_aa769469582fb5 35
+apps/dashboard/src/components/sites/site-integration-dialog.tsx
+  s_0b65a9e5b79b9a::t_aa769469582fb5 50,60,79,120-128,132,134-135,310,314-328
+  s_0b65a9e5b79b9a::t_74a73368d2d57c 129-131,133
+  s_0b65a9e5b79b9a::t_bd33fb395fff2e 3-6
+apps/dashboard/src/components/sites/site-publish-dialog.tsx
+  s_0b65a9e5b79b9a::t_bca2ee3997fb42 104-105,119,185
+  s_0b65a9e5b79b9a::t_aa769469582fb5 42-43,50-51,96-103,106-108,156-161,183
+  s_0b65a9e5b79b9a::t_bd33fb395fff2e 110-115,162-182
+apps/dashboard/src/components/sites/pages/site-integrations-page.tsx
+  s_0b65a9e5b79b9a::t_aa769469582fb5 13,23,29,31,38-39,47,53,56-57,75-76,169-186,203-230
+  s_0b65a9e5b79b9a::t_bd33fb395fff2e 44-46
+  s_0b65a9e5b79b9a::t_74a73368d2d57c 52,54-55,58-74,138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "73040188d4a0c3a1626cf3b2bc7156e51c7361eb",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
