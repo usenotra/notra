@@ -7789,7 +7789,6 @@
         }
       },
       "close": "Schließen",
-      "autosaveDescription": "Gültige Änderungen werden automatisch als Entwurf gespeichert. Erstelle einen Pull Request, wenn sie bereit sind.",
       "autosavePending": "Warten auf Speicherung…",
       "autosaveSaving": "Entwurf wird gespeichert…",
       "autosaveSaved": "Entwurf gespeichert. Erstelle einen Pull Request und merge ihn, um die Änderungen live zu schalten.",

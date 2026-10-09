@@ -7789,7 +7789,6 @@
         }
       },
       "close": "Close",
-      "autosaveDescription": "Valid changes save automatically as a draft. Create a pull request when you are ready.",
       "autosavePending": "Waiting to save…",
       "autosaveSaving": "Saving draft…",
       "autosaveSaved": "Draft saved. Create a pull request, then merge it to go live.",

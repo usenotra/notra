@@ -8,7 +8,7 @@ import type { SiteIntegrationProvider } from "@/types/site-integrations";
 export const SITE_INTEGRATION_AUTOSAVE_DELAY_MS = 600;
 
 export const SITE_INTEGRATION_AUTOSAVE_MESSAGES = {
-  idle: "autosaveDescription",
+  idle: null,
   pending: "autosavePending",
   saving: "autosaveSaving",
   saved: "autosaveSaved",

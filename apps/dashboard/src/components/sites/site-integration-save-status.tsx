@@ -14,23 +14,33 @@ export function SiteIntegrationSaveStatus({
 }: SiteIntegrationSaveStatusProps) {
   const t = useTranslations("sites.integrationsPage");
   const failed = state.status === "error";
+  const messageKey =
+    invalid && state.dirty
+      ? "autosaveInvalid"
+      : SITE_INTEGRATION_AUTOSAVE_MESSAGES[state.status];
   const message = failed
     ? toErrorMessage(state.error, t("saveFailed"))
-    : t(
-        invalid && state.dirty
-          ? "autosaveInvalid"
-          : SITE_INTEGRATION_AUTOSAVE_MESSAGES[state.status]
-      );
+    : messageKey
+      ? t(messageKey)
+      : null;
+
+  if (!message && !removalFailed) {
+    return null;
+  }
 
   return (
     <div aria-live="polite" className="shrink-0 space-y-2" role="status">
-      <p
-        className={
-          failed ? "text-destructive text-sm" : "text-muted-foreground text-sm"
-        }
-      >
-        {message}
-      </p>
+      {message ? (
+        <p
+          className={
+            failed
+              ? "text-destructive text-sm"
+              : "text-muted-foreground text-sm"
+          }
+        >
+          {message}
+        </p>
+      ) : null}
       {removalFailed ? (
         <p className="text-muted-foreground text-sm">
           {t("removeFailedDescription")}
