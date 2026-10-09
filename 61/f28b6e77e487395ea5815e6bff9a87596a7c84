@@ -1,0 +1,24 @@
+packages/sites-server/tests/smart-deployments-postgres.test.ts
+  s_f69c9ff79f8921::t_0655d2c2e4ab83 66-67,177-191,193-217,246-249,251,323-324,415-456,473-488,491-495,497-501,503-517,519-523
+  s_f69c9ff79f8921::t_45f9680015d8cc 457-472
+packages/sites-server/src/pipeline.ts
+  s_f69c9ff79f8921::t_8bbb4d20508a92 2-5,66-70,192-207,296,304-320
+packages/sites-core/src/constants/sites.ts
+  s_f69c9ff79f8921::t_8bbb4d20508a92 145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "61f28b6e77e487395ea5815e6bff9a87596a7c84",
+  "prompts": {},
+  "sessions": {
+    "s_f69c9ff79f8921": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f51-95c8-7300-9435-f09005fb79f7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
