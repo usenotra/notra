@@ -7603,6 +7603,30 @@
         "none": "No changes yet. Your edits show up here next to the published version."
       }
     },
+    "variables": {
+      "title": "Content variables",
+      "openEditor": "Open editor",
+      "reset": "Reset changes",
+      "description": "Keep names, links and other values in one place. Reuse them across your site with placeholders like '{{product_name}}'.",
+      "publicWarning": "Values are public. Never add API keys, passwords or other secrets.",
+      "loading": "Loading variables…",
+      "loadFailed": "Unable to load variables. Try again.",
+      "retry": "Try again",
+      "invalidConfig": "Fix blog.json in the editor to manage variables here.",
+      "empty": "Add your first variable to reuse a value across your site.",
+      "name": "Name",
+      "value": "Value",
+      "add": "Add variable",
+      "remove": "Remove",
+      "removeLabel": "Remove variable {number}",
+      "duplicate": "Use a different name for each variable.",
+      "invalid": "Start each name with a letter. Use up to 40 letters, numbers, underscores or dashes, and values up to 500 characters.",
+      "saveDraft": "Save draft",
+      "saved": "Variables saved as a draft",
+      "saveFailed": "Unable to save variables. Try again.",
+      "reviewAndPublish": "Review and publish",
+      "publishHint": "Drafts are saved in blog.json. Publish in the editor to update your site, including existing posts. Placeholders in code blocks and inline code stay unchanged."
+    },
     "settingsPage": {
       "title": "Settings",
       "description": "Repository, sections, previews and publishing for this site",

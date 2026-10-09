@@ -134,7 +134,15 @@ Define values once in `blog.json` and use them in any post with `{{ name }}`:
 Questions about {{ product }}? Write to {{ supportEmail }}.
 ```
 
-Variables work in posts, changelog entries, their frontmatter, `header.mdx`, `footer.mdx` and slots. Notra leaves them as they are inside code, so to show the braces themselves, put them in inline code like `` `{{ name }}` ``. An unknown name shows a warning in the build log and stays as written. In frontmatter, Notra doesn't replace variables in values that contain characters like `:`, `#`, `@` or quotes. See [`variables`](/sites/reference/blog-json#variables) for the rules.
+Variables work in posts, changelog entries, their frontmatter, MDX snippets, `header.mdx`, `footer.mdx` and slots. Notra leaves them as they are inside code, so to show the braces themselves, put them in inline code like `` `{{ name }}` ``. An unknown name shows a warning in the build log and stays as written. In frontmatter, Notra doesn't replace variables in values that contain characters like `:`, `#`, `@` or quotes. See [`variables`](/sites/reference/blog-json#variables) for the rules.
+
+Manage variables in your site's **Settings**, under **Content variables**. Changes save as a draft in `blog.json` and leave your other settings untouched. Review and publish the draft in the editor to update your site, including existing posts that use those variables.
+
+Keep historical values, such as release version numbers, as fixed text.
+
+<Warning>
+  Variable values appear in your repository and published pages. Never add API keys, passwords or other secrets.
+</Warning>
 
 ## Posts published from Notra
 

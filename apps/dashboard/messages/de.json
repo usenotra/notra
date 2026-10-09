@@ -7603,6 +7603,30 @@
         "none": "Noch keine Änderungen. Deine Bearbeitungen erscheinen hier neben der veröffentlichten Version."
       }
     },
+    "variables": {
+      "title": "Content-Variablen",
+      "openEditor": "Editor öffnen",
+      "reset": "Änderungen zurücksetzen",
+      "description": "Pflege Namen, Links und andere Werte an einem Ort. Verwende sie auf deiner Site mit Platzhaltern wie '{{product_name}}'.",
+      "publicWarning": "Die Werte sind öffentlich. Trage keine API-Keys, Passwörter oder andere Secrets ein.",
+      "loading": "Variablen werden geladen…",
+      "loadFailed": "Variablen konnten nicht geladen werden. Versuche es erneut.",
+      "retry": "Erneut versuchen",
+      "invalidConfig": "Korrigiere blog.json im Editor, um Variablen hier zu bearbeiten.",
+      "empty": "Füge deine erste Variable hinzu, um einen Wert auf deiner Site wiederzuverwenden.",
+      "name": "Name",
+      "value": "Wert",
+      "add": "Variable hinzufügen",
+      "remove": "Entfernen",
+      "removeLabel": "Variable {number} entfernen",
+      "duplicate": "Verwende für jede Variable einen eigenen Namen.",
+      "invalid": "Beginne jeden Namen mit einem Buchstaben. Verwende bis zu 40 Buchstaben, Zahlen, Unterstriche oder Bindestriche und Werte mit bis zu 500 Zeichen.",
+      "saveDraft": "Entwurf speichern",
+      "saved": "Variablen als Entwurf gespeichert",
+      "saveFailed": "Variablen konnten nicht gespeichert werden. Versuche es erneut.",
+      "reviewAndPublish": "Prüfen und veröffentlichen",
+      "publishHint": "Entwürfe werden in blog.json gespeichert. Veröffentliche sie im Editor, um deine Site und bestehende Beiträge zu aktualisieren. Platzhalter in Codeblöcken und Inline-Code bleiben unverändert."
+    },
     "settingsPage": {
       "title": "Einstellungen",
       "description": "Repository, Bereiche, Previews und Veröffentlichen für diese Site",

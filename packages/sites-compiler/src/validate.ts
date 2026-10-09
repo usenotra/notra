@@ -68,6 +68,7 @@ function takesVariables(path: string): boolean {
   return (
     entryCandidate(path) !== null ||
     (SITE_CHROME_FILES as readonly string[]).includes(path) ||
+    (path.startsWith("snippets/") && MDX_FILE.test(path)) ||
     (path.startsWith(`${SITE_SLOTS_DIR}/`) && MDX_FILE.test(path))
   );
 }
