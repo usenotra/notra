@@ -1,0 +1,52 @@
+apps/dashboard/src/utils/site-integration-autosave.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 45
+apps/dashboard/src/components/sites/site-integration-save-status.tsx
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 12,34-38
+packages/sites-core/src/schemas/build.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 26
+apps/web/public/schemas/blog.json
+  s_0b65a9e5b79b9a::t_20164f0404ad7c 1039,1041,1058,1100
+apps/dashboard/src/types/components/sites.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 576
+packages/sites-core/src/utils/content-security-policy.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 35-37
+apps/dashboard/src/components/sites/site-integration-dialog.tsx
+  s_0b65a9e5b79b9a::t_210640eeeaa314 103-106
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 56,77,84,107,245,247-251,285
+packages/sites-core/src/schemas/site-integrations.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 6,36-39,42
+apps/dashboard/messages/de.json
+  s_0b65a9e5b79b9a::t_20164f0404ad7c 7651,7694,7708-7709
+packages/sites-core/tests/integrations.test.ts
+  s_0b65a9e5b79b9a::t_241b6991f3a835 4,26-44,46-48,50-52,54-63,65-67,69-71,346
+apps/dashboard/src/utils/site-integration-autosave.test.ts
+  s_0b65a9e5b79b9a::t_50bc9f6ef168de 186-207
+  s_0b65a9e5b79b9a::t_241b6991f3a835 183-184
+packages/sites-core/src/constants/integrations.ts
+  s_0b65a9e5b79b9a::t_20164f0404ad7c 19
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 21
+apps/docs/sites/analytics-and-scripts.mdx
+  s_0b65a9e5b79b9a::t_20164f0404ad7c 86
+apps/dashboard/src/lib/hooks/use-site-integration-autosave.ts
+  s_0b65a9e5b79b9a::t_9382d0c22dccf3 5,29-35
+apps/dashboard/messages/en.json
+  s_0b65a9e5b79b9a::t_20164f0404ad7c 7651,7694,7708-7709
+apps/sites-builder/tests/integrations.test.ts
+  s_0b65a9e5b79b9a::t_241b6991f3a835 25,42,49-50,58-59,64,72-76,81,90-101,106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "dad43a17d377ca802a508fe432e4625804583bec",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
