@@ -1,5 +1,5 @@
 ---
-title: "Rate Limits"
+title: "Rate limits"
 description: "Per-key, per-organization and per-IP rate limits on generation, chat, GEO and feedback endpoints, and the headers that report them."
 authors:
   - handle: dominik
@@ -25,15 +25,15 @@ docolin:
 
 The Notra API rate limits the endpoints that start model runs, scans or other expensive work. Plain reads (listing posts, visibility data, feedback, schedules and so on) and deletes are not rate limited.
 
-Each limited endpoint has its own bucket with a sliding window. Hitting the post-generation limit does not affect post updates or GEO scans. When a request would exceed a limit, the API returns `429 Too Many Requests` and the request is not executed.
+Each limited endpoint has its own bucket with a sliding window, so hitting the post-generation limit does not affect post updates or GEO scans. When a request would exceed a limit, the API returns `429 Too Many Requests` and does not run the request.
 
 ## Limits
 
-Limits are keyed in one of three ways:
+Notra keys each limit in one of three ways:
 
-- **per key**: the bucket belongs to the API key making the request. Two keys in the same organization have separate budgets.
-- **per organization**: every key in the organization shares one bucket.
-- **per IP**: the bucket belongs to the caller's source address.
+- **Per key.** The bucket belongs to the API key making the request, so two keys in the same organization have separate budgets.
+- **Per organization.** Every key in the organization shares one bucket.
+- **Per IP.** The bucket belongs to the caller's source address.
 
 ### Content
 
@@ -44,7 +44,7 @@ Limits are keyed in one of three ways:
 | `POST /v1/brand-identities/generate` | 5 requests / minute | per key |
 | `POST /v1/integrations/github` | 20 requests / minute | per key |
 
-### Chats and Agent
+### Chats and agent
 
 | Endpoint | Limit | Keyed |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ Limits are keyed in one of three ways:
 | `POST /v1/projects/{projectId}/geo/briefs/{briefId}/approve` | 20 requests / 10 minutes | per organization |
 | `POST /v1/projects/{projectId}/geo/agent-readiness/scan` | 10 requests / hour | per organization |
 
-GEO limits span all projects in the organization: four scans per hour is the total across every project, not four per project.
+GEO limits apply across all projects in the organization, so four scans per hour is the total across every project, not four per project.
 
 ### Feedback
 
@@ -74,7 +74,7 @@ GEO limits span all projects in the organization: four scans per hour is the tot
 | `POST /v1/feedback` | 120 requests / minute | per key |
 
 <Note>
-  `POST /v1/feedback/{organizationSlug}` is the one endpoint agents call without credentials, so it is limited per source IP address and per organization. Both limits apply at the same time. See [Agent Feedback](/api/agent-feedback).
+  Agents call `POST /v1/feedback/{organizationSlug}` without credentials. Because it is the only such endpoint, Notra limits it per source IP address and per organization, and both limits apply at the same time. See [Agent feedback](/feedback/send-feedback).
 </Note>
 
 ## Response headers
@@ -93,7 +93,7 @@ Endpoints that are not rate limited do not send these headers.
 
 ## 429 response
 
-When a request is rejected, the API returns:
+When the API rejects a request, it returns:
 
 ```json
 {
@@ -104,28 +104,28 @@ When a request is rejected, the API returns:
 }
 ```
 
-`reset` is a Unix timestamp in **milliseconds**. The `Retry-After` header gives the same moment as a number of seconds to wait and is the simplest field to act on.
+`reset` is a Unix timestamp in milliseconds, while the `Retry-After` header gives the same moment as a number of seconds to wait and is the simplest field to act on.
 
 <Note>
-  A `429` with `error: "API key rate limit exceeded"` and a `code` field comes from the authentication layer rather than an endpoint bucket. It means the key itself is throttled. See [Authentication](/api/authentication#error-responses).
+  A `429` with `error: "API key rate limit exceeded"` and a `code` field comes from the authentication layer rather than an endpoint bucket, and it means the authentication layer is throttling the key itself. See [Authentication](/api/authentication#error-responses).
 </Note>
 
 ## Best practices
 
-- Read `RateLimit-Remaining` proactively and slow down before you hit zero.
-- On `429`, wait for `Retry-After` seconds before retrying. Do not retry immediately.
-- Use exponential backoff with jitter for `5xx` responses; treat `429` as a hard wait, not a retry signal.
-- GEO scans are the most expensive thing a key can trigger. Poll `GET /v1/projects/{projectId}/geo/scans/{scanId}` for the result instead of re-triggering.
-- For bulk work (for example backfilling many posts), space requests evenly across the window rather than bursting.
+- Read `RateLimit-Remaining` and slow down before you hit zero.
+- On `429`, wait for `Retry-After` seconds before retrying instead of retrying immediately.
+- Use exponential backoff with jitter for `5xx` responses, but treat `429` as a hard wait rather than a retry signal.
+- GEO scans are the most expensive thing a key can trigger, so poll `GET /v1/projects/{projectId}/geo/scans/{scanId}` for the result instead of re-triggering.
+- For bulk work (for example backfilling many posts), space requests evenly across the window instead of sending them in bursts.
 
 ## Need higher limits?
 
-If your workload genuinely needs higher limits, reach out via [GitHub](https://github.com/usenotra/notra) and describe the use case and expected volume.
+If your workload needs higher limits, contact us via [GitHub](https://github.com/usenotra/notra) and describe the use case and expected volume.
 
-## Next Steps
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Getting Started" icon="code" href="/api/getting-started">
+  <Card title="Getting started" icon="code" href="/api/getting-started">
     Explore the endpoint groups
   </Card>
 

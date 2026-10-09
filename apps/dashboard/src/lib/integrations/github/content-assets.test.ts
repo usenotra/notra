@@ -77,3 +77,26 @@ test("puts uploaded media in the pull request and leaves the rest as links", asy
     `\`\`\`\n<video controls src="${videoUrl}"></video>\n\`\`\``
   );
 });
+
+test("serves assets from a nested public folder at the site root", async () => {
+  const prepared = await prepareGitHubContentAssets({
+    appOrigin: null,
+    contentPath: "docs/blog/hello-world.md",
+    imagePathTemplate: "docs/public/images/blog/:slug/image",
+    loadImage: async () => ({
+      contents: new Uint8Array([1]),
+      extension: ".png",
+    }),
+    markdown: `![A](https://cdn.example/${KEY})`,
+    organizationId: "org_1",
+    publicDirectory: "docs/public",
+    publicUrl: "https://cdn.example",
+    slug: "hello-world",
+  });
+  expect(prepared.assets.map((asset) => asset.path)).toEqual([
+    "docs/public/images/blog/hello-world/image-abc123.png",
+  ]);
+  expect(prepared.markdown).toBe(
+    "![A](/images/blog/hello-world/image-abc123.png)"
+  );
+});

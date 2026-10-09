@@ -171,6 +171,19 @@ export interface GeoCheckEngineTotalRow {
   mentions: number;
 }
 
+export interface GeoCheckOwnBrandShareRow {
+  projectId: string;
+  brand: string;
+  aliases: string[] | null;
+  day: string;
+  mentions: number;
+}
+
+export interface GeoCheckOwnBrandShare {
+  namesByProject: Map<string, Set<string>>;
+  byBrand: Map<string, Map<string, number>>;
+}
+
 export interface GeoCheckCompetitorShareAggregateRow {
   brand: string;
   day: string | null;
@@ -279,4 +292,36 @@ export interface GeoCheckScanComparison {
 export interface GeoCheckScanComparisonInput {
   projectId: string;
   window?: { from: Date; toExclusive: Date };
+}
+
+export type GeoCheckPeriod = "previous" | "current";
+
+export interface GeoCheckPeriodInput {
+  organizationId: string;
+  from: Date;
+  /** Checks captured at or after this belong to the current period. */
+  splitAt: Date;
+  toExclusive: Date;
+}
+
+export interface GeoCheckPeriodPromptRow {
+  period: GeoCheckPeriod;
+  projectId: string;
+  promptId: string;
+  engine: string;
+  prompt: string;
+  checks: number;
+  mentions: number;
+  avgPosition: number | null;
+}
+
+export interface GeoCheckPeriodCompetitorRow {
+  period: GeoCheckPeriod;
+  projectId: string;
+  promptId: string;
+  engine: string;
+  /** Trimmed, lowercased brand; the grouping key. */
+  brandKey: string;
+  brand: string;
+  checks: number;
 }

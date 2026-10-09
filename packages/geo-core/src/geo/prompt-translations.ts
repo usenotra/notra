@@ -1,5 +1,5 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { db } from "@notra/db/drizzle";
 import { geoPromptTranslations, geoSettings } from "@notra/db/schema";
 import { and, eq } from "drizzle-orm";

@@ -1,5 +1,5 @@
 ---
-title: "Brand Voice"
+title: "Brand voice"
 description: "Learn how brand identities shape generated content: company profile, tone, language, audience, custom instructions, references and guidelines."
 authors:
   - handle: dominik
@@ -24,24 +24,24 @@ docolin:
   prev: ./content-pipeline.mdx
 ---
 
-Brand voice is what makes generated content sound like *you*. In Notra it lives in **Brand Identity**, and every generation path, the Create Content wizard, schedules, event triggers, Iris and GEO Write, picks one identity and writes with it.
+Brand voice controls how generated content sounds, and in Notra it lives in **Brand Identity**. Every generation path, including the Create Content wizard, schedules, event triggers and GEO Write, picks one identity and writes with it.
 
-## What is a Brand Identity?
+## What is a brand identity?
 
-A brand identity is a named profile. A workspace starts with one called **Default**, created from the website you entered during onboarding, and you can add more, for example Marketing, Technical or Internal. Each identity stores:
+A brand identity is a named profile. A workspace starts with one called **Default**, which Notra creates from the website you entered during onboarding, and you can add more, for example Marketing, Technical or Internal. Each identity stores:
 
-* **Company name**: your product or company name
-* **Website**: the site Notra analyzes for the profile, sitemap and guidelines
-* **Description**: what you build and why it matters
-* **Tone profile**: Conversational, Professional, Casual or Formal
-* **Custom tone notes**: free-text guidance layered on top of the profile
-* **Language**: the language content is written in
-* **Custom instructions**: rules the writer must follow
-* **Who are you writing for?**: your target audience
+* **Company name** is your product or company name.
+* **Website** is the site Notra analyzes for the profile, sitemap and guidelines.
+* **Description** says what you build and why it matters.
+* **Tone profile** is Conversational, Professional, Casual or Formal.
+* **Custom tone notes** are free-text guidance layered on top of the profile.
+* **Language** is the language content is written in.
+* **Custom instructions** are rules the writer must follow.
+* **Who are you writing for?** describes your target audience.
 
 The Brand Identity page has four tabs: **Company Info** (the fields above), **References**, **Sitemap** and **Brand Guidelines**.
 
-## How Notra Learns Your Brand
+## How Notra learns your brand
 
 ### Automated analysis
 
@@ -53,81 +53,81 @@ When you add a website, Notra runs a three-step analysis and fills in Company In
   </Step>
 
   <Step title="Extracting">
-    An AI model reads the content and identifies your company name, description, tone and style patterns, and the audience your messaging speaks to.
+    An AI model reads the content and identifies your company name, description, tone, style patterns and the audience your messaging speaks to.
   </Step>
 
   <Step title="Saving">
-    The results are written into the identity. Review and adjust any field afterwards.
+    Notra writes the results into the identity, and you can review and adjust any field afterwards.
   </Step>
 </Steps>
 
-During onboarding this runs in the background right after you create the workspace. On the Brand Identity page you can re-run it whenever your site changes, and adding a new identity with a website runs it for that identity.
+During onboarding this runs in the background right after you create the workspace. You can re-run it on the Brand Identity page whenever your site changes, and adding a new identity with a website also runs it for that identity.
 
 ### Manual configuration
 
-Every field is editable. Changes auto-save a moment after you stop typing, and a toast confirms the update.
+Every field is editable. Changes save a moment after you stop typing, and a toast confirms the update.
 
 ### References
 
-The **References** tab holds real posts and writing samples, for example tweets, that help the AI match your style beyond what a tone profile can express. Add a few pieces you are proud of; plans differ in how many references are included.
+The **References** tab holds real posts and writing samples, for example tweets, that help the AI match your style beyond what a tone profile can express. Add a few pieces you are proud of, keeping in mind that the number of references included depends on your plan.
 
-### Sitemap and Brand Guidelines
+### Sitemap and brand guidelines
 
-The **Sitemap** tab tracks your indexed pages and monitors site health for AI discovery. GEO Write uses it to pick internal links for new articles.
+The **Sitemap** tab tracks your indexed pages and monitors site health for AI discovery, and GEO Write uses it to pick internal links for new articles.
 
-The **Brand Guidelines** tab pulls logos, colors, typography and landing page screenshots from your website. Generate them once, refresh when your design changes, and edit individual entries.
+The **Brand Guidelines** tab pulls logos, colors, typography and landing page screenshots from your website. You generate them once, refresh them when your design changes and can edit individual entries.
 
-## Tone Profiles Explained
+## Tone profiles
 
-Each tone profile selects a different prompt template for every format:
+Each tone profile selects a different prompt template for every format.
 
 ### Conversational
 
-**Best for**: developer tools, startups, open source projects
+Best for developer tools, startups and open source projects.
 
 * Warm and authentic
 * Direct address ("we" and "you")
 * Clear and specific without being dry
 * Founder-to-community feel
 
-**Example**:
+Example:
 
 > We've shipped some meaningful improvements this week. The new cache component support catches unsupported auth calls early and provides clear migration guidance. Email verification flows now support secure link completion with proper error handling for expired links.
 
 ### Professional
 
-**Best for**: enterprise products, B2B SaaS, corporate communications
+Best for enterprise products, B2B SaaS and corporate communications.
 
 * Clear and confident
 * Polished without being stiff
 * Focus on business value
 
-**Example**:
+Example:
 
 > This release delivers significant enhancements to the platform. New cache component validation ensures proper auth implementation with actionable error guidance. Email verification workflows now include comprehensive link-based completion flows.
 
 ### Casual
 
-**Best for**: consumer apps, community-driven products, creative tools
+Best for consumer apps, community-driven products and creative tools.
 
 * Friendly and approachable
 * Relaxed language
 * Enthusiasm visible
 
-**Example**:
+Example:
 
 > Hey folks! We've been busy this week. The cache system is now way smarter about catching auth issues before they become problems. Plus, email verification links actually work the way you'd expect, nice and reliable.
 
 ### Formal
 
-**Best for**: finance, healthcare, compliance-heavy industries, academic tools
+Best for finance, healthcare, compliance-heavy industries and academic tools.
 
 * Precise and structured
 * Traditional language
 * Complete sentences
 * Conservative terminology
 
-**Example**:
+Example:
 
 > The engineering team has completed several deliverables for this release cycle. Runtime validation capabilities have been enhanced to detect unsupported authentication patterns in cached contexts. Email-based verification procedures have been implemented with comprehensive error state handling.
 
@@ -137,9 +137,9 @@ Each tone profile selects a different prompt template for every format:
 
 ## Language
 
-The **Language** field tells the writer which language to produce. The rule is strict: the final text is written primarily in that language, and English is only used for terms that the language commonly borrows, such as technical terms and product names. This applies even when your custom instructions and references are in English.
+The **Language** field tells the writer which language to produce. The rule is strict, so the writer produces the final text primarily in that language and uses English only for terms the language commonly borrows, such as technical terms and product names. This applies even when your custom instructions and references are in English.
 
-## Target Audience Impact
+## Target audience
 
 **Who are you writing for?** changes both filtering and formatting.
 
@@ -147,12 +147,12 @@ The **Language** field tells the writer which language to produce. The rule is s
 
 When the audience is developers, engineers or technical teams:
 
-* **PR links included**: every referenced change links to its pull request when one is available
-* **Technical terminology**: proper terms without over-explaining
-* **Implementation detail**: APIs, components and architectural changes are fair game
-* **Author attribution**: contributors are credited with their GitHub handle
+* Every referenced change links to its pull request when one is available.
+* The writer uses proper technical terms without over-explaining.
+* Implementation details such as APIs, components and architectural changes are fair game.
+* The writer credits contributors with their GitHub handle.
 
-**Example**:
+Example:
 
 > **Cache component support with actionable error guidance** [#423](https://github.com/org/repo/pull/423) - Runtime guardrails now catch unsupported auth calls in cached contexts and provide clear migration guidance with the correct usage pattern. (Author: [@alex](https://github.com/alex/))
 
@@ -160,18 +160,18 @@ When the audience is developers, engineers or technical teams:
 
 When the audience is customers, end users or stakeholders:
 
-* **No PR numbers or links** anywhere in the output
-* **Plain language** that explains what changed in terms of benefits
-* **Outcome focus**: what users can now do
-* **Author attribution still included**
+* No PR numbers or links appear anywhere in the output.
+* Plain language explains what changed in terms of benefits.
+* The text focuses on outcomes, meaning what users can now do.
+* Author attribution is still included.
 
-**Example**:
+Example:
 
 > **Improved error messages**: When you use authentication features incorrectly, you'll now see helpful guidance on how to fix it. (Author: [@alex](https://github.com/alex/))
 
-The audience also decides what gets filtered out. A change that only matters to engineers is dropped entirely for a customer audience rather than being translated into vague copy.
+The audience also decides what gets filtered out. For a customer audience, Notra drops a change that only matters to engineers instead of translating it into vague copy.
 
-## Custom Instructions
+## Custom instructions
 
 Custom instructions add rules beyond the tone profile:
 
@@ -184,12 +184,12 @@ Use "we" instead of "the team" or third person
 ```
 
 <Note>
-  Be specific. "Use simple language" is vague. "Explain technical concepts using analogies from everyday life" gives the writer a rule it can follow.
+  Be specific, because "Use simple language" is vague while "Explain technical concepts using analogies from everyday life" gives the writer a rule it can follow.
 </Note>
 
-## How Brand Voice is Applied
+## How brand voice is applied
 
-When generating content, the identity is formatted into structured tags and placed in the prompt:
+When Notra generates content, it formats the identity into structured tags and places them in the prompt:
 
 ```xml
 <company>Acme Corp - Building developer tools for modern web apps</company>
@@ -209,11 +209,11 @@ Emphasize security and performance improvements
 Two rules travel with these tags:
 
 1. `<company>` is the publishing identity. Sources are evidence only, so a repository, workspace or team with a different name never causes the writer to hesitate or attribute the work elsewhere.
-2. If `<language>` is present, the final text is written in that language.
+2. If `<language>` is present, the writer produces the final text in that language.
 
 The tone-specific system prompt for the chosen format wraps all of this, and any skills you enabled on the Skills page, such as the human-writer skill, run on the result.
 
-## Multiple Identities
+## Multiple identities
 
 Use separate identities when one voice does not fit every channel:
 
@@ -221,25 +221,25 @@ Use separate identities when one voice does not fit every channel:
 * **Technical** for changelogs, Professional, developer audience
 * **Internal** for team updates, Casual
 
-The Create Content wizard, schedules, event triggers and GEO Write each let you pick the identity for that run. One identity is marked as the default and is used when nothing else is selected.
+The Create Content wizard, schedules, event triggers and GEO Write each let you pick the identity for that run. One identity is the default, and Notra uses it when you select nothing else.
 
-## Maintaining Consistency
+## Consistency
 
-**Same voice everywhere**: a changelog and the tweet announcing it come from the same identity, and scheduled, event-triggered and manual runs all use the same rules.
+A changelog and the tweet announcing it come from the same identity, and scheduled, event-triggered and manual runs all use the same rules.
 
-**Consistent structure**: changelogs always follow Summary, Highlights, More Updates, with categories in a fixed priority order.
+Changelogs always use the sections Summary, Highlights and More Updates, with categories in a fixed priority order.
 
-**Quality controls**:
+Quality controls:
 
 * Summaries target 120 to 180 words
 * No made-up PR numbers or commit details
 * Runs with nothing audience-relevant are skipped instead of padded
 
-## Examples Across Tones
+## Examples across tones
 
-Same feature, four tones:
+Here is the same feature in four tones:
 
-**Feature**: New GitHub webhook verification for enhanced security
+The feature is new GitHub webhook verification for enhanced security.
 
 <AccordionGroup>
   <Accordion title="Conversational">
@@ -259,30 +259,30 @@ Same feature, four tones:
   </Accordion>
 </AccordionGroup>
 
-## Updating Your Brand Voice
+## Updating your brand voice
 
-Update an identity whenever you rebrand, your audience shifts, or you want to try a different tone. Future runs use the new settings; existing drafts keep the voice they were generated with.
+Update an identity whenever you rebrand, your audience shifts or you want to try a different tone. Future runs use the new settings, while existing drafts keep the voice they were generated with.
 
 <Tip>
   After changing an identity, generate one post from the Create Content wizard to check the result before your schedules run with it.
 </Tip>
 
-## Best Practices
+## Best practices
 
-**Tone**: match your existing marketing and documentation. Fintech tends toward Formal, developer tools toward Conversational. Change it rarely.
+**Tone.** Match your existing marketing and documentation, and change it rarely. Fintech tends toward Formal, while developer tools tend toward Conversational.
 
-**Custom instructions**: start small and add rules as you notice yourself making the same manual edit twice. Keep them about style, not content.
+**Custom instructions.** Start small and add rules as you notice yourself making the same manual edit twice, and keep them about style rather than content.
 
-**Audience**: be specific. "Senior engineering leaders at enterprise companies" beats "technical people", and it decides whether PR links appear.
+**Audience.** Be specific, because "Senior engineering leaders at enterprise companies" beats "technical people", and it decides whether PR links appear.
 
-**References**: add real posts. Three good samples do more for style than a paragraph of description.
+**References.** Add real posts, because three good samples do more for style than a paragraph of description.
 
-## Troubleshooting Voice Issues
+## Troubleshooting voice issues
 
-**Too technical or not technical enough**: adjust the audience description first, then add a custom instruction about detail level.
+**Too technical or not technical enough.** Adjust the audience description first, then add a custom instruction about detail level.
 
-**Wrong tone**: check the profile, then make sure custom tone notes and custom instructions do not contradict it.
+**Wrong tone.** Check the profile, then make sure custom tone notes and custom instructions do not contradict it.
 
-**Wrong language**: set the Language field. Instructions written in English do not switch the output language.
+**Wrong language.** Set the Language field, because instructions written in English do not switch the output language.
 
-**Inconsistent style across posts**: make sure every schedule and trigger points at the same identity, and that the identity has all fields filled in.
+**Inconsistent style across posts.** Make sure every schedule and trigger points at the same identity and that the identity has all fields filled in.

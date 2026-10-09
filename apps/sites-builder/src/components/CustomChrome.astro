@@ -1,0 +1,23 @@
+---
+import type { CustomChromeProps as Props } from "../types/site-files";
+import { chromeComponent } from "../lib/site-files";
+import { params } from "../lib/params";
+import PoweredByNotra from "./PoweredByNotra.astro";
+
+const { part } = Astro.props;
+const Component = chromeComponent(part);
+const showBranding = part === "footer" && params.branding;
+---
+
+{
+  Component && (
+    <div data-custom-chrome={part}>
+      <Component />
+      {showBranding && (
+        <div class="flex justify-end border-t border-border px-5 py-3 sm:px-6">
+          <PoweredByNotra />
+        </div>
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,71 @@
+---
+title: "Notra Sites"
+sidebarTitle: "Overview"
+description: "A managed blog and changelog, built from MDX files in your GitHub repository and served on your own domain."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/overview
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra Sites turns a folder of MDX files in your GitHub repository into a hosted blog and changelog. You write posts in your repository or in the Notra editor, and Notra builds, hosts and serves them on `blog.acme.com` or under `acme.com/blog`.
+
+<Info>
+  Notra Sites is in private beta. If **Sites** is missing from the Studio sidebar, email [hello@usenotra.com](mailto:hello@usenotra.com) or ask on [Discord](https://www.usenotra.com/discord) and we'll turn it on for your workspace.
+</Info>
+
+## What a site includes
+
+- **Git is the source of truth.** Every push to your production branch goes live, and edits in Notra become a commit or a pull request.
+- **Every pull request gets a preview.** Each one gets its own link and a GitHub check, and search engines never index previews.
+- **Your own domain.** Use a subdomain like `blog.acme.com`, or `acme.com/blog` served through a rewrite while you keep your website.
+- **MDX with components.** Use callouts, cards, tabs, steps and your own React components.
+- **No config to start.** Without a `blog.json` the site builds with the standard layout, and you add one when you want your brand, navigation or analytics.
+- **Search and AI agent support.** Every site has sitemaps, RSS, structured data, `llms.txt` and a Markdown version of every page.
+
+## How a deploy works
+
+<Steps>
+  <Step title="You push">
+    You push to the production branch, merge a pull request or publish from the Notra editor.
+  </Step>
+  <Step title="Notra builds the commit">
+    Notra builds the exact commit in an isolated sandbox without network access, which usually takes seconds.
+  </Step>
+  <Step title="The new version goes live in one step">
+    Notra uploads and checks the finished files and then switches them live together, so a failed build never touches the live site.
+  </Step>
+  <Step title="GitHub shows the result">
+    A **Notra Sites** check on the commit links to the live site, or lists every error with its file and line.
+  </Step>
+</Steps>
+
+You can restore an earlier deployment from the dashboard without rebuilding. See [Publishing and deployments](/sites/publishing).
+
+## Where Notra Sites lives in the dashboard
+
+Switch the sidebar to **Studio** and open **Sites**, where each site has its own pages: **Overview**, **Analytics**, **Deployments**, **Domains**, **Editor**, **Integrations** and **Settings**.
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/sites/quickstart">
+    Create a site from a repository in a few minutes.
+  </Card>
+  <Card title="Choose a domain" icon="globe" href="/sites/domains/overview">
+    `blog.acme.com` or `acme.com/blog`.
+  </Card>
+  <Card title="Write posts" icon="pen-nib" href="/sites/posts">
+    Frontmatter, authors, images and drafts.
+  </Card>
+  <Card title="blog.json reference" icon="brackets-curly" href="/sites/reference/blog-json">
+    Every setting, with types and defaults.
+  </Card>
+</Columns>

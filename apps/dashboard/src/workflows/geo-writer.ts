@@ -1,8 +1,8 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import { GEO_WRITER_MODEL } from "@notra/ai/constants/models";
 import type { ContentBillingReservation } from "@notra/ai/types/billing";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import { GEO_WRITER_TRIGGER_ID } from "@notra/geo-core/constants/geo";
-import { geoWriterWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo";
+import { geoWriterWorkflowPayloadSchema } from "@notra/geo-core/schemas/geo-workflows";
 import { flattenError } from "zod";
 
 import { GEO_WRITER_FAILURE_REASONS } from "@/constants/geo-analytics";

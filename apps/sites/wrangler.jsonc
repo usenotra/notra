@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "notra-sites",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "*/*", "zone_name": "notra.site" }],
+  "observability": { "enabled": true },
+  "r2_buckets": [{ "binding": "SITES_BUCKET", "bucket_name": "notra-sites" }],
+  "ratelimits": [
+    {
+      "name": "PREVIEW_PASSWORD_LIMITER",
+      "namespace_id": "4101",
+      "simple": { "limit": 10, "period": 60 },
+    },
+  ],
+  "vars": {
+    "HOSTING_DOMAIN": "notra.site",
+    "DASHBOARD_URL": "https://app.usenotra.com",
+    "TRAFFIC_INGEST_URL": "https://ingest.usenotra.com/api/geo/ingest",
+  },
+  "env": {
+    "dev": {
+      "name": "notra-sites-dev",
+      "workers_dev": true,
+      "routes": [],
+      "r2_buckets": [
+        {
+          "binding": "SITES_BUCKET",
+          "bucket_name": "notra-sites-dev",
+          "remote": true,
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "PREVIEW_PASSWORD_LIMITER",
+          "namespace_id": "4102",
+          "simple": { "limit": 10, "period": 60 },
+        },
+      ],
+      "vars": {
+        "HOSTING_DOMAIN": "sites.localhost",
+        "DASHBOARD_URL": "http://localhost:3000",
+        "TRAFFIC_INGEST_URL": "http://localhost:3000/api/geo/ingest",
+      },
+    },
+  },
+}

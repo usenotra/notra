@@ -1,6 +1,6 @@
 ---
-title: "Webhooks Overview"
-description: "Inbound GitHub webhooks, outbound post lifecycle, generation and GEO scan events, and polling alternatives"
+title: "Webhooks overview"
+description: "Inbound GitHub webhooks, outbound post lifecycle, generation and GEO scan events and polling alternatives"
 authors:
   - handle: dominik
 
@@ -26,15 +26,15 @@ docolin:
   next: ./events.mdx
 ---
 
-Notra receives GitHub webhooks and sends signed outbound webhooks. GitHub events let event triggers generate content the moment a release is published or commits land on the default branch. Outbound subscriptions notify your endpoint about post lifecycle changes, tracked generation jobs and terminal GEO scan results.
+Notra receives GitHub webhooks and sends signed outbound webhooks. GitHub events let event triggers generate content as soon as someone publishes a release or commits land on the default branch, while outbound subscriptions notify your endpoint about post lifecycle changes, tracked generation jobs and finished GEO scans.
 
 <Warning>
-  Notra can also send signed [outbound webhooks](/api/webhooks/outbound) to your own endpoint. Set them up in **Settings**, then **Webhooks**, or through `/v1/webhooks`. The GitHub endpoint below only receives events and has nothing to do with outbound subscriptions.
+  Notra can also send signed [outbound webhooks](/api/webhooks/outbound) to your own endpoint. You can set them up in **Settings**, then **Webhooks**, or through `/v1/webhooks`, and the GitHub endpoint below only receives events and has nothing to do with outbound subscriptions.
 </Warning>
 
 ## Inbound webhooks from GitHub
 
-GitHub is the only provider with a working webhook setup. Linear, Slack, and the other integrations connect through their APIs and do not use this endpoint.
+GitHub is the only provider with a working webhook setup, while Linear, Slack and the other integrations connect through their APIs and do not use this endpoint.
 
 ### Payload URL
 
@@ -44,30 +44,30 @@ Each connected repository gets its own payload URL:
 POST https://app.usenotra.com/api/webhooks/github/{organizationId}/{integrationId}/{repositoryId}
 ```
 
-The dashboard generates this URL for you. Copy it from the **Setup Webhook** dialog rather than assembling it by hand: the IDs are internal and the URL is checked against the organization and integration on every delivery.
+The dashboard generates this URL for you, so copy it from the **Setup Webhook** dialog instead of assembling it by hand. The IDs are internal, and Notra checks the URL against the organization and integration on every delivery.
 
 ### Set up the webhook
 
 <Steps>
   <Step title="Open the repository in Notra">
-    Go to **Integrations**, then **GitHub**, and open the repository you connected. Notra also shows the Setup Webhook dialog right after you add a repository.
+    Go to **Integrations**, then **GitHub**, then open the repository you connected. Notra also shows the Setup Webhook dialog right after you add a repository.
   </Step>
 
   <Step title="Copy the Payload URL and Secret">
-    The dialog shows three values: the **Payload URL**, the content type (`application/json`), and the **Secret**. A secret is generated automatically the first time you open the dialog. Use the copy buttons; the secret is masked until you focus the field.
+    The dialog shows three values: the **Payload URL**, the content type (`application/json`) and the **Secret**. Notra generates the secret the first time you open the dialog and masks it until you focus the field, so use the copy buttons to grab each value.
   </Step>
 
   <Step title="Add the webhook on GitHub">
-    In your repository on GitHub, open **Settings**, then **Webhooks**, then **Add webhook**. Paste the Payload URL, set the content type to `application/json`, paste the Secret, and choose **Let me select individual events**. Select **Pushes** and **Releases**. You can also select **Pull requests** if you want merged pull requests recorded for Iris.
+    In your repository on GitHub, open **Settings**, then **Webhooks**, then **Add webhook**. Paste the Payload URL, set the content type to `application/json`, paste the Secret and choose **Let me select individual events**, then select **Pushes** and **Releases**.
   </Step>
 
   <Step title="Confirm in Notra">
-    Click **I've added the webhook**. GitHub sends a `ping` event as soon as the webhook is saved; Notra answers it and writes a log entry so you can confirm the connection worked.
+    Click **I've added the webhook**. GitHub sends a `ping` event as soon as you save the webhook, and Notra answers it and writes a log entry so you can confirm the connection worked.
   </Step>
 </Steps>
 
 <Note>
-  Without an inbound GitHub webhook you can still generate content manually, on a schedule, or through `POST /v1/posts/generate`. Inbound GitHub webhooks are only needed for GitHub event triggers.
+  Without an inbound GitHub webhook you can still generate content manually, on a schedule or through `POST /v1/posts/generate`, because only GitHub event triggers need the inbound webhook.
 </Note>
 
 ### Rotate the secret
@@ -78,13 +78,13 @@ Open the repository page in Notra and use **Regenerate** in the webhook section.
 
 Notra verifies every delivery before reading the payload:
 
-* **Signature**: GitHub signs the body with HMAC SHA-256 using your secret and sends it in the `X-Hub-Signature-256` header. Notra recomputes the signature and compares it in constant time. A missing header returns `400`; a mismatch returns `401`.
-* **Ownership checks**: The organization, integration, and repository IDs in the URL must match each other. Deliveries to a disabled integration, or with IDs that do not belong together, are rejected with `403`.
-* **Deduplication**: The `X-GitHub-Delivery` header is remembered for 24 hours. A redelivery of the same ID returns `200` with `"duplicate": true` and is not processed again.
+* **Signature.** GitHub signs the body with HMAC SHA-256 using your secret and sends it in the `X-Hub-Signature-256` header. Notra recomputes the signature and compares it in constant time, returning `400` for a missing header and `401` for a mismatch.
+* **Ownership checks.** The organization, integration and repository IDs in the URL must match each other. Notra rejects deliveries to a disabled integration, or with IDs that do not belong together, with `403`.
+* **Deduplication.** Notra remembers the `X-GitHub-Delivery` header for 24 hours. A redelivery of the same ID returns `200` with `"duplicate": true`, and Notra does not process it again.
 
 ## Responses
 
-Notra answers every delivery with JSON. GitHub shows the body under **Recent Deliveries** in your webhook settings.
+Notra answers every delivery with JSON, and GitHub shows the body under **Recent Deliveries** in your webhook settings.
 
 <CodeGroup>
   ```json Processed
@@ -139,23 +139,23 @@ Notra answers every delivery with JSON. GitHub shows the body under **Recent Del
 ### Error responses
 
 <ResponseField name="400 Bad Request" type="error">
-  Invalid URL parameters, missing `X-GitHub-Event` or `X-Hub-Signature-256` header, no webhook secret generated for the repository yet, or a body that is not valid JSON in the expected shape.
+  Invalid URL parameters, missing `X-GitHub-Event` or `X-Hub-Signature-256` header, no webhook secret generated for the repository yet or a body that is not valid JSON in the expected shape.
 </ResponseField>
 
 <ResponseField name="401 Unauthorized" type="error">
-  The signature does not match the repository's secret. Regenerate the secret in Notra and update GitHub if they drifted apart.
+  The signature does not match the repository's secret, so regenerate the secret in Notra and update GitHub if the two drifted apart.
 </ResponseField>
 
 <ResponseField name="403 Forbidden" type="error">
-  The integration is disabled, does not belong to the organization in the URL, or the repository does not belong to the integration.
+  The integration is disabled, does not belong to the organization in the URL or the repository does not belong to the integration.
 </ResponseField>
 
 <ResponseField name="404 Not Found" type="error">
-  The integration or repository was deleted.
+  Someone deleted the integration or repository.
 </ResponseField>
 
 <ResponseField name="500 Internal Server Error" type="error">
-  Notra could not finish processing the delivery. GitHub keeps the delivery in its history so you can redeliver it from the webhook settings page.
+  Notra could not finish processing the delivery, but GitHub keeps it in its history so you can redeliver it from the webhook settings page.
 </ResponseField>
 
 <ResponseField name="501 Not Implemented" type="error">
@@ -182,27 +182,27 @@ Notra answers every delivery with JSON. GitHub shows the body under **Recent Del
 
 ## Logs
 
-Every delivery, including rejected ones, is written to **Settings**, then **Logs** in the dashboard with its status, HTTP status code, GitHub delivery ID, and payload summary. Retention is 7, 14, or 30 days depending on your plan.
+Notra writes every delivery, including rejected ones, to **Settings**, then **Logs** in the dashboard. Each entry shows the status, HTTP status code, GitHub delivery ID and payload summary, and Notra keeps entries for 7, 14 or 30 days depending on your plan.
 
 ## Polling alternatives
 
-Post generation, brand analysis and GEO scans can send [outbound events](/api/webhooks/outbound). You can still poll them for status and progress if you prefer. Outbound subscriptions also cover post creation, persisted edits, deletion, publishing and unpublishing; new subscriptions receive only future events, without a backfill.
+Post generation, brand analysis and GEO scans can send [outbound events](/api/webhooks/outbound), though you can still poll them for status and progress if you prefer. Outbound subscriptions also cover post creation, edits, deletion, publishing and unpublishing, and new subscriptions only receive future events with no backfill.
 
 <CardGroup cols={2}>
   <Card title="Poll post generation" icon="rotate" href="/api-reference/content/get-async-post-generation-status">
-    `GET /v1/posts/generate/{jobId}` returns the job and its event log. Stop polling when `job.status` is `completed`, `failed`, or `skipped`; `job.postId` is set on completion.
+    `GET /v1/posts/generate/{jobId}` returns the job and its event log. Stop polling when `job.status` is `completed`, `failed` or `skipped`, and read `job.postId` once the job completes.
   </Card>
 
   <Card title="Poll brand analysis" icon="palette" href="/api-reference/content/get-async-brand-identity-generation-status">
-    `GET /v1/brand-identities/generate/{jobId}` reports `queued`, `running`, `completed`, or `failed` along with the current step.
+    `GET /v1/brand-identities/generate/{jobId}` reports `queued`, `running`, `completed` or `failed` along with the current step.
   </Card>
 
   <Card title="Poll GEO scans" icon="radar">
-    `POST /v1/projects/{projectId}/geo/scans` returns a `statusUrl` and a `Location` header. Poll `GET /v1/projects/{projectId}/geo/scans/{scanId}` until `scan.status` leaves `running`.
+    `POST /v1/projects/{projectId}/geo/scans` returns a `statusUrl` and a `Location` header, so poll `GET /v1/projects/{projectId}/geo/scans/{scanId}` until `scan.status` leaves `running`.
   </Card>
 
   <Card title="Stream agent sessions" icon="wave-pulse">
-    `GET /v2/eve/v1/session/{sessionId}/stream` is a durable, replayable newline-delimited JSON stream. Pass `startIndex` to resume from a known position.
+    `GET /v2/eve/v1/session/{sessionId}/stream` is a durable, replayable newline-delimited JSON stream, and you can pass `startIndex` to resume from a known position.
   </Card>
 </CardGroup>
 
@@ -249,14 +249,14 @@ Post generation, brand analysis and GEO scans can send [outbound events](/api/we
 </CodeGroup>
 
 <Tip>
-  Polling counts against the standard per-key rate limits. Ten seconds between checks is plenty; generation jobs usually take a few minutes.
+  Polling counts against the standard per-key rate limits, so ten seconds between checks is enough because generation jobs usually take a few minutes.
 </Tip>
 
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="Event reference" icon="bell" href="/api/webhooks/events">
-    Which GitHub events Notra processes, how they are filtered, and what the processed payload looks like
+    Which GitHub events Notra processes, how they are filtered and what the processed payload looks like
   </Card>
 
   <Card title="Event triggers" icon="bolt" href="/automation/event-based">

@@ -110,6 +110,8 @@ export interface DataTableProps<T> {
   onColumnResize?: (key: string, width: number) => void;
   /** Fixed row height in px — required for virtualization. */
   rowHeight?: number;
+  /** Header row height in px; defaults to `rowHeight`. */
+  headerHeight?: number;
   /** Content-sized rows wrap and render without virtualization. Use for bounded detail lists. */
   rowSizing?: "fixed" | "content";
   /** Scroll viewport height in px. */
@@ -141,6 +143,8 @@ export interface DataTableProps<T> {
   getRowClassName?: (row: T) => string | undefined;
   /** Menu content shown when a row is opened with the context-menu gesture. */
   renderRowContextMenu?: (row: T) => ReactNode;
+  /** Full-width row rendered under a row; return null to keep it collapsed. */
+  renderRowDetail?: (row: T) => ReactNode;
   /** Called when a pointer enters a row — prefetch, hover menus, etc. */
   onRowPointerEnter?: (row: T) => void;
   /** Keep matching rows first after sort. They scroll with the table (not sticky). */
@@ -268,6 +272,7 @@ export interface DataTableHeaderProps<T> {
 export interface TableViewportLayoutOptions {
   rowCount: number;
   rowHeight: number;
+  headerHeight?: number;
   rowSizing: NonNullable<DataTableProps<unknown>["rowSizing"]>;
   height: number;
   minHeight?: number;
@@ -301,6 +306,7 @@ export interface DataTableBodyProps<T> extends Pick<
   | "getRowClassName"
   | "onRowPointerEnter"
   | "renderRowContextMenu"
+  | "renderRowDetail"
   | "emptyState"
   | "rowSizing"
 > {
@@ -332,6 +338,8 @@ export interface DataTableBodyRowProps<T> extends Pick<
   entry: TableRow<T>;
   index: number;
   isLastRow: boolean;
+  expanded?: boolean;
+  detailId?: string;
   rowHeight: number;
   selectable: boolean;
   isSelected: boolean;

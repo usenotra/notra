@@ -6,7 +6,7 @@ description: "Get Notra events at your own endpoint and see every delivery attem
 Go to **Settings**, then **Webhooks** to hook Notra up to n8n or any other public
 HTTPS endpoint. Pick the events you want and copy the signing secret you get after
 creating the endpoint. Owners and admins can manage endpoints and retry failed
-deliveries. Members can see the delivery history.
+deliveries, while members can see the delivery history.
 
 ## Events
 
@@ -26,8 +26,8 @@ deliveries. Members can see the delivery history.
 | `geo.scan.failed` | `scanId`, `projectId`, `errorCode`, `error`, `failedStage`, `retryable` |
 
 You get `post.generation.*` events for tracked post generation jobs, including the
-ones you start with `POST /v1/posts/generate`. The first terminal result for each
-tracked generation job wins.
+ones you start with `POST /v1/posts/generate`, and the first terminal result for
+each tracked generation job wins.
 
 ### Post lifecycle
 
@@ -36,12 +36,12 @@ Post lifecycle events all have the same data shape: `{ "postId": "post_123" }`.
 post fields actually change, including status changes, but not for timestamp-only
 updates. `post.published` fires when a post is inserted as published and every time
 a draft becomes published, including after unpublishing. Leaving published status
-emits `post.unpublished`. A status transition also emits `post.updated`.
+emits `post.unpublished`, and any status transition also emits `post.updated`.
 
 Deleting a post emits `post.deleted`, including when deleting its collection
 cascades to the post. Deleting the organization does not emit post deletion events.
-These events are written by database triggers in the same transaction as the post
-change, covering API, dashboard, AI and GitHub writes. A failed event insert rolls
+Database triggers write these events in the same transaction as the post change,
+which covers API, dashboard, AI and GitHub writes, so a failed event insert rolls
 back the post change.
 
 ### GEO scan results
@@ -54,16 +54,16 @@ event, even if the reported outcome changes.
 Both events contain string `scanId` and `projectId` fields. Completed events also
 contain `runId` (`string | null`) and `checksTotal`, `checksFailed`, `mentions` and
 `durationMs` (each `number | null`). Failed events also contain `errorCode`, `error`
-and `failedStage` (each `string | null`) and `retryable` (`boolean | null`). All
-fields are present; unavailable values are `null`. The event is written in the
-same transaction as the scan result. Failure text is bounded: `errorCode` is
+and `failedStage` (each `string | null`) and `retryable` (`boolean | null`). Every
+field is always present, with `null` for unavailable values. Notra writes the event
+in the same transaction as the scan result. Failure text is bounded, with `errorCode`
 limited to 256 characters and `error` to 4096 characters. Polling remains available
 for scan progress.
 
 ### Payload version
 
 New events use `apiVersion: "2026-10-06"` to identify the repeat-publish semantics.
-The `post.published` data payload remains `{ "postId": "post_123" }`. Existing
+The `post.published` data payload remains `{ "postId": "post_123" }`, and existing
 stored events keep their original payload and version when retried.
 
 ## Subscribe through the API
@@ -80,10 +80,10 @@ curl https://api.usenotra.com/v1/webhooks \
 The response has the `endpoint` and a one-time `secret`. Save the secret somewhere
 safe because you won't see it again. `GET /v1/webhooks` lists your subscriptions.
 An endpoint can subscribe to between one and twelve event types. Subscriptions
-receive only future matching events; existing posts, jobs and scans are not
-backfilled.
-`DELETE /v1/webhooks/{endpointId}` removes one and cancels anything not sent yet. A
-request that's already on its way can still reach the deleted endpoint.
+receive only future matching events, so Notra does not backfill existing posts,
+jobs and scans.
+`DELETE /v1/webhooks/{endpointId}` removes one and cancels anything not sent yet,
+although a request that's already on its way can still reach the deleted endpoint.
 
 ## Verify requests
 
@@ -103,11 +103,11 @@ HMAC over this UTF-8 message:
 <eventId>.<deliveryId>.<timestamp>.<exact raw request body>
 ```
 
-Compare signatures in constant time. Reject timestamps more than five minutes off
-in either direction. Answer with a 2xx quickly and push slow work into your own
+Compare signatures in constant time and reject timestamps more than five minutes
+off in either direction. Answer with a 2xx quickly and push slow work into your own
 queue.
 
-Delivery is at least once. Dedupe by delivery ID, or by event ID if several
+Delivery is at least once, so dedupe by delivery ID, or by event ID if several
 subscriptions should only trigger one action on your side. Order isn't guaranteed.
 
 ## Logs and retries
@@ -115,21 +115,21 @@ subscriptions should only trigger one action on your side. Order isn't guarantee
 The delivery table shows the status, response code, attempt count and when each
 delivery was created. Click a row to see the payload, the destination, the event and
 delivery IDs, how each attempt went and when the next retry is due. You can retry a
-failed delivery after a one-minute cooldown. Earlier attempts stay in the history.
+failed delivery after a one-minute cooldown, and earlier attempts stay in the history.
 
 For API access, use `webhooks.read`:
 
 - `GET /v1/webhooks/deliveries?offset=0&status=all` returns 25 rows and `hasMore`.
 - `GET /v1/webhooks/deliveries/{deliveryId}` returns the payload and attempts.
-- `POST /v1/webhooks/deliveries/{deliveryId}/retry` queues a failed delivery. This
-  one needs `webhooks.write`.
+- `POST /v1/webhooks/deliveries/{deliveryId}/retry` queues a failed delivery and
+  needs `webhooks.write`.
 
-We retry network errors, timeouts, 408, 429 and 5xx responses up to eight times.
-Any other failed response stops delivery, redirects included. Requests time out
+We retry network errors, timeouts, 408, 429 and 5xx responses up to eight times,
+and any other failed response stops delivery, redirects included. Requests time out
 after ten seconds. Backoff starts at 30 seconds, respects `Retry-After` and goes up
 to six hours. Dispatch and recovery run once a minute, so a delivery or retry can
 start a little after its scheduled time.
 
-Finished deliveries stay in the history for 30 days. Anything still in progress
+Finished deliveries stay in the history for 30 days, and anything still in progress
 stays until it's done. We don't store response bodies. Your endpoint has to use a
 public HTTPS hostname on port 443.

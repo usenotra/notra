@@ -1,5 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
+
 import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import { Checkbox } from "@notra/ui/components/ui/checkbox";
 import {
@@ -81,6 +83,8 @@ export function DataTableBodyRow<T>({
   entry,
   index,
   isLastRow,
+  expanded,
+  detailId,
   rowHeight,
   rowSizing,
   selectable,
@@ -105,6 +109,8 @@ export function DataTableBodyRow<T>({
         onRowClick && "cursor-pointer",
         className
       )}
+      aria-controls={detailId}
+      aria-expanded={expanded}
       data-selected={isSelected}
       onClick={
         onRowClick
@@ -207,6 +213,7 @@ export function DataTableBody<T>({
   getRowClassName,
   onRowPointerEnter,
   renderRowContextMenu,
+  renderRowDetail,
 }: DataTableBodyProps<T>) {
   const colSpan = columns.length + (selectable ? 1 : 0) + 1;
 
@@ -248,29 +255,50 @@ export function DataTableBody<T>({
           <td colSpan={colSpan} />
         </tr>
       ) : null}
-      {renderedRows.map(({ entry, index }) => (
-        <DataTableBodyRow
-          className={getRowClassName?.(entry.row)}
-          columns={columns}
-          entry={entry}
-          index={index}
-          isLastRow={index === rowCount - 1 && !loadingMore}
-          isSelected={selected.has(entry.id)}
-          key={entry.id}
-          onRowClick={
-            !isRowClickable || isRowClickable(entry.row)
-              ? onRowClick
-              : undefined
-          }
-          onRowPointerEnter={onRowPointerEnter}
-          onToggleRow={onToggleRow}
-          renderRowContextMenu={renderRowContextMenu}
-          rowHeight={rowHeight}
-          rowKeyboardActivation={rowKeyboardActivation}
-          rowSizing={rowSizing}
-          selectable={selectable}
-        />
-      ))}
+      {renderedRows.map(({ entry, index }) => {
+        const detail = renderRowDetail?.(entry.row) ?? null;
+        const detailId = detail === null ? undefined : `${entry.id}-detail`;
+        const isLastRow = index === rowCount - 1 && !loadingMore;
+        return (
+          <Fragment key={entry.id}>
+            <DataTableBodyRow
+              className={getRowClassName?.(entry.row)}
+              columns={columns}
+              detailId={detailId}
+              entry={entry}
+              expanded={renderRowDetail ? detail !== null : undefined}
+              index={index}
+              isLastRow={isLastRow && detail === null}
+              isSelected={selected.has(entry.id)}
+              onRowClick={
+                !isRowClickable || isRowClickable(entry.row)
+                  ? onRowClick
+                  : undefined
+              }
+              onRowPointerEnter={onRowPointerEnter}
+              onToggleRow={onToggleRow}
+              renderRowContextMenu={renderRowContextMenu}
+              rowHeight={rowHeight}
+              rowKeyboardActivation={rowKeyboardActivation}
+              rowSizing={rowSizing}
+              selectable={selectable}
+            />
+            {detail === null ? null : (
+              <TableRow className="hover:bg-transparent" id={detailId}>
+                <TableCell
+                  className={cn(
+                    "bg-muted/20 h-auto p-0 whitespace-normal",
+                    isLastRow ? "border-b-0" : TABLE_ROW_BORDER_CLASS
+                  )}
+                  colSpan={colSpan}
+                >
+                  {detail}
+                </TableCell>
+              </TableRow>
+            )}
+          </Fragment>
+        );
+      })}
       {scrolls && paddingBottom > 0 ? (
         <tr aria-hidden style={{ height: paddingBottom }}>
           <td colSpan={colSpan} />

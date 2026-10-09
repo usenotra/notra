@@ -11,6 +11,7 @@ import {
   SIDEBAR_DEFAULT_MODE,
   STUDIO_ROUTE_SECTIONS,
 } from "@/constants/nav";
+import { SITES_NAV_LINK } from "@/constants/sites";
 import type {
   NavMainItem,
   NavVisibility,
@@ -115,7 +116,10 @@ export function resolveNavItems(
   const withAnalytics = visibility.analytics
     ? items
     : items.filter((item) => item.link !== ANALYTICS_NAV_LINK);
-  return filterIrisNavItems(withAnalytics, visibility.iris);
+  const withSites = visibility.sites
+    ? withAnalytics
+    : withAnalytics.filter((item) => item.link !== SITES_NAV_LINK);
+  return filterIrisNavItems(withSites, visibility.iris);
 }
 
 export function resolveGeoImproveLinks(

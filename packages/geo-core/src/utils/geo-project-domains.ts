@@ -187,3 +187,8 @@ export function formatTrafficLocation(host: string, path: string): string {
   }
   return `${host}${normalizedPath}`;
 }
+
+export function webHostFilter(host: string | undefined): string[] {
+  const bare = trafficLogHostFilter(host);
+  return bare.length === 0 ? [] : [bare];
+}

@@ -1,0 +1,41 @@
+---
+import { CHANGELOG_SLOT_SPACING } from "../constants/changelog";
+import { getChangelogEntries } from "../lib/entries";
+import { changelogOptions } from "../lib/options";
+import { areaDescription, areaTitle } from "../lib/params";
+import { slotArea, slotChangelogEntry, slotSite } from "../lib/slot-data";
+import AreaHero from "./AreaHero.astro";
+import ChangelogEntry from "./ChangelogEntry.astro";
+import SiteSlot from "./SiteSlot.astro";
+
+const entries = await getChangelogEntries();
+const { layout } = changelogOptions;
+const slotSpacing = CHANGELOG_SLOT_SPACING[layout];
+---
+
+<SiteSlot name="changelog-hero" data={{ site: slotSite(), area: slotArea() }}>
+  <AreaHero title={areaTitle("changelog")} description={areaDescription("changelog")} />
+</SiteSlot>
+
+<div class="mx-auto mt-12 max-w-(--layout-reading) md:mt-16">
+  {
+    entries.length === 0 ? (
+      <p class="mt-12 text-sm text-muted-foreground">Nothing shipped yet. Add an .mdx file to changelog/ and push.</p>
+    ) : (
+      <div
+        class:list={[
+          layout === "timeline" && "divide-y divide-border [&>section]:py-10 [&>section:first-child]:pt-0",
+          layout === "cards" && "flex flex-col gap-6",
+          layout === "compact" && "divide-y divide-border border-y border-border",
+        ]}
+      >
+        {entries.map((entry) => (
+          <section>
+            <ChangelogEntry entry={entry} layout={layout} />
+            <SiteSlot name="after-changelog-entry" data={{ entry: slotChangelogEntry(entry) }} class={slotSpacing} />
+          </section>
+        ))}
+      </div>
+    )
+  }
+</div>

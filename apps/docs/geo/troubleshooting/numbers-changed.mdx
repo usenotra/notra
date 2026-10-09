@@ -1,0 +1,61 @@
+---
+title: "Why did my numbers change?"
+sidebarTitle: "Numbers changed"
+description: "Visibility moves when engines answer differently, but also when the prompt mix, engine mix or aliases change. Here is how to tell which one it was."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/troubleshooting/numbers-changed
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Start with the **What changed** card on the GEO **Overview** page, which compares the latest scan with the previous one prompt by prompt.
+
+## What changed
+
+The card needs two scans before it shows anything, and each row is one prompt and engine where something moved:
+
+<img
+  src="/images/geo/what-changed-light.webp"
+  alt="What changed card comparing the latest two scans"
+  className="block dark:hidden rounded-lg border"
+/>
+<img
+  src="/images/geo/what-changed-dark.webp"
+  alt="What changed card comparing the latest two scans"
+  className="hidden dark:block rounded-lg border"
+/>
+
+| Change | Meaning |
+| --- | --- |
+| Gained mention | An engine started mentioning your brand |
+| Lost mention | An engine stopped mentioning your brand |
+| Position up / down | Your brand moved up or down in the answer |
+| Displaced by competitor | A competitor took the spot you held |
+| Citation gained | An engine started citing your pages |
+| Citation lost | An engine stopped citing your pages |
+| Competitor cited | An engine cited a competitor's page |
+| New engine | The engine had no previous answer to compare |
+
+## Other causes
+
+| Cause | What to check |
+| --- | --- |
+| Engines answered differently | What changed shows gained or lost mentions on the same prompts |
+| You added or paused prompts | Every saved answer has equal weight, so new prompts change the rate |
+| You added or removed engines | Mention rate is per engine. The total mixes them |
+| You changed your company name or aliases | Only new scans use the new names. Past answers keep their result |
+| Manual scans | Repeated manual scans count again in the selected range |
+| A partial scan | Answers from an unfinished scan can appear before it completes |
+
+## Notra never re-judges old answers
+
+Each answer keeps the result it got when the scan saved it, which covers whether you were mentioned, your position and the competitors it named. Changing aliases, adding competitors or upgrading the judge model only affects new scans.
+
+Competitor edits are the one exception, because share of voice and the competitor matrix match saved names against your current competitor list and synonyms when they load, so a new synonym also groups older mentions. **Competitor cited** in What changed also uses your current competitor domains.

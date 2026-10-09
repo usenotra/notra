@@ -1,0 +1,88 @@
+---
+title: "Publishing and deployments"
+sidebarTitle: "Publishing"
+description: "How changes go live, how to edit in Notra, and how to redeploy, restore or take a site offline."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/publishing
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra deploys a site when you push, merge or publish from the editor, and keeps the live version online until the new build is ready. This page covers what triggers a deploy, how to follow it, how to edit in Notra and how to restore, take offline or delete a site.
+
+## What triggers a deploy
+
+| Trigger | What happens |
+| --- | --- |
+| **Push** to the production branch | Notra builds the commit and it goes live |
+| **Pull request** into the production branch | Notra builds a [preview](/sites/previews) |
+| **Manual update** | Notra builds the latest commit of the production branch and it goes live |
+| **Redeploy** | Notra builds the same commit again |
+| **Settings change** | Changing section paths, the production branch, the site folder, branding or the primary domain rebuilds the site |
+
+The live version stays online until the new build is ready and then everything switches at once, so a failed build never touches the live site.
+
+## Following a deploy
+
+Open **Deployments** to see production and preview builds, newest first, and filter by environment and status or search by branch and commit.
+
+A deployment moves through **Queued**, **Building**, **Uploading** and **Ready**, and Notra marks the one serving your site **Live**. The other statuses are:
+
+| Status | Meaning |
+| --- | --- |
+| **Failed** | The build stopped, and the log and **Diagnostics** list each problem with its file and line |
+| **Superseded** | A newer commit replaced this build before it started |
+| **Canceled** | The build was stopped |
+| **Expired** | Notra removed the files of this old deployment, so you can't restore it |
+
+Open a deployment for its timeline, the live build log, diagnostics and the number of files it produced.
+
+### GitHub checks
+
+Every commit gets a check run, **Notra Sites** for production and **Notra Sites preview** for previews. It links to the live site or preview when the build succeeds and to the deployment in Notra otherwise, while failed builds add their errors and warnings as annotations on the lines in the pull request. **Re-run** on GitHub redeploys the commit.
+
+## The editor
+
+The site's **Editor** edits your repository's files from the browser. Notra saves your edits as drafts, and they don't change the repository or the live site until you publish.
+
+- **New file**: pick **Blog** or **Changelog** and enter a title and file name to start a post.
+- **File types**: you can edit `.md`, `.mdx`, `.js`, `.jsx`, `.json` and `.css` files, and drafts save automatically.
+- **Check for problems**: runs the same checks as a build, while **Changes** shows your edits next to the published version.
+- **Publish**: opens a dialog with a commit message and the way to publish.
+  - **Open pull request** opens a pull request from a new branch, and it's the default unless **Settings → Publishing** is set to **Direct commit**.
+  - **Commit and deploy** commits straight to the production branch. It's only available when **Settings → Publishing** is set to **Direct commit**, and not when the branch is protected on GitHub.
+
+You can't publish while there are errors. If a file changed on GitHub after you started editing, the editor shows **These files changed on GitHub**, and **Keep my edits on the latest version** moves your drafts onto the new version.
+
+## Restore an earlier deployment
+
+Open **Deployments**, open the menu of an earlier production deployment and choose **Restore to production**. The switch is instant and doesn't rebuild, and the next push to the production branch goes live as usual.
+
+You can restore the last 10 production deployments plus every deployment from the last 24 hours. Notra can't restore a deployment built for a different domain, section paths or branding setting, so **Redeploy** its commit instead. Only workspace owners and admins can restore.
+
+## Settings
+
+| Section | What you can change |
+| --- | --- |
+| **General** | Site name, production branch and the site folder for monorepos |
+| **Content** | Which sections are on, and their paths |
+| **Previews** | Who can open previews. See [Previews](/sites/previews) |
+| **Publishing** | **Pull request** (recommended) or **Direct commit** for publishing from the editor |
+| **Danger zone** | Notra branding, turning analytics off, taking the site offline and deleting it |
+
+Changing settings, domains and preview access needs the owner or admin role.
+
+### Take a site offline
+
+**Settings → Danger zone → Take offline** stops serving every page within seconds, including cached ones, and visitors see a "This site is unavailable" page. Notra deletes nothing, and **Bring back online** restores the last live version.
+
+### Delete a site
+
+**Delete site** removes the site, its deployments and its domains from Notra, and leaves your GitHub repository untouched.

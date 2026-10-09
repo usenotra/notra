@@ -1,0 +1,60 @@
+---
+title: "Badges and updates"
+description: "Label things inline with badges, and group release notes with Update."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/badges-and-updates
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A `Badge` labels something inline, and `Update` groups the notes of one release under a label.
+
+## Badge
+
+`Badge` is a small gray label inside a line of text.
+
+```mdx
+Scheduled posts <Badge>New</Badge>
+```
+
+`Badge` takes no props.
+
+## Update
+
+`Update` groups the notes of one release under a label, with the label in a column on the left or above the notes on phones. Use it to put several releases on one page or to structure a long changelog entry.
+
+```mdx
+<Update label="v2.1.0" description="October 2026">
+  Plan releases on a shared calendar.
+
+  Fixed time zones in scheduled posts.
+</Update>
+
+<Update label="v2.0.0" description="September 2026">
+  Acme Flow is live.
+</Update>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/badges-light.webp" alt="A badge and two updates on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/badges-dark.webp" alt="A badge and two updates on a Notra site" className="hidden dark:block" />
+</Frame>
+
+<ResponseField name="label" type="string" required>
+  The release name or version, which also becomes the anchor, so you can link `v2.1.0` as `#v2-1-0`.
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  A second line under the label, like a date.
+</ResponseField>
+
+As with other components, keep the content of an `Update` to short paragraphs, because lists inside it show without bullets.
+
+Updates carry the class `update`.

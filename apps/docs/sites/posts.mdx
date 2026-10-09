@@ -1,0 +1,141 @@
+---
+title: "Posts and changelog entries"
+description: "Write blog posts and changelog entries with frontmatter, and add authors, cover images, drafts and variables."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/posts
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every post starts with a frontmatter block between `---` lines, and the rest of the file is Markdown or MDX, with [components](/sites/components/overview) if you need them.
+
+## Blog posts
+
+```mdx blog/2026/launch.mdx
+---
+title: "Introducing Acme Flow"
+description: "A calmer way to ship product updates."
+date: 2026-09-28
+updated: 2026-10-02
+author: [jan, dominik]
+image: /images/launch.png
+tags: [launch, product]
+---
+
+Today we're launching **Acme Flow**.
+```
+
+| Field | Type | Required | What it does |
+| --- | --- | --- | --- |
+| `title` | string | Yes | The headline, the page title and the share title |
+| `date` | date | Yes | Publish date as `YYYY-MM-DD`, and Notra sorts posts by it, newest first |
+| `description` | string | | Summary for cards, search results and link previews, and without it Notra uses the first paragraph |
+| `updated` | date | | Shown as "Updated" next to the date, and used in the sitemap and for search engines |
+| `author` | string or list | | Author ids from [`authors`](#authors) in `blog.json`, or plain names |
+| `image` | path or URL | | Cover image and social preview, as PNG or JPEG at 1200×630 |
+| `tags` | list | | Used in the RSS feed, search engine metadata and the Markdown version, but not shown on the page |
+| `draft` | boolean | | `true` hides the post on the live site, while it still shows in previews |
+| `noindex` | boolean | | `true` keeps a published post out of search engines, sitemaps and `llms.txt` |
+
+## Changelog entries
+
+```mdx changelog/2026-10-01.mdx
+---
+title: "Acme Flow is live"
+date: 2026-10-01
+version: v2.0.0
+tags: [Feature]
+---
+
+- Plan releases on a shared calendar.
+- Publish to your blog, changelog and social accounts at once.
+```
+
+| Field | Type | Required | What it does |
+| --- | --- | --- | --- |
+| `title` | string | Yes | The entry's headline |
+| `date` | date | Yes | Release date, and Notra sorts entries by it, newest first |
+| `version` | string | | Shown next to the date, for example `v2.0.0` |
+| `description` | string | | Summary for search results, link previews and compact layouts |
+| `tags` | list | | Labels like `Feature` or `Fix`, used in the RSS feed and metadata but not shown on the page |
+| `image` | path or URL | | Image shown in the entry, and the social preview |
+| `draft` | boolean | | `true` hides the entry on the live site, while it still shows in previews |
+
+`author`, `updated` and `noindex` only apply to blog posts, and Notra ignores unknown fields. When the frontmatter is missing or wrong, the build stops and names the file and the field.
+
+## Authors
+
+Describe the people who write for you once in `blog.json`, then name them by id in a post's `author`:
+
+```json blog.json
+{
+  "authors": {
+    "jan": {
+      "name": "Jan Burzinski",
+      "title": "Engineer",
+      "avatar": "/images/team/jan.jpg",
+      "bio": "Builds the publishing pipeline.",
+      "url": "https://jan.dev",
+      "x": "https://x.com/janburzinski",
+      "linkedin": "https://www.linkedin.com/in/janburzinski",
+      "github": "https://github.com/janburzinski"
+    }
+  }
+}
+```
+
+| Field | Rules |
+| --- | --- |
+| id (`jan`) | Lowercase letters, digits and dashes, up to 40 characters |
+| `name` | Required, up to 80 characters |
+| `title` | Up to 80 characters |
+| `avatar` | A path like `/images/team/jan.jpg` or an `https://` URL |
+| `bio` | Up to 300 characters |
+| `url`, `x`, `linkedin`, `github` | Full URLs |
+
+Notra lists a known author with avatar and title under "Written by", beside the post in the wide layout or under the title otherwise, and gives them an author page at `/blog/author/jan` listing their posts. Search engines and AI answers get a schema.org `Person` with the profile links, which ties the post to a real person. Notra shows any other value in `author`, like `author: Guest Writer`, as a plain name.
+
+Notra hides author pages from search engines unless you set `"seo": { "indexing": "all" }`.
+
+## Images
+
+Put images in `public/` and use paths from the root of the site:
+
+```mdx
+![The new calendar view](/images/calendar.png)
+```
+
+- `image` in the frontmatter is the cover at the top of the post, on cards (when `blog.card.image` is on) and the social preview, and since social networks don't show SVG, use PNG or JPEG.
+- Posts without an `image` get a generated share image with the title, your site name and your brand color. See [Share images](/sites/customize/seo#share-images).
+- Wrap a screenshot in [`<Frame>`](/sites/components/media#frame) to give it a border and a caption.
+
+## Drafts
+
+`draft: true` keeps a post off the live site, its feeds and sitemaps, but shows it in every [preview](/sites/previews). Remove the line or set it to `false` to publish.
+
+Drafts you write in the [Notra editor](/sites/publishing#the-editor) work differently, because they never reach the repository until you publish them.
+
+## Variables
+
+Define values once in `blog.json` and use them in any post with `{{ name }}`:
+
+```json blog.json
+{ "variables": { "product": "Acme Flow", "supportEmail": "help@acme.com" } }
+```
+
+```mdx
+Questions about {{ product }}? Write to {{ supportEmail }}.
+```
+
+Variables work in posts, changelog entries, their frontmatter, `header.mdx`, `footer.mdx` and slots. Notra leaves them as they are inside code, so to show the braces themselves, put them in inline code like `` `{{ name }}` ``. An unknown name shows a warning in the build log and stays as written. In frontmatter, Notra doesn't replace variables in values that contain characters like `:`, `#`, `@` or quotes. See [`variables`](/sites/reference/blog-json#variables) for the rules.
+
+## Posts published from Notra
+
+When you publish a post from Notra to a site, Notra writes the frontmatter for you with the title, description, date, the cover image and you as the author, using your `blog.json` id when the name matches.

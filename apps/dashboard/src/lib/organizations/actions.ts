@@ -55,6 +55,7 @@ import {
   syncOrganizationNameToWorkOS,
   updateMembershipRoleInWorkOS,
 } from "@/lib/organizations/workos-sync";
+import { revokeSitePreviewAccess } from "@/lib/sites/preview-revocation";
 import type {
   ActionResult,
   CreateOrganizationInput,
@@ -924,6 +925,9 @@ export async function removeMember(
       yield* tryDb(
         () => db.delete(members).where(eq(members.id, member.id)),
         "Failed to remove member"
+      );
+      yield* Effect.promise(() =>
+        revokeSitePreviewAccess(organizationId, member.userId)
       );
 
       yield* removeMembershipFromWorkOS(organizationId, member.userId);

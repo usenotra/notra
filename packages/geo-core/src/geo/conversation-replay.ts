@@ -1,5 +1,5 @@
-import { describeContentBillingDenial } from "@notra/ai/billing/content-billing";
 import type { AgentTokenUsage } from "@notra/ai/types/agents";
+import { describeContentBillingDenial } from "@notra/ai/utils/content-billing-messages";
 import type { GeoCheckInsertSummary } from "@notra/db/types/geo-checks";
 import { insertGeoMentionChecksWithSummary } from "@notra/db/utils/geo-checks";
 import { Effect } from "effect";

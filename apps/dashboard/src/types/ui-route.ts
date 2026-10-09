@@ -1,6 +1,9 @@
 import type { AnyRoute, RouteComponent } from "@tanstack/react-router";
 import type { ComponentType, ReactNode } from "react";
 
+import type { SiteSection } from "@/types/sites";
+import type { lazyPage } from "@/utils/lazy-page";
+
 export type UiRouteSearch = Record<string, string | string[] | undefined>;
 
 export interface UiRouteInput {
@@ -18,6 +21,8 @@ export interface UiPageParams extends Record<string, string> {
   handle: string;
   competitor: string;
   integrationSlug: string;
+  siteId: string;
+  deploymentId: string;
 }
 
 export interface UiPageProps<T> {
@@ -78,4 +83,9 @@ export interface UiRouteFactoryOptions<T> extends UiRouteOptions<T> {
 
 export interface UiModalProviderProps {
   children: ReactNode;
+}
+
+export interface SiteSectionUiPage {
+  section: Exclude<SiteSection, "overview">;
+  page: ReturnType<typeof lazyPage>;
 }

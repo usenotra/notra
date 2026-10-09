@@ -20,6 +20,27 @@ export const DASHBOARD_FUNCTION_RULES = {
 /** Quiet period after a dev workflow build before its esbuild service is stopped. */
 export const WORKFLOW_ESBUILD_IDLE_STOP_MS = 5000;
 
+/** Virtual dev handlers @workflow/nitro registers for its generated bundles. */
+export const WORKFLOW_DEV_HANDLER_IDS = [
+  "#workflow/steps.mjs",
+  "#workflow/workflows.mjs",
+  "#workflow/webhook.mjs",
+] as const;
+
+export const WORKFLOW_DEV_REQUIRE_BANNER =
+  'import { createRequire as __notraCreateRequire } from "node:module";\nconst require = __notraCreateRequire(import.meta.url);\n';
+
+/** Files under Nitro's build dir that the dev workflow builder writes. */
+export const WORKFLOW_DEV_OUTPUT_PATTERN = /[\\/]\.nitro[\\/]workflow[\\/]/;
+
+export const WORKFLOW_DEV_DYNAMIC_IMPORT = "import(/* @vite-ignore */ ";
+
+export const WORKFLOW_DEV_BUNDLE_FILES = [
+  "steps.mjs",
+  "workflows.mjs",
+  "webhook.mjs",
+] as const;
+
 export const SOURCE_MAPPING_URL_COMMENT = /\/\/# sourceMappingURL=\S+\s*$/;
 
 export const ORGANIZATION_COOKIE_SLUG_PATTERN = /^[a-z0-9-]+$/;

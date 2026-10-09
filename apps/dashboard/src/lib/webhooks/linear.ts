@@ -1,6 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { getDecryptedLinearWebhookSecret } from "@notra/ai/integrations/linear";
+import {
+  getDecryptedLinearWebhookSecret,
+  getLinearIntegrationById,
+} from "@notra/ai/integrations/linear";
 import {
   type LinearWebhookPayload,
   linearWebhookPayloadSchema,
@@ -9,11 +12,20 @@ import {
 import { checkLogRetention } from "@/lib/billing/check-log-retention";
 import { appendWebhookLog } from "@/lib/webhooks/logging";
 import type { WebhookContext } from "@/types/webhooks/webhooks";
+import { authorizeWebhookIntegration } from "@/utils/webhook-integration";
 
 export async function handleLinearWebhook(
   context: WebhookContext
 ): Promise<Response> {
-  const { request, rawBody, organizationId, integrationId } = context;
+  const { request, organizationId, integrationId } = context;
+  const integration = authorizeWebhookIntegration(
+    await getLinearIntegrationById(integrationId),
+    organizationId
+  );
+  if (integration instanceof Response) {
+    return integration;
+  }
+  const rawBody = await request.text();
 
   const signature = request.headers.get("linear-signature");
 

@@ -2075,13 +2075,12 @@ export function EChartsBarChart<TData extends Record<string, unknown>>({
 
   const toggleSelection = useCallback(
     (key: string) => {
-      setSelectedDataKey((prev) => {
-        const next = prev === key ? null : key;
-        onSelectionChange?.(next);
-        return next;
-      });
+      const next = live.handlers.selectedDataKey === key ? null : key;
+      live.handlers.selectedDataKey = next;
+      setSelectedDataKey(next);
+      onSelectionChange?.(next);
     },
-    [onSelectionChange]
+    [live, onSelectionChange]
   );
 
   // The brush is meaningful only when the category axis is on x (vertical layout).

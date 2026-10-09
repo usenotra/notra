@@ -244,7 +244,7 @@ export function hasTrafficSourceSeries(
 }
 
 export function trafficSparklineDays(
-  points: readonly GeoTrafficPoint[],
+  points: readonly Pick<GeoTrafficPoint, "day">[],
   from?: string,
   to?: string
 ): string[] {

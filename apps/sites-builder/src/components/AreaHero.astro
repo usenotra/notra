@@ -1,0 +1,37 @@
+---
+import type { AreaHeroProps as Props } from "../types/areas";
+import { heroOptions } from "../lib/options";
+import { assetUrl, params } from "../lib/params";
+
+const { title, description } = Astro.props;
+const hero = heroOptions(params.area);
+const image = hero.style === "image" ? assetUrl(hero.image) : undefined;
+const style = hero.style === "image" && !image ? "wash" : hero.style;
+const lastSpace = title.lastIndexOf(" ");
+const lead = lastSpace > 0 ? title.slice(0, lastSpace + 1) : "";
+const accent = lastSpace > 0 ? title.slice(lastSpace + 1) : title;
+---
+
+{
+  style === "none" ? (
+    <h1 id="page-title" class="sr-only">{title}</h1>
+  ) : (
+    <section
+      class:list={["relative isolate w-full overflow-clip", style === "wash" && "hero-wash rounded-3xl", style === "image" && "hero-image rounded-3xl"]}
+      style={image ? `--hero-image:url(${JSON.stringify(image)})` : undefined}
+    >
+      <div
+        class:list={[
+          "relative flex flex-col items-center gap-4 px-6 text-center",
+          style === "plain" ? "pt-12 pb-2 sm:pt-16 lg:pt-20" : "pt-20 pb-14 sm:pt-24 sm:pb-16 lg:pt-28 lg:pb-20",
+        ]}
+      >
+        {hero.eyebrow && <p class:list={["eyebrow font-mono text-sm", style === "image" ? "text-white/80" : "text-primary"]}>{hero.eyebrow}</p>}
+        <h1 id="page-title" class="max-w-3xl font-heading text-[2.5rem] leading-[1.08] font-medium tracking-[-0.02em] text-balance sm:text-[3.25rem] lg:text-[4rem]">
+          {lead}<span class:list={[style !== "image" && "text-primary"]}>{accent}</span>
+        </h1>
+        {description && <p class:list={["max-w-2xl text-lg leading-7 font-medium text-balance", style === "image" ? "text-white/85" : "text-foreground/75"]}>{description}</p>}
+      </div>
+    </section>
+  )
+}

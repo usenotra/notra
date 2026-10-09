@@ -1,0 +1,53 @@
+---
+title: "GEO for agencies"
+sidebarTitle: "Agencies"
+description: "Run GEO for several clients from one workspace with a project per client."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/playbooks/agencies
+  type: tutorial
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Agencies can track every client in one workspace. Each client gets its own [project](/geo/projects) with its own brand, prompts, competitors and scan schedule, so data never mixes.
+
+## Set up a client
+
+<Steps>
+  <Step title="Create a project">
+    Click **New project** in the sidebar and link it to a brand identity for the client.
+  </Step>
+  <Step title="Import prompts and competitors">
+    Use CSV import for [prompts](/geo/prompts#bulk-import) and [competitors](/geo/competitors#bulk-import) to onboard a client in minutes.
+  </Step>
+  <Step title="Pick a scan schedule">
+    Use daily scans for active campaigns and weekly scans for retainers, since fewer scans use fewer AI answers. See [How scans work](/geo/how-scans-work#recurring-scans).
+  </Step>
+  <Step title="Install the tracker on the client site">
+    Select the client's project, then open **Traffic**, where the token shown is bound to that project. See [AI traffic](/ai-traffic/overview).
+  </Step>
+</Steps>
+
+## Reporting
+
+- Lock each client's prompt set before the first report. Changing prompts changes the numbers, so month-over-month comparisons only work on a fixed set.
+- Report per engine rather than one blended number, because engines answer differently and move independently.
+- Scan weekly or daily and report monthly, because answers vary from run to run and more scans give steadier numbers.
+- The [What changed](/geo/troubleshooting/numbers-changed#what-changed) card on the Overview page is the core of a monthly client report.
+- Pull numbers into your own reports with the [API](/api/getting-started) or ask an agent through the [MCP server](/devtools/mcp).
+- Use API keys with **GEO Access** so reporting tools cannot touch content.
+
+## Workflow
+
+- Assign [shelf space](/geo/shelf-space) tickets to the account manager for each client.
+- Keep client stakeholders out of a shared agency workspace. Projects separate data in reports but don't limit what members can see, so any member can open every client's project. If a client needs dashboard access, give them their own workspace and invite them there, as described in [Team management](/organization/team-management).
+
+<Note>
+  Project limits depend on your plan, which you can check in [Billing](/organization/billing).
+</Note>

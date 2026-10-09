@@ -1,0 +1,55 @@
+---
+title: "Engines"
+description: "Choose which AI engines Notra scans: ChatGPT, Claude, Gemini, Perplexity, Grok, Google AI Overview and more, with an optional zero data retention mode."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/engines
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every enabled engine answers every enabled prompt on each scan, and you pick the engines under **Settings > Models**.
+
+## Default engines
+
+New projects start with Claude Opus 5.5, GPT-5.6 Sol and Gemini 3.8 Flash. Brands that sell to consumers, such as products people buy, book or visit, also get Google AI Overview, which Notra decides from your website during onboarding.
+
+## Engines with web search
+
+Notra runs every engine you select. Engines that can search the live web always run with search turned on, because that is how buyers see answers in ChatGPT, Claude, Gemini and Perplexity today.
+
+| Provider | Models |
+| --- | --- |
+| OpenAI | GPT-6, GPT-5.6, GPT-5.5, GPT-5.4 |
+| Anthropic | Claude Opus, Fable, Sonnet, Haiku |
+| Google | Gemini Flash and Pro |
+| Perplexity | Sonar |
+| Google AI Overview | Fetched from Google search results |
+
+These engines save the search queries they ran and the sources they cited. See [How scans work](/geo/how-scans-work) and [Citations](/geo/metrics/citations).
+
+## Engines without web search
+
+Some providers have no web search route in Notra: xAI Grok, Meta, Moonshot AI (Kimi), Z.AI (GLM), DeepSeek, Mistral AI and Cursor. Notra still runs them, but they answer from what the model learned in training, so their answers have no sources or search queries.
+
+The model picker and the results label these engines **No web search**. Compare them with each other rather than with search engines, because a model without search can't see pages you published recently.
+
+## Google AI Overview and coding agents
+
+Notra fetches Google AI Overview from Google search results rather than a model API. Notra can also scan coding agents, where OpenCode, Claude Code and Codex research live while Cursor answers without web search.
+
+<Info>
+  Coding-agent engines are available on request. Ask in [Discord](https://www.usenotra.com/discord) to enable them for your workspace.
+</Info>
+
+## Zero data retention
+
+The **Zero data retention** toggle limits scans to models with a ZDR route, and it needs the ZDR add-on to turn on. You can approve models without ZDR one by one, including Google AI Overview and the coding agents.
+
+You can enable up to 64 models. Each engine multiplies the answers a scan uses, so more engines use more of your AI answer quota.

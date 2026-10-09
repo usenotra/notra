@@ -2,8 +2,7 @@ import { isDemoMode } from "@notra/utils/demo-mode";
 import { os } from "@orpc/server";
 
 import { assertAuthenticated } from "@/lib/auth/organization";
-
-import type { ORPCContext } from "./context";
+import type { ORPCContext } from "@/types/orpc/context";
 
 // In the public demo every successful mutation also lands in the visitor's
 // request feed. Outside the demo this returns right away and the demo logger

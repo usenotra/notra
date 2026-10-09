@@ -1,0 +1,70 @@
+---
+title: "AI agents and search"
+sidebarTitle: "AI agents and search"
+description: "AI agents can read every page of your site as Markdown, and search engines get sitemaps, feeds and structured data, with no setup needed."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/agents
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every site serves the same content to people and to AI agents, and you don't need to configure anything.
+
+## Markdown for every page
+
+Each post, changelog entry and index page also exists as Markdown, with a short header (URL, date, authors, version, tags) and absolute links. Agents can fetch it in two ways:
+
+- **`.md` URL**: add `.md` to any URL, for example `https://acme.com/blog/launch.md` or `https://acme.com/blog/index.md`.
+- **`Accept` header**: request the normal URL with `Accept: text/markdown`, while browsers still get HTML.
+
+```bash
+curl -H "Accept: text/markdown" https://acme.com/blog/launch
+```
+
+HTML pages point to their Markdown version with `<link rel="alternate" type="text/markdown">` and a `Link` response header, and responses carry `Vary: Accept`, so caches keep the two apart. The Markdown version names the HTML page as its canonical URL, so search engines never list it in place of the page.
+
+A page that doesn't exist answers with a real `404`, and agents that ask for Markdown or request a `.md` URL get the error as Markdown with links to the section index and `llms.txt`.
+
+## llms.txt
+
+[llms.txt](https://llmstxt.org) starts with a short note on how to cite the site and ends with links to `llms-full.txt`, the feeds and the sitemaps. In between, it lists every published page with a link to its Markdown, a one-line summary (the `description`, or the first paragraph) and its date. `llms-full.txt` contains all pages in one file.
+
+| URL | Contains |
+| --- | --- |
+| `/blog/llms.txt`, `/changelog/llms.txt` | One section |
+| `/llms.txt` | Blog and changelog, on your Notra address or subdomain |
+
+If you forward paths from your own website, `/llms.txt` belongs to your website, so link the section files from your own `llms.txt` or forward `/llms.txt` to Notra too. Notra leaves out drafts and posts with `noindex: true`. A `public/llms.txt` in your repository replaces each section's generated `llms.txt`, and the root one when a section lives at `/`.
+
+## Search engines and structured data
+
+- `robots.txt` allows search engines and AI crawlers (GPTBot, ClaudeBot, PerplexityBot and others) on your canonical address and links to `llms.txt` and the sitemaps. Once a custom domain is the primary address, `robots.txt` on your Notra address disallows all crawling, and every page names the canonical address, so the same post is never indexed twice.
+- Notra marks previews, drafts, `noindex: true` posts and 404 pages `noindex`.
+- Each section has a sitemap (`/blog/sitemap.xml`) with the last change of every page and an RSS feed (`/blog/feed.xml`) with summaries, authors and tags, and every page links to the feeds of both sections.
+- Every page includes schema.org data: `BlogPosting` for posts and `TechArticle` for changelog entries (headline, description, publish and update dates, authors, image), `Blog` or `CollectionPage` for the indexes, breadcrumbs and your company as publisher (`name`, `logo` and the profiles in `footer.socials`).
+- Open Graph and X tags use the post's `image`. Without one, Notra generates a share image and uses your logo only when `thumbnails.enabled` is `false`. Use a PNG or JPEG for `image`, because social networks don't show SVG. The X account comes from the first `footer.socials` link to x.com or twitter.com.
+- Pages without a `description` use their first paragraph for search results and link previews.
+
+## AI traffic analytics
+
+Every site counts its own visits with nothing to install. Notra counts page views as the site serves them, without cookies, and adds a small script from the site's own address (`/blog/_notra/insights.js`) that measures how long each page stays visible.
+
+- The site's **Analytics** page shows people, time on page and AI agents on that site, and visits show up about a minute after they happen.
+- **Settings → Danger zone → Turn off analytics** stops counting and removes the script from every page. Data collected so far stays, and **Turn on analytics** starts counting again.
+- AI crawlers, AI agents and visitors arriving from ChatGPT, Claude, Perplexity and other assistants also show up on the GEO [Traffic](/ai-traffic/overview) page, under the project the site belongs to.
+- Notra reports visits under the site's primary address, so a page forwarded from `acme.com/blog` counts as `acme.com/blog`.
+- If your website also runs the [Notra tracker](/ai-traffic/overview) and forwards paths to the site, the site's report is the one that counts, so Notra never counts the same page view twice.
+- Notra never counts previews and views from the Notra dashboard.
+
+A site counts toward the project that was active when it was created.
+
+<Note>
+  When you forward paths through your own host, keep the request's `Accept`, `User-Agent` and `Referer` headers and send the visitor's IP in `X-Forwarded-For`. See [What the rewrite has to do](/sites/domains/subpath#what-the-rewrite-has-to-do).
+</Note>

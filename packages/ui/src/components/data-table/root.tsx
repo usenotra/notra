@@ -58,6 +58,7 @@ export function DataTableRoot<T>({
   minColumnWidth = DEFAULT_MIN_COLUMN_WIDTH,
   onColumnResize,
   rowHeight = DATA_TABLE_ROW_HEIGHT,
+  headerHeight = rowHeight,
   rowSizing = "fixed",
   height: heightProp,
   minHeight,
@@ -73,6 +74,7 @@ export function DataTableRoot<T>({
   isRowClickable,
   getRowClassName,
   renderRowContextMenu,
+  renderRowDetail,
   onRowPointerEnter,
   isRowPinned,
   toolbar,
@@ -142,7 +144,7 @@ export function DataTableRoot<T>({
   const height =
     heightProp ??
     (pagination
-      ? (Math.max(pagedRows.length, 1) + 1) * rowHeight
+      ? Math.max(pagedRows.length, 1) * rowHeight + headerHeight
       : DATA_TABLE_HEIGHT);
   const {
     headerScrollRef,
@@ -161,6 +163,7 @@ export function DataTableRoot<T>({
   } = useTableViewport({
     rows: pagedRows,
     rowHeight,
+    headerHeight,
     rowSizing,
     height,
     minHeight,
@@ -227,7 +230,7 @@ export function DataTableRoot<T>({
                 onToggleAll={toggleAll}
                 onToggleSort={toggleSort}
                 resizable={resizable}
-                rowHeight={rowHeight}
+                rowHeight={headerHeight}
                 selectable={selectable}
                 someSelected={someSelected}
                 sort={sort}
@@ -262,6 +265,7 @@ export function DataTableRoot<T>({
               paddingBottom={paddingBottom}
               paddingTop={paddingTop}
               renderRowContextMenu={renderRowContextMenu}
+              renderRowDetail={renderRowDetail}
               renderedRows={renderedRows}
               rowCount={pagedRows.length}
               rowHeight={rowHeight}

@@ -1,0 +1,95 @@
+---
+title: "Repository layout"
+description: "Which files Notra Sites reads from your repository, and how file paths become URLs."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/repository
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+A site lives at the root of your repository, or in a folder you choose with **Site is in a subdirectory** (useful in monorepos, for example `apps/blog`), and every path on this page is relative to that folder.
+
+```text
+blog.json              # optional: settings, see the blog.json reference
+blog/                  # blog posts, one file per post
+  hello-world.mdx
+  2026/launch.mdx
+changelog/             # changelog entries, one file per release
+  2026-10-01.mdx
+snippets/              # reusable MDX and your own React components
+  newsletter.jsx
+  install.mdx
+public/                # images, videos, fonts and other static files
+  images/cover.png
+header.mdx             # optional: your own header
+footer.mdx             # optional: your own footer
+slots/                 # optional: content at fixed places on every page
+  after-post.mdx
+style.css              # optional: any .css file loads on every page
+script.js              # optional: custom JavaScript on every page
+```
+
+Besides the files above, Notra reads every `.css` file and every `.js` file outside `blog/`, `changelog/`, `snippets/`, `public/` and `slots/`, wherever it sits, and loads it on every page. Notra ignores other files, such as a `README.md` or a `package.json`. If the repository also holds your app's code, put the site in its own folder and turn on **Site is in a subdirectory**.
+
+## blog.json is optional
+
+Without a `blog.json`, the site builds with the standard layout and the site name from the dashboard, so add one when you want your own colors, logo, navigation, authors or analytics. See the [blog.json reference](/sites/reference/blog-json).
+
+`blog.json` must sit at the root of the site folder, and the `$schema` line gives you autocomplete and inline errors in your editor:
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme"
+}
+```
+
+## From file to URL
+
+Every `.md` or `.mdx` file in `blog/` and `changelog/` becomes a page, and the path of the file becomes the URL below the section path:
+
+| File | URL |
+| --- | --- |
+| `blog/hello-world.mdx` | `/blog/hello-world` |
+| `blog/2026/launch.mdx` | `/blog/2026/launch` |
+| `blog/guides/index.mdx` | `/blog/guides` |
+| `changelog/2026-10-01.mdx` | `/changelog/2026-10-01` |
+| `blog/_drafts/idea.mdx` | Not published |
+
+- File and folder names in `blog/` and `changelog/` may only use **lowercase letters, digits and dashes**, so `My Post.mdx` stops the build with `slug_invalid`.
+- Notra never publishes files and folders that start with `_`, so use them for notes or for MDX you import into other posts.
+- An MDX file that another file imports is a snippet rather than a page.
+- Two files can't end up at the same URL, for example `blog/launch.mdx` and `blog/launch/index.mdx`.
+
+Each section also gets an index page (`/blog`), an RSS feed (`/blog/feed.xml`), a sitemap (`/blog/sitemap.xml`), `llms.txt` and a Markdown version of every page. See [AI agents and search](/sites/agents).
+
+## Static files
+
+Put images, videos, PDFs and fonts in `public/` and reference them from the root of the site:
+
+```mdx
+![The new editor](/images/editor.png)
+```
+
+Notra rewrites the path at build time so it works under `/blog`, `/changelog` and on every domain, which puts the file `public/images/editor.png` at `/blog/images/editor.png`. Always use paths that start with `/`, because relative paths like `./editor.png` don't work.
+
+## Allowed files
+
+| Kind | Extensions |
+| --- | --- |
+| Content | `.md`, `.mdx` |
+| Components and scripts | `.jsx`, `.js` |
+| Settings | `.json` |
+| Styles | `.css` |
+| Images | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.avif`, `.svg`, `.ico` |
+| Video | `.mp4`, `.webm` |
+| Other | `.pdf`, `.txt`, `.woff`, `.woff2` |
+
+Notra skips other files, dotfiles, `node_modules` and symbolic links, and file names may only use letters, digits, spaces and `._-@()+`. For size limits, see [Limits](/sites/reference/limits).
