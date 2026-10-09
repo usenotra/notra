@@ -149,7 +149,7 @@ export function ReportView({
       >
         <CtaButton
           nativeButton={false}
-          render={<a download href={csvHref} />}
+          render={<a aria-label="Download data" download href={csvHref} />}
           variant="primary"
         >
           <HugeiconsIcon icon={Download04Icon} />

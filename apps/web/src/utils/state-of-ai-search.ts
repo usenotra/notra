@@ -39,11 +39,13 @@ export function reportDescription(report: StateOfAiSearchReport): string {
   return `We asked ${engines} ${report.totals.prompts} questions about ${report.noun}s and analyzed ${report.totals.answers} answers. ${lead}`.trim();
 }
 
+const LIST_FORMAT = new Intl.ListFormat("en", {
+  style: "long",
+  type: "conjunction",
+});
+
 function listFormat(items: readonly string[]): string {
-  return new Intl.ListFormat("en", {
-    style: "long",
-    type: "conjunction",
-  }).format(items);
+  return LIST_FORMAT.format(items);
 }
 
 export function formatPercent(value: number | null): string {

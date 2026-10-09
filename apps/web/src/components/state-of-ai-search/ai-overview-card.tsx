@@ -81,8 +81,9 @@ export function GoogleAiOverview({
     <AIOverview className={cn("p-5", className)} collapsible={false}>
       <AIOverviewHeader />
       <AIOverviewContent>
-        {overview.blocks.map((block, index) => {
-          const key = `${block.type}-${index}`;
+        {overview.blocks.map((block) => {
+          // Blocks have no ids; their text identifies them within one overview.
+          const key = `${block.type}-${block.type === "list" ? block.items[0]?.text : block.text}`;
           if (block.type === "heading") {
             return (
               <AIOverviewHeading key={key}>{block.text}</AIOverviewHeading>

@@ -77,8 +77,9 @@ function placePoints(
     );
     if (minLeft > point.left) {
       point.left = minLeft;
+      const blocking = new Set(blockers);
       const crowd = crowds.find((members) =>
-        members.some((member) => blockers.includes(member))
+        members.some((member) => blocking.has(member))
       );
       crowd?.push(point);
       if (crowd) {

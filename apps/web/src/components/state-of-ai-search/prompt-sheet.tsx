@@ -18,7 +18,7 @@ import {
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import { GoogleAiOverview } from "@/components/state-of-ai-search/ai-overview-card";
 import { BrandSheet } from "@/components/state-of-ai-search/brand-sheet";
@@ -125,7 +125,8 @@ export function AnswerViewer({
   report: StateOfAiSearchReport;
   prompt: StateOfAiSearchPromptRow;
 }) {
-  const [engineId, setEngineId] = useState(prompt.responses[0]?.engine);
+  // The reader's pick; until then the first assistant's answer shows.
+  const [engineId, setEngineId] = useState<string>();
   const response =
     prompt.responses.find((item) => item.engine === engineId) ??
     prompt.responses[0];
@@ -164,19 +165,22 @@ function escapeRegex(value: string): string {
 function HighlightText({ text, brand }: { text: string; brand: string }) {
   // `brand` is the name or alias as the answer wrote it.
   const parts = text.split(new RegExp(`(${escapeRegex(brand)})`, "i"));
+  // Parts repeat, so each is keyed by where it starts in the sentence.
+  const starts = parts.map((_, index) =>
+    parts.slice(0, index).reduce((sum, part) => sum + part.length, 0)
+  );
   return (
     <>
       {parts.map((part, index) =>
         part.toLowerCase() === brand.toLowerCase() ? (
           <mark
             className="bg-primary/15 text-foreground rounded-sm px-0.5 font-medium"
-            // biome-ignore lint/suspicious/noArrayIndexKey: split parts have no identity
-            key={index}
+            key={starts[index]}
           >
             {part}
           </mark>
         ) : (
-          part
+          <Fragment key={starts[index]}>{part}</Fragment>
         )
       )}
     </>
