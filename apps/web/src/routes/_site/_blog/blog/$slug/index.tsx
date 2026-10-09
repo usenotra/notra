@@ -85,13 +85,20 @@ const blogContent = browserCollections.blog.createClientLoader({
               </Link>
             </ViewTransition>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-neutral-700 dark:text-neutral-200">
-              <time dateTime={post.createdAt}>
-                Published {formatBlogDate(post.createdAt)}
-              </time>
-              <span className="whitespace-nowrap">
-                · {readingMinutes} min read
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-neutral-700 dark:text-neutral-200">
+                <time dateTime={post.createdAt}>
+                  Published {formatBlogDate(post.createdAt)}
+                </time>
+                <span className="whitespace-nowrap">
+                  · {readingMinutes} min read
+                </span>
+              </div>
+              <BlogCopyArticle
+                markdown={`${post.markdown.trim()}\n\n${buildCtaBannerMarkdown()}`}
+                markdownUrl={markdownUrl}
+                title={post.title}
+              />
             </div>
 
             <ViewTransition name={blogPostTitleTransitionName(slug)}>
@@ -103,15 +110,7 @@ const blogContent = browserCollections.blog.createClientLoader({
 
           <BlogPostSidebar authors={post.authors} toc={toc} />
 
-          <div className="col-start-2 row-start-2 self-end justify-self-end lg:col-start-1">
-            <BlogCopyArticle
-              markdown={`${post.markdown.trim()}\n\n${buildCtaBannerMarkdown()}`}
-              markdownUrl={markdownUrl}
-              title={post.title}
-            />
-          </div>
-
-          <div className="border-border col-span-2 min-w-0 border-t pt-6 lg:col-span-1 lg:col-start-1 lg:row-start-3">
+          <div className="border-border col-span-2 min-w-0 border-t pt-6 lg:col-span-1 lg:col-start-1 lg:row-start-2">
             <BlogArticle>
               <MDX components={getBlogMDXComponents()} />
             </BlogArticle>
