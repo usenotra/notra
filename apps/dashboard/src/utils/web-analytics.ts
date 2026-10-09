@@ -14,6 +14,7 @@ import { trafficLogHostFilter } from "@notra/geo-core/utils/geo-project-domains"
 
 import {
   WEB_SOURCE_LABELS,
+  WEB_TABLE_EMPTY_HEIGHT,
   WEB_TABLE_MIN_ROWS,
   WEB_TABLE_ROW_HEIGHT,
   WEB_TREND_AGENTS_KEY,
@@ -112,6 +113,9 @@ export function webSourceName(
 }
 
 export function webTableHeight(rowCount: number): number {
+  if (rowCount === 0) {
+    return WEB_TABLE_EMPTY_HEIGHT;
+  }
   return (Math.max(rowCount, WEB_TABLE_MIN_ROWS) + 1) * WEB_TABLE_ROW_HEIGHT;
 }
 

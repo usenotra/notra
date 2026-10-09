@@ -53,4 +53,29 @@ test("traffic rows display changes, not relative-size bars", () => {
   expect(html).toContain(messages.geo.webVisitors.comparisonUnavailable);
   expect(html).not.toContain("w-14");
   expect(html).not.toContain("bg-primary/15");
+  const tables = html.match(/<table\b[^>]*>[\s\S]*?<\/table>/g) ?? [];
+  expect(tables[1]).toContain("<colgroup>");
+  expect(tables[1]).toContain("min-width:");
+});
+
+test("empty table bodies fit the viewport instead of inheriting column widths", () => {
+  const html = renderToStaticMarkup(
+    <IntlProvider locale="en" messages={messages} timeZone="UTC">
+      <WebBreakdownTable
+        nameHeader="Page"
+        rows={[]}
+        showAvgTime
+        showFromAi
+        title="Top pages"
+        valueHeader="Views"
+      />
+    </IntlProvider>
+  );
+  const tables = html.match(/<table\b[^>]*>[\s\S]*?<\/table>/g) ?? [];
+  expect(tables).toHaveLength(2);
+  expect(tables[0]).toContain("<colgroup>");
+  expect(tables[1]).toContain("w-full table-fixed");
+  expect(tables[1]).not.toContain("<colgroup>");
+  expect(tables[1]).not.toContain("min-width:");
+  expect(tables[1]).toContain(messages.geo.webVisitors.noDataDescription);
 });

@@ -4084,6 +4084,7 @@
       "pagesPerSession": "Pages per visit",
       "engagedRate": "Read further",
       "noData": "No visitors in this period",
+      "noDataDescription": "Visit details appear here once traffic is recorded. Try a longer date range.",
       "columnViews": "Views",
       "columnFromAi": "From AI",
       "avgTime": "Avg. time on page",

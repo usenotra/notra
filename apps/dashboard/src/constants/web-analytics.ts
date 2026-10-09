@@ -41,6 +41,7 @@ export const WEB_LIST_LIMIT = 8;
 
 export const WEB_TABLE_ROW_HEIGHT = 44;
 export const WEB_TABLE_MIN_ROWS = 3;
+export const WEB_TABLE_EMPTY_HEIGHT = 340;
 
 export const WEB_SOURCE_LABELS: Record<string, string> = {
   google: "Google",

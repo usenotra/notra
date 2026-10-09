@@ -25,31 +25,63 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
     await import("./utils/database");
   const requests: Record<string, unknown>[] = [];
   let views = 0;
+  let configured = true;
+  let demo = false;
+  let failedQuery = "";
   const query = mock(async (params: Record<string, unknown>) => {
     requests.push(params);
-    return { data: [] };
+    return configured ? { data: [] } : null;
   });
   const client = await import("@notra/analytics/tinybird/client");
+  const demoMode = await import("@notra/utils/demo-mode");
+  mock.module("@notra/utils/demo-mode", () => ({
+    ...demoMode,
+    isDemoMode: () => demo,
+  }));
+  const webQuery = (params: Record<string, unknown>) =>
+    demo ? Promise.resolve(null) : query(params);
   mock.module("@notra/analytics/tinybird/client", () => ({
     ...client,
-    isTinybirdConfigured: () => true,
+    isTinybirdConfigured: () => configured,
     queryWebOverview: async (params: Record<string, unknown>) => {
       requests.push(params);
-      return { data: [{ views, visitors: views }] };
+      if (failedQuery === "overview") {
+        throw new Error("Tinybird unavailable");
+      }
+      return configured && !demo
+        ? { data: [{ views, visitors: views }] }
+        : null;
     },
-    queryWebAiOutcomes: query,
-    queryWebAudience: query,
-    queryWebHosts: query,
-    queryWebPages: query,
-    queryWebSources: query,
-    queryWebTimeseries: query,
-    queryGeoTrafficOverview: query,
+    queryWebAiOutcomes: webQuery,
+    queryWebAudience: webQuery,
+    queryWebHosts: webQuery,
+    queryWebPages: webQuery,
+    queryWebSources: webQuery,
+    queryWebTimeseries: (params: Record<string, unknown>) => {
+      if (failedQuery === "timeseries") {
+        return Promise.reject(new Error("Tinybird unavailable"));
+      }
+      return webQuery(params);
+    },
+    queryWebEngagement: (params: Record<string, unknown>) => {
+      if (failedQuery === "engagement") {
+        return Promise.resolve(null);
+      }
+      return webQuery(params);
+    },
+    queryGeoTrafficOverview: (params: Record<string, unknown>) => {
+      if (failedQuery === "traffic") {
+        return Promise.reject(new Error("Tinybird unavailable"));
+      }
+      return query(params);
+    },
     queryGeoTrafficTimeseries: query,
     queryGeoTrafficPages: query,
   }));
   const { loadWebAnalytics, loadSiteAnalytics } =
     await import("../src/geo/web-analytics");
-  const { GeoProjectNotFoundError } = await import("../src/geo/errors");
+  const { GeoProjectNotFoundError, GeoTinybirdError } =
+    await import("../src/geo/errors");
 
   beforeAll(initializeDatabase, 30_000);
   afterAll(() => database.postgres.close());
@@ -57,6 +89,9 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
     await resetDatabase();
     requests.length = 0;
     views = 0;
+    configured = true;
+    demo = false;
+    failedQuery = "";
   });
 
   test("an authenticated project queries data without site or opt-in lookups", async () => {
@@ -118,7 +153,7 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
           { days: 7 }
         )
       );
-      expect(requests).toHaveLength(10);
+      expect(requests).toHaveLength(11);
       for (const params of requests) {
         expect(params).toMatchObject({
           organization_id: scope.organizationId,
@@ -128,6 +163,57 @@ if (process.env.NOTRA_WEB_ANALYTICS_TEST_WORKER !== import.meta.url) {
         });
       }
     }
+  });
+
+  test.each(["overview", "timeseries", "engagement", "traffic"])(
+    "failed site %s queries do not become empty analytics",
+    async (failure) => {
+      const scope = await seedProject(`failed-${failure}`);
+      failedQuery = failure;
+      const result = await Effect.runPromise(
+        Effect.result(
+          loadSiteAnalytics(
+            { ...scope, id: "site-test", publicOrigin: "https://site.example" },
+            { days: 7 }
+          )
+        )
+      );
+      expect(result._tag === "Failure" && result.failure).toBeInstanceOf(
+        GeoTinybirdError
+      );
+    }
+  );
+
+  test("unconfigured site analytics keeps its unavailable signal", async () => {
+    const scope = await seedProject("unconfigured-site");
+    configured = false;
+    const response = await Effect.runPromise(
+      loadSiteAnalytics(
+        { ...scope, id: "site-test", publicOrigin: "https://site.example" },
+        { days: 7 }
+      )
+    );
+    expect(response.web.configured).toBe(false);
+    expect(response.web.totals.views).toBe(0);
+  });
+
+  test("demo analytics tolerates unsupported web pipes without hiding live failures", async () => {
+    const scope = await seedProject("demo-web");
+    demo = true;
+    const web = await Effect.runPromise(
+      loadWebAnalytics(scope, { days: 7 }, undefined)
+    );
+    expect(web.configured).toBe(true);
+    expect(web.totals.views).toBe(0);
+    expect(web.points).toEqual([]);
+    const site = await Effect.runPromise(
+      loadSiteAnalytics(
+        { ...scope, id: "site-test", publicOrigin: "https://site.example" },
+        { days: 7 }
+      )
+    );
+    expect(site.web.configured).toBe(true);
+    expect(site.engagement.views).toBe(0);
   });
 
   test("a project without recorded visitors returns empty analytics, not a tracking flag", async () => {

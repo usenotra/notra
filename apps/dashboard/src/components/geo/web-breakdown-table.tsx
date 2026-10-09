@@ -8,6 +8,7 @@ import {
 import { useLocale, useTranslations } from "use-intl";
 
 import { GeoCountCell } from "@/components/geo/geo-count-cell";
+import { WebAnalyticsEmpty } from "@/components/geo/web-analytics-empty";
 import { GEO_COUNT_COLUMN_WIDTH } from "@/constants/geo-table";
 import { WEB_TABLE_ROW_HEIGHT } from "@/constants/web-analytics";
 import type { WebBreakdownRow, WebBreakdownTableProps } from "@/types/geo";
@@ -92,7 +93,7 @@ export function WebBreakdownTable({
         columns={columns}
         data={rows}
         defaultSort={{ key: "value", direction: "desc" }}
-        emptyState={t("noData")}
+        emptyState={<WebAnalyticsEmpty />}
         getRowId={(row) => row.key}
         height={webTableHeight(rows.length)}
         rowHeight={WEB_TABLE_ROW_HEIGHT}

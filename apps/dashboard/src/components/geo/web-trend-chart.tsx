@@ -34,15 +34,14 @@ export function WebTrendChart({
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
   const rows = buildWebTrendRows(
-    web.points,
+    web.points.length === 0 && !traffic?.points.length
+      ? [{ day: range?.from ?? todayIsoDate(), views: 0, visitors: 0 }]
+      : web.points,
     traffic?.points ?? [],
     locale,
     range?.from,
     range?.to
   );
-  if (rows.length === 0) {
-    return null;
-  }
   const share = webTrendShare(rows);
   const series = [
     {
@@ -81,7 +80,10 @@ export function WebTrendChart({
       >
         <EChartsAreaChart.Grid variant="solid" />
         <EChartsAreaChart.XAxis dataKey="day" />
-        <EChartsAreaChart.YAxis />
+        <EChartsAreaChart.YAxis
+          interval={share === null ? 1 : undefined}
+          max={share === null ? 1 : undefined}
+        />
         {series.map((entry) => (
           <EChartsAreaChart.Area
             dataKey={entry.key}

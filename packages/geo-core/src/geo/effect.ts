@@ -4,6 +4,22 @@ import type { GeoSkipFields } from "../types/geo";
 import { logGeoFailure, logGeoSkip } from "../utils/geo-log";
 import { GeoDatabaseError, GeoTinybirdError } from "./errors";
 
+export function geoRequiredQuery<A>(
+  label: string,
+  run: () => Promise<A | null>
+): Effect.Effect<A, GeoTinybirdError> {
+  return Effect.tryPromise({
+    try: run,
+    catch: (cause) => new GeoTinybirdError({ label, cause }),
+  }).pipe(
+    Effect.flatMap((result) =>
+      result === null
+        ? Effect.fail(new GeoTinybirdError({ label, cause: "No query result" }))
+        : Effect.succeed(result)
+    )
+  );
+}
+
 export function geoQuery<A>(
   label: string,
   run: () => Promise<A>
