@@ -7728,7 +7728,7 @@
       "docs": "{provider} docs",
       "draftDescription": "blog.json has changes that aren't live yet",
       "reviewAndPublish": "Review and publish",
-      "createPullRequest": "Create pull request",
+      "createPullRequest": "Create PR",
       "preparePublishFailed": "Couldn't load changes for the pull request",
       "noDrafts": "There are no changes to include in a pull request.",
       "publishMessage": "Update site",

@@ -7728,7 +7728,7 @@
       "docs": "{provider}-Doku",
       "draftDescription": "blog.json hat Änderungen, die noch nicht live sind",
       "reviewAndPublish": "Prüfen und veröffentlichen",
-      "createPullRequest": "Pull Request erstellen",
+      "createPullRequest": "Create PR",
       "preparePublishFailed": "Änderungen für den Pull Request konnten nicht geladen werden",
       "noDrafts": "Es gibt keine Änderungen für einen Pull Request.",
       "publishMessage": "Site aktualisieren",
