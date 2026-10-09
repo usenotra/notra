@@ -278,7 +278,7 @@ function SiteVariablesForm({ document }: SiteVariablesFormProps) {
               {t("reset")}
             </Button>
           ) : null}
-          {document.hasDraft ? (
+          {document.hasDraft && !dirty && !save.isPending ? (
             <Link
               className="text-sm underline underline-offset-4"
               href={siteHref(organizationSlug, siteId, "editor")}

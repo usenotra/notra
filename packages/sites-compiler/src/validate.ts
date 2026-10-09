@@ -211,7 +211,11 @@ function applyVariables(
     if (content === null || !takesVariables(path) || !content.includes("{{")) {
       continue;
     }
-    const substitution = substituteVariables(content, variables);
+    const substitution = substituteVariables(
+      content,
+      variables,
+      MDX_FILE.test(path)
+    );
     sources.set(path, substitution.text);
     for (const unknown of substitution.unknown) {
       diagnostics.push({

@@ -424,6 +424,26 @@ describe("variables", () => {
     );
   });
 
+  test("quoted values resolve in snippet content without modifying its JavaScript", () => {
+    const result = withVariables({
+      "blog.json": JSON.stringify({
+        name: "Acme",
+        variables: { product: 'Acme "Flow"' },
+      }),
+      "snippets/cta.mdx":
+        'export const label = "{{ product }}";\n\n{{ product }}\n\n{"{{ product }}"}\n',
+    });
+    expect(result.ok).toBe(true);
+    expect(errors(result)).toEqual([]);
+    expect(result.outputs.get("snippets/cta.mdx")).toContain(
+      'export const label = "{{ product }}";'
+    );
+    expect(result.outputs.get("snippets/cta.mdx")).toContain('Acme "Flow"');
+    expect(result.outputs.get("snippets/cta.mdx")).toContain(
+      '{"{{ product }}"}'
+    );
+  });
+
   test("unknown names are warnings and stay literal text", () => {
     const result = withVariables({
       "blog/post.mdx": post("Hello {{ missing }}."),

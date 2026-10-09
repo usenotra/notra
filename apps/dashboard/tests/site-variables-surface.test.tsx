@@ -24,6 +24,23 @@ if (!process.env.NOTRA_VARIABLES_SURFACE_WORKER) {
     expect(result.status, result.stderr?.toString()).toBe(0);
   });
 } else {
+  let unsaved = false;
+  const react = await import("react");
+  const useState = react.useState;
+  mock.module("react", () => ({
+    ...react,
+    useState: (initial: unknown) => {
+      if (unsaved && typeof initial === "function") {
+        const value = initial();
+        if (Array.isArray(value) && value[0]?.name === "product_name") {
+          return useState(
+            value.map((row) => ({ ...row, value: "Unsaved value" }))
+          );
+        }
+      }
+      return useState(initial);
+    },
+  }));
   let content = JSON.stringify({
     name: "Acme",
     variables: {
@@ -91,6 +108,23 @@ if (!process.env.NOTRA_VARIABLES_SURFACE_WORKER) {
       expect(html).toContain('type="submit"');
       expect(html).toContain("disabled");
     });
+    test("unsaved edits cannot navigate to an older draft", () => {
+      content = JSON.stringify({
+        name: "Acme",
+        variables: { product_name: "Acme Flow" },
+      });
+      unsaved = true;
+      try {
+        const html = render();
+        expect(html).toContain('value="Unsaved value"');
+        expect(html).not.toContain(messages.sites.variables.reviewAndPublish);
+        expect(html).toContain(messages.sites.variables.saveDraft);
+        expect(html).toContain(messages.sites.variables.reset);
+      } finally {
+        unsaved = false;
+      }
+    });
+
     test("malformed config cannot be edited or replaced", () => {
       content = "{";
       const html = render();

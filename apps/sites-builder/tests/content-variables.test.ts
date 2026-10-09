@@ -23,7 +23,7 @@ test("real builds resolve site variables in content, links, snippets and metadat
     await writeFile(join(siteRoot, "blog/launch.mdx"), post);
     await writeFile(
       join(siteRoot, "snippets/cta.mdx"),
-      "[Start {{ product_name }}]({{ signup_url }})\n"
+      'export const label = "{{ quoted_name }}";\n\n[Start {{ product_name }}]({{ signup_url }})\n\n{{ quoted_name }}\n\n<span>{"{{ quoted_name }}"}</span>\n'
     );
     await writeFile(
       join(siteRoot, "changelog/release.mdx"),
@@ -49,6 +49,7 @@ test("real builds resolve site variables in content, links, snippets and metadat
             product_name: product,
             signup_url: "https://example.com/signup",
             support_email: "help@example.com",
+            quoted_name: 'Acme "Flow"',
           },
           blog: {},
           changelog: {},
@@ -81,6 +82,15 @@ test("real builds resolve site variables in content, links, snippets and metadat
       expect(html).toContain("help@example.com");
       expect(html).toContain("{{ product_name }}");
       expect(html).toContain("Unknown {{ missing }}");
+      expect(html).toContain("{{ quoted_name }}");
+      const stagedSnippet = await readFile(
+        join(root, `work-${suffix}`, "site/snippets/cta.mdx"),
+        "utf8"
+      );
+      expect(stagedSnippet).toContain(
+        'export const label = "{{ quoted_name }}";'
+      );
+      expect(stagedSnippet).toContain('Acme "Flow"');
       const changelog = await readFile(
         join(outDir, "changelog/release/index.html"),
         "utf8"
