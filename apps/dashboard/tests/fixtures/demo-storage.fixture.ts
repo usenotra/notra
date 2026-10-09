@@ -22,15 +22,21 @@ let transactionActive = false;
 let activeTransactions = 0;
 let reservationLocked = false;
 let poolApiKeys = false;
+let promotionMissing = false;
+let promotionFails = false;
+let expiredRows: { organizationId: string; apiKeyId: string | null }[] = [];
 const reservations = new Map<
   string,
-  { organizationId: string; createdAt?: Date }
+  { organizationId: string; createdAt?: Date; expiresAt?: Date }
 >();
 const seedDemoWorkspace = mock(async () => {
   expect(transactionActive).toBe(false);
   expect(reservations.size).toBeGreaterThan(0);
 });
-const deleteDemoApiKey = mock(async () => {
+const createDemoApiKey = mock(
+  async (): Promise<{ key: string; keyId: string } | null> => null
+);
+const deleteDemoApiKey = mock(async (_keyId: string) => {
   expect(transactionActive).toBe(false);
 });
 const afterResponse = mock((_task: () => unknown) => {});
@@ -90,6 +96,10 @@ const transaction = mock(async (work: (tx: unknown) => Promise<unknown>) => {
   let ownsReservationLock = false;
   try {
     return await work({
+      update: () => {
+        expect(transactionActive).toBe(true);
+        return mockedDb.update();
+      },
       execute: async (query: SQL) => {
         const compiled = new PgDialect().sqlToQuery(query);
         expect(compiled.sql).toContain("pg_try_advisory_xact_lock");
@@ -119,6 +129,7 @@ const transaction = mock(async (work: (tx: unknown) => Promise<unknown>) => {
             reservations.set(input.anonymousId, {
               organizationId: input.organizationId,
               createdAt: input.createdAt,
+              expiresAt: input.expiresAt,
             });
             total += 1;
           }
@@ -140,6 +151,34 @@ const transaction = mock(async (work: (tx: unknown) => Promise<unknown>) => {
               return Promise.resolve([]);
             }
             return {
+              limit: (limit: number) => ({
+                for: async (strength: string, options: unknown) => {
+                  expect(transactionActive).toBe(true);
+                  expect(strength).toBe("update");
+                  if (Object.hasOwn(selection, "expiresAt")) {
+                    expect(options).toEqual({ of: demoSandboxes });
+                    const [reservedId, organizationId] =
+                      new PgDialect().sqlToQuery(where).params;
+                    const reservation = reservations.get(String(reservedId));
+                    expect(reservation?.organizationId).toBe(
+                      String(organizationId)
+                    );
+                    return promotionMissing || !reservation
+                      ? []
+                      : [{ expiresAt: reservation.expiresAt }];
+                  }
+                  expect(options).toEqual({
+                    of: demoSandboxes,
+                    skipLocked: true,
+                  });
+                  expect(new PgDialect().sqlToQuery(where).sql).toContain(
+                    '"expires_at" <'
+                  );
+                  const rows = expiredRows.slice(0, limit);
+                  expiredRows = expiredRows.slice(limit);
+                  return rows;
+                },
+              }),
               orderBy: (...orderBy: SQL[]) => ({
                 limit: (limit: number) => ({
                   for: async (strength: string, options: unknown) => {
@@ -177,60 +216,71 @@ const transaction = mock(async (work: (tx: unknown) => Promise<unknown>) => {
   }
 });
 
-mock.module("@notra/db/drizzle", () => ({
-  db: {
-    transaction,
-    update: () => ({
-      set: (input: { anonymousId: string; expiresAt: Date }) => ({
-        where: (condition: SQL) => ({
-          returning: async () => {
-            const [reservedId] = new PgDialect().sqlToQuery(condition).params;
-            expect(reservations.has(String(reservedId))).toBe(true);
-            expect(input.anonymousId.startsWith(DEMO_SEED_ID_PREFIX)).toBe(
-              false
-            );
-            expect(
-              input.expiresAt.getTime() -
-                (reservations.get(String(reservedId))?.createdAt?.getTime() ??
-                  0)
-            ).toBe(DEMO_SANDBOX_MAX_AGE_MS);
-            reservations.delete(String(reservedId));
-            return [{ anonymousId: input.anonymousId }];
-          },
-        }),
-      }),
-    }),
-    select: (selection = {}) => ({
-      from: () => ({
-        where: (condition = sql``) => {
-          if (Object.hasOwn(selection, "value")) {
-            const where = new PgDialect().sqlToQuery(condition).sql;
-            return Promise.resolve([
-              { value: where.includes(" like ") ? pooled : total },
-            ]);
+const mockedDb = {
+  transaction,
+  update: () => ({
+    set: (input: { anonymousId: string; expiresAt: Date }) => ({
+      where: (condition: SQL) => ({
+        returning: async () => {
+          const compiled = new PgDialect().sqlToQuery(condition);
+          expect(compiled.sql).toContain('"expires_at" >');
+          const [reservedId, organizationId, checkedAt] = compiled.params;
+          const checkedAtMs = Date.parse(String(checkedAt));
+          expect(Number.isFinite(checkedAtMs)).toBe(true);
+          const reservation = reservations.get(String(reservedId));
+          expect(reservation?.organizationId).toBe(String(organizationId));
+          if (promotionFails) {
+            throw new Error("promotion failed");
           }
-          if (Object.hasOwn(selection, "userId")) {
-            return Promise.resolve([]);
+          if (
+            promotionMissing ||
+            (reservation?.expiresAt?.getTime() ?? 0) <= checkedAtMs
+          ) {
+            return [];
           }
-          return { limit: async () => [] };
+          expect(reservations.has(String(reservedId))).toBe(true);
+          expect(input.anonymousId.startsWith(DEMO_SEED_ID_PREFIX)).toBe(false);
+          expect(
+            input.expiresAt.getTime() -
+              (reservations.get(String(reservedId))?.createdAt?.getTime() ?? 0)
+          ).toBe(DEMO_SANDBOX_MAX_AGE_MS);
+          reservations.delete(String(reservedId));
+          return [{ anonymousId: input.anonymousId }];
         },
       }),
     }),
-    delete: () => ({
+  }),
+  select: (selection = {}) => ({
+    from: () => ({
       where: (condition = sql``) => {
-        const [organizationId] = new PgDialect().sqlToQuery(condition).params;
-        expect(String(organizationId).startsWith("pool-")).toBe(false);
-        return deleteOrganization(condition);
+        if (Object.hasOwn(selection, "value")) {
+          const where = new PgDialect().sqlToQuery(condition).sql;
+          return Promise.resolve([
+            { value: where.includes(" like ") ? pooled : total },
+          ]);
+        }
+        if (Object.hasOwn(selection, "userId")) {
+          return Promise.resolve([]);
+        }
+        return { limit: async () => [] };
       },
     }),
-    query: { demoSandboxes: { findMany } },
-  },
-}));
+  }),
+  delete: () => ({
+    where: (condition = sql``) => {
+      const [organizationId] = new PgDialect().sqlToQuery(condition).params;
+      expect(String(organizationId).startsWith("pool-")).toBe(false);
+      return deleteOrganization(condition);
+    },
+  }),
+  query: { demoSandboxes: { findMany } },
+};
+mock.module("@notra/db/drizzle", () => ({ db: mockedDb }));
 // A full pool makes refill exit without seeding. No external service is used.
 mock.module("@notra/ai/utils/redis", () => ({ redis: null }));
 mock.module("@notra/ai/utils/server-log", () => ({ logError: mock() }));
 mock.module("@/lib/demo/api-key", () => ({
-  createDemoApiKey: mock(async () => null),
+  createDemoApiKey,
   deleteDemoApiKey,
   updateDemoApiKey: mock(),
 }));
@@ -256,9 +306,13 @@ beforeEach(() => {
   activeTransactions = 0;
   reservationLocked = false;
   poolApiKeys = false;
+  promotionMissing = false;
+  promotionFails = false;
+  expiredRows = [];
   reservations.clear();
   seedDemoWorkspace.mockClear();
   deleteDemoApiKey.mockClear();
+  createDemoApiKey.mockClear();
   transaction.mockClear();
   afterResponse.mockClear();
   findMany.mockClear();
@@ -334,7 +388,7 @@ test("locked ready workspaces defer trimming without evicting the new visitor", 
   expect(total).toBe(56);
   expect(pooled).toBe(55);
   expect(deleteOrganization).toHaveBeenCalledTimes(5);
-  expect(transaction).toHaveBeenCalledTimes(1);
+  expect(transaction).toHaveBeenCalledTimes(3);
 
   lockedPoolRows = 0;
   maintainDemoSandboxPool();
@@ -401,6 +455,45 @@ test("failed seeding releases the reservation and allows a retry", async () => {
     await createDemoSandbox({ timeZone: null, ipHash: null })
   ).not.toBeNull();
   expect(total).toBe(DEMO_MAX_ACTIVE_SANDBOXES);
+});
+
+test.each(["expired", "missing", "error"])(
+  "%s promotion cannot leak its newly created key",
+  async (failure) => {
+    total = 49;
+    pooled = 0;
+    createDemoApiKey.mockImplementationOnce(async () => {
+      if (failure === "expired") {
+        for (const reservation of reservations.values()) {
+          reservation.expiresAt = new Date(0);
+        }
+      }
+      promotionMissing = failure === "missing";
+      promotionFails = failure === "error";
+      return { key: "synthetic-key", keyId: "synthetic-key-id" };
+    });
+    const creation = createDemoSandbox({ timeZone: null, ipHash: null });
+    if (failure === "error") {
+      await expect(creation).rejects.toThrow("promotion failed");
+    } else {
+      expect(await creation).toBeNull();
+    }
+    expect(total).toBe(49);
+    expect(reservations.size).toBe(0);
+    expect(deleteDemoApiKey).toHaveBeenCalledWith("synthetic-key-id");
+  }
+);
+
+test("expiry cleanup locks and deletes rows before revoking their external keys", async () => {
+  total = 52;
+  expiredRows = Array.from({ length: 2 }, (_, index) => ({
+    organizationId: `expired-workspace-${index}`,
+    apiKeyId: `expired-key-${index}`,
+  }));
+  maintainDemoSandboxPool();
+  await afterResponse.mock.calls[0]?.[0]();
+  expect(total).toBe(DEMO_MAX_ACTIVE_SANDBOXES);
+  expect(deleteDemoApiKey).toHaveBeenCalledTimes(2);
 });
 
 test("busy capacity responds with Retry-After without issuing a session", async () => {

@@ -342,21 +342,51 @@ async function seedDemoSandbox(
     return null;
   });
 
-  await withOrganizationRollback(organization, async () => {
-    const ready = await db
-      .update(demoSandboxes)
-      .set({
-        anonymousId,
-        apiKey: apiKey?.key ?? null,
-        apiKeyId: apiKey?.keyId ?? null,
-        expiresAt,
-      })
-      .where(eq(demoSandboxes.anonymousId, reservedId))
-      .returning({ anonymousId: demoSandboxes.anonymousId });
-    if (ready.length === 0) {
-      throw new Error("Demo sandbox reservation disappeared during seeding");
-    }
+  const ready = await withOrganizationRollback(organization, () =>
+    db.transaction(async (tx) => {
+      const [reservation] = await tx
+        .select({ expiresAt: demoSandboxes.expiresAt })
+        .from(demoSandboxes)
+        .where(
+          and(
+            eq(demoSandboxes.anonymousId, reservedId),
+            eq(demoSandboxes.organizationId, organizationId)
+          )
+        )
+        .limit(1)
+        .for("update", { of: demoSandboxes });
+      // Recheck after taking the lock, not before waiting for cleanup.
+      if (!reservation || reservation.expiresAt.getTime() <= Date.now()) {
+        return [];
+      }
+      return tx
+        .update(demoSandboxes)
+        .set({
+          anonymousId,
+          apiKey: apiKey?.key ?? null,
+          apiKeyId: apiKey?.keyId ?? null,
+          expiresAt,
+        })
+        .where(
+          and(
+            eq(demoSandboxes.anonymousId, reservedId),
+            eq(demoSandboxes.organizationId, organizationId),
+            gt(demoSandboxes.expiresAt, new Date())
+          )
+        )
+        .returning({ anonymousId: demoSandboxes.anonymousId });
+    })
+  ).catch(async (error: unknown) => {
+    await deleteDemoSandboxApiKey({ apiKeyId: apiKey?.keyId ?? null });
+    throw error;
   });
+  if (ready.length === 0) {
+    await Promise.all([
+      deleteDemoOrganization(organizationId),
+      deleteDemoSandboxApiKey({ apiKeyId: apiKey?.keyId ?? null }),
+    ]);
+    return null;
+  }
 
   return { anonymousId, organizationId, slug };
 }
@@ -770,7 +800,7 @@ async function deleteDemoOrganization(
   }
 }
 
-async function deleteDemoSandboxApiKey(sandbox: DemoSandbox) {
+async function deleteDemoSandboxApiKey(sandbox: Pick<DemoSandbox, "apiKeyId">) {
   if (sandbox.apiKeyId) {
     await deleteDemoApiKey(sandbox.apiKeyId).catch((error: unknown) => {
       logError("[demo] Failed to delete sandbox API key", error);
@@ -815,13 +845,21 @@ async function cleanupOrphanedDemoOrganizations(limit: number, now: Date) {
 /** Deletes expired sandboxes. Returns how many were removed. */
 async function cleanupExpiredDemoSandboxes(limit: number): Promise<number> {
   const now = new Date();
-  const expired = await db.query.demoSandboxes.findMany({
-    where: lt(demoSandboxes.expiresAt, now),
-    limit,
+  const expired = await db.transaction(async (tx) => {
+    const rows = await tx
+      .select()
+      .from(demoSandboxes)
+      .where(lt(demoSandboxes.expiresAt, now))
+      .limit(limit)
+      .for("update", { of: demoSandboxes, skipLocked: true });
+    for (const sandbox of rows) {
+      await deleteDemoOrganization(sandbox.organizationId, tx);
+    }
+    return rows;
   });
 
   const [, orphaned] = await Promise.all([
-    Promise.all(expired.map((sandbox) => deleteDemoSandbox(sandbox))),
+    Promise.all(expired.map(deleteDemoSandboxApiKey)),
     cleanupOrphanedDemoOrganizations(limit, now),
   ]);
 
