@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { Script } from "node:vm";
 
+import { siteBuildRequestSchema } from "../src/schemas/build";
 import { siteConfigSchema } from "../src/schemas/site-config";
 import { siteIntegrationUpdateSchema } from "../src/schemas/site-integrations";
 import { buildSiteContentSecurityPolicy } from "../src/utils/content-security-policy";
@@ -22,6 +23,52 @@ const issuePaths = (extra: Record<string, unknown>) => {
 };
 
 describe("integrations schema", () => {
+  test("builds require explicit analytics opt-in", () => {
+    const target = {
+      siteId: "site",
+      deploymentId: "deployment",
+      publicOrigin: "https://acme.com",
+      mounts: { blog: "/blog", changelog: "/changes" },
+    };
+    expect(siteBuildRequestSchema.parse(target).analytics).toBe(false);
+    expect(
+      siteBuildRequestSchema.parse({ ...target, analytics: true }).analytics
+    ).toBe(true);
+  });
+
+  test.each(["8443", "65535"])(
+    "self-hosted Plausible supports port %s",
+    (port) => {
+      const integrations = siteConfigSchema.parse({
+        name: "Acme",
+        integrations: {
+          plausible: { domain: "acme.com", server: `Stats.Acme.com:${port}` },
+        },
+      }).integrations;
+      expect(integrationHeadScripts(integrations)[0]).toMatchObject({
+        src: `https://stats.acme.com:${port}/js/script.js`,
+      });
+      expect(integrationCspSources(integrations)).toEqual({
+        scriptSrc: [`https://stats.acme.com:${port}`],
+        connectSrc: [`https://stats.acme.com:${port}`],
+      });
+    }
+  );
+
+  test.each([
+    "stats.acme.com:65536",
+    "stats.acme.com:99999",
+    "stats.acme.com:abc",
+    "stats.acme.com:8443/path",
+    "stats.acme.com:8443?x=y",
+    "stats.acme.com:8443; script-src *",
+  ])("rejects invalid Plausible server %s", (server) => {
+    expect(
+      issuePaths({
+        integrations: { plausible: { domain: "acme.com", server } },
+      })
+    ).toEqual(["integrations.plausible.server"]);
+  });
   test("accepts every preset in its documented shape", () => {
     const result = parse({
       integrations: {
@@ -296,7 +343,7 @@ describe("content security policy", () => {
       [
         "script-src 'self' 'sha256-aaa=' 'sha256-bbb=' https://*.posthog.com https://acme.com https://plausible.io https://widget.example.com",
         "connect-src 'self' https://*.posthog.com https://acme.com https://plausible.io https://widget.example.com wss://ws.example.com",
-        "worker-src 'self' blob: data:",
+        "worker-src 'self' blob: data: https://*.posthog.com https://acme.com https://plausible.io https://widget.example.com",
         "object-src 'none'",
         "base-uri 'self'",
       ].join("; ")

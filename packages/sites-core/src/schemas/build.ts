@@ -23,7 +23,7 @@ export const siteBuildRequestSchema = z.object({
   mounts: siteMountsSchema,
   noindex: z.boolean().default(false),
   includeDrafts: z.boolean().default(false),
-  analytics: z.boolean().default(true),
+  analytics: z.boolean().default(false),
   branding: z.boolean().default(true),
   defaultConfig: siteConfigSchema.optional(),
 });

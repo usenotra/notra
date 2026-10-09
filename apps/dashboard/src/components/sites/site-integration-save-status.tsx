@@ -9,6 +9,7 @@ export function SiteIntegrationSaveStatus({
   state,
   invalid,
   busy,
+  removalFailed,
   onRetry,
 }: SiteIntegrationSaveStatusProps) {
   const t = useTranslations("sites.integrationsPage");
@@ -30,6 +31,11 @@ export function SiteIntegrationSaveStatus({
       >
         {message}
       </p>
+      {removalFailed ? (
+        <p className="text-muted-foreground text-sm">
+          {t("removeFailedDescription")}
+        </p>
+      ) : null}
       {failed ? (
         <Button
           disabled={busy}

@@ -573,6 +573,7 @@ export interface SiteIntegrationSaveStatusProps {
   state: SiteIntegrationAutosaveState;
   invalid: boolean;
   busy: boolean;
+  removalFailed: boolean;
   onRetry: () => void;
 }
 

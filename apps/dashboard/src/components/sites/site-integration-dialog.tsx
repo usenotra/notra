@@ -53,6 +53,7 @@ export function SiteIntegrationDialog({
   const [showErrors, setShowErrors] = useState(false);
   const [closing, setClosing] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [removalFailed, setRemovalFailed] = useState(false);
   const autosave = useSiteIntegrationAutosave(
     scope,
     siteIntegrationUpdateFromValues(provider, values) ?? {
@@ -73,13 +74,14 @@ export function SiteIntegrationDialog({
   const busy = closing || removing;
 
   const change = (key: string, value: string | boolean) => {
+    setRemovalFailed(false);
     const changed = { ...values, [key]: value };
     setValues(changed);
     autosave.update(siteIntegrationUpdateFromValues(provider, changed));
   };
 
   const close = async () => {
-    if (busy) {
+    if (busy || removalFailed) {
       return;
     }
     if (autosave.state.dirty && hasErrors) {
@@ -98,6 +100,11 @@ export function SiteIntegrationDialog({
     setRemoving(true);
     autosave.update({ provider: provider.id, settings: null });
     const removed = await autosave.flush();
+    if (!removed) {
+      // Navigation must not retry a failed removal in the unmount save.
+      await autosave.cancel();
+    }
+    setRemovalFailed(!removed);
     setRemoving(false);
     if (removed) {
       toast.success(t("removed"), { description: t("savedDescription") });
@@ -235,8 +242,13 @@ export function SiteIntegrationDialog({
           state={autosave.state}
           invalid={hasErrors}
           busy={busy}
+          removalFailed={removalFailed}
           onRetry={() => {
-            void autosave.flush();
+            if (removalFailed) {
+              void remove();
+            } else {
+              void autosave.flush();
+            }
           }}
         />
         <ResponsiveDialogFooter className="shrink-0 sm:flex-wrap sm:justify-between">
@@ -270,7 +282,7 @@ export function SiteIntegrationDialog({
               </Button>
             ) : null}
             <Button
-              disabled={busy}
+              disabled={busy || removalFailed}
               form={`${id}-form`}
               loading={closing}
               type="submit"

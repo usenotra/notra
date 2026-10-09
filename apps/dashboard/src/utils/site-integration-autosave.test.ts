@@ -180,4 +180,29 @@ test("discarding unsaved edits waits for an in-flight save without writing queue
   await cancelling;
   expect(await flushing).toBe(false);
   expect(writes).toEqual([first]);
+  expect(await queue.flush()).toBe(false);
+  expect(writes).toEqual([first]);
+});
+
+test("canceling a failed removal prevents unmount flush from retrying it", async () => {
+  let fail = true;
+  const save = mock(async () => {
+    if (fail) {
+      throw new Error("Removal failed");
+    }
+  });
+  const queue = createSiteIntegrationAutosave({
+    initial: first,
+    save,
+    onChange: () => {},
+  });
+  queue.update(initial);
+  expect(await queue.flush()).toBe(false);
+  await queue.cancel();
+  expect(await queue.flush()).toBe(false);
+  expect(save).toHaveBeenCalledTimes(1);
+  fail = false;
+  queue.update(initial);
+  expect(await queue.flush()).toBe(true);
+  expect(save).toHaveBeenCalledTimes(2);
 });

@@ -2,6 +2,7 @@ import type { SiteIntegrationUpdate } from "@notra/sites-core/types/site-integra
 import { useEffect, useState } from "react";
 
 import { useSaveSiteIntegration } from "@/lib/hooks/use-site-integrations";
+import { useWarnBeforeUnload } from "@/lib/hooks/use-warn-before-unload";
 import type { SiteIntegrationAutosaveState } from "@/types/site-integrations";
 import type { SiteScope } from "@/types/sites";
 import { createSiteIntegrationAutosave } from "@/utils/site-integration-autosave";
@@ -25,15 +26,13 @@ export function useSiteIntegrationAutosave(
     })
   );
 
-  useEffect(() => autosave.clearTimer, [autosave]);
-  useEffect(() => {
-    if (!state.dirty) {
-      return;
-    }
-    const beforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", beforeUnload);
-    return () => window.removeEventListener("beforeunload", beforeUnload);
-  }, [state.dirty]);
+  useEffect(
+    () => () => {
+      void autosave.flush();
+    },
+    [autosave]
+  );
+  useWarnBeforeUnload(state.dirty);
 
   return { ...autosave, state };
 }

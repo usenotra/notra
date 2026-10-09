@@ -7648,7 +7648,7 @@
       "docs": "{provider} docs",
       "draftDescription": "blog.json has changes that aren't live yet",
       "reviewAndPublish": "Review and publish",
-      "invalidTitle": "blog.json can't be read",
+      "invalidTitle": "Invalid blog.json configuration",
       "invalidDescription": "The JSON or integration settings are invalid. Fix them in the editor, then come back.",
       "providers": {
         "databuddy": "Privacy-first web analytics.",
@@ -7691,7 +7691,7 @@
         },
         "plausible": {
           "domain": "Use the domain you added to Plausible, without https://.",
-          "server": "For self-hosted Plausible, enter its hostname without https://. Leave empty for plausible.io."
+          "server": "For self-hosted Plausible, enter its hostname and optional port (e.g. plausible.acme.com:8443), without https://. Leave empty for plausible.io."
         },
         "posthog": {
           "apiKey": "Copy the public project API key from your PostHog project settings.",
@@ -7705,7 +7705,8 @@
       "autosaveSaving": "Saving draft…",
       "autosaveSaved": "Draft saved. Publish to apply these settings to your live site.",
       "autosaveInvalid": "Enter valid settings to save your changes.",
-      "discardUnsaved": "Discard unsaved changes"
+      "discardUnsaved": "Discard unsaved changes",
+      "removeFailedDescription": "The integration was not removed. Retry the removal or discard the unsaved changes."
     },
     "repositoryCard": {
       "private": "Private",

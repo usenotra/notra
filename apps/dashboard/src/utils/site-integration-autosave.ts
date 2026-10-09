@@ -42,6 +42,7 @@ export function createSiteIntegrationAutosave(
       }
       notify("saving");
       try {
+        // react-doctor-disable-next-line react-doctor/async-await-in-loop -- writes share a draft revision and must finish in order
         await options.save(update);
       } catch (error) {
         notify("error", error);

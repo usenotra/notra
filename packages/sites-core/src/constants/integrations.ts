@@ -16,8 +16,9 @@ export const GOOGLE_ANALYTICS_CONNECT_ORIGINS = [
 ] as const;
 
 const HOST = String.raw`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}`;
-const PORT = String.raw`(?::\d{1,5})?`;
+const PORT = String.raw`(?::(?:\d{1,4}|[0-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5]))?`;
 export const HOSTNAME = new RegExp(`^${HOST}$`);
+export const HOSTNAME_WITH_PORT = new RegExp(`^${HOST}${PORT}$`);
 export const HTTPS_BASE_URL = new RegExp(
   String.raw`^https:\/\/${HOST}${PORT}(?:\/[A-Za-z0-9._~-]+)*$`
 );

@@ -3,6 +3,7 @@ import {
   DATABUDDY_CLIENT_ID,
   GA4_MEASUREMENT_ID,
   HOSTNAME,
+  HOSTNAME_WITH_PORT,
   HTTPS_BASE_URL,
   POSTHOG_API_KEY,
 } from "@notra/sites-core/constants/integrations";
@@ -32,10 +33,13 @@ const plausibleSchema = z.strictObject({
     .string()
     .trim()
     .toLowerCase()
-    .regex(HOSTNAME, "Use a hostname without https://, e.g. plausible.acme.com")
+    .regex(
+      HOSTNAME_WITH_PORT,
+      "Use a hostname with an optional port, without https://, e.g. plausible.acme.com:8443"
+    )
     .optional()
     .describe(
-      "Self-hosted Plausible hostname, without https://. Omit to use plausible.io."
+      "Self-hosted Plausible hostname with an optional port, without https://. Omit to use plausible.io."
     ),
 });
 
