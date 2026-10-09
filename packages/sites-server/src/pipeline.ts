@@ -237,6 +237,7 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
         mounts: deployment.target.mounts,
         noindex: deployment.target.noindex,
         includeDrafts: deployment.kind === "preview",
+        analytics: deployment.kind === "production",
         branding: deployment.target.branding !== false,
         defaultConfig: deployment.target.defaultConfig,
       },

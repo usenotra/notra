@@ -48,6 +48,7 @@ test.each([
 });
 
 test.each([
+  "blog.json",
   "src/server.js",
   "src/style.CSS",
   "header.mdx",

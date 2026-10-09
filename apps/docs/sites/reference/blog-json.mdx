@@ -189,15 +189,19 @@ Names start with a letter and use letters, digits, `_` and `-`, up to 40 charact
 
 ## Integrations
 
-See [Analytics and scripts](/sites/analytics-and-scripts#analytics-integrations).
+For step-by-step setup in the dashboard or repository, see [Analytics and scripts](/sites/analytics-and-scripts#analytics-integrations). Provider scripts run on the live production site only, after you publish and deploy the configuration. Drafts, previews and local development do not activate them.
 
 | Setting | Format |
 | --- | --- |
-| `integrations.databuddy.clientId` | 8 to 64 letters, digits, `_` or `-` |
+| `integrations.ga4.measurementId` | Public Google Analytics 4 web stream Measurement ID, starting with `G-`, like `G-ABC123XYZ9` |
 | `integrations.plausible.domain` | Your domain as added in Plausible, like `acme.com` |
+| `integrations.plausible.server` | Optional self-hosted server hostname with an optional port, like `plausible.acme.com:8443`, without a protocol or path. Defaults to `plausible.io`; requests use HTTPS |
 | `integrations.posthog.apiKey` | Starts with `phc_` |
 | `integrations.posthog.apiHost` | An `https://` URL, with the default `https://us.i.posthog.com` |
-| `integrations.ga4.measurementId` | Like `G-ABC123XYZ9` |
+| `integrations.posthog.sessionRecording` | Boolean, defaults to `true`. Set to `false` to disable recording while keeping analytics |
+| `integrations.umami.websiteId` | Public Website ID as a UUID from Umami's Tracking code |
+| `integrations.umami.scriptUrl` | Optional full HTTPS script URL. Defaults to `https://cloud.umami.is/script.js`; supports self-hosted script paths and ports |
+| `integrations.umami.hostUrl` | Optional HTTPS collection base URL, corresponding to `data-host-url`. Leave empty unless events should go to a different endpoint |
 
 ## Security
 

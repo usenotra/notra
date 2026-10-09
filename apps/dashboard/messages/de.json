@@ -7251,6 +7251,7 @@
       "messagePlaceholder": "Blogbeiträge aktualisieren",
       "mode": "Art der Veröffentlichung",
       "pullRequestDescription": "Öffnet einen Pull Request in {branch}. Er geht live, sobald er gemergt ist.",
+      "pullRequestReviewDescription": "{count, plural, one {Prüfe den gespeicherten Entwurf} other {Prüfe alle # gespeicherten Entwürfe}}, bevor du den Pull Request erstellst.",
       "directDescription": "Committet auf {branch} und geht sofort live.",
       "directDisabled": "Für diese Site ausgeschaltet. Ändere das in den Einstellungen.",
       "openPullRequest": "Pull Request öffnen",
@@ -7720,36 +7721,42 @@
     },
     "integrationsPage": {
       "title": "Integrationen",
-      "description": "Analytics für diese Site. Die Einstellungen landen in blog.json und gehen beim Veröffentlichen live.",
+      "description": "Analytics für diese Site. Gültige Einstellungen werden automatisch als blog.json-Entwurf gespeichert und beim Veröffentlichen übernommen.",
       "optional": "Optional",
-      "connect": "Verbinden",
-      "save": "Speichern",
       "remove": "Entfernen",
-      "saved": "Integration gespeichert",
       "removed": "Integration entfernt",
-      "savedDescription": "Bis du sie im Editor veröffentlichst, ist sie ein Entwurf von blog.json.",
+      "savedDescription": "Bis du sie veröffentlichst, ist sie ein Entwurf von blog.json.",
       "saveFailed": "Integration konnte nicht gespeichert werden",
       "docs": "{provider}-Doku",
       "draftDescription": "blog.json hat Änderungen, die noch nicht live sind",
       "reviewAndPublish": "Prüfen und veröffentlichen",
-      "invalidTitle": "blog.json kann nicht gelesen werden",
-      "invalidDescription": "Die Datei ist kein gültiges JSON. Korrigiere sie im Editor und komm dann zurück.",
+      "createPullRequest": "Create PR",
+      "preparePublishFailed": "Änderungen für den Pull Request konnten nicht geladen werden",
+      "noDrafts": "Es gibt keine Änderungen für einen Pull Request.",
+      "publishMessage": "Site aktualisieren",
+      "publishConflict": "Diese Entwürfe stehen im Konflikt mit Änderungen auf GitHub. Öffne den Editor, lade die Dateien neu und wende deine Änderungen erneut an.",
+      "invalidTitle": "Ungültige blog.json-Konfiguration",
+      "invalidDescription": "Das JSON oder die Integrationseinstellungen sind ungültig. Korrigiere sie im Editor und komm dann zurück.",
       "providers": {
-        "databuddy": "Datenschutzfreundliche Web-Analytics.",
         "plausible": "Leichtgewichtige Analytics ohne Cookies.",
         "posthog": "Product Analytics, Session Replay und Feature Flags.",
+        "umami": "Leichte Web-Analytics ohne Cookies.",
         "ga4": "Die Web-Analytics von Google."
       },
       "fields": {
-        "databuddy": {
-          "clientId": "Client-ID"
-        },
         "plausible": {
-          "domain": "Domain"
+          "domain": "Domain",
+          "server": "Eigener Server"
         },
         "posthog": {
           "apiKey": "Projekt-API-Key",
-          "apiHost": "API-Host"
+          "apiHost": "API-Host",
+          "sessionRecording": "Session-Aufzeichnung"
+        },
+        "umami": {
+          "websiteId": "Website-ID",
+          "scriptUrl": "Script-URL",
+          "hostUrl": "URL für Events"
         },
         "ga4": {
           "measurementId": "Mess-ID"
@@ -7757,7 +7764,39 @@
       },
       "add": "{provider} hinzufügen",
       "more": "{provider}-Optionen",
-      "edit": "Bearbeiten"
+      "edit": "Bearbeiten",
+      "configExample": "Konfiguration in blog.json",
+      "copyConfig": "Konfiguration kopieren",
+      "previewDescription": "Analytics-Integrationen laufen nur auf der Live-Site. Previews und lokale Entwicklung senden keine Events.",
+      "loadFailed": "Integrationen konnten nicht geladen werden",
+      "retry": "Erneut versuchen",
+      "openEditor": "Editor öffnen",
+      "fieldDescriptions": {
+        "plausible": {
+          "domain": "Gib die Domain ein, die du in Plausible angelegt hast, ohne https://.",
+          "server": "Gib für selbst gehostetes Plausible den Hostnamen mit optionalem Port ein (z. B. plausible.acme.com:8443), ohne https://. Leer lassen für plausible.io."
+        },
+        "posthog": {
+          "apiKey": "Kopiere den öffentlichen Projekt-API-Key aus deinen PostHog-Projekteinstellungen.",
+          "apiHost": "Leer lassen für US Cloud. Für EU Cloud nutze https://eu.i.posthog.com oder deinen eigenen HTTPS-Endpunkt.",
+          "sessionRecording": "Zeichnet Besuchersitzungen auf, wenn Aufzeichnungen für diese Domain in PostHog aktiviert sind."
+        },
+        "umami": {
+          "websiteId": "Bearbeite deine Website in Umami und kopiere data-website-id aus dem Tracking-Code.",
+          "scriptUrl": "Für Umami Cloud leer lassen. Bei Self-Hosting die vollständige HTTPS-Script-URL aus deinem Tracking-Code kopieren.",
+          "hostUrl": "Normalerweise leer. Nur setzen, wenn Events an einen anderen HTTPS-Endpunkt gehen sollen, etwa einen Reverse Proxy."
+        },
+        "ga4": {
+          "measurementId": "Öffne in Google Analytics Verwaltung → Datenstreams → deinen Webstream und kopiere die Mess-ID."
+        }
+      },
+      "close": "Schließen",
+      "autosavePending": "Warten auf Speicherung…",
+      "autosaveSaving": "Entwurf wird gespeichert…",
+      "autosaveSaved": "Entwurf gespeichert. Erstelle einen Pull Request und merge ihn, um die Änderungen live zu schalten.",
+      "autosaveInvalid": "Gib gültige Einstellungen ein, um deine Änderungen zu speichern.",
+      "discardUnsaved": "Ungespeicherte Änderungen verwerfen",
+      "removeFailedDescription": "Die Integration wurde nicht entfernt. Wiederhole das Entfernen oder verwirf die ungespeicherten Änderungen."
     },
     "repositoryCard": {
       "private": "Privat",

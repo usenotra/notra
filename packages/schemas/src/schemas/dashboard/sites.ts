@@ -1,8 +1,8 @@
-import { SITE_INTEGRATION_NAMES } from "@notra/sites-core/constants/integrations";
 import {
   SITE_PREVIEW_PASSWORD_MAX_LENGTH,
   SITE_PREVIEW_PASSWORD_MIN_LENGTH,
 } from "@notra/sites-core/constants/sites";
+import { siteIntegrationUpdateSchema } from "@notra/sites-core/schemas/site-integrations";
 import z from "zod";
 
 const organizationId = z.string().min(1);
@@ -138,10 +138,9 @@ export const publishSiteDraftsInputSchema = siteScopeInputSchema.extend({
   mode: z.enum(["direct", "pull_request"]),
 });
 
-export const saveSiteIntegrationInputSchema = siteScopeInputSchema.extend({
-  provider: z.enum(SITE_INTEGRATION_NAMES),
-  settings: z.record(z.string(), z.unknown()).nullable(),
-});
+export const saveSiteIntegrationInputSchema = siteScopeInputSchema.and(
+  siteIntegrationUpdateSchema
+);
 
 export const connectSiteRepositoryInputSchema = z.object({
   organizationId,

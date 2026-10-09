@@ -30,6 +30,12 @@ export function buildSiteContentSecurityPolicy(
   return [
     `script-src ${scriptSrc.join(" ")}`,
     `connect-src ${connectSrc.join(" ")}`,
+    ...(params.integrations.posthog &&
+    params.integrations.posthog.sessionRecording !== false
+      ? [
+          `worker-src 'self' blob: data: ${sortedUnique(scriptOrigins).join(" ")}`,
+        ]
+      : []),
     ...SITE_CSP_STATIC_DIRECTIVES,
   ].join("; ");
 }
