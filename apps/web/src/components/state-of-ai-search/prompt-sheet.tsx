@@ -76,6 +76,50 @@ function switcherItems(
 }
 
 /**
+ * Which assistant's answer is showing: the reader's pick, else the starting
+ * engine, else the first answer. Shared by the inline viewer and the drawer.
+ */
+function useSelectedAnswer(
+  report: StateOfAiSearchReport,
+  prompt: StateOfAiSearchPromptRow,
+  initialEngine?: StateOfAiSearchEngineId
+) {
+  const [engineId, setEngineId] = useState(initialEngine);
+  const response =
+    prompt.responses.find((item) => item.engine === engineId) ??
+    prompt.responses[0];
+  const engine = report.engines.find((item) => item.id === response?.engine);
+  return { response, engine, setEngineId };
+}
+
+/** The assistant tabs above an answer. */
+function AnswerSwitcher({
+  report,
+  prompt,
+  engine,
+  onChange,
+}: {
+  report: StateOfAiSearchReport;
+  prompt: StateOfAiSearchPromptRow;
+  engine: StateOfAiSearchEngine;
+  onChange: (engine: StateOfAiSearchEngineId) => void;
+}) {
+  return (
+    <PromptEngineSwitcher
+      active={engine.model}
+      compactOnMobile
+      items={switcherItems(report, prompt.responses)}
+      onChange={(model) =>
+        onChange(
+          report.engines.find((item) => item.model === model)?.id ?? engine.id
+        )
+      }
+      transition={ENGINE_PILL_TRANSITION}
+    />
+  );
+}
+
+/**
  * One engine's answer in its skin: ChatGPT and Claude in the chat thread,
  * Google's overview in the AI Overview skin.
  */
@@ -126,12 +170,7 @@ export function AnswerViewer({
   report: StateOfAiSearchReport;
   prompt: StateOfAiSearchPromptRow;
 }) {
-  // The reader's pick; until then the first assistant's answer shows.
-  const [engineId, setEngineId] = useState<string>();
-  const response =
-    prompt.responses.find((item) => item.engine === engineId) ??
-    prompt.responses[0];
-  const engine = report.engines.find((item) => item.id === response?.engine);
+  const { response, engine, setEngineId } = useSelectedAnswer(report, prompt);
   if (!response || !engine) {
     return null;
   }
@@ -139,17 +178,11 @@ export function AnswerViewer({
     <ReportPanel
       bodyClassName="flex h-[min(40rem,70vh)] flex-none flex-col overflow-hidden"
       header={
-        <PromptEngineSwitcher
-          active={engine.model}
-          compactOnMobile
-          items={switcherItems(report, prompt.responses)}
-          transition={ENGINE_PILL_TRANSITION}
-          onChange={(model) =>
-            setEngineId(
-              report.engines.find((item) => item.model === model)?.id ??
-                response.engine
-            )
-          }
+        <AnswerSwitcher
+          engine={engine}
+          onChange={setEngineId}
+          prompt={prompt}
+          report={report}
         />
       }
     >
@@ -349,15 +382,13 @@ function PromptSheetBody({
   depth: number;
   initialEngine?: StateOfAiSearchEngineId;
 }) {
-  const [engineId, setEngineId] = useState<StateOfAiSearchEngineId | undefined>(
-    initialEngine ?? prompt.responses[0]?.engine
+  const { response, engine, setEngineId } = useSelectedAnswer(
+    report,
+    prompt,
+    initialEngine
   );
   const [view, setView] = useState<PromptSheetView>("analysis");
   const [brand, setBrand] = useState<StateOfAiSearchRankingRow | null>(null);
-  const response =
-    prompt.responses.find((item) => item.engine === engineId) ??
-    prompt.responses[0];
-  const engine = report.engines.find((item) => item.id === response?.engine);
   const canStack = depth < MAX_SHEET_DEPTH;
 
   return (
@@ -388,17 +419,11 @@ function PromptSheetBody({
         </div>
         {engine && response ? (
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-            <PromptEngineSwitcher
-              active={engine.model}
-              compactOnMobile
-              items={switcherItems(report, prompt.responses)}
-              transition={ENGINE_PILL_TRANSITION}
-              onChange={(model) => {
-                setEngineId(
-                  report.engines.find((item) => item.model === model)?.id ??
-                    response.engine
-                );
-              }}
+            <AnswerSwitcher
+              engine={engine}
+              onChange={setEngineId}
+              prompt={prompt}
+              report={report}
             />
             <PermissionRow
               className="w-fit shrink-0"
