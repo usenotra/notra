@@ -9,6 +9,7 @@ import { IntlProvider } from "use-intl";
 import messages from "../messages/en.json";
 import type { SiteDeploymentStatus } from "../src/types/sites";
 import { buildSiteBuildAgentPrompt } from "../src/utils/site-build-agent-prompt";
+import { findMatches, parseBuildLog } from "../src/utils/site-build-log";
 
 if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
   test("creation deployment log surface", () => {
@@ -82,6 +83,8 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
   }));
   const { SiteBuildLogs } =
     await import("../src/components/sites/site-build-logs");
+  const { SiteBuildLogRows } =
+    await import("../src/components/sites/site-build-log-rows");
   const { SiteCreateDeploy } =
     await import("../src/components/sites/site-create-deploy");
 
@@ -295,6 +298,33 @@ if (!process.env.NOTRA_DEPLOY_SURFACE_TEST_WORKER) {
       expect(prompt).toContain(text);
     }
     expect(prompt).not.toContain("\u001b");
+  });
+
+  test.each([
+    ["✘ blog/example.mdx", "✘"],
+    ["✘ blog/example.mdx", "✘ blog"],
+    ["× blog/example.mdx", "× blog"],
+    ["[error] Failed build", "[error]"],
+    ["[error] Failed build", "[error] Failed"],
+  ])("log searches retain and highlight %s matching %s", (log, query) => {
+    const lines = parseBuildLog(log);
+    const matchingLines = lines.filter(
+      (line) => findMatches(line.text, query).length > 0
+    );
+    expect(matchingLines).toHaveLength(1);
+    const html = renderToStaticMarkup(
+      <IntlProvider locale="en" messages={messages} timeZone="UTC">
+        <SiteBuildLogRows
+          entries={[]}
+          matchingLines={matchingLines}
+          offsets={new Map()}
+          query={query}
+        />
+      </IntlProvider>
+    );
+    expect(
+      [...html.matchAll(/<mark[^>]*>(.*?)<\/mark>/g)].map((match) => match[1])
+    ).toContain(query);
   });
 
   test("a missing build result produces a usable prompt without inventing logs", () => {

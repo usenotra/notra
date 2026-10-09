@@ -40,7 +40,7 @@ function Highlighted({ text, query }: SiteBuildLogHighlightProps) {
 }
 
 function LineText({ line, query }: SiteBuildLogLineTextProps) {
-  if (line.continued) {
+  if (line.continued || query) {
     return <Highlighted query={query} text={line.text} />;
   }
   const text = line.text.replace(LOG_STATUS_PREFIX, "");

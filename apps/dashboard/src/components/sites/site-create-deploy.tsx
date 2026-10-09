@@ -160,46 +160,52 @@ export function SiteCreateDeploy({
       {ready || failed ? (
         <div className="animate-in fade-in motion-safe:slide-in-from-bottom-1 flex flex-wrap items-center justify-end gap-2 duration-300">
           {failed ? (
-            <CopyPromptButton
-              className="me-auto"
-              prompt={buildSiteBuildAgentPrompt({
-                site,
-                deployment: record,
-                log: deployment.data?.log ?? null,
-              })}
-            />
-          ) : null}
-          {failed ? (
-            <Link
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-              href={
-                deploymentId
-                  ? siteDeploymentHref(organizationSlug, site.id, deploymentId)
-                  : siteHref(organizationSlug, site.id, "deployments")
-              }
-            >
-              {t("viewDeployment")}
-            </Link>
-          ) : null}
-          {ready ? (
-            <a
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-              href={site.liveUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {t("visit")}
-              <HugeiconsIcon data-icon="inline-end" icon={ArrowUpRight01Icon} />
-            </a>
-          ) : null}
-          {ready ? (
-            <Link
-              className={buttonVariants({ size: "sm" })}
-              href={siteHref(organizationSlug, site.id)}
-            >
-              {t("openSite")}
-            </Link>
-          ) : null}
+            <>
+              <CopyPromptButton
+                className="me-auto"
+                prompt={buildSiteBuildAgentPrompt({
+                  site,
+                  deployment: record,
+                  log: deployment.data?.log ?? null,
+                })}
+              />
+              <Link
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href={
+                  deploymentId
+                    ? siteDeploymentHref(
+                        organizationSlug,
+                        site.id,
+                        deploymentId
+                      )
+                    : siteHref(organizationSlug, site.id, "deployments")
+                }
+              >
+                {t("viewDeployment")}
+              </Link>
+            </>
+          ) : (
+            <>
+              <a
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href={site.liveUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t("visit")}
+                <HugeiconsIcon
+                  data-icon="inline-end"
+                  icon={ArrowUpRight01Icon}
+                />
+              </a>
+              <Link
+                className={buttonVariants({ size: "sm" })}
+                href={siteHref(organizationSlug, site.id)}
+              >
+                {t("openSite")}
+              </Link>
+            </>
+          )}
         </div>
       ) : null}
     </div>
