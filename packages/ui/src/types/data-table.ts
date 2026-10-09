@@ -62,6 +62,8 @@ interface DataTablePaginationBase {
   onPageSizeChange?: (pageSize: number) => void;
   /** Page sizes offered in the footer select. */
   pageSizeOptions?: readonly number[];
+  /** Set false to hide the page size select, e.g. on fixed-height public tables. */
+  pageSizeSelector?: boolean;
 }
 
 /** Every row is loaded; the table slices `data` after sorting. */

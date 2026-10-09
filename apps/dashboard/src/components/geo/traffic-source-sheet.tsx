@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
@@ -29,7 +30,6 @@ import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-ic
 import { TOP_PAGES_LIMIT } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
 import type {
   GeoTrafficGroupPage,

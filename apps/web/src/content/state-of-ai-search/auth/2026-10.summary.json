@@ -1,0 +1,132 @@
+{
+  "slug": "auth",
+  "edition": "2026-10",
+  "editionLabel": "October 2026",
+  "publishedAt": "2026-10-08",
+  "subject": "Auth",
+  "noun": "auth provider",
+  "engines": [
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "model": "openai/gpt-5.6-sol",
+      "answers": 200,
+      "brandsPerAnswer": 4.1,
+      "sourcesPerAnswer": 16.5
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "model": "anthropic/claude-opus-5.5",
+      "answers": 200,
+      "brandsPerAnswer": 7.5,
+      "sourcesPerAnswer": 9
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "model": "google/gemini-3.8-flash",
+      "answers": 200,
+      "brandsPerAnswer": 6.3,
+      "sourcesPerAnswer": 4.4
+    },
+    {
+      "id": "perplexity",
+      "label": "Perplexity",
+      "model": "perplexity/sonar",
+      "answers": 200,
+      "brandsPerAnswer": 2.6,
+      "sourcesPerAnswer": 15
+    },
+    {
+      "id": "ai-overview",
+      "label": "AI Overview",
+      "model": "google/ai-overview",
+      "answers": 17,
+      "brandsPerAnswer": 4.2,
+      "sourcesPerAnswer": 7.7
+    }
+  ],
+  "leaders": [
+    {
+      "name": "Clerk",
+      "domain": "clerk.com",
+      "rank": 1,
+      "visibility": 73,
+      "topPick": 29,
+      "ownSiteCited": 35,
+      "byEngine": {
+        "chatgpt": 74,
+        "claude": 90,
+        "gemini": 85,
+        "perplexity": 62,
+        "ai-overview": 53
+      },
+      "delta": null
+    },
+    {
+      "name": "Auth0",
+      "domain": "auth0.com",
+      "rank": 2,
+      "visibility": 72,
+      "topPick": 16,
+      "ownSiteCited": 27,
+      "byEngine": {
+        "chatgpt": 67,
+        "claude": 89,
+        "gemini": 80,
+        "perplexity": 56,
+        "ai-overview": 71
+      },
+      "delta": null
+    },
+    {
+      "name": "WorkOS",
+      "domain": "workos.com",
+      "rank": 3,
+      "visibility": 54,
+      "topPick": 14,
+      "ownSiteCited": 30,
+      "byEngine": {
+        "chatgpt": 60,
+        "claude": 70,
+        "gemini": 60,
+        "perplexity": 35,
+        "ai-overview": 47
+      },
+      "delta": null
+    },
+    {
+      "name": "Supabase Auth",
+      "domain": "supabase.com",
+      "rank": 4,
+      "visibility": 50,
+      "topPick": 10,
+      "ownSiteCited": 14,
+      "byEngine": {
+        "chatgpt": 45,
+        "claude": 68,
+        "gemini": 68,
+        "perplexity": 37,
+        "ai-overview": 35
+      },
+      "delta": null
+    },
+    {
+      "name": "Firebase Authentication",
+      "domain": "firebase.google.com",
+      "rank": 5,
+      "visibility": 44,
+      "topPick": 6,
+      "ownSiteCited": 10,
+      "byEngine": {
+        "chatgpt": 38,
+        "claude": 65,
+        "gemini": 53,
+        "perplexity": 28,
+        "ai-overview": 35
+      },
+      "delta": null
+    }
+  ]
+}

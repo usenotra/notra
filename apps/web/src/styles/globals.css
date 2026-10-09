@@ -4,6 +4,7 @@
 @import "@c15t/react/styles.css";
 @import "@fontsource-variable/inter";
 @import "@fontsource/instrument-serif/400.css";
+@import "../../../../packages/ui/src/styles/ai-overview.css";
 @import "../../../../packages/ui/src/styles/cta-button.css";
 @import "../../../../packages/ui/src/styles/motion.css";
 @import "../../../../packages/ui/src/styles/skeleton-shimmer.css";
@@ -45,6 +46,11 @@
   --destructive: hsl(0 84.2% 60.2%);
   --destructive-foreground: hsl(0 0% 98%);
   --border: hsl(0 0% 89.8%);
+  /* Dualtone shell around tables and panels, shared with @notra/ui. */
+  --shell: hsl(240 6% 94.5%);
+  --shell-border: hsl(240 5% 87%);
+  --surface-lift:
+    0 1px 2px hsl(240 10% 10% / 0.06), 0 2px 8px -2px hsl(240 10% 10% / 0.06);
   --input: hsl(0 0% 89.8%);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -89,6 +95,10 @@
   --destructive: hsl(358 100% 50%);
   --destructive-foreground: hsl(0 0% 99%);
   --border: hsl(0 1% 17%);
+  --shell: hsl(240 6% 11%);
+  --shell-border: hsl(0 1% 17%);
+  --surface-lift:
+    inset 0 1px 0 hsl(0 0% 100% / 0.04), 0 1px 2px hsl(0 0% 0% / 0.4);
   --input: hsl(240 4% 20%);
   --ring: oklch(0.6056 0.2189 292.7172);
   --chart-1: oklch(0.709 0.1592 293.5412);
@@ -156,6 +166,9 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-shell: var(--shell);
+  --color-shell-border: var(--shell-border);
+  --shadow-lift: var(--surface-lift);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
