@@ -1,5 +1,3 @@
-export const GOOGLE_FONTS = "https://fonts.googleapis.com/css2";
-
 export const BASE_LAYOUT_WIDTH_REM = 72;
 
 export const LAYOUT_CONTAINERS_REM = {

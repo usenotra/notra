@@ -1,11 +1,10 @@
 import {
   BASE_LAYOUT_WIDTH_REM,
-  GOOGLE_FONTS,
   LAYOUT_CONTAINERS_REM,
 } from "../constants/theme";
-import type { FontFace } from "../types/theme";
 import { readableOn } from "../utils/color";
-import { assetUrl, config } from "./params";
+import { declaredFonts } from "../utils/theme-fonts";
+import { assetUrl, config, params } from "./params";
 
 function fontStack(family: string | undefined, fallback: string): string {
   return family ? `"${family}", ${fallback}` : fallback;
@@ -66,27 +65,8 @@ function layoutWidths(): string[] {
   );
 }
 
-function declaredFonts(): FontFace[] {
-  const fonts = config.fonts;
-  if (!fonts) {
-    return [];
-  }
-  const all: FontFace[] = [];
-  for (const spec of [fonts, fonts.body, fonts.heading]) {
-    if (spec?.family && !all.some((font) => font.family === spec.family)) {
-      all.push({
-        family: spec.family,
-        weight: spec.weight,
-        source: spec.source,
-        format: spec.format,
-      });
-    }
-  }
-  return all;
-}
-
 export function fontFaces(): string {
-  return declaredFonts()
+  return declaredFonts(config.fonts)
     .filter((font) => font.source)
     .map((font) => {
       const url = assetUrl(font.source) ?? font.source;
@@ -95,18 +75,8 @@ export function fontFaces(): string {
     .join("");
 }
 
-export function googleFontsUrl(): string | null {
-  const families = declaredFonts().filter((font) => !font.source);
-  if (families.length === 0) {
-    return null;
-  }
-  const query = families
-    .map(
-      (font) =>
-        `family=${encodeURIComponent(font.family).replaceAll("%20", "+")}:wght@${font.weight ?? "300..800"}`
-    )
-    .join("&");
-  return `${GOOGLE_FONTS}?${query}&display=swap`;
+export function fontStylesheetUrl(): string | undefined {
+  return assetUrl(params.fontStylesheet);
 }
 
 export function decorationClass(): string {

@@ -8,7 +8,7 @@ export const DIAGRAM_CHECK_SCRIPT_PATH = `${DIAGRAM_SKILL_DIR}/check.mjs`;
 // Excalidraw font ids: 5 = Excalifont (hand-drawn), 6 = Nunito.
 // Nunito is used because we can load it as TTF for server-side rendering.
 export const EXCALIDRAW_FONT_FAMILY_NUNITO = 6;
-export const DIAGRAM_FONT_GOOGLE_FAMILY = "Nunito";
+export const DIAGRAM_FONT_FAMILY = "Nunito";
 export const DIAGRAM_LINE_HEIGHT = 1.25;
 
 export const DIAGRAM_DEFAULT_STROKE = "#1e1e1e";

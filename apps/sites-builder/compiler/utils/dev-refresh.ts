@@ -69,6 +69,7 @@ export function createDevRefresh(options: DevRefreshOptions) {
     const params = {
       ...options.params,
       config,
+      fontStylesheet: prepared.fontStylesheet,
       hasReactComponents: hasReactComponents(prepared.validation.outputs),
       publicFiles: [
         ...new Set([

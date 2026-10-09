@@ -2,7 +2,7 @@ import {
   DIAGRAM_ARROWHEAD_ANGLE_DEG,
   DIAGRAM_ARROWHEAD_LENGTH,
   DIAGRAM_CANVAS_PADDING,
-  DIAGRAM_FONT_GOOGLE_FAMILY,
+  DIAGRAM_FONT_FAMILY,
   DIAGRAM_LINE_HEIGHT,
   DIAGRAM_ROUNDED_CORNER_RADIUS,
   DIAGRAM_ROUNDED_CORNER_RATIO,
@@ -26,7 +26,7 @@ import {
   buildExcalidrawScene,
   rotatedBox,
 } from "@notra/ai/utils/excalidraw-diagram";
-import { loadGoogleFont } from "@notra/ai/utils/repo-image-render";
+import { loadRenderFont } from "@notra/ai/utils/render-font";
 import { Resvg } from "@resvg/resvg-js";
 // biome-ignore lint/performance/noNamespaceImport: opentype.js is UMD; see parseFont
 import * as opentype from "opentype.js";
@@ -51,7 +51,7 @@ const parseFont: typeof opentype.parse =
 let fontPromise: Promise<Font> | null = null;
 
 function loadDiagramFont(): Promise<Font> {
-  fontPromise ??= loadGoogleFont(DIAGRAM_FONT_GOOGLE_FAMILY)
+  fontPromise ??= loadRenderFont(DIAGRAM_FONT_FAMILY)
     .then((buffer) => parseFont(buffer))
     .catch((error: unknown) => {
       fontPromise = null;
