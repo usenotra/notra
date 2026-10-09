@@ -31,6 +31,7 @@ const PROMPT_BRANDS_LISTED = 4;
 /** Brands that get a "What the assistants say" entry. */
 const QUOTED_BRANDS = 5;
 
+const BACKSLASH_REGEX = /\\/g;
 const TABLE_PIPE_REGEX = /\|/g;
 const LINE_BREAK_REGEX = /\s*\n\s*/g;
 
@@ -39,9 +40,12 @@ interface Column {
   align?: "left" | "right";
 }
 
-/** Cell text that cannot break the row: no pipes, no line breaks. */
+/** Cell text that cannot break the row: no pipes, no line breaks, no stray escapes. */
 function cell(value: string): string {
-  return value.replace(LINE_BREAK_REGEX, " ").replace(TABLE_PIPE_REGEX, "\\|");
+  return value
+    .replace(LINE_BREAK_REGEX, " ")
+    .replace(BACKSLASH_REGEX, "\\\\")
+    .replace(TABLE_PIPE_REGEX, "\\|");
 }
 
 function table(columns: Column[], rows: string[][]): string {
