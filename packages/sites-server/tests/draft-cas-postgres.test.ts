@@ -338,6 +338,10 @@ if (!databaseUrl) {
   test("all providers round-trip through real drafts and publish the exact normalized blog.json", async () => {
     const updates = [
       {
+        provider: "ga4",
+        settings: { measurementId: " G-ABC123XYZ9 " },
+      },
+      {
         provider: "umami",
         settings: { websiteId: " 94db1cb1-74f4-4a40-ad6c-962362670409 " },
       },
@@ -365,6 +369,7 @@ if (!databaseUrl) {
     const state = await readSiteIntegrations(site);
     expect(state.invalid).toBe(false);
     expect(state.integrations).toEqual({
+      ga4: { measurementId: "G-ABC123XYZ9" },
       umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
       plausible: { domain: "docs.example.test", server: "stats.example.test" },
       posthog: {
@@ -374,7 +379,7 @@ if (!databaseUrl) {
       },
     });
     const [draft] = await editor.listSiteDrafts(site.id);
-    expect(draft?.revision).toBe(2);
+    expect(draft?.revision).toBe(3);
     expect(JSON.parse(draft?.content ?? "{}").name).toBe("Published");
     await publishSiteDrafts(site, {
       mode: "direct",

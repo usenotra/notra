@@ -1,6 +1,14 @@
 export const UMAMI_SCRIPT_URL = "https://cloud.umami.is/script.js";
 export const UMAMI_CONNECT_ORIGIN = "https://gateway.umami.is";
 
+export const GOOGLE_TAG_ORIGIN = "https://www.googletagmanager.com";
+export const GOOGLE_ANALYTICS_CONNECT_ORIGINS = [
+  GOOGLE_TAG_ORIGIN,
+  "https://*.google-analytics.com",
+  "https://*.google.com",
+] as const;
+export const GA4_MEASUREMENT_ID = /^G-[A-Z0-9]{4,16}$/;
+
 export const PLAUSIBLE_SCRIPT_URL = "https://plausible.io/js/script.js";
 
 export const POSTHOG_DEFAULT_API_HOST = "https://us.i.posthog.com";

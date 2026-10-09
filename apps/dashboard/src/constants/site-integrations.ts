@@ -1,3 +1,4 @@
+import { GoogleAnalytics } from "@notra/ui/components/ui/svgs/googleAnalytics";
 import { Plausible } from "@notra/ui/components/ui/svgs/plausible";
 import { PostHog } from "@notra/ui/components/ui/svgs/posthog";
 import { Umami } from "@notra/ui/components/ui/svgs/umami";
@@ -15,6 +16,13 @@ export const SITE_INTEGRATION_AUTOSAVE_MESSAGES = {
 } as const;
 
 export const SITE_INTEGRATION_PROVIDERS: readonly SiteIntegrationProvider[] = [
+  {
+    id: "ga4",
+    name: "Google Analytics 4",
+    logo: GoogleAnalytics,
+    docsUrl: "https://support.google.com/analytics/answer/9539598",
+    fields: [{ key: "measurementId", placeholder: "G-XXXXXXXXXX" }],
+  },
   {
     id: "plausible",
     name: "Plausible",

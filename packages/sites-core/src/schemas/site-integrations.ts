@@ -1,5 +1,6 @@
 import {
   CSP_ORIGIN,
+  GA4_MEASUREMENT_ID,
   HOSTNAME,
   HOSTNAME_WITH_PORT,
   HTTPS_BASE_URL,
@@ -8,6 +9,16 @@ import {
 } from "@notra/sites-core/constants/integrations";
 import { SITE_CSP_MAX_ALLOWED_ORIGINS } from "@notra/sites-core/constants/security";
 import { z } from "zod";
+
+const ga4Schema = z.strictObject({
+  measurementId: z
+    .string({ error: "Use the measurement ID (G-…)" })
+    .trim()
+    .regex(GA4_MEASUREMENT_ID, "Use the measurement ID (G-…)")
+    .describe(
+      "Google Analytics 4 web stream Measurement ID (G-…). Find it in Admin > Data streams > your web stream."
+    ),
+});
 
 const plausibleSchema = z.strictObject({
   domain: z
@@ -88,12 +99,14 @@ const umamiSchema = z.strictObject({
 });
 
 export const siteIntegrationSchemas = {
+  ga4: ga4Schema,
   plausible: plausibleSchema,
   posthog: posthogSchema,
   umami: umamiSchema,
 };
 
 export const siteIntegrationUpdateSchema = z.discriminatedUnion("provider", [
+  z.object({ provider: z.literal("ga4"), settings: ga4Schema.nullable() }),
   z.object({
     provider: z.literal("umami"),
     settings: umamiSchema.nullable(),
@@ -110,6 +123,7 @@ export const siteIntegrationUpdateSchema = z.discriminatedUnion("provider", [
 
 export const siteIntegrationsSchema = z
   .strictObject({
+    ga4: ga4Schema.optional(),
     plausible: plausibleSchema.optional(),
     posthog: posthogSchema.optional(),
     umami: umamiSchema.optional(),

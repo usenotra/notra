@@ -32,7 +32,7 @@ Set up a provider in the dashboard or add it under `integrations` in `blog.json`
 
 <Steps>
   <Step title="Copy your provider's ID">
-    Create or select your site in the analytics provider. Copy the public project API key for PostHog, site domain for Plausible or Website ID for Umami. The provider examples below show where to find each value.
+    Create or select your site in the analytics provider. Copy the Measurement ID for Google Analytics 4, public project API key for PostHog, site domain for Plausible or Website ID for Umami. The provider examples below show where to find each value.
   </Step>
   <Step title="Enter the settings">
     In Notra, open **Studio → Sites**, select your site and open **Integrations**. Click **Add** next to the provider and paste its ID into the matching field. For example, click **Add Umami** and enter the ID from `data-website-id` in **Website ID**. For Umami Cloud, leave the optional URL fields empty.
@@ -64,6 +64,26 @@ To change a provider, open its options menu and choose **Edit**. **Remove** upda
 Use one of the examples below in `blog.json` at the root of your [site folder](/sites/repository). Replace the example values with your provider's settings. If the file already exists, add the provider to its existing `integrations` object and keep your other settings.
 
 The `$schema` line enables autocomplete and validation in your editor. Commit the file to your production branch, or open a PR and merge it into that branch. Notra activates the provider after the production deployment succeeds. You do not need to add a script tag or install an SDK.
+
+### Google Analytics 4
+
+In Google Analytics, open **Admin → Data streams**, select your web stream and copy its **Measurement ID**. It starts with `G-`. Enter it in **Measurement ID** in Notra, or use it below. This is the public web stream ID, not an API secret or a Universal Analytics `UA-` ID. See [Google's Measurement ID guide](https://support.google.com/analytics/answer/9539598).
+
+```json blog.json
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "Acme",
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-ABC123XYZ9"
+    }
+  }
+}
+```
+
+Notra loads Google's `gtag.js`, initializes the data layer and configures your Measurement ID on every live page. You do not need to add another Google tag or install an SDK. The integration adds the script and collection origins needed for analytics to the CSP automatically.
+
+Publish and deploy the configuration, then verify the live site with [Google Tag Assistant](https://tagassistant.google.com/) and check incoming events in your GA4 property. Provider scripts do not load on PR previews or during local development.
 
 ### PostHog
 

@@ -7653,7 +7653,8 @@
       "providers": {
         "plausible": "Lightweight, cookie-free analytics.",
         "posthog": "Product analytics, session replay and feature flags.",
-        "umami": "Lightweight, cookie-free web analytics."
+        "umami": "Lightweight, cookie-free web analytics.",
+        "ga4": "Google's web analytics."
       },
       "fields": {
         "plausible": {
@@ -7669,6 +7670,9 @@
           "websiteId": "Website ID",
           "scriptUrl": "Script URL",
           "hostUrl": "Collection URL"
+        },
+        "ga4": {
+          "measurementId": "Measurement ID"
         }
       },
       "add": "Add {provider}",
@@ -7694,6 +7698,9 @@
           "websiteId": "In Umami, edit your website and copy data-website-id from Tracking code.",
           "scriptUrl": "Leave empty for Umami Cloud. For self-hosting, copy the full HTTPS script URL from your tracking code.",
           "hostUrl": "Usually empty. Set an HTTPS base URL only when events should go to a different endpoint, such as a reverse proxy."
+        },
+        "ga4": {
+          "measurementId": "In Google Analytics, open Admin → Data streams → your web stream and copy the Measurement ID."
         }
       },
       "close": "Close",

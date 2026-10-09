@@ -1015,6 +1015,18 @@
       "description": "Analytics providers for the live site. Notra installs their scripts automatically. Preview deployments and local development do not send provider events.",
       "type": "object",
       "properties": {
+        "ga4": {
+          "type": "object",
+          "properties": {
+            "measurementId": {
+              "type": "string",
+              "pattern": "^G-[A-Z0-9]{4,16}$",
+              "description": "Google Analytics 4 web stream Measurement ID (G-…). Find it in Admin > Data streams > your web stream."
+            }
+          },
+          "required": ["measurementId"],
+          "additionalProperties": false
+        },
         "plausible": {
           "type": "object",
           "properties": {

@@ -72,6 +72,7 @@ describe("integrations schema", () => {
   test("accepts every preset in its documented shape", () => {
     const result = parse({
       integrations: {
+        ga4: { measurementId: " G-ABC123XYZ9 " },
         plausible: { domain: "Acme.com", server: "Plausible.Acme.com" },
         posthog: {
           apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
@@ -86,6 +87,7 @@ describe("integrations schema", () => {
       },
     });
     expect(result.success).toBe(true);
+    expect(result.data?.integrations.ga4?.measurementId).toBe("G-ABC123XYZ9");
     expect(result.data?.integrations.plausible?.domain).toBe("acme.com");
     expect(result.data?.integrations.plausible?.server).toBe(
       "plausible.acme.com"
@@ -128,7 +130,7 @@ describe("integrations schema", () => {
         },
       }).success
     ).toBe(false);
-    for (const provider of ["umami", "posthog", "plausible"] as const) {
+    for (const provider of ["ga4", "umami", "posthog", "plausible"] as const) {
       expect(
         siteIntegrationUpdateSchema.parse({ provider, settings: null })
       ).toEqual({ provider, settings: null });
@@ -163,7 +165,7 @@ describe("integrations schema", () => {
   });
 
   test("removed provider names are rejected in configs and API updates", () => {
-    for (const provider of ["ga4", "databuddy"]) {
+    for (const provider of ["databuddy"]) {
       expect(parse({ integrations: { [provider]: {} } }).success).toBe(false);
       expect(
         siteIntegrationUpdateSchema.safeParse({ provider, settings: null })
@@ -171,6 +173,21 @@ describe("integrations schema", () => {
       ).toBe(false);
     }
   });
+
+  test.each(["UA-123456-1", "GT-ABC123", "G-", "G-ABC<123", "G-ABC123?x=y"])(
+    "rejects invalid GA4 measurement IDs: %s",
+    (measurementId) => {
+      expect(issuePaths({ integrations: { ga4: { measurementId } } })).toEqual([
+        "integrations.ga4.measurementId",
+      ]);
+      expect(
+        siteIntegrationUpdateSchema.safeParse({
+          provider: "ga4",
+          settings: { measurementId },
+        }).success
+      ).toBe(false);
+    }
+  );
 
   test.each([
     "https://stats.acme.com",
@@ -238,6 +255,46 @@ describe("integrations schema", () => {
 });
 
 describe("head scripts", () => {
+  test("GA4 preserves an existing queue and configures exactly one page view", () => {
+    const scripts = integrationHeadScripts({
+      ga4: { measurementId: "G-ABC123XYZ9" },
+    });
+    expect(scripts[0]).toEqual({
+      kind: "external",
+      src: "https://www.googletagmanager.com/gtag/js?id=G-ABC123XYZ9",
+      attributes: { async: true },
+    });
+    for (const existing of [undefined, [["existing-event"]]]) {
+      const window = { dataLayer: existing };
+      for (const script of scripts) {
+        if (script.kind === "inline") {
+          new Script(script.code).runInNewContext({
+            window,
+            Date,
+            get dataLayer() {
+              return window.dataLayer;
+            },
+          });
+        }
+      }
+      expect(window.dataLayer?.map((args) => Array.from(args))).toEqual([
+        ...(existing ? [["existing-event"]] : []),
+        ["js", expect.any(Date)],
+        ["config", "G-ABC123XYZ9"],
+      ]);
+    }
+    expect(
+      integrationCspSources({ ga4: { measurementId: "G-ABC123XYZ9" } })
+    ).toEqual({
+      scriptSrc: ["https://www.googletagmanager.com"],
+      connectSrc: [
+        "https://www.googletagmanager.com",
+        "https://*.google-analytics.com",
+        "https://*.google.com",
+      ],
+    });
+  });
+
   test("Umami Cloud uses its public Website ID and permits the collection gateway", () => {
     const integrations = {
       umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },

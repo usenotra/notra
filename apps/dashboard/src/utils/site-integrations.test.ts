@@ -12,6 +12,7 @@ import {
 
 test("every dashboard provider submits the same shape accepted by the API", () => {
   const settings = {
+    ga4: { measurementId: "G-ABC123XYZ9" },
     umami: {
       websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
       scriptUrl: "https://stats.acme.com/script.js",
@@ -126,8 +127,26 @@ test("Umami Cloud needs only a Website ID and invalid inputs cannot autosave", (
     hostUrl: expect.any(String),
   });
   expect(SITE_INTEGRATION_PROVIDERS.map((entry) => entry.id).sort()).toEqual([
+    "ga4",
     "plausible",
     "posthog",
     "umami",
   ]);
+});
+
+test("GA4 requires a web stream Measurement ID and reports errors on that field", () => {
+  const provider = SITE_INTEGRATION_PROVIDERS.find(
+    (entry) => entry.id === "ga4"
+  );
+  if (!provider) {
+    throw new Error("Missing GA4 provider");
+  }
+  expect(
+    siteIntegrationSettingsFromValues(provider, {
+      measurementId: " G-ABC123XYZ9 ",
+    })
+  ).toEqual({ measurementId: "G-ABC123XYZ9" });
+  expect(
+    siteIntegrationFieldErrors(provider, { measurementId: "UA-123456-1" })
+  ).toHaveProperty("measurementId");
 });

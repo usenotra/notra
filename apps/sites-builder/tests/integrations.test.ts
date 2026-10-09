@@ -20,6 +20,7 @@ test("real live builds include every provider while previews omit them and their
       JSON.stringify({
         name: "Acme",
         integrations: {
+          ga4: { measurementId: "G-ABC123XYZ9" },
           umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
           plausible: { domain: "acme.com", server: "stats.acme.com:8443" },
           posthog: {
@@ -72,7 +73,10 @@ test("real live builds include every provider while previews omit them and their
           enabled
         );
         expect(html.includes("cloud.umami.is/script.js")).toBe(enabled);
-        expect(html).not.toContain("googletagmanager");
+        expect(
+          html.includes("www.googletagmanager.com/gtag/js?id=G-ABC123XYZ9")
+        ).toBe(enabled);
+        expect(html.includes('gtag("config","G-ABC123XYZ9")')).toBe(enabled);
         expect(html).not.toContain("databuddy");
         expect(html.includes("stats.acme.com:8443/js/script.js")).toBe(enabled);
         expect(html.includes("posthog.init(")).toBe(enabled);
@@ -97,6 +101,11 @@ test("real live builds include every provider while previews omit them and their
           ?.split(" ")
           .slice(1) ?? [];
       expect(
+        scriptSources.some(
+          (source) => source === "https://www.googletagmanager.com"
+        )
+      ).toBe(enabled);
+      expect(
         scriptSources.some((source) => source === "https://stats.acme.com:8443")
       ).toBe(enabled);
       expect(
@@ -111,6 +120,15 @@ test("real live builds include every provider while previews omit them and their
       expect(
         connectSources.some((source) => source === "https://gateway.umami.is")
       ).toBe(enabled);
+      for (const origin of [
+        "https://www.googletagmanager.com",
+        "https://*.google-analytics.com",
+        "https://*.google.com",
+      ]) {
+        expect(connectSources.some((source) => source === origin)).toBe(
+          enabled
+        );
+      }
       expect(result.contentSecurityPolicy).not.toContain("'unsafe-inline'");
       expect(result.contentSecurityPolicy).toContain("'sha256-");
       expect(

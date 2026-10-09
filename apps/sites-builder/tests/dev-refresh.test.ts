@@ -160,6 +160,7 @@ test("local development never loads analytics providers after startup or config 
     }
     config.integrations = {
       umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
+      ga4: { measurementId: "G-ABC123XYZ9" },
     };
     await owner.refresh();
     config.integrations = {

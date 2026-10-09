@@ -83,7 +83,7 @@ export function SiteIntegrationsPage() {
         </Alert>
       ) : null}
 
-      <div className="grid gap-x-6 gap-y-1 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-1 lg:grid-cols-2">
         {query.isPending
           ? SITE_INTEGRATION_PROVIDERS.map((provider) => (
               <div className="flex items-center gap-4 p-3" key={provider.id}>

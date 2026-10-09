@@ -30,6 +30,21 @@ describe("blog.json JSON Schema", () => {
   });
 
   test.each([
+    ["G-ABC123XYZ9", true],
+    ["UA-123456-1", false],
+    ["G-", false],
+  ])(
+    "GA4 Measurement ID validation agrees with editors: %s",
+    (measurementId, valid) => {
+      const config = { name: "Acme", integrations: { ga4: { measurementId } } };
+      expect(
+        z.fromJSONSchema(buildSiteConfigJsonSchema()).safeParse(config).success
+      ).toBe(valid);
+      expect(siteConfigSchema.safeParse(config).success).toBe(valid);
+    }
+  );
+
+  test.each([
     ["https://events.acme.com", true],
     ["https://events.acme.com/", true],
     ["https://events.acme.com:8443/ingest/", true],

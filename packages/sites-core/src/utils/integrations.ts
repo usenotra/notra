@@ -1,4 +1,6 @@
 import {
+  GOOGLE_ANALYTICS_CONNECT_ORIGINS,
+  GOOGLE_TAG_ORIGIN,
   PLAUSIBLE_SCRIPT_URL,
   POSTHOG_CSP_ORIGIN,
   POSTHOG_DEFAULT_API_HOST,
@@ -23,7 +25,20 @@ export function integrationHeadScripts(
   integrations: SiteIntegrations
 ): SiteHeadScript[] {
   const scripts: SiteHeadScript[] = [];
-  const { plausible, posthog, umami } = integrations;
+  const { ga4, plausible, posthog, umami } = integrations;
+  if (ga4) {
+    scripts.push(
+      {
+        kind: "external",
+        src: `${GOOGLE_TAG_ORIGIN}/gtag/js?id=${encodeURIComponent(ga4.measurementId)}`,
+        attributes: { async: true },
+      },
+      {
+        kind: "inline",
+        code: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config",${inlineScriptLiteral(ga4.measurementId)});`,
+      }
+    );
+  }
   if (plausible) {
     scripts.push({
       kind: "external",
@@ -62,7 +77,11 @@ export function integrationCspSources(
 ): SiteCspSources {
   const scriptSrc: string[] = [];
   const connectSrc: string[] = [];
-  const { plausible, posthog, umami } = integrations;
+  const { ga4, plausible, posthog, umami } = integrations;
+  if (ga4) {
+    scriptSrc.push(GOOGLE_TAG_ORIGIN);
+    connectSrc.push(...GOOGLE_ANALYTICS_CONNECT_ORIGINS);
+  }
   if (plausible) {
     const origin = plausible.server
       ? `https://${plausible.server}`

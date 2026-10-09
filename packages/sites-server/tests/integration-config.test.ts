@@ -91,3 +91,25 @@ test("PostHog false is preserved and trailing slashes are normalized", () => {
     sessionRecording: false,
   });
 });
+
+test("GA4 can be saved, updated and removed without changing other providers", () => {
+  const initial = JSON.stringify({
+    name: "Acme",
+    integrations: { plausible: { domain: "acme.com" } },
+  });
+  const saved = updateSiteIntegrationConfig(initial, {
+    provider: "ga4",
+    settings: { measurementId: " G-ABC123XYZ9 " },
+  });
+  expect(saved.integrations.ga4).toEqual({ measurementId: "G-ABC123XYZ9" });
+  const updated = updateSiteIntegrationConfig(saved.content, {
+    provider: "ga4",
+    settings: { measurementId: "G-OTHER12345" },
+  });
+  expect(updated.integrations.ga4).toEqual({ measurementId: "G-OTHER12345" });
+  const removed = updateSiteIntegrationConfig(updated.content, {
+    provider: "ga4",
+    settings: null,
+  });
+  expect(removed.integrations).toEqual({ plausible: { domain: "acme.com" } });
+});
