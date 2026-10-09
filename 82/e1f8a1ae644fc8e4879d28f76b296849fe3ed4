@@ -1,0 +1,23 @@
+apps/dashboard/messages/de.json
+  s_0b65a9e5b79b9a::t_9b03f17e86edf1 7731
+apps/docs/sites/analytics-and-scripts.mdx
+  s_0b65a9e5b79b9a::t_9b03f17e86edf1 43,48
+apps/dashboard/messages/en.json
+  s_0b65a9e5b79b9a::t_9b03f17e86edf1 7731
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "82e1f8a1ae644fc8e4879d28f76b296849fe3ed4",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
