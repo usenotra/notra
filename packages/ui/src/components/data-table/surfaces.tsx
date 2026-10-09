@@ -1,8 +1,11 @@
 import {
+  CORNER_SCROLLBAR_VARS,
   TABLE_BODY_CLASS,
   TABLE_FRAME_CLASS,
 } from "@notra/ui/constants/table";
 import { cn } from "@notra/ui/lib/utils";
+import { useId, useRef } from "react";
+import { TableCornerScrollbar } from "./corner-scrollbar";
 import type {
   TableBodySurfaceProps,
   TableFrameProps,
@@ -26,8 +29,13 @@ export function TableFrame({
       className={cn(
         TABLE_FRAME_CLASS,
         flushTop && "rounded-t-none border-t-0",
-        flushBottom && "rounded-b-none border-b-0"
+        flushBottom && "rounded-b-none border-b-0",
+        // When the body is the last section (no footer) and its bottom corner
+        // wraps the scrollbar, follow it to stay concentric.
+        !flushBottom &&
+          "transition-[border-radius] duration-200 ease-out has-[>[data-corner-end=true]:last-child]:rounded-br-(--corner-shell-radius) motion-reduce:transition-none"
       )}
+      style={CORNER_SCROLLBAR_VARS}
     >
       {children}
     </div>
@@ -90,24 +98,51 @@ export function TableBodySurface({
   onScroll,
   scrollRef,
   style,
+  cornerScrollbar,
   children,
 }: TableBodySurfaceProps) {
-  return (
+  const scrollId = useId();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const body = (
     <div
       className={cn(
-        "scrollbar-floating relative -mt-5 box-content outline-none",
+        "relative box-content outline-none",
+        cornerScrollbar
+          ? "scrollbar-none transition-[border-radius] duration-200 ease-out group-data-[corner-end=true]/table-body:rounded-br-(--corner-card-radius) group-data-[corner-start=true]/table-body:rounded-tr-(--corner-card-radius) motion-reduce:transition-none"
+          : "scrollbar-floating -mt-5",
         TABLE_BODY_CLASS,
         isEmpty ? "overflow-hidden" : overflowClass,
         dimRows &&
           "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
       )}
       data-loading={loadingState}
+      id={scrollId}
       inert={dimRows ? true : undefined}
       onScroll={onScroll}
       ref={scrollRef}
       style={style}
     >
       {children}
+    </div>
+  );
+  if (!cornerScrollbar) {
+    return body;
+  }
+  // The thumb sits over the card instead of inside the scroller, so it stays
+  // put while the rows move. When it reaches a corner, the card's radius
+  // tightens to wrap the thumb's round end.
+  return (
+    <div
+      className="group/table-body relative -mt-5"
+      inert={dimRows ? true : undefined}
+      ref={wrapperRef}
+    >
+      {body}
+      <TableCornerScrollbar
+        scrollId={scrollId}
+        scrollRef={scrollRef}
+        wrapperRef={wrapperRef}
+      />
     </div>
   );
 }
