@@ -302,6 +302,7 @@ function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
     );
     if (staticDirective) {
       if (
+        !COMPONENT_NAME.test(root) ||
         !scan.hydrated.has(root) ||
         staticDirective.value !== null ||
         directives.length !== 1
