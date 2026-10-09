@@ -24,12 +24,12 @@ export function SiteIntegrationSaveStatus({
       ? t(messageKey)
       : null;
 
-  if (!message && !removalFailed) {
-    return null;
-  }
-
   return (
-    <div aria-live="polite" className="shrink-0 space-y-2" role="status">
+    <div
+      aria-live="polite"
+      className={message || removalFailed ? "shrink-0 space-y-2" : "sr-only"}
+      role="status"
+    >
       {message ? (
         <p
           className={
