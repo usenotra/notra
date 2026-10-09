@@ -18,7 +18,7 @@ Run your own JavaScript on every page of your site and control which origins you
 
 ## Custom scripts
 
-Every `.js` file outside the content folders runs on every page, whether it's `script.js`, a file in a `scripts/` folder or a file like `analytics.js` at the root. These files work like [custom CSS](/sites/customize/design#your-own-css) for JavaScript, while a `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
+Every `.js` file outside the content folders runs on every page, whether it's `script.js`, a file in a `scripts/` folder or a file like `analytics.js` at the root. They're the JavaScript counterpart to [custom CSS](/sites/customize/design#your-own-css), while a `.js` file in `snippets/`, `blog/` or `changelog/` is a component you import instead.
 
 ```text
 script.js               # runs first
@@ -27,10 +27,10 @@ scripts/chat-widget.js
 scripts/tracking/hotjar.js
 ```
 
-Notra loads every script on every page with `defer` from your site's own address, and the scripts run in the order shown above once the HTML has been parsed.
+Notra loads every script on every page with `defer` from your site's own address, and the scripts run in the order shown above after the browser parses the HTML.
 
-- These files are plain browser JavaScript rather than modules, so `import` and `export` don't work in them. To load a library from another host, use `document.createElement("script")`.
-- The build checks the syntax without running your scripts, and a syntax error fails the build and shows the file and line.
+- These files are plain browser JavaScript rather than modules, so `import` and `export` don't work in them, and you load a library from another host with `document.createElement("script")` and add that host to [`allowedOrigins`](#content-security-policy).
+- The build checks the syntax without running your scripts, and a syntax error fails the build with the file name and line number.
 - Your MDX can't import these files, so for a component, use a [snippet](/sites/custom-components) in `snippets/` instead.
 
 ```js scripts/external-links.js
@@ -45,11 +45,11 @@ for (const link of document.querySelectorAll("main a[href^='http']")) {
 
 ## Content-Security-Policy
 
-Every page comes with a `Content-Security-Policy` header that says where scripts may come from and which servers they may connect to, and Notra builds it from your repository.
+Notra builds a `Content-Security-Policy` header for every page from your repository, and it decides where scripts can load from and which servers they can connect to.
 
-- **Scripts** can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Notra allows inline scripts only if they were on the page at build time and hashes each of them, so a script injected later doesn't run.
+- **Scripts** can come from your site, the analytics integrations you turned on and your `allowedOrigins`. Notra hashes every inline script that was on the page at build time into the policy, so the browser blocks any inline script injected later.
 - **Connections** from `fetch`, beacons and WebSockets may go to your site, your integrations and your `allowedOrigins`.
-- The policy doesn't limit **images, styles, fonts, videos and embeds**, so posts can still show images and videos from anywhere.
+- The policy doesn't limit images, styles, fonts, videos and embeds, so posts can still show images and videos from anywhere.
 
 If your custom scripts or components load code from another host or call an API, add that origin:
 
@@ -67,7 +67,7 @@ If your custom scripts or components load code from another host or call an API,
 
 Origins must start with `https://` or `wss://` and have no path, and `https://*.example.com` covers every subdomain. A `wss://` origin only allows connections rather than scripts, and you can list up to 32 origins.
 
-To turn the policy off entirely:
+To turn the policy off, set `contentSecurityPolicy` to `false`:
 
 ```json blog.json
 {
@@ -75,4 +75,4 @@ To turn the policy off entirely:
 }
 ```
 
-If a script doesn't run, open your browser's developer console, which lists any request the policy blocked with the origin you need to add.
+If a script doesn't run, open your browser's developer console, where each request the policy blocked shows the origin you need to add to `allowedOrigins`.
