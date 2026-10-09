@@ -31,6 +31,7 @@ import { siteHeadScripts } from "./utils/head-scripts";
 import { inlineScriptHashes } from "./utils/inline-scripts";
 import { unnestLinks } from "./utils/nested-links";
 import { rewritePublicAssetUrls } from "./utils/public-assets";
+import { hasReactComponents } from "./utils/react";
 
 function astroBin(toolchainRoot: string): string {
   const require = createRequire(join(toolchainRoot, "package.json"));
@@ -167,6 +168,7 @@ export async function buildSite(
       publicFiles: publicFileList,
       mounts,
       config,
+      hasReactComponents: hasReactComponents(prepared.validation.outputs),
       headScripts: siteHeadScripts(
         config,
         mount,

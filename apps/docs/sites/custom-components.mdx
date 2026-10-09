@@ -83,6 +83,18 @@ Or render the component only in the browser with `client:only="react"`:
 
 Every imported or inline component becomes interactive as soon as the page loads. To load one later, add `client:visible` (when it scrolls into view) or `client:idle` (when the browser is idle).
 
+## Static components
+
+For a component that only displays content, add Notra's `client:static` directive:
+
+```mdx
+<Highlight client:static>important</Highlight>
+```
+
+Notra renders it to HTML during the build without loading its JavaScript in the browser. Links and native HTML behavior still work, but React event handlers and effects do not run. Use this for presentational components, not counters, forms with React handlers or interactive demos.
+
+`client:static` works on imported JSX and inline components, including in headers, footers and slots. Use it without a value and without another `client:*` directive. Built-in components and MDX snippets do not need it. Pages without interactive React components do not load the React browser runtime; sites without custom React components also skip the React build integration.
+
 ## Reusable content
 
 MDX files in `snippets/` hold text you repeat across posts, and you import them as a component and pass props to fill in the blanks:
@@ -126,7 +138,7 @@ export const Button = ({ href, variant = "primary", children }) => (
 ```mdx
 import { Button } from "/snippets/button.jsx";
 
-<Button href="https://acme.com/signup">Start free</Button>
+<Button href="https://acme.com/signup" client:static>Start free</Button>
 ```
 
 ## Security

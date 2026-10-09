@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import mdx from "@astrojs/mdx";
-import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 
@@ -45,7 +44,9 @@ export default defineConfig({
   telemetry: false,
   integrations: [
     mdx({ shikiConfig: { themes: shikiThemes, wrap: false } }),
-    react(),
+    ...(params.hasReactComponents
+      ? [(await import("@astrojs/react")).default()]
+      : []),
   ],
   markdown: {
     shikiConfig: {
