@@ -71,6 +71,7 @@ export const TABLE_SKELETON_ROW_HEIGHT = 52;
 export const TABLE_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50] as const;
 
 export const DATA_TABLE_LABELS: DataTableLabels = {
+  table: "Table",
   noData: "No data",
   selectAllRows: "Select all rows",
   selectRow: (row) => `Select row ${row}`,

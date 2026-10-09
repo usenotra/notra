@@ -1,5 +1,5 @@
 import { cn } from "cn";
-import { useRef } from "react";
+import { useId, useRef } from "react";
 
 import {
   CORNER_SCROLLBAR_VARS,
@@ -98,6 +98,7 @@ export function TableBodySurface({
   cornerScrollbar,
   children,
 }: TableBodySurfaceProps) {
+  const scrollId = useId();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const body = (
     <div
@@ -112,6 +113,7 @@ export function TableBodySurface({
           "pointer-events-none opacity-60 transition-opacity duration-200 motion-reduce:transition-none"
       )}
       data-loading={loadingState}
+      id={scrollId}
       inert={dimRows ? true : undefined}
       onScroll={onScroll}
       ref={scrollRef}
@@ -127,9 +129,17 @@ export function TableBodySurface({
   // put while the rows move. When it reaches a corner, the card's radius
   // tightens to wrap the thumb's round end.
   return (
-    <div className="group/table-body relative -mt-5" ref={wrapperRef}>
+    <div
+      className="group/table-body relative -mt-5"
+      inert={dimRows ? true : undefined}
+      ref={wrapperRef}
+    >
       {body}
-      <TableCornerScrollbar scrollRef={scrollRef} wrapperRef={wrapperRef} />
+      <TableCornerScrollbar
+        scrollId={scrollId}
+        scrollRef={scrollRef}
+        wrapperRef={wrapperRef}
+      />
     </div>
   );
 }

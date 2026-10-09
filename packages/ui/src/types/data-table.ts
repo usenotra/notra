@@ -245,6 +245,7 @@ export interface TableBodySurfaceProps {
 }
 
 export interface TableCornerScrollbarProps {
+  scrollId: string;
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Element that receives the hover listeners and the corner data attributes. */
   wrapperRef: RefObject<HTMLDivElement | null>;

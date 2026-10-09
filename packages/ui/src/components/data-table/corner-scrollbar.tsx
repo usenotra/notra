@@ -2,10 +2,12 @@
 
 import { useEffect, useRef } from "react";
 
+import { useUiLabels } from "@notra/ui/components/shared/ui-labels-provider";
 import {
   CORNER_SCROLLBAR_GAP_PX,
   CORNER_SCROLLBAR_IDLE_MS,
   CORNER_SCROLLBAR_MIN_THUMB_PX,
+  DATA_TABLE_ROW_HEIGHT,
   TABLE_BODY_RADIUS_PX,
 } from "@notra/ui/constants/table";
 import type { TableCornerScrollbarProps } from "@notra/ui/types/data-table";
@@ -18,9 +20,11 @@ import type { TableCornerScrollbarProps } from "@notra/ui/types/data-table";
  * from `CORNER_SCROLLBAR_VARS` on the table frame.
  */
 export function TableCornerScrollbar({
+  scrollId,
   scrollRef,
   wrapperRef,
 }: TableCornerScrollbarProps) {
+  const labels = useUiLabels();
   const thumbRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,8 +41,18 @@ export function TableCornerScrollbar({
     let dragging = false;
 
     const update = () => {
-      const scrollable = element.scrollHeight - element.clientHeight;
-      const visible = scrollable > 1 && (hovered || scrolling || dragging);
+      const scrollable = Math.max(0, element.scrollHeight - element.clientHeight);
+      const position = Math.min(scrollable, Math.max(0, element.scrollTop));
+      const visible =
+        scrollable > 1 &&
+        (hovered ||
+          scrolling ||
+          dragging ||
+          thumb === thumb.ownerDocument.activeElement);
+      thumb.hidden = scrollable <= 1;
+      thumb.tabIndex = scrollable > 1 ? 0 : -1;
+      thumb.ariaValueMax = String(scrollable);
+      thumb.ariaValueNow = String(position);
       wrapper.dataset.thumb = visible ? "visible" : "hidden";
       if (scrollable <= 1) {
         wrapper.dataset.cornerStart = "false";
@@ -54,7 +68,7 @@ export function TableCornerScrollbar({
         )
       );
       travel = track - length;
-      const progress = Math.min(1, Math.max(0, element.scrollTop / scrollable));
+      const progress = position / scrollable;
       const top = CORNER_SCROLLBAR_GAP_PX + progress * travel;
       thumb.style.height = `${length}px`;
       thumb.style.transform = `translateY(${top}px)`;
@@ -80,6 +94,39 @@ export function TableCornerScrollbar({
     };
     const handlePointerLeave = () => {
       hovered = false;
+      update();
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      const scrollable = Math.max(0, element.scrollHeight - element.clientHeight);
+      let position = element.scrollTop;
+      switch (event.key) {
+        case "ArrowUp":
+          position -= DATA_TABLE_ROW_HEIGHT;
+          break;
+        case "ArrowDown":
+          position += DATA_TABLE_ROW_HEIGHT;
+          break;
+        case "PageUp":
+          position -= element.clientHeight;
+          break;
+        case "PageDown":
+          position += element.clientHeight;
+          break;
+        case "Home":
+          position = 0;
+          break;
+        case "End":
+          position = scrollable;
+          break;
+        default:
+          return;
+      }
+      event.preventDefault();
+      element.scrollTop = Math.min(scrollable, Math.max(0, position));
       update();
     };
 
@@ -113,6 +160,9 @@ export function TableCornerScrollbar({
     element.addEventListener("scroll", handleScroll, { passive: true });
     wrapper.addEventListener("pointerenter", handlePointerEnter);
     wrapper.addEventListener("pointerleave", handlePointerLeave);
+    thumb.addEventListener("focus", update);
+    thumb.addEventListener("blur", update);
+    thumb.addEventListener("keydown", handleKeyDown);
     thumb.addEventListener("pointerdown", handlePointerDown);
     thumb.addEventListener("pointermove", handlePointerMove);
     thumb.addEventListener("pointerup", handlePointerUp);
@@ -129,6 +179,9 @@ export function TableCornerScrollbar({
       element.removeEventListener("scroll", handleScroll);
       wrapper.removeEventListener("pointerenter", handlePointerEnter);
       wrapper.removeEventListener("pointerleave", handlePointerLeave);
+      thumb.removeEventListener("focus", update);
+      thumb.removeEventListener("blur", update);
+      thumb.removeEventListener("keydown", handleKeyDown);
       thumb.removeEventListener("pointerdown", handlePointerDown);
       thumb.removeEventListener("pointermove", handlePointerMove);
       thumb.removeEventListener("pointerup", handlePointerUp);
@@ -138,9 +191,17 @@ export function TableCornerScrollbar({
 
   return (
     <div
-      aria-hidden="true"
-      className="pointer-events-none absolute top-0 right-(--corner-scrollbar-gap) z-20 w-(--corner-scrollbar-width) rounded-full group-data-[thumb=visible]/table-body:pointer-events-auto bg-[color-mix(in_oklab,var(--foreground)_22%,transparent)] opacity-0 transition-[opacity,background-color] duration-200 group-data-[thumb=visible]/table-body:opacity-100 hover:bg-[color-mix(in_oklab,var(--foreground)_35%,transparent)] active:bg-[color-mix(in_oklab,var(--foreground)_45%,transparent)] motion-reduce:transition-none"
+      aria-controls={scrollId}
+      aria-label={labels.table}
+      aria-orientation="vertical"
+      aria-valuemax={0}
+      aria-valuemin={0}
+      aria-valuenow={0}
+      className="pointer-events-none absolute top-0 right-(--corner-scrollbar-gap) z-20 w-(--corner-scrollbar-width) rounded-full group-data-[thumb=visible]/table-body:pointer-events-auto bg-[color-mix(in_oklab,var(--foreground)_22%,transparent)] opacity-0 transition-[opacity,background-color] duration-200 group-data-[thumb=visible]/table-body:opacity-100 hover:bg-[color-mix(in_oklab,var(--foreground)_35%,transparent)] active:bg-[color-mix(in_oklab,var(--foreground)_45%,transparent)] focus-visible:bg-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground forced-colors:focus-visible:outline-[Highlight] motion-reduce:transition-none"
+      hidden
       ref={thumbRef}
+      role="scrollbar"
+      tabIndex={-1}
     />
   );
 }

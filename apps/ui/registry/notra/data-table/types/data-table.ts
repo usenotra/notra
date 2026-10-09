@@ -19,6 +19,7 @@ export interface TablePaginationRange {
 export interface DataTableLabels {
   /** BCP 47 locale for numbers in the footer. */
   locale?: string;
+  table: string;
   noData: string;
   selectAllRows: string;
   selectRow: (row: string) => string;
@@ -274,6 +275,7 @@ export interface TableBodySurfaceProps {
 }
 
 export interface TableCornerScrollbarProps {
+  scrollId: string;
   scrollRef: RefObject<HTMLDivElement | null>;
   /** Element that receives the hover listeners and the corner data attributes. */
   wrapperRef: RefObject<HTMLDivElement | null>;
