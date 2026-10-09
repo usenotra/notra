@@ -251,8 +251,11 @@ export function DataTableRoot<T>({
           style={bodyStyle}
         >
           <TableScrollFade edge="top" hidden={atStart} scrollFade={scrollFade} />
-          <table className={tableClassName} style={tableStyle}>
-            {columnGroup}
+          <table
+            className={cn(tableClassName, isEmpty && "w-full table-fixed")}
+            style={isEmpty ? undefined : tableStyle}
+          >
+            {isEmpty ? null : columnGroup}
             <DataTableBody
               bodyHeight={bodyHeight}
               columns={visibleColumns}

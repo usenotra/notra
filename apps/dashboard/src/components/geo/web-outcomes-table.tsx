@@ -39,8 +39,9 @@ export function WebOutcomesTable({ outcomes }: WebOutcomesTableProps) {
     {
       key: "pages",
       header: t("pagesPerSession"),
-      width: "6rem",
+      width: "10rem",
       align: "right",
+      collapsePriority: 1,
       cell: (row) => (
         <span className="text-sm tabular-nums">
           {row.pagesPerSession.toLocaleString(locale, {
@@ -54,6 +55,7 @@ export function WebOutcomesTable({ outcomes }: WebOutcomesTableProps) {
       header: t("engagedRate"),
       width: "8rem",
       align: "right",
+      collapsePriority: 2,
       cell: (row) => (
         <span className="flex w-full items-center justify-between gap-2">
           <GeoBar className="w-10 shrink-0" value={row.engagedRate} />
