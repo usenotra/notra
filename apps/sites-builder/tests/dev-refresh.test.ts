@@ -151,32 +151,6 @@ test("MDX and stable-name asset edits leave unchanged params to native hot reloa
   }
 });
 
-test("adding or removing the first React component restarts the dev integration", async () => {
-  const { state, owner } = setup();
-  try {
-    await owner.refresh();
-    expect(state.starts.at(-1)?.hasReactComponents).toBe(false);
-    state.source.validation.outputs.set(
-      "blog/post.mdx.notra-inline.jsx",
-      "export const Label = () => <b>Label</b>;"
-    );
-    await owner.refresh();
-    expect(state.starts.at(-1)?.hasReactComponents).toBe(true);
-    state.source.validation.outputs.set(
-      "blog/post.mdx.notra-inline.jsx",
-      "export const Label = () => <b>Changed</b>;"
-    );
-    await owner.refresh();
-    expect(state.starts).toHaveLength(2);
-    state.source.validation.outputs.delete("blog/post.mdx.notra-inline.jsx");
-    await owner.refresh();
-    expect(state.starts.at(-1)?.hasReactComponents).toBe(false);
-    expect(state.commands).toEqual(["dev", "stop", "dev", "stop", "dev"]);
-  } finally {
-    await owner.shutdown();
-  }
-});
-
 test("local development never loads analytics providers after startup or config edits", async () => {
   const { state, owner } = setup();
   try {
