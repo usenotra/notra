@@ -154,6 +154,110 @@ function setup(state: Partial<SiteServingState> = {}, generated404 = false) {
 beforeEach(() => resetCachesForTests());
 
 describe("production serving", () => {
+  test("the root redirects to the blog on alias and custom hosts, preserving queries", async () => {
+    const { deps } = setup();
+    for (const host of ["acme.notra.site", "blog.acme.com"]) {
+      for (const method of ["GET", "HEAD"]) {
+        for (const accept of ["text/html", "text/markdown"]) {
+          const response = await handleSiteRequest(
+            new Request(`https://${host}/?ref=newsletter`, {
+              method,
+              headers: { Accept: accept },
+            }),
+            deps
+          );
+          expect(response.status).toBe(302);
+          expect(response.headers.get("Location")).toBe("/blog?ref=newsletter");
+          expect(response.headers.get("Cache-Control")).toBe("no-store");
+          expect(await response.text()).toBe("");
+        }
+      }
+    }
+  });
+
+  test("the root uses configured paths and falls back to a changelog-only site", async () => {
+    for (const mounts of [
+      { blog: "/news", changelog: "/product/changes" },
+      { changelog: "/product/changes" },
+    ]) {
+      resetCachesForTests();
+      const { request, put } = setup();
+      const deployed = manifest("dep_live", "https://acme.com", []);
+      deployed.target.mounts = mounts;
+      put(`deployments/${SITE}/dep_live/manifest.json`, deployed);
+      const response = await request("https://acme.notra.site/");
+      expect(response.status).toBe(302);
+      expect(response.headers.get("Location")).toBe(
+        mounts.blog ?? mounts.changelog
+      );
+    }
+  });
+
+  test("root-mounted sections and existing homepages take precedence", async () => {
+    for (const mounts of [
+      { blog: "/", changelog: "/changelog" },
+      { blog: "/blog", changelog: "/" },
+      { blog: "/blog", changelog: "/changelog" },
+    ]) {
+      resetCachesForTests();
+      const { request, put } = setup();
+      const deployed = manifest("dep_live", "https://acme.com", [
+        "/index.html",
+      ]);
+      deployed.target.mounts = mounts;
+      put(`deployments/${SITE}/dep_live/manifest.json`, deployed);
+      put(`deployments/${SITE}/dep_live/files/index.html`, "homepage");
+      const response = await request("https://acme.notra.site/");
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Location")).toBeNull();
+      expect(await response.text()).toBe("homepage");
+    }
+  });
+
+  test("an explicit root redirect takes precedence over the default", async () => {
+    const { request, put } = setup();
+    const deployed = manifest("dep_live", "https://acme.com", []);
+    deployed.redirects = [
+      { source: "/", destination: "/changelog", status: 308 },
+    ];
+    put(`deployments/${SITE}/dep_live/manifest.json`, deployed);
+    const response = await request("https://acme.notra.site/");
+    expect(response.status).toBe(308);
+    expect(response.headers.get("Location")).toBe("/changelog");
+  });
+
+  test("a missing root-mounted page is not redirected to a different section", async () => {
+    const { request, put } = setup();
+    const deployed = manifest("dep_live", "https://acme.com", []);
+    deployed.target.mounts = { blog: "/blog", changelog: "/" };
+    put(`deployments/${SITE}/dep_live/manifest.json`, deployed);
+    const response = await request("https://acme.notra.site/");
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Location")).toBeNull();
+  });
+
+  test("preview roots redirect only after access is allowed and stay on the preview host", async () => {
+    const { request } = setup();
+    const denied = await request("https://pr-7--acme.notra.site/");
+    expect(denied.headers.get("Location")).not.toBe("/blog");
+    resetCachesForTests();
+    const state = setup({
+      previews: {
+        "pr-7": {
+          deploymentId: "dep_pr",
+          visibility: "public",
+          sequence: 4,
+          activatedAt: "x",
+          expiresAt: null,
+        },
+      },
+    });
+    const response = await state.request("https://pr-7--acme.notra.site/");
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("/blog");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
   test("generated Markdown 404s stay errors for negotiation, direct paths and HEAD", async () => {
     const { deps } = setup({}, true);
     for (const path of [
