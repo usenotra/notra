@@ -1,4 +1,15 @@
-export const IMAGE_EXPORT_TARGETS = ["paper", "figma", "wonder"] as const;
+export const IMAGE_EXPORT_TARGETS = [
+  "paper",
+  "figma",
+  "excalidraw",
+  "tldraw",
+  "wonder",
+] as const;
+
+/** Targets that paste the editable Excalidraw scene; only diagram images have one. */
+export const DIAGRAM_EXPORT_TARGETS = ["excalidraw", "tldraw"] as const;
+
+export const EXCALIDRAW_CLIPBOARD_TYPE = "excalidraw/clipboard";
 
 export const IMAGE_EXPORT_TARGET_LABELS: Record<
   (typeof IMAGE_EXPORT_TARGETS)[number],
@@ -6,6 +17,8 @@ export const IMAGE_EXPORT_TARGET_LABELS: Record<
 > = {
   paper: "Paper",
   figma: "Figma",
+  excalidraw: "Excalidraw",
+  tldraw: "tldraw",
   wonder: "Wonder",
 };
 

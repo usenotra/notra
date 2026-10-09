@@ -1,65 +1,48 @@
 import {
+  getErrorMessage,
+  type RepoImageBox,
+  RepoImageError,
+  type RepoImageFormatContext,
+  type RepoImageFormatRunner,
+} from "@notra/ai/agents/repo-image-agent";
+import { diagramFormat } from "@notra/ai/agents/repo-image-diagram";
+import { marketingFormat } from "@notra/ai/agents/repo-image-marketing";
+import {
   AGENT_TIMEOUT_MS,
   BOX_BASE_URL,
-  IMAGE_GEN_AGENT_SKILLS_INSTALL_COMMAND,
   IMAGE_GEN_MODEL_ID,
-  IMAGE_REVIEW_MODEL_ID,
-  MIN_REPO_IMAGE_HTML_BYTES,
-  RECOVERY_AGENT_TIMEOUT_MS,
-  REPO_IMAGE_OUTPUT_HTML_PATH,
   TRAILING_SLASH_RE,
 } from "@notra/ai/constants/repo-image";
-import { gateway } from "@notra/ai/gateway";
 import {
   getGitHubCloneToken,
   getGitHubCloneTokenForOrganization,
   getGitHubIntegrationById,
   validateRepositoryBranchExists,
 } from "@notra/ai/integrations/github";
-import {
-  buildMarketingAssetExtractionPrompt,
-  buildMarketingAssetLogoReviewPrompt,
-  buildMarketingAssetMissingOutputPrompt,
-  buildMarketingAssetRevisionPrompt,
-} from "@notra/ai/prompts/marketing-assets";
-import { withRouterDefaults } from "@notra/ai/provider-options";
+import type { DiagramSpec } from "@notra/ai/types/excalidraw-diagram";
 import type {
   GenerateRepoImageInput,
   GenerateRepoImageResult,
-  RepoImageErrorCode,
+  RepoImageFormat,
+  RepoImageRender,
   RepoImageSourceContext,
 } from "@notra/ai/types/repo-image";
 import { createOctokit } from "@notra/ai/utils/octokit";
 import { withBoxRetry } from "@notra/ai/utils/repo-image-box";
-import { renderHtmlToImages } from "@notra/ai/utils/repo-image-render";
 import { cleanupRepoImageSandbox } from "@notra/ai/utils/repo-image-sandbox-cleanup";
 import {
   injectBrandIdentitySkill,
   injectHumanizerSkill,
 } from "@notra/ai/utils/repo-image-skills";
-import { extractRepoImageUsage } from "@notra/ai/utils/repo-image-usage";
-import { logError, logInfo, logWarn } from "@notra/ai/utils/server-log";
+import { logError, logWarn } from "@notra/ai/utils/server-log";
 import { withLongFetchTimeouts } from "@notra/ai/utils/undici-dispatcher";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
 import { Agent, Box } from "@upstash/box";
-import { generateText, Output } from "ai";
-import { z } from "zod";
 
-export class RepoImageError extends Error {
-  readonly code: RepoImageErrorCode;
-  readonly retryable: boolean;
-
-  constructor(
-    code: RepoImageErrorCode,
-    message: string,
-    options?: { retryable?: boolean }
-  ) {
-    super(message);
-    this.name = "RepoImageError";
-    this.code = code;
-    this.retryable = options?.retryable ?? true;
-  }
-}
+const FORMAT_RUNNERS: Record<RepoImageFormat, RepoImageFormatRunner> = {
+  diagram: diagramFormat,
+  marketing: marketingFormat,
+};
 
 function getErrorStatus(error: unknown) {
   return typeof error === "object" &&
@@ -70,10 +53,6 @@ function getErrorStatus(error: unknown) {
     : undefined;
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
-}
-
 function shellQuote(value: string) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
 }
@@ -81,7 +60,7 @@ function shellQuote(value: string) {
 const REPO_CLONE_TOKEN_PATH = "/tmp/notra-github-token";
 
 async function cloneRepositoryToBox(params: {
-  box: Awaited<ReturnType<typeof Box.create>>;
+  box: RepoImageBox;
   owner: string;
   repo: string;
   branch: string;
@@ -148,139 +127,6 @@ async function cloneRepositoryToBox(params: {
         });
     }
   }
-}
-
-async function runRepoImageAgentStream(params: {
-  box: Awaited<ReturnType<typeof Box.create>>;
-  prompt: string;
-  timeout: number;
-  label: string;
-}) {
-  const startedAt = Date.now();
-  const stream = await params.box.agent.stream({
-    prompt: params.prompt,
-    timeout: params.timeout,
-    options: {
-      reasoningEffort: "high",
-    },
-  });
-
-  for await (const chunk of stream) {
-    if (chunk.type === "tool-call") {
-      logInfo("[repo-image] Agent tool call", {
-        label: params.label,
-        toolName: chunk.toolName,
-      });
-    }
-  }
-
-  logInfo("[repo-image] Agent stream completed", {
-    label: params.label,
-    durationMs: Date.now() - startedAt,
-  });
-
-  return {
-    cost:
-      typeof stream === "object" && stream !== null && "cost" in stream
-        ? (stream.cost as unknown)
-        : undefined,
-  };
-}
-
-async function runRepoImageAgentStreamAllowTimeout(
-  params: Parameters<typeof runRepoImageAgentStream>[0]
-) {
-  try {
-    return await runRepoImageAgentStream(params);
-  } catch (error) {
-    if (!isAgentTimeoutError(error)) {
-      throw error;
-    }
-
-    logWarn("[repo-image] Agent stream timed out; checking for output", {
-      label: params.label,
-      timeoutMs: params.timeout,
-      outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
-    });
-    return null;
-  }
-}
-
-async function hasRepoImageOutput(box: Awaited<ReturnType<typeof Box.create>>) {
-  const existsRun = await withBoxRetry(() =>
-    box.exec.command(
-      `test -f ${REPO_IMAGE_OUTPUT_HTML_PATH} && test "$(wc -c < ${REPO_IMAGE_OUTPUT_HTML_PATH})" -ge ${MIN_REPO_IMAGE_HTML_BYTES} && echo ok || echo incomplete`
-    )
-  );
-  return existsRun.result.trim() === "ok";
-}
-
-async function installImageGenAgentSkills(params: {
-  box: Awaited<ReturnType<typeof Box.create>>;
-}) {
-  await withBoxRetry(() =>
-    params.box.exec.command(IMAGE_GEN_AGENT_SKILLS_INSTALL_COMMAND)
-  );
-}
-
-function isAgentTimeoutError(error: unknown) {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  const message = error.message.toLowerCase();
-  return (
-    message.includes("stream timed out") || message.includes("run timed out")
-  );
-}
-
-const MISSING_OUTPUT_RECOVERY_ATTEMPTS = 1;
-
-const repoImageLogoReviewSchema = z.object({
-  needsRevision: z.boolean(),
-  reason: z.string().min(1),
-  revisionPrompt: z.string().nullable(),
-});
-
-async function reviewRenderedRepoImageForLogoIssues(params: {
-  pngBase64: string;
-  owner: string;
-  repo: string;
-  branch: string;
-  source: RepoImageSourceContext;
-  organizationId?: string;
-}) {
-  const { output } = await generateText({
-    model: gateway(IMAGE_REVIEW_MODEL_ID, {
-      organizationId: params.organizationId,
-    }),
-    output: Output.object({ schema: repoImageLogoReviewSchema }),
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: buildMarketingAssetLogoReviewPrompt(params),
-          },
-          {
-            type: "image",
-            image: params.pngBase64,
-            mediaType: "image/png",
-          },
-        ],
-      },
-    ],
-    maxOutputTokens: 700,
-    providerOptions: withRouterDefaults(
-      { gateway: { tags: ["content-image-review"] } },
-      {
-        modelId: IMAGE_REVIEW_MODEL_ID,
-      }
-    ),
-  });
-
-  return output;
 }
 
 async function buildSourceContext(params: {
@@ -395,9 +241,17 @@ export async function generateRepoImage(params: {
   input: GenerateRepoImageInput;
   userId: string | null;
   restoreSnapshotId?: string | null;
+  /**
+   * Latest saved diagram spec. Manual and fast AI edits happen outside the
+   * sandbox, so the restored snapshot can hold an older diagram.json.
+   */
+  restoreDiagramSpec?: DiagramSpec | null;
   snapshotName?: string;
+  /** Override for model comparisons; production uses IMAGE_GEN_MODEL_ID. */
+  agentModelId?: string;
 }): Promise<GenerateRepoImageResult> {
-  const { input, restoreSnapshotId, snapshotName, userId } = params;
+  const { input, restoreDiagramSpec, restoreSnapshotId, snapshotName, userId } =
+    params;
 
   const upstashBoxApiKey = process.env.UPSTASH_BOX_API_KEY;
 
@@ -469,7 +323,7 @@ export async function generateRepoImage(params: {
       },
       agent: {
         harness: Agent.OpenCode,
-        model: IMAGE_GEN_MODEL_ID as VercelModel,
+        model: (params.agentModelId ?? IMAGE_GEN_MODEL_ID) as VercelModel,
         apiKey: agentApiKey,
       },
       timeout: AGENT_TIMEOUT_MS,
@@ -478,9 +332,17 @@ export async function generateRepoImage(params: {
       ? await withBoxRetry(() => Box.fromSnapshot(restoreSnapshotId, boxConfig))
       : await withBoxRetry(() => Box.create(boxConfig));
 
-    let html: string;
-    let rendered: Awaited<ReturnType<typeof renderHtmlToImages>>;
-    let usage: GenerateRepoImageResult["usage"];
+    const format: RepoImageFormat = input.format ?? "marketing";
+    const formatRunner = FORMAT_RUNNERS[format];
+    const context: RepoImageFormatContext = {
+      box,
+      input,
+      repository,
+      source,
+      restoreSnapshotId,
+      restoreDiagramSpec,
+    };
+    let output: RepoImageRender;
     let snapshot: Awaited<ReturnType<typeof box.snapshot>> | null = null;
     let injectedBrandIdentityId: string | undefined;
 
@@ -505,9 +367,7 @@ export async function generateRepoImage(params: {
         });
       }
 
-      if (!restoreSnapshotId) {
-        await installImageGenAgentSkills({ box });
-      }
+      await formatRunner.prepare(context);
       injectedBrandIdentityId =
         (await injectBrandIdentitySkill({
           box,
@@ -518,124 +378,7 @@ export async function generateRepoImage(params: {
         box,
         organizationId: input.organizationId,
       });
-
-      const runInitialRepoImageAgent = restoreSnapshotId
-        ? runRepoImageAgentStream
-        : runRepoImageAgentStreamAllowTimeout;
-      const initialRun = await runInitialRepoImageAgent({
-        box,
-        prompt: restoreSnapshotId
-          ? buildMarketingAssetRevisionPrompt({ prompt: input.prompt ?? "" })
-          : buildMarketingAssetExtractionPrompt({
-              owner: repository.owner,
-              repo: repository.repo,
-              branch: input.branch,
-              source,
-            }),
-        timeout: AGENT_TIMEOUT_MS,
-        label: restoreSnapshotId ? "revision" : "initial",
-      });
-      usage = extractRepoImageUsage(initialRun?.cost, IMAGE_GEN_MODEL_ID);
-
-      if (!(await hasRepoImageOutput(box))) {
-        for (
-          let attempt = 1;
-          attempt <= MISSING_OUTPUT_RECOVERY_ATTEMPTS;
-          attempt++
-        ) {
-          logWarn("[repo-image] Missing output; running recovery attempt", {
-            outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
-            attempt,
-            maxAttempts: MISSING_OUTPUT_RECOVERY_ATTEMPTS,
-          });
-          const recoveryRun = await runRepoImageAgentStreamAllowTimeout({
-            box,
-            prompt: buildMarketingAssetMissingOutputPrompt(),
-            timeout: RECOVERY_AGENT_TIMEOUT_MS,
-            label: `recovery-${attempt}`,
-          });
-          usage = mergeRepoImageUsage(
-            usage,
-            extractRepoImageUsage(recoveryRun?.cost, IMAGE_GEN_MODEL_ID)
-          );
-
-          if (await hasRepoImageOutput(box)) {
-            break;
-          }
-        }
-      }
-
-      if (!(await hasRepoImageOutput(box))) {
-        const diag = await withBoxRetry(() =>
-          box.exec.command(
-            `pwd 2>&1; echo ---; ls -la 2>&1 | head -50; echo ---; find . /workspace/home -maxdepth 4 -name "output.html" 2>/dev/null`
-          )
-        );
-        logError("[repo-image] Missing output after recovery", undefined, {
-          outputPath: REPO_IMAGE_OUTPUT_HTML_PATH,
-          cwdContents: diag.result,
-        });
-        throw new RepoImageError(
-          "agent_failed",
-          `Agent did not produce ${REPO_IMAGE_OUTPUT_HTML_PATH}`
-        );
-      }
-
-      html = await withBoxRetry(() =>
-        box.files.read(REPO_IMAGE_OUTPUT_HTML_PATH)
-      );
-      rendered = await renderHtmlToImages(html);
-
-      let review: z.infer<typeof repoImageLogoReviewSchema> | null = null;
-      try {
-        review = await reviewRenderedRepoImageForLogoIssues({
-          pngBase64: rendered.pngBase64,
-          owner: repository.owner,
-          repo: repository.repo,
-          branch: input.branch,
-          source,
-          organizationId: input.organizationId,
-        });
-      } catch (error) {
-        logWarn("[repo-image] Logo review skipped after error", {
-          error: getErrorMessage(error),
-        });
-      }
-
-      if (review?.needsRevision) {
-        const revisionPrompt =
-          review.revisionPrompt ??
-          "Review the rendered image for unofficial or fabricated company logos. Replace any questionable logos with official assets from the brand-logos skill or real repo assets, or remove them if no official source is available. Preserve the current layout as much as possible.";
-
-        logInfo("[repo-image] Logo review requested revision", {
-          reason: review.reason,
-        });
-
-        const reviewRevisionRun = await runRepoImageAgentStream({
-          box,
-          prompt: buildMarketingAssetRevisionPrompt({
-            prompt: revisionPrompt,
-          }),
-          timeout: RECOVERY_AGENT_TIMEOUT_MS,
-          label: "logo-review-revision",
-        });
-        usage = mergeRepoImageUsage(
-          usage,
-          extractRepoImageUsage(reviewRevisionRun.cost, IMAGE_GEN_MODEL_ID)
-        );
-
-        if (!(await hasRepoImageOutput(box))) {
-          throw new RepoImageError(
-            "agent_failed",
-            `Logo review revision removed ${REPO_IMAGE_OUTPUT_HTML_PATH}`
-          );
-        }
-
-        html = await withBoxRetry(() =>
-          box.files.read(REPO_IMAGE_OUTPUT_HTML_PATH)
-        );
-        rendered = await renderHtmlToImages(html);
-      }
+      output = await formatRunner.run(context);
 
       snapshot = await withBoxRetry(() =>
         box.snapshot({
@@ -651,9 +394,8 @@ export async function generateRepoImage(params: {
     }
 
     return {
-      pngBase64: rendered.pngBase64,
-      svg: rendered.svg,
-      html,
+      format,
+      ...output,
       brandIdentityId: injectedBrandIdentityId,
       sandbox: snapshot
         ? {
@@ -664,7 +406,6 @@ export async function generateRepoImage(params: {
             snapshotCreatedAt: readSnapshotString(snapshot, "createdAt"),
           }
         : null,
-      usage,
     };
   });
 }
@@ -730,33 +471,4 @@ function readSnapshotNumber(snapshot: unknown, key: string) {
   }
   const value = (snapshot as Record<string, unknown>)[key];
   return typeof value === "number" ? value : undefined;
-}
-
-function mergeRepoImageUsage(
-  current: GenerateRepoImageResult["usage"],
-  next: GenerateRepoImageResult["usage"]
-): GenerateRepoImageResult["usage"] {
-  if (!current) {
-    return next;
-  }
-  if (!next) {
-    return current;
-  }
-  return {
-    inputTokens: current.inputTokens + next.inputTokens,
-    outputTokens: current.outputTokens + next.outputTokens,
-    totalTokens: current.totalTokens + next.totalTokens,
-    cacheReadTokens: current.cacheReadTokens + next.cacheReadTokens,
-    cacheWriteTokens: current.cacheWriteTokens + next.cacheWriteTokens,
-    modelId: current.modelId ?? next.modelId,
-    computeMs:
-      current.computeMs === undefined && next.computeMs === undefined
-        ? undefined
-        : (current.computeMs ?? 0) + (next.computeMs ?? 0),
-    totalUsd:
-      current.totalUsd === undefined && next.totalUsd === undefined
-        ? undefined
-        : (current.totalUsd ?? 0) + (next.totalUsd ?? 0),
-    raw: [current.raw, next.raw],
-  };
 }

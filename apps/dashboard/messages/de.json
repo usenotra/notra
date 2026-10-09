@@ -856,6 +856,56 @@
       "register": "Registrieren",
       "loginErrorFallback": "Anmeldung fehlgeschlagen. Bitte versuch es nochmal.",
       "backupCodeRecovered": "Backup-Code akzeptiert. Die Zwei-Faktor-Authentifizierung wurde für {email} deaktiviert. Melde dich erneut an, um fortzufahren."
+    },
+    "invitation": {
+      "title": "{inviter} hat dich zu {organization} eingeladen",
+      "titleAnonymous": "Du wurdest zu {organization} eingeladen",
+      "description": "Du würdest als {role} beitreten.",
+      "roles": {
+        "member": "Mitglied",
+        "admin": "Admin",
+        "owner": "Inhaber:in"
+      },
+      "join": "{organization} beitreten",
+      "decline": "Ablehnen",
+      "signedInAs": "Angemeldet als {email}.",
+      "useAnotherAccount": "Anderes Konto verwenden",
+      "signedOutHint": "Du meldest dich zuerst mit {email} an oder erstellst ein Konto.",
+      "failed": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "unavailableNow": "Diese Einladung ist nicht mehr verfügbar.",
+      "declined": {
+        "title": "Einladung abgelehnt",
+        "description": "Du hast die Einladung abgelehnt. Bitte das Team um eine neue, falls du es dir anders überlegst."
+      },
+      "joined": {
+        "title": "Du bist jetzt bei {organization}",
+        "description": "Es ist jetzt dein aktiver Workspace.",
+        "open": "{organization} öffnen"
+      },
+      "mismatch": {
+        "title": "Diese Einladung gilt für ein anderes Konto",
+        "description": "{invited} wurde eingeladen, du bist aber als {current} angemeldet. Melde dich ab und mit {invited} an, um {organization} beizutreten.",
+        "signOut": "Abmelden"
+      },
+      "unavailable": {
+        "home": "Zu Notra",
+        "not-found": {
+          "title": "Einladung nicht gefunden",
+          "description": "Dieser Link ist ungültig. Prüfe die E-Mail oder bitte um eine neue Einladung."
+        },
+        "expired": {
+          "title": "Einladung abgelaufen",
+          "description": "Bitte einen Admin des Teams, dir eine neue Einladung zu schicken."
+        },
+        "revoked": {
+          "title": "Einladung zurückgezogen",
+          "description": "Das Team hat diese Einladung zurückgezogen. Bitte um eine neue."
+        },
+        "accepted": {
+          "title": "Einladung bereits verwendet",
+          "description": "Diese Einladung wurde schon angenommen. Melde dich an, um deinen Workspace zu öffnen."
+        }
+      }
     }
   },
   "errors": {
@@ -6105,6 +6155,26 @@
       "generating": "Inhalte werden erstellt…",
       "queuedViaApi": "Über die API eingereiht"
     },
+    "imageChat": {
+      "editingDiagram": "Du bearbeitest das Diagramm: {title}",
+      "editingImage": "Du bearbeitest das Bild: {title}",
+      "diagramPlaceholder": "Mach die Pfeile blau…",
+      "imagePlaceholder": "Mach den Hintergrund dunkler…"
+    },
+    "diagramEditor": {
+      "open": "Diagramm bearbeiten",
+      "title": "Diagramm bearbeiten",
+      "description": "Verschiebe, gestalte oder beschrifte alles neu. Beim Speichern wird das Bild neu gerendert, und Chat-Änderungen bauen auf deinen Änderungen auf.",
+      "loading": "Diagramm wird geladen…",
+      "loadFailed": "Diagramm konnte nicht geladen werden",
+      "cancel": "Abbrechen",
+      "save": "Diagramm speichern",
+      "saved": "Diagramm gespeichert",
+      "saveFailed": "Diagramm konnte nicht gespeichert werden",
+      "savedWithDropped": "Diagramm gespeichert. {types} kann Notra noch nicht rendern, das wurde weggelassen.",
+      "conflict": "Das Diagramm wurde geändert, während du es bearbeitet hast. Kopiere, was du brauchst, schließe den Editor und öffne ihn erneut.",
+      "saveRejected": "Diagramm konnte nicht gespeichert werden: {reason}"
+    },
     "toolbar": {
       "copyFor": "Für {target} kopieren",
       "selectExportTarget": "Exportziel auswählen",
@@ -6283,6 +6353,9 @@
         "figmaCopyFailed": "Kopieren für Figma fehlgeschlagen",
         "paperCopied": "Für Paper kopiert. Füge es in deine Paper-Datei ein.",
         "paperCopyFailed": "Kopieren für Paper fehlgeschlagen",
+        "excalidrawCopied": "Für Excalidraw kopiert. Füge es auf deiner Zeichenfläche ein.",
+        "tldrawCopied": "Für tldraw kopiert. Füge es auf deiner Zeichenfläche ein.",
+        "diagramCopyFailed": "Diagramm konnte nicht kopiert werden",
         "downloadFailed": "Bild konnte nicht heruntergeladen werden"
       }
     },
@@ -6649,7 +6722,7 @@
         "run": "{state, select, running {Führe {name} aus} other {{name} ausgeführt}}"
       },
       "imageGenerating": "Generiere Bild, dauert meist 3–8 Minuten",
-      "imageRevising": "Überarbeite Bild, dauert meist 3–8 Minuten",
+      "imageRevising": "Bild wird überarbeitet",
       "imageLongRunning": "{action, select, revise {Überarbeite} other {Generiere}} Bild. Läuft noch, große Repos können länger dauern",
       "unableToDisplay": "Wert kann nicht angezeigt werden",
       "truncated": "… ({count, plural, one {# weiteres Zeichen} other {# weitere Zeichen}} abgeschnitten)",
