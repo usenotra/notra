@@ -4,10 +4,12 @@ import { fileURLToPath } from "node:url";
 
 import { GEO_EMPTY_TRAFFIC_RESPONSE } from "@notra/geo-core/constants/geo";
 import type { SiteAnalyticsResponse } from "@notra/geo-core/types/geo";
+import { Children, isValidElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { IntlProvider } from "use-intl";
 
 import messages from "../messages/en.json";
+import type { EChartsAreaChartProps } from "../src/components/evilcharts/charts/echarts-area-chart";
 
 if (!process.env.NOTRA_SITE_ANALYTICS_TEST_WORKER) {
   test("site analytics empty-state contract", () => {
@@ -47,11 +49,20 @@ if (!process.env.NOTRA_SITE_ANALYTICS_TEST_WORKER) {
     }),
   }));
   mock.module("../src/components/framework/link", () => ({ default: "a" }));
+  const chartModule =
+    await import("../src/components/evilcharts/charts/echarts-area-chart");
+  const chart = mock(
+    (_props: EChartsAreaChartProps<Record<string, unknown>>) => null
+  );
+  mock.module("../src/components/evilcharts/charts/echarts-area-chart", () => ({
+    EChartsAreaChart: Object.assign(chart, chartModule.EChartsAreaChart),
+  }));
 
   const { SiteAnalyticsPage } =
     await import("../src/components/sites/pages/site-analytics-page");
 
   beforeEach(() => {
+    chart.mockClear();
     analyticsOn = true;
     published = true;
     isError = false;
@@ -117,11 +128,70 @@ if (!process.env.NOTRA_SITE_ANALYTICS_TEST_WORKER) {
       ).toHaveLength(6);
       expect(html).not.toContain(messages.sites.analyticsPage.emptyTitle);
       expect(html).not.toContain(messages.sites.analyticsPage.emptyRangeTitle);
-      expect(html).not.toContain(
-        messages.sites.analyticsPage.notPublishedTitle
-      );
+      if (state === "unpublished") {
+        expect(html).toContain(messages.sites.analyticsPage.notPublishedTitle);
+        expect(html).toContain(
+          messages.sites.analyticsPage.notPublishedDescription
+        );
+      } else {
+        expect(html).not.toContain(
+          messages.sites.analyticsPage.notPublishedTitle
+        );
+      }
     }
   );
+
+  test("the empty chart receives every date and an integer zero-value axis", () => {
+    renderPage();
+    const props = chart.mock.calls[0]?.[0];
+    expect(props?.data.map((row) => row.rawDay)).toEqual(
+      Array.from({ length: 30 }, (_, index) =>
+        new Date(Date.UTC(2026, 8, 10 + index)).toISOString().slice(0, 10)
+      )
+    );
+    expect(
+      props?.data.every((row) => row.people === 0 && row.agents === 0)
+    ).toBe(true);
+    const axis = Children.toArray(props?.children).find(
+      (child) =>
+        isValidElement(child) &&
+        child.type === chartModule.EChartsAreaChart.YAxis
+    );
+    expect(axis).toMatchObject({ props: { interval: 1, max: 1 } });
+  });
+
+  test("recorded traffic retains automatic axis scaling", () => {
+    if (!data) {
+      throw new Error("Missing analytics fixture");
+    }
+    data.web.points = [{ day: "2026-10-01", views: 3, visitors: 2 }];
+    renderPage();
+    const props = chart.mock.calls[0]?.[0];
+    expect(
+      props?.data.find((row) => row.rawDay === "2026-10-01")
+    ).toMatchObject({ people: 3, agents: 0 });
+    const axis = Children.toArray(props?.children).find(
+      (child) =>
+        isValidElement(child) &&
+        child.type === chartModule.EChartsAreaChart.YAxis
+    );
+    expect(axis).toMatchObject({
+      props: { interval: undefined, max: undefined },
+    });
+  });
+
+  test("missing analytics configuration is not reported as zero traffic", () => {
+    if (!data) {
+      throw new Error("Missing analytics fixture");
+    }
+    data.web.configured = false;
+    const html = renderPage();
+    expect(html).toContain(
+      renderToStaticMarkup(<>{messages.sites.analyticsPage.errorTitle}</>)
+    );
+    expect(html).not.toContain(messages.geo.webVisitors.trendTitle);
+    expect(chart).not.toHaveBeenCalled();
+  });
 
   test("disabled analytics still offers the settings action", () => {
     analyticsOn = false;

@@ -1,6 +1,11 @@
 "use client";
 
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@notra/ui/components/ui/alert";
 import { Skeleton } from "@notra/ui/components/ui/skeleton";
 import { useTranslations } from "use-intl";
 
@@ -16,7 +21,8 @@ import { siteHref } from "@/utils/site-links";
 
 export function SiteAnalyticsPage() {
   const t = useTranslations("sites.analyticsPage");
-  const { organizationId, organizationSlug, siteId, detail } = useSite();
+  const { organizationId, organizationSlug, siteId, detail, liveDeployment } =
+    useSite();
   const analyticsOn = detail.site.analyticsEnabled;
   const geoRange = useGeoRange();
   const query = useSiteAnalytics(organizationId, siteId, geoRange.query);
@@ -25,6 +31,7 @@ export function SiteAnalyticsPage() {
     data !== undefined &&
     (data.web.totals.views > 0 ||
       data.traffic.sources.some((source) => source.visits > 0));
+  const canShowAnalytics = data?.web.configured && (hasVisits || analyticsOn);
   const settingsLink = (
     <Link
       className={buttonVariants({ variant: "outline" })}
@@ -39,7 +46,10 @@ export function SiteAnalyticsPage() {
       <PageHeading description={t("description")} title={t("title")}>
         <GeoRangePicker control={geoRange} />
       </PageHeading>
-      {query.isError && data === undefined ? (
+      {(query.isError && data === undefined) ||
+      (data !== undefined &&
+        !data.web.configured &&
+        (hasVisits || analyticsOn)) ? (
         <EmptyState
           description={t("errorDescription")}
           title={t("errorTitle")}
@@ -58,7 +68,13 @@ export function SiteAnalyticsPage() {
           title={t("offTitle")}
         />
       ) : null}
-      {data !== undefined && (hasVisits || analyticsOn) ? (
+      {canShowAnalytics && !liveDeployment ? (
+        <Alert>
+          <AlertTitle>{t("notPublishedTitle")}</AlertTitle>
+          <AlertDescription>{t("notPublishedDescription")}</AlertDescription>
+        </Alert>
+      ) : null}
+      {data !== undefined && canShowAnalytics ? (
         <WebVisitorsSection
           engagement={data.engagement}
           range={geoRange.query}

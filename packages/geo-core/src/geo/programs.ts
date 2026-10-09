@@ -140,7 +140,7 @@ import { normalizePromptTags } from "../utils/geo-prompt-tags";
 import { groupGeoSparklinePoints } from "../utils/geo-sparkline";
 import { memoizeGeoRequest } from "../utils/request-memo";
 import { competitorKey } from "./domain";
-import { geoDb, geoQuery, geoSkip } from "./effect";
+import { geoDb, geoQuery, geoRequiredQuery, geoSkip } from "./effect";
 import {
   GeoCompetitorLimitError,
   GeoPromptDuplicateError,
@@ -1234,17 +1234,18 @@ export const loadAiTraffic = Effect.fn("geo.aiTraffic")(function* (
       )
     : null;
   const conversionPaths = settingsRow?.conversionPaths ?? [];
+  const query = siteId && isTinybirdConfigured() ? geoRequiredQuery : geoQuery;
 
   const [overview, timeseries, conversionPages] = yield* Effect.all(
     [
-      geoQuery("traffic overview query failed", () =>
+      query("traffic overview query failed", () =>
         queryGeoTrafficOverview({
           ...geoScopeParams(scope),
           ...geoHiddenSourceParams(),
           ...windowParams,
         })
       ),
-      geoQuery("traffic timeseries query failed", () =>
+      query("traffic timeseries query failed", () =>
         queryGeoTrafficTimeseries({
           ...geoScopeParams(scope),
           ...geoHiddenSourceParams(),
@@ -1253,7 +1254,7 @@ export const loadAiTraffic = Effect.fn("geo.aiTraffic")(function* (
       ),
       conversionPaths.length === 0
         ? Effect.succeed(null)
-        : geoQuery("traffic conversion pages query failed", () =>
+        : query("traffic conversion pages query failed", () =>
             queryGeoTrafficPages({
               ...geoScopeParams(scope),
               ...geoHiddenSourceParams(),
