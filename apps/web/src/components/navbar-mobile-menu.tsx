@@ -33,6 +33,7 @@ import {
   type MarketingNavRailItem,
 } from "@/utils/navigation";
 
+import { NavbarCompactPanel } from "./navbar-compact-panel";
 import { NavbarChevron } from "./navbar-glyphs";
 import { NavbarHref } from "./navbar-href";
 import { TrackedSignupLink } from "./tracked-signup-link";
@@ -283,6 +284,9 @@ function GroupPanel({
   stagger: Variants;
   item: Variants;
 }) {
+  if (group.layout === "compact") {
+    return <NavbarCompactPanel group={group} onSelect={onSelect} />;
+  }
   return (
     <m.div
       animate="visible"

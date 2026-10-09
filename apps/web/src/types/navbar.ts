@@ -11,6 +11,12 @@ export interface NavbarProps {
   variant?: NavbarVariant;
 }
 
+export interface NavbarPanelSize {
+  width: number;
+  height: number;
+  anchorOffset?: number;
+}
+
 export interface NavbarAuthActionsProps {
   isAuthenticated: boolean;
   isResolved: boolean;
@@ -29,6 +35,12 @@ export interface NavbarMobileGroupProps {
   onSelect: () => void;
   item: Variants;
   stagger: Variants;
+}
+
+export interface NavbarCompactPanelProps {
+  group: MarketingNavGroup;
+  onSelect: () => void;
+  role?: "menuitem";
 }
 
 export interface NavbarKbdProps {
