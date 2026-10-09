@@ -1,15 +1,15 @@
 import type { Program } from "estree";
 import type { Nodes } from "mdast";
 
-import type { MdxJsxElement } from "../types/mdx";
+import type { MdxJsxAttribute, MdxJsxElement } from "../types/mdx";
 
 export function isMdxJsxElement(node: Nodes): node is MdxJsxElement {
   return node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement";
 }
 
-export function hasClientDirective(element: MdxJsxElement): boolean {
-  return element.attributes.some(
-    (attribute) =>
+export function clientDirectives(element: MdxJsxElement) {
+  return element.attributes.filter(
+    (attribute): attribute is MdxJsxAttribute =>
       attribute.type === "mdxJsxAttribute" &&
       attribute.name.startsWith("client:")
   );

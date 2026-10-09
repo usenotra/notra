@@ -185,6 +185,61 @@ describe("site contract", () => {
     ]);
   });
 
+  test("static JSX and inline components opt out of automatic hydration", () => {
+    const result = run({
+      "snippets/label.jsx":
+        "export const Label = ({children}) => <strong>{children}</strong>;",
+      "blog/post.mdx": post(
+        [
+          'import { Label as Caption } from "/snippets/label.jsx";',
+          "",
+          "export const Highlight = ({children}) => <mark>{children}</mark>;",
+          "",
+          '<Caption client:static title="label">Static</Caption>',
+          "<Highlight client:static>Inline</Highlight>",
+          "<Caption>Default</Caption>",
+          "<Caption client:visible>Visible</Caption>",
+          "<Caption client:idle>Idle</Caption>",
+        ].join("\n")
+      ),
+    });
+    expect(errors(result)).toEqual([]);
+    const output = result.outputs.get("blog/post.mdx") ?? "";
+    expect(output).not.toContain("client:static");
+    expect(output).toContain('<Caption  title="label">Static</Caption>');
+    expect(output).toContain("<Highlight >Inline</Highlight>");
+    expect(output).toContain("<Caption client:load>Default</Caption>");
+    expect(output).toContain("<Caption client:visible>Visible</Caption>");
+    expect(output).toContain("<Caption client:idle>Idle</Caption>");
+  });
+
+  test.each([
+    "<Label client:static client:load />",
+    '<Label client:static client:only="react" />',
+    "<Label client:static={false} />",
+    '<Label client:static="true" />',
+    "<Label client:static client:static />",
+    "<Note client:static />",
+    "<Content client:static />",
+    "<div client:static />",
+  ])("rejects invalid static rendering directives: %s", (element) => {
+    const result = run({
+      "snippets/label.jsx": "export const Label = () => <b>Static</b>;",
+      "snippets/content.mdx": "Content",
+      "blog/post.mdx": post(
+        `import { Label } from "/snippets/label.jsx";\nimport Content from "/snippets/content.mdx";\n\n${element}`
+      ),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        file: "blog/post.mdx",
+        code: "static_component",
+        line: 9,
+      })
+    );
+  });
+
   test("a local component alias takes precedence over builtin detection", () => {
     const result = run({
       "snippets/note.jsx": "export const CustomNote = () => <b>Custom</b>;",

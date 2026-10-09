@@ -38,6 +38,11 @@ export type MdxJsxElement = Extract<
   { type: "mdxJsxFlowElement" | "mdxJsxTextElement" }
 >;
 
+export type MdxJsxAttribute = Extract<
+  MdxJsxElement["attributes"][number],
+  { type: "mdxJsxAttribute" }
+>;
+
 export interface MdxPass {
   path: string;
   source: string;

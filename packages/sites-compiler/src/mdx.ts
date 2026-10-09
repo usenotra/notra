@@ -43,8 +43,8 @@ import {
 } from "./utils/estree";
 import { missingHookImports, parseJsxModule } from "./utils/jsx";
 import {
+  clientDirectives,
   expressionPrograms,
-  hasClientDirective,
   isMdxJsxElement,
 } from "./utils/mdast";
 import { offsetToLineColumn, resolveSiteImport } from "./utils/paths";
@@ -296,11 +296,35 @@ function walkContent(pass: MdxPass, tree: Root, scan: ModuleScan): Set<string> {
       );
       return;
     }
+    const directives = clientDirectives(node);
+    const staticDirective = directives.find(
+      (attribute) => attribute.name === "client:static"
+    );
+    if (staticDirective) {
+      if (
+        !scan.hydrated.has(root) ||
+        staticDirective.value !== null ||
+        directives.length !== 1
+      ) {
+        report(
+          pass,
+          "static_component",
+          "Use client:static without a value on an imported JSX or inline component, and do not combine it with another client directive.",
+          start
+        );
+        return;
+      }
+      pass.edits.push({
+        start: staticDirective.position?.start.offset ?? start,
+        end: staticDirective.position?.end.offset ?? start,
+        text: "",
+      });
+    }
     if (!COMPONENT_NAME.test(root)) {
       return;
     }
     if (scan.hydrated.has(root)) {
-      if (!hasClientDirective(node)) {
+      if (directives.length === 0) {
         const at = start + 1 + name.length;
         pass.edits.push({ start: at, end: at, text: " client:load" });
       }

@@ -1,5 +1,6 @@
 import type { DevRefreshOptions } from "../types/dev-refresh";
 import { siteHeadScripts } from "./head-scripts";
+import { hasReactComponents } from "./react";
 
 export function createDevRefresh(options: DevRefreshOptions) {
   let revision = 0;
@@ -68,6 +69,7 @@ export function createDevRefresh(options: DevRefreshOptions) {
     const params = {
       ...options.params,
       config,
+      hasReactComponents: hasReactComponents(prepared.validation.outputs),
       publicFiles: [
         ...new Set([
           ...prepared.publicFiles,

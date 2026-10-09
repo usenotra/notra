@@ -5,7 +5,10 @@ import type { OgImagesResult, WriteOgImagesParams } from "./og-images";
 import type { PreparedSite } from "./source";
 
 export interface DevRefreshOptions {
-  params: Omit<BuildParams, "config" | "publicFiles" | "headScripts">;
+  params: Omit<
+    BuildParams,
+    "config" | "publicFiles" | "headScripts" | "hasReactComponents"
+  >;
   prepare: () => Promise<PreparedSite>;
   writeOgImages: (params: WriteOgImagesParams) => Promise<OgImagesResult>;
   publish: (params: BuildParams, isCurrent: () => boolean) => Promise<boolean>;
