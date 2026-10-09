@@ -1,0 +1,65 @@
+apps/dashboard/src/lib/demo/sandbox.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 28,38,46-47,69,100-104,178-193,220-235,237-239,258-260,264,268-303,305-308,312,318,322,328,330-333,345-377,379-389,459,508,535,539-541,697-699,785-789,794-796,799,803,809-811,813,848-858,862
+apps/dashboard/src/lib/navigation.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 6,10,14
+apps/dashboard/src/utils/demo-limits.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 3,16-19
+apps/dashboard/src/app/api/demo/sandbox/route.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 32-37
+apps/ui/registry/notra/data-table/components/data-table-corner-scrollbar.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-215
+apps/ui/registry/notra/data-table/components/data-table-root.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 168,245
+apps/ui/registry/notra/data-table/components/data-table-surfaces.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 2,4-8,16,33-37,39,98,101-103,106-109,116,125-142
+apps/ui/registry.json
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1116-1119
+packages/ui/src/components/data-table/surfaces.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 2,7-8,32-36,38,101,104-106,109-112,119,128-145
+packages/ui/src/constants/table.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-2,75-99
+apps/dashboard/src/constants/demo.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 31-32,48-50,147-148
+packages/ui/src/types/data-table.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 245-249,253-257
+packages/ui/src/hooks/use-table-viewport.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 189
+apps/ui/registry/notra/data-table/constants/data-table.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-2,74,92-116
+apps/ui/registry/notra/data-table/types/data-table.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 22,269-273,277-281
+apps/dashboard/src/utils/rendered-pathname.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-15
+apps/dashboard/tests/demo-storage.test.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-19
+apps/web/src/styles/ui-sources.css
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 49
+apps/dashboard/tests/rendered-pathname.test.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-86
+apps/dashboard/src/types/demo.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 15-18
+apps/ui/registry/notra/data-table/hooks/use-table-viewport.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 185
+packages/ui/src/components/data-table/corner-scrollbar.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-207
+packages/ui/src/components/data-table/root.tsx
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 163,244
+apps/dashboard/tests/fixtures/demo-storage.fixture.ts
+  s_0b65a9e5b79b9a::t_0e972985e13e9c 1-550
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "53a21e98bca0dde71fc48ed8f1ff3e7782f33c86",
+  "prompts": {},
+  "sessions": {
+    "s_0b65a9e5b79b9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11f44-14b8-7063-a14b-ddb87b9c513f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
