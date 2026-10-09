@@ -337,7 +337,10 @@ if (!databaseUrl) {
 
   test("all providers round-trip through real drafts and publish the exact normalized blog.json", async () => {
     const updates = [
-      { provider: "ga4", settings: { measurementId: " G-SYNTHETIC " } },
+      {
+        provider: "umami",
+        settings: { websiteId: " 94db1cb1-74f4-4a40-ad6c-962362670409 " },
+      },
       {
         provider: "plausible",
         settings: {
@@ -353,7 +356,6 @@ if (!databaseUrl) {
           sessionRecording: false,
         },
       },
-      { provider: "databuddy", settings: { clientId: "synthetic-client" } },
     ] as const;
     for (const update of updates) {
       expect(
@@ -363,17 +365,16 @@ if (!databaseUrl) {
     const state = await readSiteIntegrations(site);
     expect(state.invalid).toBe(false);
     expect(state.integrations).toEqual({
-      ga4: { measurementId: "G-SYNTHETIC" },
+      umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
       plausible: { domain: "docs.example.test", server: "stats.example.test" },
       posthog: {
         apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
         apiHost: "https://eu.i.posthog.com",
         sessionRecording: false,
       },
-      databuddy: { clientId: "synthetic-client" },
     });
     const [draft] = await editor.listSiteDrafts(site.id);
-    expect(draft?.revision).toBe(3);
+    expect(draft?.revision).toBe(2);
     expect(JSON.parse(draft?.content ?? "{}").name).toBe("Published");
     await publishSiteDrafts(site, {
       mode: "direct",
@@ -390,8 +391,8 @@ if (!databaseUrl) {
 
   test("removing an integration updates the real draft without deleting unrelated settings", async () => {
     await saveSiteIntegration(site, {
-      provider: "ga4",
-      settings: { measurementId: "G-SYNTHETIC" },
+      provider: "umami",
+      settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
       userId,
     });
     await saveSiteIntegration(site, {
@@ -403,11 +404,11 @@ if (!databaseUrl) {
       userId,
     });
     const state = await saveSiteIntegration(site, {
-      provider: "ga4",
+      provider: "umami",
       settings: null,
       userId,
     });
-    expect(state.integrations).not.toHaveProperty("ga4");
+    expect(state.integrations).not.toHaveProperty("umami");
     expect(state.integrations.posthog).toHaveProperty(
       "sessionRecording",
       false
@@ -445,8 +446,8 @@ if (!databaseUrl) {
           userId,
         }),
         saveSiteIntegration(site, {
-          provider: "ga4",
-          settings: { measurementId: "G-SYNTHETIC" },
+          provider: "umami",
+          settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
           userId,
         }),
       ]);

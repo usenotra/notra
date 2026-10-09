@@ -72,14 +72,17 @@ describe("integrations schema", () => {
   test("accepts every preset in its documented shape", () => {
     const result = parse({
       integrations: {
-        databuddy: { clientId: "3ed1fce1-5a56" },
         plausible: { domain: "Acme.com", server: "Plausible.Acme.com" },
         posthog: {
           apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
           apiHost: "https://acme.com/ingest/",
           sessionRecording: false,
         },
-        ga4: { measurementId: "G-ABC123XYZ9" },
+        umami: {
+          websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+          scriptUrl: "https://stats.acme.com/script.js",
+          hostUrl: "https://events.acme.com/",
+        },
       },
     });
     expect(result.success).toBe(true);
@@ -100,7 +103,7 @@ describe("integrations schema", () => {
   test("provider updates validate the matching settings and accept removal", () => {
     expect(
       siteIntegrationUpdateSchema.safeParse({
-        provider: "ga4",
+        provider: "umami",
         settings: { domain: "acme.com" },
       }).success
     ).toBe(false);
@@ -122,12 +125,7 @@ describe("integrations schema", () => {
         },
       }).success
     ).toBe(false);
-    for (const provider of [
-      "ga4",
-      "posthog",
-      "plausible",
-      "databuddy",
-    ] as const) {
+    for (const provider of ["umami", "posthog", "plausible"] as const) {
       expect(
         siteIntegrationUpdateSchema.parse({ provider, settings: null })
       ).toEqual({ provider, settings: null });
@@ -138,8 +136,7 @@ describe("integrations schema", () => {
     expect(
       issuePaths({
         integrations: {
-          ga4: { measurementId: 'G-1234"><script>alert(1)</script>' },
-          databuddy: { clientId: "abc def ghi" },
+          umami: { websiteId: 'id"><script>alert(1)</script>' },
           plausible: { domain: "acme.com/<x>" },
           posthog: { apiKey: "phc_short" },
           mixpanel: { projectToken: "x" },
@@ -148,17 +145,52 @@ describe("integrations schema", () => {
     ).toEqual(
       [
         "integrations",
-        "integrations.databuddy.clientId",
-        "integrations.ga4.measurementId",
+        "integrations.umami.websiteId",
         "integrations.plausible.domain",
         "integrations.posthog.apiKey",
       ].sort()
     );
     expect(
-      issuePaths({ integrations: { ga4: { measurementId: "G-ABCD", x: 1 } } })
-    ).toEqual(["integrations.ga4"]);
+      issuePaths({
+        integrations: {
+          umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409", x: 1 },
+        },
+      })
+    ).toEqual(["integrations.umami"]);
   });
 
+  test("removed provider names are rejected in configs and API updates", () => {
+    for (const provider of ["ga4", "databuddy"]) {
+      expect(parse({ integrations: { [provider]: {} } }).success).toBe(false);
+      expect(
+        siteIntegrationUpdateSchema.safeParse({ provider, settings: null })
+          .success
+      ).toBe(false);
+    }
+  });
+
+  test.each([
+    "http://stats.acme.com/script.js",
+    // oxlint-disable-next-line no-script-url -- Unsafe scheme is a rejection fixture.
+    "javascript:alert(1)",
+    "https://stats.acme.com/script.js?x=y",
+    "https://stats.acme.com/script.js#x",
+    "https://stats.acme.com:65536/script.js",
+    'https://stats.acme.com/" onload=alert(1)',
+  ])("rejects unsafe Umami URLs %s", (value) => {
+    for (const key of ["scriptUrl", "hostUrl"]) {
+      expect(
+        issuePaths({
+          integrations: {
+            umami: {
+              websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+              [key]: value,
+            },
+          },
+        })
+      ).toEqual([`integrations.umami.${key}`]);
+    }
+  });
   test("allowed origins are bare https/wss origins", () => {
     expect(
       issuePaths({
@@ -184,26 +216,67 @@ describe("integrations schema", () => {
 });
 
 describe("head scripts", () => {
-  test("GA4 initializes its queue with exactly one page-view configuration", () => {
-    const scripts = integrationHeadScripts({
-      ga4: { measurementId: "G-ABC123XYZ9" },
-    });
-    const window: { dataLayer?: IArguments[] } = {};
-    for (const script of scripts) {
-      if (script.kind === "inline") {
-        new Script(script.code).runInNewContext({
-          window,
-          Date,
-          get dataLayer() {
-            return window.dataLayer;
-          },
-        });
-      }
-    }
-    expect(window.dataLayer?.map((args) => Array.from(args))).toEqual([
-      ["js", expect.any(Date)],
-      ["config", "G-ABC123XYZ9"],
+  test("Umami Cloud uses its public Website ID and permits the collection gateway", () => {
+    const integrations = {
+      umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
+    };
+    expect(integrationHeadScripts(integrations)).toEqual([
+      {
+        kind: "external",
+        src: "https://cloud.umami.is/script.js",
+        attributes: {
+          "data-website-id": integrations.umami.websiteId,
+          defer: true,
+        },
+      },
     ]);
+    expect(integrationCspSources(integrations)).toEqual({
+      scriptSrc: ["https://cloud.umami.is"],
+      connectSrc: ["https://gateway.umami.is"],
+    });
+  });
+
+  test("Umami self-hosting and collection overrides use the exact configured origins", () => {
+    for (const scriptUrl of [
+      "https://stats.acme.com:8443/script.js",
+      "https://stats.acme.com:8443/sub/tracker",
+    ]) {
+      const integrations = {
+        umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409", scriptUrl },
+      };
+      expect(integrationCspSources(integrations)).toEqual({
+        scriptSrc: ["https://stats.acme.com:8443"],
+        connectSrc: ["https://stats.acme.com:8443"],
+      });
+      const overridden = {
+        umami: {
+          ...integrations.umami,
+          hostUrl: "https://events.acme.com/ingest",
+        },
+      };
+      expect(integrationHeadScripts(overridden)[0]).toMatchObject({
+        src: scriptUrl,
+        attributes: { "data-host-url": "https://events.acme.com/ingest" },
+      });
+      expect(integrationCspSources(overridden)).toEqual({
+        scriptSrc: ["https://stats.acme.com:8443"],
+        connectSrc: ["https://events.acme.com"],
+      });
+    }
+  });
+
+  test("Umami Cloud supports an explicit collection override", () => {
+    expect(
+      integrationCspSources({
+        umami: {
+          websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+          hostUrl: "https://events.acme.com",
+        },
+      })
+    ).toEqual({
+      scriptSrc: ["https://cloud.umami.is"],
+      connectSrc: ["https://events.acme.com"],
+    });
   });
 
   test("PostHog initializes the configured endpoint and recording option", () => {
@@ -275,33 +348,6 @@ describe("head scripts", () => {
     expect(inlineScriptLiteral("a\u2028b")).toBe('"a\\u2028b"');
   });
 
-  test("renders the vendor snippets", () => {
-    const scripts = integrationHeadScripts({
-      databuddy: { clientId: "client_123" },
-      ga4: { measurementId: "G-ABC123" },
-    });
-    expect(scripts).toEqual([
-      {
-        kind: "external",
-        src: "https://cdn.databuddy.cc/databuddy.js",
-        attributes: {
-          "data-client-id": "client_123",
-          crossorigin: "anonymous",
-          async: true,
-        },
-      },
-      {
-        kind: "external",
-        src: "https://www.googletagmanager.com/gtag/js?id=G-ABC123",
-        attributes: { async: true },
-      },
-      {
-        kind: "inline",
-        code: 'window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-ABC123");',
-      },
-    ]);
-  });
-
   test("custom scripts: script.js first, then every plain script by path", () => {
     expect(
       sortCustomScriptPaths([
@@ -310,15 +356,15 @@ describe("head scripts", () => {
         "blog/widget.js",
         "scripts/A.js",
         "script.js",
-        "databuddy.js",
+        "analytics.js",
         "assets/track.js",
         "scripts/nested/c.js",
         "scripts/readme.txt",
       ])
     ).toEqual([
       "script.js",
+      "analytics.js",
       "assets/track.js",
-      "databuddy.js",
       "scripts/A.js",
       "scripts/b.js",
       "scripts/nested/c.js",

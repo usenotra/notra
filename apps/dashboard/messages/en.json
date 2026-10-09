@@ -7651,15 +7651,11 @@
       "invalidTitle": "Invalid blog.json configuration",
       "invalidDescription": "The JSON or integration settings are invalid. Fix them in the editor, then come back.",
       "providers": {
-        "databuddy": "Privacy-first web analytics.",
         "plausible": "Lightweight, cookie-free analytics.",
         "posthog": "Product analytics, session replay and feature flags.",
-        "ga4": "Google's web analytics."
+        "umami": "Lightweight, cookie-free web analytics."
       },
       "fields": {
-        "databuddy": {
-          "clientId": "Client ID"
-        },
         "plausible": {
           "domain": "Domain",
           "server": "Self-hosted server"
@@ -7669,8 +7665,10 @@
           "apiHost": "API host",
           "sessionRecording": "Session recording"
         },
-        "ga4": {
-          "measurementId": "Measurement ID"
+        "umami": {
+          "websiteId": "Website ID",
+          "scriptUrl": "Script URL",
+          "hostUrl": "Collection URL"
         }
       },
       "add": "Add {provider}",
@@ -7683,12 +7681,6 @@
       "retry": "Try again",
       "openEditor": "Open editor",
       "fieldDescriptions": {
-        "databuddy": {
-          "clientId": "Copy the Client ID from your Databuddy dashboard."
-        },
-        "ga4": {
-          "measurementId": "In Google Analytics, open Admin → Data streams → your web stream and copy the Measurement ID."
-        },
         "plausible": {
           "domain": "Use the domain you added to Plausible, without https://.",
           "server": "For self-hosted Plausible, enter its hostname and optional port (e.g. plausible.acme.com:8443), without https://. Leave empty for plausible.io."
@@ -7697,6 +7689,11 @@
           "apiKey": "Copy the public project API key from your PostHog project settings.",
           "apiHost": "Leave empty for US Cloud. Use https://eu.i.posthog.com for EU Cloud or your own HTTPS endpoint.",
           "sessionRecording": "Record visitor sessions when recording is enabled for this domain in PostHog."
+        },
+        "umami": {
+          "websiteId": "In Umami, edit your website and copy data-website-id from Tracking code.",
+          "scriptUrl": "Leave empty for Umami Cloud. For self-hosting, copy the full HTTPS script URL from your tracking code.",
+          "hostUrl": "Usually empty. Set an HTTPS base URL only when events should go to a different endpoint, such as a reverse proxy."
         }
       },
       "close": "Close",

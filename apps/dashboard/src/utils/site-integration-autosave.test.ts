@@ -8,14 +8,14 @@ import type { SiteIntegrationAutosaveState } from "@/types/site-integrations";
 
 import { createSiteIntegrationAutosave } from "./site-integration-autosave";
 
-const initial: SiteIntegrationUpdate = { provider: "ga4", settings: null };
+const initial: SiteIntegrationUpdate = { provider: "umami", settings: null };
 const first: SiteIntegrationUpdate = {
-  provider: "ga4",
-  settings: { measurementId: "G-FIRST123" },
+  provider: "umami",
+  settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
 };
 const latest: SiteIntegrationUpdate = {
-  provider: "ga4",
-  settings: { measurementId: "G-LATEST123" },
+  provider: "umami",
+  settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670410" },
 };
 
 function deferred() {
@@ -83,7 +83,10 @@ test("edits during a slow save are serialized and only the latest queued edit is
   queue.update(first);
   const flushing = queue.flush();
   await started.promise;
-  queue.update({ provider: "ga4", settings: { measurementId: "G-MIDDLE123" } });
+  queue.update({
+    provider: "umami",
+    settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670411" },
+  });
   queue.update(latest);
   const closing = queue.flush();
   expect(writes).toEqual([first]);

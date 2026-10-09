@@ -8,7 +8,9 @@ test("saving normalizes provider settings while preserving the rest of blog.json
     name: "Acme",
     $schema: "https://www.usenotra.com/schemas/blog.json",
     navbar: { links: [{ label: "Home", href: "https://acme.com" }] },
-    integrations: { ga4: { measurementId: "G-ABC123XYZ9" } },
+    integrations: {
+      umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
+    },
   };
   const saved = updateSiteIntegrationConfig(JSON.stringify(config), {
     provider: "plausible",
@@ -29,7 +31,7 @@ test("removing providers preserves others and removes the empty integrations obj
     name: "Acme",
     integrations: {
       plausible: { domain: "acme.com" },
-      ga4: { measurementId: "G-ABC123XYZ9" },
+      umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
     },
   });
   const first = updateSiteIntegrationConfig(content, {
@@ -37,10 +39,10 @@ test("removing providers preserves others and removes the empty integrations obj
     settings: null,
   });
   expect(first.integrations).toEqual({
-    ga4: { measurementId: "G-ABC123XYZ9" },
+    umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
   });
   const last = updateSiteIntegrationConfig(first.content, {
-    provider: "ga4",
+    provider: "umami",
     settings: null,
   });
   expect(last.integrations).toEqual({});
@@ -58,8 +60,8 @@ test("malformed configuration is rejected instead of overwritten", () => {
   ]) {
     expect(() =>
       updateSiteIntegrationConfig(content, {
-        provider: "ga4",
-        settings: { measurementId: "G-ABC123XYZ9" },
+        provider: "umami",
+        settings: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
       })
     ).toThrow(SiteInputError);
   }
@@ -68,10 +70,10 @@ test("malformed configuration is rejected instead of overwritten", () => {
 test("invalid settings report their configuration path", () => {
   expect(() =>
     updateSiteIntegrationConfig('{"name":"Acme"}', {
-      provider: "ga4",
-      settings: { measurementId: "invalid" },
+      provider: "umami",
+      settings: { websiteId: "invalid" },
     })
-  ).toThrow("integrations.ga4.measurementId");
+  ).toThrow("integrations.umami.websiteId");
 });
 
 test("PostHog false is preserved and trailing slashes are normalized", () => {

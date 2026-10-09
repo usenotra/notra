@@ -12,8 +12,11 @@ import {
 
 test("every dashboard provider submits the same shape accepted by the API", () => {
   const settings = {
-    ga4: { measurementId: "G-ABC123XYZ9" },
-    databuddy: { clientId: "3ed1fce1-5a56-4db3-8df5-a1036322c999" },
+    umami: {
+      websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+      scriptUrl: "https://stats.acme.com/script.js",
+      hostUrl: "https://events.acme.com",
+    },
     plausible: { domain: "acme.com", server: "stats.acme.com" },
     posthog: {
       apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
@@ -88,8 +91,43 @@ test("empty optional fields are omitted and errors belong to the input field", (
     saveSiteIntegrationInputSchema.safeParse({
       organizationId: "org_test",
       siteId: "site_test",
-      provider: "ga4",
+      provider: "umami",
       settings: { domain: "acme.com" },
     }).success
   ).toBe(false);
+});
+
+test("Umami Cloud needs only a Website ID and invalid inputs cannot autosave", () => {
+  const provider = SITE_INTEGRATION_PROVIDERS.find(
+    (entry) => entry.id === "umami"
+  );
+  if (!provider) {
+    throw new Error("Missing Umami provider");
+  }
+  const settings = siteIntegrationSettingsFromValues(provider, {
+    websiteId: " 94db1cb1-74f4-4a40-ad6c-962362670409 ",
+    scriptUrl: " ",
+    hostUrl: " ",
+  });
+  expect(settings).toEqual({
+    websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409",
+  });
+  expect(siteIntegrationFieldErrors(provider, settings)).toEqual({});
+  expect(
+    siteIntegrationFieldErrors(provider, {
+      websiteId: "invalid",
+      scriptUrl: "http://stats.acme.com/script.js",
+      // oxlint-disable-next-line no-script-url -- Unsafe scheme is a rejection fixture.
+      hostUrl: "javascript:alert(1)",
+    })
+  ).toEqual({
+    websiteId: expect.any(String),
+    scriptUrl: expect.any(String),
+    hostUrl: expect.any(String),
+  });
+  expect(SITE_INTEGRATION_PROVIDERS.map((entry) => entry.id).sort()).toEqual([
+    "plausible",
+    "posthog",
+    "umami",
+  ]);
 });

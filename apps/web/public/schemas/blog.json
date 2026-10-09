@@ -1015,18 +1015,6 @@
       "description": "Analytics providers for the live site. Notra installs their scripts automatically. Preview deployments and local development do not send provider events.",
       "type": "object",
       "properties": {
-        "databuddy": {
-          "type": "object",
-          "properties": {
-            "clientId": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{8,64}$",
-              "description": "Public Client ID from your Databuddy dashboard. No script installation is needed."
-            }
-          },
-          "required": ["clientId"],
-          "additionalProperties": false
-        },
         "plausible": {
           "type": "object",
           "properties": {
@@ -1065,16 +1053,27 @@
           "required": ["apiKey"],
           "additionalProperties": false
         },
-        "ga4": {
+        "umami": {
           "type": "object",
           "properties": {
-            "measurementId": {
+            "websiteId": {
               "type": "string",
-              "pattern": "^G-[A-Z0-9]{4,16}$",
-              "description": "Google Analytics 4 web stream Measurement ID (G-…). Find it in Admin > Data streams > your web stream."
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Public Umami Website ID (UUID) from your website's Tracking code. No API key is needed."
+            },
+            "scriptUrl": {
+              "description": "Tracker script URL. Defaults to https://cloud.umami.is/script.js; use your self-hosted HTTPS script URL when needed.",
+              "type": "string",
+              "pattern": "^https:\\/\\/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}(?::(?:\\d{1,4}|[0-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5]))?(?:\\/[A-Za-z0-9._~-]+)*$"
+            },
+            "hostUrl": {
+              "description": "Optional collection endpoint base URL (data-host-url). Only needed when events should go to a different endpoint, such as a reverse proxy.",
+              "type": "string",
+              "pattern": "^https:\\/\\/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}(?::(?:\\d{1,4}|[0-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5]))?(?:\\/[A-Za-z0-9._~-]+)*$"
             }
           },
-          "required": ["measurementId"],
+          "required": ["websiteId"],
           "additionalProperties": false
         }
       },

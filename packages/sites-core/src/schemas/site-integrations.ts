@@ -1,7 +1,5 @@
 import {
   CSP_ORIGIN,
-  DATABUDDY_CLIENT_ID,
-  GA4_MEASUREMENT_ID,
   HOSTNAME,
   HOSTNAME_WITH_PORT,
   HTTPS_BASE_URL,
@@ -9,16 +7,6 @@ import {
 } from "@notra/sites-core/constants/integrations";
 import { SITE_CSP_MAX_ALLOWED_ORIGINS } from "@notra/sites-core/constants/security";
 import { z } from "zod";
-
-const databuddySchema = z.strictObject({
-  clientId: z
-    .string({ error: "Copy the Client ID from Databuddy" })
-    .trim()
-    .regex(DATABUDDY_CLIENT_ID, "Copy the Client ID from Databuddy")
-    .describe(
-      "Public Client ID from your Databuddy dashboard. No script installation is needed."
-    ),
-});
 
 const plausibleSchema = z.strictObject({
   domain: z
@@ -68,27 +56,46 @@ const posthogSchema = z.strictObject({
     ),
 });
 
-const ga4Schema = z.strictObject({
-  measurementId: z
-    .string({ error: "Use the measurement ID (G-…)" })
+const umamiSchema = z.strictObject({
+  websiteId: z
+    .string({ error: "Copy the Website ID from Umami's tracking code" })
     .trim()
-    .regex(GA4_MEASUREMENT_ID, "Use the measurement ID (G-…)")
+    .uuid("Copy the Website ID from Umami's tracking code")
     .describe(
-      "Google Analytics 4 web stream Measurement ID (G-…). Find it in Admin > Data streams > your web stream."
+      "Public Umami Website ID (UUID) from your website's Tracking code. No API key is needed."
+    ),
+  scriptUrl: z
+    .string()
+    .trim()
+    .regex(
+      HTTPS_BASE_URL,
+      "Use the full https:// script URL without query or hash"
+    )
+    .optional()
+    .describe(
+      "Tracker script URL. Defaults to https://cloud.umami.is/script.js; use your self-hosted HTTPS script URL when needed."
+    ),
+  hostUrl: z
+    .string()
+    .trim()
+    .overwrite((value) => value.replace(/\/+$/, ""))
+    .regex(HTTPS_BASE_URL, "Use an https:// URL without query or hash")
+    .optional()
+    .describe(
+      "Optional collection endpoint base URL (data-host-url). Only needed when events should go to a different endpoint, such as a reverse proxy."
     ),
 });
 
 export const siteIntegrationSchemas = {
-  databuddy: databuddySchema,
   plausible: plausibleSchema,
   posthog: posthogSchema,
-  ga4: ga4Schema,
+  umami: umamiSchema,
 };
 
 export const siteIntegrationUpdateSchema = z.discriminatedUnion("provider", [
   z.object({
-    provider: z.literal("databuddy"),
-    settings: databuddySchema.nullable(),
+    provider: z.literal("umami"),
+    settings: umamiSchema.nullable(),
   }),
   z.object({
     provider: z.literal("plausible"),
@@ -98,15 +105,13 @@ export const siteIntegrationUpdateSchema = z.discriminatedUnion("provider", [
     provider: z.literal("posthog"),
     settings: posthogSchema.nullable(),
   }),
-  z.object({ provider: z.literal("ga4"), settings: ga4Schema.nullable() }),
 ]);
 
 export const siteIntegrationsSchema = z
   .strictObject({
-    databuddy: databuddySchema.optional(),
     plausible: plausibleSchema.optional(),
     posthog: posthogSchema.optional(),
-    ga4: ga4Schema.optional(),
+    umami: umamiSchema.optional(),
   })
   .default({})
   .describe(

@@ -7651,15 +7651,11 @@
       "invalidTitle": "Ungültige blog.json-Konfiguration",
       "invalidDescription": "Das JSON oder die Integrationseinstellungen sind ungültig. Korrigiere sie im Editor und komm dann zurück.",
       "providers": {
-        "databuddy": "Datenschutzfreundliche Web-Analytics.",
         "plausible": "Leichtgewichtige Analytics ohne Cookies.",
         "posthog": "Product Analytics, Session Replay und Feature Flags.",
-        "ga4": "Die Web-Analytics von Google."
+        "umami": "Leichte Web-Analytics ohne Cookies."
       },
       "fields": {
-        "databuddy": {
-          "clientId": "Client-ID"
-        },
         "plausible": {
           "domain": "Domain",
           "server": "Eigener Server"
@@ -7669,8 +7665,10 @@
           "apiHost": "API-Host",
           "sessionRecording": "Session-Aufzeichnung"
         },
-        "ga4": {
-          "measurementId": "Mess-ID"
+        "umami": {
+          "websiteId": "Website-ID",
+          "scriptUrl": "Script-URL",
+          "hostUrl": "URL für Events"
         }
       },
       "add": "{provider} hinzufügen",
@@ -7683,12 +7681,6 @@
       "retry": "Erneut versuchen",
       "openEditor": "Editor öffnen",
       "fieldDescriptions": {
-        "databuddy": {
-          "clientId": "Kopiere die Client-ID aus deinem Databuddy-Dashboard."
-        },
-        "ga4": {
-          "measurementId": "Öffne in Google Analytics Verwaltung → Datenstreams → deinen Webstream und kopiere die Mess-ID."
-        },
         "plausible": {
           "domain": "Gib die Domain ein, die du in Plausible angelegt hast, ohne https://.",
           "server": "Gib für selbst gehostetes Plausible den Hostnamen mit optionalem Port ein (z. B. plausible.acme.com:8443), ohne https://. Leer lassen für plausible.io."
@@ -7697,6 +7689,11 @@
           "apiKey": "Kopiere den öffentlichen Projekt-API-Key aus deinen PostHog-Projekteinstellungen.",
           "apiHost": "Leer lassen für US Cloud. Für EU Cloud nutze https://eu.i.posthog.com oder deinen eigenen HTTPS-Endpunkt.",
           "sessionRecording": "Zeichnet Besuchersitzungen auf, wenn Aufzeichnungen für diese Domain in PostHog aktiviert sind."
+        },
+        "umami": {
+          "websiteId": "Bearbeite deine Website in Umami und kopiere data-website-id aus dem Tracking-Code.",
+          "scriptUrl": "Für Umami Cloud leer lassen. Bei Self-Hosting die vollständige HTTPS-Script-URL aus deinem Tracking-Code kopieren.",
+          "hostUrl": "Normalerweise leer. Nur setzen, wenn Events an einen anderen HTTPS-Endpunkt gehen sollen, etwa einen Reverse Proxy."
         }
       },
       "close": "Schließen",

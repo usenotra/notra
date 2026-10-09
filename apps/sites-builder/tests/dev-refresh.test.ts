@@ -159,7 +159,7 @@ test("local development never loads analytics providers after startup or config 
       throw new Error("Missing development config");
     }
     config.integrations = {
-      ga4: { measurementId: "G-ABC123XYZ9" },
+      umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
     };
     await owner.refresh();
     config.integrations = {

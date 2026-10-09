@@ -20,8 +20,7 @@ test("real live builds include every provider while previews omit them and their
       JSON.stringify({
         name: "Acme",
         integrations: {
-          ga4: { measurementId: "G-ABC123XYZ9" },
-          databuddy: { clientId: "3ed1fce1-5a56-4db3-8df5-a1036322c999" },
+          umami: { websiteId: "94db1cb1-74f4-4a40-ad6c-962362670409" },
           plausible: { domain: "acme.com", server: "stats.acme.com:8443" },
           posthog: {
             apiKey: "phc_abcdefghijklmnopqrstuvwxyz0123",
@@ -69,8 +68,12 @@ test("real live builds include every provider while previews omit them and their
       for (const area of ["blog", "changes"]) {
         const html = await readFile(join(outDir, area, "index.html"), "utf8");
         expect(html).toMatch(/\/_notra\/assets\/custom-script\.[a-f0-9]+\.js/);
-        expect(html.includes("G-ABC123XYZ9")).toBe(enabled);
-        expect(html.includes("cdn.databuddy.cc/databuddy.js")).toBe(enabled);
+        expect(html.includes("94db1cb1-74f4-4a40-ad6c-962362670409")).toBe(
+          enabled
+        );
+        expect(html.includes("cloud.umami.is/script.js")).toBe(enabled);
+        expect(html).not.toContain("googletagmanager");
+        expect(html).not.toContain("databuddy");
         expect(html.includes("stats.acme.com:8443/js/script.js")).toBe(enabled);
         expect(html.includes("posthog.init(")).toBe(enabled);
         if (enabled) {
@@ -97,9 +100,16 @@ test("real live builds include every provider while previews omit them and their
         scriptSources.some((source) => source === "https://stats.acme.com:8443")
       ).toBe(enabled);
       expect(
-        scriptSources.some(
-          (source) => source === "https://www.googletagmanager.com"
-        )
+        scriptSources.some((source) => source === "https://cloud.umami.is")
+      ).toBe(enabled);
+      const connectSources =
+        result.contentSecurityPolicy
+          ?.split("; ")
+          .find((directive) => directive.startsWith("connect-src "))
+          ?.split(" ")
+          .slice(1) ?? [];
+      expect(
+        connectSources.some((source) => source === "https://gateway.umami.is")
       ).toBe(enabled);
       expect(result.contentSecurityPolicy).not.toContain("'unsafe-inline'");
       expect(result.contentSecurityPolicy).toContain("'sha256-");
