@@ -54,6 +54,7 @@ A failed build lists every problem with its file, line and code in three places:
 | `unknown_component` | `Unknown component <X>` | Check the spelling (names are case-sensitive), or import the component from a snippet |
 | `import` | `Cannot import "x": ...` | Imports must start with `/` or `./` and point to a file in your site, and Notra doesn't support npm packages |
 | `component_import` | `Import components by name` | Use `import { Counter } from "/snippets/counter.jsx"` rather than a default import |
+| `static_component` | `Use client:static without a value ...` | Use bare `client:static` on a custom JSX or inline component, without another `client:*` directive. See [Static components](/sites/custom-components#static-components) |
 | `default_export` | `Default exports are not supported` | Use `export const Counter = ...` |
 | `snippet_import` | `Snippets cannot import "x"` | A `.jsx` snippet can only import from `"react"`, so import every snippet in the MDX file |
 | `forbidden_syntax` | `require() is not supported` and similar | Node.js APIs, `eval` and dynamic `import()` aren't available. See [Rules](/sites/custom-components#rules) |

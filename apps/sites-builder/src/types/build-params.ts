@@ -17,4 +17,5 @@ export interface BuildParams {
   mounts: SiteMounts;
   config: SiteConfig;
   headScripts: SiteHeadScript[];
+  hasReactComponents: boolean;
 }
