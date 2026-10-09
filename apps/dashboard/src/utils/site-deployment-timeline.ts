@@ -72,6 +72,7 @@ export function deploymentTimelinePhases(
     terminalState = "failed";
   } else if (
     deployment.status === "canceled" ||
+    deployment.status === "skipped" ||
     deployment.status === "superseded"
   ) {
     terminalState = "stopped";

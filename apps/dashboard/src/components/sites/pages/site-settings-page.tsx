@@ -2,6 +2,7 @@
 
 import { Folder01Icon, GitBranchIcon } from "@hugeicons/core-free-icons";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
+import { Badge } from "@notra/ui/components/ui/badge";
 import { Input } from "@notra/ui/components/ui/input";
 import { Switch } from "@notra/ui/components/ui/switch";
 import { TitleCard } from "@notra/ui/components/ui/title-card";
@@ -215,6 +216,25 @@ function SiteSettingsForm({
         </TitleCard>
 
         <TitleCard as="section" heading={t("publishing")} headingAs="h2">
+          <SiteSettingsRow
+            description={t("smartDeploymentsHint")}
+            htmlFor={`${id}-smart-deployments`}
+            label={
+              <span className="inline-flex items-center gap-2">
+                {t("smartDeployments")}
+                <Badge variant="secondary">{t("beta")}</Badge>
+              </span>
+            }
+          >
+            <div className="flex lg:h-full lg:items-center">
+              <Switch
+                aria-label={t("smartDeployments")}
+                checked={form.smartDeployments}
+                id={`${id}-smart-deployments`}
+                onCheckedChange={(value) => update("smartDeployments", value)}
+              />
+            </div>
+          </SiteSettingsRow>
           <SiteSettingsRow label={tNew("publishMode")}>
             <SiteChoiceGroup
               hideLabel

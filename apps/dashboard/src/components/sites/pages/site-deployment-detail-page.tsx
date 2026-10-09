@@ -317,6 +317,7 @@ function DeploymentNote({ deployment }: SiteDeploymentRecordProps) {
   if (
     deployment.status !== "canceled" &&
     deployment.status !== "superseded" &&
+    deployment.status !== "skipped" &&
     deployment.status !== "expired"
   ) {
     return null;

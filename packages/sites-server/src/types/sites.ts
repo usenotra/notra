@@ -58,6 +58,7 @@ export interface SiteSettingsPatch {
   rootDirectory?: string;
   mounts?: SiteMounts;
   previewsEnabled?: boolean;
+  smartDeployments?: boolean;
   previewCommentsEnabled?: boolean;
   previewVisibility?: Site["previewVisibility"];
   publishMode?: Site["publishMode"];

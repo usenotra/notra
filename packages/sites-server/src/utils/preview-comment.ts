@@ -13,7 +13,10 @@ export function previewCommentBody(
     ? PREVIEW_COMMENT_TITLES[outcome.kind]
     : "⏳ Building preview";
   const links = [`[View build](<${buildUrl}>)`];
-  if (outcome?.kind === "live") {
+  const previewAvailable =
+    outcome?.kind === "live" ||
+    (outcome?.kind === "skipped" && deployment.status === "skipped");
+  if (previewAvailable) {
     const url = primaryMountUrl(
       deployment.target.publicOrigin,
       deployment.target.mounts
@@ -25,7 +28,8 @@ export function previewCommentBody(
     `### Notra · ${site.slug} preview`,
     `${status} · Commit \`${deployment.commitSha.slice(0, 7)}\``,
     links.join(" · "),
-    ...(outcome?.kind === "live" && site.previewVisibility === "protected"
+    ...(outcome?.kind === "skipped" ? [outcome.reason] : []),
+    ...(previewAvailable && site.previewVisibility === "protected"
       ? [
           site.previewPassword
             ? "This preview is protected. Sign in to Notra or use the preview password."
