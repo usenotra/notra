@@ -42,23 +42,26 @@ test("the password input and access-mode select have distinct IDs", () => {
   expect(html).toContain('id="preview-access-mode"');
 });
 
-test("access modes use a labeled native selection including Off", () => {
-  const html = renderToStaticMarkup(
-    <IntlProvider locale="en" messages={messages} timeZone="UTC">
-      <SitePreviewAccessModes
-        idPrefix="access"
-        mode="off"
-        onModeChange={() => {}}
-      />
-    </IntlProvider>
-  );
-  expect(html).toContain('for="access-mode"');
-  expect(html).toContain("<select");
-  for (const mode of ["members", "password", "public", "off"]) {
-    expect(html).toContain(`value="${mode}"`);
+test("access modes use the shared labeled select for every mode including Off", () => {
+  for (const mode of ["members", "password", "public", "off"] as const) {
+    const html = renderToStaticMarkup(
+      <IntlProvider locale="en" messages={messages} timeZone="UTC">
+        <SitePreviewAccessModes
+          idPrefix="access"
+          mode={mode}
+          onModeChange={() => {}}
+        />
+      </IntlProvider>
+    );
+    expect(html).toContain('for="access-mode"');
+    expect(html).toContain('id="access-mode"');
+    expect(html).toContain('data-slot="select-trigger"');
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain('aria-haspopup="listbox"');
+    expect(html).toContain(messages.sites.previewAccess.trigger[mode]);
+    expect(html).not.toContain("<select");
+    expect(html).not.toContain('role="menu"');
   }
-  expect(html).toContain('value="off" selected=""');
-  expect(html).not.toContain('role="menu"');
 });
 
 test("saved passwords render a change action instead of an empty secret input", () => {

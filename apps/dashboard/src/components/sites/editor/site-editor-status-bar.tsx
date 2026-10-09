@@ -9,8 +9,8 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "use-intl";
 
+import { Button } from "@/components/button";
 import { SITE_EDITOR_LANGUAGE_LABELS } from "@/constants/site-editor";
-import { cn } from "@/lib/utils";
 import type { SiteEditorStatusBarProps } from "@/types/components/site-editor";
 
 function ProblemsSummary({
@@ -94,21 +94,20 @@ export function SiteEditorStatusBar({
 }: SiteEditorStatusBarProps) {
   return (
     <div className="text-muted-foreground flex h-8 shrink-0 items-center justify-between gap-3 px-2.5 text-xs tabular-nums">
-      <button
+      <Button
         aria-expanded={diagnostics ? problemsOpen : undefined}
-        className={cn(
-          "hover:bg-background/70 hover:text-foreground focus-visible:ring-ring/50 -ms-1 inline-flex h-6 items-center gap-2.5 rounded-md px-1.5 transition-colors duration-150 outline-none focus-visible:ring-[3px] disabled:pointer-events-none",
-          problemsOpen && "bg-background/70 text-foreground"
-        )}
+        className="-ms-1"
         disabled={isValidating}
         onClick={onToggleProblems}
         type="button"
+        size="xs"
+        variant="ghost"
       >
         <ProblemsSummary
           diagnostics={diagnostics}
           isValidating={isValidating}
         />
-      </button>
+      </Button>
       {language ? (
         <span className="hidden sm:inline">
           {SITE_EDITOR_LANGUAGE_LABELS[language]}

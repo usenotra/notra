@@ -263,15 +263,16 @@ export function SiteImportList({
           ) : null}
         </ul>
       </div>
-      <button
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-sm text-sm transition-colors outline-none focus-visible:ring-[3px]"
-        disabled={installing}
+      <Button
+        loading={installing}
         onClick={install}
         type="button"
+        size="sm"
+        variant="link"
       >
         {t("adjustAccess")}
         <HugeiconsIcon aria-hidden="true" icon={ArrowUpRight01Icon} size={13} />
-      </button>
+      </Button>
     </div>
   );
 }
