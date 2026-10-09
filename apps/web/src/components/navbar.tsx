@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@notra/ui/components/ui/dropdown-menu";
 import { Kbd } from "@notra/ui/components/ui/kbd";
-import { TRANSITION, tween } from "@notra/ui/lib/motion";
+import { tween } from "@notra/ui/lib/motion";
 import { cn } from "@notra/ui/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
@@ -26,6 +26,7 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { NavbarCompactPanel } from "@/components/navbar-compact-panel";
 import { NavbarChevron, NavbarMenuToggle } from "@/components/navbar-glyphs";
 import { NavbarHref } from "@/components/navbar-href";
 import { NavbarMobileMenu } from "@/components/navbar-mobile-menu";
@@ -40,6 +41,15 @@ import {
   AUTH_SIGNIN_URL,
 } from "@/constants/auth";
 import { NAVBAR_DESKTOP_SIGNUP_SOURCE } from "@/constants/navbar";
+import {
+  NAVBAR_CONTENT_VARIANTS,
+  NAVBAR_ENTER_TRANSITION,
+  NAVBAR_EXIT_TRANSITION,
+  NAVBAR_MORPH_TRANSITION,
+  NAVBAR_PANEL_ENTER,
+  NAVBAR_PANEL_EXIT,
+  NAVBAR_PANEL_REST,
+} from "@/constants/navbar-motion";
 import { useDashboardSession } from "@/lib/auth/use-dashboard-session";
 import { useNavbarAuthHotkeys } from "@/lib/auth/use-navbar-auth-hotkeys";
 import { BRAND_ASSETS } from "@/lib/brand/constants";
@@ -48,10 +58,16 @@ import { useMobileNavMenu } from "@/lib/navigation/use-mobile-nav-menu";
 import type {
   NavbarAuthActionsProps,
   NavbarKbdProps,
+  NavbarPanelSize,
   NavbarProps,
 } from "@/types/navbar";
 import { copySvgAsset } from "@/utils/copy-svg-asset";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
+import {
+  handleNavbarMenuKeyDown,
+  handleNavbarTriggerKeyDown,
+} from "@/utils/navbar-menu-keyboard";
+import { getNavbarPanelX } from "@/utils/navbar-panel-position";
 import { getNavbarChromePresentation } from "@/utils/navbar-presentation";
 import {
   MARKETING_NAV,
@@ -61,69 +77,12 @@ import {
 } from "@/utils/navigation";
 
 const HOVER_CLOSE_DELAY = 120;
-const CONTENT_SLIDE = 56;
-const CONTENT_BLUR = "blur(0.75rem)";
-const CONTENT_SHARP = "blur(0)";
-const CONTENT_SCALE_OUT = 0.96;
-const CONTENT_ENTER_DELAY = 0.03;
-const PANEL_PERSPECTIVE = 2000;
-const PANEL_SCALE_IN = {
-  opacity: 0,
-  rotateX: -30,
-  scale: 0.9,
-} as const;
-const PANEL_SCALE_OUT = {
-  opacity: 0,
-  rotateX: -10,
-  scale: 0.95,
-} as const;
-const PANEL_SCALE_REST = {
-  opacity: 1,
-  rotateX: 0,
-  scale: 1,
-} as const;
-const ENTER_EXIT_TRANSITION = TRANSITION.enter;
-const MORPH_TRANSITION = tween("fast", "emphasizedInOut");
 const SHELL_TRANSITION = tween("slow", "emphasized");
 const SCROLL_THRESHOLD = 64;
 const MOBILE_SCROLL_THRESHOLD = 16;
 const MOBILE_MEDIA_QUERY = "(max-width: 63.9375rem)";
 const ISLAND_CHROME =
   "bg-white shadow-[0_0.125rem_1.25rem_#1E1E1E14,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E14] dark:bg-neutral-950 dark:shadow-black/50 dark:ring-white/10";
-const SWAP_TRANSITION = {
-  x: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
-  scale: { ...tween("fast", "emphasized"), delay: CONTENT_ENTER_DELAY },
-  opacity: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
-  filter: { ...tween("instant"), delay: CONTENT_ENTER_DELAY },
-} as const;
-const SWAP_EXIT_TRANSITION = {
-  x: tween("instant", "emphasizedIn"),
-  scale: tween("instant", "emphasizedIn"),
-  opacity: tween("instant"),
-  filter: tween("instant"),
-} as const;
-const contentVariants = {
-  enter: (direction: number) => ({
-    x: direction * CONTENT_SLIDE,
-    opacity: 0,
-    scale: CONTENT_SCALE_OUT,
-    filter: CONTENT_BLUR,
-  }),
-  center: { x: 0, opacity: 1, scale: 1, filter: CONTENT_SHARP },
-  exit: (direction: number) => ({
-    x: direction * -CONTENT_SLIDE,
-    opacity: 0,
-    scale: CONTENT_SCALE_OUT,
-    filter: CONTENT_BLUR,
-    transition: direction === 0 ? { duration: 0 } : SWAP_EXIT_TRANSITION,
-  }),
-};
-
-interface PanelSize {
-  width: number;
-  height: number;
-}
-
 function MegaCard({
   card,
   onSelect,
@@ -190,6 +149,11 @@ function MegaPanel({
   group: MarketingNavGroup;
   onSelect: () => void;
 }) {
+  if (group.layout === "compact") {
+    return (
+      <NavbarCompactPanel group={group} onSelect={onSelect} role="menuitem" />
+    );
+  }
   return (
     <div className="flex items-stretch justify-end gap-8">
       <div className="flex items-stretch gap-4 py-8 pl-8">
@@ -231,11 +195,20 @@ function getSlideDirection(
   return currentIndex > previousIndex ? 1 : -1;
 }
 
-function getNavbarMotion(reduceMotion: boolean) {
+function getNavbarMotion(reduceMotion: boolean, instantMenuMotion: boolean) {
   return {
-    contentTransition: reduceMotion ? { duration: 0 } : SWAP_TRANSITION,
-    enterExitTransition: reduceMotion ? { duration: 0 } : ENTER_EXIT_TRANSITION,
-    morphTransition: reduceMotion ? { duration: 0 } : MORPH_TRANSITION,
+    contentTransition: instantMenuMotion
+      ? { duration: 0 }
+      : NAVBAR_MORPH_TRANSITION,
+    enterExitTransition: instantMenuMotion
+      ? { duration: 0 }
+      : NAVBAR_ENTER_TRANSITION,
+    exitTransition: instantMenuMotion
+      ? { duration: 0 }
+      : NAVBAR_EXIT_TRANSITION,
+    morphTransition: instantMenuMotion
+      ? { duration: 0 }
+      : NAVBAR_MORPH_TRANSITION,
     shellTransition: reduceMotion ? { duration: 0 } : SHELL_TRANSITION,
   };
 }
@@ -245,16 +218,18 @@ export function Navbar({ variant }: NavbarProps = {}) {
   const resolvedVariant = variant ?? getNavbarVariantForPath(pathname);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [keyboardNavigation, setKeyboardNavigation] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [{ active: activeGroup, previous: previousGroup }, setNavGroup] =
     useState<{ active: string | null; previous: string | null }>({
       active: null,
       previous: null,
     });
-  const [panelSizes, setPanelSizes] = useState<Map<string, PanelSize>>(
+  const [panelSizes, setPanelSizes] = useState<Map<string, NavbarPanelSize>>(
     new Map()
   );
   const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const panelRef = useRef<HTMLDivElement>(null);
   const measureRefs = useRef(new Map<string, HTMLDivElement>());
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -325,8 +300,9 @@ export function Navbar({ variant }: NavbarProps = {}) {
   }, [cancelClose, setActiveGroup]);
 
   const openGroup = useCallback(
-    (label: string) => {
+    (label: string, keyboard = false) => {
       cancelClose();
+      setKeyboardNavigation(keyboard);
       setActiveGroup(label);
     },
     [cancelClose, setActiveGroup]
@@ -348,13 +324,17 @@ export function Navbar({ variant }: NavbarProps = {}) {
   useEffect(() => {
     function handleKey(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
+        setKeyboardNavigation(true);
+        if (activeGroup && panelRef.current?.contains(document.activeElement)) {
+          triggerRefs.current.get(activeGroup)?.focus();
+        }
         setActiveGroup(null);
         setIsOpen(false);
       }
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [setActiveGroup]);
+  }, [activeGroup, setActiveGroup]);
 
   useEffect(() => {
     const nodes = measureRefs.current;
@@ -362,10 +342,19 @@ export function Navbar({ variant }: NavbarProps = {}) {
       return;
     }
     const observer = new ResizeObserver(() => {
-      const next = new Map<string, PanelSize>();
+      const next = new Map<string, NavbarPanelSize>();
       for (const [label, node] of nodes) {
         const rect = node.getBoundingClientRect();
-        next.set(label, { width: rect.width, height: rect.height });
+        const trigger = triggerRefs.current.get(label);
+        next.set(label, {
+          width: rect.width,
+          height: rect.height,
+          anchorOffset: trigger
+            ? trigger.offsetLeft +
+              trigger.offsetWidth / 2 -
+              (trigger.closest("nav")?.clientWidth ?? 0) / 2
+            : undefined,
+        });
       }
       setPanelSizes(next);
     });
@@ -375,13 +364,16 @@ export function Navbar({ variant }: NavbarProps = {}) {
     return () => observer.disconnect();
   }, []);
 
-  const activeGroupData = activeGroup
-    ? groups.find((group) => group.label === activeGroup)
-    : null;
+  const activeGroupData = groups.find((group) => group.label === activeGroup);
   const activeSize = activeGroup ? panelSizes.get(activeGroup) : undefined;
+  const panelX = getNavbarPanelX(
+    activeSize,
+    activeGroupData?.layout === "compact"
+  );
+  const instantMenuMotion = Boolean(reduceMotion) || keyboardNavigation;
 
   const slideDirection = getSlideDirection(groups, activeGroup, previousGroup);
-  const direction = reduceMotion ? 0 : slideDirection;
+  const direction = instantMenuMotion ? 0 : slideDirection;
   const {
     chrome,
     innerPaddingClass,
@@ -393,9 +385,10 @@ export function Navbar({ variant }: NavbarProps = {}) {
   const {
     contentTransition,
     enterExitTransition,
+    exitTransition,
     morphTransition,
     shellTransition,
-  } = getNavbarMotion(reduceMotion ?? false);
+  } = getNavbarMotion(Boolean(reduceMotion), instantMenuMotion);
   const mutedNavClass =
     "text-[#1E1E1EA6] hover:text-[#1E1E1E] dark:text-neutral-400 dark:hover:text-white";
 
@@ -503,12 +496,23 @@ export function Navbar({ variant }: NavbarProps = {}) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <nav className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex">
+              {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Close the dropdown when keyboard focus leaves the navigation landmark. */}
+              <nav
+                className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex"
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    closePanel();
+                  }
+                }}
+              >
                 {MARKETING_NAV.map((entry) => {
                   if (entry.type === "link") {
                     return (
                       <Link
                         className={`duration-fast font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out ${mutedNavClass}`}
+                        data-slot="navbar-entry"
                         to={entry.href}
                         key={entry.href}
                         onFocus={() => setActiveGroup(null)}
@@ -525,14 +529,35 @@ export function Navbar({ variant }: NavbarProps = {}) {
                   return (
                     <button
                       aria-expanded={isActive}
+                      aria-controls={
+                        isActive
+                          ? `desktop-navigation-${entry.label}`
+                          : undefined
+                      }
                       aria-haspopup="menu"
+                      data-slot="navbar-entry"
                       className={`duration-fast inline-flex cursor-pointer items-center gap-1 font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out aria-expanded:text-[#1E1E1E] dark:aria-expanded:text-white ${mutedNavClass}`}
                       key={entry.label}
-                      onClick={() =>
-                        setActiveGroup(isActive ? null : entry.label)
+                      onClick={(event) => {
+                        setKeyboardNavigation(event.detail === 0);
+                        setActiveGroup(isActive ? null : entry.label);
+                      }}
+                      onKeyDown={(event) =>
+                        handleNavbarTriggerKeyDown(
+                          event,
+                          entry.label,
+                          openGroup
+                        )
                       }
-                      onFocus={() => openGroup(entry.label)}
-                      onMouseEnter={() => openGroup(entry.label)}
+                      onMouseEnter={() => {
+                        if (
+                          window.matchMedia(
+                            "(hover: hover) and (pointer: fine)"
+                          ).matches
+                        ) {
+                          openGroup(entry.label);
+                        }
+                      }}
                       ref={(node) => {
                         if (node) {
                           triggerRefs.current.set(entry.label, node);
@@ -575,16 +600,26 @@ export function Navbar({ variant }: NavbarProps = {}) {
                 <AnimatePresence>
                   {activeGroupData && (
                     <m.div
-                      animate={{ ...PANEL_SCALE_REST, x: "-50%" }}
+                      animate={{ ...NAVBAR_PANEL_REST, x: panelX }}
                       className={`absolute top-full left-1/2 z-50 ${chrome ? "pt-[1.75rem]" : "pt-3"}`}
-                      exit={{ ...PANEL_SCALE_OUT, x: "-50%" }}
-                      initial={{ ...PANEL_SCALE_IN, x: "-50%" }}
+                      data-slot="navbar-dropdown"
+                      exit={{
+                        ...NAVBAR_PANEL_EXIT,
+                        transition: exitTransition,
+                      }}
+                      initial={
+                        instantMenuMotion
+                          ? false
+                          : { ...NAVBAR_PANEL_ENTER, x: panelX }
+                      }
                       key="navbar-dropdown"
                       style={{
-                        transformPerspective: PANEL_PERSPECTIVE,
                         transformOrigin: "top center",
                       }}
-                      transition={enterExitTransition}
+                      transition={{
+                        ...enterExitTransition,
+                        x: morphTransition,
+                      }}
                     >
                       <m.div
                         animate={{
@@ -601,18 +636,31 @@ export function Navbar({ variant }: NavbarProps = {}) {
                           height: morphTransition,
                         }}
                       >
-                        <div className="relative h-full w-full overflow-hidden rounded-3xl bg-[linear-gradient(180deg,#FFFFFF_0%,#F3F3F3_100%)] shadow-[0_0.125rem_2.0625rem_#1E1E1E1A,0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E0D] dark:bg-neutral-950 dark:bg-none dark:shadow-black/50 dark:ring-white/10">
+                        <div
+                          className={cn(
+                            "relative h-full w-full overflow-hidden rounded-3xl bg-[linear-gradient(180deg,#FFFFFF_0%,#F3F3F3_100%)] shadow-[0_0.125rem_2.0625rem_#1E1E1E1A,0_0_0_0.0625rem_#ECECEC,0_0.0625rem_0.125rem_#28282814] ring-1 ring-[#1E1E1E0D] dark:bg-neutral-950 dark:bg-none dark:shadow-black/50 dark:ring-white/10",
+                            activeGroupData.layout === "compact" &&
+                              "bg-popover rounded-2xl bg-none"
+                          )}
+                          ref={panelRef}
+                        >
                           <AnimatePresence custom={direction} initial={false}>
                             <m.div
                               animate="center"
-                              className="absolute top-0 left-0 w-max origin-center"
+                              className="absolute top-0 left-1/2 w-max origin-center -translate-x-1/2"
                               custom={direction}
                               exit="exit"
-                              initial="enter"
+                              initial={direction === 0 ? false : "enter"}
                               key={activeGroupData.label}
+                              aria-label={activeGroupData.label}
+                              id={`desktop-navigation-${activeGroupData.label}`}
+                              onKeyDown={(event) => {
+                                setKeyboardNavigation(true);
+                                handleNavbarMenuKeyDown(event, closePanel);
+                              }}
                               role="menu"
                               transition={contentTransition}
-                              variants={contentVariants}
+                              variants={NAVBAR_CONTENT_VARIANTS}
                             >
                               <MegaPanel
                                 group={activeGroupData}

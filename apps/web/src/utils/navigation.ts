@@ -13,6 +13,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 
+import { REPORTS_NAV } from "@/constants/reports-navigation";
+
 export interface MarketingNavCard {
   href: string;
   label: string;
@@ -24,12 +26,14 @@ export interface MarketingNavCard {
 export interface MarketingNavRailItem {
   href: string;
   label: string;
+  description?: string;
   icon: IconSvgElement;
   external?: boolean;
 }
 
 export interface MarketingNavGroup {
   type: "group";
+  layout?: "compact";
   label: string;
   cardsHeading: string;
   cards: readonly MarketingNavCard[];
@@ -131,5 +135,6 @@ export const MARKETING_NAV: readonly MarketingNavEntry[] = [
       },
     ],
   },
+  REPORTS_NAV,
   { type: "link", href: "/pricing", label: "Pricing" },
 ];
