@@ -1,0 +1,45 @@
+---
+title: "Plausible"
+description: "Send visits on your Notra site to Plausible Cloud or a self-hosted Plausible server."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/integrations/analytics/plausible
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Notra loads the Plausible script on every live page and allows its server in the CSP. It works with Plausible Cloud and self-hosted Plausible.
+
+<Steps>
+  <Step title="Add your site to Plausible">
+    Use the [domain you added to Plausible](https://plausible.io/docs/add-website) without `https://`, or register a separate domain such as `blog.acme.com` if you want a dashboard just for your blog.
+  </Step>
+  <Step title="Add it to Notra">
+    Open **Studio → Sites**, select your site, open **Integrations** and click **Add Plausible**. Enter the domain in **Domain**. To configure it in your repository instead, add it to `blog.json`:
+
+    ```json blog.json
+    {
+      "$schema": "https://usenotra.com/schemas/blog.json",
+      "name": "Acme",
+      "integrations": {
+        "plausible": {
+          "domain": "blog.acme.com"
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Publish and verify">
+    After you [publish the change](/sites/integrations/analytics/overview#set-up-in-the-dashboard) and the production deployment finishes, visit your live site and check the realtime visitor count in Plausible.
+  </Step>
+</Steps>
+
+## Self-hosted Plausible
+
+Add `"server": "plausible.acme.com"` next to `domain`, or enter the value in **Self-hosted server**. Use the server's hostname without a protocol or path, and include its port when needed, like `plausible.acme.com:8443`. Notra uses HTTPS to load the script and send events to that server, and an empty field means Plausible Cloud at `plausible.io`.
