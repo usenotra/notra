@@ -173,6 +173,7 @@ export function SiteDomainAddDialog({
                         : t("proxyExplain", { hostname })}
                     </p>
                     <Button
+                      className="h-auto min-h-7 max-w-full"
                       onClick={() =>
                         setOverride(
                           kind === "subdomain" ? "proxy" : "subdomain"
@@ -182,7 +183,9 @@ export function SiteDomainAddDialog({
                       size="sm"
                       variant="link"
                     >
-                      {kind === "subdomain" ? t("useProxy") : t("useDns")}
+                      <span className="text-left whitespace-normal">
+                        {kind === "subdomain" ? t("useProxy") : t("useDns")}
+                      </span>
                     </Button>
                   </div>
                 </div>

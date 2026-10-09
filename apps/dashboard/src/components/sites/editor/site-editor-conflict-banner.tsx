@@ -28,7 +28,7 @@ export function SiteEditorConflictBanner({
       <AlertDescription>
         {t("conflict.description")}
         {paths.length > 0 ? (
-          <ul className="flex flex-wrap gap-1.5 pt-2">
+          <ul className="text-foreground flex flex-wrap gap-1.5 pt-2">
             {paths.map((path) => (
               <li className="min-w-0" key={path}>
                 <Button

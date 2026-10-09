@@ -99,7 +99,7 @@ export function SiteEditorFileBar({
         {onOpenFilePicker ? (
           <Button
             aria-haspopup="dialog"
-            className="-ms-1.5 min-w-0 md:hidden"
+            className="-ms-1.5 min-w-0 shrink md:hidden"
             onClick={onOpenFilePicker}
             title={path}
             type="button"

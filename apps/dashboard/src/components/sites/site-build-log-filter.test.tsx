@@ -24,6 +24,8 @@ test.each(["", "error"])(
       expect(html).toContain('data-slot="button"');
       expect(html).toContain(`aria-label="${labels.clearFilter}"`);
       expect(html).toContain('type="button"');
+      const addon = html.match(/<div[^>]*data-align="inline-end"[^>]*>/)?.[0];
+      expect(addon).toContain("has-[&gt;button]:py-0");
     } else {
       expect(html).not.toContain("<button");
     }
