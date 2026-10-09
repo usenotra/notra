@@ -3,7 +3,7 @@ export type { TextSelection } from "./orchestration";
 import type { ToneProfile } from "@notra/ai/schemas/tone";
 
 import type { ChatWorkspace } from "./chat-workspace";
-import type { TextSelection } from "./orchestration";
+import type { ContentImageContext, TextSelection } from "./orchestration";
 
 export interface BaseTonePromptInput {
   sourceTargets: string;
@@ -28,6 +28,7 @@ export type BlogPostTonePromptInput = BaseTonePromptInput;
 export interface ContentEditorChatPromptParams {
   selection?: TextSelection;
   contentType?: string;
+  imageContext?: ContentImageContext;
   documentMode?: "plan";
   repoContext?: Array<{
     integrationId: string;

@@ -5,6 +5,7 @@ import type {
   DiagramExportTarget,
   ImageExportTarget,
 } from "@/types/content/image-export";
+import { writeClipboardText } from "@/utils/copy-to-clipboard";
 import {
   buildImageDownloadFilename,
   downloadBlob,
@@ -252,11 +253,16 @@ export async function copyDiagramScene(
   try {
     // Hand the clipboard a pending blob so the write starts inside the click
     // and keeps user activation while the scene downloads.
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        "text/plain": fetchExcalidrawClipboardBlob(sceneUrl),
-      }),
-    ]);
+    const blob = fetchExcalidrawClipboardBlob(sceneUrl);
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "text/plain": blob }),
+      ]);
+    } catch {
+      // The scene is plain text; ClipboardItem support or permission is not
+      // required when the browser's text/native copy path is available.
+      await writeClipboardText(await (await blob).text());
+    }
     toast.success(
       imageExportToastMessage(
         target === "excalidraw" ? "excalidrawCopied" : "tldrawCopied"

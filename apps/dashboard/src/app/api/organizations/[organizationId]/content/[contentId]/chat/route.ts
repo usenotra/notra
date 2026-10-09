@@ -23,6 +23,7 @@ import { orchestrateChat } from "@notra/ai/orchestration/orchestrate";
 import type { ChatUsageSnapshot } from "@notra/ai/types/chat";
 import { buildChatFinishMetadata } from "@notra/ai/utils/chat";
 import { createChatActivityTimingTracker } from "@notra/ai/utils/chat-activity-timing";
+import { getContentImageContext } from "@notra/ai/utils/content-image-context";
 import { preserveConversationSelection } from "@notra/ai/utils/resolve-conversation-route";
 import { routeUsageProperties } from "@notra/ai/utils/route-usage";
 import { logError, logWarn } from "@notra/ai/utils/server-log";
@@ -153,23 +154,28 @@ export const POST = withEvlog(async function POST(
       chatId,
       messages: inputMessages,
       currentMarkdown,
-      contentType,
       documentMode,
       selection,
       context,
       timezone,
     } = parseResult.data;
 
-    const contentExists = await db.query.posts.findFirst({
+    const post = await db.query.posts.findFirst({
       where: and(
         eq(posts.id, contentId),
         eq(posts.organizationId, organizationId)
       ),
-      columns: { id: true },
+      columns: {
+        id: true,
+        title: true,
+        contentType: true,
+        sourceMetadata: true,
+      },
     });
-    if (!contentExists) {
+    if (!post) {
       return Response.json({ error: "Content not found" }, { status: 404 });
     }
+    const contentType = post.contentType;
 
     const messages = preserveConversationSelection(
       inputMessages,
@@ -204,17 +210,8 @@ export const POST = withEvlog(async function POST(
     const streamStartedAt = Date.now();
     let firstChunkAt: number | null = null;
     const usageSnapshot: ChatUsageSnapshot = {};
-    const imageDefaults =
-      contentType === "image"
-        ? await getImageDefaults({ organizationId, contentId }).catch(
-            (error) => {
-              log.warn("[Content Chat] Failed to load image defaults", {
-                error: error instanceof Error ? error.message : String(error),
-              });
-              return undefined;
-            }
-          )
-        : undefined;
+    const imageContext =
+      contentType === "image" ? getContentImageContext(post) : undefined;
 
     const { stream, routingDecision } = await orchestrateChat(
       {
@@ -226,7 +223,7 @@ export const POST = withEvlog(async function POST(
         documentMode,
         currentPostId: contentId,
         userId: auth.context.user.id,
-        imageDefaults,
+        imageContext,
         selection,
         context,
         maxSteps: 50,
@@ -405,70 +402,3 @@ export const POST = withEvlog(async function POST(
     );
   }
 });
-
-async function getImageDefaults(params: {
-  organizationId: string;
-  contentId: string;
-}) {
-  const post = await db.query.posts.findFirst({
-    where: and(
-      eq(posts.id, params.contentId),
-      eq(posts.organizationId, params.organizationId)
-    ),
-    columns: {
-      title: true,
-      sourceMetadata: true,
-    },
-  });
-
-  const metadata = post?.sourceMetadata;
-  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
-    return;
-  }
-
-  const integrationId =
-    "integrationId" in metadata && typeof metadata.integrationId === "string"
-      ? metadata.integrationId
-      : null;
-  const branch =
-    "branch" in metadata && typeof metadata.branch === "string"
-      ? metadata.branch
-      : null;
-  const brandIdentityId = getStoredBrandIdentityId(metadata);
-  const sandbox =
-    "sandbox" in metadata &&
-    metadata.sandbox &&
-    typeof metadata.sandbox === "object"
-      ? metadata.sandbox
-      : null;
-  const snapshotId =
-    sandbox && "snapshotId" in sandbox && typeof sandbox.snapshotId === "string"
-      ? sandbox.snapshotId
-      : null;
-
-  if (!(integrationId && branch && snapshotId && post?.title)) {
-    return;
-  }
-
-  return {
-    integrationId,
-    branch,
-    title: post.title,
-    brandIdentityId,
-  };
-}
-
-function getStoredBrandIdentityId(metadata: object) {
-  if (
-    "brandIdentityId" in metadata &&
-    typeof metadata.brandIdentityId === "string"
-  ) {
-    return metadata.brandIdentityId;
-  }
-
-  if ("brandVoiceId" in metadata && typeof metadata.brandVoiceId === "string") {
-    return metadata.brandVoiceId;
-  }
-
-  return undefined;
-}

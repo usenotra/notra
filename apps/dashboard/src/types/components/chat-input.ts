@@ -46,6 +46,11 @@ export type ContentChatInputHandle = Pick<ChatInputHandle, "setAttachments"> & {
   isVisible: () => boolean;
 };
 
+export interface ChatInputEditingTarget {
+  title: string;
+  description: string;
+}
+
 export interface ChatInputProps {
   ref?: Ref<ContentChatInputHandle>;
   onSend?: (value: string, attachments: ChatAttachment[]) => void;
@@ -65,6 +70,7 @@ export interface ChatInputProps {
   onClearError?: () => void;
   connectedTop?: boolean;
   placeholder?: string;
+  editingTarget?: ChatInputEditingTarget;
   queuedMessages?: QueuedMessage[];
   onEditQueued?: (message: QueuedMessage) => void;
   onRemoveQueued?: (id: string) => void;
@@ -124,6 +130,7 @@ export interface ChatInputContextPickerProps {
 export interface ChatInputComposerNudgeProps {
   attachments: ChatAttachment[];
   context: ContextItem[];
+  editingTarget?: ChatInputEditingTarget;
   hasAttachmentChips: boolean;
   hasContextChips: boolean;
   onClearSelection?: () => void;

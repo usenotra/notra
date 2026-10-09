@@ -44,14 +44,24 @@ export async function GET(
     ),
   });
   const excalidrawUrl = readExcalidrawUrl(post?.sourceMetadata);
+  if (!excalidrawUrl) {
+    return Response.json(
+      { error: "This image has no Excalidraw scene" },
+      { status: 404 }
+    );
+  }
   const publicUrl = process.env.CLOUDFLARE_PUBLIC_URL?.replace(
     TRAILING_SLASHES_RE,
     ""
   );
+  if (!publicUrl) {
+    return Response.json(
+      { error: "Diagram asset storage is not configured" },
+      { status: 503 }
+    );
+  }
   // Only fetch our own asset bucket, never an arbitrary URL from metadata.
-  if (
-    !(excalidrawUrl && publicUrl && excalidrawUrl.startsWith(`${publicUrl}/`))
-  ) {
+  if (!excalidrawUrl.startsWith(`${publicUrl}/`)) {
     return Response.json(
       { error: "This image has no Excalidraw scene" },
       { status: 404 }

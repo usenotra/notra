@@ -6105,6 +6105,12 @@
       "generating": "Inhalte werden erstellt…",
       "queuedViaApi": "Über die API eingereiht"
     },
+    "imageChat": {
+      "editingDiagram": "Du bearbeitest das Diagramm: {title}",
+      "editingImage": "Du bearbeitest das Bild: {title}",
+      "diagramPlaceholder": "Mach die Pfeile blau…",
+      "imagePlaceholder": "Mach den Hintergrund dunkler…"
+    },
     "diagramEditor": {
       "open": "Diagramm bearbeiten",
       "title": "Diagramm bearbeiten",

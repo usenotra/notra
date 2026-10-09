@@ -146,9 +146,28 @@ export function DiagramEditorDialog({
     },
   });
 
+  let editorContent = <Skeleton className="size-full rounded-lg" />;
+  if (sceneQuery.data) {
+    editorContent = (
+      <DiagramEditorCanvas
+        onReady={(api) => {
+          apiRef.current = api;
+          setEditorReady(true);
+        }}
+        scene={sceneQuery.data.scene}
+      />
+    );
+  } else if (sceneQuery.isError) {
+    editorContent = (
+      <div className="text-muted-foreground flex size-full items-center justify-center">
+        {t("loadFailed")}
+      </div>
+    );
+  }
+
   return (
     <>
-      <Button onClick={openEditor} size="sm" variant="outline">
+      <Button onClick={openEditor} size="sm">
         <HugeiconsIcon className="size-4" icon={PencilEdit02Icon} />
         {t("open")}
       </Button>
@@ -171,19 +190,10 @@ export function DiagramEditorDialog({
             <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <div className="ring-foreground/10 min-h-0 flex-1 overflow-hidden rounded-lg ring-1">
-            {sceneQuery.data ? (
-              <DiagramEditorCanvas
-                onReady={(api) => {
-                  apiRef.current = api;
-                  setEditorReady(true);
-                }}
-                scene={sceneQuery.data.scene}
-              />
-            ) : (
-              <div className="text-muted-foreground flex size-full items-center justify-center">
-                {sceneQuery.isError ? t("loadFailed") : t("loading")}
-              </div>
-            )}
+            {editorContent}
+            <span className="sr-only" role="status">
+              {editorReady || sceneQuery.isError ? null : t("loading")}
+            </span>
           </div>
           <DialogFooter>
             <Button onClick={() => setOpen(false)} variant="outline">

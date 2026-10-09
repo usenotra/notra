@@ -40,6 +40,7 @@ import {
   applyContentChatToolOutputEffect,
   collectContentChatToolOutputEffects,
 } from "@/lib/content/apply-content-chat-tool-output";
+import { useContentDetailChatLabels } from "@/lib/hooks/use-content-detail-chat-labels";
 import type { ContentDetailDocument } from "@/lib/hooks/use-content-detail-document";
 import type { ContentChatInputHandle } from "@/types/components/chat-input";
 import type { ContentChatMessageMetadata } from "@/types/content/chat";
@@ -73,7 +74,6 @@ export function useContentDetailChat({
 }: UseContentDetailChatParams) {
   const tToast = useTranslations("chat.toasts");
   const tChatErrors = useTranslations("chat.errors");
-  const tPlan = useTranslations("content.plan");
   const {
     editedMarkdown,
     editedMarkdownRef,
@@ -91,6 +91,10 @@ export function useContentDetailChat({
     setReviewPreviousMarkdown,
     setWriteFocusNonce,
   } = contentDocument;
+  const composerLabels = useContentDetailChatLabels(
+    content,
+    isGeoWriterPlanReviewableNow
+  );
   const { state: sidebarState } = useSidebar();
   const queryClient = useQueryClient();
   const { active, openPanel, closePanel } = useRightPanel();
@@ -813,6 +817,7 @@ export function useContentDetailChat({
     contentChatHistoryQuery.isError;
 
   const composerProps: Omit<ContentDetailChatComposerProps, "ref"> = {
+    ...composerLabels,
     context,
     disabled: isChatDisabled,
     error: chatError,
@@ -829,9 +834,6 @@ export function useContentDetailChat({
     onValueChange: setChatInputValue,
     organizationId,
     organizationSlug,
-    placeholder: isGeoWriterPlanReviewableNow
-      ? tPlan("chatPlaceholder")
-      : undefined,
     queuedMessages,
     selection,
     value: chatInputValue,

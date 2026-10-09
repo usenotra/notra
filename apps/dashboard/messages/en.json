@@ -6105,6 +6105,12 @@
       "generating": "Generating content…",
       "queuedViaApi": "Queued via API"
     },
+    "imageChat": {
+      "editingDiagram": "Editing diagram: {title}",
+      "editingImage": "Editing image: {title}",
+      "diagramPlaceholder": "Make the arrows blue…",
+      "imagePlaceholder": "Make the background darker…"
+    },
     "diagramEditor": {
       "open": "Edit diagram",
       "title": "Edit diagram",

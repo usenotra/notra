@@ -4,6 +4,7 @@ import {
   Alert02Icon,
   ArrowUp02Icon,
   AtIcon,
+  File02Icon,
   StopIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
@@ -62,6 +63,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
   const tChatShared = useTranslations("chat.shared");
   const quoteContext = useChatQuote();
   const slashListId = useId();
+  const editingTargetId = useId();
   const {
     acceptedFileTypesLabel,
     allowedChatMimeTypes,
@@ -152,10 +154,11 @@ function ContentChatInputComposer(props: ChatInputProps) {
         <Composer.Frame
           connectedTop={connectedTop}
           nudge={
-            showComposerNudge ? (
+            showComposerNudge || props.editingTarget ? (
               <ChatInputComposerNudge
                 attachments={attachments}
                 context={context}
+                editingTarget={props.editingTarget}
                 hasAttachmentChips={hasAttachmentChips}
                 hasContextChips={hasContextChips}
                 onClearSelection={onClearSelection}
@@ -179,6 +182,11 @@ function ContentChatInputComposer(props: ChatInputProps) {
           }
         >
           <section aria-label={tChatShared("chatInputDropArea")}>
+            {props.editingTarget ? (
+              <span className="sr-only" id={editingTargetId}>
+                {props.editingTarget.description}
+              </span>
+            ) : null}
             <ChatQuotePreview />
             <input
               accept={`${allowedChatMimeTypes.join(",")},image/heic,.heic`}
@@ -196,6 +204,9 @@ function ContentChatInputComposer(props: ChatInputProps) {
               }
               aria-autocomplete={isSlashMenuOpen ? "list" : undefined}
               aria-controls={isSlashMenuOpen ? slashListId : undefined}
+              aria-describedby={
+                props.editingTarget ? editingTargetId : undefined
+              }
               aria-expanded={isSlashMenuOpen}
               aria-haspopup={isSlashMenuOpen ? "listbox" : undefined}
               aria-label={tChatShared("sendAMessage")}
@@ -282,6 +293,7 @@ function ContentChatInputComposer(props: ChatInputProps) {
 function ChatInputComposerNudge({
   attachments,
   context,
+  editingTarget,
   hasAttachmentChips,
   hasContextChips,
   onClearSelection,
@@ -303,6 +315,8 @@ function ChatInputComposerNudge({
 }: ChatInputComposerNudgeProps) {
   const tCommon = useTranslations("common");
   const tChatShared = useTranslations("chat.shared");
+  const hasChips =
+    hasContextChips || hasAttachmentChips || Boolean(editingTarget);
   return (
     <Composer.Nudge
       action={
@@ -318,18 +332,27 @@ function ChatInputComposerNudge({
         ) : null
       }
       title={
-        shouldShowLowCredits &&
-        !hasContextChips &&
-        !hasAttachmentChips &&
-        !usageLimitError
+        shouldShowLowCredits && !hasChips && !usageLimitError
           ? tChatShared("countPluralOneChatMessage", {
               count: remainingChatCredits ?? 0,
             })
           : undefined
       }
     >
-      {hasContextChips || hasAttachmentChips ? (
+      {hasChips ? (
         <>
+          {editingTarget ? (
+            <Composer.Chip
+              icon={
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  className="text-muted-foreground size-3.5"
+                  icon={File02Icon}
+                />
+              }
+              label={editingTarget.title}
+            />
+          ) : null}
           <ChatQueue
             messages={queuedMessages}
             onEdit={onEditQueued}

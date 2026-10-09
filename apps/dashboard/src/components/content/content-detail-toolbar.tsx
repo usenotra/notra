@@ -14,6 +14,7 @@ import {
   SplitButtonTrigger,
 } from "@notra/ui/components/ui/split-button";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import { useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -59,6 +60,7 @@ function ContentDetailImageActions({
 }: ContentDetailImageActionsProps) {
   const t = useTranslations("content.toolbar");
   const tCommon2 = useTranslations("common");
+  const [isCopying, setIsCopying] = useState(false);
   const imageExportHtml = getImageExportHtml(content);
   const imageExportHtmlUrl = content.htmlUrl;
   const imageDownloadUrl = isHttpImageContent(content.content)
@@ -70,33 +72,36 @@ function ContentDetailImageActions({
     ? document.imageExportTarget
     : "paper";
   const copyImageExportFor = (target: ImageExportTarget) => {
+    if (isCopying) {
+      return;
+    }
+    setIsCopying(true);
     trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
       content_id: contentId,
       target,
     });
+    let copying: Promise<void>;
     // Diagram targets are only offered when the post has a scene.
     if (isDiagramExportTarget(target)) {
-      copyDiagramScene(
+      copying = copyDiagramScene(
         `/api/organizations/${organizationId}/content/${contentId}/excalidraw`,
         target
       );
-      return;
-    }
-    if (target === "figma") {
-      copyImageAsFigma(
+    } else if (target === "figma") {
+      copying = copyImageAsFigma(
         document.imageExportRef.current,
         document.title,
         imageExportHtml,
         imageExportHtmlUrl
       );
-      return;
+    } else {
+      copying = copyImageAsPaper(
+        document.imageExportRef.current,
+        imageExportHtml,
+        imageExportHtmlUrl
+      );
     }
-
-    copyImageAsPaper(
-      document.imageExportRef.current,
-      imageExportHtml,
-      imageExportHtmlUrl
-    );
+    return copying.finally(() => setIsCopying(false));
   };
 
   const handleImageExportTargetSelect = (value: string) => {
@@ -135,6 +140,7 @@ function ContentDetailImageActions({
         onMouseEnter={() => preloadImageExportCopy(exportTarget)}
       >
         <Button
+          loading={isCopying}
           onClick={() => copyImageExportFor(exportTarget)}
           size="sm"
           variant="outline"
@@ -146,6 +152,7 @@ function ContentDetailImageActions({
         </Button>
         <DropdownMenu>
           <SplitButtonTrigger
+            disabled={isCopying}
             label={t("selectExportTarget")}
             size="sm"
             variant="outline"
