@@ -63,6 +63,8 @@ if (!databaseUrl) {
   let stateWriteHook = async () => {};
   let beforeStateWriteHook = async () => {};
   let buildCalls = 0;
+  let buildHook = async () => {};
+  let buildSucceeds = true;
   let downloadCalls = 0;
   let version = 0;
   let site: Site;
@@ -172,35 +174,48 @@ if (!databaseUrl) {
   }));
   mock.module("../src/box-build", () => ({
     runSandboxBuildEffect: (params: SandboxBuildEffectParams) =>
-      Effect.sync(() => {
-        buildCalls++;
-        return {
-          result: {
-            ok: true,
-            diagnostics: [],
-            areas: [],
-            fileCount: 1,
-            totalBytes: 1,
-            redirects: [],
-            contentSecurityPolicy: null,
-          },
-          crash: null,
-          log: "Synthetic sandbox",
-          outputArchive: new Uint8Array([1]),
-          toolchainVersion: "synthetic",
-          durationMs: 1,
-          metrics: {
-            version: 1,
-            provider: "upstash",
-            snapshotId: params.snapshotId ?? "snapshot-1",
-            sandboxId: "synthetic",
-            requestedSize: "medium",
-            sourceArchiveBytes: 1,
-            outputArchiveBytes: 1,
-            totalDurationMs: 1,
-            phases: {},
-          },
-        };
+      Effect.tryPromise({
+        try: async () => {
+          buildCalls++;
+          await buildHook();
+          return {
+            result: {
+              ok: buildSucceeds,
+              diagnostics: buildSucceeds
+                ? []
+                : [
+                    {
+                      severity: "error" as const,
+                      file: "blog/page.mdx",
+                      code: "synthetic_failure",
+                      message: "Synthetic compiler failure",
+                    },
+                  ],
+              areas: [],
+              fileCount: 1,
+              totalBytes: 1,
+              redirects: [],
+              contentSecurityPolicy: null,
+            },
+            crash: null,
+            log: "Synthetic sandbox",
+            outputArchive: buildSucceeds ? new Uint8Array([1]) : null,
+            toolchainVersion: "synthetic",
+            durationMs: 1,
+            metrics: {
+              version: 1,
+              provider: "upstash",
+              snapshotId: params.snapshotId ?? "snapshot-1",
+              sandboxId: "synthetic",
+              requestedSize: "medium",
+              sourceArchiveBytes: 1,
+              outputArchiveBytes: 1,
+              totalDurationMs: 1,
+              phases: {},
+            },
+          };
+        },
+        catch: (error) => error,
       }),
   }));
   mock.module("../src/publish", () => ({
@@ -228,8 +243,12 @@ if (!databaseUrl) {
       await reportHook();
     },
   }));
-  const { enqueueSiteDeployment, getDeployment, startDeploymentBuild } =
-    await import("../src/deployments");
+  const {
+    enqueueSiteDeployment,
+    getDeployment,
+    startDeploymentBuild,
+    transitionDeployment,
+  } = await import("../src/deployments");
   const { runDeploymentPipeline } = await import("../src/pipeline");
   const { readServingState, mutateServingState } = await import("../src/state");
   const { activateDeployment } = await import("../src/activation");
@@ -301,6 +320,8 @@ if (!databaseUrl) {
     modelProbability = 0.05;
     modelCalls = 0;
     buildCalls = 0;
+    buildHook = async () => {};
+    buildSucceeds = true;
     downloadCalls = 0;
     modelHook = async () => {};
     reportHook = async () => {};
@@ -390,6 +411,116 @@ if (!databaseUrl) {
     await publish("push");
     expect(buildCalls).toBe(2);
     expect(modelCalls).toBe(1);
+  });
+  test.each(["moved-head", "removed-head", "newer-deployment"])(
+    "%s during compilation prevents publication",
+    async (mode) => {
+      const baseline = await publish();
+      sourceFiles[0] = { ...sourceFiles[0], sha: "c".repeat(40) };
+      const candidate = await queue();
+      buildHook = async () => {
+        if (mode === "newer-deployment") {
+          await queue();
+        } else {
+          branchHead = mode === "removed-head" ? "" : "d".repeat(40);
+        }
+      };
+      expect((await runDeploymentPipeline(site, candidate)).kind).toBe(
+        "skipped"
+      );
+      expect((await getDeployment(candidate.id))?.status).toBe("superseded");
+      expect(objects.has(SITE_R2_KEYS.manifest(site.id, candidate.id))).toBe(
+        false
+      );
+      expect(
+        (await readServingState(site.id))?.state.production?.deploymentId
+      ).toBe(baseline.id);
+      expect(buildCalls).toBe(2);
+    }
+  );
+  test("a preview head move during compilation preserves the previous preview", async () => {
+    const baseline = await publish("manual", "pr-1");
+    sourceFiles[0] = { ...sourceFiles[0], sha: "c".repeat(40) };
+    const candidate = await queue("pull_request", "pr-1");
+    buildHook = async () => {
+      branchHead = "d".repeat(40);
+    };
+    expect((await runDeploymentPipeline(site, candidate)).kind).toBe("skipped");
+    expect((await getDeployment(candidate.id))?.status).toBe("superseded");
+    expect(objects.has(SITE_R2_KEYS.manifest(site.id, candidate.id))).toBe(
+      false
+    );
+    expect(
+      (await readServingState(site.id))?.state.previews["pr-1"]?.deploymentId
+    ).toBe(baseline.id);
+  });
+  test("a resumed build checks branch freshness before starting another sandbox", async () => {
+    const baseline = await publish();
+    const candidate = await queue();
+    expect(await startDeploymentBuild(candidate, new Date())).toBe(true);
+    const building = await getDeployment(candidate.id);
+    if (!building) {
+      throw new Error("Synthetic building deployment not found");
+    }
+    branchHead = "d".repeat(40);
+    expect((await runDeploymentPipeline(site, building)).kind).toBe("skipped");
+    expect((await getDeployment(candidate.id))?.status).toBe("superseded");
+    expect(buildCalls).toBe(1);
+    expect(
+      (await readServingState(site.id))?.state.production?.deploymentId
+    ).toBe(baseline.id);
+  });
+  test("a manual deployment still publishes its chosen commit when the branch moves during compilation", async () => {
+    buildHook = async () => {
+      branchHead = "d".repeat(40);
+    };
+    await publish("manual");
+    expect(buildCalls).toBe(1);
+  });
+  test("a concurrent failed transition preserves the failed reporting outcome", async () => {
+    await publish();
+    sourceFiles[0] = { ...sourceFiles[0], sha: "c".repeat(40) };
+    const candidate = await queue();
+    const diagnostics = [
+      {
+        severity: "error" as const,
+        file: null,
+        code: "synthetic_failure",
+        message: "Synthetic compiler failure",
+      },
+    ];
+    modelHook = async () => {
+      await transitionDeployment(candidate.id, "failed", {
+        errorMessage: "Synthetic compiler failure",
+        diagnostics,
+        finishedAt: new Date(),
+      });
+    };
+    expect(await runDeploymentPipeline(site, candidate)).toEqual({
+      kind: "failed",
+      summary: "Synthetic compiler failure",
+      diagnostics,
+    });
+    expect(reported.at(-1)?.kind).toBe("failed");
+    expect(buildCalls).toBe(1);
+  });
+  test("compiler failure retains the Jev shadow evaluation without a usable fingerprint", async () => {
+    const baseline = await publish();
+    sourceFiles[0] = { ...sourceFiles[0], sha: "c".repeat(40) };
+    modelProbability = 0.96;
+    buildSucceeds = false;
+    const candidate = await queue();
+    expect((await runDeploymentPipeline(site, candidate)).kind).toBe("failed");
+    const saved = await getDeployment(candidate.id);
+    expect(saved?.smartDeploymentEvaluation).toMatchObject({
+      modelId: "typesafe-ai/jev",
+      inputsChanged: true,
+      changeProbability: 0.96,
+    });
+    expect(saved?.inputFingerprint).toBeNull();
+    expect(
+      (await readServingState(site.id))?.state.production?.deploymentId
+    ).toBe(baseline.id);
   });
   test("Jev failure or disagreement does not override verified equality", async () => {
     await publish();

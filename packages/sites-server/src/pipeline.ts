@@ -1,5 +1,8 @@
 import { SITE_DEPLOYMENT_PHASES } from "@notra/sites-core/constants/deployment-timeline";
-import { SITE_R2_KEYS } from "@notra/sites-core/constants/sites";
+import {
+  SITE_DEPLOYMENT_IN_PROGRESS_STATUSES,
+  SITE_R2_KEYS,
+} from "@notra/sites-core/constants/sites";
 import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
 import { Effect, Exit, Option } from "effect";
 
@@ -60,7 +63,11 @@ const whyNotBuild = Effect.fn("Sites.whyNotBuild")(function* (
   access: SiteRepositoryAccess,
   deployment: SiteDeployment
 ) {
-  if (deployment.status !== "queued") {
+  if (
+    !SITE_DEPLOYMENT_IN_PROGRESS_STATUSES.some(
+      (status) => status === deployment.status
+    )
+  ) {
     return null;
   }
   const head = yield* currentBranchHead(access, deployment.branch);
@@ -182,7 +189,22 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
         try: () => getDeployment(deployment.id),
         catch: (error) => error,
       });
-      return current?.errorMessage
+      if (current?.status === "failed") {
+        return {
+          kind: "failed" as const,
+          summary: current.errorMessage ?? "The build failed.",
+          diagnostics: current.diagnostics ?? [],
+        };
+      }
+      if (current?.status === "skipped") {
+        return {
+          kind: "skipped" as const,
+          reason: current.skipReason ?? SMART_DEPLOYMENT_SKIP_REASON,
+        };
+      }
+      return (current?.status === "canceled" ||
+        current?.status === "superseded") &&
+        current.errorMessage
         ? { kind: "skipped" as const, reason: current.errorMessage }
         : CANCELED_OUTCOME;
     }
@@ -271,11 +293,31 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
               errorMessage: summary.slice(0, 4000),
               buildDurationMs: build.durationMs,
               toolchainVersion: build.toolchainVersion,
+              smartDeploymentEvaluation: smartComparison?.evaluation ?? null,
             }),
           catch: (error) => error,
         })
       );
       return { kind: "failed" as const, summary, diagnostics };
+    }
+
+    // Compilation can outlast the branch head or a newer deployment.
+    skipReason = yield* whyNotBuild(access, deployment);
+    if (skipReason) {
+      yield* Effect.uninterruptible(
+        Effect.tryPromise({
+          try: () =>
+            transitionDeployment(deployment.id, "superseded", {
+              finishedAt: new Date(),
+              errorMessage: skipReason,
+              buildDurationMs: build.durationMs,
+              toolchainVersion: build.toolchainVersion,
+              smartDeploymentEvaluation: smartComparison?.evaluation ?? null,
+            }),
+          catch: (error) => error,
+        })
+      );
+      return { kind: "skipped" as const, reason: skipReason };
     }
 
     if (

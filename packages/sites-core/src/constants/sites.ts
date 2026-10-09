@@ -142,7 +142,7 @@ export const SITE_DEPLOYMENT_TRANSITIONS: Record<
   building: ["queued", "building", "uploading"],
   uploading: ["building", "uploading"],
   ready: ["uploading"],
-  superseded: ["queued"],
+  superseded: ["queued", "building", "uploading"],
   skipped: ["queued"],
   failed: ["queued", "building", "uploading"],
   canceled: ["queued", "building", "uploading"],
