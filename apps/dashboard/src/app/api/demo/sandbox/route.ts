@@ -29,6 +29,12 @@ export async function POST(request: Request) {
     timeZone: parsed.success ? (parsed.data.timeZone ?? null) : null,
     ipHash,
   });
+  if (!sandbox) {
+    return Response.json(
+      { error: "Demo workspace creation is busy. Please try again." },
+      { status: 503, headers: { "Retry-After": "3" } }
+    );
+  }
   await writeDemoSession(sandbox.anonymousId);
   maintainDemoSandboxPool();
 
