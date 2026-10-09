@@ -1,3 +1,5 @@
+import { setTimeout as delay } from "node:timers/promises";
+
 import {
   AGENT_AUTO_PUBLISH_HEADER,
   AGENT_BRAND_AGENT_TYPE_HEADER,
@@ -22,7 +24,6 @@ import { agentSessions } from "@notra/db/schema";
 import {
   AgentTaskFailedError,
   AgentTaskTimeoutError,
-  agentStreamEventSchema,
 } from "@notra/schemas/dashboard/agent";
 import { getVercelOidcToken } from "@vercel/oidc";
 import { eq } from "drizzle-orm";
@@ -40,6 +41,7 @@ import type {
   StartAgentSessionInput,
   StartAgentSessionResult,
 } from "@/types/agent";
+import { readAgentTaskStream } from "@/utils/read-agent-task-stream";
 
 function getNotraAgentUrl(): string {
   const url = process.env.EVE_NOTRA_AGENT_URL;
@@ -155,50 +157,16 @@ export async function startAgentSession(
 
 async function readTaskResultFromStream(
   client: Client,
-  eveSessionId: string
-): Promise<{ output: unknown } | { failed: string } | null> {
+  eveSessionId: string,
+  signal: AbortSignal,
+  deadline: number
+) {
   const response = await client.fetch(
     `${AGENT_CREATE_SESSION_PATH}/${eveSessionId}/stream`,
-    { method: "GET" }
+    { method: "GET", signal }
   );
-  if (!(response.ok && response.body)) {
-    return null;
-  }
-  const text = await response.text();
-  let output: unknown;
-  let completed = false;
-  let failed: string | null = null;
-  for (const line of text.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      continue;
-    }
-    let event: { type: string; data?: Record<string, unknown> };
-    try {
-      event = agentStreamEventSchema.parse(JSON.parse(trimmed));
-    } catch {
-      continue;
-    }
-    if (event.type === "result.completed") {
-      output = event.data?.output ?? event.data?.result ?? event.data;
-    }
-    if (event.type === "session.completed") {
-      completed = true;
-    }
-    if (event.type === "session.failed") {
-      failed =
-        typeof event.data?.message === "string"
-          ? event.data.message
-          : "unknown failure";
-    }
-  }
-  if (failed) {
-    return { failed };
-  }
-  if (completed) {
-    return { output };
-  }
-  return null;
+  signal.throwIfAborted();
+  return await readAgentTaskStream(response, signal, deadline);
 }
 
 export async function runAgentTask(
@@ -210,8 +178,22 @@ export async function runAgentTask(
   ]);
 
   const deadline = Date.now() + AGENT_TASK_TIMEOUT_MS;
+  const signal = AbortSignal.timeout(AGENT_TASK_TIMEOUT_MS);
   while (Date.now() < deadline) {
-    const result = await readTaskResultFromStream(client, started.eveSessionId);
+    let result;
+    try {
+      result = await readTaskResultFromStream(
+        client,
+        started.eveSessionId,
+        signal,
+        deadline
+      );
+    } catch (error) {
+      if (signal.aborted || Date.now() >= deadline) {
+        break;
+      }
+      throw error;
+    }
     if (result && "failed" in result) {
       await db
         .update(agentSessions)
@@ -226,9 +208,18 @@ export async function runAgentTask(
         .where(eq(agentSessions.id, started.agentSessionId));
       return { eveSessionId: started.eveSessionId, output: result.output };
     }
-    await new Promise((resolvePoll) =>
-      setTimeout(resolvePoll, AGENT_TASK_POLL_INTERVAL_MS)
-    );
+    try {
+      await delay(
+        Math.min(AGENT_TASK_POLL_INTERVAL_MS, deadline - Date.now()),
+        undefined,
+        { signal }
+      );
+    } catch (error) {
+      if (!signal.aborted) {
+        throw error;
+      }
+      break;
+    }
   }
 
   await db

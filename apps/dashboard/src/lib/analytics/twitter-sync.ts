@@ -102,15 +102,16 @@ export async function collectTwitterRows(
     return rows;
   }
 
-  const users = await fetchTwitterUsersBatch(
-    accounts.map((account) => account.username)
-  );
+  const users = await fetchTwitterUsersBatch([
+    ...new Set(accounts.map((account) => account.username.toLowerCase())),
+  ]);
   const usersByUsername = new Map(
     users.map((user) => [user.username.toLowerCase(), user])
   );
   const timelineStart = new Date(
     capturedAt.getTime() - TWITTER_TIMELINE_WINDOW_DAYS * DAY_IN_MS
   );
+  const tweetsByUser = new Map<string, ReturnType<typeof fetchUserTweets>>();
 
   const timelines = await Promise.all(
     accounts.map(async (account) => {
@@ -118,7 +119,12 @@ export async function collectTwitterRows(
       if (!user) {
         return null;
       }
-      const tweets = await fetchUserTweets(user.id, timelineStart);
+      let pendingTweets = tweetsByUser.get(user.id);
+      if (!pendingTweets) {
+        pendingTweets = fetchUserTweets(user.id, timelineStart);
+        tweetsByUser.set(user.id, pendingTweets);
+      }
+      const tweets = await pendingTweets;
       return { account, user, tweets };
     })
   );
