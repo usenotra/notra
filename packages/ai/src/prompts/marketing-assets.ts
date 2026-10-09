@@ -5,7 +5,7 @@ import {
 import type { RepoImageSourceContext } from "@notra/ai/types/repo-image";
 import dedent from "dedent";
 
-function describeSource(source: RepoImageSourceContext): string {
+export function describeSource(source: RepoImageSourceContext): string {
   if (source.mode === "prompt") {
     return [
       "<source-type>prompt</source-type>",

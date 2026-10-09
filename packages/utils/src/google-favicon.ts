@@ -1,4 +1,4 @@
-import { FAVICON_DOMAIN_OVERRIDES } from "./constants/favicon";
+import { FAVICON_DOMAIN_OVERRIDES } from "./constants/favicon.js";
 
 const GOOGLE_FAVICON_SIZE = 128;
 

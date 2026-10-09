@@ -4,7 +4,9 @@ import type {
   ResolveIntegrationContext,
   ResolveLinearIntegrationContext,
 } from "@notra/ai/types/agents";
+import type { DiagramSpec } from "@notra/ai/types/excalidraw-diagram";
 import type { PostToolsResult } from "@notra/ai/types/post-tools";
+import type { RepoImageFormat } from "@notra/ai/types/repo-image";
 import type { RouteUsageSummary } from "@notra/ai/types/router";
 import type { TccMetadata } from "@notra/ai/types/tcc";
 import type { LanguageModelUsage, streamText, UIMessage } from "ai";
@@ -114,11 +116,16 @@ export interface ToolSet {
   descriptions: string[];
 }
 
-export interface ImageDefaults {
-  integrationId: string;
-  branch: string;
+export interface ContentImageContextSource {
   title: string;
-  brandIdentityId?: string;
+  sourceMetadata: unknown;
+}
+
+export interface ContentImageContext {
+  title: string;
+  format: RepoImageFormat;
+  diagramSpec: DiagramSpec | null;
+  canRevise: boolean;
 }
 
 export interface RepoContext {
@@ -142,7 +149,7 @@ export interface OrchestrateInput {
   documentMode?: "plan";
   currentPostId?: string;
   userId?: string;
-  imageDefaults?: ImageDefaults;
+  imageContext?: ContentImageContext;
   selection?: TextSelection;
   context?: ContextItem[];
   maxSteps?: number;
@@ -151,6 +158,8 @@ export interface OrchestrateInput {
   timezone?: string;
   telemetryMetadata?: TccMetadata;
   useMarkup?: boolean;
+  /** False when the plan covers AI usage; image revisions then skip credits. */
+  chargeAiCredits?: boolean;
 }
 
 export interface OrchestrateResult {
@@ -181,8 +190,10 @@ export interface BuildToolSetParams {
   contentType?: string;
   currentPostId?: string;
   userId?: string;
-  imageDefaults?: ImageDefaults;
+  imageContext?: ContentImageContext;
   useMarkup?: boolean;
+  /** False when the plan covers AI usage; image revisions then skip credits. */
+  chargeAiCredits?: boolean;
   onMarkdownUpdate?: (markdown: string) => void;
   validatedIntegrations: ValidatedIntegration[];
 }

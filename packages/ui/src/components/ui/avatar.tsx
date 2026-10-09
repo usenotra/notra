@@ -8,17 +8,23 @@ import { cn } from "@notra/ui/lib/utils";
 function Avatar({
   className,
   size = "default",
+  shape = "circle",
   ...props
 }: AvatarPrimitive.Root.Props & {
   size?: "default" | "sm" | "lg";
+  shape?: "circle" | "squircle";
 }) {
   return (
     <AvatarPrimitive.Root
       className={cn(
-        "group/avatar relative flex size-8 shrink-0 select-none rounded-full after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+        "group/avatar relative flex size-8 shrink-0 select-none after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+        shape === "squircle"
+          ? "corner-squircle rounded-xl supports-[corner-shape:squircle]:rounded-2xl after:corner-squircle"
+          : "rounded-full",
         className
       )}
       data-size={size}
+      data-shape={shape}
       data-slot="avatar"
       {...props}
     />
@@ -29,7 +35,7 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   return (
     <AvatarPrimitive.Image
       className={cn(
-        "aspect-square size-full rounded-[inherit] object-cover",
+        "aspect-square size-full rounded-[inherit] object-cover group-data-[shape=squircle]/avatar:corner-squircle",
         className
       )}
       data-slot="avatar-image"
@@ -45,7 +51,7 @@ function AvatarFallback({
   return (
     <AvatarPrimitive.Fallback
       className={cn(
-        "flex size-full items-center justify-center rounded-[inherit] bg-muted text-muted-foreground text-sm group-data-[size=sm]/avatar:text-xs",
+        "flex size-full items-center justify-center rounded-[inherit] bg-muted text-muted-foreground text-sm group-data-[size=sm]/avatar:text-xs group-data-[shape=squircle]/avatar:corner-squircle",
         className
       )}
       data-slot="avatar-fallback"

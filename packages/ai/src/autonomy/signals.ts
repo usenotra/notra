@@ -1,10 +1,12 @@
 import { SignalIngestError } from "@notra/ai/autonomy/errors";
+import { SIGNAL_INSERT_BATCH_SIZE } from "@notra/ai/constants/autonomy-signals";
 import type {
   AutonomySignalRow,
   CoalesceSignalsInput,
   CoalesceSignalsResult,
   RecordSignalInput,
   RecordSignalResult,
+  RecordSignalsInput,
   SignalSummary,
 } from "@notra/ai/types/autonomy";
 import { db } from "@notra/db/drizzle";
@@ -104,6 +106,143 @@ export const recordSignal = Effect.fn("iris.signals.record")(function* (
     signalId: existingId,
     deduplicated: true,
   } satisfies RecordSignalResult;
+});
+
+export const recordSignals = Effect.fn("iris.signals.recordBatch")(function* (
+  input: RecordSignalsInput
+) {
+  const results: RecordSignalResult[] = [];
+  for (
+    let offset = 0;
+    offset < input.signals.length;
+    offset += SIGNAL_INSERT_BATCH_SIZE
+  ) {
+    const chunk = input.signals.slice(
+      offset,
+      offset + SIGNAL_INSERT_BATCH_SIZE
+    );
+    if (chunk.length === 1) {
+      const item = chunk[0];
+      if (item) {
+        results.push(
+          yield* recordSignal({ ...item, organizationId: input.organizationId })
+        );
+      }
+      continue;
+    }
+
+    let readyToCommit = false;
+    let usedFallback = false;
+    const recorded = yield* Effect.tryPromise({
+      try: () =>
+        db.transaction(async (tx) => {
+          // Let PostgreSQL validate every item, including duplicate hashes.
+          // ON CONFLICT DO NOTHING retains the first inserted payload.
+          const values = chunk.map((item) => {
+            const now = new Date();
+            return {
+              id: crypto.randomUUID(),
+              organizationId: input.organizationId,
+              source: item.source,
+              sourceEventId: item.sourceEventId ?? null,
+              kind: item.kind,
+              occurredAt: item.occurredAt,
+              payload: item.payload,
+              dedupeHash: item.dedupeHash,
+              status: "pending",
+              createdAt: now,
+              updatedAt: now,
+            } satisfies typeof autonomySignals.$inferInsert;
+          });
+          const inserted = await tx
+            .insert(autonomySignals)
+            .values(values)
+            .onConflictDoNothing({
+              target: [
+                autonomySignals.organizationId,
+                autonomySignals.dedupeHash,
+              ],
+            })
+            .returning({
+              id: autonomySignals.id,
+              dedupeHash: autonomySignals.dedupeHash,
+            });
+          const insertedHashes = new Set(inserted.map((row) => row.dedupeHash));
+          const conflicts = [
+            ...new Set(chunk.map((item) => item.dedupeHash)),
+          ].filter((hash) => !insertedHashes.has(hash));
+          const existing = conflicts.length
+            ? await tx
+                .select({
+                  id: autonomySignals.id,
+                  dedupeHash: autonomySignals.dedupeHash,
+                })
+                .from(autonomySignals)
+                .where(
+                  and(
+                    eq(autonomySignals.organizationId, input.organizationId),
+                    inArray(autonomySignals.dedupeHash, conflicts)
+                  )
+                )
+            : [];
+          const ids = new Map(
+            [...inserted, ...existing].map((row) => [row.dedupeHash, row.id])
+          );
+          const batchResults = chunk.map((item) => {
+            const signalId = ids.get(item.dedupeHash);
+            if (signalId === undefined) {
+              throw new SignalIngestError({
+                message:
+                  "Signal insert conflicted but no existing row was found",
+                cause: null,
+              });
+            }
+            return {
+              signalId,
+              deduplicated: !insertedHashes.delete(item.dedupeHash),
+            };
+          });
+          readyToCommit = true;
+          return batchResults;
+        }),
+      catch: (cause) =>
+        new SignalIngestError({ message: "Failed to record signals", cause }),
+    }).pipe(
+      Effect.catch((error) => {
+        if (readyToCommit) {
+          // A failed commit acknowledgement is ambiguous; do not replay it.
+          return Effect.fail(error);
+        }
+        // The failed chunk rolled back. Reuse the serial path so a bad item
+        // still leaves exactly the successfully recorded prefix behind.
+        usedFallback = true;
+        return Effect.forEach(
+          chunk,
+          (item) =>
+            recordSignal({ ...item, organizationId: input.organizationId }),
+          { concurrency: 1 }
+        );
+      })
+    );
+    results.push(...recorded);
+    if (!usedFallback) {
+      for (const [index, result] of recorded.entries()) {
+        yield* Effect.annotateLogs(
+          Effect.logDebug(
+            result.deduplicated
+              ? "iris.signal.deduplicated"
+              : "iris.signal.recorded"
+          ),
+          {
+            organizationId: input.organizationId,
+            signalId: result.signalId,
+            kind: chunk[index]?.kind,
+          }
+        );
+      }
+    }
+  }
+  return results;
 });
 
 export const listPendingSignals = Effect.fn("iris.signals.listPending")(

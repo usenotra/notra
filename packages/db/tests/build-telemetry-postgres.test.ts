@@ -69,6 +69,8 @@ if (!databaseUrl) {
       for (const path of [
         "fixtures/sites-tenant-integrity.sql",
         "../migrations/0112_sites.sql",
+        "../migrations/0113_site_preview_comments.sql",
+        "../migrations/0114_site_smart_deployments.sql",
         "fixtures/sites-tenant-integrity-seed.sql",
       ]) {
         await pool.query(

@@ -114,6 +114,7 @@ export const SITE_STATUS_DOT_STYLES: Record<SiteDeploymentStatus, string> = {
   ready: "bg-success",
   failed: "bg-destructive",
   superseded: "bg-muted-foreground/40",
+  skipped: "bg-muted-foreground/40",
   canceled: "bg-muted-foreground/40",
   expired: "bg-muted-foreground/40",
 };
@@ -146,6 +147,7 @@ export const SITE_DEPLOYMENT_STATUS_FILTERS = [
   "failed",
   "canceled",
   "superseded",
+  "skipped",
   "expired",
 ] as const;
 

@@ -1,5 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
+import type { ExcalidrawScene } from "../types/excalidraw-diagram";
 import type { UploadIntegrationBrandingAssetParams } from "../types/integrations";
 
 interface R2Env {
@@ -134,6 +135,29 @@ export async function uploadGeneratedHtmlAsset(params: {
       CacheControl: "public, max-age=31536000",
       ContentLength: body.byteLength,
       ContentType: "text/html; charset=utf-8",
+      Key: key,
+    })
+  );
+
+  return `${env.publicUrl.replace(TRAILING_SLASHES_RE, "")}/${key}`;
+}
+
+export async function uploadGeneratedExcalidrawAsset(params: {
+  organizationId: string;
+  scene: ExcalidrawScene;
+  postId: string;
+}) {
+  const env = getR2Env();
+  const key = `organization/${params.organizationId}/content/${params.postId}-${Date.now()}.excalidraw`;
+  const body = Buffer.from(JSON.stringify(params.scene), "utf-8");
+
+  await getR2Client().send(
+    new PutObjectCommand({
+      Body: body,
+      Bucket: env.bucketName,
+      CacheControl: "public, max-age=31536000",
+      ContentLength: body.byteLength,
+      ContentType: "application/json; charset=utf-8",
       Key: key,
     })
   );

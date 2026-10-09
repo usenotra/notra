@@ -12,5 +12,5 @@ export interface ContentDetailToolbarProps {
 
 export type ContentDetailImageActionsProps = Pick<
   ContentDetailToolbarProps,
-  "content" | "contentId" | "document"
+  "content" | "contentId" | "document" | "organizationId"
 >;

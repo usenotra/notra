@@ -179,3 +179,47 @@ cd apps/sites && npx wrangler dev --env dev        # worker on :8787, real dev b
 open http://{slug}.sites.localhost:8787/blog
 cd apps/sites-builder && bun compiler/cli.ts dev --source <site repo>   # theme dev with live reload
 ```
+
+## Smart deployments (Beta)
+
+`sites.smartDeployments` defaults to `true`, including existing Sites after migration
+`0114_site_smart_deployments`. Changing the setting alone does not rebuild the Site.
+
+Automatic push and pull-request deployments compare a complete Git tree against
+the fingerprint of the deployment currently referenced by serving state. Preview
+keys have separate baselines. The fingerprint includes collected file paths and
+Git blob IDs, repository/root identity, the complete build target, draft visibility,
+builder snapshot ID and UTC year. Path selection is shared with the compiler.
+
+Identical inputs produce a terminal `skipped` deployment with an explicit reason.
+The serving pointer retains its deployment ID and files while advancing its
+generation, preventing an older concurrent build from replacing the current Site.
+The comparison is fenced again under the existing storage lock and R2 CAS before
+the skip is persisted. Retries can finish persistence after a serving-state write.
+
+First deployments, manual builds, redeploys, configuration-triggered builds and
+unknown comparisons build normally. Truncated trees, missing fingerprints,
+unsupported archive transformations (`.gitattributes` / `.lfsconfig`), and source
+limits also require a build. Existing published deployments establish their first
+fingerprint on their next successful build. The UTC year invalidates equality at
+the next deployment check; this does not schedule a yearly deployment.
+
+TypeSafe Jev evaluates the verified comparison alongside the deterministic
+policy. Its probability and model ID are recorded in `smartDeploymentEvaluation`.
+The model receives comparison facts, not repository contents. Missing credentials,
+provider failures or model disagreement cannot override proven input equality or
+skip changed inputs. This Beta does not enable autonomous model decisions.
+
+Unchanged automatic deployments do not reserve or consume daily build slots.
+Manual/non-smart queued deployments reserve slots at admission; automatic smart
+deployments reserve a slot atomically only if a build is necessary. Retries of an
+already started deployment do not reserve a second slot.
+
+## Verification
+
+Run `bun test tests` in this package. PostgreSQL integration suites additionally
+require `SITES_TEST_DATABASE_URL` pointing to the synthetic local database
+`postgresql://postgres@127.0.0.1:55447/notra_server_audit`, initialized with the
+current schema. They test real queries, serving-state CAS and pipeline decisions
+with simulated GitHub, model, sandbox and R2 adapters. Do not use a customer or
+production database for these suites.

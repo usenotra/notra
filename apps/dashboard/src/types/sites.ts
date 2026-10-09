@@ -119,7 +119,19 @@ export interface SiteSettingsForm {
   changelogPath: string;
   publishMode: SitePublishMode;
   previewCommentsEnabled: boolean;
+  smartDeployments: boolean;
 }
+
+export type SiteSettingsSource = Pick<
+  SiteRecord,
+  | "name"
+  | "productionBranch"
+  | "rootDirectory"
+  | "mounts"
+  | "publishMode"
+  | "previewCommentsEnabled"
+  | "smartDeployments"
+>;
 
 export interface SiteCreateFormValues {
   repositoryId: string | null;
@@ -148,6 +160,7 @@ export interface SiteSettingsPatch {
   mounts?: { blog?: string; changelog?: string };
   publishMode?: SitePublishMode;
   previewCommentsEnabled?: boolean;
+  smartDeployments?: boolean;
 }
 
 export type SiteDomainRecord = SiteDomain["records"][number];
@@ -212,6 +225,7 @@ export type SiteDeploymentStatusFilter =
   | "failed"
   | "canceled"
   | "superseded"
+  | "skipped"
   | "expired";
 
 export type SiteDeploymentEnvironmentFilter = SiteDeploymentKind | "all";

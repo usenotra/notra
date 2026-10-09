@@ -15,6 +15,7 @@ import type {
   SiteMounts,
   SitePreviewPassword,
 } from "@notra/sites-core/types/deployment";
+import type { SmartDeploymentEvaluation } from "@notra/sites-core/types/smart-deployments";
 import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
@@ -4239,6 +4240,7 @@ export const sites = pgTable(
     publicOrigin: text("public_origin").notNull(),
     mounts: jsonb("mounts").$type<SiteMounts>().notNull(),
     previewsEnabled: boolean("previews_enabled").notNull().default(true),
+    smartDeployments: boolean("smart_deployments").notNull().default(true),
     previewCommentsEnabled: boolean("preview_comments_enabled")
       .notNull()
       .default(true),
@@ -4388,6 +4390,14 @@ export const siteDeployments = pgTable(
     pullRequestNumber: integer("pull_request_number"),
     target: jsonb("target").$type<SiteBuildTarget>().notNull(),
     configHash: text("config_hash").notNull(),
+    inputFingerprint: text("input_fingerprint"),
+    skipReason: text("skip_reason"),
+    smartDeploymentEvaluation: jsonb(
+      "smart_deployment_evaluation"
+    ).$type<SmartDeploymentEvaluation>(),
+    buildBudgetReserved: boolean("build_budget_reserved")
+      .notNull()
+      .default(true),
     toolchainVersion: text("toolchain_version"),
     fileCount: integer("file_count"),
     totalBytes: integer("total_bytes"),
@@ -4435,7 +4445,7 @@ export const siteDeployments = pgTable(
     ),
     check(
       "siteDeployments_status_check",
-      sql`${table.status} IN ('queued', 'building', 'uploading', 'ready', 'superseded', 'failed', 'canceled', 'expired')`
+      sql`${table.status} IN ('queued', 'building', 'uploading', 'ready', 'superseded', 'skipped', 'failed', 'canceled', 'expired')`
     ),
     check(
       "siteDeployments_trigger_check",
