@@ -27,9 +27,15 @@ export interface StateOfAiSearchRankingRow extends StateOfAiSearchBrand {
   rank: number;
   /** Percent of answers naming the brand, averaged across engines. */
   visibility: number;
-  /** Percent of answers that name the brand before any other tracked brand. */
+  /**
+   * Percent of answers that name the brand before any other tracked brand,
+   * averaged across engines (each engine counts the same).
+   */
   topPick: number;
-  /** Percent of answers that cite a page on the brand's own domain. */
+  /**
+   * Percent of answers that cite a page on the brand's own domain, averaged
+   * across engines (each engine counts the same).
+   */
   ownSiteCited: number;
   /** Percent per engine; null when the engine gave no answers. */
   byEngine: Record<StateOfAiSearchEngineId, number | null>;

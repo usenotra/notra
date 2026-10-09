@@ -37,7 +37,6 @@ import type {
 } from "@/types/state-of-ai-search";
 import { brandColor, formatPercent } from "@/utils/state-of-ai-search";
 
-const PERCENT_MAX = 100;
 /**
  * Tooltips invert the page colors, so themed logos (OpenAI) need the variant
  * of the opposite theme. Themed icons render the light and dark SVG as a
@@ -70,7 +69,6 @@ interface HeatCellDetail {
 function HeatCellTooltip({ detail }: { detail: HeatCellDetail }) {
   const { brand, engine, rank, total } = detail;
   const rate = brand.byEngine[engine.id] ?? 0;
-  const mentions = Math.round((rate / PERCENT_MAX) * engine.answers);
   return (
     <span className="flex min-w-48 flex-col gap-1.5 py-0.5">
       <span className="flex items-center gap-1.5 font-medium">
@@ -82,7 +80,7 @@ function HeatCellTooltip({ detail }: { detail: HeatCellDetail }) {
       <span className="flex justify-between gap-4 opacity-70">
         Named in
         <span className="font-medium tabular-nums opacity-100">
-          {mentions} of {engine.answers} answers
+          {formatPercent(rate)} of {engine.answers} answers
         </span>
       </span>
       <span className="flex justify-between gap-4 opacity-70">

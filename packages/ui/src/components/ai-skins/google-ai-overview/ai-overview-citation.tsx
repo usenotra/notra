@@ -6,7 +6,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@notra/ui/components/ui/hover-card";
-import { Separator } from "@notra/ui/components/ui/separator";
 
 import {
   AI_OVERVIEW_HOVER_CLOSE_DELAY_MS,
@@ -38,6 +37,13 @@ export const AIOverviewCitation = ({
     "bg-aio-chip text-aio-muted focus-visible:outline-aio-focus [a]:hover:bg-aio-chip-hover max-w-[10.9375rem] justify-start rounded-full border-0 py-px ps-px pe-2 align-text-top text-[0.6875rem] leading-4 focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-solid",
     className
   );
+  // The same page can back several references, so repeats get a suffix.
+  const itemKeys = sources.map((item, index) => {
+    const earlier = sources
+      .slice(0, index)
+      .filter((other) => other.href === item.href).length;
+    return earlier === 0 ? item.href : `${item.href}#${earlier}`;
+  });
   const chip = (
     <>
       <AIOverviewFavicon name={source.siteName} src={source.favicon} />
@@ -74,11 +80,8 @@ export const AIOverviewCitation = ({
               {sources.map((item, index) => (
                 <li
                   className="after:bg-aio-border relative after:absolute after:inset-x-4 after:bottom-0 after:h-px last:after:hidden"
-                  key={item.href}
+                  key={itemKeys[index]}
                 >
-                  {index > 0 && (
-                    <Separator className="bg-aio-border mx-4 data-horizontal:w-auto" />
-                  )}
                   <a
                     aria-label={item.title ?? item.siteName}
                     className="focus-visible:outline-aio-focus absolute inset-0.5 rounded-2xl focus-visible:outline-2 focus-visible:outline-solid"

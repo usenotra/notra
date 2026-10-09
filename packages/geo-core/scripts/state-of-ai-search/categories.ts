@@ -72,7 +72,7 @@ export const REPORT_CATEGORIES: ReportCategory[] = [
       {
         name: "HubSpot AI Search Grader",
         domain: "hubspot.com",
-        aliases: ["AI Search Grader", "HubSpot AEO", "HubSpot"],
+        aliases: ["AI Search Grader", "HubSpot AEO"],
       },
     ],
   },
@@ -366,7 +366,7 @@ export const REPORT_CATEGORIES: ReportCategory[] = [
       {
         name: "DigitalOcean",
         domain: "digitalocean.com",
-        aliases: ["Digital Ocean", "App Platform"],
+        aliases: ["Digital Ocean", "DigitalOcean App Platform"],
       },
       { name: "Netlify", domain: "netlify.com" },
       { name: "Hetzner", domain: "hetzner.com" },

@@ -17,6 +17,7 @@ import type { ReactNode } from "react";
 
 import { ReportPanel } from "@/components/state-of-ai-search/report-section";
 import type { StateOfAiSearchOverview } from "@/types/state-of-ai-search";
+import { uniqueKeys } from "@/utils/unique-keys";
 
 const LEAD_SEPARATOR = ": ";
 const LEAD_MAX_LENGTH = 60;
@@ -77,13 +78,19 @@ export function GoogleAiOverview({
   overview: StateOfAiSearchOverview;
   className?: string;
 }) {
+  // Blocks have no ids and headings such as "Pros" repeat.
+  const blockKeys = uniqueKeys(
+    overview.blocks.map(
+      (block) =>
+        `${block.type}-${block.type === "list" ? block.items[0]?.text : block.text}`
+    )
+  );
   return (
     <AIOverview className={cn("p-5", className)} collapsible={false}>
       <AIOverviewHeader />
       <AIOverviewContent>
-        {overview.blocks.map((block) => {
-          // Blocks have no ids; their text identifies them within one overview.
-          const key = `${block.type}-${block.type === "list" ? block.items[0]?.text : block.text}`;
+        {overview.blocks.map((block, index) => {
+          const key = blockKeys[index];
           if (block.type === "heading") {
             return (
               <AIOverviewHeading key={key}>{block.text}</AIOverviewHeading>
@@ -131,7 +138,14 @@ export function AiOverviewPanel({
       className="h-full"
       header={header}
     >
-      <div className="overscroll-contain lg:absolute lg:inset-0 lg:overflow-y-auto">
+      <div
+        className="overscroll-contain lg:absolute lg:inset-0 lg:overflow-y-auto"
+        aria-label="AI Overview text"
+        role="region"
+        // Keyboard users need to reach the text that scrolls.
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+      >
         <GoogleAiOverview className="rounded-[14px]" overview={overview} />
       </div>
     </ReportPanel>

@@ -24,7 +24,10 @@ const outputRoot = join(
 );
 
 for (const category of REPORT_CATEGORIES) {
-  if (process.env.SOAS_ONLY && category.slug !== process.env.SOAS_ONLY) {
+  if (
+    process.env.SOAS_ONLY &&
+    !process.env.SOAS_ONLY.split(",").includes(category.slug)
+  ) {
     continue;
   }
   const report = JSON.parse(

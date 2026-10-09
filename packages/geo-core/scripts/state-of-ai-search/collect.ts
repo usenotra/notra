@@ -295,6 +295,11 @@ async function askAiOverview(
     });
   }
   const parsed = parseGoogleAiOverview(payload);
+  if (parsed.status === "invalid") {
+    // A failed or malformed response is not an absence: throw so the retry
+    // path asks again instead of caching a miss.
+    throw new Error(`SerpApi returned an invalid AI Overview for "${prompt}"`);
+  }
   if (parsed.status !== "present") {
     return {
       text: "",
@@ -348,13 +353,26 @@ async function runPool<T>(
   );
 }
 
+/** Cost of one ledger line; blank or half-written lines count as zero. */
+function readLedgerCost(line: string): number {
+  try {
+    const entry: unknown = JSON.parse(line);
+    return isRecord(entry) &&
+      typeof entry.cost === "number" &&
+      Number.isFinite(entry.cost)
+      ? entry.cost
+      : 0;
+  } catch {
+    return 0;
+  }
+}
+
 async function main() {
   await mkdir(dirname(spendPath), { recursive: true });
   try {
     spend = (await readFile(spendPath, "utf8"))
-      .trim()
       .split("\n")
-      .reduce((sum, line) => sum + JSON.parse(line).cost, 0);
+      .reduce((sum, line) => sum + readLedgerCost(line), 0);
   } catch (error) {
     if (!isRecord(error) || error.code !== "ENOENT") {
       throw error;

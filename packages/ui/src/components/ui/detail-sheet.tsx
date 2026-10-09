@@ -1,6 +1,7 @@
 "use client";
 
 import { SheetContent } from "@notra/ui/components/ui/sheet";
+import { useComposedRefs } from "@notra/ui/hooks/compose-refs";
 import { cn } from "@notra/ui/lib/utils";
 import { type ComponentProps, useRef } from "react";
 
@@ -26,6 +27,7 @@ export function DetailSheetContent({
   size = "lg",
   className,
   children,
+  ref,
   ...props
 }: Omit<ComponentProps<typeof SheetContent>, "side" | "variant"> & {
   size?: keyof typeof DETAIL_SHEET_WIDTH;
@@ -33,11 +35,12 @@ export function DetailSheetContent({
   // Focus the panel, not its first control: a copy box or tab would
   // otherwise open with a focus ring. Tab still reaches it first.
   const popupRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRefs(popupRef, ref);
   return (
     <SheetContent
       className={cn(DETAIL_SHEET_CLASS, DETAIL_SHEET_WIDTH[size], className)}
       initialFocus={popupRef}
-      ref={popupRef}
+      ref={composedRef}
       side="right"
       {...props}
     >

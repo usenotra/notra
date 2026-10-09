@@ -19,7 +19,7 @@
       "label": "Claude",
       "model": "anthropic/claude-opus-5.5",
       "answers": 200,
-      "brandsPerAnswer": 6.9,
+      "brandsPerAnswer": 6.8,
       "sourcesPerAnswer": 11.7
     },
     {
@@ -27,7 +27,7 @@
       "label": "Gemini",
       "model": "google/gemini-3.8-flash",
       "answers": 200,
-      "brandsPerAnswer": 5.3,
+      "brandsPerAnswer": 5.2,
       "sourcesPerAnswer": 7.7
     },
     {
@@ -77,7 +77,7 @@
       "domain": "tryprofound.com",
       "rank": 2,
       "visibility": 66,
-      "topPick": 20,
+      "topPick": 22,
       "ownSiteCited": 18,
       "byEngine": {
         "chatgpt": 49,
@@ -93,7 +93,7 @@
       "domain": "peec.ai",
       "rank": 3,
       "visibility": 66,
-      "topPick": 15,
+      "topPick": 16,
       "ownSiteCited": 12,
       "byEngine": {
         "chatgpt": 52,
@@ -169,25 +169,9 @@
       "delta": null
     },
     {
-      "name": "HubSpot AI Search Grader",
-      "domain": "hubspot.com",
-      "rank": 8,
-      "visibility": 19,
-      "topPick": 7,
-      "ownSiteCited": 12,
-      "byEngine": {
-        "chatgpt": 18,
-        "claude": 34,
-        "gemini": 27,
-        "perplexity": 10,
-        "ai-overview": 6
-      },
-      "delta": null
-    },
-    {
       "name": "AthenaHQ",
       "domain": "athenahq.ai",
-      "rank": 9,
+      "rank": 8,
       "visibility": 17,
       "topPick": 1,
       "ownSiteCited": 2,
@@ -203,7 +187,7 @@
     {
       "name": "Writesonic",
       "domain": "writesonic.com",
-      "rank": 10,
+      "rank": 9,
       "visibility": 15,
       "topPick": 1,
       "ownSiteCited": 8,
@@ -213,6 +197,22 @@
         "gemini": 14,
         "perplexity": 5,
         "ai-overview": 11
+      },
+      "delta": null
+    },
+    {
+      "name": "HubSpot AI Search Grader",
+      "domain": "hubspot.com",
+      "rank": 10,
+      "visibility": 13,
+      "topPick": 3,
+      "ownSiteCited": 12,
+      "byEngine": {
+        "chatgpt": 17,
+        "claude": 22,
+        "gemini": 17,
+        "perplexity": 9,
+        "ai-overview": 0
       },
       "delta": null
     },
@@ -327,7 +327,7 @@
         "Semrush": 35,
         "Profound": 32,
         "SE Ranking": 6,
-        "HubSpot AI Search Grader": 24,
+        "HubSpot AI Search Grader": 19,
         "Ahrefs": 19,
         "AthenaHQ": 14,
         "Scrunch": 9,
@@ -425,7 +425,6 @@
             "Peec AI",
             "Profound",
             "Writesonic",
-            "HubSpot AI Search Grader",
             "Rankscale",
             "Semrush",
             "SE Ranking",
@@ -517,11 +516,6 @@
               "brand": "Writesonic",
               "text": "Profound, Writesonic, Indexly and others all do this.",
               "match": "Writesonic"
-            },
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "HubSpot's AEO Grader gives you a free visibility snapshot across ChatGPT, Gemini, and Perplexity.",
-              "match": "HubSpot"
             },
             {
               "brand": "Rankscale",
@@ -737,11 +731,6 @@
               "brand": "Peec AI",
               "text": "If you need a shared dashboard or broader coverage, evaluate Peec next.",
               "match": "Peec"
-            },
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "My practical recommendation: start with HubSpot’s free grader, then trial Otterly or Rankscale on a small set of prompts that reflect how customers actually search.",
-              "match": "HubSpot"
             }
           ],
           "collectedAt": "2026-10-08T20:13:32.288Z"
@@ -760,12 +749,91 @@
               { "type": "heading", "text": "Top GEO Software for Startups" },
               {
                 "type": "list",
+                "items": [{ "text": "Otterly.ai", "refs": [0, 2] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Otterly.ai", "refs": [0, 2] },
-                  { "text": "Answer Socrates", "refs": [3] },
-                  { "text": "Peec AI", "refs": [0, 4] },
-                  { "text": "GrackerAI / Geoptie / Rankscale", "refs": [1] },
-                  { "text": "Perplexity Pro", "refs": [] }
+                  {
+                    "text": "Best for: Budget-friendly, recurring visibility alerts.",
+                    "refs": []
+                  },
+                  { "text": "Starting Price: Around $29/month.", "refs": [] },
+                  {
+                    "text": "Why it fits startups: It offers weekly brand-visibility monitoring and simple alerts across generative search engines without forcing you into an enterprise contract.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Answer Socrates", "refs": [3] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: GEO keyword discovery and clustering.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it fits startups: It reverse-engineers autocomplete-based questions, helps structure content for LLM citation, and tracks brand presence across ChatGPT, Claude, Gemini, DeepSeek, Grok, and Perplexity.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Peec AI", "refs": [0, 4] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Mid-sized and accessible analytics-first tracking.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it fits startups: It provides prompt-level segmentation and multi-LLM tracking without the high cost of enterprise solutions like Profound.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "GrackerAI / Geoptie / Rankscale", "refs": [1] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Early-stage content optimization and AI search monitoring.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it fits startups: Built specifically for leaner teams trying to track how AI chatbots and engines reference their brand against competitors.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Perplexity Pro", "refs": [] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Hands-on, real-time source and citation monitoring.",
+                    "refs": []
+                  },
+                  { "text": "Starting Price: $20/month.", "refs": [] },
+                  {
+                    "text": "Why it fits startups: While technically a research assistant rather than a dedicated tracking suite, its Pro tier lets you directly inspect which web pages and domains it cites for your industry queries.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -911,6 +979,11 @@
             },
             { "brand": "Peec AI", "text": "Peec AI", "match": "Peec AI" },
             {
+              "brand": "Profound",
+              "text": "Why it fits startups: It provides prompt-level segmentation and multi-LLM tracking without the high cost of enterprise solutions like Profound.",
+              "match": "Profound"
+            },
+            {
               "brand": "Rankscale",
               "text": "GrackerAI / Geoptie / Rankscale",
               "match": "Rankscale"
@@ -948,7 +1021,7 @@
         "Profound": 41,
         "Scrunch": 22,
         "Ahrefs": 27,
-        "HubSpot AI Search Grader": 11,
+        "HubSpot AI Search Grader": 9,
         "ZipTie": 20,
         "Writesonic": 3,
         "AthenaHQ": 8,
@@ -1055,8 +1128,7 @@
             "ZipTie",
             "Writesonic",
             "Scrunch",
-            "AthenaHQ",
-            "HubSpot AI Search Grader"
+            "AthenaHQ"
           ],
           "sources": [
             {
@@ -1156,11 +1228,6 @@
               "brand": "AthenaHQ",
               "text": "Large companies that need help fixing problems, not just tracking them: Scrunch AI or AthenaHQ.",
               "match": "AthenaHQ"
-            },
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "Free ways to start: HubSpot's AEO Grader and Semrush's free AI Search Visibility Checker are the best starting points.",
-              "match": "HubSpot"
             }
           ],
           "collectedAt": "2026-10-07T15:14:52.769Z"
@@ -1535,8 +1602,8 @@
         { "name": "SE Ranking", "domain": "seranking.com" },
         { "name": "Scrunch", "domain": "scrunch.com" },
         { "name": "ZipTie", "domain": "ziptie.dev" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Evertune", "domain": "evertune.ai" },
+        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Rankscale", "domain": "rankscale.ai" },
         { "name": "AthenaHQ", "domain": "athenahq.ai" }
       ],
@@ -1546,7 +1613,7 @@
       "mentions": {
         "Otterly.AI": 41,
         "Profound": 40,
-        "HubSpot AI Search Grader": 7,
+        "HubSpot AI Search Grader": 5,
         "Semrush": 30,
         "Ahrefs": 28,
         "Scrunch": 12,
@@ -1560,12 +1627,11 @@
       "firsts": {
         "Otterly.AI": 14,
         "Ahrefs": 2,
-        "Peec AI": 10,
+        "Peec AI": 11,
         "Profound": 6,
         "Semrush": 2,
         "SE Ranking": 2,
-        "ZipTie": 4,
-        "HubSpot AI Search Grader": 1
+        "ZipTie": 4
       },
       "responses": [
         {
@@ -1638,7 +1704,6 @@
           "overview": null,
           "mentioned": [
             "SE Ranking",
-            "HubSpot AI Search Grader",
             "Profound",
             "Peec AI",
             "Otterly.AI",
@@ -1705,11 +1770,6 @@
               "brand": "SE Ranking",
               "text": "Nearly every \"best AI visibility tools\" list is written by a company that ranks its own product first (Frase, SE Ranking, Amplitude, HubSpot, Visiblie and others all do this).",
               "match": "SE Ranking"
-            },
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "Nearly every \"best AI visibility tools\" list is written by a company that ranks its own product first (Frase, SE Ranking, Amplitude, HubSpot, Visiblie and others all do this).",
-              "match": "HubSpot"
             },
             {
               "brand": "Profound",
@@ -2575,7 +2635,7 @@
             {
               "brand": "HubSpot AI Search Grader",
               "text": "For a free baseline across chatbots: try a one-off checker such as HubSpot’s AI Search Grader.",
-              "match": "HubSpot"
+              "match": "AI Search Grader"
             },
             {
               "brand": "Rankscale",
@@ -2784,7 +2844,7 @@
         "Scrunch": 23,
         "Peec AI": 34,
         "Otterly.AI": 41,
-        "HubSpot AI Search Grader": 3,
+        "HubSpot AI Search Grader": 2,
         "Writesonic": 2,
         "AthenaHQ": 11,
         "SE Ranking": 18,
@@ -3420,8 +3480,8 @@
         { "name": "Ahrefs", "domain": "ahrefs.com" },
         { "name": "Peec AI", "domain": "peec.ai" },
         { "name": "Profound", "domain": "tryprofound.com" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Scrunch", "domain": "scrunch.com" },
+        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Writesonic", "domain": "writesonic.com" },
         { "name": "AthenaHQ", "domain": "athenahq.ai" },
         { "name": "SE Ranking", "domain": "seranking.com" },
@@ -3439,7 +3499,7 @@
         "Semrush": 41,
         "Ahrefs": 41,
         "Writesonic": 27,
-        "HubSpot AI Search Grader": 37,
+        "HubSpot AI Search Grader": 30,
         "AthenaHQ": 26,
         "Evertune": 12,
         "SE Ranking": 18,
@@ -3554,7 +3614,7 @@
             {
               "brand": "HubSpot AI Search Grader",
               "text": "Existing HubSpot customer: HubSpot AEO",
-              "match": "HubSpot"
+              "match": "HubSpot AEO"
             }
           ],
           "collectedAt": "2026-10-07T15:19:26.015Z"
@@ -4443,13 +4503,70 @@
                   {
                     "text": "OtterlyAI (Best for SMBs and Marketing Teams)",
                     "refs": [3, 4, 5, 6]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Engines tracked: ChatGPT, Perplexity, Google AI Overviews/Mode, Gemini, and Microsoft Copilot across 65+ countries.",
+                    "refs": []
                   },
+                  {
+                    "text": "Content & Action Recommendations: Includes a dedicated OtterlyAI Recommendations feature that segments tactical advice by AI engine, region, and type (ranging from on-page schema changes and FAQ blocks to off-page Reddit and partnership signals).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pricing: Entry plans start around $29/month.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   {
                     "text": "Profound (Best for Enterprise & Deep Technical Audits)",
                     "refs": [7, 8, 9, 10]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Engines tracked: ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews, Grok, and more.",
+                    "refs": []
                   },
                   {
+                    "text": "Content & Action Recommendations: Combines log-level crawler data with automated content optimization. It features Prompt Volumes to discover missing conversational topic demand, to trace AI brand ambiguities to specific web pages, and AI agents that auto-generate citation-ready content drafts.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pricing: Custom enterprise and tiered plans (backed by deep analytics).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
                     "text": "AI Visibility Toolkit (Best for Unified SEO Workflows)",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Engines tracked: ChatGPT, Gemini, and Perplexity.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Content & Action Recommendations: Integrates traditional keyword/ranking workflows with AI response data, prompt research, and competitive citation gaps to guide campaign content strategy.",
                     "refs": []
                   }
                 ]
@@ -4655,7 +4772,7 @@
       "consensus": false,
       "aiOverviewShown": true,
       "mentions": {
-        "HubSpot AI Search Grader": 8,
+        "HubSpot AI Search Grader": 7,
         "Peec AI": 39,
         "Otterly.AI": 40,
         "Semrush": 34,
@@ -4767,8 +4884,8 @@
           "highlights": [
             {
               "brand": "HubSpot AI Search Grader",
-              "text": "Included if you already have HubSpot Marketing Hub Pro or Enterprise",
-              "match": "HubSpot"
+              "text": "Run the free HubSpot AI Search Grader for an initial snapshot.",
+              "match": "HubSpot AI Search Grader"
             },
             {
               "brand": "Peec AI",
@@ -5283,9 +5400,9 @@
         { "name": "Profound", "domain": "tryprofound.com" },
         { "name": "Otterly.AI", "domain": "otterly.ai" },
         { "name": "Peec AI", "domain": "peec.ai" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "AthenaHQ", "domain": "athenahq.ai" },
         { "name": "Scrunch", "domain": "scrunch.com" },
+        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Rankscale", "domain": "rankscale.ai" },
         { "name": "SE Ranking", "domain": "seranking.com" },
         { "name": "ZipTie", "domain": "ziptie.dev" },
@@ -5297,7 +5414,7 @@
       "mentions": {
         "Ahrefs": 30,
         "Semrush": 36,
-        "HubSpot AI Search Grader": 12,
+        "HubSpot AI Search Grader": 6,
         "Profound": 25,
         "Otterly.AI": 23,
         "Peec AI": 23,
@@ -5310,10 +5427,10 @@
       },
       "firsts": {
         "Ahrefs": 6,
-        "Semrush": 17,
-        "HubSpot AI Search Grader": 9,
-        "Profound": 3,
-        "Otterly.AI": 1
+        "Semrush": 23,
+        "HubSpot AI Search Grader": 2,
+        "Otterly.AI": 2,
+        "Profound": 3
       },
       "responses": [
         {
@@ -8107,11 +8224,98 @@
               },
               {
                 "type": "list",
+                "items": [{ "text": "Profound", "refs": [0, 1, 2] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Profound", "refs": [0, 1, 2] },
-                  { "text": "Peec AI", "refs": [0, 2, 3] },
-                  { "text": "Botric", "refs": [2] },
+                  {
+                    "text": "Best for: Deep enterprise analytics, broad LLM coverage, and polished stakeholder reporting.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key Features: Enterprise share-of-voice tracking, URL-level citation attribution, sentiment analysis, and built-in content optimization workflows.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pricing: Starts at around $499/month (Lite) or $99+/month for scaled/enterprise tiers.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Agency Constraint: Best suited for high-budget enterprise clients who can absorb the cost.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Peec AI", "refs": [0, 2, 3] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Clean, multi-engine tracking across a growing agency portfolio.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key Features: Native tracking for ChatGPT, Perplexity, and Google AI Overviews (with Gemini, Claude, and Copilot available as add-ons), using real web scraping rather than APIs.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pricing: Starts around €89–€95/month for base prompts and select LLMs, scaling with extra models.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Agency Constraint: More economical for mid-market clients, though full multi-model coverage adds up.",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Botric", "refs": [2] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Full-stack Generative Engine Optimization (GEO) with an affordable entry point.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key Features: Monitoring, audits, content generation (Content Agent), and multi-engine tracking across ChatGPT, Perplexity, Gemini, Claude, and Google AI Overviews.",
+                    "refs": []
+                  },
+                  { "text": "Pricing: Starts at $15/month.", "refs": [] },
+                  {
+                    "text": "Agency Constraint: Great for low-cost testing or smaller retainer tiers, though deep enterprise custom reporting is limited.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   { "text": "Semrush (AI Search / AIO Toolkit)", "refs": [] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Agencies already embedded in traditional SEO workflows.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key Features: Side-by-side traditional SEO and GEO tracking, visibility snapshots, and traffic impact analysis.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pricing: Starts around $99–$199/month bundled with SEO suites.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Agency Constraint: Less granular on deep, multi-turn LLM hallucination tracking compared to dedicated native tools.",
+                    "refs": []
+                  }
                 ]
               },
               { "type": "heading", "text": "Comparison Overview" },
@@ -8283,7 +8487,7 @@
         "ZipTie": 2,
         "Profound": 24,
         "Evertune": 2,
-        "HubSpot AI Search Grader": 7
+        "HubSpot AI Search Grader": 5
       },
       "firsts": {
         "Otterly.AI": 17,
@@ -8635,7 +8839,29 @@
                   {
                     "text": "Test Category and Buyer Prompts: Do not just ask \"What is [Your Product Name]?\" Instead, use realistic questions a customer would ask, such as:",
                     "refs": [1, 2, 4, 5]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "\"What are the best [your product category] tools for [specific use case]?\"",
+                    "refs": []
                   },
+                  {
+                    "text": "\"Compare [Competitor A] and [Competitor B]. Are there alternatives?\"",
+                    "refs": []
+                  },
+                  {
+                    "text": "\"Recommend a [service/product] in [your city/region]\" (if local).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   {
                     "text": "Run Multi-Prompt Audits Regularly: Test your list of queries monthly in a fresh chat window (to avoid past chat bias) and log the exact responses .",
                     "refs": [1, 2]
@@ -9105,19 +9331,16 @@
     {
       "id": 7,
       "prompt": "i run a b2b saas, how do i measure our share of voice in llm answers",
-      "topPick": {
-        "name": "HubSpot AI Search Grader",
-        "domain": "hubspot.com"
-      },
+      "topPick": { "name": "Profound", "domain": "tryprofound.com" },
       "brands": [
         { "name": "Semrush", "domain": "semrush.com" },
         { "name": "Profound", "domain": "tryprofound.com" },
         { "name": "Peec AI", "domain": "peec.ai" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Otterly.AI", "domain": "otterly.ai" },
         { "name": "Ahrefs", "domain": "ahrefs.com" },
         { "name": "Scrunch", "domain": "scrunch.com" },
         { "name": "AthenaHQ", "domain": "athenahq.ai" },
+        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Evertune", "domain": "evertune.ai" },
         { "name": "SE Ranking", "domain": "seranking.com" }
       ],
@@ -9126,7 +9349,6 @@
       "aiOverviewShown": true,
       "mentions": {
         "Ahrefs": 13,
-        "HubSpot AI Search Grader": 16,
         "Profound": 19,
         "Semrush": 20,
         "Peec AI": 17,
@@ -9134,21 +9356,22 @@
         "Scrunch": 10,
         "AthenaHQ": 10,
         "Evertune": 3,
+        "HubSpot AI Search Grader": 7,
         "SE Ranking": 2
       },
       "firsts": {
         "Ahrefs": 2,
-        "HubSpot AI Search Grader": 9,
-        "Profound": 4,
+        "Profound": 8,
         "Scrunch": 1,
         "Otterly.AI": 5,
-        "Semrush": 2,
-        "Peec AI": 1
+        "Semrush": 3,
+        "HubSpot AI Search Grader": 2,
+        "Peec AI": 2
       },
       "responses": [
         {
           "engine": "chatgpt",
-          "text": "Treat **LLM share of voice as a panel-based estimate**, not a census of every question users ask. You measure how frequently your brand appears relative to competitors across a controlled set of buyer prompts, platforms, locations, and repeated runs.\n\n## 1. Build a representative prompt panel\n\nStart with **50–150 prompts** based on questions prospects actually ask. Pull them from:\n\n- Sales calls and win/loss interviews\n- Search Console and paid-search terms\n- Site search and support tickets\n- Reddit, review sites and communities\n- Customer interviews\n- “People also ask” and keyword research\n\nSegment prompts by buying stage:\n\n| Segment | Example |\n|---|---|\n| Problem discovery | “How do B2B SaaS companies automate security reviews?” |\n| Category discovery | “Best security questionnaire automation tools” |\n| Use case | “SOC 2 compliance software for startups” |\n| Comparison | “Acme vs CompetitorX” |\n| Alternatives | “Alternatives to CompetitorX” |\n| Evaluation | “Which tools integrate with Salesforce and support SSO?” |\n| Purchase validation | “Is Acme suitable for enterprise customers?” |\n\nAlso tag each prompt by **persona, industry, company size, geography and funnel stage**.\n\nKeep roughly **80% of the panel fixed** so trends remain comparable, and use 20% for discovering emerging prompts.\n\n## 2. Define the competitive set\n\nTrack:\n\n- Your company name\n- Product names\n- Common abbreviations and misspellings\n- Your domain\n- 5–10 direct competitors\n- Relevant adjacent competitors\n\nResolve aliases carefully. A generic product name can otherwise create false mentions.\n\n## 3. Run a controlled test\n\nFor each prompt:\n\n1. Run it across the platforms your buyers use.\n2. Use a new, unpersonalized conversation.\n3. Keep geography, language and browsing mode consistent.\n4. Run each prompt **at least three times**.\n5. Save the full answer, citations, date, model/platform and configuration.\n\nMeasure consumer products separately—for example, an assistant with live web retrieval versus a model API without retrieval. Don’t combine them into one opaque score.\n\nModel outputs are variable, and behavior can change between model snapshots, so recording the model and repeating observations is important. OpenAI explicitly notes that outputs and prompting behavior can vary between snapshots. \n\n## 4. Calculate the core metrics\n\n### A. Brand presence rate\n\n“How often are we present at all?”\n\n```text\nPresence rate =\nAnswers mentioning your brand ÷ All eligible answers\n```\n\nExample: mentioned in 72 of 300 answers = **24% presence rate**.\n\nCount a brand only once per answer, even if it appears multiple times. This is also how some current AI-visibility methodologies define a mention. \n\n### B. Competitive share of voice\n\n“How much of the competitive conversation do we own?”\n\n```text\nLLM SOV =\nYour brand-answer mentions\n÷\nBrand-answer mentions for you and all tracked competitors\n```\n\nExample:\n\n- Your brand: 72 answer mentions\n- Competitor A: 110\n- Competitor B: 58\n- Competitor C: 40\n\n```text\nSOV = 72 ÷ (72 + 110 + 58 + 40) = 25.7%\n```\n\nThis is the cleanest primary definition and aligns with the common competitive-mention formula used by current measurement platforms. \n\n**Presence and SOV are different:** presence measures coverage across all answers; SOV measures your share of brand mentions among competitors.\n\n### C. Recommendation share\n\nA mention is not necessarily an endorsement. Separately calculate:\n\n```text\nRecommendation share =\nAnswers positively recommending or shortlisting your brand\n÷\nAnswers recommending any tracked brand\n```\n\nClassify each appearance as:\n\n- Recommended\n- Neutral mention\n- Negative/cautioned\n- Explicitly excluded\n\n### D. Citation metrics\n\nTrack both:\n\n```text\nDomain citation rate =\nAnswers citing your domain ÷ All answers\n```\n\n```text\nCitation share =\nCitations to your domain\n÷\nCitations to all tracked company domains\n```\n\nKeep citations separate from mentions: an answer can name you without citing you, or cite your content without naming your brand. Current visibility systems therefore report mentions and citations as distinct metrics. \n\n### E. Accuracy rate\n\nFor answers mentioning you, evaluate whether key claims are correct:\n\n- Product category\n- Pricing\n- Integrations\n- Target customer\n- Security/compliance\n- Features\n- Company status\n\n```text\nAccuracy rate =\nAccurate brand descriptions ÷ Brand mentions reviewed\n```\n\nThis catches the case where your SOV rises but the model gives prospects outdated or misleading information.\n\n## 5. Add weighting carefully\n\nStart with an **unweighted SOV** so the calculation is easy to audit. Then add a separate strategic-weighted version:\n\n```text\nWeighted SOV =\nΣ(prompt importance × platform weight × brand mention)\n÷\nΣ(prompt importance × platform weight × all competitor mentions)\n```\n\nPossible prompt weights:\n\n- High-intent evaluation prompt: 3\n- Category/use-case prompt: 2\n- Informational prompt: 1\n\nPossible platform weights should reflect your own customer research or attribution data—not general market hype.\n\nSome platforms estimate prompt demand from search volume and AI-platform usage, but these are modeled estimates rather than actual reach. Ahrefs, for example, describes its visibility figures as potential visibility and derives AI-adjusted volume from search-demand and platform-usage estimates. \n\nReport both:\n\n- **Unweighted panel SOV:** the stable benchmark\n- **Demand/priority-weighted SOV:** the business-oriented estimate\n\n## 6. Use a dashboard that explains the score\n\nYour weekly or monthly dashboard should include:\n\n1. Overall competitive SOV\n2. Presence rate\n3. Recommendation share\n4. Domain citation rate and citation share\n5. Accuracy and sentiment\n6. SOV by platform\n7. SOV by funnel stage\n8. SOV by persona, vertical and geography\n9. Prompts where competitors appear but you don’t\n10. Source domains most frequently cited\n11. AI referral traffic, demo requests and influenced pipeline\n\nUse a **four-week rolling average** rather than reacting",
+          "text": "Treat **LLM share of voice as a panel-based estimate**, not a census of every question users ask. You measure how frequently your brand appears relative to competitors across a controlled set of buyer prompts, platforms, locations, and repeated runs.\n\n## 1. Build a representative prompt panel\n\nStart with **50–150 prompts** based on questions prospects actually ask. Pull them from:\n\n- Sales calls and win/loss interviews\n- Search Console and paid-search terms\n- Site search and support tickets\n- Reddit, review sites and communities\n- Customer interviews\n- “People also ask” and keyword research\n\nSegment prompts by buying stage:\n\n| Segment | Example |\n|---|---|\n| Problem discovery | “How do B2B SaaS companies automate security reviews?” |\n| Category discovery | “Best security questionnaire automation tools” |\n| Use case | “SOC 2 compliance software for startups” |\n| Comparison | “Acme vs CompetitorX” |\n| Alternatives | “Alternatives to CompetitorX” |\n| Evaluation | “Which tools integrate with Salesforce and support SSO?” |\n| Purchase validation | “Is Acme suitable for enterprise customers?” |\n\nAlso tag each prompt by **persona, industry, company size, geography and funnel stage**.\n\nKeep roughly **80% of the panel fixed** so trends remain comparable, and use 20% for discovering emerging prompts.\n\n## 2. Define the competitive set\n\nTrack:\n\n- Your company name\n- Product names\n- Common abbreviations and misspellings\n- Your domain\n- 5–10 direct competitors\n- Relevant adjacent competitors\n\nResolve aliases carefully. A generic product name can otherwise create false mentions.\n\n## 3. Run a controlled test\n\nFor each prompt:\n\n1. Run it across the platforms your buyers use.\n2. Use a new, unpersonalized conversation.\n3. Keep geography, language and browsing mode consistent.\n4. Run each prompt **at least three times**.\n5. Save the full answer, citations, date, model/platform and configuration.\n\nMeasure consumer products separately—for example, an assistant with live web retrieval versus a model API without retrieval. Don’t combine them into one opaque score.\n\nModel outputs are variable, and behavior can change between model snapshots, so recording the model and repeating observations is important. OpenAI explicitly notes that outputs and prompting behavior can vary between snapshots. \n\n## 4. Calculate the core metrics\n\n### A. Brand presence rate\n\n“How often are we present at all?”\n\n```text\nPresence rate =\nAnswers mentioning your brand ÷ All eligible answers\n```\n\nExample: mentioned in 72 of 300 answers = **24% presence rate**.\n\nCount a brand only once per answer, even if it appears multiple times. This is also how some current AI-visibility methodologies define a mention. \n\n### B. Competitive share of voice\n\n“How much of the competitive conversation do we own?”\n\n```text\nLLM SOV =\nYour brand-answer mentions\n÷\nBrand-answer mentions for you and all tracked competitors\n```\n\nExample:\n\n- Your brand: 72 answer mentions\n- Competitor A: 110\n- Competitor B: 58\n- Competitor C: 40\n\n```text\nSOV = 72 ÷ (72 + 110 + 58 + 40) = 25.7%\n```\n\nThis is the cleanest primary definition and aligns with the common competitive-mention formula used by current measurement platforms. \n\n**Presence and SOV are different:** presence measures coverage across all answers; SOV measures your share of brand mentions among competitors.\n\n### C. Recommendation share\n\nA mention is not necessarily an endorsement. Separately calculate:\n\n```text\nRecommendation share =\nAnswers positively recommending or shortlisting your brand\n÷\nAnswers recommending any tracked brand\n```\n\nClassify each appearance as:\n\n- Recommended\n- Neutral mention\n- Negative/cautioned\n- Explicitly excluded\n\n### D. Citation metrics\n\nTrack both:\n\n```text\nDomain citation rate =\nAnswers citing your domain ÷ All answers\n```\n\n```text\nCitation share =\nCitations to your domain\n÷\nCitations to all tracked company domains\n```\n\nKeep citations separate from mentions: an answer can name you without citing you, or cite your content without naming your brand. Current visibility systems therefore report mentions and citations as distinct metrics. \n\n### E. Accuracy rate\n\nFor answers mentioning you, evaluate whether key claims are correct:\n\n- Product category\n- Pricing\n- Integrations\n- Target customer\n- Security/compliance\n- Features\n- Company status\n\n```text\nAccuracy rate =\nAccurate brand descriptions ÷ Brand mentions reviewed\n```\n\nThis catches the case where your SOV rises but the model gives prospects outdated or misleading information.\n\n## 5. Add weighting carefully\n\nStart with an **unweighted SOV** so the calculation is easy to audit. Then add a separate strategic-weighted version:\n\n```text\nWeighted SOV =\nΣ(prompt importance × platform weight × brand mention)\n÷\nΣ(prompt importance × platform weight × all competitor mentions)\n```\n\nPossible prompt weights:\n\n- High-intent evaluation prompt: 3\n- Category/use-case prompt: 2\n- Informational prompt: 1\n\nPossible platform weights should reflect your own customer research or attribution data—not general market hype.\n\nSome platforms estimate prompt demand from search volume and AI-platform usage, but these are modeled estimates rather than actual reach. Ahrefs, for example, describes its visibility figures as potential visibility and derives AI-adjusted volume from search-demand and platform-usage estimates. \n\nReport both:\n\n- **Unweighted panel SOV:** the stable benchmark\n- **Demand/priority-weighted SOV:** the business-oriented estimate\n\n## 6. Use a dashboard that explains the score\n\nYour weekly or monthly dashboard should include:\n\n1. Overall competitive SOV\n2. Presence rate\n3. Recommendation share\n4. Domain citation rate and citation share\n5. Accuracy and sentiment\n6. SOV by platform\n7. SOV by funnel stage\n8. SOV by persona, vertical and geography\n9. Prompts where competitors appear but you don’t\n10. Source domains most frequently cited\n11. AI referral traffic, demo requests and influenced pipeline\n\nUse a **four-week rolling average** rather than reacting to individual runs.\n\n## 7. Tie it to revenue\n\nLLM SOV is a leading indicator, not the final outcome. Connect it to:\n\n- Referral traffic from AI platforms\n- Conversions from those sessions\n- “How did you hear about us?” responses\n- Branded-search growth\n- Direct traffic\n- Opportunities mentioning ChatGPT, Gemini, Perplexity, etc.\n- Win rates in categories where your recommendation share is rising\n\nA useful executive scorecard might look like:\n\n```text\nLLM SOV:                 18% → 24%\nHigh-intent SOV:         12% → 21%\nRecommendation share:    10% → 17%\nCitation rate:            7% → 11%\nDescription accuracy:    82% → 94%\nAI-sourced pipeline:     $40k → $75k\n```\n\n## Recommended starting setup\n\nFor a typical B2B SaaS company:\n\n- **75–100 prompts**\n- **5–8 competitors**\n- **3–5 answer platforms**\n- **3 runs per prompt**\n- Weekly collection\n- Monthly reporting\n- 80% fixed prompts, 20% rotating\n- Unweighted SOV as the primary benchmark\n- Recommendation share and pipeline as the key companion metrics\n\nWhether you build this internally or buy a tracker, require access to the **raw prompts and answers**. Avoid any tool that gives you a single visibility score without showing its prompt set, competitive denominator, platform coverage and weighting methodology.",
           "overview": null,
           "mentioned": ["Ahrefs"],
           "sources": [
@@ -9190,7 +9413,6 @@
           "mentioned": [
             "Scrunch",
             "Otterly.AI",
-            "HubSpot AI Search Grader",
             "Peec AI",
             "Semrush",
             "Profound",
@@ -9261,11 +9483,6 @@
               "match": "Otterly"
             },
             {
-              "brand": "HubSpot AI Search Grader",
-              "text": "Cheaper options: LLM Pulse (€49/mo), Otterly ($29/mo), and HubSpot's free AEO Grader for a quick look.",
-              "match": "HubSpot"
-            },
-            {
               "brand": "Peec AI",
               "text": "Mid-tier: Peec AI, plus Semrush's AI Visibility Toolkit at approximately €99 per month per domain, which makes sense if you already use Semrush.",
               "match": "Peec AI"
@@ -9290,7 +9507,7 @@
         },
         {
           "engine": "gemini",
-          "text": "Measuring your **Share of Voice (SOV) in LLM answers**—often referred to as **AI SOV** or a core KPI of **Generative Engine Optimization (GEO)**—is fundamentally different from traditional SEO. \n\nBecause LLMs synthesize answers probabilistically rather than showing a static list of 10 blue links, measuring visibility requires evaluating **mention frequency, positioning, and source citations** across a standardized battery of prompts.\n\n---\n\n### 1. The Core Formulas to Measure\n\nThere are three ways to quantify your presence:\n\n#### A. Raw Mention Share of Voice (Most Common)\n$$\\text{Mention SOV (\\%)} = \\left( \\frac{\\text{Mentions of Your Brand}}{\\text{Total Mentions of Your Brand + All Tracked Competitors}} \\right) \\times 100$$\n\n*Example:* Across 50 test prompts, LLMs mention brands in your space 200 times. Your company is named 40 times. Your AI SOV is **20%**.\n\n#### B. Position-Weighted Visibility Score\nLLMs usually list recommendations in numbered or bulleted order. Being the #1 recommendation carries far more weight than being #5 at the bottom:\n* Assign weights by rank (e.g., Position 1 = 1.0, Position 2 = 0.5, Position 3–5 = 0.25).\n* Calculate weighted mentions against total competitor weighted mentions.\n\n#### C. Citation / Domain SOV\n$$\\text{Citation SOV (\\%)} = \\left( \\frac{\\text{Direct Links to Your Domain}}{\\text{Total Source Links Across All Prompts}} \\right) \\times 100$$\nThis applies to AI engines with web search enabled (Perplexity, ChatGPT Search, Google AI Overviews). It tracks whether the model is actually referencing your content or relying on third-party aggregators.\n\n---\n\n### 2. A 5-Step Framework to Measure It\n\n#### Step 1: Build a B2B Prompt Taxonomy (50–100 Prompts)\nBuyers prompt AI models in conversational, problem-focused ways. Group your prompt set into the four stages of SaaS evaluation:\n* **Category Discovery:** *\"What are the top customer retention platforms for B2B SaaS?\"*\n* **Use-Case / Constraint Specific:** *\"Best developer-focused SOC-2 compliance tools for teams under 50 people.\"*\n* **Comparative / Direct Competitor:** *\"Alternatives to [Competitor Name]\"* or *\"[Competitor A] vs [Competitor B] for enterprise.\"*\n* **Buyer Qualification:** *\"Most cost-effective contract lifecycle management tools that integrate with Salesforce.\"*\n\n#### Step 2: Select the AI Engines to Track\nRun your prompts across the platforms B2B decision-makers use:\n* **Perplexity** (dominant for B2B research; heavy web search grounding)\n* **ChatGPT** (GPT-4o / Search mode)\n* **Google Gemini & Google AI Overviews**\n* **Claude** (widely used by technical and ops buyers)\n* **Microsoft Copilot** (prevalent in traditional corporate/enterprise environments)\n\n#### Step 3: Standardize the Testing Methodology\nLLMs have non-zero temperature, meaning identical queries can return slightly different lists:\n* **Clear context:** Test in new, fresh sessions or via APIs so prior chat history doesn't bias results.\n* **Sampling frequency:** Run the prompt set weekly or bi-weekly. Averaging results across multiple runs smooths out generative randomness.\n* **No leading questions:** Avoid *“Tell me about [Your Brand]”*. Prompts must be vendor-neutral (e.g., *“What software should I evaluate for X?”*).\n\n#### Step 4: Track Qualitative Dimensions (Beyond Just Mentions)\n* **Sentiment & Accuracy:** Does the model describe your product correctly, or is it hallucinating outdated features or enterprise pricing?\n* **Niche Association:** What specific feature or persona does the model associate you with? (e.g., *\"Best for startups\"* vs. *\"Best for high compliance\"*).\n* **Source Attribution:** Look at the footnoted citations. Is the model learning about you from your own website, or from G2, Reddit, Product Hunt, or competitor comparison pages?\n\n#### Step 5: Correlate with Real Attribution\nZero-click answers make full direct attribution tricky, but you should correlate your SOV data against:\n* **Direct AI Referral Traffic:** Look at referral sources in GA4 (`chatgpt.com`, `perplexity.ai`, `android-app://com.perplexity.athena`).\n* **Self-Reported Attribution:** Add a clean *\"How did you hear about us?\"* open-text field to your demo/signup flow. B2B SaaS teams commonly see entries like *\"ChatGPT suggested you when I asked for alternatives to X.\"*\n\n---\n\n### 3. Tooling: Build vs. Buy\n\nDepending on your engineering bandwidth, you can implement tracking in two ways:\n\n#### Option A: Purpose-Built GEO Tracking Tools (Buy)\nDedicated platforms automate prompt runs, competitor parsing, position tracking, and citation analysis:\n* **Specialized GEO Tools:** Platforms like **Ryze AI**, **LLM Pulse**, **OptimizeGEO**, or **Profound** specialize in LLM share of voice, citation attribution, and competitor comparison.\n* **SEO Platforms Expanding to AI:** **Nightwatch**, **BrightEdge**, and **Semrush** (via AI Visibility tracking) offer features specifically aimed at tracking LLM and AI Overview mentions.\n\n#### Option B: Build an In-House Tracker (API Scripting)\nIf you have an engineer or technical marketer:\n1. Store your 50–100 prompts in a database or Google Sheet.\n2. Write a Python script to ping the OpenAI, Anthropic, and Perplexity APIs on a weekly cron schedule (set `temperature = 0.2` for consistency).\n3. Have a small evaluator prompt (e.g., using GPT-4o-mini) parse the response text for brand mentions, extracted list positions, and citations:\n   > *\"Extract all brand names mentioned in the following response. For each brand, record its position (1st, 2nd, etc.) and sentiment (Positive/Neutral/Negative).\"*\n4. Output the results into a BI dashboard (Metabase, Looker, or PowerBI) showing SOV % trends over time against your top 3–5 rivals.\n\n---\n\n### 4. How to Improve Your Score Once Baseline Is Established\n\nIf your SOV is lower than competitors:\n1. **Dominate Third-Party Consensus:** LLMs rarely rely solely on your homepage. They heavily index **Reddit threads, G2/Capterra reviews, GitHub repos, and YouTube transcripts**. A strong prese",
+          "text": "Measuring your **Share of Voice (SOV) in LLM answers**—often referred to as **AI SOV** or a core KPI of **Generative Engine Optimization (GEO)**—is fundamentally different from traditional SEO. \n\nBecause LLMs synthesize answers probabilistically rather than showing a static list of 10 blue links, measuring visibility requires evaluating **mention frequency, positioning, and source citations** across a standardized battery of prompts.\n\n---\n\n### 1. The Core Formulas to Measure\n\nThere are three ways to quantify your presence:\n\n#### A. Raw Mention Share of Voice (Most Common)\n$$\\text{Mention SOV (\\%)} = \\left( \\frac{\\text{Mentions of Your Brand}}{\\text{Total Mentions of Your Brand + All Tracked Competitors}} \\right) \\times 100$$\n\n*Example:* Across 50 test prompts, LLMs mention brands in your space 200 times. Your company is named 40 times. Your AI SOV is **20%**.\n\n#### B. Position-Weighted Visibility Score\nLLMs usually list recommendations in numbered or bulleted order. Being the #1 recommendation carries far more weight than being #5 at the bottom:\n* Assign weights by rank (e.g., Position 1 = 1.0, Position 2 = 0.5, Position 3–5 = 0.25).\n* Calculate weighted mentions against total competitor weighted mentions.\n\n#### C. Citation / Domain SOV\n$$\\text{Citation SOV (\\%)} = \\left( \\frac{\\text{Direct Links to Your Domain}}{\\text{Total Source Links Across All Prompts}} \\right) \\times 100$$\nThis applies to AI engines with web search enabled (Perplexity, ChatGPT Search, Google AI Overviews). It tracks whether the model is actually referencing your content or relying on third-party aggregators.\n\n---\n\n### 2. A 5-Step Framework to Measure It\n\n#### Step 1: Build a B2B Prompt Taxonomy (50–100 Prompts)\nBuyers prompt AI models in conversational, problem-focused ways. Group your prompt set into the four stages of SaaS evaluation:\n* **Category Discovery:** *\"What are the top customer retention platforms for B2B SaaS?\"*\n* **Use-Case / Constraint Specific:** *\"Best developer-focused SOC-2 compliance tools for teams under 50 people.\"*\n* **Comparative / Direct Competitor:** *\"Alternatives to [Competitor Name]\"* or *\"[Competitor A] vs [Competitor B] for enterprise.\"*\n* **Buyer Qualification:** *\"Most cost-effective contract lifecycle management tools that integrate with Salesforce.\"*\n\n#### Step 2: Select the AI Engines to Track\nRun your prompts across the platforms B2B decision-makers use:\n* **Perplexity** (dominant for B2B research; heavy web search grounding)\n* **ChatGPT** (GPT-4o / Search mode)\n* **Google Gemini & Google AI Overviews**\n* **Claude** (widely used by technical and ops buyers)\n* **Microsoft Copilot** (prevalent in traditional corporate/enterprise environments)\n\n#### Step 3: Standardize the Testing Methodology\nLLMs have non-zero temperature, meaning identical queries can return slightly different lists:\n* **Clear context:** Test in new, fresh sessions or via APIs so prior chat history doesn't bias results.\n* **Sampling frequency:** Run the prompt set weekly or bi-weekly. Averaging results across multiple runs smooths out generative randomness.\n* **No leading questions:** Avoid *“Tell me about [Your Brand]”*. Prompts must be vendor-neutral (e.g., *“What software should I evaluate for X?”*).\n\n#### Step 4: Track Qualitative Dimensions (Beyond Just Mentions)\n* **Sentiment & Accuracy:** Does the model describe your product correctly, or is it hallucinating outdated features or enterprise pricing?\n* **Niche Association:** What specific feature or persona does the model associate you with? (e.g., *\"Best for startups\"* vs. *\"Best for high compliance\"*).\n* **Source Attribution:** Look at the footnoted citations. Is the model learning about you from your own website, or from G2, Reddit, Product Hunt, or competitor comparison pages?\n\n#### Step 5: Correlate with Real Attribution\nZero-click answers make full direct attribution tricky, but you should correlate your SOV data against:\n* **Direct AI Referral Traffic:** Look at referral sources in GA4 (`chatgpt.com`, `perplexity.ai`, `android-app://com.perplexity.athena`).\n* **Self-Reported Attribution:** Add a clean *\"How did you hear about us?\"* open-text field to your demo/signup flow. B2B SaaS teams commonly see entries like *\"ChatGPT suggested you when I asked for alternatives to X.\"*\n\n---\n\n### 3. Tooling: Build vs. Buy\n\nDepending on your engineering bandwidth, you can implement tracking in two ways:\n\n#### Option A: Purpose-Built GEO Tracking Tools (Buy)\nDedicated platforms automate prompt runs, competitor parsing, position tracking, and citation analysis:\n* **Specialized GEO Tools:** Platforms like **Ryze AI**, **LLM Pulse**, **OptimizeGEO**, or **Profound** specialize in LLM share of voice, citation attribution, and competitor comparison.\n* **SEO Platforms Expanding to AI:** **Nightwatch**, **BrightEdge**, and **Semrush** (via AI Visibility tracking) offer features specifically aimed at tracking LLM and AI Overview mentions.\n\n#### Option B: Build an In-House Tracker (API Scripting)\nIf you have an engineer or technical marketer:\n1. Store your 50–100 prompts in a database or Google Sheet.\n2. Write a Python script to ping the OpenAI, Anthropic, and Perplexity APIs on a weekly cron schedule (set `temperature = 0.2` for consistency).\n3. Have a small evaluator prompt (e.g., using GPT-4o-mini) parse the response text for brand mentions, extracted list positions, and citations:\n   > *\"Extract all brand names mentioned in the following response. For each brand, record its position (1st, 2nd, etc.) and sentiment (Positive/Neutral/Negative).\"*\n4. Output the results into a BI dashboard (Metabase, Looker, or PowerBI) showing SOV % trends over time against your top 3–5 rivals.\n\n---\n\n### 4. How to Improve Your Score Once Baseline Is Established\n\nIf your SOV is lower than competitors:\n1. **Dominate Third-Party Consensus:** LLMs rarely rely solely on your homepage. They heavily index **Reddit threads, G2/Capterra reviews, GitHub repos, and YouTube transcripts**. A strong presence in those third-party hubs drives model citations.\n2. **Publish Direct Alternative/Comparison Pages:** Explicit pages like *\"[YourBrand] vs [Competitor]\"* that transparently break down features, pricing models, and target personas make it easy for LLM scrapers to extract and cite your data.\n3. **Deploy Machine-Readable Content:** Implement clear Schema markup (SoftwareApplication, FAQPage) and structured product documentation to ensure LLM retrieval-augmented generation (RAG) web crawlers parse your value proposition without ambiguity.",
           "overview": null,
           "mentioned": ["Profound", "Semrush"],
           "sources": [
@@ -9439,6 +9656,142 @@
                 "type": "heading",
                 "text": "Step-by-Step Measurement Framework"
               },
+              {
+                "type": "heading",
+                "text": "1. Define Your Buyer-Intent Prompt Library"
+              },
+              {
+                "type": "paragraph",
+                "text": "Do not test generic category names (e.g., \"best CRM\"). Instead, build a prompt list based on how your Ideal Customer Profile (ICP) actually asks questions:",
+                "refs": [3, 4, 5]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Use-case prompts: \"What tool should a 50-person SaaS company use for [specific problem]?\"",
+                    "refs": []
+                  },
+                  {
+                    "text": "Integration prompts: \"Which [category] tools integrate cleanly with HubSpot and Salesforce?\"",
+                    "refs": []
+                  },
+                  {
+                    "text": "Comparison prompts: \"What is the difference between [Competitor A] and [Your Brand]?\"",
+                    "refs": []
+                  },
+                  {
+                    "text": "Alternative prompts: \"What are the top open-source or lightweight alternatives to [Dominant Competitor]?\"",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "heading", "text": "2. Test Across Major AI Engines" },
+              {
+                "type": "paragraph",
+                "text": "Run your prompt library weekly across the primary answer engines where your buyers look for guidance:",
+                "refs": [1, 5]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "ChatGPT / OpenAI", "refs": [] },
+                  { "text": "Anthropic Claude", "refs": [] },
+                  { "text": "Google Gemini & AI Overviews", "refs": [] },
+                  {
+                    "text": "Grok / DeepSeek / Llama (depending on your niche)",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "3. Separate \"Mentions\" from \"Citations\""
+              },
+              {
+                "type": "paragraph",
+                "text": "Track two distinct metrics for every prompt execution:",
+                "refs": [4]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Brand Mention: Does the LLM name your SaaS in the text of the answer?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Source Citation: Does the LLM link directly to your website or a review site (like G2 or Capterra) as the reference for that answer? Note: An AI can recommend you without citing your site, or cite your site without recommending you.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "4. Calculate Your AI Share of Voice (SOV)"
+              },
+              {
+                "type": "paragraph",
+                "text": "Use this standard formula across your test runs:\n$\\text{AI\\ SOV}=\\left(\\frac{\\text{Total\\ times\\ your\\ brand\\ is\\ recommended/mentioned}}{\\text{Total\\ brand\\ mentions\\ across\\ all\\ competitors\\ combined}}\\right)\\times 100$",
+                "refs": [0]
+              },
+              {
+                "type": "paragraph",
+                "text": "Example: If you run 100 category prompts across engines, and out of 500 total brand recommendations given to all competitors, your brand appears 100 times, your AI SOV is 20%.",
+                "refs": [0]
+              },
+              {
+                "type": "heading",
+                "text": "5. Audit Sentiment (Positive vs. Negative Visibility)"
+              },
+              {
+                "type": "paragraph",
+                "text": "A raw appearance in an LLM answer is a vanity metric if the AI is warning users away from you. For every mention, tag the context:",
+                "refs": [6]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Positive: Recommended as a top or preferred choice for a use case.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Neutral: Listed in a generic directory or \"here are some options\" list without strong endorsement.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Negative/Cautionary: Mentioned with caveats (e.g., \"good for small teams, but lacks enterprise security\" or \"expensive for what it offers\"). Subtract or weight negative mentions accordingly.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "6. Connect to Pipeline and Attribution"
+              },
+              {
+                "type": "paragraph",
+                "text": "Stop at raw scores, and your CFO will treat the metric as noise. Tie the visibility data down-funnel using:",
+                "refs": [7]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Self-reported attribution: Add \"How did you hear about us?\" (with an option for \"AI / ChatGPT / Perplexity\") to your demo/signup forms.",
+                    "refs": []
+                  },
+                  {
+                    "text": "UTM & Referral tracking: Monitor direct/dark-social traffic spikes coming from domains like chatgpt.com , perplexity.ai, or claude.ai.",
+                    "refs": []
+                  },
+                  {
+                    "text": "CRM tagging: Map accounts that mention AI discovery in sales calls back to your weekly prompt tracking sheets.",
+                    "refs": []
+                  }
+                ]
+              },
               { "type": "heading", "text": "Tooling Options" },
               {
                 "type": "list",
@@ -9543,12 +9896,7 @@
               }
             ]
           },
-          "mentioned": [
-            "HubSpot AI Search Grader",
-            "Profound",
-            "Peec AI",
-            "Otterly.AI"
-          ],
+          "mentioned": ["Profound", "Peec AI", "Otterly.AI"],
           "sources": [
             {
               "url": "https://rankfender.com/en/learn/share-of-voice/",
@@ -10117,12 +10465,109 @@
               },
               {
                 "type": "list",
+                "items": [{ "text": "Dageno AI", "refs": [0, 1, 2] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Dageno AI", "refs": [0, 1, 2] },
-                  { "text": "Profound", "refs": [2, 3, 4, 5] },
-                  { "text": "Peec AI", "refs": [4, 6] },
-                  { "text": "Otterly.AI", "refs": [0, 2, 7] },
+                  {
+                    "text": "Best For: Full AI search monitoring connected directly to content execution and strategy.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Daily Reporting Features: Runs daily prompt checks across ChatGPT, Gemini, Perplexity, Google AI Overviews, and more, tracking brand mentions, citations, source domains, and competitor gaps with automated action plans.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Starting Price: ~$79/month (Starter tier for 50 prompts).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Profound", "refs": [2, 3, 4, 5] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best For: Enterprise-grade AI answer engine intelligence and executive storytelling.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Daily Reporting Features: Deep automated topic clusters, multi-engine tracking (ChatGPT, Perplexity, Copilot, Google AI Overviews), and custom reporting decks built for leadership teams.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Starting Price: Custom / Enterprise (typically $2,000–$5,000+/month; lower standalone tiers start around $99/mo).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Peec AI", "refs": [4, 6] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best For: Clean, marketing-focused daily prompt and citation analytics.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Daily Reporting Features: Runs automated daily visibility checks, sentiment analysis, and position tracking across major LLMs with an intuitive dashboard and unlimited team seats.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Starting Price: ~$95/month (Starter tier).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Otterly.AI", "refs": [0, 2, 7] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best For: Budget-conscious SMBs, consultants, and agencies needing simple recurring monitoring.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Daily Reporting Features: Tracks brand mentions, exact-match URL citations, competitor share of voice, and recurring daily/weekly reports with Looker Studio integration.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Starting Price: ~$29/month (Lite tier).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   { "text": "Semrush AI Visibility Toolkit", "refs": [] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best For: In-house SEO teams already working inside the Semrush ecosystem.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Daily Reporting Features: Blends traditional keyword ranking data with domain-level AI visibility, engagement signals, and prompt-tracking reports.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Starting Price: Bundled as an add-on or within higher-tier Semrush plans.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -10324,13 +10769,9 @@
     {
       "id": 19,
       "prompt": "i need to prove ai search is bringing customers, what should i track",
-      "topPick": {
-        "name": "HubSpot AI Search Grader",
-        "domain": "hubspot.com"
-      },
+      "topPick": { "name": "Profound", "domain": "tryprofound.com" },
       "brands": [
         { "name": "Otterly.AI", "domain": "otterly.ai" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Semrush", "domain": "semrush.com" },
         { "name": "Profound", "domain": "tryprofound.com" },
         { "name": "Peec AI", "domain": "peec.ai" },
@@ -10342,7 +10783,6 @@
       "aiOverviewShown": false,
       "mentions": {
         "Ahrefs": 4,
-        "HubSpot AI Search Grader": 7,
         "Semrush": 7,
         "Profound": 7,
         "Otterly.AI": 9,
@@ -10351,10 +10791,9 @@
       },
       "firsts": {
         "Ahrefs": 1,
-        "HubSpot AI Search Grader": 6,
         "Semrush": 2,
+        "Profound": 5,
         "Peec AI": 2,
-        "Profound": 1,
         "Otterly.AI": 1
       },
       "responses": [
@@ -10506,7 +10945,6 @@
           "text": "To prove to stakeholders that AI search (such as ChatGPT, Perplexity, Google AI Overviews, Copilot, and Claude) is actually driving real pipeline and revenue, you need to track both **direct analytics** and **indirect attribution**. \n\nBecause AI engines often summarize answers without a user clicking a link immediately, relying purely on standard organic search metrics will undercount your results.\n\nHere is the exact framework to track:\n\n---\n\n### 1. Direct Web Analytics (The Hard Numbers)\nSet up custom segments or exploration reports in Google Analytics 4 (or your preferred tool) to capture inbound clicks from AI platforms.\n\n* **Specific AI Referral Domains:** Filter your session source/medium for:\n  * `chatgpt.com` / `android-app://com.openai.chatgpt`\n  * `perplexity.ai`\n  * `copilot.microsoft.com` / `edgeservices.bing.com`\n  * `claude.ai`\n  * `gemini.google.com`\n* **Downstream Conversions:**\n  * Goal completions, demo requests, sign-ups, or e-commerce purchases tied specifically to these referral sources.\n  * *Tip:* Create an **\"AI Referral\" channel group** in GA4 so you can monitor aggregate AI traffic and revenue in one dashboard.\n\n---\n\n### 2. Self-Reported Attribution (The \"Dark Social / Zero-Click\" Layer)\nMany users research solutions in an LLM, receive your brand as a recommendation, and then open a new tab to search for you directly or type your URL. GA4 will label this as \"Direct\" or \"Organic Brand,\" completely masking the AI source.\n\n* **Add an open-text form field:** On your \"Request a Demo,\" \"Contact Us,\" or post-checkout survey, add:  \n  * *\"How did you first hear about us?\"* (Make it an open text field, not a rigid dropdown).\n* **Look for exact mentions:** Track how often people write in *\"ChatGPT,\" \"Perplexity,\" \"AI search,\"* or *\"AI recommended you.\"*\n* **Pipeline value:** Tie these responses to CRM records (HubSpot, Salesforce) to calculate the exact dollar value of pipeline generated by AI discovery.\n\n---\n\n### 3. Traffic Quality & Sales Velocity\nTraffic from AI search engines tends to have much higher purchase intent because the AI has already pre-qualified your product before showing the link. Compare AI referrals against traditional Google Organic search across:\n\n* **Session Quality:** Average engagement time, bounce rate, and pages per session.\n* **Conversion Rate (CVR):** AI-referred visitors often convert at 2x–3x standard organic rates.\n* **Sales Velocity / Deal Size:** In B2B, track whether AI-referred leads close faster or have a higher average contract value (ACV).\n\n---\n\n### 4. Brand Visibility & Share of Voice in LLMs (Leading Indicators)\nBefore you see customer spikes, you need to verify your brand is being cited when prospective buyers ask commercial questions.\n\n* **Prompt Visibility / Citation Rate:** Track prompt queries relevant to your niche (e.g., *\"Best [product category] for [use case]\"*). Measure:\n  * Does the AI recommend your brand?\n  * Does it link to your domain as a source citation?\n  * What sentiment is attached to your recommendation?\n* *Tools to automate this:* Specialized Generative Engine Optimization (GEO) tracking tools (like Profound, Otterly.AI, Peec AI, or LLM-tracker modules in Semrush/Ahrefs) allow you to measure your \"Share of Model\" over time.\n\n---\n\n### How to Present the Proof (Executive Summary Template)\n\nWhen reporting to leadership, combine these metrics into a 3-part narrative:\n\n1. **Top-of-Funnel AI Footprint:** *\"Our brand is cited in X% of target AI buyer prompts across Perplexity and ChatGPT.\"*\n2. **Direct Inbound Traffic & Conversions:** *\"We saw [X] direct visits from AI engines this quarter, converting at [X]% and directly generating $[X] in revenue/pipeline.\"*\n3. **Indirect Customer Influence:** *\"[X]% of new customers explicitly told us in our onboarding survey that an AI tool recommended us, representing $[X] in influenced revenue.\"*",
           "overview": null,
           "mentioned": [
-            "HubSpot AI Search Grader",
             "Profound",
             "Otterly.AI",
             "Peec AI",
@@ -10516,11 +10954,6 @@
           "sources": [],
           "searchQueries": [],
           "highlights": [
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "Pipeline value: Tie these responses to CRM records (HubSpot, Salesforce) to calculate the exact dollar value of pipeline generated by AI discovery.",
-              "match": "HubSpot"
-            },
             {
               "brand": "Profound",
               "text": "*Tools to automate this:* Specialized Generative Engine Optimization (GEO) tracking tools (like Profound, Otterly.AI, Peec AI, or LLM-tracker modules in Semrush/Ahrefs) allow you to measure your \"Share of Model\" over time.",
@@ -10625,13 +11058,9 @@
     {
       "id": 10,
       "prompt": "how do i get my saas recommended by chatgpt",
-      "topPick": {
-        "name": "HubSpot AI Search Grader",
-        "domain": "hubspot.com"
-      },
+      "topPick": { "name": "Ahrefs", "domain": "ahrefs.com" },
       "brands": [
         { "name": "Ahrefs", "domain": "ahrefs.com" },
-        { "name": "HubSpot AI Search Grader", "domain": "hubspot.com" },
         { "name": "Peec AI", "domain": "peec.ai" },
         { "name": "Profound", "domain": "tryprofound.com" },
         { "name": "Otterly.AI", "domain": "otterly.ai" },
@@ -10645,15 +11074,9 @@
         "Profound": 3,
         "Otterly.AI": 2,
         "Ahrefs": 10,
-        "Semrush": 1,
-        "HubSpot AI Search Grader": 9
+        "Semrush": 1
       },
-      "firsts": {
-        "Peec AI": 1,
-        "Otterly.AI": 1,
-        "Ahrefs": 7,
-        "HubSpot AI Search Grader": 8
-      },
+      "firsts": { "Peec AI": 1, "Otterly.AI": 1, "Ahrefs": 8 },
       "responses": [
         {
           "engine": "chatgpt",
@@ -10782,16 +11205,10 @@
           "engine": "gemini",
           "text": "Getting your SaaS recommended by ChatGPT—a practice known as **Generative Engine Optimization (GEO)** or **Answer Engine Optimization (AEO)**—requires understanding how ChatGPT decides what to suggest. \n\nChatGPT recommends software in two ways:\n1. **Parametric memory:** Knowledge learned during its base training runs (long-term brand authority and entity association).\n2. **Retrieval (Web Search / RAG):** Real-time web searches it executes to answer queries like *\"What are the best tools for X?\"*\n\nTo maximize the chances that ChatGPT recommends your product, follow these steps:\n\n---\n\n### 1. Own the High-Authority Aggregator Sites\nWhen ChatGPT conducts a live search or compiles recommendations, it rarely relies on a vendor's own homepage; it looks for **consensus across trusted third-party evaluators**.\n\n* **Software review portals:** Build an active presence on **G2, Capterra, TrustRadius, and Gartner Peer Insights**. Collect genuine reviews highlighting specific use cases (e.g., *\"Best for small agency workflows\"*). ChatGPT frequently scrapes these platforms for summaries and ratings.\n* **Industry listicles:** Find the top 5–10 websites ranking on Google/Bing for *\"Best [Your Category] software\"* (e.g., Zapier blog, HubSpot blog, niche authority sites) and run outreach or affiliate partnerships to get your SaaS included.\n\n---\n\n### 2. Focus on Reddit and Community Discussions\nOpenAI has an official content partnership with Reddit, and ChatGPT heavily weights real-world community sentiment when answering product recommendation queries.\n\n* Monitor subreddits related to your niche (e.g., `r/SaaS`, `r/marketing`, `r/webdev`).\n* Participate genuinely in discussions where users ask *\"What are you using for [problem]?\"* \n* Build authentic word-of-mouth on **Hacker News, Quora, and Product Hunt**. If your tool is consistently cited by real users in discussions, ChatGPT incorporates that consensus into its recommendations.\n\n---\n\n### 3. Ensure Your Site is Visible to AI Crawlers\nIf you block AI crawlers, ChatGPT’s live search engine cannot read your documentation, pricing, or product specs.\n\n* Check your `robots.txt` file and ensure you are **not** blocking OpenAI’s crawlers:\n  * `GPTBot` (used for data collection/training)\n  * `OAI-SearchBot` (used to index content for ChatGPT Search)\n* Ensure your website loads cleanly without aggressive JavaScript paywalls or modals that prevent search bots from reading text.\n\n---\n\n### 4. Create Direct \"Alternative\" and \"Comparison\" Content\nUsers frequently ask ChatGPT questions like:\n* *\"What is a cheaper alternative to [Competitor]?\"*\n* *\"[Competitor A] vs [Competitor B] for startups\"*\n\nTo capture these:\n* Publish transparent comparison pages (e.g., **YourSaaS vs. Competitor**).\n* Publish **\"[Competitor] Alternatives\"** pages that highlight who your product is best suited for.\n* Use structured tables comparing features, pricing tiers, and ideal company sizes. LLMs ingest tables easily and often extract them directly into summaries.\n\n---\n\n### 5. Establish Entity Clarity & Specific Positioning\nLLMs categorize businesses using entity recognition. If your website uses vague marketing copy like *\"We empower modern teams to synergize workflows,\"* an AI will not know when to recommend you.\n\n* **Be explicit about your category and target audience:** Use clear phrasing across your homepage, meta tags, and headers (e.g., *\"B2B invoicing software for freelance designers\"*).\n* **Use Schema Markup:** Implement structured data (`SoftwareApplication`, `Organization`, `AggregateRating`, and `FAQPage` schemas) on your site so bots can parse your product category, pricing model, and ratings algorithmically.\n\n---\n\n### 6. Earn Digital PR and Thought Leadership\nLLMs rely on the overall weight of web citations:\n* Pitch product launches and milestone stories to industry news outlets (e.g., TechCrunch, VentureBeat, industry-specific newsletters).\n* Publish original data, research reports, or whitepapers. When other blogs cite your data with phrases like *\"According to a report by [YourSaaS]...\"*, it establishes domain authority in your category.\n\n---\n\n### Summary Checklist to Track Progress\nTo test how ChatGPT views your SaaS over time, ask it:\n* *\"What are the top 5 tools for [your exact use case]?\"*\n* *\"What do people on Reddit think of [Your SaaS]?\"*\n* *\"What are the best alternatives to [Your main competitor]?\"*\n\nIf your tool doesn't appear, inspect the sources ChatGPT links in its citations. Those cited sources are the exact publications, review platforms, and forums you need to target next.",
           "overview": null,
-          "mentioned": ["HubSpot AI Search Grader"],
+          "mentioned": [],
           "sources": [],
           "searchQueries": [],
-          "highlights": [
-            {
-              "brand": "HubSpot AI Search Grader",
-              "text": "Industry listicles: Find the top 5–10 websites ranking on Google/Bing for *\"Best [Your Category] software\"* (e.g., Zapier blog, HubSpot blog, niche authority sites) and run outreach or affiliate partnerships to get your SaaS included.",
-              "match": "HubSpot"
-            }
-          ],
+          "highlights": [],
           "collectedAt": "2026-10-08T20:18:15.629Z"
         },
         {
@@ -12790,9 +13207,9 @@
       },
       {
         "engine": "claude",
-        "prompt": "best ai search visibility tool",
-        "text": "Free ways to start: HubSpot's AEO Grader and Semrush's free AI Search Visibility Checker are the best starting points.",
-        "collectedAt": "2026-10-07T15:14:52.769Z"
+        "prompt": "best alternative to semrush for ai search tracking",
+        "text": "Free options to start with: Mangools AI Search Grader, where a free account unlocks all 8 models plus a market-share-weighted 0 to 100 score.",
+        "collectedAt": "2026-10-08T20:15:06.953Z"
       },
       {
         "engine": "gemini",

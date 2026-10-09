@@ -7,7 +7,7 @@ import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { cn } from "@notra/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
@@ -29,6 +29,11 @@ import {
   RankingTable,
   SourcesTable,
 } from "@/components/state-of-ai-search/report-tables";
+import {
+  EngineLabel,
+  MutedText,
+  ReportList,
+} from "@/components/state-of-ai-search/report-ui";
 import { SourceSheet } from "@/components/state-of-ai-search/source-sheet";
 import {
   REPORT_SURFACE_LIFT,
@@ -123,6 +128,56 @@ export function ReportView({
   const headPrompt =
     report.prompts.find((row) => row.prompt === report.overview?.query) ??
     report.prompts[0];
+
+  const sourcesDescription =
+    "Share of answers linking to the domain, averaged across the assistants. Click a domain for its pages, prompts and the split by assistant.";
+  const sourcesTable = (
+    <SourcesTable
+      engines={report.engines}
+      onSelect={setSource}
+      rows={report.sources}
+    />
+  );
+  // Cited sources do not depend on Google showing an overview.
+  let sourcesBlock: ReactNode = null;
+  if (report.overview) {
+    sourcesBlock = (
+      <ReportPair
+        left={{
+          title: "AI Overview",
+          description:
+            "Google's answer above the results, from a US desktop search.",
+          children: (
+            <AiOverviewPanel
+              header={
+                <>
+                  <EngineIcon
+                    className="size-3.5"
+                    engine="google/ai-overview"
+                  />
+                  <span className="text-foreground truncate">
+                    “{report.overview.query}”
+                  </span>
+                </>
+              }
+              overview={report.overview}
+            />
+          ),
+        }}
+        right={{
+          title: "Cited sources",
+          description: sourcesDescription,
+          children: sourcesTable,
+        }}
+      />
+    );
+  } else if (report.sources.length > 0) {
+    sourcesBlock = (
+      <ReportBlock description={sourcesDescription} title="Cited sources">
+        {sourcesTable}
+      </ReportBlock>
+    );
+  }
 
   const openBrand = (row: StateOfAiSearchRankingRow) => setBrand(row);
   const openPrompt = (row: StateOfAiSearchPromptRow) => setPrompt(row);
@@ -222,43 +277,42 @@ export function ReportView({
           </ReportBlock>
         ) : null}
 
-        {report.overview ? (
-          <ReportPair
-            left={{
-              title: "AI Overview",
-              description:
-                "Google's answer above the results, from a US desktop search.",
-              children: (
-                <AiOverviewPanel
-                  header={
-                    <>
-                      <EngineIcon
-                        className="size-3.5"
-                        engine="google/ai-overview"
-                      />
-                      <span className="text-foreground truncate">
-                        “{report.overview.query}”
-                      </span>
-                    </>
-                  }
-                  overview={report.overview}
-                />
-              ),
-            }}
-            right={{
-              title: "Cited sources",
-              description:
-                "Share of answers linking to the domain, averaged across the assistants. Click a domain for its pages, prompts and the split by assistant.",
-              children: (
-                <SourcesTable
-                  engines={report.engines}
-                  onSelect={setSource}
-                  rows={report.sources}
-                />
-              ),
-            }}
+        {sourcesBlock}
+
+        <ReportBlock
+          description="Every prompt is asked to each assistant several times with web search on. A brand's rate is the share of answers that name it, and every assistant counts the same however many answers it gave. Google's AI Overview is checked once per prompt and only where Google showed one. Read the answers shows the first answer from each assistant."
+          title="Method"
+        >
+          <ReportList
+            columns={[
+              {
+                key: "assistant",
+                header: "Assistant",
+                grow: true,
+                cell: (engine) => <EngineLabel engine={engine} />,
+              },
+              {
+                key: "model",
+                header: "Model",
+                cell: (engine) => (
+                  <MutedText>
+                    {engine.id === "ai-overview"
+                      ? "Google Search"
+                      : engine.model}
+                  </MutedText>
+                ),
+              },
+              {
+                key: "answers",
+                header: "Answers",
+                align: "right",
+                cell: (engine) => <MutedText>{engine.answers}</MutedText>,
+              },
+            ]}
+            getKey={(engine) => engine.id}
+            rows={report.engines}
           />
-        ) : null}
+        </ReportBlock>
 
         {otherReports.length > 0 ? (
           <ReportBlock

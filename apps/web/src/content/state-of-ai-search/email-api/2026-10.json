@@ -1703,7 +1703,64 @@
                 "text": "The top email APIs compatible with React email templates compare as follows:",
                 "refs": []
               },
-              { "type": "heading", "text": "Top Email API Options" }
+              { "type": "heading", "text": "Top Email API Options" },
+              { "type": "heading", "text": "1. Resend" },
+              {
+                "type": "paragraph",
+                "text": "Resend completely rethought the email developer experience. It provides local preview features with hot reloading, linting, and standard components (like <Button>, <Container>, and <Tailwind> ) out of the box.",
+                "refs": [4, 9, 10]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "How it handles React: You don't have to call a separate render function. You simply feed the component right into the react property of the SDK invocation.",
+                    "refs": []
+                  },
+                  { "text": "Code Example:", "refs": [] }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "2. Postmark, Mailgun, or AWS SES (Using @react-email/render)"
+              },
+              {
+                "type": "paragraph",
+                "text": "If your organization requires an established, high-volume vendor like Mailgun or Amazon SES, you can still easily design your emails in React. You just need to add a translation step using the render utility provided by the React Email library.",
+                "refs": [6, 7]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "How it handles React: You compile the TSX/JSX template to a static string server-side, then hand that HTML string to your chosen email provider.",
+                    "refs": []
+                  },
+                  { "text": "Code Example:", "refs": [] }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "To narrow this down for your stack, could you share:",
+                "refs": []
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "What framework your backend/API routes run on (e.g., Next.js, Node/Express, Go)?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Your estimated monthly email volume?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Whether you need a dashboard for non-technical marketers to also edit these templates?",
+                    "refs": []
+                  }
+                ]
+              }
             ],
             "references": [
               {
@@ -1855,6 +1912,21 @@
               "brand": "Resend",
               "text": "The undisputed best email API for working with React email templates is Resend.",
               "match": "Resend"
+            },
+            {
+              "brand": "Postmark",
+              "text": "Postmark, Mailgun, or AWS SES (Using @react-email/render)",
+              "match": "Postmark"
+            },
+            {
+              "brand": "Mailgun",
+              "text": "Postmark, Mailgun, or AWS SES (Using @react-email/render)",
+              "match": "Mailgun"
+            },
+            {
+              "brand": "Amazon SES",
+              "text": "Postmark, Mailgun, or AWS SES (Using @react-email/render)",
+              "match": "AWS SES"
             }
           ],
           "collectedAt": "2026-10-07T15:37:38.364Z"
@@ -2765,11 +2837,66 @@
               },
               {
                 "type": "list",
+                "items": [{ "text": "Twilio SendGrid", "refs": [2] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Twilio SendGrid", "refs": [2] },
-                  { "text": "Brevo (formerly Sendinblue)", "refs": [3, 4] },
-                  { "text": "Resend", "refs": [] },
-                  { "text": "Mailjet", "refs": [] }
+                  {
+                    "text": "Best for: High-volume scalability and reliable infrastructure.",
+                    "refs": []
+                  },
+                  {
+                    "text": "How it works: Combines a developer-friendly email API (for product/transactional triggers like password resets and receipts) with robust marketing campaign tools, contact management, and analytics in one dashboard.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "Brevo (formerly Sendinblue)", "refs": [3, 4] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: All-in-one value and multi-channel automation.",
+                    "refs": []
+                  },
+                  {
+                    "text": "How it works: Offers a transactional API alongside built-in marketing automation, SMS marketing, chat, and a lightweight CRM. Pricing is based on send volume rather than total contact size.",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Resend", "refs": [] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Modern developer stacks (like React/Next.js).",
+                    "refs": []
+                  },
+                  {
+                    "text": "How it works: Built specifically for modern engineering teams who want to handle both product transactional notifications and marketing broadcasts with clean APIs, multi-region sending, and React-based email templates.",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Mailjet", "refs": [] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Agencies and collaborative teams.",
+                    "refs": []
+                  },
+                  {
+                    "text": "How it works: Provides both an email API for app notifications and a full marketing suite with real-time collaboration features for multi-user editing and approvals.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -3538,10 +3665,62 @@
               { "type": "heading", "text": "Top Options for Startups" },
               {
                 "type": "list",
+                "items": [{ "text": "Amazon SES:", "refs": [0] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Amazon SES:", "refs": [0] },
-                  { "text": "Elastic Email:", "refs": [1] },
-                  { "text": "Mailgun / SendGrid:", "refs": [] }
+                  {
+                    "text": "Price: $0.10 per 1,000 emails (plus $0.12/GB for attachments).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pros: Unbeatable price at scale; highly reliable AWS infrastructure.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Cons: Requires manual setup (AWS IAM configuration, DNS/domain verification). New accounts start in a sandbox mode requiring a support request to send to unverified emails.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Elastic Email:", "refs": [1] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "Price: Very low entry cost tiers.", "refs": [] },
+                  {
+                    "text": "Pros: Managed API with built-in sub-accounts, templates, and easier setup than raw AWS.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Cons: Shorter log retention on lower tiers.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Mailgun / SendGrid:", "refs": [] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Price: Free tiers available (small initial limits), scaling to standard developer pricing around $15–$35/mo for low-to-mid volumes.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pros: Excellent documentation, native SDKs, robust tracking, and fast deliverability configuration.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Cons: More expensive than Amazon SES once your startup hits high volume.",
+                    "refs": []
+                  }
                 ]
               },
               { "type": "heading", "text": "Recommendation" },
@@ -6892,7 +7071,7 @@
       "responses": [
         {
           "engine": "chatgpt",
-          "text": "A secure password-reset flow has two endpoints:\n\n1. **Request reset:** generate a random, short-lived token and email a link.\n2. **Complete reset:** validate the token, replace the password hash, and invalidate the token.\n\nUse a random opaque token rather than putting user details inside the URL. Tokens should be cryptographically random, stored securely, expire quickly, and be single-use. Also return the same response whether the email exists to prevent account enumeration. \n\n## 1. Install dependencies\n\n```bash\nnpm install express nodemailer argon2 dotenv\n```\n\nThis example uses:\n\n- Express\n- Nodemailer with SMTP\n- Argon2id for password hashing\n- A database API represented by placeholder functions\n\n## 2. Environment variables\n\n```env\nAPP_URL=https://your-app.com\n\nSMTP_HOST=smtp.your-provider.com\nSMTP_PORT=587\nSMTP_SECURE=false\nSMTP_USER=your-smtp-user\nSMTP_PASS=your-smtp-password\nMAIL_FROM=\"Your App <no-reply@your-app.com>\"\n```\n\nFor port `587`, `secure` is normally false and STARTTLS performs the TLS upgrade. For port `465`, set `secure=true`. \n\n## 3. Configure email\n\n```js\n// mailer.js\nimport nodemailer from \"nodemailer\";\n\nexport const transporter = nodemailer.createTransport({\n  host: process.env.SMTP_HOST,\n  port: Number(process.env.SMTP_PORT),\n  secure: process.env.SMTP_SECURE === \"true\",\n  auth: {\n    user: process.env.SMTP_USER,\n    pass: process.env.SMTP_PASS,\n  },\n});\n\nexport async function sendPasswordResetEmail(email, resetUrl) {\n  await transporter.sendMail({\n    from: process.env.MAIL_FROM,\n    to: email,\n    subject: \"Reset your password\",\n    text: `\nYou requested a password reset.\n\nOpen this link to choose a new password:\n${resetUrl}\n\nThis link expires in 15 minutes.\n\nIf you didn't request this, you can ignore this email.\n    `.trim(),\n    html: `\n      <p>You requested a password reset.</p>\n      <p>\n        <a href=\"${resetUrl}\">Reset your password</a>\n      </p>\n      <p>This link expires in 15 minutes.</p>\n      <p>If you didn't request this, you can ignore this email.</p>\n    `,\n  });\n}\n```\n\nYou can test your SMTP connection without sending an email:\n\n```js\nawait transporter.verify();\nconsole.log(\"SMTP connection works\");\n```\n\nNodemailer’s `verify()` checks the connection, TLS, and authentication configuration. \n\n## 4. Request a password reset\n\n```js\n// app.js\nimport \"dotenv/config\";\nimport express from \"express\";\nimport crypto from \"node:crypto\";\nimport argon2 from \"argon2\";\nimport { sendPasswordResetEmail } from \"./mailer.js\";\nimport { db } from \"./db.js\";\n\nconst app = express();\n\napp.use(express.json());\n\napp.post(\"/auth/forgot-password\", async (req, res) => {\n  const genericResponse = {\n    message: \"If that account exists, a reset email has been sent.\",\n  };\n\n  try {\n    const email = String(req.body.email ?? \"\").trim().toLowerCase();\n\n    if (!email) {\n      return res.status(200).json(genericResponse);\n    }\n\n    const user = await db.users.findByEmail(email);\n\n    // Do not reveal whether the user exists.\n    if (!user) {\n      return res.status(200).json(genericResponse);\n    }\n\n    // The raw token goes in the email.\n    const token = crypto.randomBytes(32).toString(\"hex\");\n\n    // Only its hash is stored in the database.\n    const tokenHash = crypto\n      .createHash(\"sha256\")\n      .update(token)\n      .digest(\"hex\");\n\n    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);\n\n    // Invalidate older reset tokens for this user.\n    await db.passwordResetTokens.deleteByUserId(user.id);\n\n    await db.passwordResetTokens.create({\n      userId: user.id,\n      tokenHash,\n      expiresAt,\n    });\n\n    // Build this from a trusted configured URL, not the request Host header.\n    const resetUrl =\n      `${process.env.APP_URL}/reset-password?token=` +\n      encodeURIComponent(token);\n\n    await sendPasswordResetEmail(user.email, resetUrl);\n\n    return res.status(200).json(genericResponse);\n  } catch (error) {\n    console.error(\"Password reset request failed:\", error);\n\n    // Keep the public response generic.\n    return res.status(200).json(genericResponse);\n  }\n});\n```\n\nSHA-256 is appropriate here because it is hashing a long, randomly generated token—not a human-selected password. Passwords themselves should use a deliberately slow password-hashing algorithm such as Argon2id. \n\n## 5. Complete the password reset\n\nThe frontend submits the token and the new password:\n\n```json\n{\n  \"token\": \"token-from-the-email-link\",\n  \"newPassword\": \"a-new-strong-password\"\n}\n```\n\nBackend route:\n\n```js\napp.post(\"/auth/reset-password\", async (req, res) => {\n  try {\n    const token = String(req.body.token ?? \"\");\n    const newPassword = String(req.body.newPassword ?? \"\");\n\n    if (!token || newPassword.length < 12) {\n      return res.status(400).json({\n        message: \"Invalid token or password.\",\n      });\n    }\n\n    const tokenHash = crypto\n      .createHash(\"sha256\")\n      .update(token)\n      .digest(\"hex\");\n\n    const resetRecord =\n      await db.passwordResetTokens.findByTokenHash(tokenHash);\n\n    if (\n      !resetRecord ||\n      resetRecord.usedAt ||\n      resetRecord.expiresAt <= new Date()\n    ) {\n      return res.status(400).json({\n        message: \"This reset link is invalid or has expired.\",\n      });\n    }\n\n    const passwordHash = await argon2.hash(newPassword, {\n      type: argon2.argon2id,\n    });\n\n    await db.transaction(async (transaction) => {\n      await transaction.users.updatePassword(\n        resetRecord.userId,\n        passwordHash\n      );\n\n      // Makes the token single-use.\n      await transaction.passwordResetTokens.deleteByUserId(\n        resetRecord.userId\n      );\n\n      // Recommended: force sign-in again on existing devices.\n      await transaction.sessions.deleteByUserId(resetRecord.userId);\n    });\n\n    return res.json({\n      message: \"Your password has been reset. You can now sign in.\",\n    });\n  } catch (error) {\n    console.error(\"Password reset failed:\", error);\n\n    return res.status(500).json({\n      message: \"Unable to reset password.\",",
+          "text": "A secure password-reset flow has two endpoints:\n\n1. **Request reset:** generate a random, short-lived token and email a link.\n2. **Complete reset:** validate the token, replace the password hash, and invalidate the token.\n\nUse a random opaque token rather than putting user details inside the URL. Tokens should be cryptographically random, stored securely, expire quickly, and be single-use. Also return the same response whether the email exists to prevent account enumeration. \n\n## 1. Install dependencies\n\n```bash\nnpm install express nodemailer argon2 dotenv\n```\n\nThis example uses:\n\n- Express\n- Nodemailer with SMTP\n- Argon2id for password hashing\n- A database API represented by placeholder functions\n\n## 2. Environment variables\n\n```env\nAPP_URL=https://your-app.com\n\nSMTP_HOST=smtp.your-provider.com\nSMTP_PORT=587\nSMTP_SECURE=false\nSMTP_USER=your-smtp-user\nSMTP_PASS=your-smtp-password\nMAIL_FROM=\"Your App <no-reply@your-app.com>\"\n```\n\nFor port `587`, `secure` is normally false and STARTTLS performs the TLS upgrade. For port `465`, set `secure=true`. \n\n## 3. Configure email\n\n```js\n// mailer.js\nimport nodemailer from \"nodemailer\";\n\nexport const transporter = nodemailer.createTransport({\n  host: process.env.SMTP_HOST,\n  port: Number(process.env.SMTP_PORT),\n  secure: process.env.SMTP_SECURE === \"true\",\n  auth: {\n    user: process.env.SMTP_USER,\n    pass: process.env.SMTP_PASS,\n  },\n});\n\nexport async function sendPasswordResetEmail(email, resetUrl) {\n  await transporter.sendMail({\n    from: process.env.MAIL_FROM,\n    to: email,\n    subject: \"Reset your password\",\n    text: `\nYou requested a password reset.\n\nOpen this link to choose a new password:\n${resetUrl}\n\nThis link expires in 15 minutes.\n\nIf you didn't request this, you can ignore this email.\n    `.trim(),\n    html: `\n      <p>You requested a password reset.</p>\n      <p>\n        <a href=\"${resetUrl}\">Reset your password</a>\n      </p>\n      <p>This link expires in 15 minutes.</p>\n      <p>If you didn't request this, you can ignore this email.</p>\n    `,\n  });\n}\n```\n\nYou can test your SMTP connection without sending an email:\n\n```js\nawait transporter.verify();\nconsole.log(\"SMTP connection works\");\n```\n\nNodemailer’s `verify()` checks the connection, TLS, and authentication configuration. \n\n## 4. Request a password reset\n\n```js\n// app.js\nimport \"dotenv/config\";\nimport express from \"express\";\nimport crypto from \"node:crypto\";\nimport argon2 from \"argon2\";\nimport { sendPasswordResetEmail } from \"./mailer.js\";\nimport { db } from \"./db.js\";\n\nconst app = express();\n\napp.use(express.json());\n\napp.post(\"/auth/forgot-password\", async (req, res) => {\n  const genericResponse = {\n    message: \"If that account exists, a reset email has been sent.\",\n  };\n\n  try {\n    const email = String(req.body.email ?? \"\").trim().toLowerCase();\n\n    if (!email) {\n      return res.status(200).json(genericResponse);\n    }\n\n    const user = await db.users.findByEmail(email);\n\n    // Do not reveal whether the user exists.\n    if (!user) {\n      return res.status(200).json(genericResponse);\n    }\n\n    // The raw token goes in the email.\n    const token = crypto.randomBytes(32).toString(\"hex\");\n\n    // Only its hash is stored in the database.\n    const tokenHash = crypto\n      .createHash(\"sha256\")\n      .update(token)\n      .digest(\"hex\");\n\n    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);\n\n    // Invalidate older reset tokens for this user.\n    await db.passwordResetTokens.deleteByUserId(user.id);\n\n    await db.passwordResetTokens.create({\n      userId: user.id,\n      tokenHash,\n      expiresAt,\n    });\n\n    // Build this from a trusted configured URL, not the request Host header.\n    const resetUrl =\n      `${process.env.APP_URL}/reset-password?token=` +\n      encodeURIComponent(token);\n\n    await sendPasswordResetEmail(user.email, resetUrl);\n\n    return res.status(200).json(genericResponse);\n  } catch (error) {\n    console.error(\"Password reset request failed:\", error);\n\n    // Keep the public response generic.\n    return res.status(200).json(genericResponse);\n  }\n});\n```\n\nSHA-256 is appropriate here because it is hashing a long, randomly generated token—not a human-selected password. Passwords themselves should use a deliberately slow password-hashing algorithm such as Argon2id. \n\n## 5. Complete the password reset\n\nThe frontend submits the token and the new password:\n\n```json\n{\n  \"token\": \"token-from-the-email-link\",\n  \"newPassword\": \"a-new-strong-password\"\n}\n```\n\nBackend route:\n\n```js\napp.post(\"/auth/reset-password\", async (req, res) => {\n  try {\n    const token = String(req.body.token ?? \"\");\n    const newPassword = String(req.body.newPassword ?? \"\");\n\n    if (!token || newPassword.length < 12) {\n      return res.status(400).json({\n        message: \"Invalid token or password.\",\n      });\n    }\n\n    const tokenHash = crypto\n      .createHash(\"sha256\")\n      .update(token)\n      .digest(\"hex\");\n\n    const resetRecord =\n      await db.passwordResetTokens.findByTokenHash(tokenHash);\n\n    if (\n      !resetRecord ||\n      resetRecord.usedAt ||\n      resetRecord.expiresAt <= new Date()\n    ) {\n      return res.status(400).json({\n        message: \"This reset link is invalid or has expired.\",\n      });\n    }\n\n    const passwordHash = await argon2.hash(newPassword, {\n      type: argon2.argon2id,\n    });\n\n    await db.transaction(async (transaction) => {\n      await transaction.users.updatePassword(\n        resetRecord.userId,\n        passwordHash\n      );\n\n      // Makes the token single-use.\n      await transaction.passwordResetTokens.deleteByUserId(\n        resetRecord.userId\n      );\n\n      // Recommended: force sign-in again on existing devices.\n      await transaction.sessions.deleteByUserId(resetRecord.userId);\n    });\n\n    return res.json({\n      message: \"Your password has been reset. You can now sign in.\",\n    });\n  } catch (error) {\n    console.error(\"Password reset failed:\", error);\n\n    return res.status(500).json({\n      message: \"Unable to reset password.\",\n    });\n  }\n});\n```\n\nAfter a successful reset, invalidate outstanding reset tokens and preferably existing sessions. Don’t email the new password or automatically log the user in. \n\n## 6. Example database table\n\n```sql\nCREATE TABLE password_reset_tokens (\n  id BIGSERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  token_hash VARCHAR(64) NOT NULL UNIQUE,\n  expires_at TIMESTAMP NOT NULL,\n  used_at TIMESTAMP NULL,\n  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE INDEX password_reset_tokens_user_id_idx\n  ON password_reset_tokens(user_id);\n```\n\nYour `users` table needs a password-hash column:\n\n```sql\nALTER TABLE users\nADD COLUMN password_hash TEXT NOT NULL;\n```\n\n## Important production protections\n\n- Rate-limit both reset endpoints by IP and account.\n- Always return a generic message from the request endpoint.\n- Use HTTPS reset URLs.\n- Never store or log the raw reset token.\n- Keep tokens short-lived, typically around 15–60 minutes.\n- Make tokens single-use.\n- Build links from a configured application URL, not an untrusted `Host` header.\n- Escape or template user-controlled values included in HTML.\n- Send a confirmation email after the password changes.\n- Configure SPF, DKIM, and DMARC for your sending domain.\n- Consider moving email delivery to a background job queue.\n\nThese controls help prevent user enumeration, token theft, brute-force attempts, email flooding, and reuse of reset links.",
           "overview": null,
           "mentioned": [],
           "sources": [
@@ -7578,6 +7757,10 @@
                     "refs": [0, 1]
                   }
                 ]
+              },
+              {
+                "type": "heading",
+                "text": "Example (Node.js / Vercel / Cloudflare Worker using fetch)"
               },
               {
                 "type": "heading",

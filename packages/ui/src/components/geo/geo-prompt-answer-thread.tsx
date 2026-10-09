@@ -478,11 +478,14 @@ export function GeoPromptAnswerThread({
       {/* The composer floats over the answer like the real apps: the text
           scrolls behind it, and only the pill itself takes clicks. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
-        <div
-          className="pointer-events-auto mx-auto w-full max-w-3xl px-6 pb-4"
-          ref={composerRef}
-        >
-          <SkinComposer engine={result.engine} key={result.engine} skin={skin} />
+        <div className="mx-auto w-full max-w-3xl px-6 pb-4" ref={composerRef}>
+          <div className="pointer-events-auto">
+            <SkinComposer
+              engine={result.engine}
+              key={result.engine}
+              skin={skin}
+            />
+          </div>
         </div>
       </div>
     </div>

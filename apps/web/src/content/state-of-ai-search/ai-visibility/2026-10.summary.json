@@ -19,7 +19,7 @@
       "label": "Claude",
       "model": "anthropic/claude-opus-5.5",
       "answers": 200,
-      "brandsPerAnswer": 6.9,
+      "brandsPerAnswer": 6.8,
       "sourcesPerAnswer": 11.7
     },
     {
@@ -27,7 +27,7 @@
       "label": "Gemini",
       "model": "google/gemini-3.8-flash",
       "answers": 200,
-      "brandsPerAnswer": 5.3,
+      "brandsPerAnswer": 5.2,
       "sourcesPerAnswer": 7.7
     },
     {
@@ -69,7 +69,7 @@
       "domain": "tryprofound.com",
       "rank": 2,
       "visibility": 66,
-      "topPick": 20,
+      "topPick": 22,
       "ownSiteCited": 18,
       "byEngine": {
         "chatgpt": 49,
@@ -85,7 +85,7 @@
       "domain": "peec.ai",
       "rank": 3,
       "visibility": 66,
-      "topPick": 15,
+      "topPick": 16,
       "ownSiteCited": 12,
       "byEngine": {
         "chatgpt": 52,

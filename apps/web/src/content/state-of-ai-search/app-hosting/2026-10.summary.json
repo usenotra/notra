@@ -43,7 +43,7 @@
       "label": "AI Overview",
       "model": "google/ai-overview",
       "answers": 18,
-      "brandsPerAnswer": 4.4,
+      "brandsPerAnswer": 4.3,
       "sourcesPerAnswer": 6.8
     }
   ],

@@ -8,7 +8,7 @@ export function buildReportFindings(report: StateOfAiSearchReport): string[] {
     const gap = leader.visibility - runnerUp.visibility;
     findings.push(
       gap <= 5
-        ? `${leader.name} and ${runnerUp.name} are neck and neck: ${leader.visibility}% and ${runnerUp.visibility}% of answers name them.`
+        ? `${leader.name} and ${runnerUp.name} are neck and neck: ${leader.visibility}% and ${runnerUp.visibility}% on average across the assistants.`
         : `${leader.name} leads with ${leader.visibility}% visibility, ${gap} points ahead of ${runnerUp.name}.`
     );
   }
@@ -17,8 +17,8 @@ export function buildReportFindings(report: StateOfAiSearchReport): string[] {
   if (topPicker && topPicker.topPick > 0) {
     findings.push(
       topPicker.name === leader?.name
-        ? `${topPicker.name} is also named first most often, in ${topPicker.topPick}% of answers.`
-        : `${topPicker.name} is named first most often (${topPicker.topPick}% of answers), even though ${leader?.name} is mentioned more.`
+        ? `${topPicker.name} is also named first most often, in ${topPicker.topPick}% of answers on average across the assistants.`
+        : `${topPicker.name} is named first most often (${topPicker.topPick}% of answers on average across the assistants), even though ${leader?.name} is mentioned more.`
     );
   }
 
@@ -42,7 +42,7 @@ export function buildReportFindings(report: StateOfAiSearchReport): string[] {
   );
   if (overviews) {
     findings.push(
-      `Google showed an AI Overview for ${report.totals.aiOverviewShown}% of the prompts.`
+      `Google showed an AI Overview for ${report.totals.aiOverviewShown}% of the prompts we checked.`
     );
   }
 

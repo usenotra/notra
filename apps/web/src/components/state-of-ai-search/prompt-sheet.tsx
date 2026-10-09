@@ -45,6 +45,7 @@ import type {
   StateOfAiSearchReport,
 } from "@/types/state-of-ai-search";
 import { formatReportDate } from "@/utils/state-of-ai-search";
+import { uniqueKeys } from "@/utils/unique-keys";
 
 type PromptSheetView = "raw" | "analysis";
 
@@ -165,9 +166,12 @@ function escapeRegex(value: string): string {
 function HighlightText({ text, brand }: { text: string; brand: string }) {
   // `brand` is the name or alias as the answer wrote it.
   const parts = text.split(new RegExp(`(${escapeRegex(brand)})`, "i"));
-  // Parts repeat, so each is keyed by where it starts in the sentence.
-  const starts = parts.map((_, index) =>
-    parts.slice(0, index).reduce((sum, part) => sum + part.length, 0)
+  // A sentence that opens with the brand yields an empty part and the brand
+  // at the same offset, so keys carry an occurrence suffix.
+  const keys = uniqueKeys(
+    parts.map((_, index) =>
+      String(parts.slice(0, index).reduce((sum, part) => sum + part.length, 0))
+    )
   );
   return (
     <>
@@ -175,12 +179,12 @@ function HighlightText({ text, brand }: { text: string; brand: string }) {
         part.toLowerCase() === brand.toLowerCase() ? (
           <mark
             className="bg-primary/15 text-foreground rounded-sm px-0.5 font-medium"
-            key={starts[index]}
+            key={keys[index]}
           >
             {part}
           </mark>
         ) : (
-          <Fragment key={starts[index]}>{part}</Fragment>
+          <Fragment key={keys[index]}>{part}</Fragment>
         )
       )}
     </>

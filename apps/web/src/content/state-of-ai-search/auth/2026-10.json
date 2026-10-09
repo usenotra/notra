@@ -2484,16 +2484,92 @@
                   {
                     "text": "Supabase Auth (Best for Cost & Predictability)",
                     "refs": [2, 3, 4]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Free Tier: Includes 50,000 Monthly Active Users (MAUs).",
+                    "refs": []
                   },
+                  {
+                    "text": "Paid Tier: The Pro plan is $25/month and covers up to 100,000 MAUs (with low overage rates after that).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s cheap: It is built directly on open-source PostgreSQL with predictable flat-ish scaling.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   {
                     "text": "Firebase Auth (Best for Mobile & Google Stack)",
                     "refs": [2, 5]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "Free Tier: Includes 50,000 MAUs.", "refs": [] },
+                  {
+                    "text": "Paid Tier: Pay-as-you-go via the Blaze plan (roughly $0.0055/MAU or less at higher volume tiers).",
+                    "refs": []
                   },
+                  {
+                    "text": "Watch out: Phone authentication and SMS-based 2FA/OTP can get expensive quickly at scale.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   {
                     "text": "AWS Cognito (Best for AWS Ecosystem)",
                     "refs": [2]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Free Tier: Includes 10,000 MAUs (Essentials tier).",
+                    "refs": []
                   },
+                  {
+                    "text": "Paid Tier: Charges roughly $0.015/MAU on Essentials, or drops down to $0.025/MAU or lower on volume/Lite tiers if heavily integrated into AWS.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   { "text": "Keycloak (Zero Cost / Self-Hosted)", "refs": [] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Free Tier: 100% free and open-source under the Apache 2.0 license.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Paid Tier: $0 license cost, though you pay for the server hosting and maintenance yourself.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s cheap: No per-user or per-MAU software licensing fees, making it the cheapest possible option at massive scale if you have the engineering bandwidth to manage it.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -2945,7 +3021,7 @@
         },
         {
           "engine": "gemini",
-          "text": "Choosing the best authentication provider for a multi-tenant (B2B SaaS) application depends heavily on your frontend stack, whether you want pre-built UI components vs. a headless API, and how critical enterprise features (like per-tenant SAML SSO and SCIM directory sync) are right now.\n\nHere is a breakdown of the top contenders in modern B2B SaaS:\n\n---\n\n### 1. **WorkOS** — *Best Overall for Modern Enterprise B2B SaaS*\nWorkOS was built specifically for B2B multi-tenancy and the \"enterprise readiness\" journey. Its **AuthKit** (user management + auth) paired with its enterprise suite makes it an industry benchmark for SaaS.\n* **Why it shines for multi-tenancy:**\n  * **Native Organization Architecture:** Designed from the ground up around `Organizations`, `Workspaces`, and cross-org memberships.\n  * **Self-serve Enterprise SSO & SCIM:** Allows your customers' IT admins to configure their own Okta, Microsoft Entra ID (Azure AD), or Google Workspace connections using an embedded or hosted setup wizard.\n  * **RBAC per Tenant:** Roles and permissions are cleanly scoped per organization out of the box.\n* **Best if:** You are building a B2B SaaS product where customers will eventually demand SAML/SSO and SCIM provisioning, and you want clean APIs.\n\n---\n\n### 2. **Clerk** — *Best Developer Experience & Drop-in UI (React / Next.js)*\nClerk has become the gold standard for developer experience. While it started with consumer apps, its **Organizations** feature makes it one of the easiest ways to implement multi-tenant workspaces.\n* **Why it shines for multi-tenancy:**\n  * **Pre-built Workspace Components:** Provides ready-to-use UI components for organization switchers, member invitations, role management, and domain-based auto-join.\n  * **Multi-Org Switching:** Users can belong to multiple tenants with different roles in each, and switch between them seamlessly.\n  * **Domain Verification:** Automatically suggests or requires users with a specific domain (e.g., `@company.com`) to join a specific tenant.\n* **Watch out for:** While it supports Enterprise SSO, deep enterprise tooling (like SCIM directory sync) is less comprehensive compared to dedicated B2B tools like WorkOS.\n* **Best if:** You want beautiful, ready-to-go multi-tenant UI components and workspace-switching with minimal boilerplate.\n\n---\n\n### 3. **Stytch** — *Best for Headless, API-First Flexibility*\nStytch provides a purpose-built B2B authentication suite with a strong emphasis on flexibility, modern passwordless flows, and developer autonomy.\n* **Why it shines for multi-tenancy:**\n  * **Granular Organization Control:** Fine-grained member policies, email domain JIT (Just-in-Time) provisioning, and organization-scoped MFA requirements.\n  * **Truly Headless:** If you don’t want vendor-styled UI components and prefer to design your own custom onboarding, login, and tenant management flows via pure APIs/SDKs, Stytch is often preferred over Clerk.\n  * **Complete B2B Feature Set:** Full support for SAML, OIDC, SCIM, and multi-tenant RBAC.\n* **Best if:** You need full UI control, complex customized tenant onboarding flows, or passwordless auth in a B2B setting.\n\n---\n\n### 4. **Frontegg** — *Best for a Complete Customer-Facing Admin Portal*\nFrontegg focuses exclusively on multi-tenant B2B apps. Unlike providers that just give you an auth box, Frontegg gives you an entire embeddable self-service portal for your tenant admins.\n* **Why it shines for multi-tenancy:**\n  * **Tenant Self-Service Portal:** Tenant admins can manage their own team members, SSO integrations, security policies, audit logs, and webhooks without you writing that code.\n  * **Hierarchy Support:** Supports multi-level tenant hierarchies (parent/child organizations).\n* **Watch out for:** It can feel more \"heavyweight\" and opinionated than lower-level SDKs.\n* **Best if:** You want to offload the entire tenant settings/admin interface so you don't have to build customer-facing admin dashboards.\n\n---\n\n### 5. **Auth0 by Okta** — *The Enterprise Standard (with Trade-offs)*\nAuth0 has a dedicated **Organizations** feature that allows you to brand login screens, configure per-tenant SSO connections, and manage access tokens scoped to specific tenants.\n* **Why it shines for multi-tenancy:**\n  * Legacy enterprise compliance, almost universally accepted by enterprise security audit teams.\n  * Deep ecosystem of integrations and custom action scripts.\n* **Watch out for:** \n  * **Cost:** Auth0 can become very expensive quickly once you enable Enterprise SSO connections and scale past standard MAU thresholds.\n  * **Developer Experience:** The developer experience and dashboard feel more dated and complex compared to Clerk or WorkOS.\n* **Best if:** You are selling into strict, traditional enterprise procurement departments that explicitly mandate Okta/Auth0 compliance.\n\n---\n\n### 6. **Open-Source & Self-Hosted Options**\n\n* **Keycloak:** The standard for self-hosted enterprise auth. Multi-tenancy can be handled via multiple \"Realms\" (complete isolation) or within a single realm using user groups/attributes. It is free and open-source, but managing and scaling it in production requires dedicated DevOps overhead.\n* **Supabase Auth (GoTrue):** If your app is backed by PostgreSQL, Supabase supports tenant isolation natively using PostgreSQL **Row-Level Security (RLS)**. Supabase also supports per-tenant SAML SSO on higher tiers. Great if you want your database and auth tightly coupled.\n\n---\n\n### Summary Checklist: How to Decide\n\n| Requirement | Best Choice |\n| :--- | :--- |\n| **Fastest DX + Drop-in React UI + Workspace switcher** | **Clerk** |\n| **Fastest route to Enterprise SSO (SAML) & SCIM** | **WorkOS** |\n| **API-first / Headless / Custom UI** | **Stytch** |\n| **Full self-serve tenant admin portal out-of-the-box** | **Frontegg** |\n| **100% Self-hosted / Open Source** | **Keycloak** |\n| **Tight integration with Postgres RLS** | **Supabase Auth** |\n\n*Tip:* When comparing pricing, check how each provi",
+          "text": "Choosing the best authentication provider for a multi-tenant (B2B SaaS) application depends heavily on your frontend stack, whether you want pre-built UI components vs. a headless API, and how critical enterprise features (like per-tenant SAML SSO and SCIM directory sync) are right now.\n\nHere is a breakdown of the top contenders in modern B2B SaaS:\n\n---\n\n### 1. **WorkOS** — *Best Overall for Modern Enterprise B2B SaaS*\nWorkOS was built specifically for B2B multi-tenancy and the \"enterprise readiness\" journey. Its **AuthKit** (user management + auth) paired with its enterprise suite makes it an industry benchmark for SaaS.\n* **Why it shines for multi-tenancy:**\n  * **Native Organization Architecture:** Designed from the ground up around `Organizations`, `Workspaces`, and cross-org memberships.\n  * **Self-serve Enterprise SSO & SCIM:** Allows your customers' IT admins to configure their own Okta, Microsoft Entra ID (Azure AD), or Google Workspace connections using an embedded or hosted setup wizard.\n  * **RBAC per Tenant:** Roles and permissions are cleanly scoped per organization out of the box.\n* **Best if:** You are building a B2B SaaS product where customers will eventually demand SAML/SSO and SCIM provisioning, and you want clean APIs.\n\n---\n\n### 2. **Clerk** — *Best Developer Experience & Drop-in UI (React / Next.js)*\nClerk has become the gold standard for developer experience. While it started with consumer apps, its **Organizations** feature makes it one of the easiest ways to implement multi-tenant workspaces.\n* **Why it shines for multi-tenancy:**\n  * **Pre-built Workspace Components:** Provides ready-to-use UI components for organization switchers, member invitations, role management, and domain-based auto-join.\n  * **Multi-Org Switching:** Users can belong to multiple tenants with different roles in each, and switch between them seamlessly.\n  * **Domain Verification:** Automatically suggests or requires users with a specific domain (e.g., `@company.com`) to join a specific tenant.\n* **Watch out for:** While it supports Enterprise SSO, deep enterprise tooling (like SCIM directory sync) is less comprehensive compared to dedicated B2B tools like WorkOS.\n* **Best if:** You want beautiful, ready-to-go multi-tenant UI components and workspace-switching with minimal boilerplate.\n\n---\n\n### 3. **Stytch** — *Best for Headless, API-First Flexibility*\nStytch provides a purpose-built B2B authentication suite with a strong emphasis on flexibility, modern passwordless flows, and developer autonomy.\n* **Why it shines for multi-tenancy:**\n  * **Granular Organization Control:** Fine-grained member policies, email domain JIT (Just-in-Time) provisioning, and organization-scoped MFA requirements.\n  * **Truly Headless:** If you don’t want vendor-styled UI components and prefer to design your own custom onboarding, login, and tenant management flows via pure APIs/SDKs, Stytch is often preferred over Clerk.\n  * **Complete B2B Feature Set:** Full support for SAML, OIDC, SCIM, and multi-tenant RBAC.\n* **Best if:** You need full UI control, complex customized tenant onboarding flows, or passwordless auth in a B2B setting.\n\n---\n\n### 4. **Frontegg** — *Best for a Complete Customer-Facing Admin Portal*\nFrontegg focuses exclusively on multi-tenant B2B apps. Unlike providers that just give you an auth box, Frontegg gives you an entire embeddable self-service portal for your tenant admins.\n* **Why it shines for multi-tenancy:**\n  * **Tenant Self-Service Portal:** Tenant admins can manage their own team members, SSO integrations, security policies, audit logs, and webhooks without you writing that code.\n  * **Hierarchy Support:** Supports multi-level tenant hierarchies (parent/child organizations).\n* **Watch out for:** It can feel more \"heavyweight\" and opinionated than lower-level SDKs.\n* **Best if:** You want to offload the entire tenant settings/admin interface so you don't have to build customer-facing admin dashboards.\n\n---\n\n### 5. **Auth0 by Okta** — *The Enterprise Standard (with Trade-offs)*\nAuth0 has a dedicated **Organizations** feature that allows you to brand login screens, configure per-tenant SSO connections, and manage access tokens scoped to specific tenants.\n* **Why it shines for multi-tenancy:**\n  * Legacy enterprise compliance, almost universally accepted by enterprise security audit teams.\n  * Deep ecosystem of integrations and custom action scripts.\n* **Watch out for:** \n  * **Cost:** Auth0 can become very expensive quickly once you enable Enterprise SSO connections and scale past standard MAU thresholds.\n  * **Developer Experience:** The developer experience and dashboard feel more dated and complex compared to Clerk or WorkOS.\n* **Best if:** You are selling into strict, traditional enterprise procurement departments that explicitly mandate Okta/Auth0 compliance.\n\n---\n\n### 6. **Open-Source & Self-Hosted Options**\n\n* **Keycloak:** The standard for self-hosted enterprise auth. Multi-tenancy can be handled via multiple \"Realms\" (complete isolation) or within a single realm using user groups/attributes. It is free and open-source, but managing and scaling it in production requires dedicated DevOps overhead.\n* **Supabase Auth (GoTrue):** If your app is backed by PostgreSQL, Supabase supports tenant isolation natively using PostgreSQL **Row-Level Security (RLS)**. Supabase also supports per-tenant SAML SSO on higher tiers. Great if you want your database and auth tightly coupled.\n\n---\n\n### Summary Checklist: How to Decide\n\n| Requirement | Best Choice |\n| :--- | :--- |\n| **Fastest DX + Drop-in React UI + Workspace switcher** | **Clerk** |\n| **Fastest route to Enterprise SSO (SAML) & SCIM** | **WorkOS** |\n| **API-first / Headless / Custom UI** | **Stytch** |\n| **Full self-serve tenant admin portal out-of-the-box** | **Frontegg** |\n| **100% Self-hosted / Open Source** | **Keycloak** |\n| **Tight integration with Postgres RLS** | **Supabase Auth** |\n\n*Tip:* When comparing pricing, check how each provider charges for **Enterprise SSO (SAML) connections**. In multi-tenant apps, vendors often lure developers with cheap MAU pricing, only to charge $50–$100+ per month per tenant SAML connection once enterprise customers start onboarding.",
           "overview": null,
           "mentioned": [
             "WorkOS",
@@ -6450,6 +6526,74 @@
               {
                 "type": "heading",
                 "text": "3. Implementation Steps (e.g., Using Passkeys)"
+              },
+              {
+                "type": "heading",
+                "text": "Step A: Configure the Provider Dashboard"
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Log into your IDaaS provider (e.g., Auth0 or Clerk).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Navigate to your database or login connection settings.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Enable Identifier-First Login (this prompts users for their email first, then dynamically checks for an eligible passkey).",
+                    "refs": []
+                  },
+                  { "text": "Toggle on Passkeys or .", "refs": [3, 6, 8, 9] }
+                ]
+              },
+              { "type": "heading", "text": "Step B: Install the Frontend SDK" },
+              {
+                "type": "paragraph",
+                "text": "Install the lightweight client library to communicate with the identity engine. For example, using Clerk:",
+                "refs": []
+              },
+              {
+                "type": "heading",
+                "text": "Step C: Drop In the Login Component"
+              },
+              {
+                "type": "paragraph",
+                "text": "Because the provider hosts the authentication infrastructure, you don't write server-side crypto validation. Instead, render their pre-built UI components:",
+                "refs": [1, 3]
+              },
+              {
+                "type": "heading",
+                "text": "Step D: Verify the Token on Your App Backend (Minimal Effort)"
+              },
+              {
+                "type": "paragraph",
+                "text": "Your actual application server or serverless functions do not manage users. They simply verify that incoming requests have a valid cryptographic JSON Web Token (JWT) signed by your identity provider. Most providers give you a lightweight middleware wrapper to do this automatically:",
+                "refs": [1, 2, 10, 11]
+              },
+              {
+                "type": "paragraph",
+                "text": "If you'd like to tailor this, tell me:",
+                "refs": []
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "What frontend framework you are building with (React, Next.js, Vue, traditional HTML)?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Do you prefer biometrics (Passkeys) or Magic Links via email?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Do you have an existing user database, or are you starting entirely from scratch?",
+                    "refs": []
+                  }
+                ]
               }
             ],
             "references": [
@@ -6647,6 +6791,11 @@
               "brand": "Amazon Cognito",
               "text": "Other reliable choices: Supabase Auth, WorkOS, or AWS Cognito.",
               "match": "AWS Cognito"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Log into your IDaaS provider (e.g., Auth0 or Clerk).",
+              "match": "Clerk"
             }
           ],
           "collectedAt": "2026-10-08T20:14:53.340Z"
@@ -6856,7 +7005,7 @@
         },
         {
           "engine": "gemini",
-          "text": "When comparing **Clerk**, **Auth0**, and **WorkOS**, the right choice largely depends on whether you are building **B2C vs. B2B**, how much **enterprise functionality** you need, and the importance of **drop-in UI vs. deep backend customization**.\n\n---\n\n### TL;DR: Quick Recommendation\n\n* **Choose Clerk** if you are building modern web applications (especially with React, Next.js, Remix, Vue) and want the fastest time-to-market with beautiful, drop-in UI components, built-in user profiles, and intuitive organization management.\n* **Choose WorkOS** if you are a **B2B SaaS** company looking to sell to enterprise customers and need plug-and-play **Enterprise SSO (SAML/OIDC), SCIM Directory Sync, and Fine-Grained Authorization (FGA)** without enterprise lock-in.\n* **Choose Auth0** if you have complex legacy identity requirements, need to support unusual identity protocols or diverse platforms (mobile, native, IoT, multiple web stacks), or require massive customization via code hooks across a wide enterprise ecosystem.\n\n---\n\n### Detailed Comparison\n\n| Feature | **Clerk** | **WorkOS** | **Auth0 (Okta)** |\n| :--- | :--- | :--- | :--- |\n| **Primary Sweet Spot** | Modern B2C & B2B SaaS apps | B2B SaaS moving upmarket | Enterprise & complex identity |\n| **Developer Experience** | Exceptional (best-in-class React/Next.js SDKs) | Excellent (clean, modular REST APIs & SDKs) | Moderate (steep learning curve, dated dashboard) |\n| **UI Components** | Complete drop-in UI (`<SignIn />`, `<UserProfile />`, `<OrgSwitcher />`) | Modern auth UI via **AuthKit** (Radix-based) or headless | Universal Login (hosted, customizable via Liquid/CSS) |\n| **Enterprise SSO (SAML)** | Supported (available on Pro/Enterprise plans) | **Industry gold standard** (self-serve Admin Portal for IT admins) | Supported, but historically very expensive to unlock |\n| **SCIM / Directory Sync** | Basic / Emerging | **Industry gold standard** (syncs users/groups from Okta, Azure AD, etc.) | Available (Okta / Enterprise add-on) |\n| **Multi-Tenancy / Orgs** | Built-in organization architecture & switcher | Deep multi-tenant org model built for B2B | Supported via \"Organizations\", but harder to configure |\n| **Customization** | Great for UI styling; backend hooks/webhooks | API-first; headless flexibility | Extremely flexible via Auth0 Actions (Node.js runtime) |\n\n---\n\n### 1. Clerk: Best for Modern Developer Experience & Turnkey UI\n\nClerk was built from the ground up for modern frontend frameworks (Next.js, Remix, Astro, React, Expo). It treats user management and session management as frontend-first primitives.\n\n* **Strengths:**\n  * **Drop-in UI:** Beautiful, accessible, fully customizable pre-built components (sign-in, sign-up, user profile, MFA, organization switchers).\n  * **Built-in Session & Token Management:** Handles edge-compatible JWT verification, active sessions, and multi-session user switching out of the box.\n  * **Organizations & RBAC:** Native support for B2B multi-tenancy, team invites, and role-based permissions directly in their UI components.\n* **Trade-offs:**\n  * While it offers Enterprise SSO, deep enterprise IT features (like SCIM directory sync or self-serve IT admin portals) are less mature than WorkOS.\n  * Heavily biased toward modern web/mobile JavaScript stacks.\n\n---\n\n### 2. WorkOS: Best for B2B SaaS Selling to Enterprises\n\nWorkOS positions itself as the operating system for B2B SaaS. It is engineered specifically to help startups check the enterprise-readiness boxes (SSO, SCIM, Audit Logs, RBAC) required by corporate IT departments.\n\n* **Strengths:**\n  * **Self-Serve Admin Portal:** WorkOS generates a white-label onboarding link that you send to your customer’s IT admin (e.g., in Okta, Microsoft Entra ID, Google Workspace) so they can configure SAML/SCIM themselves without your engineering team's involvement.\n  * **SCIM Directory Sync:** Real-time provisioning and de-provisioning of employees when they join or leave a company.\n  * **AuthKit:** A modern, headless or hosted auth UI (built with Radix UI) that makes standard auth just as easy as enterprise auth.\n  * **Fine-Grained Authorization (FGA):** Relationship-based access control (ReBAC) built on Google Zanzibar concepts.\n* **Trade-offs:**\n  * Less geared toward purely consumer (B2C) applications with massive volumes of free users.\n\n---\n\n### 3. Auth0 (by Okta): Best for Universal & Legacy Enterprise Identity\n\nAuth0 is the veteran in the space. Acquired by Okta, it remains one of the most flexible and widely adopted identity platforms globally.\n\n* **Strengths:**\n  * **Protocol Coverage:** Supports virtually any identity standard (OAuth 2.0, OpenID Connect, SAML, WS-Fed, LDAP, social logins).\n  * **Extensibility with Actions:** You can write arbitrary Node.js code at almost any step of the login pipeline to enrich tokens, call external APIs, or block suspicious logins.\n  * **Compliance & Scale:** Battle-tested at massive scale with enterprise compliance certifications (HIPAA, SOC 2, ISO, PCI-DSS).\n* **Trade-offs:**\n  * **Pricing Model:** Known for steep price jumps. Upgrading to include enterprise connections (SAML) or higher MAU tiers often requires custom enterprise contracts.\n  * **Developer Experience:** The dashboard and configuration model can be overwhelming compared to newer, opinionated tools like Clerk and WorkOS.\n  * **UI Flexibility:** Customizing Auth0’s Universal Login feels dated compared to native React components.\n\n---\n\n### Which one should you pick?\n\n1. **Pick Clerk if:**\n   * You are building a consumer app or an early-to-mid stage B2B app.\n   * You are using Next.js, React, or modern JS frameworks.\n   * You don't want to design or build sign-in/user-profile screens yourself.\n\n2. **Pick WorkOS if:**\n   * You are building a B2B SaaS product and enterprise customers are asking: *\"Do you support SAML SSO and SCIM?\"*\n   * You want enterprise IT setup to be self-serve for your clients.\n   * You want modular building blocks (you can even pair WorkO",
+          "text": "When comparing **Clerk**, **Auth0**, and **WorkOS**, the right choice largely depends on whether you are building **B2C vs. B2B**, how much **enterprise functionality** you need, and the importance of **drop-in UI vs. deep backend customization**.\n\n---\n\n### TL;DR: Quick Recommendation\n\n* **Choose Clerk** if you are building modern web applications (especially with React, Next.js, Remix, Vue) and want the fastest time-to-market with beautiful, drop-in UI components, built-in user profiles, and intuitive organization management.\n* **Choose WorkOS** if you are a **B2B SaaS** company looking to sell to enterprise customers and need plug-and-play **Enterprise SSO (SAML/OIDC), SCIM Directory Sync, and Fine-Grained Authorization (FGA)** without enterprise lock-in.\n* **Choose Auth0** if you have complex legacy identity requirements, need to support unusual identity protocols or diverse platforms (mobile, native, IoT, multiple web stacks), or require massive customization via code hooks across a wide enterprise ecosystem.\n\n---\n\n### Detailed Comparison\n\n| Feature | **Clerk** | **WorkOS** | **Auth0 (Okta)** |\n| :--- | :--- | :--- | :--- |\n| **Primary Sweet Spot** | Modern B2C & B2B SaaS apps | B2B SaaS moving upmarket | Enterprise & complex identity |\n| **Developer Experience** | Exceptional (best-in-class React/Next.js SDKs) | Excellent (clean, modular REST APIs & SDKs) | Moderate (steep learning curve, dated dashboard) |\n| **UI Components** | Complete drop-in UI (`<SignIn />`, `<UserProfile />`, `<OrgSwitcher />`) | Modern auth UI via **AuthKit** (Radix-based) or headless | Universal Login (hosted, customizable via Liquid/CSS) |\n| **Enterprise SSO (SAML)** | Supported (available on Pro/Enterprise plans) | **Industry gold standard** (self-serve Admin Portal for IT admins) | Supported, but historically very expensive to unlock |\n| **SCIM / Directory Sync** | Basic / Emerging | **Industry gold standard** (syncs users/groups from Okta, Azure AD, etc.) | Available (Okta / Enterprise add-on) |\n| **Multi-Tenancy / Orgs** | Built-in organization architecture & switcher | Deep multi-tenant org model built for B2B | Supported via \"Organizations\", but harder to configure |\n| **Customization** | Great for UI styling; backend hooks/webhooks | API-first; headless flexibility | Extremely flexible via Auth0 Actions (Node.js runtime) |\n\n---\n\n### 1. Clerk: Best for Modern Developer Experience & Turnkey UI\n\nClerk was built from the ground up for modern frontend frameworks (Next.js, Remix, Astro, React, Expo). It treats user management and session management as frontend-first primitives.\n\n* **Strengths:**\n  * **Drop-in UI:** Beautiful, accessible, fully customizable pre-built components (sign-in, sign-up, user profile, MFA, organization switchers).\n  * **Built-in Session & Token Management:** Handles edge-compatible JWT verification, active sessions, and multi-session user switching out of the box.\n  * **Organizations & RBAC:** Native support for B2B multi-tenancy, team invites, and role-based permissions directly in their UI components.\n* **Trade-offs:**\n  * While it offers Enterprise SSO, deep enterprise IT features (like SCIM directory sync or self-serve IT admin portals) are less mature than WorkOS.\n  * Heavily biased toward modern web/mobile JavaScript stacks.\n\n---\n\n### 2. WorkOS: Best for B2B SaaS Selling to Enterprises\n\nWorkOS positions itself as the operating system for B2B SaaS. It is engineered specifically to help startups check the enterprise-readiness boxes (SSO, SCIM, Audit Logs, RBAC) required by corporate IT departments.\n\n* **Strengths:**\n  * **Self-Serve Admin Portal:** WorkOS generates a white-label onboarding link that you send to your customer’s IT admin (e.g., in Okta, Microsoft Entra ID, Google Workspace) so they can configure SAML/SCIM themselves without your engineering team's involvement.\n  * **SCIM Directory Sync:** Real-time provisioning and de-provisioning of employees when they join or leave a company.\n  * **AuthKit:** A modern, headless or hosted auth UI (built with Radix UI) that makes standard auth just as easy as enterprise auth.\n  * **Fine-Grained Authorization (FGA):** Relationship-based access control (ReBAC) built on Google Zanzibar concepts.\n* **Trade-offs:**\n  * Less geared toward purely consumer (B2C) applications with massive volumes of free users.\n\n---\n\n### 3. Auth0 (by Okta): Best for Universal & Legacy Enterprise Identity\n\nAuth0 is the veteran in the space. Acquired by Okta, it remains one of the most flexible and widely adopted identity platforms globally.\n\n* **Strengths:**\n  * **Protocol Coverage:** Supports virtually any identity standard (OAuth 2.0, OpenID Connect, SAML, WS-Fed, LDAP, social logins).\n  * **Extensibility with Actions:** You can write arbitrary Node.js code at almost any step of the login pipeline to enrich tokens, call external APIs, or block suspicious logins.\n  * **Compliance & Scale:** Battle-tested at massive scale with enterprise compliance certifications (HIPAA, SOC 2, ISO, PCI-DSS).\n* **Trade-offs:**\n  * **Pricing Model:** Known for steep price jumps. Upgrading to include enterprise connections (SAML) or higher MAU tiers often requires custom enterprise contracts.\n  * **Developer Experience:** The dashboard and configuration model can be overwhelming compared to newer, opinionated tools like Clerk and WorkOS.\n  * **UI Flexibility:** Customizing Auth0’s Universal Login feels dated compared to native React components.\n\n---\n\n### Which one should you pick?\n\n1. **Pick Clerk if:**\n   * You are building a consumer app or an early-to-mid stage B2B app.\n   * You are using Next.js, React, or modern JS frameworks.\n   * You don't want to design or build sign-in/user-profile screens yourself.\n\n2. **Pick WorkOS if:**\n   * You are building a B2B SaaS product and enterprise customers are asking: *\"Do you support SAML SSO and SCIM?\"*\n   * You want enterprise IT setup to be self-serve for your clients.\n   * You want modular building blocks (you can even pair WorkOS SSO with your existing custom auth).\n\n3. **Pick Auth0 if:**\n   * You have complex enterprise requirements across diverse platforms (e.g., legacy backend systems, desktop apps, mobile, web).\n   * You require complex pipeline logic via custom code during the authentication flow.\n   * Your procurement team prefers Okta-backed infrastructure.",
           "overview": null,
           "mentioned": ["Clerk", "Auth0", "WorkOS", "Okta"],
           "sources": [],
@@ -8063,8 +8212,45 @@
               {
                 "type": "list",
                 "items": [
-                  { "text": "Supabase Auth (GoTrue)", "refs": [0, 1, 2, 3, 4] },
-                  { "text": "Firebase Auth", "refs": [] }
+                  { "text": "Supabase Auth (GoTrue)", "refs": [0, 1, 2, 3, 4] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: PostgreSQL projects, tightly coupled data security, and open-source control.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pros: User data lives directly inside your Postgres database (auth.users), making it seamless to write database queries and RLS policies. Supports email, magic links, phone, and standard OAuth providers (Google, Apple, GitHub, Discord, Slack).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Cons: Slightly less mature ecosystem for fringe or legacy identity providers compared to Google.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Firebase Auth", "refs": [] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Rapid mobile prototyping, heavy multi-provider requirements, or existing Google-centric stacks.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Pros: Extremely mature (decade-tested) with extensive built-in support for anonymous auth, game center, Microsoft, Yahoo, phone/SMS, and complex multi-factor authentication (MFA) flows.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Cons: Decoupled from your actual database rules/storage (if you aren't using Firestore), making security rule mapping an extra step if pairing with an external database.",
+                    "refs": []
+                  }
                 ]
               },
               { "type": "heading", "text": "Which one should you pick?" },
@@ -9075,7 +9261,7 @@
         },
         {
           "engine": "gemini",
-          "text": "Migrating existing users between authentication providers is a critical task where the biggest challenge is handling **passwords and credentials** securely. Because passwords are (or should be) hashed and salted, you cannot simply read them in plaintext.\n\nHere is a comprehensive guide to planning and executing an auth migration.\n\n---\n\n### Step 1: Audit Your Current User Data\n\nBefore deciding on a strategy, check what data you currently store and what the target provider accepts:\n\n1. **Password Hashing Algorithm:**\n   * What algorithm are you using? (e.g., `bcrypt`, `Argon2`, `PBKDF2`, `scrypt`, or custom SHA-256 + salt).\n   * Does your new provider support importing these exact hashes? (e.g., Auth0, Firebase, Supabase, Cognito, and Keycloak support importing many standard algorithms).\n2. **Social / Federated Logins (Google, Apple, GitHub, etc.):**\n   * Can you link these via verified email addresses, or do you need to map provider IDs (`sub` / subject IDs)?\n3. **Multi-Factor Authentication (MFA):**\n   * TOTP secrets and SMS configurations are often non-exportable for compliance/security reasons. Users will usually need to re-enroll in MFA.\n4. **User Metadata & Roles:**\n   * Map custom profile fields, permissions, tenant IDs, and RBAC roles to the new provider’s schema.\n\n---\n\n### Step 2: Choose a Migration Strategy\n\nThere are three primary strategies. **Hybrid/Lazy migration** and **Bulk hash import** are the most common.\n\n```\n       ┌─────────────────────────┐\n       │ Can you export hashes   │\n       │ & does target support   │\n       │       them?             │\n       └────────────┬────────────┘\n                    │\n         Yes ───────┴─────── No\n          │                  │\n          ▼                  ▼\n┌──────────────────┐   ┌───────────────────────────┐\n│ Bulk Hash Import │   │ Lazy / Just-In-Time (JIT) │\n│ (Instant Cutover)│   │ Migration                 │\n└──────────────────┘   └───────────────────────────┘\n```\n\n#### Strategy A: Just-in-Time (Lazy / Trickle) Migration *(Recommended if hashes can’t be imported)*\nThis allows users to migrate transparently without ever having to reset their passwords.\n\n* **How it works:**\n  1. Export non-sensitive user metadata (emails, names, roles) to the new provider.\n  2. When a user attempts to log in, route the request to your backend or a custom migration webhook in the new provider.\n  3. Attempt authentication against the **new provider**.\n  4. If the user doesn't exist or authentication fails, attempt authentication against the **old provider** with the plaintext password provided in the login form.\n  5. If the old provider verifies the credentials:\n     * Create/update the user in the new provider with the plaintext password (which gets hashed using the new provider's algorithm).\n     * Mark the user as migrated in your database.\n  6. Issue tokens from the new provider.\n* **Pros:** Zero user friction; no forced password resets.\n* **Cons:** Takes time (e.g., 30–90 days). You must maintain the legacy auth service during this period. Any user who never logs in during the window will eventually have to do a password reset when you shut down the old provider.\n\n#### Strategy B: Bulk Hash Import *(Best for fast cutovers)*\nIf your new provider supports your legacy hashing algorithm:\n\n* **How it works:**\n  1. Export user records along with password hashes and salts.\n  2. Transform the data into the target provider's schema (JSON/CSV).\n  3. Bulk-import the users via the new provider’s Admin API.\n  4. Flip your frontend and backend to use the new provider immediately.\n* **Pros:** Instant, clean cutover; legacy provider can be decommissioned right away.\n* **Cons:** Requires target support for your exact algorithm, salt format, and iteration count.\n\n#### Strategy C: Bulk Import with Forced Password Reset *(Fallback)*\nIf you cannot export hashes, the target provider doesn't support the algorithm, and JIT migration isn't technically feasible:\n\n* **How it works:**\n  1. Bulk import user identities (email, profile, roles) with a randomized/disabled password.\n  2. Send users a branded email asking them to set a new password, or trigger a \"Password Reset Required\" flow upon their next login attempt.\n* **Pros:** Very simple to implement.\n* **Cons:** High user friction, dropped engagement, and potential support tickets.\n\n---\n\n### Step 3: Handle Tricky Edge Cases\n\n* **Active Sessions:** An auth provider switch will invalidate existing access/refresh tokens. Plan a maintenance window or prepare for users having to log in once after the cutover.\n* **Social / OAuth Users:**\n  * For users logging in with Google, GitHub, etc., you do not need password hashes.\n  * Ensure the new provider is configured to **auto-link** accounts by verified email, or handle linking when they first log in via OAuth.\n* **MFA / 2FA Reset:**\n  * If TOTP seeds cannot be migrated, set a flag prompting the user to set up 2FA immediately upon their first successful login to the new provider.\n* **Internal User IDs (UUIDs):**\n  * Your database likely references users by the old provider’s `sub` / `user_id`.\n  * Store the old `user_id` as metadata/custom attribute in the new provider, or add a mapping column in your database (`legacy_id` vs `new_id`) to avoid rewriting foreign keys across your entire database.\n\n---\n\n### Step 4: Step-by-Step Execution Plan\n\n1. **Sandbox Testing:**\n   * Export a subset of 10–20 test accounts with various configurations (email/pass, social login, MFA).\n   * Test the login and token validation in staging.\n2. **Backend Token Verification Update:**\n   * Update your API gateway or backend to accept tokens signed by **both** the old and new providers (e.g., verifying against two JWKS endpoints) during the transition.\n3. **Initiate Migration:**\n   * If JIT: Deploy the proxy/fallback logic and monitor the migration rate over weeks.\n   * If Bulk: Run the import script during low-traffic hours.\n4. **Switch Frontend Auth:**\n   * Point the login/signup UI components to the",
+          "text": "Migrating existing users between authentication providers is a critical task where the biggest challenge is handling **passwords and credentials** securely. Because passwords are (or should be) hashed and salted, you cannot simply read them in plaintext.\n\nHere is a comprehensive guide to planning and executing an auth migration.\n\n---\n\n### Step 1: Audit Your Current User Data\n\nBefore deciding on a strategy, check what data you currently store and what the target provider accepts:\n\n1. **Password Hashing Algorithm:**\n   * What algorithm are you using? (e.g., `bcrypt`, `Argon2`, `PBKDF2`, `scrypt`, or custom SHA-256 + salt).\n   * Does your new provider support importing these exact hashes? (e.g., Auth0, Firebase, Supabase, Cognito, and Keycloak support importing many standard algorithms).\n2. **Social / Federated Logins (Google, Apple, GitHub, etc.):**\n   * Can you link these via verified email addresses, or do you need to map provider IDs (`sub` / subject IDs)?\n3. **Multi-Factor Authentication (MFA):**\n   * TOTP secrets and SMS configurations are often non-exportable for compliance/security reasons. Users will usually need to re-enroll in MFA.\n4. **User Metadata & Roles:**\n   * Map custom profile fields, permissions, tenant IDs, and RBAC roles to the new provider’s schema.\n\n---\n\n### Step 2: Choose a Migration Strategy\n\nThere are three primary strategies. **Hybrid/Lazy migration** and **Bulk hash import** are the most common.\n\n```\n       ┌─────────────────────────┐\n       │ Can you export hashes   │\n       │ & does target support   │\n       │       them?             │\n       └────────────┬────────────┘\n                    │\n         Yes ───────┴─────── No\n          │                  │\n          ▼                  ▼\n┌──────────────────┐   ┌───────────────────────────┐\n│ Bulk Hash Import │   │ Lazy / Just-In-Time (JIT) │\n│ (Instant Cutover)│   │ Migration                 │\n└──────────────────┘   └───────────────────────────┘\n```\n\n#### Strategy A: Just-in-Time (Lazy / Trickle) Migration *(Recommended if hashes can’t be imported)*\nThis allows users to migrate transparently without ever having to reset their passwords.\n\n* **How it works:**\n  1. Export non-sensitive user metadata (emails, names, roles) to the new provider.\n  2. When a user attempts to log in, route the request to your backend or a custom migration webhook in the new provider.\n  3. Attempt authentication against the **new provider**.\n  4. If the user doesn't exist or authentication fails, attempt authentication against the **old provider** with the plaintext password provided in the login form.\n  5. If the old provider verifies the credentials:\n     * Create/update the user in the new provider with the plaintext password (which gets hashed using the new provider's algorithm).\n     * Mark the user as migrated in your database.\n  6. Issue tokens from the new provider.\n* **Pros:** Zero user friction; no forced password resets.\n* **Cons:** Takes time (e.g., 30–90 days). You must maintain the legacy auth service during this period. Any user who never logs in during the window will eventually have to do a password reset when you shut down the old provider.\n\n#### Strategy B: Bulk Hash Import *(Best for fast cutovers)*\nIf your new provider supports your legacy hashing algorithm:\n\n* **How it works:**\n  1. Export user records along with password hashes and salts.\n  2. Transform the data into the target provider's schema (JSON/CSV).\n  3. Bulk-import the users via the new provider’s Admin API.\n  4. Flip your frontend and backend to use the new provider immediately.\n* **Pros:** Instant, clean cutover; legacy provider can be decommissioned right away.\n* **Cons:** Requires target support for your exact algorithm, salt format, and iteration count.\n\n#### Strategy C: Bulk Import with Forced Password Reset *(Fallback)*\nIf you cannot export hashes, the target provider doesn't support the algorithm, and JIT migration isn't technically feasible:\n\n* **How it works:**\n  1. Bulk import user identities (email, profile, roles) with a randomized/disabled password.\n  2. Send users a branded email asking them to set a new password, or trigger a \"Password Reset Required\" flow upon their next login attempt.\n* **Pros:** Very simple to implement.\n* **Cons:** High user friction, dropped engagement, and potential support tickets.\n\n---\n\n### Step 3: Handle Tricky Edge Cases\n\n* **Active Sessions:** An auth provider switch will invalidate existing access/refresh tokens. Plan a maintenance window or prepare for users having to log in once after the cutover.\n* **Social / OAuth Users:**\n  * For users logging in with Google, GitHub, etc., you do not need password hashes.\n  * Ensure the new provider is configured to **auto-link** accounts by verified email, or handle linking when they first log in via OAuth.\n* **MFA / 2FA Reset:**\n  * If TOTP seeds cannot be migrated, set a flag prompting the user to set up 2FA immediately upon their first successful login to the new provider.\n* **Internal User IDs (UUIDs):**\n  * Your database likely references users by the old provider’s `sub` / `user_id`.\n  * Store the old `user_id` as metadata/custom attribute in the new provider, or add a mapping column in your database (`legacy_id` vs `new_id`) to avoid rewriting foreign keys across your entire database.\n\n---\n\n### Step 4: Step-by-Step Execution Plan\n\n1. **Sandbox Testing:**\n   * Export a subset of 10–20 test accounts with various configurations (email/pass, social login, MFA).\n   * Test the login and token validation in staging.\n2. **Backend Token Verification Update:**\n   * Update your API gateway or backend to accept tokens signed by **both** the old and new providers (e.g., verifying against two JWKS endpoints) during the transition.\n3. **Initiate Migration:**\n   * If JIT: Deploy the proxy/fallback logic and monitor the migration rate over weeks.\n   * If Bulk: Run the import script during low-traffic hours.\n4. **Switch Frontend Auth:**\n   * Point the login/signup UI components to the new provider.\n5. **Sunset Legacy Provider:**\n   * For JIT: Once the bulk of active users have migrated (e.g., after 60 days), bulk-import the remaining inactive users with disabled passwords and trigger password reset flows for them if they return.\n   * Decommission the old provider and remove legacy token verification from your backend.\n\n---\n\n### Tell me more about your stack:\nIf you want a more specific implementation plan or sample code:\n1. What is your **source** provider (e.g., custom PostgreSQL DB, Cognito, Auth0, Firebase)?\n2. What is your **target** provider (e.g., Clerk, Supabase, Auth0, Keycloak)?\n3. Can you export the password hashes and salts?",
           "overview": null,
           "mentioned": [
             "Auth0",
@@ -9588,6 +9774,99 @@
               {
                 "type": "heading",
                 "text": "Deep Dive: Which one should you pick?"
+              },
+              {
+                "type": "heading",
+                "text": "1. Better Auth — The New Modern Default"
+              },
+              {
+                "type": "paragraph",
+                "text": "If you want to maintain full control of your user data without paying recurring subscription fees, Better Auth has quickly become the primary open-source recommendation.",
+                "refs": [2, 3]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Why it shines: It is deeply optimized for the Next.js App Router, Server Actions, and TypeScript. Unlike older libraries, complex features like multi-factor authentication (MFA), Passkeys, and organization/team management are built natively into the core package instead of requiring fragile plugins .",
+                    "refs": [2, 4]
+                  },
+                  {
+                    "text": "Database requirement: You must connect your own database adapter (such as Prisma or Drizzle ORM paired with PostgreSQL or SQLite).",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "2. Clerk — The \"It Just Works\" Option"
+              },
+              {
+                "type": "paragraph",
+                "text": "If you have a budget and want to completely offload authentication management so you can focus entirely on building your core app features, Clerk is unmatched.",
+                "refs": [0, 6]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Why it shines: It provides ready-to-use, customizable frontend components (<SignIn /> , <UserProfile />) that handle the entire visual user experience. Furthermore, as users noted on Reddit, Clerk handles the backend infrastructure of sending transactional emails (like password resets and OTP verification codes) out-of-the-box.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "3. Auth.js (Formerly NextAuth.js) — The Battle-Tested Veteran"
+              },
+              {
+                "type": "paragraph",
+                "text": "If your application requires extensive social login options (such as signing in with Apple, Google, GitHub, Discord, etc.) and you want an open-source library backed by a massive history of community support, use Auth.js.",
+                "refs": [0, 4, 7]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Why it shines: It supports more than 50 decentralized OAuth providers and handles session encryption smoothly.",
+                    "refs": [7, 8]
+                  },
+                  {
+                    "text": "Note on implementation: Ensure you are explicitly reading the newer v5 beta documentation if you are building on a modern Next.js App Router setup, as legacy v4 tutorials will cause implementation friction .",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "heading",
+                "text": "4. Honorable Mention: Backend-as-a-Service (BaaS)"
+              },
+              {
+                "type": "paragraph",
+                "text": "If your application infrastructure is already integrated into an ecosystem like Supabase, Firebase, or Appwrite, do not install a separate library. Instead, default to using their built-in authentication services to leverage native database rules and API integrations seamlessly .",
+                "refs": [3]
+              },
+              {
+                "type": "paragraph",
+                "text": "To help tailor a recommendation, tell me:",
+                "refs": []
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "What database or (e.g., Prisma, Drizzle, Supabase) are you planning to use?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Do you need pre-built UI screens, or are you planning to code your own forms?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Is this a hobby project or a commercial application that requires advanced features like multi-tenant organizations?",
+                    "refs": []
+                  }
+                ]
               }
             ],
             "references": [
@@ -9713,7 +9992,33 @@
             }
           ],
           "searchQueries": [],
-          "highlights": [],
+          "highlights": [
+            {
+              "brand": "Better Auth",
+              "text": "Better Auth — The New Modern Default",
+              "match": "Better Auth"
+            },
+            {
+              "brand": "Clerk",
+              "text": "Clerk — The \"It Just Works\" Option",
+              "match": "Clerk"
+            },
+            {
+              "brand": "Auth.js",
+              "text": "Auth.js (Formerly NextAuth.js) — The Battle-Tested Veteran",
+              "match": "Auth.js"
+            },
+            {
+              "brand": "Supabase Auth",
+              "text": "If your application infrastructure is already integrated into an ecosystem like Supabase, Firebase, or Appwrite, do not install a separate library.",
+              "match": "Supabase"
+            },
+            {
+              "brand": "Firebase Authentication",
+              "text": "If your application infrastructure is already integrated into an ecosystem like Supabase, Firebase, or Appwrite, do not install a separate library.",
+              "match": "Firebase"
+            }
+          ],
           "collectedAt": "2026-10-07T15:41:04.379Z"
         }
       ]
@@ -10155,7 +10460,7 @@
       "responses": [
         {
           "engine": "chatgpt",
-          "text": "The current recommended approach is **Google Identity Services (GIS)**. Avoid older tutorials using `gapi.auth2` or the deprecated Google Sign-In library. GIS returns a Google ID token, which your backend must verify before creating an application session. \n\n## 1. Create a Google OAuth client\n\nIn Google Cloud Console:\n\n1. Create or select a project.\n2. Configure the **OAuth consent screen/branding**.\n3. Create an **OAuth client ID** with application type **Web application**.\n4. Add your frontend URLs under **Authorized JavaScript origins**, for example:\n   - `http://localhost:5173` for Vite\n   - `http://localhost:3000` for Create React App\n   - Your production domain\n\nCopy the resulting client ID. It should look like:\n\n```text\n1234567890-abc123.apps.googleusercontent.com\n```\n\nA web client ID is required both to initialize Google Sign-In and to verify the returned token on your backend. \n\n---\n\n## 2. Add the Google script\n\nAdd this inside your React app’s `index.html`:\n\n```html\n<script src=\"https://accounts.google.com/gsi/client\" async></script>\n```\n\nGoogle recommends loading this script directly from its URL rather than self-hosting it. \n\n---\n\n## 3. Add your client ID to the environment\n\nFor a Vite app, create `.env`:\n\n```env\nVITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nFor Create React App, use:\n\n```env\nREACT_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nRestart your development server after changing environment variables.\n\n---\n\n## 4. Create the React login component\n\n```jsx\nimport { useEffect, useRef } from \"react\";\n\nexport default function GoogleLogin() {\n  const buttonRef = useRef(null);\n\n  useEffect(() => {\n    function initializeGoogle() {\n      if (!window.google || !buttonRef.current) return;\n\n      window.google.accounts.id.initialize({\n        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,\n        callback: handleGoogleResponse,\n      });\n\n      // Prevent duplicate buttons during React Strict Mode development.\n      buttonRef.current.innerHTML = \"\";\n\n      window.google.accounts.id.renderButton(buttonRef.current, {\n        theme: \"outline\",\n        size: \"large\",\n        text: \"signin_with\",\n        shape: \"rectangular\",\n      });\n    }\n\n    if (window.google) {\n      initializeGoogle();\n    } else {\n      const interval = setInterval(() => {\n        if (window.google) {\n          clearInterval(interval);\n          initializeGoogle();\n        }\n      }, 100);\n\n      return () => clearInterval(interval);\n    }\n  }, []);\n\n  async function handleGoogleResponse(response) {\n    try {\n      const result = await fetch(\"http://localhost:3001/auth/google\", {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n        },\n        credentials: \"include\",\n        body: JSON.stringify({\n          credential: response.credential,\n        }),\n      });\n\n      if (!result.ok) {\n        throw new Error(\"Google login failed\");\n      }\n\n      const data = await result.json();\n      console.log(\"Logged in user:\", data.user);\n    } catch (error) {\n      console.error(error);\n    }\n  }\n\n  return <div ref={buttonRef} />;\n}\n```\n\nThen use it:\n\n```jsx\nimport GoogleLogin from \"./GoogleLogin\";\n\nfunction App() {\n  return (\n    <main>\n      <h1>Sign in</h1>\n      <GoogleLogin />\n    </main>\n  );\n}\n\nexport default App;\n```\n\nIf you use Create React App, replace:\n\n```js\nimport.meta.env.VITE_GOOGLE_CLIENT_ID\n```\n\nwith:\n\n```js\nprocess.env.REACT_APP_GOOGLE_CLIENT_ID\n```\n\nGoogle requires the official button to be rendered by its library rather than implementing a custom button that programmatically starts the flow. \n\n---\n\n## 5. Verify the token on your backend\n\nNever trust a token merely because the frontend received it. Send it to your backend and verify its signature, audience, issuer, and expiration. \n\nFor an Express backend:\n\n```bash\nnpm install express cors express-session google-auth-library dotenv\n```\n\nCreate `server.js`:\n\n```js\nimport \"dotenv/config\";\nimport express from \"express\";\nimport cors from \"cors\";\nimport session from \"express-session\";\nimport { OAuth2Client } from \"google-auth-library\";\n\nconst app = express();\nconst googleClient = new OAuth2Client();\n\napp.use(\n  cors({\n    origin: \"http://localhost:5173\",\n    credentials: true,\n  })\n);\n\napp.use(express.json());\n\napp.use(\n  session({\n    secret: process.env.SESSION_SECRET,\n    resave: false,\n    saveUninitialized: false,\n    cookie: {\n      httpOnly: true,\n      secure: false, // Set true when using HTTPS in production.\n      sameSite: \"lax\",\n      maxAge: 1000 * 60 * 60 * 24 * 7,\n    },\n  })\n);\n\napp.post(\"/auth/google\", async (req, res) => {\n  try {\n    const { credential } = req.body;\n\n    if (!credential) {\n      return res.status(400).json({ error: \"Missing Google credential\" });\n    }\n\n    const ticket = await googleClient.verifyIdToken({\n      idToken: credential,\n      audience: process.env.GOOGLE_CLIENT_ID,\n    });\n\n    const payload = ticket.getPayload();\n\n    const googleUser = {\n      googleId: payload.sub,\n      email: payload.email,\n      name: payload.name,\n      picture: payload.picture,\n    };\n\n    /*\n      Find or create the user in your database here.\n\n      Important: use payload.sub as the stable Google account ID,\n      rather than using the email as the primary identifier.\n    */\n\n    req.session.user = googleUser;\n\n    res.json({\n      user: googleUser,\n    });\n  } catch (error) {\n    console.error(error);\n    res.status(401).json({ error: \"Invalid Google credential\" });\n  }\n});\n\napp.get(\"/auth/me\", (req, res) => {\n  if (!req.session.user) {\n    return res.status(401).json({ user: null });\n  }\n\n  res.json({ user: req.session.user });\n});\n\napp.post(\"/auth/logout\", (req, res) => {\n  req.session.destroy(() => {\n    res.clearCookie(\"connect.sid\");\n    res.status(204).end();\n  });\n});\n\napp.listen(3001, () => {\n  console.log(\"API running on port 3001\");\n});\n```\n\nBackend `.env`:\n\n```env\nGOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\nSESS",
+          "text": "The current recommended approach is **Google Identity Services (GIS)**. Avoid older tutorials using `gapi.auth2` or the deprecated Google Sign-In library. GIS returns a Google ID token, which your backend must verify before creating an application session. \n\n## 1. Create a Google OAuth client\n\nIn Google Cloud Console:\n\n1. Create or select a project.\n2. Configure the **OAuth consent screen/branding**.\n3. Create an **OAuth client ID** with application type **Web application**.\n4. Add your frontend URLs under **Authorized JavaScript origins**, for example:\n   - `http://localhost:5173` for Vite\n   - `http://localhost:3000` for Create React App\n   - Your production domain\n\nCopy the resulting client ID. It should look like:\n\n```text\n1234567890-abc123.apps.googleusercontent.com\n```\n\nA web client ID is required both to initialize Google Sign-In and to verify the returned token on your backend. \n\n---\n\n## 2. Add the Google script\n\nAdd this inside your React app’s `index.html`:\n\n```html\n<script src=\"https://accounts.google.com/gsi/client\" async></script>\n```\n\nGoogle recommends loading this script directly from its URL rather than self-hosting it. \n\n---\n\n## 3. Add your client ID to the environment\n\nFor a Vite app, create `.env`:\n\n```env\nVITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nFor Create React App, use:\n\n```env\nREACT_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\n```\n\nRestart your development server after changing environment variables.\n\n---\n\n## 4. Create the React login component\n\n```jsx\nimport { useEffect, useRef } from \"react\";\n\nexport default function GoogleLogin() {\n  const buttonRef = useRef(null);\n\n  useEffect(() => {\n    function initializeGoogle() {\n      if (!window.google || !buttonRef.current) return;\n\n      window.google.accounts.id.initialize({\n        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,\n        callback: handleGoogleResponse,\n      });\n\n      // Prevent duplicate buttons during React Strict Mode development.\n      buttonRef.current.innerHTML = \"\";\n\n      window.google.accounts.id.renderButton(buttonRef.current, {\n        theme: \"outline\",\n        size: \"large\",\n        text: \"signin_with\",\n        shape: \"rectangular\",\n      });\n    }\n\n    if (window.google) {\n      initializeGoogle();\n    } else {\n      const interval = setInterval(() => {\n        if (window.google) {\n          clearInterval(interval);\n          initializeGoogle();\n        }\n      }, 100);\n\n      return () => clearInterval(interval);\n    }\n  }, []);\n\n  async function handleGoogleResponse(response) {\n    try {\n      const result = await fetch(\"http://localhost:3001/auth/google\", {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n        },\n        credentials: \"include\",\n        body: JSON.stringify({\n          credential: response.credential,\n        }),\n      });\n\n      if (!result.ok) {\n        throw new Error(\"Google login failed\");\n      }\n\n      const data = await result.json();\n      console.log(\"Logged in user:\", data.user);\n    } catch (error) {\n      console.error(error);\n    }\n  }\n\n  return <div ref={buttonRef} />;\n}\n```\n\nThen use it:\n\n```jsx\nimport GoogleLogin from \"./GoogleLogin\";\n\nfunction App() {\n  return (\n    <main>\n      <h1>Sign in</h1>\n      <GoogleLogin />\n    </main>\n  );\n}\n\nexport default App;\n```\n\nIf you use Create React App, replace:\n\n```js\nimport.meta.env.VITE_GOOGLE_CLIENT_ID\n```\n\nwith:\n\n```js\nprocess.env.REACT_APP_GOOGLE_CLIENT_ID\n```\n\nGoogle requires the official button to be rendered by its library rather than implementing a custom button that programmatically starts the flow. \n\n---\n\n## 5. Verify the token on your backend\n\nNever trust a token merely because the frontend received it. Send it to your backend and verify its signature, audience, issuer, and expiration. \n\nFor an Express backend:\n\n```bash\nnpm install express cors express-session google-auth-library dotenv\n```\n\nCreate `server.js`:\n\n```js\nimport \"dotenv/config\";\nimport express from \"express\";\nimport cors from \"cors\";\nimport session from \"express-session\";\nimport { OAuth2Client } from \"google-auth-library\";\n\nconst app = express();\nconst googleClient = new OAuth2Client();\n\napp.use(\n  cors({\n    origin: \"http://localhost:5173\",\n    credentials: true,\n  })\n);\n\napp.use(express.json());\n\napp.use(\n  session({\n    secret: process.env.SESSION_SECRET,\n    resave: false,\n    saveUninitialized: false,\n    cookie: {\n      httpOnly: true,\n      secure: false, // Set true when using HTTPS in production.\n      sameSite: \"lax\",\n      maxAge: 1000 * 60 * 60 * 24 * 7,\n    },\n  })\n);\n\napp.post(\"/auth/google\", async (req, res) => {\n  try {\n    const { credential } = req.body;\n\n    if (!credential) {\n      return res.status(400).json({ error: \"Missing Google credential\" });\n    }\n\n    const ticket = await googleClient.verifyIdToken({\n      idToken: credential,\n      audience: process.env.GOOGLE_CLIENT_ID,\n    });\n\n    const payload = ticket.getPayload();\n\n    const googleUser = {\n      googleId: payload.sub,\n      email: payload.email,\n      name: payload.name,\n      picture: payload.picture,\n    };\n\n    /*\n      Find or create the user in your database here.\n\n      Important: use payload.sub as the stable Google account ID,\n      rather than using the email as the primary identifier.\n    */\n\n    req.session.user = googleUser;\n\n    res.json({\n      user: googleUser,\n    });\n  } catch (error) {\n    console.error(error);\n    res.status(401).json({ error: \"Invalid Google credential\" });\n  }\n});\n\napp.get(\"/auth/me\", (req, res) => {\n  if (!req.session.user) {\n    return res.status(401).json({ user: null });\n  }\n\n  res.json({ user: req.session.user });\n});\n\napp.post(\"/auth/logout\", (req, res) => {\n  req.session.destroy(() => {\n    res.clearCookie(\"connect.sid\");\n    res.status(204).end();\n  });\n});\n\napp.listen(3001, () => {\n  console.log(\"API running on port 3001\");\n});\n```\n\nBackend `.env`:\n\n```env\nGOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com\nSESSION_SECRET=replace-this-with-a-long-random-secret\n```\n\nGoogle specifically recommends using the token’s `sub` claim as the unique Google account identifier. Email addresses should not be treated as the stable primary identifier. \n\n---\n\n## 6. Production checklist\n\n- Use HTTPS.\n- Set the session cookie’s `secure` option to `true`.\n- Use a persistent session store such as Redis or a database; Express’s default memory store is not suitable for production.\n- Restrict CORS to your actual frontend domain.\n- Keep the Google client ID public, but keep session secrets and database credentials on the backend.\n- Do not decode the Google JWT on the frontend and treat it as verified.\n- Create your own application session after backend verification.\n- If the frontend and API are on unrelated domains, configure `SameSite=None; Secure` and add appropriate CSRF protection.\n\nAlso note that Google authentication only identifies the user. If you later need access to Google APIs such as Calendar or Drive, that requires a separate authorization flow and additional scopes.",
           "overview": null,
           "mentioned": [],
           "sources": [

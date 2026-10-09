@@ -43,7 +43,7 @@
       "label": "AI Overview",
       "model": "google/ai-overview",
       "answers": 18,
-      "brandsPerAnswer": 4.4,
+      "brandsPerAnswer": 4.3,
       "sourcesPerAnswer": 6.8
     }
   ],
@@ -172,15 +172,15 @@
       "name": "DigitalOcean",
       "domain": "digitalocean.com",
       "rank": 8,
-      "visibility": 38,
+      "visibility": 37,
       "topPick": 4,
       "ownSiteCited": 14,
       "byEngine": {
         "chatgpt": 23,
         "claude": 54,
         "gemini": 62,
-        "perplexity": 9,
-        "ai-overview": 44
+        "perplexity": 6,
+        "ai-overview": 39
       },
       "delta": null
     },
@@ -330,7 +330,7 @@
         "AWS": 25,
         "Google Cloud": 23,
         "Azure": 14,
-        "DigitalOcean": 23,
+        "DigitalOcean": 22,
         "Netlify": 21,
         "Cloudflare": 12,
         "Firebase": 11,
@@ -961,14 +961,7 @@
               }
             ]
           },
-          "mentioned": [
-            "Fly.io",
-            "DigitalOcean",
-            "Vercel",
-            "Netlify",
-            "AWS",
-            "Azure"
-          ],
+          "mentioned": ["Fly.io", "Vercel", "Netlify", "AWS", "Azure"],
           "sources": [
             {
               "url": "https://render.com/articles/how-to-deploy-full-stack-applications-without-devops-expertise",
@@ -1037,11 +1030,6 @@
               "brand": "Fly.io",
               "text": "Fly.io: Converts your application into a Docker container and deploys it globally close to your users.",
               "match": "Fly.io"
-            },
-            {
-              "brand": "DigitalOcean",
-              "text": "They also offer an automated App Platform if you prefer a managed environment.",
-              "match": "App Platform"
             },
             {
               "brand": "Vercel",
@@ -1567,12 +1555,103 @@
               },
               {
                 "type": "list",
+                "items": [{ "text": "Vercel", "refs": [0, 1] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Vercel", "refs": [0, 1] },
-                  { "text": "Coolify", "refs": [2] },
-                  { "text": "Render", "refs": [3] },
-                  { "text": "DigitalOcean (App Platform)", "refs": [] },
+                  {
+                    "text": "Best for: Frontend apps, React, and Next.js.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s great: Instant Git-based deployments, global edge network, and zero DevOps setup.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Trade-off: Can experience vendor lock-in and higher costs at scale.",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Coolify", "refs": [2] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Self-hosting Heroku alternatives with full data and infrastructure control.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s great: Open-source, Docker-integrated, Git-based deployment, and free if you host it yourself on your own server (or $5/month via Coolify Cloud).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Trade-off: You manage or monitor the underlying server health.",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Render", "refs": [3] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Full-stack web apps, APIs, and databases (popular modern Heroku replacement).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s great: Simple pipeline, automatic SSL, native databases, and a generous free/low-cost tier.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Trade-off: Cold starts can happen on lower-tier free web services.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "DigitalOcean (App Platform)", "refs": [] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Scalable cloud apps and microservices without raw AWS/GCP complexity.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s great: Predictable pricing, easy container support, and seamless migration paths to a full VPS if you outgrow the managed app tier.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Trade-off: Slightly more manual configuration than pure PaaS options like Vercel.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   { "text": "AWS / Google Cloud Platform (GCP)", "refs": [] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Enterprise-scale, high-traffic, or heavily customized infrastructure.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why it’s great: Maximum flexibility, virtually limitless services, and granular control.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Trade-off: Steep learning curve and complex billing.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -1643,6 +1722,11 @@
           "highlights": [
             { "brand": "Vercel", "text": "Vercel", "match": "Vercel" },
             { "brand": "Coolify", "text": "Coolify", "match": "Coolify" },
+            {
+              "brand": "Heroku",
+              "text": "Best for: Self-hosting Heroku alternatives with full data and infrastructure control.",
+              "match": "Heroku"
+            },
             { "brand": "Render", "text": "Render", "match": "Render" },
             {
               "brand": "DigitalOcean",
@@ -1651,13 +1735,13 @@
             },
             {
               "brand": "AWS",
-              "text": "AWS / Google Cloud Platform (GCP)",
+              "text": "Best for: Scalable cloud apps and microservices without raw AWS/GCP complexity.",
               "match": "AWS"
             },
             {
               "brand": "Google Cloud",
-              "text": "AWS / Google Cloud Platform (GCP)",
-              "match": "Google Cloud"
+              "text": "Best for: Scalable cloud apps and microservices without raw AWS/GCP complexity.",
+              "match": "GCP"
             }
           ],
           "collectedAt": "2026-10-07T15:28:10.373Z"
@@ -2653,11 +2737,70 @@
               },
               {
                 "type": "list",
+                "items": [{ "text": "Render:", "refs": [0, 1, 2, 3] }]
+              },
+              {
+                "type": "list",
                 "items": [
-                  { "text": "Render:", "refs": [0, 1, 2, 3] },
-                  { "text": "Railway:", "refs": [4, 5, 6] },
-                  { "text": "Trigger.dev:", "refs": [7] },
-                  { "text": "Northflank:", "refs": [] }
+                  {
+                    "text": "Features native, first-class background workers that run continuously and built-in cron jobs supporting execution times up to 12 hours (or longer via Render Workflows).",
+                    "refs": []
+                  },
+                  {
+                    "text": "Best for: Teams that want a managed Platform-as-a-Service (PaaS) with unified dashboards for databases, web services, and background tasks without managing infrastructure.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Railway:", "refs": [4, 5, 6] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Features infrastructure-like deployment via Git pushes with native support for background tasks, cron configurations, and Redis/Postgres datastores .",
+                    "refs": []
+                  },
+                  {
+                    "text": "Best for: Developers who want fast, modular setups with flexible usage-based billing.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Trigger.dev:", "refs": [7] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Code-first serverless background job platform built specifically for durable, long-running tasks (like multi-minute AI or LLM processing) that survive restarts and deployments .",
+                    "refs": []
+                  },
+                  {
+                    "text": "Best for: Complex event-driven architectures and heavy AI workflows where traditional server timeouts become a bottleneck.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Northflank:", "refs": [] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Advanced platform combining Git-to-deploy workflows with deep Kubernetes abstraction, supporting enterprise-grade isolation, governance, and custom scheduled jobs .",
+                    "refs": []
+                  },
+                  {
+                    "text": "Best for: Engineering teams needing granular resource control, secure sandboxing, or Bring-Your-Own-Cloud (BYOC) deployment.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -3293,13 +3436,69 @@
               {
                 "type": "list",
                 "items": [
-                  { "text": "Virtual Private Servers (VPS):", "refs": [1, 2] },
-                  { "text": "Dedicated Servers:", "refs": [2] },
+                  { "text": "Virtual Private Servers (VPS):", "refs": [1, 2] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Providers: Hetzner, DigitalOcean, Vultr, or Linode.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why: This is the most recommended and cost-effective approach for real-time/WebSocket traffic. You get full root access, unmetered or predictable bandwidth, and complete control over long-lived processes without sudden shutdown timeouts.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Dedicated Servers:", "refs": [2] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Providers: OVHcloud or similar bare-metal hosts.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Why: Ideal if your app scales to thousands of concurrent persistent connections and needs heavy CPU/bandwidth resources.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
                   {
                     "text": "Platform-as-a-Service (PaaS) with Long-Running Process Support:",
                     "refs": [1, 3, 4]
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Providers: Railway, Render, Fly.io, or Koyeb.",
+                    "refs": []
                   },
-                  { "text": "Heroku:", "refs": [] }
+                  {
+                    "text": "Why: They support persistent background processes, Docker containers, and WebSocket upgrades out-of-the-box. (Note: Ensure your health-check endpoint shares the same port/server as your HTTP/WebSocket handler so the platform doesn't mark the deployment unhealthy.)",
+                    "refs": []
+                  }
+                ]
+              },
+              { "type": "list", "items": [{ "text": "Heroku:", "refs": [] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Why: Has native, out-of-the-box support for WebSockets and long-lived Node.js/Python processes, though pricing tiers have shifted toward paid container dynos.",
+                    "refs": []
+                  }
                 ]
               },
               {
@@ -3454,6 +3653,31 @@
               "brand": "AWS",
               "text": "Deploying an app with WebSockets and long-running connections requires a server that supports stateful, persistent TCP connections rather than serverless functions or platforms with strict request timeouts (like Vercel or standard AWS Lambda).",
               "match": "AWS"
+            },
+            {
+              "brand": "Hetzner",
+              "text": "Providers: Hetzner, DigitalOcean, Vultr, or Linode.",
+              "match": "Hetzner"
+            },
+            {
+              "brand": "DigitalOcean",
+              "text": "Providers: Hetzner, DigitalOcean, Vultr, or Linode.",
+              "match": "DigitalOcean"
+            },
+            {
+              "brand": "Railway",
+              "text": "Providers: Railway, Render, Fly.io, or Koyeb.",
+              "match": "Railway"
+            },
+            {
+              "brand": "Render",
+              "text": "Providers: Railway, Render, Fly.io, or Koyeb.",
+              "match": "Render"
+            },
+            {
+              "brand": "Fly.io",
+              "text": "Providers: Railway, Render, Fly.io, or Koyeb.",
+              "match": "Fly.io"
             },
             { "brand": "Heroku", "text": "Heroku:", "match": "Heroku" }
           ],
@@ -4009,8 +4233,8 @@
         { "name": "Render", "domain": "render.com" },
         { "name": "Railway", "domain": "railway.com" },
         { "name": "Heroku", "domain": "heroku.com" },
-        { "name": "DigitalOcean", "domain": "digitalocean.com" },
         { "name": "Vercel", "domain": "vercel.com" },
+        { "name": "DigitalOcean", "domain": "digitalocean.com" },
         { "name": "AWS", "domain": "aws.amazon.com" },
         { "name": "Fly.io", "domain": "fly.io" },
         { "name": "Google Cloud", "domain": "cloud.google.com" },
@@ -4028,7 +4252,7 @@
         "Render": 39,
         "Railway": 38,
         "Heroku": 38,
-        "DigitalOcean": 34,
+        "DigitalOcean": 31,
         "Vercel": 33,
         "Fly.io": 17,
         "Cloudflare": 5,
@@ -8925,6 +9149,532 @@
       ]
     },
     {
+      "id": 14,
+      "prompt": "best self-hosted paas",
+      "topPick": { "name": "Coolify", "domain": "coolify.io" },
+      "brands": [
+        { "name": "Coolify", "domain": "coolify.io" },
+        { "name": "Heroku", "domain": "heroku.com" },
+        { "name": "Vercel", "domain": "vercel.com" },
+        { "name": "Render", "domain": "render.com" },
+        { "name": "Railway", "domain": "railway.com" },
+        { "name": "Netlify", "domain": "netlify.com" },
+        { "name": "AWS", "domain": "aws.amazon.com" },
+        { "name": "Google Cloud", "domain": "cloud.google.com" },
+        { "name": "Azure", "domain": "azure.microsoft.com" },
+        { "name": "Fly.io", "domain": "fly.io" },
+        { "name": "Cloudflare", "domain": "cloudflare.com" }
+      ],
+      "answers": 41,
+      "consensus": true,
+      "aiOverviewShown": true,
+      "mentions": {
+        "Coolify": 41,
+        "Vercel": 14,
+        "Render": 14,
+        "Heroku": 41,
+        "Railway": 11,
+        "Fly.io": 1,
+        "Netlify": 4,
+        "AWS": 3,
+        "Google Cloud": 3,
+        "Azure": 2,
+        "Cloudflare": 1
+      },
+      "firsts": { "Coolify": 38, "Heroku": 2, "Railway": 1 },
+      "responses": [
+        {
+          "engine": "chatgpt",
+          "text": "## Best self-hosted PaaS in 2026: **Coolify**\n\nFor most developers and small teams, **Coolify is the best overall choice**. It provides a polished dashboard, Git-based deployments, automatic HTTPS, databases, Docker Compose, preview environments, remote build/deployment servers, and hundreds of one-click service templates. Workloads remain standard Docker resources on your own infrastructure. \n\nIt is also Apache-2.0 licensed, with the self-hosted edition offering the complete feature set rather than reserving features for a paid tier. \n\n### Quick comparison\n\n| Platform | Best for | Main drawback |\n|---|---|---|\n| **Coolify** | Best overall; Vercel/Render-style GUI | Fast-moving project; upgrades deserve testing |\n| **Dokploy** | Docker Compose and Docker Swarm deployments | Enterprise features such as SSO, RBAC and audit logs are paid |\n| **CapRover** | Simple, established Docker Swarm hosting | Older UX; Compose support is incomplete/experimental |\n| **Dokku** | Minimal CLI-driven “mini-Heroku” | No first-class GUI; more manual/plugin-based |\n| **Kubero** | Teams already operating Kubernetes | Kubernetes complexity and overhead |\n\n### When to choose something else\n\n- **Choose Dokploy** if Docker Compose, remote servers and Docker Swarm clustering are central to your workflow. Its deployment model supports standalone servers, SSH-connected remote servers and replicated Swarm workloads. \n- **Choose CapRover** if you want a mature, relatively straightforward Docker Swarm platform. It handles clustering and load balancing well, although its direct Compose support implements only a subset of the specification. \n- **Choose Dokku** if you prefer deploying with `git push` and managing everything through SSH and CLI. Databases and other capabilities are added through plugins. \n- **Choose Kubero** if Kubernetes is already part of your infrastructure and you want a Heroku-like developer experience on top of it. \n\n## My practical recommendation\n\n1. Start with **Coolify** on a small dedicated control-plane VPS.\n2. Connect a separate deployment server for production workloads.\n3. Keep databases outside the PaaS—or at least maintain tested off-server backups.\n4. Pin versions and avoid automatic production upgrades.\n5. Use external uptime monitoring, regardless of platform.\n\n**Short answer:** Coolify for most users; Dokploy for Compose/Swarm-heavy setups; Kubero for Kubernetes organizations; Dokku for CLI minimalists.",
+          "overview": null,
+          "mentioned": ["Coolify", "Vercel", "Render", "Heroku"],
+          "sources": [
+            {
+              "url": "https://coolify.io/docs/core/what-is-coolify?utm_source=openai",
+              "title": "What is Coolify | Coolify Docs",
+              "domain": "coolify.io"
+            },
+            {
+              "url": "https://coolify.io/docs/core/selfhosted-cloud-comparison?utm_source=openai",
+              "title": "Self Hosted vs Coolify Cloud | Coolify Docs",
+              "domain": "coolify.io"
+            },
+            {
+              "url": "https://docs.dokploy.com/docs/core/features?utm_source=openai",
+              "title": "Features | Dokploy",
+              "domain": "docs.dokploy.com"
+            },
+            {
+              "url": "https://caprover.com/docs/app-scaling-and-cluster.html?utm_source=openai",
+              "title": "App Scaling & Cluster | CapRover",
+              "domain": "caprover.com"
+            },
+            {
+              "url": "https://dokku.com/docs/deployment/application-deployment/?utm_source=openai",
+              "title": "Deploying an Application - Dokku Documentation",
+              "domain": "dokku.com"
+            },
+            {
+              "url": "https://docs.kubero.dev/?utm_source=openai",
+              "title": "Open-source Solution for Kubernetes Deployments | Kubero",
+              "domain": "docs.kubero.dev"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "For most developers and small teams, Coolify is the best overall choice.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Choose Kubero if Kubernetes is already part of your infrastructure and you want a Heroku-like developer experience on top of it.",
+              "match": "Heroku"
+            }
+          ],
+          "collectedAt": "2026-10-07T15:30:13.982Z"
+        },
+        {
+          "engine": "claude",
+          "text": "If you just want one answer, **Coolify** is the best choice for most people. Pick something else if you have a specific constraint.\n\n**Coolify: best overall**\n- It's the biggest project, with 60,955 GitHub stars, Apache-2.0 license, v4.3.10 released 21 Aug 2026.\n- v4 went stable in April 2026, ~280 one-click services, native multi-server, Apache-2.0 with nothing held back for an enterprise tier.\n- It includes automated database backups that you can easily route to off-site storage like Amazon S3.\n- Downside: it uses a lot of memory. Coolify's overhead is real on a 2 GB box. Also, anyone running Coolify in production should not apply updates unchecked but keep a test instance in front.\n\n**Dokploy: best lighter option with a dashboard**\n- It runs on Docker Swarm + Traefik under a clean, modern UI and has lower idle CPU and RAM than Coolify on the same box.\n- It's a good fit if you already use Docker Compose files.\n- Things to check first: it's still pre-1.0 (v0.30.2), and its license is Apache-2.0 + DSAL. Dokploy is free to self-host but keeps SSO/SAML, SCIM, and audit logs behind an Enterprise license. One reviewer suggests you read release notes, pin your upgrades, take backups before each one.\n\n**Dokku: best if you're happy in the terminal**\n- Zero interface bloat. Highly reliable, minimal resource consumption, and classic Heroku-style git push deployments. It's MIT-licensed and more than ten years old.\n\n**CapRover: the stable veteran**\n- CapRover has been maintained since 2017. Its trade-offs are a dated UI, slower release pace, and limited Docker Compose support compared with Coolify and Dokploy. It's a solid pick for multi-node Swarm clusters.\n\n**Kamal: if you don't want a dashboard at all**\n- It comes from 37signals. No platform to operate, configuration lives in the project. It deploys over SSH, which makes it popular with Rails teams.\n\n**Others to know about:** Easypanel is a polished commercial dashboard (from $10.9/server/mo). Portainer manages containers but isn't really a deployment platform.\n\n**Which to pick:**\n- You want a dashboard and lots of one-click services: Coolify\n- You have a small VPS where memory matters: Dokploy, or Dokku if you don't need a dashboard\n- You want something stable that rarely changes: CapRover\n- Your team works in the terminal and keeps setup in code: Kamal\n\n**Caveats:**\n- Many of these comparisons are written by companies selling a competing product (Temps, ServerCompass, Qovery, Deploynix), so their rankings tend to favor themselves.\n- Sources disagree about whether Coolify or Dokploy is better across multiple servers. Test that yourself if you need it.\n- With all of these, you still handle upgrades, backups and outages yourself. One reviewer says that if your platform bill is under $100 a month, the honest answer is none of them yet.",
+          "overview": null,
+          "mentioned": ["Coolify", "Heroku"],
+          "sources": [
+            {
+              "url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026",
+              "title": "Best Self-Hosted PaaS Platforms in 2026: Coolify vs CapRover vs Dokploy vs Server Compass",
+              "domain": "servercompass.app"
+            },
+            {
+              "url": "https://perlod.com/tutorials/best-self-hosted-paas/",
+              "title": "Compare the Best Self-Hosted PaaS Platforms for 2026",
+              "domain": "perlod.com"
+            },
+            {
+              "url": "https://deployhandbook.com/best/self-hosted-paas",
+              "title": "Best Self-Hosted PaaS (2026): Coolify, Dokploy, CapRover, ServerCompass - Deploy Handbook",
+              "domain": "deployhandbook.com"
+            },
+            {
+              "url": "https://temps.sh/blog/5-best-coolify-alternatives-self-hosted-paas-2026",
+              "title": "Coolify Alternatives 2026: 5 Self-Hosted PaaS",
+              "domain": "temps.sh"
+            },
+            {
+              "url": "https://appstackbuilder.com/blog/coolify-vs-dokploy-vs-caprover-2026",
+              "title": "Coolify vs Dokploy vs CapRover vs Kamal (2026): Self-Hosted PaaS Compared",
+              "domain": "appstackbuilder.com"
+            },
+            {
+              "url": "https://wz-it.com/en/blog/self-hosted-paas-comparison-coolify-dokploy-caprover/",
+              "title": "Self-hosted PaaS compared 2026: Coolify, Dokploy, CapRover, Dokku and Kamal",
+              "domain": "wz-it.com"
+            },
+            {
+              "url": "https://servercompass.app/blog/coolify-vs-dokploy-self-hosted-paas-comparison",
+              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS Should You Use?",
+              "domain": "servercompass.app"
+            },
+            {
+              "url": "https://www.qovery.com/blog/coolify-alternatives-compared",
+              "title": "9 Coolify Alternatives Worth Considering in 2026 (and When Each One Makes Sense) - Qovery Blog",
+              "domain": "qovery.com"
+            },
+            {
+              "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
+              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix - DEV Community",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://deploynix.io/blog/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix",
+              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix",
+              "domain": "deploynix.io"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "If you just want one answer, Coolify is the best choice for most people.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Highly reliable, minimal resource consumption, and classic Heroku-style git push deployments.",
+              "match": "Heroku"
+            }
+          ],
+          "collectedAt": "2026-10-07T15:30:04.206Z"
+        },
+        {
+          "engine": "gemini",
+          "text": "The best self-hosted Platform as a Service (PaaS) depends on whether you prefer a **modern web dashboard**, a **minimalist Git-push CLI workflow**, or **Docker-native clustering**. \n\nThe leading options break down as follows:\n\n---\n\n### 1. **Coolify** — *Best Overall / Modern UI*\nCoolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).\n* **How it works:** Installs via a single curl command onto any Linux VPS. It provides a dashboard to deploy Git repositories, raw Dockerfiles, or Docker Compose stacks.\n* **Key Features:**\n  * Auto-builds apps using **Nixpacks** (detects Node, Python, Go, Rust, PHP, etc. without needing a Dockerfile).\n  * Multi-server support (manage multiple VPS instances from a single dashboard).\n  * One-click provisioning for databases (PostgreSQL, Redis, MySQL, MongoDB, etc.).\n  * Built-in automatic SSL via Traefik, branch preview deployments, and cron jobs.\n* **Best for:** Developers and small teams who want a sleek web UI, automatic CI/CD triggers from GitHub/GitLab, and an all-in-one control center.\n\n---\n\n### 2. **Dokku** — *Best Lightweight & CLI-Driven (True Heroku Clone)*\nDokku is the longest-running, battle-tested open-source PaaS (\"the smallest PaaS implementation you've ever seen\").\n* **How it works:** It operates entirely over SSH and Git. Deployments are triggered simply with `git push dokku main`.\n* **Key Features:**\n  * Uses Heroku buildpacks or Dockerfiles under the hood.\n  * Extremely low memory footprint (virtually zero overhead since there’s no web UI running in the background).\n  * Mature plugin ecosystem for Let's Encrypt SSL, Postgres, Redis, and maintenance pages.\n* **Best for:** Solo developers who live in the terminal, script their infrastructure (via Ansible/Bash), or want to run apps on ultra-budget VPSs (1 GB RAM or less) without wasting resources on a dashboard.\n\n---\n\n### 3. **Dokploy** — *Best Docker Compose-First Alternative*\nDokploy is a fast-growing, lightweight alternative designed to strip away complexity while offering modern convenience.\n* **How it works:** Combines a clean web interface with deep, first-class support for Docker Compose and Docker Swarm.\n* **Key Features:**\n  * Very intuitive for teams that already structure applications as multi-container `docker-compose.yml` files.\n  * Built-in server monitoring, database backups (S3 integration), and preview deployments.\n  * Lighter on resources than Coolify while providing a similar modern UI.\n* **Best for:** Teams looking for a simpler, less opinionated alternative to Coolify with native multi-container Compose workflows.\n\n---\n\n### 4. **CapRover** — *Best Battle-Tested Multi-Server / Swarm Setup*\nCapRover is a veteran Docker-based PaaS built on Docker Swarm.\n* **How it works:** Runs on top of Docker Swarm to orchestrate containers across one or more nodes with automated Nginx reverse proxying.\n* **Key Features:**\n  * Simple, stable web interface with a CLI (`caprover deploy`).\n  * One-click app marketplace for pre-configured software (Wordpress, Nextcloud, analytics tools, etc.).\n  * Native horizontal scaling across multiple servers out of the box.\n* **Best for:** Anyone who needs reliable multi-node clustering without the complexity of Kubernetes.\n\n---\n\n### Notable Mentions\n\n* **Kamal (by 37signals/Basecamp):** Not a hosted platform, but a deployment CLI tool. It deploys zero-downtime Docker containers over raw SSH to any bare-metal or cloud server using Traefik. It runs entirely via your GitHub Actions or terminal without needing a PaaS agent running on the server.\n* **Piku:** A micro-PaaS inspired by Dokku, written in Python. It deploys via `git push` directly onto low-resource hardware like Raspberry Pis or tiny 512MB VPS instances without using Docker.\n\n---\n\n### Summary Recommendation\n\n| If you want... | Choose... |\n| :--- | :--- |\n| **A slick UI, Vercel/Railway experience, and automated DBs** | **Coolify** |\n| **Fastest `git push` workflow, terminal-only, lowest resource usage** | **Dokku** |\n| **Clean UI with heavy native Docker Compose focus** | **Dokploy** |\n| **Built-in multi-node clustering (Docker Swarm) & stability** | **CapRover** |\n| **No server-side control panel; CI/CD-driven deploys** | **Kamal** |",
+          "overview": null,
+          "mentioned": ["Coolify", "Vercel", "Heroku", "Railway"],
+          "sources": [
+            {
+              "url": "https://medium.com/sourcescribes/9-open-source-self-hosting-options-5dd0c6bbee94",
+              "title": "medium.com",
+              "domain": "medium.com"
+            },
+            {
+              "url": "https://contabo.com/blog/self-hosted-paas-replace-heroku/",
+              "title": "contabo.com",
+              "domain": "contabo.com"
+            },
+            {
+              "url": "https://meetrix.io/blogs/self-hosted-heroku-alternatives/",
+              "title": "meetrix.io",
+              "domain": "meetrix.io"
+            },
+            {
+              "url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026",
+              "title": "servercompass.app",
+              "domain": "servercompass.app"
+            },
+            {
+              "url": "https://www.opensourcealternatives.to/blog/open-source-self-hosting-stack",
+              "title": "opensourcealternatives.to",
+              "domain": "opensourcealternatives.to"
+            },
+            {
+              "url": "https://encore.dev/articles/heroku-alternatives-2026",
+              "title": "encore.dev",
+              "domain": "encore.dev"
+            },
+            {
+              "url": "https://dokploy.com/self-hosted-paas",
+              "title": "dokploy.com",
+              "domain": "dokploy.com"
+            },
+            {
+              "url": "https://dokploy.com/blog/heroku-alternatives",
+              "title": "dokploy.com",
+              "domain": "dokploy.com"
+            },
+            {
+              "url": "https://github.com/debarshibasak/awesome-paas",
+              "title": "github.com",
+              "domain": "github.com"
+            }
+          ],
+          "searchQueries": [
+            "best self hosted paas open source",
+            "best self hosted heroku alternatives paas"
+          ],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Vercel",
+              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
+              "match": "Vercel"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
+              "match": "Heroku"
+            },
+            {
+              "brand": "Railway",
+              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
+              "match": "Railway"
+            }
+          ],
+          "collectedAt": "2026-10-08T21:02:52.537Z"
+        },
+        {
+          "engine": "perplexity",
+          "text": "**For most people, I’d start with Coolify.** It offers a broad feature set and a large one-click service catalog, plus Git-based deployments, databases, and multi-server support. It’s a good fit if you want a dashboard for managing several apps and don’t mind allocating some server resources to the platform.\n\nOther good picks depend on your workflow:\n\n- **Dokploy** — best if you already use Docker Compose and want a modern UI; Compose is a first-class workflow.\n- **Dokku** — best for a lightweight, Heroku-like `git push` workflow and a CLI-first approach.\n- **CapRover** — best for a mature, straightforward setup, especially for simpler app deployments.\n\n**Quick choice:** Coolify for an all-rounder; Dokploy for Compose; Dokku for minimalism; CapRover for a proven, simple app manager. Check each project’s current release and licensing before putting it into production, especially if multi-server support or license terms matter to you.",
+          "overview": null,
+          "mentioned": ["Coolify", "Heroku"],
+          "sources": [
+            {
+              "url": "https://dokploy.com/blog/container-management-software",
+              "title": "The Best Container Management Software in 2026 - Dokploy",
+              "domain": "dokploy.com"
+            },
+            {
+              "url": "https://bex.co/blog/2026/09/07/self-hosted-paas-boom-bex-coolify-dokku-caprover-dokploy",
+              "title": "Four PaaS on One Server: What the 2026 Self-Hosted Boom Gets ...",
+              "domain": "bex.co"
+            },
+            {
+              "url": "https://toolradar.com/guides/best-self-hosted-paas",
+              "title": "Best Self-Hosted PaaS Platforms (2026) | Toolradar",
+              "domain": "toolradar.com"
+            },
+            {
+              "url": "https://kuberns.com/blogs/coolify-alternatives/",
+              "title": "kuberns.com › blogs › coolify-alternativesTop 8 Coolify Alternatives: Self-Hosted and Managed 2026",
+              "domain": "kuberns.com"
+            },
+            {
+              "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
+              "title": "dev.to · deploynix · self-hosted-paas-showdown-2026Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs ...",
+              "domain": "dev.to"
+            },
+            {
+              "url": "https://temps.sh/blog/7-best-self-hosted-deployment-platforms-2026",
+              "title": "7 Best Self-Hosted Deployment Platforms in 2026 - Temps",
+              "domain": "temps.sh"
+            },
+            {
+              "url": "https://perlod.com/tutorials/best-self-hosted-paas/",
+              "title": "Compare the Best Self-Hosted PaaS Platforms for 2026",
+              "domain": "perlod.com"
+            },
+            {
+              "url": "https://wz-it.com/en/blog/self-hosted-paas-comparison-coolify-dokploy-caprover/",
+              "title": "Self-hosted PaaS compared 2026: Coolify, Dokploy, ...",
+              "domain": "wz-it.com"
+            },
+            {
+              "url": "https://valebyte.com/en/blog/coolify-vs-dokploy-vs-caprover-2026-picking-a-self-hosted-paas/",
+              "title": "Coolify vs Dokploy vs CapRover 2026: Picking a Self-Hosted PaaS",
+              "domain": "valebyte.com"
+            },
+            {
+              "url": "https://www.qovery.com/blog/coolify-alternatives-compared",
+              "title": "9 Coolify Alternatives Worth Considering in 2026 (and ...",
+              "domain": "qovery.com"
+            },
+            {
+              "url": "https://massivegrid.com/blog/coolify-vs-dokploy-vs-caprover-choosing-paas/",
+              "title": "Coolify Cloud Vs...",
+              "domain": "massivegrid.com"
+            },
+            {
+              "url": "https://cloudzy.com/blog/self-hosted-paas-alternatives/",
+              "title": "4Coolify: The Full Dashboard...",
+              "domain": "cloudzy.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            {
+              "brand": "Coolify",
+              "text": "For most people, I’d start with Coolify.",
+              "match": "Coolify"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Dokku — best for a lightweight, Heroku-like git push workflow and a CLI-first approach.",
+              "match": "Heroku"
+            }
+          ],
+          "collectedAt": "2026-10-08T21:02:50.836Z"
+        },
+        {
+          "engine": "ai-overview",
+          "text": "",
+          "overview": {
+            "query": "best self-hosted paas",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The best self-hosted Platform-as-a-Service (PaaS) options depend on your setup, whether you want a modern visual dashboard or a lightweight command-line tool.",
+                "refs": []
+              },
+              { "type": "heading", "text": "Top Self-Hosted PaaS Options" },
+              { "type": "list", "items": [{ "text": "Coolify", "refs": [0] }] },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: All-around visual management and one-click app deployment.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key features: Open-source (Apache 2.0), multi-server management from a single dashboard, built-in Cloudflare Tunnel integration, notification channels (Discord, Telegram, Slack), and a rich one-click marketplace for databases and CMS platforms.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Dokku", "refs": [1, 2] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: A minimal, Git-push-driven \"mini-Heroku\" on a single server.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key features: Powered by Docker and Git, supports Heroku buildpacks, lightweight footprint, and extensible via plugins for databases and TLS certificates. Ideal if you prefer CLI workflows over a heavy web UI.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "CapRover", "refs": [2] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Extremely lightweight single-VPS management.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key features: Very easy to install and set up, provides a clean web interface, and handles SSL and databases easily for smaller projects or indie developers.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [{ "text": "Qovery (BYOC Model)", "refs": [3] }]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Teams that want a true Heroku-like experience running inside their own cloud account (AWS, GCP, Azure, or Scaleway) rather than managing raw VPS daemons directly.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key features: Git-push deployments, pull request preview environments, and auto-stop features while keeping cloud bills directly in your name.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  { "text": "Kubernetes + ArgoCD / Rancher", "refs": [] }
+                ]
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Best for: Heavy-duty enterprise scale and high availability.",
+                    "refs": []
+                  },
+                  {
+                    "text": "Key features: Maximum scalability and fine-grained control, though it comes with a steep learning curve and high operational overhead.",
+                    "refs": []
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "To help narrow down the best choice, tell me:",
+                "refs": []
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "Are you deploying to a single VPS or a multi-server/cloud cluster?",
+                    "refs": []
+                  },
+                  {
+                    "text": "Do you prefer a web GUI dashboard or a Git-push CLI workflow?",
+                    "refs": []
+                  }
+                ]
+              }
+            ],
+            "references": [
+              {
+                "index": 0,
+                "title": "Coolify vs Dokploy: Which Self-Hosted PaaS for Your VPS?",
+                "url": "https://www.virtua.cloud/learn/en/concepts/coolify-vs-dokploy-self-hosted-paas",
+                "source": "Virtua.Cloud"
+              },
+              {
+                "index": 1,
+                "title": "Best Open Source Deployment and Self-Hosted PaaS ...",
+                "url": "https://noizz.io/best/best-open-source-deployment-for-privacy-focused",
+                "source": "noizz.io"
+              },
+              {
+                "index": 2,
+                "title": "Coolify and Open-Source Alternatives to PaaS",
+                "url": "https://giovannimastellone.it/blog/coolify-and-open-source-alternatives-to-paas-a-complete-guide/",
+                "source": "giovannimastellone.it"
+              },
+              {
+                "index": 3,
+                "title": "5 PaaS Platforms Like Heroku, Compared (And When Each ...",
+                "url": "https://www.qovery.com/blog/paas-platforms-like-heroku-compared",
+                "source": "Qovery"
+              }
+            ]
+          },
+          "mentioned": [
+            "Coolify",
+            "Cloudflare",
+            "Heroku",
+            "AWS",
+            "Google Cloud",
+            "Azure"
+          ],
+          "sources": [
+            {
+              "url": "https://www.virtua.cloud/learn/en/concepts/coolify-vs-dokploy-self-hosted-paas",
+              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS for Your VPS?",
+              "domain": "virtua.cloud"
+            },
+            {
+              "url": "https://noizz.io/best/best-open-source-deployment-for-privacy-focused",
+              "title": "Best Open Source Deployment and Self-Hosted PaaS ...",
+              "domain": "noizz.io"
+            },
+            {
+              "url": "https://giovannimastellone.it/blog/coolify-and-open-source-alternatives-to-paas-a-complete-guide/",
+              "title": "Coolify and Open-Source Alternatives to PaaS",
+              "domain": "giovannimastellone.it"
+            },
+            {
+              "url": "https://www.qovery.com/blog/paas-platforms-like-heroku-compared",
+              "title": "5 PaaS Platforms Like Heroku, Compared (And When Each ...",
+              "domain": "qovery.com"
+            }
+          ],
+          "searchQueries": [],
+          "highlights": [
+            { "brand": "Coolify", "text": "Coolify", "match": "Coolify" },
+            {
+              "brand": "Cloudflare",
+              "text": "Key features: Open-source (Apache 2.0), multi-server management from a single dashboard, built-in Cloudflare Tunnel integration, notification channels (Discord, Telegram, Slack), and a rich one-click marketplace for databases and CMS platforms.",
+              "match": "Cloudflare"
+            },
+            {
+              "brand": "Heroku",
+              "text": "Best for: A minimal, Git-push-driven \"mini-Heroku\" on a single server.",
+              "match": "Heroku"
+            },
+            {
+              "brand": "AWS",
+              "text": "Best for: Teams that want a true Heroku-like experience running inside their own cloud account (AWS, GCP, Azure, or Scaleway) rather than managing raw VPS daemons directly.",
+              "match": "AWS"
+            },
+            {
+              "brand": "Google Cloud",
+              "text": "Best for: Teams that want a true Heroku-like experience running inside their own cloud account (AWS, GCP, Azure, or Scaleway) rather than managing raw VPS daemons directly.",
+              "match": "GCP"
+            },
+            {
+              "brand": "Azure",
+              "text": "Best for: Teams that want a true Heroku-like experience running inside their own cloud account (AWS, GCP, Azure, or Scaleway) rather than managing raw VPS daemons directly.",
+              "match": "Azure"
+            }
+          ],
+          "collectedAt": "2026-10-07T15:30:22.289Z"
+        }
+      ]
+    },
+    {
       "id": 11,
       "prompt": "render vs railway vs fly.io",
       "topPick": { "name": "Render", "domain": "render.com" },
@@ -8938,8 +9688,7 @@
         { "name": "Google Cloud", "domain": "cloud.google.com" },
         { "name": "Coolify", "domain": "coolify.io" },
         { "name": "Vercel", "domain": "vercel.com" },
-        { "name": "Netlify", "domain": "netlify.com" },
-        { "name": "DigitalOcean", "domain": "digitalocean.com" }
+        { "name": "Netlify", "domain": "netlify.com" }
       ],
       "answers": 41,
       "consensus": false,
@@ -8954,14 +9703,13 @@
         "Coolify": 1,
         "Google Cloud": 2,
         "Vercel": 1,
-        "Netlify": 1,
-        "DigitalOcean": 1
+        "Netlify": 1
       },
       "firsts": { "Railway": 13, "Render": 27, "Heroku": 1 },
       "responses": [
         {
           "engine": "chatgpt",
-          "text": "## Short answer\n\n- **Railway** — best for **fast MVPs, side projects, and simple full-stack deployments**\n- **Render** — best for **predictable, low-operations production hosting**\n- **Fly.io** — best for **global deployment, Docker/VM control, and infrastructure-heavy workloads**\n\n| Category | Render | Railway | Fly.io |\n|---|---|---|---|\n| Ease of use | Excellent | **Best** | Most technical |\n| Pricing model | Fixed instance pricing | Metered CPU/RAM usage | Metered VM resources |\n| Cost predictability | **Best** | Variable | Fairly predictable |\n| Global/multi-region | Limited | Good | **Best** |\n| Managed databases | **Strongest PaaS experience** | Easy, composable | Strong but relatively expensive |\n| Infrastructure control | Moderate | Moderate | **Highest** |\n| Free/cheap experiments | Good free tier | **$1 monthly free usage** | No meaningful free tier |\n| Best fit | Production SaaS/API | MVPs and side projects | Global or custom infrastructure |\n\n## Render\n\n**Choose Render if you want hosting to be boring.**\n\nRender behaves like a modern Heroku: connect GitHub, choose a service type, add Postgres or Redis-compatible Key Value, and deploy. It supports native runtimes and Docker, infrastructure-as-code through `render.yaml`, preview environments, workers, cron jobs, and managed databases. \n\n### Strengths\n\n- Predictable fixed monthly pricing\n- Excellent Git-based deployment workflow\n- Managed Postgres with built-in PITR; paid databases retain either three or seven days depending on workspace plan\n- Optional Postgres HA with automatic failover\n- Good support for APIs, workers, cron jobs and static sites\n- Free web services for demos and experiments\n\nPaid web compute starts around **$7/month for 0.5 CPU and 512 MB**, while 1 CPU/2 GB is around **$25/month**. \n\n### Weaknesses\n\n- Only five application regions: Oregon, Ohio, Virginia, Frankfurt and Singapore\n- No native active multi-region deployment equivalent to Fly.io\n- Autoscaling requires a Pro workspace\n- Free services sleep after 15 minutes without inbound traffic\n- Fixed plans can mean paying for idle capacity \n\n**Best for:** conventional production SaaS apps, REST/GraphQL APIs, background workers and teams that value predictable costs.\n\n---\n\n## Railway\n\n**Choose Railway if developer speed is your top priority.**\n\nRailway arguably has the best dashboard and fastest workflow for composing an application from APIs, workers, databases and third-party templates. It automatically vertically scales services within plan limits, and you can add horizontal and multi-region replicas manually. \n\n### Strengths\n\n- Extremely fast setup and excellent UX\n- Deploy from GitHub, Docker images or templates\n- Usage-based billing can be economical for low-utilization apps\n- Built-in service networking and variable references\n- Native Postgres backups and point-in-time recovery\n- Postgres can now be converted to an HA cluster with automatic failover\n- Supports multi-region replicas \n\n### Weaknesses\n\n- Usage-based costs are harder to forecast\n- An always-busy service can cost more than an equivalent fixed Render instance\n- Fewer deployment regions than Fly.io\n- More infrastructure is template/service-based rather than a fully abstracted managed product\n\nRailway has a **Free plan with $1/month in resources**, a **$5 Hobby minimum**, and a **$20 Pro minimum**. The subscription counts toward resource usage rather than being added on top—for example, $8 of Hobby usage produces an $8 bill, not $13. \n\nRailway currently has regions in California, Virginia, Amsterdam and Singapore. \n\n**Best for:** prototypes, hackathons, internal tools, indie SaaS and small teams that want to deploy immediately without thinking much about infrastructure.\n\n---\n\n## Fly.io\n\n**Choose Fly.io if geography or infrastructure control actually matters.**\n\nFly.io gives you lightweight VMs called Machines, private networking, Anycast routing and direct control over regions, VM sizing, storage and scaling behavior. It is closer to “developer-friendly infrastructure” than a push-button PaaS.\n\n### Strengths\n\n- Best multi-region architecture\n- Deploy applications near users across roughly 18 consolidated regions\n- Anycast networking and private IPv6 networking\n- Low entry-level compute prices\n- Machines can automatically stop and restart according to traffic\n- Much more control over runtime and network architecture\n- Good for WebSockets, game servers, distributed systems and globally deployed APIs \n\n### Weaknesses\n\n- More operational knowledge required\n- CLI and configuration-centric workflow\n- Persistent volumes are tied to individual regions and Machines\n- Stateful multi-region architecture remains your responsibility\n- Managed Postgres has a significantly higher minimum than simple app compute\n- Easier to misconfigure than Render or Railway\n\nFly introduced updated pricing effective **October 1, 2026**. Entry Machines start around **$2.19/month for 256 MB**, volumes cost **$0.15/GB/month**, and North American/European egress costs **$0.02/GB**. Managed Postgres starts at **$38/month**, including HA, backups and connection pooling. \n\n**Best for:** latency-sensitive applications, global APIs, custom networking, Docker-centric teams and engineers comfortable operating VM-like infrastructure.\n\n---\n\n## My recommendation\n\n### Pick **Railway** when:\n\n- You are building an MVP\n- You want the quickest deployment experience\n- Traffic is low or inconsistent\n- You want to deploy databases and open-source services from templates\n- You do not yet know your final architecture\n\n### Pick **Render** when:\n\n- You are deploying a normal production SaaS\n- You want a predictable bill\n- You need an API, worker, cron jobs and managed Postgres\n- You prefer minimal infrastructure work\n- Your application can live in one region\n\n### Pick **Fly.io** when:\n\n- You genuinely need multiple global regions\n- Latency matters substantially\n- You need long-lived connections or unusual networking\n- You are comfortable with Docke",
+          "text": "## Short answer\n\n- **Railway** — best for **fast MVPs, side projects, and simple full-stack deployments**\n- **Render** — best for **predictable, low-operations production hosting**\n- **Fly.io** — best for **global deployment, Docker/VM control, and infrastructure-heavy workloads**\n\n| Category | Render | Railway | Fly.io |\n|---|---|---|---|\n| Ease of use | Excellent | **Best** | Most technical |\n| Pricing model | Fixed instance pricing | Metered CPU/RAM usage | Metered VM resources |\n| Cost predictability | **Best** | Variable | Fairly predictable |\n| Global/multi-region | Limited | Good | **Best** |\n| Managed databases | **Strongest PaaS experience** | Easy, composable | Strong but relatively expensive |\n| Infrastructure control | Moderate | Moderate | **Highest** |\n| Free/cheap experiments | Good free tier | **$1 monthly free usage** | No meaningful free tier |\n| Best fit | Production SaaS/API | MVPs and side projects | Global or custom infrastructure |\n\n## Render\n\n**Choose Render if you want hosting to be boring.**\n\nRender behaves like a modern Heroku: connect GitHub, choose a service type, add Postgres or Redis-compatible Key Value, and deploy. It supports native runtimes and Docker, infrastructure-as-code through `render.yaml`, preview environments, workers, cron jobs, and managed databases. \n\n### Strengths\n\n- Predictable fixed monthly pricing\n- Excellent Git-based deployment workflow\n- Managed Postgres with built-in PITR; paid databases retain either three or seven days depending on workspace plan\n- Optional Postgres HA with automatic failover\n- Good support for APIs, workers, cron jobs and static sites\n- Free web services for demos and experiments\n\nPaid web compute starts around **$7/month for 0.5 CPU and 512 MB**, while 1 CPU/2 GB is around **$25/month**. \n\n### Weaknesses\n\n- Only five application regions: Oregon, Ohio, Virginia, Frankfurt and Singapore\n- No native active multi-region deployment equivalent to Fly.io\n- Autoscaling requires a Pro workspace\n- Free services sleep after 15 minutes without inbound traffic\n- Fixed plans can mean paying for idle capacity \n\n**Best for:** conventional production SaaS apps, REST/GraphQL APIs, background workers and teams that value predictable costs.\n\n---\n\n## Railway\n\n**Choose Railway if developer speed is your top priority.**\n\nRailway arguably has the best dashboard and fastest workflow for composing an application from APIs, workers, databases and third-party templates. It automatically vertically scales services within plan limits, and you can add horizontal and multi-region replicas manually. \n\n### Strengths\n\n- Extremely fast setup and excellent UX\n- Deploy from GitHub, Docker images or templates\n- Usage-based billing can be economical for low-utilization apps\n- Built-in service networking and variable references\n- Native Postgres backups and point-in-time recovery\n- Postgres can now be converted to an HA cluster with automatic failover\n- Supports multi-region replicas \n\n### Weaknesses\n\n- Usage-based costs are harder to forecast\n- An always-busy service can cost more than an equivalent fixed Render instance\n- Fewer deployment regions than Fly.io\n- More infrastructure is template/service-based rather than a fully abstracted managed product\n\nRailway has a **Free plan with $1/month in resources**, a **$5 Hobby minimum**, and a **$20 Pro minimum**. The subscription counts toward resource usage rather than being added on top—for example, $8 of Hobby usage produces an $8 bill, not $13. \n\nRailway currently has regions in California, Virginia, Amsterdam and Singapore. \n\n**Best for:** prototypes, hackathons, internal tools, indie SaaS and small teams that want to deploy immediately without thinking much about infrastructure.\n\n---\n\n## Fly.io\n\n**Choose Fly.io if geography or infrastructure control actually matters.**\n\nFly.io gives you lightweight VMs called Machines, private networking, Anycast routing and direct control over regions, VM sizing, storage and scaling behavior. It is closer to “developer-friendly infrastructure” than a push-button PaaS.\n\n### Strengths\n\n- Best multi-region architecture\n- Deploy applications near users across roughly 18 consolidated regions\n- Anycast networking and private IPv6 networking\n- Low entry-level compute prices\n- Machines can automatically stop and restart according to traffic\n- Much more control over runtime and network architecture\n- Good for WebSockets, game servers, distributed systems and globally deployed APIs \n\n### Weaknesses\n\n- More operational knowledge required\n- CLI and configuration-centric workflow\n- Persistent volumes are tied to individual regions and Machines\n- Stateful multi-region architecture remains your responsibility\n- Managed Postgres has a significantly higher minimum than simple app compute\n- Easier to misconfigure than Render or Railway\n\nFly introduced updated pricing effective **October 1, 2026**. Entry Machines start around **$2.19/month for 256 MB**, volumes cost **$0.15/GB/month**, and North American/European egress costs **$0.02/GB**. Managed Postgres starts at **$38/month**, including HA, backups and connection pooling. \n\n**Best for:** latency-sensitive applications, global APIs, custom networking, Docker-centric teams and engineers comfortable operating VM-like infrastructure.\n\n---\n\n## My recommendation\n\n### Pick **Railway** when:\n\n- You are building an MVP\n- You want the quickest deployment experience\n- Traffic is low or inconsistent\n- You want to deploy databases and open-source services from templates\n- You do not yet know your final architecture\n\n### Pick **Render** when:\n\n- You are deploying a normal production SaaS\n- You want a predictable bill\n- You need an API, worker, cron jobs and managed Postgres\n- You prefer minimal infrastructure work\n- Your application can live in one region\n\n### Pick **Fly.io** when:\n\n- You genuinely need multiple global regions\n- Latency matters substantially\n- You need long-lived connections or unusual networking\n- You are comfortable with Docker, CLI configuration and infrastructure concepts\n- You want more control than a typical PaaS provides\n\n## Default decision\n\nFor most projects:\n\n1. **MVP:** Railway  \n2. **Conventional production SaaS:** Render  \n3. **Global or infrastructure-specialized application:** Fly.io  \n\nIf I had no additional context, I would choose **Render for a serious production application**, **Railway for a new project I wanted online tonight**, and **Fly.io only when its global architecture or lower-level control solves a concrete requirement**.",
           "overview": null,
           "mentioned": ["Railway", "Render", "Fly.io", "Heroku"],
           "sources": [
@@ -9517,433 +10265,6 @@
             }
           ],
           "collectedAt": "2026-10-07T15:30:16.969Z"
-        }
-      ]
-    },
-    {
-      "id": 14,
-      "prompt": "best self-hosted paas",
-      "topPick": { "name": "Coolify", "domain": "coolify.io" },
-      "brands": [
-        { "name": "Coolify", "domain": "coolify.io" },
-        { "name": "Heroku", "domain": "heroku.com" },
-        { "name": "Vercel", "domain": "vercel.com" },
-        { "name": "Render", "domain": "render.com" },
-        { "name": "Railway", "domain": "railway.com" },
-        { "name": "Netlify", "domain": "netlify.com" },
-        { "name": "AWS", "domain": "aws.amazon.com" },
-        { "name": "Google Cloud", "domain": "cloud.google.com" },
-        { "name": "Azure", "domain": "azure.microsoft.com" },
-        { "name": "Fly.io", "domain": "fly.io" },
-        { "name": "Cloudflare", "domain": "cloudflare.com" }
-      ],
-      "answers": 41,
-      "consensus": true,
-      "aiOverviewShown": true,
-      "mentions": {
-        "Coolify": 41,
-        "Vercel": 14,
-        "Render": 14,
-        "Heroku": 41,
-        "Railway": 11,
-        "Fly.io": 1,
-        "Netlify": 4,
-        "AWS": 3,
-        "Google Cloud": 3,
-        "Azure": 2,
-        "Cloudflare": 1
-      },
-      "firsts": { "Coolify": 38, "Heroku": 2, "Railway": 1 },
-      "responses": [
-        {
-          "engine": "chatgpt",
-          "text": "## Best self-hosted PaaS in 2026: **Coolify**\n\nFor most developers and small teams, **Coolify is the best overall choice**. It provides a polished dashboard, Git-based deployments, automatic HTTPS, databases, Docker Compose, preview environments, remote build/deployment servers, and hundreds of one-click service templates. Workloads remain standard Docker resources on your own infrastructure. \n\nIt is also Apache-2.0 licensed, with the self-hosted edition offering the complete feature set rather than reserving features for a paid tier. \n\n### Quick comparison\n\n| Platform | Best for | Main drawback |\n|---|---|---|\n| **Coolify** | Best overall; Vercel/Render-style GUI | Fast-moving project; upgrades deserve testing |\n| **Dokploy** | Docker Compose and Docker Swarm deployments | Enterprise features such as SSO, RBAC and audit logs are paid |\n| **CapRover** | Simple, established Docker Swarm hosting | Older UX; Compose support is incomplete/experimental |\n| **Dokku** | Minimal CLI-driven “mini-Heroku” | No first-class GUI; more manual/plugin-based |\n| **Kubero** | Teams already operating Kubernetes | Kubernetes complexity and overhead |\n\n### When to choose something else\n\n- **Choose Dokploy** if Docker Compose, remote servers and Docker Swarm clustering are central to your workflow. Its deployment model supports standalone servers, SSH-connected remote servers and replicated Swarm workloads. \n- **Choose CapRover** if you want a mature, relatively straightforward Docker Swarm platform. It handles clustering and load balancing well, although its direct Compose support implements only a subset of the specification. \n- **Choose Dokku** if you prefer deploying with `git push` and managing everything through SSH and CLI. Databases and other capabilities are added through plugins. \n- **Choose Kubero** if Kubernetes is already part of your infrastructure and you want a Heroku-like developer experience on top of it. \n\n## My practical recommendation\n\n1. Start with **Coolify** on a small dedicated control-plane VPS.\n2. Connect a separate deployment server for production workloads.\n3. Keep databases outside the PaaS—or at least maintain tested off-server backups.\n4. Pin versions and avoid automatic production upgrades.\n5. Use external uptime monitoring, regardless of platform.\n\n**Short answer:** Coolify for most users; Dokploy for Compose/Swarm-heavy setups; Kubero for Kubernetes organizations; Dokku for CLI minimalists.",
-          "overview": null,
-          "mentioned": ["Coolify", "Vercel", "Render", "Heroku"],
-          "sources": [
-            {
-              "url": "https://coolify.io/docs/core/what-is-coolify?utm_source=openai",
-              "title": "What is Coolify | Coolify Docs",
-              "domain": "coolify.io"
-            },
-            {
-              "url": "https://coolify.io/docs/core/selfhosted-cloud-comparison?utm_source=openai",
-              "title": "Self Hosted vs Coolify Cloud | Coolify Docs",
-              "domain": "coolify.io"
-            },
-            {
-              "url": "https://docs.dokploy.com/docs/core/features?utm_source=openai",
-              "title": "Features | Dokploy",
-              "domain": "docs.dokploy.com"
-            },
-            {
-              "url": "https://caprover.com/docs/app-scaling-and-cluster.html?utm_source=openai",
-              "title": "App Scaling & Cluster | CapRover",
-              "domain": "caprover.com"
-            },
-            {
-              "url": "https://dokku.com/docs/deployment/application-deployment/?utm_source=openai",
-              "title": "Deploying an Application - Dokku Documentation",
-              "domain": "dokku.com"
-            },
-            {
-              "url": "https://docs.kubero.dev/?utm_source=openai",
-              "title": "Open-source Solution for Kubernetes Deployments | Kubero",
-              "domain": "docs.kubero.dev"
-            }
-          ],
-          "searchQueries": [],
-          "highlights": [
-            {
-              "brand": "Coolify",
-              "text": "For most developers and small teams, Coolify is the best overall choice.",
-              "match": "Coolify"
-            },
-            {
-              "brand": "Heroku",
-              "text": "Choose Kubero if Kubernetes is already part of your infrastructure and you want a Heroku-like developer experience on top of it.",
-              "match": "Heroku"
-            }
-          ],
-          "collectedAt": "2026-10-07T15:30:13.982Z"
-        },
-        {
-          "engine": "claude",
-          "text": "If you just want one answer, **Coolify** is the best choice for most people. Pick something else if you have a specific constraint.\n\n**Coolify: best overall**\n- It's the biggest project, with 60,955 GitHub stars, Apache-2.0 license, v4.3.10 released 21 Aug 2026.\n- v4 went stable in April 2026, ~280 one-click services, native multi-server, Apache-2.0 with nothing held back for an enterprise tier.\n- It includes automated database backups that you can easily route to off-site storage like Amazon S3.\n- Downside: it uses a lot of memory. Coolify's overhead is real on a 2 GB box. Also, anyone running Coolify in production should not apply updates unchecked but keep a test instance in front.\n\n**Dokploy: best lighter option with a dashboard**\n- It runs on Docker Swarm + Traefik under a clean, modern UI and has lower idle CPU and RAM than Coolify on the same box.\n- It's a good fit if you already use Docker Compose files.\n- Things to check first: it's still pre-1.0 (v0.30.2), and its license is Apache-2.0 + DSAL. Dokploy is free to self-host but keeps SSO/SAML, SCIM, and audit logs behind an Enterprise license. One reviewer suggests you read release notes, pin your upgrades, take backups before each one.\n\n**Dokku: best if you're happy in the terminal**\n- Zero interface bloat. Highly reliable, minimal resource consumption, and classic Heroku-style git push deployments. It's MIT-licensed and more than ten years old.\n\n**CapRover: the stable veteran**\n- CapRover has been maintained since 2017. Its trade-offs are a dated UI, slower release pace, and limited Docker Compose support compared with Coolify and Dokploy. It's a solid pick for multi-node Swarm clusters.\n\n**Kamal: if you don't want a dashboard at all**\n- It comes from 37signals. No platform to operate, configuration lives in the project. It deploys over SSH, which makes it popular with Rails teams.\n\n**Others to know about:** Easypanel is a polished commercial dashboard (from $10.9/server/mo). Portainer manages containers but isn't really a deployment platform.\n\n**Which to pick:**\n- You want a dashboard and lots of one-click services: Coolify\n- You have a small VPS where memory matters: Dokploy, or Dokku if you don't need a dashboard\n- You want something stable that rarely changes: CapRover\n- Your team works in the terminal and keeps setup in code: Kamal\n\n**Caveats:**\n- Many of these comparisons are written by companies selling a competing product (Temps, ServerCompass, Qovery, Deploynix), so their rankings tend to favor themselves.\n- Sources disagree about whether Coolify or Dokploy is better across multiple servers. Test that yourself if you need it.\n- With all of these, you still handle upgrades, backups and outages yourself. One reviewer says that if your platform bill is under $100 a month, the honest answer is none of them yet.",
-          "overview": null,
-          "mentioned": ["Coolify", "Heroku"],
-          "sources": [
-            {
-              "url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026",
-              "title": "Best Self-Hosted PaaS Platforms in 2026: Coolify vs CapRover vs Dokploy vs Server Compass",
-              "domain": "servercompass.app"
-            },
-            {
-              "url": "https://perlod.com/tutorials/best-self-hosted-paas/",
-              "title": "Compare the Best Self-Hosted PaaS Platforms for 2026",
-              "domain": "perlod.com"
-            },
-            {
-              "url": "https://deployhandbook.com/best/self-hosted-paas",
-              "title": "Best Self-Hosted PaaS (2026): Coolify, Dokploy, CapRover, ServerCompass - Deploy Handbook",
-              "domain": "deployhandbook.com"
-            },
-            {
-              "url": "https://temps.sh/blog/5-best-coolify-alternatives-self-hosted-paas-2026",
-              "title": "Coolify Alternatives 2026: 5 Self-Hosted PaaS",
-              "domain": "temps.sh"
-            },
-            {
-              "url": "https://appstackbuilder.com/blog/coolify-vs-dokploy-vs-caprover-2026",
-              "title": "Coolify vs Dokploy vs CapRover vs Kamal (2026): Self-Hosted PaaS Compared",
-              "domain": "appstackbuilder.com"
-            },
-            {
-              "url": "https://wz-it.com/en/blog/self-hosted-paas-comparison-coolify-dokploy-caprover/",
-              "title": "Self-hosted PaaS compared 2026: Coolify, Dokploy, CapRover, Dokku and Kamal",
-              "domain": "wz-it.com"
-            },
-            {
-              "url": "https://servercompass.app/blog/coolify-vs-dokploy-self-hosted-paas-comparison",
-              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS Should You Use?",
-              "domain": "servercompass.app"
-            },
-            {
-              "url": "https://www.qovery.com/blog/coolify-alternatives-compared",
-              "title": "9 Coolify Alternatives Worth Considering in 2026 (and When Each One Makes Sense) - Qovery Blog",
-              "domain": "qovery.com"
-            },
-            {
-              "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
-              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix - DEV Community",
-              "domain": "dev.to"
-            },
-            {
-              "url": "https://deploynix.io/blog/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix",
-              "title": "Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs CapRover vs Deploynix",
-              "domain": "deploynix.io"
-            }
-          ],
-          "searchQueries": [],
-          "highlights": [
-            {
-              "brand": "Coolify",
-              "text": "If you just want one answer, Coolify is the best choice for most people.",
-              "match": "Coolify"
-            },
-            {
-              "brand": "Heroku",
-              "text": "Highly reliable, minimal resource consumption, and classic Heroku-style git push deployments.",
-              "match": "Heroku"
-            }
-          ],
-          "collectedAt": "2026-10-07T15:30:04.206Z"
-        },
-        {
-          "engine": "gemini",
-          "text": "The best self-hosted Platform as a Service (PaaS) depends on whether you prefer a **modern web dashboard**, a **minimalist Git-push CLI workflow**, or **Docker-native clustering**. \n\nThe leading options break down as follows:\n\n---\n\n### 1. **Coolify** — *Best Overall / Modern UI*\nCoolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).\n* **How it works:** Installs via a single curl command onto any Linux VPS. It provides a dashboard to deploy Git repositories, raw Dockerfiles, or Docker Compose stacks.\n* **Key Features:**\n  * Auto-builds apps using **Nixpacks** (detects Node, Python, Go, Rust, PHP, etc. without needing a Dockerfile).\n  * Multi-server support (manage multiple VPS instances from a single dashboard).\n  * One-click provisioning for databases (PostgreSQL, Redis, MySQL, MongoDB, etc.).\n  * Built-in automatic SSL via Traefik, branch preview deployments, and cron jobs.\n* **Best for:** Developers and small teams who want a sleek web UI, automatic CI/CD triggers from GitHub/GitLab, and an all-in-one control center.\n\n---\n\n### 2. **Dokku** — *Best Lightweight & CLI-Driven (True Heroku Clone)*\nDokku is the longest-running, battle-tested open-source PaaS (\"the smallest PaaS implementation you've ever seen\").\n* **How it works:** It operates entirely over SSH and Git. Deployments are triggered simply with `git push dokku main`.\n* **Key Features:**\n  * Uses Heroku buildpacks or Dockerfiles under the hood.\n  * Extremely low memory footprint (virtually zero overhead since there’s no web UI running in the background).\n  * Mature plugin ecosystem for Let's Encrypt SSL, Postgres, Redis, and maintenance pages.\n* **Best for:** Solo developers who live in the terminal, script their infrastructure (via Ansible/Bash), or want to run apps on ultra-budget VPSs (1 GB RAM or less) without wasting resources on a dashboard.\n\n---\n\n### 3. **Dokploy** — *Best Docker Compose-First Alternative*\nDokploy is a fast-growing, lightweight alternative designed to strip away complexity while offering modern convenience.\n* **How it works:** Combines a clean web interface with deep, first-class support for Docker Compose and Docker Swarm.\n* **Key Features:**\n  * Very intuitive for teams that already structure applications as multi-container `docker-compose.yml` files.\n  * Built-in server monitoring, database backups (S3 integration), and preview deployments.\n  * Lighter on resources than Coolify while providing a similar modern UI.\n* **Best for:** Teams looking for a simpler, less opinionated alternative to Coolify with native multi-container Compose workflows.\n\n---\n\n### 4. **CapRover** — *Best Battle-Tested Multi-Server / Swarm Setup*\nCapRover is a veteran Docker-based PaaS built on Docker Swarm.\n* **How it works:** Runs on top of Docker Swarm to orchestrate containers across one or more nodes with automated Nginx reverse proxying.\n* **Key Features:**\n  * Simple, stable web interface with a CLI (`caprover deploy`).\n  * One-click app marketplace for pre-configured software (Wordpress, Nextcloud, analytics tools, etc.).\n  * Native horizontal scaling across multiple servers out of the box.\n* **Best for:** Anyone who needs reliable multi-node clustering without the complexity of Kubernetes.\n\n---\n\n### Notable Mentions\n\n* **Kamal (by 37signals/Basecamp):** Not a hosted platform, but a deployment CLI tool. It deploys zero-downtime Docker containers over raw SSH to any bare-metal or cloud server using Traefik. It runs entirely via your GitHub Actions or terminal without needing a PaaS agent running on the server.\n* **Piku:** A micro-PaaS inspired by Dokku, written in Python. It deploys via `git push` directly onto low-resource hardware like Raspberry Pis or tiny 512MB VPS instances without using Docker.\n\n---\n\n### Summary Recommendation\n\n| If you want... | Choose... |\n| :--- | :--- |\n| **A slick UI, Vercel/Railway experience, and automated DBs** | **Coolify** |\n| **Fastest `git push` workflow, terminal-only, lowest resource usage** | **Dokku** |\n| **Clean UI with heavy native Docker Compose focus** | **Dokploy** |\n| **Built-in multi-node clustering (Docker Swarm) & stability** | **CapRover** |\n| **No server-side control panel; CI/CD-driven deploys** | **Kamal** |",
-          "overview": null,
-          "mentioned": ["Coolify", "Vercel", "Heroku", "Railway"],
-          "sources": [
-            {
-              "url": "https://medium.com/sourcescribes/9-open-source-self-hosting-options-5dd0c6bbee94",
-              "title": "medium.com",
-              "domain": "medium.com"
-            },
-            {
-              "url": "https://contabo.com/blog/self-hosted-paas-replace-heroku/",
-              "title": "contabo.com",
-              "domain": "contabo.com"
-            },
-            {
-              "url": "https://meetrix.io/blogs/self-hosted-heroku-alternatives/",
-              "title": "meetrix.io",
-              "domain": "meetrix.io"
-            },
-            {
-              "url": "https://servercompass.app/blog/best-self-hosted-paas-platforms-2026",
-              "title": "servercompass.app",
-              "domain": "servercompass.app"
-            },
-            {
-              "url": "https://www.opensourcealternatives.to/blog/open-source-self-hosting-stack",
-              "title": "opensourcealternatives.to",
-              "domain": "opensourcealternatives.to"
-            },
-            {
-              "url": "https://encore.dev/articles/heroku-alternatives-2026",
-              "title": "encore.dev",
-              "domain": "encore.dev"
-            },
-            {
-              "url": "https://dokploy.com/self-hosted-paas",
-              "title": "dokploy.com",
-              "domain": "dokploy.com"
-            },
-            {
-              "url": "https://dokploy.com/blog/heroku-alternatives",
-              "title": "dokploy.com",
-              "domain": "dokploy.com"
-            },
-            {
-              "url": "https://github.com/debarshibasak/awesome-paas",
-              "title": "github.com",
-              "domain": "github.com"
-            }
-          ],
-          "searchQueries": [
-            "best self hosted paas open source",
-            "best self hosted heroku alternatives paas"
-          ],
-          "highlights": [
-            {
-              "brand": "Coolify",
-              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
-              "match": "Coolify"
-            },
-            {
-              "brand": "Vercel",
-              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
-              "match": "Vercel"
-            },
-            {
-              "brand": "Heroku",
-              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
-              "match": "Heroku"
-            },
-            {
-              "brand": "Railway",
-              "text": "Coolify is the most widely adopted open-source PaaS (often described as the self-hosted alternative to Vercel, Heroku, and Railway).",
-              "match": "Railway"
-            }
-          ],
-          "collectedAt": "2026-10-08T21:02:52.537Z"
-        },
-        {
-          "engine": "perplexity",
-          "text": "**For most people, I’d start with Coolify.** It offers a broad feature set and a large one-click service catalog, plus Git-based deployments, databases, and multi-server support. It’s a good fit if you want a dashboard for managing several apps and don’t mind allocating some server resources to the platform.\n\nOther good picks depend on your workflow:\n\n- **Dokploy** — best if you already use Docker Compose and want a modern UI; Compose is a first-class workflow.\n- **Dokku** — best for a lightweight, Heroku-like `git push` workflow and a CLI-first approach.\n- **CapRover** — best for a mature, straightforward setup, especially for simpler app deployments.\n\n**Quick choice:** Coolify for an all-rounder; Dokploy for Compose; Dokku for minimalism; CapRover for a proven, simple app manager. Check each project’s current release and licensing before putting it into production, especially if multi-server support or license terms matter to you.",
-          "overview": null,
-          "mentioned": ["Coolify", "Heroku"],
-          "sources": [
-            {
-              "url": "https://dokploy.com/blog/container-management-software",
-              "title": "The Best Container Management Software in 2026 - Dokploy",
-              "domain": "dokploy.com"
-            },
-            {
-              "url": "https://bex.co/blog/2026/09/07/self-hosted-paas-boom-bex-coolify-dokku-caprover-dokploy",
-              "title": "Four PaaS on One Server: What the 2026 Self-Hosted Boom Gets ...",
-              "domain": "bex.co"
-            },
-            {
-              "url": "https://toolradar.com/guides/best-self-hosted-paas",
-              "title": "Best Self-Hosted PaaS Platforms (2026) | Toolradar",
-              "domain": "toolradar.com"
-            },
-            {
-              "url": "https://kuberns.com/blogs/coolify-alternatives/",
-              "title": "kuberns.com › blogs › coolify-alternativesTop 8 Coolify Alternatives: Self-Hosted and Managed 2026",
-              "domain": "kuberns.com"
-            },
-            {
-              "url": "https://dev.to/deploynix/self-hosted-paas-showdown-2026-coolify-vs-dokploy-vs-caprover-vs-deploynix-46l3",
-              "title": "dev.to · deploynix · self-hosted-paas-showdown-2026Self-Hosted PaaS Showdown 2026: Coolify vs Dokploy vs ...",
-              "domain": "dev.to"
-            },
-            {
-              "url": "https://temps.sh/blog/7-best-self-hosted-deployment-platforms-2026",
-              "title": "7 Best Self-Hosted Deployment Platforms in 2026 - Temps",
-              "domain": "temps.sh"
-            },
-            {
-              "url": "https://perlod.com/tutorials/best-self-hosted-paas/",
-              "title": "Compare the Best Self-Hosted PaaS Platforms for 2026",
-              "domain": "perlod.com"
-            },
-            {
-              "url": "https://wz-it.com/en/blog/self-hosted-paas-comparison-coolify-dokploy-caprover/",
-              "title": "Self-hosted PaaS compared 2026: Coolify, Dokploy, ...",
-              "domain": "wz-it.com"
-            },
-            {
-              "url": "https://valebyte.com/en/blog/coolify-vs-dokploy-vs-caprover-2026-picking-a-self-hosted-paas/",
-              "title": "Coolify vs Dokploy vs CapRover 2026: Picking a Self-Hosted PaaS",
-              "domain": "valebyte.com"
-            },
-            {
-              "url": "https://www.qovery.com/blog/coolify-alternatives-compared",
-              "title": "9 Coolify Alternatives Worth Considering in 2026 (and ...",
-              "domain": "qovery.com"
-            },
-            {
-              "url": "https://massivegrid.com/blog/coolify-vs-dokploy-vs-caprover-choosing-paas/",
-              "title": "Coolify Cloud Vs...",
-              "domain": "massivegrid.com"
-            },
-            {
-              "url": "https://cloudzy.com/blog/self-hosted-paas-alternatives/",
-              "title": "4Coolify: The Full Dashboard...",
-              "domain": "cloudzy.com"
-            }
-          ],
-          "searchQueries": [],
-          "highlights": [
-            {
-              "brand": "Coolify",
-              "text": "For most people, I’d start with Coolify.",
-              "match": "Coolify"
-            },
-            {
-              "brand": "Heroku",
-              "text": "Dokku — best for a lightweight, Heroku-like git push workflow and a CLI-first approach.",
-              "match": "Heroku"
-            }
-          ],
-          "collectedAt": "2026-10-08T21:02:50.836Z"
-        },
-        {
-          "engine": "ai-overview",
-          "text": "",
-          "overview": {
-            "query": "best self-hosted paas",
-            "blocks": [
-              {
-                "type": "paragraph",
-                "text": "The best self-hosted Platform-as-a-Service (PaaS) options depend on your setup, whether you want a modern visual dashboard or a lightweight command-line tool.",
-                "refs": []
-              },
-              { "type": "heading", "text": "Top Self-Hosted PaaS Options" },
-              {
-                "type": "list",
-                "items": [
-                  { "text": "Coolify", "refs": [0] },
-                  { "text": "Dokku", "refs": [1, 2] },
-                  { "text": "CapRover", "refs": [2] },
-                  { "text": "Qovery (BYOC Model)", "refs": [3] },
-                  { "text": "Kubernetes + ArgoCD / Rancher", "refs": [] }
-                ]
-              },
-              {
-                "type": "paragraph",
-                "text": "To help narrow down the best choice, tell me:",
-                "refs": []
-              },
-              {
-                "type": "list",
-                "items": [
-                  {
-                    "text": "Are you deploying to a single VPS or a multi-server/cloud cluster?",
-                    "refs": []
-                  },
-                  {
-                    "text": "Do you prefer a web GUI dashboard or a Git-push CLI workflow?",
-                    "refs": []
-                  }
-                ]
-              }
-            ],
-            "references": [
-              {
-                "index": 0,
-                "title": "Coolify vs Dokploy: Which Self-Hosted PaaS for Your VPS?",
-                "url": "https://www.virtua.cloud/learn/en/concepts/coolify-vs-dokploy-self-hosted-paas",
-                "source": "Virtua.Cloud"
-              },
-              {
-                "index": 1,
-                "title": "Best Open Source Deployment and Self-Hosted PaaS ...",
-                "url": "https://noizz.io/best/best-open-source-deployment-for-privacy-focused",
-                "source": "noizz.io"
-              },
-              {
-                "index": 2,
-                "title": "Coolify and Open-Source Alternatives to PaaS",
-                "url": "https://giovannimastellone.it/blog/coolify-and-open-source-alternatives-to-paas-a-complete-guide/",
-                "source": "giovannimastellone.it"
-              },
-              {
-                "index": 3,
-                "title": "5 PaaS Platforms Like Heroku, Compared (And When Each ...",
-                "url": "https://www.qovery.com/blog/paas-platforms-like-heroku-compared",
-                "source": "Qovery"
-              }
-            ]
-          },
-          "mentioned": [
-            "Coolify",
-            "Cloudflare",
-            "Heroku",
-            "AWS",
-            "Google Cloud",
-            "Azure"
-          ],
-          "sources": [
-            {
-              "url": "https://www.virtua.cloud/learn/en/concepts/coolify-vs-dokploy-self-hosted-paas",
-              "title": "Coolify vs Dokploy: Which Self-Hosted PaaS for Your VPS?",
-              "domain": "virtua.cloud"
-            },
-            {
-              "url": "https://noizz.io/best/best-open-source-deployment-for-privacy-focused",
-              "title": "Best Open Source Deployment and Self-Hosted PaaS ...",
-              "domain": "noizz.io"
-            },
-            {
-              "url": "https://giovannimastellone.it/blog/coolify-and-open-source-alternatives-to-paas-a-complete-guide/",
-              "title": "Coolify and Open-Source Alternatives to PaaS",
-              "domain": "giovannimastellone.it"
-            },
-            {
-              "url": "https://www.qovery.com/blog/paas-platforms-like-heroku-compared",
-              "title": "5 PaaS Platforms Like Heroku, Compared (And When Each ...",
-              "domain": "qovery.com"
-            }
-          ],
-          "searchQueries": [],
-          "highlights": [
-            { "brand": "Coolify", "text": "Coolify", "match": "Coolify" }
-          ],
-          "collectedAt": "2026-10-07T15:30:22.289Z"
         }
       ]
     },
@@ -10580,6 +10901,56 @@
                 "type": "paragraph",
                 "text": "Google Cloud Run is highly popular because of its generous free tier and true scale-to-zero model. Here is the basic flow to deploy your container:",
                 "refs": [0]
+              },
+              { "type": "heading", "text": "1. Containerize your application" },
+              {
+                "type": "paragraph",
+                "text": "Ensure you have a Dockerfile in your project root directory and that your application listens on the $PORT environment variable (Cloud Run injects this dynamically).",
+                "refs": [1]
+              },
+              { "type": "heading", "text": "2. Push to a Registry" },
+              {
+                "type": "paragraph",
+                "text": "You must store your container image in a public or private cloud registry so the platform can grab it.",
+                "refs": [0, 1]
+              },
+              {
+                "type": "heading",
+                "text": "3. Deploy instantly via CLI or Console"
+              },
+              {
+                "type": "paragraph",
+                "text": "You can trigger the serverless deployment using a single command:",
+                "refs": []
+              },
+              {
+                "type": "paragraph",
+                "text": "Alternatively, you can just log into the Google Cloud Console, click Cloud Run, click Create Service, select your uploaded image, and hit Deploy.",
+                "refs": [0]
+              },
+              {
+                "type": "paragraph",
+                "text": "Within seconds, the platform will give you a live public HTTPS URL. If nobody visits your site, the containers shut down and you aren't billed for idle compute time.",
+                "refs": [0]
+              },
+              {
+                "type": "paragraph",
+                "text": "If you want to choose the right fit, tell me:",
+                "refs": []
+              },
+              {
+                "type": "list",
+                "items": [
+                  {
+                    "text": "What does your application do? (e.g., public web API, background cron job, stateful database)",
+                    "refs": []
+                  },
+                  {
+                    "text": "Do you need a database hosted alongside it?",
+                    "refs": []
+                  },
+                  { "text": "What is your target budget?", "refs": [] }
+                ]
               }
             ],
             "references": [
@@ -10642,8 +11013,7 @@
         { "name": "Netlify", "domain": "netlify.com" },
         { "name": "Cloudflare", "domain": "cloudflare.com" },
         { "name": "AWS", "domain": "aws.amazon.com" },
-        { "name": "Firebase", "domain": "firebase.google.com" },
-        { "name": "DigitalOcean", "domain": "digitalocean.com" }
+        { "name": "Firebase", "domain": "firebase.google.com" }
       ],
       "answers": 41,
       "consensus": true,
@@ -10653,14 +11023,13 @@
         "Netlify": 41,
         "Cloudflare": 41,
         "AWS": 12,
-        "Firebase": 1,
-        "DigitalOcean": 1
+        "Firebase": 1
       },
       "firsts": { "Vercel": 41 },
       "responses": [
         {
           "engine": "chatgpt",
-          "text": "## Quick verdict\n\n- **Choose Vercel** for **Next.js**, polished developer experience, preview environments, and minimal configuration.\n- **Choose Netlify** for framework-neutral frontend projects, straightforward CI/CD, built-in platform features, and collaborative teams.\n- **Choose Cloudflare** for the **lowest-cost global delivery**, edge-first applications, and tight integration with Workers, D1, R2, KV, Durable Objects, and Cloudflare’s network.\n\n> **Important in 2026:** Cloudflare recommends **Workers**, rather than Pages, for new applications. Pages remains useful for existing projects and static deployments, but Workers is now Cloudflare’s primary application platform. \n\n## Comparison\n\n| Category | Vercel | Netlify | Cloudflare Pages/Workers |\n|---|---|---|---|\n| Best for | Next.js and full-stack React | General frontend/JAMstack teams | Edge-first and cost-sensitive apps |\n| Next.js support | **Best/native** | Very good through OpenNext | Improving, but less native |\n| Static sites | Excellent | Excellent | **Excellent and inexpensive** |\n| Server-side runtime | Node.js, Python and others | Functions + Edge Functions | Workers runtime |\n| Global edge execution | Good | Good | **Core strength** |\n| Deployment previews | Excellent | Excellent | Available |\n| Built-in ecosystem | AI, functions, storage integrations, analytics | Forms, blobs, database, functions, deploy workflows | D1, R2, KV, Queues, Durable Objects, Workers AI |\n| Ease of use | **Easiest for Next.js** | Easy across many frameworks | More infrastructure-oriented |\n| Pricing simplicity | Moderate usage-based pricing | Credit-based pricing | Usually the most economical |\n| Runtime compatibility | Strong Node.js compatibility | Strong traditional serverless compatibility | Web-standard first; compatibility should be tested |\n\n## 1. Vercel\n\n### Strengths\n\n- Created by the company behind Next.js, so new Next.js capabilities generally work there first.\n- Excellent support for SSR, ISR, Server Components, Server Actions, middleware and image optimization.\n- Very polished Git integration and pull-request previews.\n- Functions support longer-running and heavier workloads than typical edge-only runtimes.\n- Strong observability, analytics and AI-development tooling. \n\n### Weaknesses\n\n- Usage-based bills can become significant at scale.\n- Some platform features encourage Vercel-specific architecture.\n- Less compelling than Cloudflare when your primary concern is inexpensive bandwidth and globally distributed edge compute.\n\nVercel currently offers a free Hobby plan and a **$20/month Pro starting point with $20 of included usage credit**. Compute is billed using active CPU and provisioned memory, with rates varying by execution region. \n\n**Pick Vercel if:** you use Next.js and value developer productivity more than minimizing infrastructure costs.\n\n---\n\n## 2. Netlify\n\n### Strengths\n\n- Strong framework-neutral experience for Astro, Next.js, Remix, Gatsby, Nuxt and traditional static-site generators.\n- Excellent deploy previews, branch deployments and Git workflows.\n- Full support for major Next.js features through its open-source OpenNext adapter.\n- Convenient integrated features such as forms, functions, blob storage and database services.\n- Netlify Pro now includes unlimited team members rather than charging separately for each seat. \n\n### Weaknesses\n\n- The credit-based pricing model requires translating bandwidth, requests, deployments and compute into credits.\n- Its platform ecosystem is less extensive than Cloudflare’s infrastructure ecosystem.\n- For pure Next.js, Vercel normally provides the smoothest path.\n- Some older differentiating features are being reduced; for example, new projects can no longer enable Netlify Split Testing as of August 26, 2026. \n\nCurrent plans include Free with 300 monthly credits, Personal at $9 with 1,000 credits, and Pro starting at **$20/month with 3,000 credits and unlimited members**. Credits cover production deployments, compute, bandwidth and requests. \n\n**Pick Netlify if:** you want a friendly, framework-independent deployment platform with strong team workflows and built-in website features.\n\n---\n\n## 3. Cloudflare Pages / Workers\n\n### Strengths\n\n- Excellent global performance because execution and caching are deeply integrated with Cloudflare’s network.\n- Static asset requests on Pages are free and unlimited.\n- Workers Paid starts at $5/month and includes 10 million requests monthly, making it highly competitive for high-traffic applications.\n- Strong native services: D1 SQL, R2 object storage, KV, Durable Objects, Queues, Vectorize and Workers AI.\n- Particularly good for APIs, authentication gateways, globally distributed applications and workloads with substantial static traffic. \n\n### Weaknesses\n\n- The Workers runtime is not identical to a conventional Node.js server, so package compatibility can require testing.\n- The deployment and configuration experience can be more technical than Vercel or Netlify.\n- Next.js support is less straightforward. Cloudflare currently recommends `vinext`, which is still marked beta, while OpenNext remains another path. Static Next.js exports can still use Pages. \n- Pages itself is no longer the recommended starting point for new full-stack applications; use Workers with static assets instead. \n\n**Pick Cloudflare if:** global edge performance, bandwidth economics and Cloudflare’s backend services matter more than perfect Node.js or Next.js compatibility.\n\n## Recommendations by project\n\n| Project | Recommendation |\n|---|---|\n| Production Next.js SaaS | **Vercel** |\n| Next.js with strict infrastructure-cost goals | Cloudflare Workers, after compatibility testing |\n| Astro/Hugo/Jekyll documentation site | **Cloudflare Workers/static assets** or Netlify |\n| Marketing site needing built-in forms | **Netlify** |\n| React/Vite SPA | Cloudflare or Netlify |\n| Edge API or authentication gateway | **Cloudflare Workers** |\n| AI application with long-running API calls",
+          "text": "## Quick verdict\n\n- **Choose Vercel** for **Next.js**, polished developer experience, preview environments, and minimal configuration.\n- **Choose Netlify** for framework-neutral frontend projects, straightforward CI/CD, built-in platform features, and collaborative teams.\n- **Choose Cloudflare** for the **lowest-cost global delivery**, edge-first applications, and tight integration with Workers, D1, R2, KV, Durable Objects, and Cloudflare’s network.\n\n> **Important in 2026:** Cloudflare recommends **Workers**, rather than Pages, for new applications. Pages remains useful for existing projects and static deployments, but Workers is now Cloudflare’s primary application platform. \n\n## Comparison\n\n| Category | Vercel | Netlify | Cloudflare Pages/Workers |\n|---|---|---|---|\n| Best for | Next.js and full-stack React | General frontend/JAMstack teams | Edge-first and cost-sensitive apps |\n| Next.js support | **Best/native** | Very good through OpenNext | Improving, but less native |\n| Static sites | Excellent | Excellent | **Excellent and inexpensive** |\n| Server-side runtime | Node.js, Python and others | Functions + Edge Functions | Workers runtime |\n| Global edge execution | Good | Good | **Core strength** |\n| Deployment previews | Excellent | Excellent | Available |\n| Built-in ecosystem | AI, functions, storage integrations, analytics | Forms, blobs, database, functions, deploy workflows | D1, R2, KV, Queues, Durable Objects, Workers AI |\n| Ease of use | **Easiest for Next.js** | Easy across many frameworks | More infrastructure-oriented |\n| Pricing simplicity | Moderate usage-based pricing | Credit-based pricing | Usually the most economical |\n| Runtime compatibility | Strong Node.js compatibility | Strong traditional serverless compatibility | Web-standard first; compatibility should be tested |\n\n## 1. Vercel\n\n### Strengths\n\n- Created by the company behind Next.js, so new Next.js capabilities generally work there first.\n- Excellent support for SSR, ISR, Server Components, Server Actions, middleware and image optimization.\n- Very polished Git integration and pull-request previews.\n- Functions support longer-running and heavier workloads than typical edge-only runtimes.\n- Strong observability, analytics and AI-development tooling. \n\n### Weaknesses\n\n- Usage-based bills can become significant at scale.\n- Some platform features encourage Vercel-specific architecture.\n- Less compelling than Cloudflare when your primary concern is inexpensive bandwidth and globally distributed edge compute.\n\nVercel currently offers a free Hobby plan and a **$20/month Pro starting point with $20 of included usage credit**. Compute is billed using active CPU and provisioned memory, with rates varying by execution region. \n\n**Pick Vercel if:** you use Next.js and value developer productivity more than minimizing infrastructure costs.\n\n---\n\n## 2. Netlify\n\n### Strengths\n\n- Strong framework-neutral experience for Astro, Next.js, Remix, Gatsby, Nuxt and traditional static-site generators.\n- Excellent deploy previews, branch deployments and Git workflows.\n- Full support for major Next.js features through its open-source OpenNext adapter.\n- Convenient integrated features such as forms, functions, blob storage and database services.\n- Netlify Pro now includes unlimited team members rather than charging separately for each seat. \n\n### Weaknesses\n\n- The credit-based pricing model requires translating bandwidth, requests, deployments and compute into credits.\n- Its platform ecosystem is less extensive than Cloudflare’s infrastructure ecosystem.\n- For pure Next.js, Vercel normally provides the smoothest path.\n- Some older differentiating features are being reduced; for example, new projects can no longer enable Netlify Split Testing as of August 26, 2026. \n\nCurrent plans include Free with 300 monthly credits, Personal at $9 with 1,000 credits, and Pro starting at **$20/month with 3,000 credits and unlimited members**. Credits cover production deployments, compute, bandwidth and requests. \n\n**Pick Netlify if:** you want a friendly, framework-independent deployment platform with strong team workflows and built-in website features.\n\n---\n\n## 3. Cloudflare Pages / Workers\n\n### Strengths\n\n- Excellent global performance because execution and caching are deeply integrated with Cloudflare’s network.\n- Static asset requests on Pages are free and unlimited.\n- Workers Paid starts at $5/month and includes 10 million requests monthly, making it highly competitive for high-traffic applications.\n- Strong native services: D1 SQL, R2 object storage, KV, Durable Objects, Queues, Vectorize and Workers AI.\n- Particularly good for APIs, authentication gateways, globally distributed applications and workloads with substantial static traffic. \n\n### Weaknesses\n\n- The Workers runtime is not identical to a conventional Node.js server, so package compatibility can require testing.\n- The deployment and configuration experience can be more technical than Vercel or Netlify.\n- Next.js support is less straightforward. Cloudflare currently recommends `vinext`, which is still marked beta, while OpenNext remains another path. Static Next.js exports can still use Pages. \n- Pages itself is no longer the recommended starting point for new full-stack applications; use Workers with static assets instead. \n\n**Pick Cloudflare if:** global edge performance, bandwidth economics and Cloudflare’s backend services matter more than perfect Node.js or Next.js compatibility.\n\n## Recommendations by project\n\n| Project | Recommendation |\n|---|---|\n| Production Next.js SaaS | **Vercel** |\n| Next.js with strict infrastructure-cost goals | Cloudflare Workers, after compatibility testing |\n| Astro/Hugo/Jekyll documentation site | **Cloudflare Workers/static assets** or Netlify |\n| Marketing site needing built-in forms | **Netlify** |\n| React/Vite SPA | Cloudflare or Netlify |\n| Edge API or authentication gateway | **Cloudflare Workers** |\n| AI application with long-running API calls | **Vercel** |\n| Large collaborative frontend team | Netlify or Vercel |\n| Personal static site with lots of traffic | **Cloudflare** |\n| Simplest deployment with minimal decisions | Vercel for Next.js; Netlify otherwise |\n\n### My default choice\n\n- **Next.js:** Vercel  \n- **Astro/static/Vite:** Cloudflare Workers with static assets  \n- **Framework-neutral business website:** Netlify  \n- **High-traffic, cost-sensitive application:** Cloudflare Workers  \n\nIf you have no special requirements, choose **Vercel for Next.js** and **Cloudflare for almost everything static or edge-oriented**. Netlify remains the strongest middle-ground option when you want framework flexibility and an integrated frontend workflow.",
           "overview": null,
           "mentioned": ["Vercel", "Netlify", "Cloudflare"],
           "sources": [
@@ -10809,7 +11178,7 @@
         },
         {
           "engine": "gemini",
-          "text": "**Vercel**, **Netlify**, and **Cloudflare Pages** are the three leading platforms for deploying modern frontends, Jamstack sites, and full-stack web applications. While they share core features—such as automatic Git deployments, preview URLs, custom domains, and edge routing—they each excel in different areas.\n\n---\n\n### Quick Summary (The TL;DR)\n\n* **Choose Vercel** if you are building with **Next.js** or want the smoothest developer experience (DX) for modern React/full-stack frameworks.\n* **Choose Cloudflare Pages** if you have **high traffic**, care deeply about **cost predictability (zero bandwidth fees)**, or want a globally distributed app powered by Cloudflare Workers and its serverless database ecosystem (D1, KV, R2).\n* **Choose Netlify** if you want a **framework-agnostic** platform with strong collaboration tools, built-in features (forms, identity), and a focus on content-driven or enterprise marketing workflows.\n\n---\n\n### Comparison Matrix\n\n| Feature | Vercel | Netlify | Cloudflare Pages |\n| :--- | :--- | :--- | :--- |\n| **Best For** | Next.js, AI apps, fast prototyping | Framework-agnostic apps, marketing/content sites | High-traffic sites, low latency, budget-conscious scaling |\n| **Network & CDN** | Custom Global Edge + AWS regions | High-Performance Edge CDN | Cloudflare Global Anycast Network (300+ cities) |\n| **Serverless / Edge** | AWS Lambda + V8 Edge functions | AWS Lambda + Deno-based Edge functions | Cloudflare Workers (V8 isolates only) |\n| **Bandwidth (Free Tier)** | 100 GB / month | 100 GB / month | **Unlimited** (fair use) |\n| **Pricing Model** | $20 / seat / month (Pro) | $19 / seat / month (Pro) | $5 / month base (Workers Paid) |\n| **Integrated Storage** | Vercel Blob, KV, Postgres | Netlify Blobs, DB integrations | Cloudflare R2 (S3-compatible), D1 (SQL), KV, Vectorize |\n| **Built-in Utilities** | Analytics, Speed Insights, AI SDK | Forms, Identity/Auth, Split Testing | Cloudflare Access, Web Analytics, Turnstile |\n\n---\n\n### Deep Dive into Each Platform\n\n#### 1. Vercel\nAs the creator and maintainer of Next.js, Vercel offers an unmatched developer experience for the React ecosystem. Whenever Next.js introduces a new feature (such as the App Router, Server Actions, or partial prerendering), Vercel supports it immediately on day one.\n\n* **Strengths:**\n  * **Top-tier Next.js integration:** Zero configuration needed for complex SSR, ISR (Incremental Static Regeneration), and Server Components.\n  * **Developer Experience:** Incredible dashboard, preview comments for teams, automated CLI integrations, and fluid compute.\n  * **First-party AI focus:** Excellent integrations and templates for generative AI apps via the Vercel AI SDK.\n* **Weaknesses:**\n  * **Cost scaling:** Bandwidth, function execution, and per-seat pricing can escalate quickly once you exceed the Pro tiers.\n  * **Vercel Lock-in:** Moving advanced Next.js apps off Vercel can require significant custom setup or adapters (e.g., OpenNext).\n\n#### 2. Cloudflare Pages\nCloudflare Pages is built directly on top of Cloudflare’s massive edge network. It runs static assets and dynamic backend code (Cloudflare Workers) across more than 300 data centers worldwide, bypassing traditional regional server bottlenecks.\n\n* **Strengths:**\n  * **Unbeatable Pricing & Scalability:** Cloudflare does not charge for bandwidth or egress traffic. Its $5/month Workers plan handles traffic volumes that would cost hundreds of dollars elsewhere.\n  * **Low Latency:** Edge execution runs on V8 isolates rather than containerized Lambdas, resulting in virtually **zero cold starts**.\n  * **Full Cloudflare Ecosystem:** Direct access to S3-compatible storage (R2 with no egress fees), distributed SQLite (D1), global KV, and enterprise-grade DDoS protection.\n* **Weaknesses:**\n  * **Runtime Limitations:** Because it runs on V8 isolates rather than a full Node.js server, some Node-native libraries and advanced Next.js features require adapters (like OpenNext) or may not work out of the box.\n  * **DX & Dashboard:** The dashboard is geared more toward infrastructure engineers and is less polished for pure frontend workflows compared to Vercel.\n\n#### 3. Netlify\nNetlify pioneered the modern Jamstack movement. It remains a very flexible, framework-agnostic platform built with an emphasis on web standards, content management systems (Headless CMSs), and marketing team collaboration.\n\n* **Strengths:**\n  * **Framework Agnostic:** First-class support across Astro, Nuxt, SvelteKit, Gatsby, and Remix without favoring one framework over another.\n  * **Out-of-the-Box Utilities:** Built-in form handling, simple authentication/identity management, and native split testing (A/B tests).\n  * **Collaboration Features:** Netlify Drawer lets non-technical stakeholders, clients, and QA leave visual feedback directly on preview deployments.\n* **Weaknesses:**\n  * **Next.js Parity:** While Netlify supports modern Next.js using OpenNext, updates and bleeding-edge features can occasionally lag behind Vercel.\n  * **Pricing Thresholds:** Similar to Vercel, overage fees for bandwidth, build minutes, and per-seat team billing can become expensive for high-volume sites.\n\n---\n\n### Which One Should You Pick?\n\n* **Go with Vercel if:**\n  * Your core stack is **Next.js**.\n  * Your priority is maximizing **team velocity and developer experience**.\n  * You are building a modern SaaS application or AI-driven frontend.\n\n* **Go with Cloudflare Pages if:**\n  * You want the **cheapest and most scalable** option for static sites, documentation, or client-side SPAs.\n  * You are building full-stack apps with frameworks like **Astro, Remix, or SvelteKit** that run natively on web-standard edge runtimes.\n  * You expect significant traffic or media downloads and want to **avoid surprise bandwidth bills**.\n\n* **Go with Netlify if:**\n  * You are building content-heavy sites (blogs, corporate marketing sites, documentation) connected to a headless CMS.\n  * You need quick built-in utilities like",
+          "text": "**Vercel**, **Netlify**, and **Cloudflare Pages** are the three leading platforms for deploying modern frontends, Jamstack sites, and full-stack web applications. While they share core features—such as automatic Git deployments, preview URLs, custom domains, and edge routing—they each excel in different areas.\n\n---\n\n### Quick Summary (The TL;DR)\n\n* **Choose Vercel** if you are building with **Next.js** or want the smoothest developer experience (DX) for modern React/full-stack frameworks.\n* **Choose Cloudflare Pages** if you have **high traffic**, care deeply about **cost predictability (zero bandwidth fees)**, or want a globally distributed app powered by Cloudflare Workers and its serverless database ecosystem (D1, KV, R2).\n* **Choose Netlify** if you want a **framework-agnostic** platform with strong collaboration tools, built-in features (forms, identity), and a focus on content-driven or enterprise marketing workflows.\n\n---\n\n### Comparison Matrix\n\n| Feature | Vercel | Netlify | Cloudflare Pages |\n| :--- | :--- | :--- | :--- |\n| **Best For** | Next.js, AI apps, fast prototyping | Framework-agnostic apps, marketing/content sites | High-traffic sites, low latency, budget-conscious scaling |\n| **Network & CDN** | Custom Global Edge + AWS regions | High-Performance Edge CDN | Cloudflare Global Anycast Network (300+ cities) |\n| **Serverless / Edge** | AWS Lambda + V8 Edge functions | AWS Lambda + Deno-based Edge functions | Cloudflare Workers (V8 isolates only) |\n| **Bandwidth (Free Tier)** | 100 GB / month | 100 GB / month | **Unlimited** (fair use) |\n| **Pricing Model** | $20 / seat / month (Pro) | $19 / seat / month (Pro) | $5 / month base (Workers Paid) |\n| **Integrated Storage** | Vercel Blob, KV, Postgres | Netlify Blobs, DB integrations | Cloudflare R2 (S3-compatible), D1 (SQL), KV, Vectorize |\n| **Built-in Utilities** | Analytics, Speed Insights, AI SDK | Forms, Identity/Auth, Split Testing | Cloudflare Access, Web Analytics, Turnstile |\n\n---\n\n### Deep Dive into Each Platform\n\n#### 1. Vercel\nAs the creator and maintainer of Next.js, Vercel offers an unmatched developer experience for the React ecosystem. Whenever Next.js introduces a new feature (such as the App Router, Server Actions, or partial prerendering), Vercel supports it immediately on day one.\n\n* **Strengths:**\n  * **Top-tier Next.js integration:** Zero configuration needed for complex SSR, ISR (Incremental Static Regeneration), and Server Components.\n  * **Developer Experience:** Incredible dashboard, preview comments for teams, automated CLI integrations, and fluid compute.\n  * **First-party AI focus:** Excellent integrations and templates for generative AI apps via the Vercel AI SDK.\n* **Weaknesses:**\n  * **Cost scaling:** Bandwidth, function execution, and per-seat pricing can escalate quickly once you exceed the Pro tiers.\n  * **Vercel Lock-in:** Moving advanced Next.js apps off Vercel can require significant custom setup or adapters (e.g., OpenNext).\n\n#### 2. Cloudflare Pages\nCloudflare Pages is built directly on top of Cloudflare’s massive edge network. It runs static assets and dynamic backend code (Cloudflare Workers) across more than 300 data centers worldwide, bypassing traditional regional server bottlenecks.\n\n* **Strengths:**\n  * **Unbeatable Pricing & Scalability:** Cloudflare does not charge for bandwidth or egress traffic. Its $5/month Workers plan handles traffic volumes that would cost hundreds of dollars elsewhere.\n  * **Low Latency:** Edge execution runs on V8 isolates rather than containerized Lambdas, resulting in virtually **zero cold starts**.\n  * **Full Cloudflare Ecosystem:** Direct access to S3-compatible storage (R2 with no egress fees), distributed SQLite (D1), global KV, and enterprise-grade DDoS protection.\n* **Weaknesses:**\n  * **Runtime Limitations:** Because it runs on V8 isolates rather than a full Node.js server, some Node-native libraries and advanced Next.js features require adapters (like OpenNext) or may not work out of the box.\n  * **DX & Dashboard:** The dashboard is geared more toward infrastructure engineers and is less polished for pure frontend workflows compared to Vercel.\n\n#### 3. Netlify\nNetlify pioneered the modern Jamstack movement. It remains a very flexible, framework-agnostic platform built with an emphasis on web standards, content management systems (Headless CMSs), and marketing team collaboration.\n\n* **Strengths:**\n  * **Framework Agnostic:** First-class support across Astro, Nuxt, SvelteKit, Gatsby, and Remix without favoring one framework over another.\n  * **Out-of-the-Box Utilities:** Built-in form handling, simple authentication/identity management, and native split testing (A/B tests).\n  * **Collaboration Features:** Netlify Drawer lets non-technical stakeholders, clients, and QA leave visual feedback directly on preview deployments.\n* **Weaknesses:**\n  * **Next.js Parity:** While Netlify supports modern Next.js using OpenNext, updates and bleeding-edge features can occasionally lag behind Vercel.\n  * **Pricing Thresholds:** Similar to Vercel, overage fees for bandwidth, build minutes, and per-seat team billing can become expensive for high-volume sites.\n\n---\n\n### Which One Should You Pick?\n\n* **Go with Vercel if:**\n  * Your core stack is **Next.js**.\n  * Your priority is maximizing **team velocity and developer experience**.\n  * You are building a modern SaaS application or AI-driven frontend.\n\n* **Go with Cloudflare Pages if:**\n  * You want the **cheapest and most scalable** option for static sites, documentation, or client-side SPAs.\n  * You are building full-stack apps with frameworks like **Astro, Remix, or SvelteKit** that run natively on web-standard edge runtimes.\n  * You expect significant traffic or media downloads and want to **avoid surprise bandwidth bills**.\n\n* **Go with Netlify if:**\n  * You are building content-heavy sites (blogs, corporate marketing sites, documentation) connected to a headless CMS.\n  * You need quick built-in utilities like **HTML form processing** or basic user authentication without writing custom backend code.\n  * You work with cross-functional teams (designers, copywriters, QA) who benefit from interactive preview tools.",
           "overview": null,
           "mentioned": ["Vercel", "Netlify", "Cloudflare", "AWS"],
           "sources": [],
@@ -10837,7 +11206,7 @@
           "engine": "perplexity",
           "text": "## Vercel vs. Netlify vs. Cloudflare Pages\n\n**Short version:** Pick **Vercel** for a polished framework-centric app experience, especially with Next.js; **Netlify** for straightforward Git-based deploys and an all-in-one workflow; **Cloudflare Pages** for static sites and apps that benefit from Cloudflare’s global network and Workers ecosystem.\n\n| | Vercel | Netlify | Cloudflare Pages |\n|---|---|---|---|\n| **Best fit** | Next.js and other modern web apps | Sites and apps where easy previews, deploys, and integrated tooling matter | Static-heavy projects, edge delivery, and apps using Cloudflare Workers |\n| **Deploy workflow** | Git-connected CI/CD, polished previews, framework-aware defaults | Git, API, or other deploy workflows; previews and production deploys | Git-based builds with Cloudflare’s CDN and Pages Functions |\n| **Server-side code** | Functions and framework integrations | Functions and related platform features | Pages Functions run on Workers |\n| **Pricing model** | Free Hobby; Pro starts at **$20/month** and includes **$20 in usage credit**; usage can add cost | Free and paid credit-based plans; Pro is listed at **$20/month** | Free Pages plan; dynamic-function usage is billed under Workers pricing |\n| **Notable tradeoff** | Usage-based billing and paid team seats can make costs less predictable | Credit accounting takes some attention as usage grows | Less of a batteries-included app platform; understand Workers limits and billing |\n\n### How I’d choose\n\n- **Choose Vercel** if your project uses **Next.js**, you want framework-specific deployment features, or preview deployments and app-focused tooling are top priorities. Keep an eye on usage and team costs.\n- **Choose Netlify** if you want a convenient general-purpose platform for a website or frontend app, with Git-based deploys, previews, and functions in one place. Check the current credit rules against your expected traffic and deploy frequency.\n- **Choose Cloudflare Pages** if your site is mostly static, global delivery is important, or you already use **Cloudflare Workers**. It can be a strong low-cost fit, but server-side features use Workers quotas and pricing.\n\nFor a simple static site, all three can work well. For a new **Next.js** app, I’d start with Vercel; for a static site with edge logic or a Cloudflare-based stack, Pages; and for a smooth, framework-agnostic deploy workflow, Netlify. Pricing and plan details can change, so check each provider’s current limits before committing.",
           "overview": null,
-          "mentioned": ["Vercel", "Netlify", "Cloudflare", "DigitalOcean"],
+          "mentioned": ["Vercel", "Netlify", "Cloudflare"],
           "sources": [
             {
               "url": "https://www.netlify.com/pricing/",
@@ -11901,14 +12270,100 @@
         "refs": []
       },
       { "type": "heading", "text": "Top App Hosting Platforms for Developers" },
+      { "type": "list", "items": [{ "text": "Vercel", "refs": [0, 1] }] },
       {
         "type": "list",
         "items": [
-          { "text": "Vercel", "refs": [0, 1] },
-          { "text": "Coolify", "refs": [2] },
-          { "text": "Render", "refs": [3] },
-          { "text": "DigitalOcean (App Platform)", "refs": [] },
-          { "text": "AWS / Google Cloud Platform (GCP)", "refs": [] }
+          {
+            "text": "Best for: Frontend apps, React, and Next.js.",
+            "refs": []
+          },
+          {
+            "text": "Why it’s great: Instant Git-based deployments, global edge network, and zero DevOps setup.",
+            "refs": []
+          },
+          {
+            "text": "Trade-off: Can experience vendor lock-in and higher costs at scale.",
+            "refs": []
+          }
+        ]
+      },
+      { "type": "list", "items": [{ "text": "Coolify", "refs": [2] }] },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Best for: Self-hosting Heroku alternatives with full data and infrastructure control.",
+            "refs": []
+          },
+          {
+            "text": "Why it’s great: Open-source, Docker-integrated, Git-based deployment, and free if you host it yourself on your own server (or $5/month via Coolify Cloud).",
+            "refs": []
+          },
+          {
+            "text": "Trade-off: You manage or monitor the underlying server health.",
+            "refs": []
+          }
+        ]
+      },
+      { "type": "list", "items": [{ "text": "Render", "refs": [3] }] },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Best for: Full-stack web apps, APIs, and databases (popular modern Heroku replacement).",
+            "refs": []
+          },
+          {
+            "text": "Why it’s great: Simple pipeline, automatic SSL, native databases, and a generous free/low-cost tier.",
+            "refs": []
+          },
+          {
+            "text": "Trade-off: Cold starts can happen on lower-tier free web services.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "items": [{ "text": "DigitalOcean (App Platform)", "refs": [] }]
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Best for: Scalable cloud apps and microservices without raw AWS/GCP complexity.",
+            "refs": []
+          },
+          {
+            "text": "Why it’s great: Predictable pricing, easy container support, and seamless migration paths to a full VPS if you outgrow the managed app tier.",
+            "refs": []
+          },
+          {
+            "text": "Trade-off: Slightly more manual configuration than pure PaaS options like Vercel.",
+            "refs": []
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "items": [{ "text": "AWS / Google Cloud Platform (GCP)", "refs": [] }]
+      },
+      {
+        "type": "list",
+        "items": [
+          {
+            "text": "Best for: Enterprise-scale, high-traffic, or heavily customized infrastructure.",
+            "refs": []
+          },
+          {
+            "text": "Why it’s great: Maximum flexibility, virtually limitless services, and granular control.",
+            "refs": []
+          },
+          {
+            "text": "Trade-off: Steep learning curve and complex billing.",
+            "refs": []
+          }
         ]
       },
       {

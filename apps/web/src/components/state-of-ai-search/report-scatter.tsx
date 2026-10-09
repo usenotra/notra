@@ -77,14 +77,19 @@ function placePoints(
     );
     if (minLeft > point.left) {
       point.left = minLeft;
+      // A point pushed past blockers from several crowds joins all of them
+      // into one, so recentring moves them together and nothing overlaps.
       const blocking = new Set(blockers);
-      const crowd = crowds.find((members) =>
+      const touched = crowds.filter((members) =>
         members.some((member) => blocking.has(member))
       );
-      crowd?.push(point);
-      if (crowd) {
-        continue;
+      for (const crowd of touched) {
+        crowds.splice(crowds.indexOf(crowd), 1);
       }
+      crowds.push(
+        [...touched.flat(), point].toSorted((a, b) => a.left - b.left)
+      );
+      continue;
     }
     crowds.push([point]);
   }

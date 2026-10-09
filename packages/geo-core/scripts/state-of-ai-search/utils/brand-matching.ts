@@ -9,7 +9,7 @@ export function brandMatchers(brand: ReportBrand): RegExp[] {
   return [brand.name, ...(brand.aliases ?? [])].map(
     (name) =>
       new RegExp(
-        `(?<![\\p{L}\\p{N}])${escapeRegex(name)}(?![\\p{L}\\p{N}])`,
+        `(?<![\\p{L}\\p{M}\\p{N}])${escapeRegex(name)}(?![\\p{L}\\p{M}\\p{N}])`,
         flags
       )
   );

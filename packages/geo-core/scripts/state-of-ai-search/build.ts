@@ -61,7 +61,6 @@ const MAX_QUOTES = 3;
 const MAX_QUOTES_PER_ENGINE = 1;
 const MAX_PROMPT_SOURCES = 12;
 const HIGHLIGHT_MAX_LENGTH = 320;
-const MAX_RESPONSE_LENGTH = 6000;
 const SUMMARY_LEADERS = 5;
 const QUOTE_MIN_LENGTH = 50;
 const QUOTE_MAX_LENGTH = 260;
@@ -267,10 +266,7 @@ function buildPrompts(
             text:
               engine === "ai-overview"
                 ? ""
-                : answer.raw.text
-                    .replace(MARKDOWN_CITATION, "")
-                    .slice(0, MAX_RESPONSE_LENGTH)
-                    .trim(),
+                : answer.raw.text.replace(MARKDOWN_CITATION, "").trim(),
             overview:
               engine === "ai-overview" ? buildOverview(answer.raw) : null,
             mentioned: answer.mentioned.map((brand) => brand.name),
@@ -421,6 +417,64 @@ function readText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/**
+ * Google nests content: list items and blocks can carry their own blocks
+ * (a heading and paragraph under a numbered item, say). Flatten them in
+ * reading order so none of the text or its citations is lost.
+ */
+function collectOverviewBlocks(
+  raw: unknown,
+  blocks: StateOfAiSearchOverviewBlock[]
+): void {
+  if (!Array.isArray(raw)) {
+    return;
+  }
+  for (const block of raw as Record<string, unknown>[]) {
+    const text = readText(block.snippet);
+    if (block.type === "heading" && text) {
+      blocks.push({ type: "heading", text });
+    } else if (block.type === "list" && Array.isArray(block.list)) {
+      let items: { text: string; refs: number[] }[] = [];
+      const flush = () => {
+        if (items.length > 0) {
+          blocks.push({ type: "list", items });
+          items = [];
+        }
+      };
+      for (const item of block.list as Record<string, unknown>[]) {
+        const title = readText(item.title);
+        const snippet = readText(item.snippet);
+        const itemText =
+          title && snippet ? `${title}: ${snippet}` : title || snippet;
+        if (itemText) {
+          items.push({
+            text: itemText,
+            refs: readRefs(item.reference_indexes),
+          });
+        }
+        if (Array.isArray(item.list) || Array.isArray(item.text_blocks)) {
+          flush();
+          collectOverviewBlocks(item.text_blocks, blocks);
+          collectOverviewBlocks(
+            [{ type: "list", list: item.list }].filter(() =>
+              Array.isArray(item.list)
+            ),
+            blocks
+          );
+        }
+      }
+      flush();
+    } else if (text) {
+      blocks.push({
+        type: "paragraph",
+        text,
+        refs: readRefs(block.reference_indexes),
+      });
+    }
+    collectOverviewBlocks(block.text_blocks, blocks);
+  }
+}
+
 function buildOverview(
   answer: RawAnswer | undefined
 ): StateOfAiSearchOverview | null {
@@ -432,36 +486,7 @@ function buildOverview(
     return null;
   }
   const blocks: StateOfAiSearchOverviewBlock[] = [];
-  for (const block of answer.overview.text_blocks as Record<
-    string,
-    unknown
-  >[]) {
-    const text = readText(block.snippet);
-    if (block.type === "heading" && text) {
-      blocks.push({ type: "heading", text });
-    } else if (block.type === "list" && Array.isArray(block.list)) {
-      const items = (block.list as Record<string, unknown>[]).flatMap(
-        (item) => {
-          const title = readText(item.title);
-          const snippet = readText(item.snippet);
-          const itemText =
-            title && snippet ? `${title}: ${snippet}` : title || snippet;
-          return itemText
-            ? [{ text: itemText, refs: readRefs(item.reference_indexes) }]
-            : [];
-        }
-      );
-      if (items.length > 0) {
-        blocks.push({ type: "list", items });
-      }
-    } else if (text) {
-      blocks.push({
-        type: "paragraph",
-        text,
-        refs: readRefs(block.reference_indexes),
-      });
-    }
-  }
+  collectOverviewBlocks(answer.overview.text_blocks, blocks);
   const references = Array.isArray(answer.overview.references)
     ? (answer.overview.references as Record<string, unknown>[]).flatMap(
         (reference) => {
