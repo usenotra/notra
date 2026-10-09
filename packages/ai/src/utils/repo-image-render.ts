@@ -17,7 +17,7 @@ import { html as parseHtml } from "satori-html";
 
 const fontCache = new Map<string, ArrayBuffer>();
 
-async function loadGoogleFont(familySpec: string): Promise<ArrayBuffer> {
+export async function loadGoogleFont(familySpec: string): Promise<ArrayBuffer> {
   const cached = fontCache.get(familySpec);
   if (cached) {
     return cached;

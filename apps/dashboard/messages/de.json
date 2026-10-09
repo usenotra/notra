@@ -6155,6 +6155,26 @@
       "generating": "Inhalte werden erstellt…",
       "queuedViaApi": "Über die API eingereiht"
     },
+    "imageChat": {
+      "editingDiagram": "Du bearbeitest das Diagramm: {title}",
+      "editingImage": "Du bearbeitest das Bild: {title}",
+      "diagramPlaceholder": "Mach die Pfeile blau…",
+      "imagePlaceholder": "Mach den Hintergrund dunkler…"
+    },
+    "diagramEditor": {
+      "open": "Diagramm bearbeiten",
+      "title": "Diagramm bearbeiten",
+      "description": "Verschiebe, gestalte oder beschrifte alles neu. Beim Speichern wird das Bild neu gerendert, und Chat-Änderungen bauen auf deinen Änderungen auf.",
+      "loading": "Diagramm wird geladen…",
+      "loadFailed": "Diagramm konnte nicht geladen werden",
+      "cancel": "Abbrechen",
+      "save": "Diagramm speichern",
+      "saved": "Diagramm gespeichert",
+      "saveFailed": "Diagramm konnte nicht gespeichert werden",
+      "savedWithDropped": "Diagramm gespeichert. {types} kann Notra noch nicht rendern, das wurde weggelassen.",
+      "conflict": "Das Diagramm wurde geändert, während du es bearbeitet hast. Kopiere, was du brauchst, schließe den Editor und öffne ihn erneut.",
+      "saveRejected": "Diagramm konnte nicht gespeichert werden: {reason}"
+    },
     "toolbar": {
       "copyFor": "Für {target} kopieren",
       "selectExportTarget": "Exportziel auswählen",
@@ -6333,6 +6353,9 @@
         "figmaCopyFailed": "Kopieren für Figma fehlgeschlagen",
         "paperCopied": "Für Paper kopiert. Füge es in deine Paper-Datei ein.",
         "paperCopyFailed": "Kopieren für Paper fehlgeschlagen",
+        "excalidrawCopied": "Für Excalidraw kopiert. Füge es auf deiner Zeichenfläche ein.",
+        "tldrawCopied": "Für tldraw kopiert. Füge es auf deiner Zeichenfläche ein.",
+        "diagramCopyFailed": "Diagramm konnte nicht kopiert werden",
         "downloadFailed": "Bild konnte nicht heruntergeladen werden"
       }
     },
@@ -6699,7 +6722,7 @@
         "run": "{state, select, running {Führe {name} aus} other {{name} ausgeführt}}"
       },
       "imageGenerating": "Generiere Bild, dauert meist 3–8 Minuten",
-      "imageRevising": "Überarbeite Bild, dauert meist 3–8 Minuten",
+      "imageRevising": "Bild wird überarbeitet",
       "imageLongRunning": "{action, select, revise {Überarbeite} other {Generiere}} Bild. Läuft noch, große Repos können länger dauern",
       "unableToDisplay": "Wert kann nicht angezeigt werden",
       "truncated": "… ({count, plural, one {# weiteres Zeichen} other {# weitere Zeichen}} abgeschnitten)",

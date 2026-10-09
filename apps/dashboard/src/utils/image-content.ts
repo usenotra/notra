@@ -26,3 +26,20 @@ export function getImageExportHtml(content: ImageContentData): string | null {
 export function isHttpImageContent(content: string): boolean {
   return HTTP_URL_RE.test(content);
 }
+
+/** URL of the editable Excalidraw scene saved for diagram images. */
+export function getImageExcalidrawUrl(
+  content: ImageContentData
+): string | null {
+  const metadata = content.sourceMetadata;
+  if (
+    typeof metadata === "object" &&
+    metadata !== null &&
+    "excalidrawUrl" in metadata &&
+    typeof metadata.excalidrawUrl === "string" &&
+    HTTP_URL_RE.test(metadata.excalidrawUrl)
+  ) {
+    return metadata.excalidrawUrl;
+  }
+  return null;
+}

@@ -83,6 +83,7 @@ import { Route as ApiOrganizationsOrganizationIdChatChatIdRelayApprovalRouteImpo
 import { Route as ApiOrganizationsOrganizationIdChatChatIdStopRouteImport } from './routes/api.organizations.$organizationId.chat.$chatId.stop'
 import { Route as ApiOrganizationsOrganizationIdChatChatIdStreamRouteImport } from './routes/api.organizations.$organizationId.chat.$chatId.stream'
 import { Route as ApiOrganizationsOrganizationIdContentContentIdChatRouteImport } from './routes/api.organizations.$organizationId.content.$contentId.chat'
+import { Route as ApiOrganizationsOrganizationIdContentContentIdExcalidrawRouteImport } from './routes/api.organizations.$organizationId.content.$contentId.excalidraw'
 import { Route as ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRouteImport } from './routes/api.organizations.$organizationId.dashboard-agent.chat.$chatId'
 import { Route as ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRouteImport } from './routes/api.webhooks.$provider.$organizationId.$integrationId.$repositoryId'
 import { Route as ApiOrganizationsOrganizationIdContentContentIdChatChatIdRouteImport } from './routes/api.organizations.$organizationId.content.$contentId.chat.$chatId'
@@ -493,6 +494,12 @@ const ApiOrganizationsOrganizationIdContentContentIdChatRoute =
     path: '/api/organizations/$organizationId/content/$contentId/chat',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute =
+  ApiOrganizationsOrganizationIdContentContentIdExcalidrawRouteImport.update({
+    id: '/api/organizations/$organizationId/content/$contentId/excalidraw',
+    path: '/api/organizations/$organizationId/content/$contentId/excalidraw',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRoute =
   ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRouteImport.update({
     id: '/$chatId',
@@ -588,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/api/organizations/$organizationId/chat/$chatId/stop': typeof ApiOrganizationsOrganizationIdChatChatIdStopRoute
   '/api/organizations/$organizationId/chat/$chatId/stream': typeof ApiOrganizationsOrganizationIdChatChatIdStreamRoute
   '/api/organizations/$organizationId/content/$contentId/chat': typeof ApiOrganizationsOrganizationIdContentContentIdChatRouteWithChildren
+  '/api/organizations/$organizationId/content/$contentId/excalidraw': typeof ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute
   '/api/organizations/$organizationId/dashboard-agent/chat/$chatId': typeof ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRoute
   '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId': typeof ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute
   '/api/organizations/$organizationId/content/$contentId/chat/$chatId': typeof ApiOrganizationsOrganizationIdContentContentIdChatChatIdRoute
@@ -667,6 +675,7 @@ export interface FileRoutesByTo {
   '/api/organizations/$organizationId/chat/$chatId/stop': typeof ApiOrganizationsOrganizationIdChatChatIdStopRoute
   '/api/organizations/$organizationId/chat/$chatId/stream': typeof ApiOrganizationsOrganizationIdChatChatIdStreamRoute
   '/api/organizations/$organizationId/content/$contentId/chat': typeof ApiOrganizationsOrganizationIdContentContentIdChatRouteWithChildren
+  '/api/organizations/$organizationId/content/$contentId/excalidraw': typeof ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute
   '/api/organizations/$organizationId/dashboard-agent/chat/$chatId': typeof ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRoute
   '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId': typeof ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute
   '/api/organizations/$organizationId/content/$contentId/chat/$chatId': typeof ApiOrganizationsOrganizationIdContentContentIdChatChatIdRoute
@@ -747,6 +756,7 @@ export interface FileRoutesById {
   '/api/organizations/$organizationId/chat/$chatId/stop': typeof ApiOrganizationsOrganizationIdChatChatIdStopRoute
   '/api/organizations/$organizationId/chat/$chatId/stream': typeof ApiOrganizationsOrganizationIdChatChatIdStreamRoute
   '/api/organizations/$organizationId/content/$contentId/chat': typeof ApiOrganizationsOrganizationIdContentContentIdChatRouteWithChildren
+  '/api/organizations/$organizationId/content/$contentId/excalidraw': typeof ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute
   '/api/organizations/$organizationId/dashboard-agent/chat/$chatId': typeof ApiOrganizationsOrganizationIdDashboardAgentChatChatIdRoute
   '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId': typeof ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute
   '/api/organizations/$organizationId/content/$contentId/chat/$chatId': typeof ApiOrganizationsOrganizationIdContentContentIdChatChatIdRoute
@@ -828,6 +838,7 @@ export interface FileRouteTypes {
     | '/api/organizations/$organizationId/chat/$chatId/stop'
     | '/api/organizations/$organizationId/chat/$chatId/stream'
     | '/api/organizations/$organizationId/content/$contentId/chat'
+    | '/api/organizations/$organizationId/content/$contentId/excalidraw'
     | '/api/organizations/$organizationId/dashboard-agent/chat/$chatId'
     | '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId'
     | '/api/organizations/$organizationId/content/$contentId/chat/$chatId'
@@ -907,6 +918,7 @@ export interface FileRouteTypes {
     | '/api/organizations/$organizationId/chat/$chatId/stop'
     | '/api/organizations/$organizationId/chat/$chatId/stream'
     | '/api/organizations/$organizationId/content/$contentId/chat'
+    | '/api/organizations/$organizationId/content/$contentId/excalidraw'
     | '/api/organizations/$organizationId/dashboard-agent/chat/$chatId'
     | '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId'
     | '/api/organizations/$organizationId/content/$contentId/chat/$chatId'
@@ -986,6 +998,7 @@ export interface FileRouteTypes {
     | '/api/organizations/$organizationId/chat/$chatId/stop'
     | '/api/organizations/$organizationId/chat/$chatId/stream'
     | '/api/organizations/$organizationId/content/$contentId/chat'
+    | '/api/organizations/$organizationId/content/$contentId/excalidraw'
     | '/api/organizations/$organizationId/dashboard-agent/chat/$chatId'
     | '/api/webhooks/$provider/$organizationId/$integrationId/$repositoryId'
     | '/api/organizations/$organizationId/content/$contentId/chat/$chatId'
@@ -1055,6 +1068,7 @@ export interface RootRouteChildren {
   ApiOrganizationsOrganizationIdAgentSplatRoute: typeof ApiOrganizationsOrganizationIdAgentSplatRoute
   ApiOrganizationsOrganizationIdDashboardAgentChatRoute: typeof ApiOrganizationsOrganizationIdDashboardAgentChatRouteWithChildren
   ApiOrganizationsOrganizationIdContentContentIdChatRoute: typeof ApiOrganizationsOrganizationIdContentContentIdChatRouteWithChildren
+  ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute: typeof ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute
   ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute: typeof ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute
 }
 
@@ -1578,6 +1592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrganizationsOrganizationIdContentContentIdChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/organizations/$organizationId/content/$contentId/excalidraw': {
+      id: '/api/organizations/$organizationId/content/$contentId/excalidraw'
+      path: '/api/organizations/$organizationId/content/$contentId/excalidraw'
+      fullPath: '/api/organizations/$organizationId/content/$contentId/excalidraw'
+      preLoaderRoute: typeof ApiOrganizationsOrganizationIdContentContentIdExcalidrawRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/organizations/$organizationId/dashboard-agent/chat/$chatId': {
       id: '/api/organizations/$organizationId/dashboard-agent/chat/$chatId'
       path: '/$chatId'
@@ -1781,6 +1802,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiOrganizationsOrganizationIdDashboardAgentChatRouteWithChildren,
   ApiOrganizationsOrganizationIdContentContentIdChatRoute:
     ApiOrganizationsOrganizationIdContentContentIdChatRouteWithChildren,
+  ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute:
+    ApiOrganizationsOrganizationIdContentContentIdExcalidrawRoute,
   ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute:
     ApiWebhooksProviderOrganizationIdIntegrationIdRepositoryIdRoute,
 }

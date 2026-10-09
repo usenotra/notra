@@ -13,6 +13,9 @@ export type ImageExportToastMessageKey =
   | "figmaCopyFailed"
   | "paperCopied"
   | "paperCopyFailed"
+  | "excalidrawCopied"
+  | "tldrawCopied"
+  | "diagramCopyFailed"
   | "downloadFailed";
 
 export type CommonLabelToastMessageKey = "downloadedImage";

@@ -14,18 +14,20 @@ import {
   SplitButtonTrigger,
 } from "@notra/ui/components/ui/split-button";
 import { Github } from "@notra/ui/components/ui/svgs/github";
+import { useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
+import { DiagramEditorDialog } from "@/components/content/diagram-editor-dialog";
 import { ImageExportTargetIcon } from "@/components/content/image-export-target-icon";
 import { PostSocialButton } from "@/components/content/post-social-button";
 import { PublishContentToGitHubDialog } from "@/components/content/publish-content-to-github-dialog";
 import { ContentPublishButton } from "@/components/content/schedule/content-publish-button";
 import { WriterExecute } from "@/components/geo/writer/writer-execute";
-import { IMAGE_EXPORT_TARGETS } from "@/constants/image-export";
 import { IMAGE_EXPORT_DOWNLOAD_TARGET } from "@/constants/studio-analytics";
 import { trackEvent } from "@/lib/analytics/posthog-client";
 import {
+  copyDiagramScene,
   copyImageAsFigma,
   copyImageAsPaper,
   downloadImage,
@@ -38,9 +40,15 @@ import type {
   ContentDetailImageActionsProps,
 } from "@/types/components/content-detail-toolbar";
 import type { ImageExportTarget } from "@/types/content/image-export";
-import { getImageExportHtml, isHttpImageContent } from "@/utils/image-content";
 import {
+  getImageExcalidrawUrl,
+  getImageExportHtml,
+  isHttpImageContent,
+} from "@/utils/image-content";
+import {
+  getAvailableImageExportTargets,
   getImageExportTargetLabel,
+  isDiagramExportTarget,
   isImageExportTarget,
 } from "@/utils/image-export";
 
@@ -48,34 +56,52 @@ function ContentDetailImageActions({
   content,
   contentId,
   document,
+  organizationId,
 }: ContentDetailImageActionsProps) {
   const t = useTranslations("content.toolbar");
   const tCommon2 = useTranslations("common");
+  const [isCopying, setIsCopying] = useState(false);
   const imageExportHtml = getImageExportHtml(content);
   const imageExportHtmlUrl = content.htmlUrl;
   const imageDownloadUrl = isHttpImageContent(content.content)
     ? content.content
     : null;
+  const hasExcalidrawScene = getImageExcalidrawUrl(content) !== null;
+  const availableTargets = getAvailableImageExportTargets(hasExcalidrawScene);
+  const exportTarget = availableTargets.includes(document.imageExportTarget)
+    ? document.imageExportTarget
+    : "paper";
   const copyImageExportFor = (target: ImageExportTarget) => {
+    if (isCopying) {
+      return;
+    }
+    setIsCopying(true);
     trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
       content_id: contentId,
       target,
     });
-    if (target === "figma") {
-      copyImageAsFigma(
+    let copying: Promise<void>;
+    // Diagram targets are only offered when the post has a scene.
+    if (isDiagramExportTarget(target)) {
+      copying = copyDiagramScene(
+        `/api/organizations/${organizationId}/content/${contentId}/excalidraw`,
+        target
+      );
+    } else if (target === "figma") {
+      copying = copyImageAsFigma(
         document.imageExportRef.current,
         document.title,
         imageExportHtml,
         imageExportHtmlUrl
       );
-      return;
+    } else {
+      copying = copyImageAsPaper(
+        document.imageExportRef.current,
+        imageExportHtml,
+        imageExportHtmlUrl
+      );
     }
-
-    copyImageAsPaper(
-      document.imageExportRef.current,
-      imageExportHtml,
-      imageExportHtmlUrl
-    );
+    return copying.finally(() => setIsCopying(false));
   };
 
   const handleImageExportTargetSelect = (value: string) => {
@@ -88,6 +114,13 @@ function ContentDetailImageActions({
 
   return (
     <>
+      {hasExcalidrawScene ? (
+        <DiagramEditorDialog
+          contentId={contentId}
+          onSaved={document.invalidateContentQueries}
+          organizationId={organizationId}
+        />
+      ) : null}
       <Button
         onClick={() => {
           trackEvent(POSTHOG_EVENTS.IMAGE_EXPORTED, {
@@ -103,26 +136,23 @@ function ContentDetailImageActions({
         {tCommon2("labels.downloadImage")}
       </Button>
       <SplitButton
-        onFocusCapture={() =>
-          preloadImageExportCopy(document.imageExportTarget)
-        }
-        onMouseEnter={() => preloadImageExportCopy(document.imageExportTarget)}
+        onFocusCapture={() => preloadImageExportCopy(exportTarget)}
+        onMouseEnter={() => preloadImageExportCopy(exportTarget)}
       >
         <Button
-          onClick={() => copyImageExportFor(document.imageExportTarget)}
+          loading={isCopying}
+          onClick={() => copyImageExportFor(exportTarget)}
           size="sm"
           variant="outline"
         >
-          <ImageExportTargetIcon
-            className="size-4"
-            target={document.imageExportTarget}
-          />
+          <ImageExportTargetIcon className="size-4" target={exportTarget} />
           {t("copyFor", {
-            target: getImageExportTargetLabel(document.imageExportTarget),
+            target: getImageExportTargetLabel(exportTarget),
           })}
         </Button>
         <DropdownMenu>
           <SplitButtonTrigger
+            disabled={isCopying}
             label={t("selectExportTarget")}
             size="sm"
             variant="outline"
@@ -130,9 +160,9 @@ function ContentDetailImageActions({
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuRadioGroup
               onValueChange={handleImageExportTargetSelect}
-              value={document.imageExportTarget}
+              value={exportTarget}
             >
-              {IMAGE_EXPORT_TARGETS.map((target) => {
+              {availableTargets.map((target) => {
                 const isWonder = target === "wonder";
 
                 return (

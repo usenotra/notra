@@ -6155,6 +6155,26 @@
       "generating": "Generating content…",
       "queuedViaApi": "Queued via API"
     },
+    "imageChat": {
+      "editingDiagram": "Editing diagram: {title}",
+      "editingImage": "Editing image: {title}",
+      "diagramPlaceholder": "Make the arrows blue…",
+      "imagePlaceholder": "Make the background darker…"
+    },
+    "diagramEditor": {
+      "open": "Edit diagram",
+      "title": "Edit diagram",
+      "description": "Move, restyle, or relabel anything. Saving re-renders the image, and chat edits continue from your changes.",
+      "loading": "Loading diagram…",
+      "loadFailed": "Couldn't load the diagram",
+      "cancel": "Cancel",
+      "save": "Save diagram",
+      "saved": "Diagram saved",
+      "saveFailed": "Couldn't save the diagram",
+      "savedWithDropped": "Diagram saved. Notra can't render {types} yet, so those were left out.",
+      "conflict": "Someone changed this diagram while you were editing. Copy anything you need, close the editor, and open it again.",
+      "saveRejected": "Couldn't save the diagram: {reason}"
+    },
     "toolbar": {
       "copyFor": "Copy for {target}",
       "selectExportTarget": "Select export target",
@@ -6333,6 +6353,9 @@
         "figmaCopyFailed": "Failed to copy for Figma",
         "paperCopied": "Copied for Paper. Paste it into your Paper file.",
         "paperCopyFailed": "Failed to copy for Paper",
+        "excalidrawCopied": "Copied for Excalidraw. Paste it onto your canvas.",
+        "tldrawCopied": "Copied for tldraw. Paste it onto your canvas.",
+        "diagramCopyFailed": "Failed to copy the diagram",
         "downloadFailed": "Failed to download image"
       }
     },
@@ -6699,7 +6722,7 @@
         "run": "{state, select, running {Running {name}} other {Ran {name}}}"
       },
       "imageGenerating": "Generating image, usually takes 3–8 minutes",
-      "imageRevising": "Revising image, usually takes 3–8 minutes",
+      "imageRevising": "Revising image",
       "imageLongRunning": "{action, select, revise {Revising} other {Generating}} image. Still working, large repos can take longer",
       "unableToDisplay": "Unable to display value",
       "truncated": "… ({count, plural, one {# more character} other {# more characters}} truncated)",
