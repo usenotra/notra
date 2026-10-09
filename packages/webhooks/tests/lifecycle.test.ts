@@ -15,13 +15,8 @@ import { publishEventInTransaction } from "../src/drizzle";
 import { WebhookStorageError } from "../src/errors/webhooks";
 import { deliver } from "../src/programs/deliveries";
 import { createEndpoint } from "../src/programs/endpoints";
-import { dispatchEvent } from "../src/programs/recovery";
-import {
-  DeliveryId,
-  EventData,
-  EventId,
-  OrganizationId,
-} from "../src/schemas/webhooks";
+import { sweep } from "../src/programs/recovery";
+import { DeliveryId, EventData, OrganizationId } from "../src/schemas/webhooks";
 import { webCryptoLayer } from "../src/services/crypto";
 import { WebhookDatabase } from "../src/services/database";
 import { WebhookQueues } from "../src/services/queue";
@@ -55,6 +50,25 @@ const layers = Layer.mergeAll(
     WebhookDatabase.of({
       query: (query, parameters) =>
         sql(query, parameters).pipe(Effect.map((result) => result.rows)),
+      transaction: (statements) =>
+        Effect.tryPromise({
+          try: () =>
+            db.transaction(async (tx) => {
+              const results: unknown[] = [];
+              for (const statement of statements) {
+                const result = await tx.query(statement.sql, [
+                  ...statement.parameters,
+                ]);
+                results.push(result.rows);
+              }
+              return results;
+            }),
+          catch: (cause) =>
+            new WebhookStorageError({
+              operation: "lifecycle.transaction",
+              cause,
+            }),
+        }),
     })
   ),
   webCryptoLayer(Redacted.make(btoa("l".repeat(32)))),
@@ -76,7 +90,6 @@ const layers = Layer.mergeAll(
   Layer.succeed(
     WebhookQueues,
     WebhookQueues.of({
-      events: () => Effect.void,
       deliveries: (ids) => Effect.sync(() => queued.push(...ids)),
     })
   )
@@ -335,11 +348,7 @@ test("fanout snapshots enabled, matching, live endpoints in the owning organizat
   ]);
   await db.exec(`UPDATE webhook_endpoints SET url = 'https://example.com/changed', secret = 'rotated' WHERE id = 'matching';
     INSERT INTO webhook_endpoints (id, organization_id, url, events, secret) VALUES ('new', 'org-one', 'https://example.com/new', ARRAY['post.created','post.updated'], 'secret')`);
-  await Effect.runPromise(
-    dispatchEvent(Schema.decodeUnknownSync(EventId)(event?.id)).pipe(
-      Effect.provide(layers)
-    )
-  );
+  await Effect.runPromise(sweep().pipe(Effect.provide(layers)));
   expect(await deliveries()).toHaveLength(1);
   expect((await deliveries())[0]?.url).toBe("https://example.com/matching");
   expect((await deliveries())[0]?.secret).toBe("snapshot-secret");
@@ -363,11 +372,7 @@ test("events without subscribers are retained and dispatch does not backfill a l
       events: ["post.created"],
     }).pipe(Effect.provide(layers))
   );
-  await Effect.runPromise(
-    dispatchEvent(Schema.decodeUnknownSync(EventId)(event?.id)).pipe(
-      Effect.provide(layers)
-    )
-  );
+  await Effect.runPromise(sweep().pipe(Effect.provide(layers)));
   expect(await deliveries()).toHaveLength(0);
   expect(await events()).toEqual([expect.objectContaining({ id: event?.id })]);
 });

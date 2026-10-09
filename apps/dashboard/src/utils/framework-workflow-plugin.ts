@@ -1,11 +1,18 @@
+import { readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { join } from "node:path";
 
-import type { Plugin } from "vite";
+import { type Plugin, transformWithOxc } from "vite";
 import { workflow } from "workflow/vite";
 
 // Relative: vite.config.ts loads this file without the "@" alias.
 import {
   SOURCE_MAPPING_URL_COMMENT,
+  WORKFLOW_DEV_BUNDLE_FILES,
+  WORKFLOW_DEV_DYNAMIC_IMPORT,
+  WORKFLOW_DEV_OUTPUT_PATTERN,
+  WORKFLOW_DEV_REQUIRE_BANNER,
+  WORKFLOW_DEV_HANDLER_IDS,
   WORKFLOW_ESBUILD_IDLE_STOP_MS,
 } from "../constants/framework.ts";
 
@@ -44,7 +51,7 @@ function createEsbuildReleaser() {
 }
 
 type NitroSetup = (nitro: {
-  options: { dev: boolean };
+  options: { dev: boolean; buildDir: string; virtual: Record<string, unknown> };
   hooks: { hook: (name: string, fn: (...args: never[]) => void) => void };
 }) => unknown;
 
@@ -65,10 +72,65 @@ function withoutInputSourceMaps<T extends object>(plugin: T): T {
   };
 }
 
+/**
+ * Outside Vercel builds the workflow builder keeps JSX as written
+ * (`jsx: "preserve"`), so the email templates a step reaches leave raw JSX in
+ * the dev bundles, and its ESM output has no `require` for CommonJS
+ * externals. Patching both in place keeps them loadable by plain Node.
+ */
+async function compileWorkflowDevBundles(buildDir: string) {
+  await Promise.all(
+    WORKFLOW_DEV_BUNDLE_FILES.map(async (file) => {
+      const path = join(buildDir, "workflow", file);
+      const code = await readFile(path, "utf8").catch(() => null);
+      if (code === null) {
+        return;
+      }
+      if (code.startsWith(WORKFLOW_DEV_REQUIRE_BANNER)) {
+        return;
+      }
+      const result = await transformWithOxc(code, path, {
+        lang: "jsx",
+        jsx: { runtime: "automatic" },
+      });
+      // esbuild's __require shim needs a real require for the CommonJS
+      // packages the bundle keeps external (undici, pg).
+      await writeFile(path, `${WORKFLOW_DEV_REQUIRE_BANNER}${result.code}`);
+    })
+  );
+}
+
+/**
+ * The builder writes its dev bundles for Node: dependencies are relative
+ * paths into node_modules, CommonJS ones included (pg). The dev handlers
+ * the workflow Nitro module generates import them with `import()`, which Vite's module
+ * runner intercepts and inlines as ESM, failing with "require is not
+ * defined", so every step answered 500 and site jobs never left the queue.
+ * Importing natively lets Node resolve them as the builder intends.
+ */
+function importWorkflowDevBundlesNatively(virtual: Record<string, unknown>) {
+  for (const key of WORKFLOW_DEV_HANDLER_IDS) {
+    const source = virtual[key];
+    if (typeof source === "string") {
+      virtual[key] =
+        `const nativeImport = new Function("specifier", "return import(specifier)");\n${source.replaceAll(
+          WORKFLOW_DEV_DYNAMIC_IMPORT,
+          "nativeImport("
+        )}`;
+    }
+  }
+}
+
 export function dashboardWorkflow(): Plugin[] {
   const releaseEsbuild = createEsbuildReleaser();
+  let devBuildDir: string | null = null;
+  const compileDevBundles = async () => {
+    if (devBuildDir) {
+      await compileWorkflowDevBundles(devBuildDir);
+    }
+  };
 
-  return workflow().map((plugin): Plugin => {
+  const plugins = workflow().map((plugin): Plugin => {
     if (plugin.name === "workflow:transform") {
       return {
         ...withoutInputSourceMaps(plugin),
@@ -84,6 +146,9 @@ export function dashboardWorkflow(): Plugin[] {
           ...nitroPlugin.nitro,
           setup: async (nitro) => {
             await setup(nitro);
+            if (nitro.options.dev) {
+              importWorkflowDevBundlesNatively(nitro.options.virtual);
+            }
             nitro.hooks.hook(
               "rollup:before",
               (_nitro: unknown, config: { plugins?: unknown }) => {
@@ -98,8 +163,11 @@ export function dashboardWorkflow(): Plugin[] {
               }
             );
             if (nitro.options.dev) {
+              devBuildDir = nitro.options.buildDir;
               // Registered after the workflow module's own hooks, so these
               // run once its builds have finished.
+              nitro.hooks.hook("build:before", compileDevBundles);
+              nitro.hooks.hook("dev:reload", compileDevBundles);
               nitro.hooks.hook("build:before", releaseEsbuild);
               nitro.hooks.hook("dev:reload", releaseEsbuild);
             }
@@ -118,7 +186,14 @@ export function dashboardWorkflow(): Plugin[] {
         // each run rebuilt every workflow bundle. One environment is enough.
         applyToEnvironment: (environment) => environment.name === "client",
         async hotUpdate(...args: unknown[]) {
+          // The generated bundles contain "use step" themselves; treating a
+          // write to them as a source change rebuilt them in a loop.
+          const [update] = args as [{ file?: string } | undefined];
+          if (update?.file && WORKFLOW_DEV_OUTPUT_PATTERN.test(update.file)) {
+            return;
+          }
           const result = await hotUpdate.apply(this, args);
+          await compileDevBundles();
           releaseEsbuild();
           return result;
         },
@@ -126,4 +201,5 @@ export function dashboardWorkflow(): Plugin[] {
     }
     return plugin;
   });
+  return plugins;
 }

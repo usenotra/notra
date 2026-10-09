@@ -139,7 +139,9 @@ function Mismatch({
         loading={isSigningOut}
         onClick={() => {
           setIsSigningOut(true);
-          signOut().catch(() => setIsSigningOut(false));
+          signOut({ returnTo: window.location.href }).catch(() =>
+            setIsSigningOut(false)
+          );
         }}
       >
         {t("signOut")}
@@ -197,7 +199,9 @@ function PendingInvitationCard({ data }: { data: PendingInvitation }) {
   }
 
   function switchAccount() {
-    signOut().catch(() => setError(t("failed")));
+    signOut({ returnTo: window.location.href }).catch(() =>
+      setError(t("failed"))
+    );
   }
 
   function accept() {

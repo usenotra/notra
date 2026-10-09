@@ -23,3 +23,15 @@ export function competitorCanonicalMap(
   }
   return map;
 }
+
+export function isGeoOwnBrandName(
+  name: string,
+  companyName: string | null | undefined,
+  aliases: readonly string[] = []
+): boolean {
+  const key = competitorKey(name);
+  if (key.length === 0 || !companyName) {
+    return false;
+  }
+  return [companyName, ...aliases].some((own) => competitorKey(own) === key);
+}

@@ -1,0 +1,89 @@
+---
+title: "Content gaps"
+description: "Content gaps are the questions AI engines answer without mentioning you, ranked by an opportunity score so you know what to write first."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/content-gaps
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+The **Content Gaps** page (`/geo/gaps`) is subtitled "Questions engines answer without mentioning you". It has two gap types, which you switch with the **Gap type** control, along with a text filter and an **All engines** filter. Results update after a GEO scan, a Search Console sync or a change to a gap or tracked prompt. A background job also refreshes older results so answers outside the rolling 30-day window expire without recalculating on page load.
+
+<img
+  src="/images/geo/content-gaps-light.webp"
+  alt="Content Gaps page listing prompt gaps by opportunity"
+  className="block dark:hidden rounded-lg border"
+/>
+<img
+  src="/images/geo/content-gaps-dark.webp"
+  alt="Content Gaps page listing prompt gaps by opportunity"
+  className="hidden dark:block rounded-lg border"
+/>
+
+## Prompt gaps
+
+A prompt gap is a tracked prompt where competitors are mentioned and your brand is absent. Notra computes it from the latest answer per prompt and engine over the last 30 days (first turn only, up to 400 checks):
+
+1. For each prompt, count the checks where you were mentioned and the engines where you were missing.
+2. The prompt is a gap when you were missing from at least half of the engines that answered it.
+3. The **Brand mentions** column lists the tracked competitors named in those answers. Notra counts only competitors you track (by name or synonym), so keep the competitor list complete.
+4. The **Opportunity** score is `(1 - ownMentionRate) * competitorCount * engineCoverage`, where `engineCoverage` is the number of engines that answered. The table sorts gaps by opportunity, highest first, and shows the score as a five-step meter.
+
+The table columns are **Content** (the prompt, with its title when one exists), **Opportunity**, **Missing engines** and **Brand mentions**. Each row has a write action whose label follows the brief's state: **Write** when no brief exists, **Review** for a draft brief, **Writing** while the writer runs and **Open post** once the article exists.
+
+## Search gaps
+
+A search gap comes from either a Google Search Console query suggestion or a web search an AI engine ran while answering a tracked prompt. Both appear in one Search Gaps table, and a query that matches both shares one row with both signals. Console suggestions show Google impressions and a suggested action, while AI searches show the number of uncovered scan answers and the engines that searched. Notra excludes AI searches from answers that mention your brand or cite your own site. Connect Search Console on the [Prompts page](/geo/prompts#search-console-suggestions) to add its suggestions.
+
+## Empty states
+
+- **No scan yet**: the project has no scan results, so press **Run scan**.
+- **No prompt gaps**: "Engines already mention you on the questions you track."
+- **Scanning engines**: gaps appear once the running scan finishes.
+
+<Visibility for="agents">
+
+## Gaps from the API
+
+```bash
+curl https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/gaps \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```json
+{
+  "promptGaps": [
+    {
+      "id": "prm_123",
+      "prompt": "what tools should i use for automating changelogs",
+      "title": null,
+      "engines": ["openai/gpt-5.6-sol", "google/gemini-3.5-flash"],
+      "competitors": ["Globex", "Initech"],
+      "ownMentionRate": 0.25,
+      "engineCoverage": 4,
+      "opportunity": 6,
+      "brief": null
+    }
+  ],
+  "searchGaps": [
+    { "id": "sug_456", "prompt": "changelog generator for github", "title": null, "impressions": 1240, "brief": null }
+  ],
+  "hasScanData": true,
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+`brief` is `null` or `{ briefId, status, postId, workingTitle }` when a brief has already been planned for that gap. `hasScanData` is `false` until the project has at least one scan result. This route needs the `briefs.read` scope.
+
+</Visibility>
+
+<Card title="Write an article for a gap" icon="pen" href="/geo/writer" horizontal>
+  Plan a brief and let the GEO writer draft it.
+</Card>

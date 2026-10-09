@@ -1,0 +1,61 @@
+---
+import { footerColumns, footerFlatLinks, footerSocials } from "../lib/navigation";
+import { config, href, params } from "../lib/params";
+import LinkIcon from "./LinkIcon.astro";
+import PoweredByNotra from "./PoweredByNotra.astro";
+
+const columns = footerColumns();
+const links = footerFlatLinks();
+const socials = footerSocials();
+const year = new Date().getUTCFullYear();
+---
+
+<footer id="footer" class="border-t border-border">
+  {
+    columns.length > 0 && (
+      <div class="grid w-full grid-cols-2 gap-x-6 gap-y-8 px-5 pt-10 pb-4 text-sm sm:grid-cols-3 sm:px-6 lg:grid-cols-[repeat(6,minmax(0,12rem))]">
+        {columns.map((column) => (
+          <nav aria-label={column.header ?? "Footer"} class="flex flex-col gap-2.5">
+            {column.header && <p class="font-medium text-foreground">{column.header}</p>}
+            <ul class="flex flex-col gap-2 text-muted-foreground">
+              {column.items.map((link) => (
+                <li>
+                  <a href={link.href} class="inline-flex items-center gap-1.5 transition-colors hover:text-foreground">
+                    <LinkIcon icon={link.icon} size={14} class="shrink-0" />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+    )
+  }
+  <div class="flex w-full flex-col gap-3 px-5 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>© {year} {config.name}</span>
+      {
+        links.map((link) => (
+          <a href={link.href} class="inline-flex items-center gap-1.5 transition-colors hover:text-foreground">
+            <LinkIcon icon={link.icon} size={14} class="shrink-0" />
+            {link.label}
+          </a>
+        ))
+      }
+      <a href={href("feed.xml")} class="transition-colors hover:text-foreground">RSS</a>
+    </div>
+    {
+      (socials.length > 0 || params.branding) && (
+        <div class="flex items-center gap-4">
+          {socials.map((social) => (
+            <a href={social.href} rel="noopener" aria-label={social.label} title={social.label} class="transition-colors hover:text-foreground">
+              <LinkIcon icon={social.icon} size={16} />
+            </a>
+          ))}
+          {params.branding && <PoweredByNotra />}
+        </div>
+      )
+    }
+  </div>
+</footer>

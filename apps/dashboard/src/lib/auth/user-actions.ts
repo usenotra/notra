@@ -25,6 +25,7 @@ import { validateActionInput } from "@/lib/actions/validate-input";
 import { runAfterResponse } from "@/lib/after-response";
 import { trackServerEvent } from "@/lib/analytics/posthog-server";
 import { readRequestHeaders } from "@/lib/analytics/request-headers";
+import { getAuthIdentity } from "@/lib/auth/server";
 import { clearAuthSessionCookie } from "@/lib/auth/session-cookie";
 import { clearSignedCookie } from "@/lib/auth/signed-cookie";
 import { signOutAuthSession } from "@/lib/auth/workos";
@@ -33,6 +34,7 @@ import { syncBrewContacts } from "@/lib/email/brew-contacts";
 import { clearLocaleCookie, writeLocaleCookie } from "@/lib/i18n/locale-cookie";
 import { organizationActionMessage } from "@/lib/organizations/action-messages";
 import { requireSession } from "@/lib/organizations/guards";
+import { revokeSitePreviewSessions } from "@/lib/sites/preview-revocation";
 import type { SessionUser } from "@/types/auth/session";
 import type {
   SignOutActionOptions,
@@ -55,6 +57,10 @@ export async function signOut(options?: SignOutActionOptions) {
   if (isDemoMode()) {
     await clearSignedCookie(DEMO_SESSION_COOKIE);
     throw redirect({ href: DEMO_EXIT_URL });
+  }
+  const identity = await getAuthIdentity().catch(() => null);
+  if (identity) {
+    await revokeSitePreviewSessions(identity.user.id);
   }
   await signOutAuthSession(parsed.success ? parsed.data : undefined);
 }

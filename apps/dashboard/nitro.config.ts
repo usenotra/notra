@@ -2,8 +2,7 @@ import { defineConfig } from "nitro";
 import type { ModuleOptions } from "workflow/nitro";
 
 import { DASHBOARD_FUNCTION_RULES } from "./src/constants/framework";
-import { IMAGE_SECURITY_HEADERS } from "./src/constants/framework-image";
-import { getDashboardSecurityHeaders } from "./src/utils/framework-request";
+import { getDashboardHeaderRouting } from "./src/utils/framework-header-routing";
 import { traceWorkflowDependencies } from "./src/utils/framework-workflow-plugin";
 import { getGeoIngestProxyRules } from "./src/utils/geo-ingest-proxy";
 
@@ -13,6 +12,7 @@ const posthogAssetsHost = posthogHost.replace(
   /^https:\/\/(us|eu)\.i\./,
   "https://$1-assets.i."
 );
+const headerRouting = getDashboardHeaderRouting(process.env.VERCEL === "1");
 
 export default defineConfig({
   preset: process.env.VERCEL === "1" ? "vercel" : "node-server",
@@ -53,8 +53,7 @@ export default defineConfig({
   ],
   routeRules: {
     ...getGeoIngestProxyRules(),
-    "/**": { headers: getDashboardSecurityHeaders() },
-    "/api/image": { headers: IMAGE_SECURITY_HEADERS },
+    ...headerRouting.routeRules,
     "/ingest/static/**": { proxy: `${posthogAssetsHost}/static/**` },
     "/ingest/**": { proxy: `${posthogHost}/**` },
     ...(process.env.NODE_ENV === "development"
@@ -66,6 +65,7 @@ export default defineConfig({
       : {}),
   },
   vercel: {
+    config: headerRouting.vercelConfig,
     functions: {
       runtime: "nodejs24.x",
       architecture: "x86_64",

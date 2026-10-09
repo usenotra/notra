@@ -32,6 +32,18 @@ export function geoOverviewQueryInput(
   return { ...geoSettingsQueryInput(scope), ...toGeoWindowInput(range) };
 }
 
+export function geoHostQueryInput(
+  scope: GeoQueryScope,
+  range: GeoRangeQuery | undefined,
+  host: string | undefined
+) {
+  const filter = trafficLogHostFilter(host);
+  return {
+    ...geoOverviewQueryInput(scope, range),
+    ...(filter ? { host: filter } : {}),
+  };
+}
+
 export function geoTrafficJourneysQueryInput(
   scope: GeoQueryScope,
   range: GeoRangeQuery | undefined

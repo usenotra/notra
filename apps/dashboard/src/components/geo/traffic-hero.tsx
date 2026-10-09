@@ -21,6 +21,7 @@ import { TrafficProviderLegend } from "@/components/geo/traffic-provider-legend"
 import { TrafficZoomChip } from "@/components/geo/traffic-zoom-chip";
 import { CHART_PRIMARY_COLOR, CHART_REFERRAL_COLOR } from "@/constants/charts";
 import {
+  TRAFFIC_HERO_CHART_OPTIONS,
   TRAFFIC_HERO_CHART_SURFACE_CLASS,
   TRAFFIC_HERO_FRAME_CLASS,
   TRAFFIC_HERO_METRIC_CELL_CLASS,
@@ -50,10 +51,6 @@ import { seriesColors } from "@/utils/chart-colors";
 import { isolatedPointIndices } from "@/utils/chart-series";
 import { engineIconHtml } from "@/utils/engine-icon-html";
 import { formatChartInteger } from "@/utils/geo-charts";
-
-const HERO_CHART_OPTIONS = {
-  grid: { left: 4, right: 8, top: 8, bottom: 4, containLabel: true },
-};
 
 const TRAFFIC_TREND_STROKE_WIDTH = 2;
 // Provider rows in the hover tooltip across both sections; the rest folds into "+N more".
@@ -121,7 +118,7 @@ function TrafficHeroMetric({ metric, settingsHref }: TrafficHeroMetricProps) {
 export function TrafficHero({
   totals,
   previousTotals,
-  rows,
+  days,
   groups,
   points,
   settingsHref,
@@ -141,9 +138,8 @@ export function TrafficHero({
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
-  const showTrend = rows.length > 0;
-  const singleDay = rows.length === 1;
-  const days = rows.map((row) => row.rawDay);
+  const showTrend = days.length > 0;
+  const singleDay = days.length === 1;
 
   const metrics: TrafficTrendMetric[] = GEO_TRAFFIC_FUNNEL_STAGES.map(
     (stage) => ({
@@ -281,7 +277,7 @@ export function TrafficHero({
           </div>
           <EChartsAreaChart
             animationType="left-to-right"
-            chartOptions={HERO_CHART_OPTIONS}
+            chartOptions={TRAFFIC_HERO_CHART_OPTIONS}
             className="h-52 w-full cursor-crosshair @md/hero:h-72"
             config={config}
             curveType="monotone"

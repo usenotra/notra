@@ -79,7 +79,7 @@ export async function recordContentPublication(
     );
     // Publication creation and content synchronization lock the post first.
     // This serializes ownership changes with revision-guarded post updates.
-    await tx
+    const [post] = await tx
       .select({ id: posts.id })
       .from(posts)
       .where(
@@ -89,6 +89,9 @@ export async function recordContentPublication(
         )
       )
       .for("update");
+    if (!post) {
+      return null;
+    }
 
     const newer = await tx.query.contentPublications.findFirst({
       where: and(

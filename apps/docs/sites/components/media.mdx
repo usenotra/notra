@@ -1,0 +1,78 @@
+---
+title: "Media"
+description: "Frame screenshots, and embed your own videos or YouTube."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/media
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Images in posts already get rounded corners and a thin outline, and they go in `public/` with a path from the root, like `/images/editor.png`. See [Images](/sites/posts#images).
+
+## Frame
+
+`Frame` puts a border around an image and adds a caption under it.
+
+```mdx
+<Frame caption="The calendar shows every scheduled post.">
+  ![Calendar view](/images/calendar.png)
+</Frame>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/media-light.webp" alt="A framed image with a caption on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/media-dark.webp" alt="A framed image with a caption on a Notra site" className="hidden dark:block" />
+</Frame>
+
+<ResponseField name="caption" type="string">
+  Centered text under the frame.
+</ResponseField>
+
+Frames carry the class `frame`.
+
+## Video
+
+`Video` plays a video file from your repository or any URL, with the browser's controls.
+
+```mdx
+<Video src="/videos/demo.mp4" poster="/images/demo-poster.png" title="Acme Flow in 60 seconds" />
+```
+
+<ResponseField name="src" type="string" required>
+  The video file, where `.mp4` and `.webm` files in `public/` work up to 25 MB each.
+</ResponseField>
+
+<ResponseField name="poster" type="string">
+  An image shown before the video plays.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  A description for screen readers.
+</ResponseField>
+
+Until a reader presses play, the browser only loads the video's length and size, so set `poster` to choose what shows before that. For longer videos, use YouTube.
+
+## YouTube
+
+`YouTube` embeds a video from YouTube by its ID.
+
+```mdx
+<YouTube id="dQw4w9WgXcQ" title="Acme Flow launch" />
+```
+
+<ResponseField name="id" type="string" required>
+  The video ID, the part after `v=` in a YouTube URL.
+</ResponseField>
+
+<ResponseField name="title" type="string" default="YouTube video">
+  A description for screen readers.
+</ResponseField>
+
+Notra embeds the video from `youtube-nocookie.com` in 16:9, and it loads only when a reader scrolls near it.

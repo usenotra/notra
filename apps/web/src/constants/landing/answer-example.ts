@@ -115,7 +115,7 @@ export const ANSWER_EXAMPLE_FACTS = [
   {
     id: "f-2",
     title: "Live search, cited",
-    text: "Every prompt runs with live retrieval. You see the searches the engine made and the pages it cited.",
+    text: "Engines with web search run every prompt with live retrieval. You see the searches the engine made and the pages it cited.",
   },
   {
     id: "f-3",

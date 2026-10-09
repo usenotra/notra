@@ -107,6 +107,15 @@ export const AGENT_FEEDBACK_KIND_PILL_CLASS: Record<AgentFeedbackKind, string> =
     other: "border-border bg-muted/50 text-muted-foreground dark:bg-muted/30",
   };
 
+export const AGENT_FEEDBACK_SENTIMENT_ICON_CLASS: Record<
+  AgentFeedbackSentiment,
+  string
+> = {
+  negative: "text-destructive",
+  neutral: "text-muted-foreground",
+  positive: "text-success",
+};
+
 export const AGENT_FEEDBACK_SENTIMENT_PILL_CLASS: Record<
   AgentFeedbackSentiment,
   string

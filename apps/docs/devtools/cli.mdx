@@ -1,6 +1,6 @@
 ---
 title: "CLI"
-description: "Sign in once, then manage posts, brand identities, integrations, schedules, and GEO projects from the terminal with the notra CLI."
+description: "Sign in once, then manage posts, brand identities, integrations, schedules and GEO projects from the terminal with the notra CLI."
 authors:
   - handle: dominik
 
@@ -25,27 +25,27 @@ docolin:
   next: ./mcp.mdx
 ---
 
-The Notra CLI is published on npm as [`notra`](https://www.npmjs.com/package/notra) and installs a `notra` binary. It wraps the public API (through the official TypeScript SDK) so you can script your workspace: posts, brand identities, integrations, schedules, and the full GEO surface (projects, prompts, competitors, scans, visibility, content briefs, agent readiness, AI traffic).
+Notra publishes the CLI on npm as [`notra`](https://www.npmjs.com/package/notra), and it installs a `notra` binary that wraps the public API through the official TypeScript SDK so you can script your workspace. It covers posts, brand identities, integrations, schedules and all of GEO: projects, prompts, competitors, scans, visibility, content briefs, agent readiness and AI traffic.
 
 Source: [github.com/usenotra/notra-cli](https://github.com/usenotra/notra-cli).
 
 ## Install
 
 <CodeGroup>
-```bash bun
-bun add -g notra
+```bash npm
+npm install -g notra
 ```
 
-```bash npm
-npm i -g notra
+```bash yarn
+yarn global add notra
 ```
 
 ```bash pnpm
 pnpm add -g notra
 ```
 
-```bash yarn
-yarn global add notra
+```bash bun
+bun add -g notra
 ```
 </CodeGroup>
 
@@ -67,15 +67,15 @@ There are two ways to authenticate. Use the browser login when a person is at th
 notra auth login
 ```
 
-This starts an OAuth device authorization flow: the CLI prints a short verification code, opens the Notra sign-in page in your browser, and waits until you approve the code. Access and refresh tokens are saved to the local config file and refreshed automatically, so you do not copy any tokens by hand.
+This starts an OAuth device authorization flow, in which the CLI prints a short verification code, opens the Notra sign-in page in your browser and waits until you approve the code. The CLI saves access and refresh tokens to the local config file and refreshes them on its own, so you never copy tokens by hand.
 
-The session acts as you, inside the organization you pick during sign-in. Every request is checked against the permissions attached to that session, the same way API requests are checked against key scopes.
+The session acts as you, inside the organization you pick during sign-in. Notra checks every request against the permissions attached to that session, the same way it checks API requests against key scopes.
 
 <Tip>
   On a remote machine or inside a container, use `notra auth login --no-browser` to print the verification URL instead of opening a browser.
 </Tip>
 
-For scripts that drive the login themselves, `notra auth login --json` streams newline-delimited JSON with one object per line: a `pending` event that carries the verification URL and code, followed by either a `ready` event or an `error` event.
+For scripts that drive the login themselves, `notra auth login --json` streams newline-delimited JSON with one object per line. The first is a `pending` event with the verification URL and code, followed by either a `ready` event or an `error` event.
 
 Sign out and remove the stored tokens:
 
@@ -98,18 +98,18 @@ notra config set api-key ntra_xxx
 notra posts list --api-key ntra_xxx
 ```
 
-`notra init` does the same thing interactively: it prompts for the key, or accepts `--api-key` directly.
+`notra init` does the same thing interactively, prompting for the key or accepting `--api-key` directly.
 
 ```bash
 notra init
 notra init --api-key ntra_xxx
 ```
 
-A key only carries the scopes you selected when you created it. Commands that need a scope the key does not have fail with exit code 3.
+A key only carries the scopes you selected when you created it, so commands that need a scope the key does not have fail with exit code 3.
 
 ## Configuration
 
-The local config file lives at the OS-standard config path (on macOS: `~/Library/Preferences/notra-cli-nodejs/config.json`). It is created with owner-only permissions.
+The local config file lives at the OS-standard config path, which on macOS is `~/Library/Preferences/notra-cli-nodejs/config.json`, and the CLI creates it with owner-only permissions.
 
 ```bash
 notra config path
@@ -119,7 +119,7 @@ notra config set api-key ntra_xxx
 notra config set base-url https://api.usenotra.com
 ```
 
-Config keys are `api-key` and `base-url`. Environment variables override stored values:
+The config keys are `api-key` and `base-url`, and environment variables override stored values:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -128,7 +128,7 @@ Config keys are `api-key` and `base-url`. Environment variables override stored 
 
 ## Output
 
-Commands print formatted tables in a terminal and switch to JSON automatically when stdout is redirected or piped. Explicit output flags win over that automatic choice: `--json` always prints JSON, and `notra posts get <postId> --markdown` always prints Markdown.
+Commands print formatted tables in a terminal and switch to JSON when you redirect or pipe stdout, but explicit output flags override that choice. `--json` always prints JSON, and `notra posts get <postId> --markdown` always prints Markdown.
 
 ```bash
 notra posts list --status draft --json | jq -r '.posts[].id'
@@ -156,7 +156,7 @@ Run `notra <topic> --help` to see every command and flag for a topic.
 | `notra posts get <postId>` | Fetch a single post (`--markdown` prints only the body) |
 | `notra posts generate` | Queue an async post-generation job |
 | `notra posts status <jobId>` | Read the status of a generation job (`--watch` polls) |
-| `notra posts update <postId>` | Update title, slug, markdown, or status |
+| `notra posts update <postId>` | Update title, slug, markdown or status |
 | `notra posts delete <postId>` | Delete a post (`--yes` skips the confirmation) |
 
 ### List with filters
@@ -167,7 +167,7 @@ notra posts list --content-type changelog,blog_post --sort desc
 notra posts list --brand brand_abc --page 2 --json
 ```
 
-`--status` and `--content-type` accept comma-separated lists. `--sort` is `asc` or `desc` by creation date.
+`--status` and `--content-type` accept comma-separated lists, and `--sort` is `asc` or `desc` by creation date.
 
 ### Generate content
 
@@ -180,7 +180,7 @@ notra posts generate \
   --wait
 ```
 
-`--content-type` is one of `changelog`, `blog_post`, `linkedin_post`, or `twitter_post`. `--lookback` is one of `current_day`, `yesterday`, `last_7_days`, `last_14_days`, or `last_30_days`. `--github-integration` and `--linear-integration` are repeatable. `--wait` polls until the job finishes (`--poll-interval` seconds, `--timeout-mins` minutes); drop it to get the `jobId` back immediately and check later with `notra posts status <jobId> --watch`.
+`--content-type` is one of `changelog`, `blog_post`, `linkedin_post` or `twitter_post`. `--lookback` is one of `current_day`, `yesterday`, `last_7_days`, `last_14_days` or `last_30_days`. `--github-integration` and `--linear-integration` are repeatable. `--wait` polls until the job finishes (`--poll-interval` seconds, `--timeout-mins` minutes), and if you drop it you get the `jobId` back immediately and can check later with `notra posts status <jobId> --watch`.
 
 ### Update content
 
@@ -206,7 +206,7 @@ notra posts delete post_abc123 --yes
 | `notra brands get <brandIdentityId>` | Fetch a single brand identity |
 | `notra brands generate` | Queue an async brand-identity generation from a website URL |
 | `notra brands status <jobId>` | Read the status of a brand-identity generation job (`--watch` polls) |
-| `notra brands update <brandIdentityId>` | Update name, website, company details, tone, audience, language, instructions, or the default flag |
+| `notra brands update <brandIdentityId>` | Update name, website, company details, tone, audience, language, instructions or the default flag |
 | `notra brands delete <brandIdentityId>` | Delete a non-default brand identity |
 
 ### Generate from a website
@@ -224,13 +224,13 @@ notra brands update brand_abc --audience "Developers evaluating CI tools"
 notra brands update brand_abc --default
 ```
 
-Tone options: `Conversational`, `Professional`, `Casual`, `Formal`. Pass `--custom-tone` for a free-text tone instead. `--company-name` and `--company-description` accept an empty string to clear the value.
+The tone options are `Conversational`, `Professional`, `Casual` and `Formal`, or you can pass `--custom-tone` for a free-text tone instead. `--company-name` and `--company-description` accept an empty string to clear the value.
 
 ## Integrations
 
 | Command | Description |
 | --- | --- |
-| `notra integrations list` | List GitHub, Linear, and Slack integrations |
+| `notra integrations list` | List GitHub, Linear and Slack integrations |
 | `notra integrations github` | Connect a GitHub repository |
 | `notra integrations remove <integrationId>` | Disconnect a GitHub or Linear integration |
 
@@ -242,7 +242,7 @@ notra integrations github --owner acme --repo website --branch develop
 notra integrations github --owner acme --repo private-app --token ghp_xxx
 ```
 
-`--branch` defaults to the repository's default branch. A token is only required for private repositories that do not have the Notra GitHub App installed.
+`--branch` defaults to the repository's default branch, and you only need a token for private repositories that do not have the Notra GitHub App installed.
 
 ## Schedules
 
@@ -267,7 +267,7 @@ notra schedules create \
   --enabled
 ```
 
-For weekly schedules pass `--day-of-week` (0-6, Sunday is 0); for monthly schedules pass `--day-of-month` (1-31). `--output-type` is one of `changelog`, `blog_post`, `linkedin_post`, or `twitter_post`; image schedules are not available from the CLI yet, so create those in the dashboard or through `POST /v1/schedules`. `--repository` is repeatable. Add `--brand-voice <brandIdentityId>` to pin a brand identity and `--auto-publish` to publish changelogs and blog posts instead of saving drafts. Times are in UTC.
+For weekly schedules, pass `--day-of-week` (0-6, Sunday is 0), and for monthly schedules, pass `--day-of-month` (1-31). `--output-type` is one of `changelog`, `blog_post`, `linkedin_post` or `twitter_post`. The CLI can't create image schedules yet, so create those in the dashboard or through `POST /v1/schedules`. `--repository` is repeatable, and you can add `--brand-voice <brandIdentityId>` to pin a brand identity and `--auto-publish` to publish changelogs and blog posts instead of saving drafts. All times are in UTC.
 
 ### From a JSON file
 
@@ -277,11 +277,11 @@ cat schedule.json | notra schedules create --config-file -
 notra schedules update sched_abc --config-file ./schedule.json
 ```
 
-The JSON body matches the `POST /v1/schedules` request shape. When `--config-file` is set, all other flags are ignored.
+The JSON body matches the `POST /v1/schedules` request shape. When you set `--config-file`, the CLI ignores all other flags.
 
 ## GEO
 
-GEO commands are scoped to a project. Run `notra geo projects list` first to find the project ID, then pass it as the first argument to the other commands. Project-scoped commands need a plan that includes GEO.
+GEO commands work on a single project, so run `notra geo projects list` first to find the project ID and pass it as the first argument to the other commands. Project-scoped commands need a plan that includes GEO.
 
 | Topic | Commands |
 | --- | --- |
@@ -309,12 +309,12 @@ notra geo traffic token --project proj_123 --show-token
 ```
 
 <Warning>
-  Scans, sequence runs, and content briefs use billed AI credits. `notra geo traffic token` and `rotate-token` print secrets only with `--show-token`; treat that output as a secret.
+  Scans, sequence runs and content briefs use billed AI credits. `notra geo traffic token` and `rotate-token` print secrets only with `--show-token`, so treat that output as a secret.
 </Warning>
 
 ## Global flags
 
-These work on every command:
+These flags work on every command:
 
 | Flag | Description |
 | --- | --- |
@@ -338,4 +338,4 @@ Destructive commands (`delete`, `remove`, `rotate-token`) ask for confirmation u
 
 ## Source
 
-The CLI is open source at [github.com/usenotra/notra-cli](https://github.com/usenotra/notra-cli). Report issues there.
+The CLI is open source at [github.com/usenotra/notra-cli](https://github.com/usenotra/notra-cli), where you can report issues.

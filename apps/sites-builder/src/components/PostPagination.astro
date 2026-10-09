@@ -1,0 +1,40 @@
+---
+import type { PostPaginationProps as Props } from "../types/entries";
+import { authorsOf } from "../lib/authors";
+import { href } from "../lib/params";
+import AuthorAvatar from "./AuthorAvatar.astro";
+import Icon from "./Icon.astro";
+
+const { next, previous } = Astro.props;
+const cards = [
+  ...(next ? [{ entry: next, label: "Next", right: false }] : []),
+  ...(previous ? [{ entry: previous, label: "Previous", right: true }] : []),
+];
+---
+
+{
+  cards.length > 0 && (
+    <nav id="pagination" aria-label="More posts" class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+      {!next && <div aria-hidden="true" class="hidden sm:block" />}
+      {cards.map(({ entry, label, right }) => {
+        const [author] = authorsOf(entry);
+        return (
+          <a href={href(entry.id)} class:list={["post-card group flex h-full flex-col gap-3 rounded-xl border p-5 transition-colors duration-150", right ? "items-end text-right" : "items-start text-left"]}>
+            <span class="flex items-center gap-1 font-mono text-xs text-muted-foreground">
+              {!right && <Icon name="arrow-left" size={14} class="transition-transform duration-150 group-hover:-translate-x-0.5" />}
+              {label}
+              {right && <Icon name="arrow-right" size={14} class="transition-transform duration-150 group-hover:translate-x-0.5" />}
+            </span>
+            <span class="line-clamp-2 font-heading text-base leading-snug font-medium tracking-[-0.01em] transition-colors duration-150 group-hover:text-primary">{entry.data.title}</span>
+            {author && (
+              <span class:list={["mt-auto flex items-center gap-2 text-sm text-muted-foreground", right && "flex-row-reverse"]}>
+                <AuthorAvatar author={author} size={20} />
+                {author.name}
+              </span>
+            )}
+          </a>
+        );
+      })}
+    </nav>
+  )
+}

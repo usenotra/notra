@@ -3,15 +3,15 @@ import {
   useLocation,
   useParams as useRouteParams,
   useRouter as useTanStackRouter,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useMemo } from "react";
 
+import { renderedPathname } from "@/utils/rendered-pathname";
 import { modalNavigationOptions } from "@/utils/route-modal";
 
 export function usePathname() {
-  return useLocation({
-    select: (location) => (location.maskedLocation ?? location).pathname,
-  });
+  return useRouterState({ select: renderedPathname });
 }
 
 export function useSearchParams() {

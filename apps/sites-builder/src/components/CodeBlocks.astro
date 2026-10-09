@@ -1,0 +1,39 @@
+---
+---
+
+<script>
+  const copyIcon =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+  const checkIcon =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  for (const pre of document.querySelectorAll<HTMLPreElement>(".prose-notra pre")) {
+    if (pre.closest(".not-prose") || pre.parentElement?.classList.contains("code-block")) continue;
+    const wrapper = document.createElement("div");
+    wrapper.className = "code-block";
+    pre.replaceWith(wrapper);
+    wrapper.append(pre);
+    const actions = document.createElement("div");
+    actions.className = "code-block-actions";
+    const language = pre.dataset.language;
+    if (language && language !== "plaintext") {
+      const label = document.createElement("span");
+      label.className = "code-block-language";
+      label.textContent = language;
+      actions.append(label);
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "code-block-copy code-block-copy-button";
+    button.setAttribute("aria-label", "Copy code");
+    button.innerHTML = copyIcon;
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(pre.innerText);
+      button.innerHTML = checkIcon;
+      setTimeout(() => {
+        button.innerHTML = copyIcon;
+      }, 1500);
+    });
+    actions.append(button);
+    wrapper.append(actions);
+  }
+</script>

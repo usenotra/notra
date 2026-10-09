@@ -1,5 +1,8 @@
-import type { DailySummaryEmailItem } from "@notra/email/types/daily-summary";
 import type { FeedbackSentiment } from "@notra/email/types/feedback";
+import type {
+  VisibilityDropEmailProps,
+  WeeklySummaryEmailProps,
+} from "@notra/email/types/geo-recap";
 import type { ScheduledPublicationFailedEmailProps } from "@notra/email/types/scheduled-publication-failed";
 import type { WorkflowPausedReason } from "@notra/email/types/workflow-paused";
 
@@ -82,19 +85,13 @@ export interface SendScheduledContentCreatedEmailProps extends DigestEmailProps 
   subject?: string;
 }
 
-export interface SendDailySummaryEmailProps {
+export interface SendWeeklySummaryEmailProps extends WeeklySummaryEmailProps {
   recipientEmail: string;
-  organizationName: string;
-  organizationSlug: string;
-  dateLabel: string;
-  headline: string;
-  mentionRateLabel: string;
-  mentionRateDeltaLabel: string;
-  scansCompleted: number;
-  gained: number;
-  lost: number;
-  items: DailySummaryEmailItem[];
-  remainingCount: number;
-  dashboardLink: string;
+  /** Monday the recap was sent for; keys the Brew idempotency. */
+  weekKey: string;
+}
+
+export interface SendVisibilityDropEmailProps extends VisibilityDropEmailProps {
+  recipientEmail: string;
   dateKey: string;
 }

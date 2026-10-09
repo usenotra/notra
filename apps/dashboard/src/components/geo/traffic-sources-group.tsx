@@ -133,7 +133,10 @@ export function TrafficSourcesStack({
   onOpen,
   loading = false,
 }: TrafficSourcesStackProps) {
-  const lastIndex = TRAFFIC_SOURCE_BANDS.length - 1;
+  const bands = TRAFFIC_SOURCE_BANDS.filter(
+    (band) => band !== "cited" || groups.some((group) => group.band === band)
+  );
+  const lastIndex = bands.length - 1;
   // Collapse once for the whole stack so every band keeps the same columns.
   // Bands are framed, so reserve the rim or an expanded band scrolls on its
   // own while the collapsed bars next to it do not.
@@ -148,7 +151,7 @@ export function TrafficSourcesStack({
   return (
     <div className="min-w-0 overflow-x-auto" ref={containerRef}>
       <div className="w-full" style={{ minWidth }}>
-        {TRAFFIC_SOURCE_BANDS.map((band, index) => (
+        {bands.map((band, index) => (
           <TrafficSourcesGroup
             band={band}
             collapsed={collapsed.has(band)}

@@ -1,0 +1,70 @@
+---
+title: "Cards and columns"
+description: "Link to other pages with cards, and lay them out in a grid."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/cards
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Cards link to other pages with a title, a short text and an optional image, and `CardGroup` lays them out in a grid.
+
+## Card
+
+```mdx
+<Card title="Read the docs" href="https://acme.com/docs" cta="Open the docs">
+  Guides and API reference for Acme Flow.
+</Card>
+```
+
+A card with `href` is a link, where full URLs get a ↗ after the title and paths like `/blog/launch` get a →.
+
+<ResponseField name="title" type="string">
+  The card's headline.
+</ResponseField>
+
+<ResponseField name="href" type="string">
+  Turns the whole card into a link, with a full URL or a path like `/blog/launch`.
+</ResponseField>
+
+<ResponseField name="img" type="string">
+  An image shown across the top of the card, cropped to 16:9, as a path like `/images/cover.png` or a full URL.
+</ResponseField>
+
+<ResponseField name="cta" type="string">
+  A short line at the bottom, like "Read more", which is text rather than a separate link.
+</ResponseField>
+
+Links inside a card that has an `href` show as plain text, because a link can't contain another link.
+
+## CardGroup
+
+`CardGroup` puts cards side by side, and `Columns` is the same component under another name.
+
+```mdx
+<CardGroup cols={3}>
+  <Card title="Plan" href="/blog/plan">Shape the release.</Card>
+  <Card title="Ship" href="/blog/ship">Publish everywhere.</Card>
+  <Card title="Measure" href="/blog/measure">See what worked.</Card>
+</CardGroup>
+```
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/cards-light.webp" alt="Three cards in a CardGroup on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/cards-dark.webp" alt="Three cards in a CardGroup on a Notra site" className="hidden dark:block" />
+</Frame>
+
+<ResponseField name="cols" type="number" default="2">
+  Columns from 1 to 4 on wide screens, while cards always stack on phones.
+</ResponseField>
+
+## Styling
+
+Cards carry the class `card` and groups carry `card-group` and `columns`.

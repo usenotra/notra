@@ -1,5 +1,5 @@
 import "zod/compile";
-import { geoOrganizationInputSchema } from "@notra/geo-core/schemas/geo";
+import { geoOrganizationInputSchema } from "@notra/geo-core/schemas/geo-scope";
 import { z } from "zod";
 
 import {

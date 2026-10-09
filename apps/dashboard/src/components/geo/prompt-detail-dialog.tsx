@@ -14,6 +14,7 @@ import type {
 import { formatAiTrafficTimestamp } from "@notra/geo-core/utils/ai-traffic";
 import { normalizePromptTags } from "@notra/geo-core/utils/geo-prompt-tags";
 import { POSTHOG_EVENTS } from "@notra/posthog/events";
+import { DetailSheetContent } from "@notra/ui/components/ui/detail-sheet";
 import {
   Empty,
   EmptyContent,
@@ -24,12 +25,12 @@ import {
 } from "@notra/ui/components/ui/empty";
 import {
   Sheet,
-  SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
 import { Spinner } from "@notra/ui/components/ui/spinner";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -68,7 +69,6 @@ import {
 import { useGeoCompetitorsDb, useGeoPromptsDb } from "@/lib/hooks/use-geo-db";
 import { useGeoPromptIntentLabel } from "@/lib/hooks/use-geo-prompt-intent-label";
 import { usePromptAnswerSelection } from "@/lib/hooks/use-prompt-answer-selection";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type {
   PromptAnswerPageProps,
@@ -656,31 +656,13 @@ export function PromptAnswerPage({
   );
 }
 
-const PROMPT_ANSWER_SHEET_CLASS =
-  "gap-0 overflow-hidden p-0 outline-none data-[side=right]:inset-y-0 data-[side=right]:h-dvh data-[side=right]:w-full sm:rounded-2xl sm:border data-[side=right]:sm:inset-y-2 data-[side=right]:sm:right-2 data-[side=right]:sm:h-[calc(100dvh-1rem)] data-[side=right]:sm:max-w-[min(calc(100vw-2rem),54rem)]";
-
-/**
- * The slide lives on the popup. Keep this node mounted for the whole open
- * session and swap only its children, or loading → ready replays the enter.
- */
+/** The prompt answer drawer: the shared detail sheet at its wide size. */
 export function PromptAnswerSheetContent({
   children,
 }: {
   children: ReactNode;
 }) {
-  // Focus the panel, not its first control: the prompt copy box would
-  // otherwise open with a focus ring. Tab still reaches it first.
-  const popupRef = useRef<HTMLDivElement>(null);
-  return (
-    <SheetContent
-      className={PROMPT_ANSWER_SHEET_CLASS}
-      initialFocus={popupRef}
-      ref={popupRef}
-      side="right"
-    >
-      {children}
-    </SheetContent>
-  );
+  return <DetailSheetContent size="lg">{children}</DetailSheetContent>;
 }
 
 export function PromptDetailDialog({

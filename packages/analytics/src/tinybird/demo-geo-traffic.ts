@@ -98,6 +98,7 @@ async function scopedEvents(
   return events.filter(
     (event) =>
       (!params.project_id || event.project_id === params.project_id) &&
+      (!params.site_id || event.site_id === params.site_id) &&
       !excluded?.has(event.source)
   );
 }

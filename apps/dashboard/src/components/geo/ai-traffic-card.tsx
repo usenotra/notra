@@ -5,11 +5,11 @@ import {
   GEO_TRAFFIC_OTHER_GROUP,
 } from "@notra/geo-core/constants/geo";
 import {
-  buildTrafficTrendRows,
   hasTrafficSourceSeries,
   toGeoTrafficPreviousTotals,
   trafficSparklineDays,
 } from "@notra/geo-core/utils/ai-traffic";
+import { AnimatedNumber } from "@notra/ui/components/animated-number";
 import {
   InstrumentEmpty,
   InstrumentSection,
@@ -21,11 +21,16 @@ import { TrafficHero } from "@/components/geo/traffic-hero";
 import { TrafficSourceSheet } from "@/components/geo/traffic-source-sheet";
 import { TrafficSourcesStack } from "@/components/geo/traffic-sources-group";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
-import type { AiTrafficCardProps, GeoTrafficSourceBand } from "@/types/geo";
+import type {
+  AiTrafficCardProps,
+  GeoTrafficSourceBand,
+  GeoTrafficSourceGroup,
+} from "@/types/geo";
 import {
   buildTrafficGroupSeries,
   groupTrafficSources,
   trafficGroupKey,
+  trafficGroupPathsAreLowerBound,
 } from "@/utils/ai-traffic-groups";
 
 export function AiTrafficCard({
@@ -34,6 +39,7 @@ export function AiTrafficCard({
   range,
   settingsHref,
   isPending = false,
+  showHero = true,
 }: AiTrafficCardProps) {
   const tCommon = useTranslations("common");
   const tShared = useTranslations("geo.shared");
@@ -67,7 +73,6 @@ export function AiTrafficCard({
     () => trafficSparklineDays(points, range?.from, range?.to),
     [points, range?.from, range?.to]
   );
-  const trendRows = buildTrafficTrendRows(points, locale, sparklineDays);
   const canSparkline = hasTrafficSourceSeries(points);
   const seriesByGroup = useMemo(() => {
     const map = new Map<string, { day: string; value: number }[]>();
@@ -96,9 +101,27 @@ export function AiTrafficCard({
           (group) => trafficGroupKey(group.band, group.key) === openGroupKey
         ) ?? null);
 
-  const columns = useTrafficSourceColumns({ seriesByKey: seriesByGroup });
+  const sourceColumns = useTrafficSourceColumns({ seriesByKey: seriesByGroup });
+  // A group shows its busiest bot's path count, a lower bound once several bots are active.
+  const columns = useMemo(
+    () =>
+      sourceColumns.map((column) =>
+        column.key === "paths"
+          ? {
+              ...column,
+              cell: (row: GeoTrafficSourceGroup) => (
+                <span className="text-sm tabular-nums">
+                  {trafficGroupPathsAreLowerBound(row) ? "≥ " : null}
+                  <AnimatedNumber locale={locale} value={row.paths} />
+                </span>
+              ),
+            }
+          : column
+      ),
+    [sourceColumns, locale]
+  );
 
-  if (sources.length === 0) {
+  if (groups.length === 0) {
     return (
       <InstrumentSection eyebrow={tCommon("labels.sources")}>
         <InstrumentEmpty
@@ -111,14 +134,16 @@ export function AiTrafficCard({
 
   return (
     <div className="flex flex-col gap-6">
-      <TrafficHero
-        groups={groups}
-        points={points}
-        previousTotals={previousTotals}
-        rows={trendRows}
-        settingsHref={settingsHref}
-        totals={totals}
-      />
+      {showHero ? (
+        <TrafficHero
+          groups={groups}
+          points={points}
+          previousTotals={previousTotals}
+          days={sparklineDays}
+          settingsHref={settingsHref}
+          totals={totals}
+        />
+      ) : null}
       <InstrumentSection eyebrow={tCommon("labels.sources")}>
         <TrafficSourcesStack
           collapsed={collapsed}

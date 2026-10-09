@@ -1,0 +1,57 @@
+---
+import BlogIndex from "../components/BlogIndex.astro";
+import ChangelogIndex from "../components/ChangelogIndex.astro";
+import Base from "../layouts/Base.astro";
+import { STRUCTURED_DATA_LIST_LIMIT } from "../constants/seo";
+import { getAreaEntries } from "../lib/entries";
+import { absoluteUrl, areaDescription, areaTitle, href, markdownHref, params } from "../lib/params";
+import { areaNodeId, pageTitle, publisherRef, websiteRef } from "../lib/seo";
+
+const title = areaTitle(params.area);
+const url = absoluteUrl(href());
+const entries = await getAreaEntries();
+const listed = entries
+  .filter((entry) => !(entry.data.draft || ("noindex" in entry.data && entry.data.noindex)))
+  .slice(0, STRUCTURED_DATA_LIST_LIMIT);
+const area = {
+  "@id": areaNodeId(),
+  name: title,
+  description: areaDescription(params.area),
+  url,
+  inLanguage: "en",
+  publisher: publisherRef(),
+  isPartOf: websiteRef(),
+};
+const jsonLd = [
+  params.area === "blog"
+    ? {
+        "@type": "Blog",
+        ...area,
+        blogPost: listed.map((entry) => ({
+          "@type": "BlogPosting",
+          "@id": `${absoluteUrl(href(entry.id))}#article`,
+          headline: entry.data.title,
+          url: absoluteUrl(href(entry.id)),
+          datePublished: entry.data.date.toISOString(),
+        })),
+      }
+    : {
+        "@type": "CollectionPage",
+        ...area,
+        mainEntity: {
+          "@type": "ItemList",
+          itemListOrder: "https://schema.org/ItemListOrderDescending",
+          itemListElement: listed.map((entry, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            url: absoluteUrl(href(entry.id)),
+            name: entry.data.title,
+          })),
+        },
+      },
+];
+---
+
+<Base title={pageTitle(title, true)} description={areaDescription(params.area)} markdown={markdownHref()} jsonLd={jsonLd}>
+  {params.area === "blog" ? <BlogIndex /> : <ChangelogIndex />}
+</Base>

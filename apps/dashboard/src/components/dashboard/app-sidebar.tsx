@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { useOrganizationsContext } from "@/components/providers/organization-provider";
+import { useNavVisibility } from "@/lib/hooks/use-nav-visibility";
 import { usePathname, useRouter, useSearchParams } from "@/lib/navigation";
 import type { DashboardSidebarProps } from "@/types/components/sidebar-resize-handle";
 import dynamic from "@/utils/lazy-component";
@@ -28,6 +29,7 @@ import {
 } from "./deferred-sidebar-status";
 import { NavBrandIdentity } from "./nav-brand-identity";
 import { NavMain } from "./nav-main";
+import { NavSite } from "./nav-site";
 import { NavUtility } from "./nav-utility";
 import { OrgSelector } from "./org-selector";
 import { SidebarLabel } from "./sidebar-label";
@@ -74,12 +76,19 @@ export function DashboardSidebar({
   const searchParams = useSearchParams();
   const { isMobile, setOpenMobile } = useSidebar();
   const { activeOrganization } = useOrganizationsContext();
+  const visibility = useNavVisibility();
   const navigationKey = `${pathname}?${searchParams.toString()}`;
   const pathnameSegments = pathname.split("/").filter(Boolean);
   const slug = pathnameSegments[0] ?? activeOrganization?.slug ?? "";
 
   const section = pathnameSegments[1];
-  const panelId = section === "chat" || section === "brand" ? section : "main";
+  const siteSegment = section === "sites" ? pathnameSegments[2] : undefined;
+  const isSitePage =
+    visibility.sites && Boolean(siteSegment) && siteSegment !== "new";
+  let panelId = section === "chat" || section === "brand" ? section : "main";
+  if (isSitePage) {
+    panelId = "site";
+  }
   const isSubpage = panelId !== "main";
 
   const [hasMoreNavigation, setHasMoreNavigation] = useState(false);
@@ -121,6 +130,10 @@ export function DashboardSidebar({
   }, [isMobile, navigationKey, setOpenMobile]);
 
   function handleBack() {
+    if (isSitePage) {
+      router.push(`/${slug}/sites`);
+      return;
+    }
     if (hasVisitedMainRef.current) {
       router.back();
       return;
@@ -138,7 +151,7 @@ export function DashboardSidebar({
         className
       )}
     >
-      <SidebarHeader>
+      <SidebarHeader className="pt-px pb-0.5">
         <SidebarProjectSwitcher />
       </SidebarHeader>
       <SidebarContent>
@@ -168,6 +181,16 @@ export function DashboardSidebar({
                 <>
                   <SidebarBackButton onBack={handleBack} />
                   <NavBrandIdentity slug={slug} />
+                </>
+              ),
+            },
+            {
+              id: "site",
+              side: "right",
+              children: (
+                <>
+                  <SidebarBackButton onBack={handleBack} />
+                  {visibility.sites ? <NavSite slug={slug} /> : null}
                 </>
               ),
             },

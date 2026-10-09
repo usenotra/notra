@@ -35,6 +35,7 @@ import {
 } from "./-dashboard-loaders";
 import { createGeoUiRoutes } from "./-geo-ui";
 import { createIntegrationUiRoutes } from "./-integrations-ui";
+import { createSitesUiRoutes } from "./-sites-ui";
 import { UiModalProvider } from "./-ui-modal";
 import { createUiRoute, uiRouteSearch } from "./-ui-route";
 
@@ -519,6 +520,7 @@ export function createDashboardUiRoutes(parent: AnyRoute) {
     analytics.addChildren(createAnalyticsUiRoutes(analytics)),
     geo.addChildren(createGeoUiRoutes(geo)),
     integrations.addChildren(createIntegrationUiRoutes(integrations)),
+    ...createSitesUiRoutes(organization),
   ];
 
   return [organization.addChildren(routes)];

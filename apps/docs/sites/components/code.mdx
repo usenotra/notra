@@ -1,0 +1,82 @@
+---
+title: "Code"
+description: "Code blocks get syntax highlighting, a copy button and a theme that matches your site."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/components/code
+  type: reference
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Code blocks get syntax highlighting, a copy button and a theme that fits your site, and `CodeGroup` keeps related blocks together.
+
+## Code blocks
+
+Fence code with three backticks and name the language for syntax highlighting:
+
+````mdx
+```typescript
+const site = await notra.sites.get("acme");
+```
+````
+
+<Frame caption="How it looks on your site">
+  <img src="/images/sites/components/code-light.webp" alt="A highlighted code block on a Notra site" className="block dark:hidden" />
+  <img src="/images/sites/components/code-dark.webp" alt="A highlighted code block on a Notra site" className="hidden dark:block" />
+</Frame>
+
+- Highlighting covers every language [Shiki](https://shiki.style/languages) knows, like `bash`, `json`, `tsx`, `python`, `go`, `rust`, `sql` and `yaml`.
+- Code blocks in the post get a copy button and the language name in the corner when a reader hovers over them.
+- Long lines scroll sideways in `.mdx` files and wrap in `.md` files.
+- Inline code uses single backticks, like `` `blog.json` ``.
+
+Notra doesn't support titles after the language (` ```js title.js `), line highlighting or line numbers yet, and ignores the text after the language.
+
+## Syntax theme
+
+`styling.codeblocks` in `blog.json` sets the colors:
+
+```json blog.json
+{ "styling": { "codeblocks": "system" } }
+```
+
+| Value | Result |
+| --- | --- |
+| `"system"` (default) | GitHub's light theme in light mode and its dark theme in dark mode |
+| `"dark"` | Dark code blocks in both modes |
+| A theme name, like `"vitesse-dark"` | Any [Shiki theme](https://shiki.style/themes), in both modes |
+| `{ "light": "github-light", "dark": "vitesse-dark" }` | One theme per mode |
+
+The setting applies to `.mdx` files, while code blocks in `.md` files keep GitHub's light and dark colors and `"dark"` only darkens their background.
+
+## CodeGroup
+
+`CodeGroup` keeps several related code blocks together with even spacing:
+
+````mdx
+<CodeGroup>
+```bash
+npm install acme
+```
+
+```typescript
+import { Acme } from "acme";
+```
+</CodeGroup>
+````
+
+The code blocks inside render without their frame and copy button. To let readers pick one of several alternatives, like npm or bun, use [Tabs](/sites/components/tabs) instead.
+
+## Styling
+
+Code blocks in posts carry the class `code-block`, their copy button carries `code-block-copy-button` and groups carry `code-group`.
+
+```css style.css
+.code-block-copy-button { display: none; }
+```

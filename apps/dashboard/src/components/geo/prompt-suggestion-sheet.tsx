@@ -11,10 +11,10 @@ import {
   SheetScrollArea,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import type {
   PromptSuggestionSheetProps,
   SuggestionQueryTableProps,

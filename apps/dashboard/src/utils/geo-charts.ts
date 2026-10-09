@@ -37,6 +37,7 @@ import {
   engineFamilyOf,
   engineModelOf,
 } from "@notra/geo-core/utils/geo-engine-family";
+import { geoEngineUsedWebSearch } from "@notra/geo-core/utils/geo-engines";
 import { hasGroundedVariant } from "@notra/geo-core/utils/geo-grounded-engines";
 import { isGroundedEngine } from "@notra/geo-core/utils/geo-presence";
 import { sumGeoSparklinePoints } from "@notra/geo-core/utils/geo-sparkline";
@@ -451,6 +452,14 @@ export function engineFamilyTotals(
   family: GeoEngineFamily
 ): GeoEngineFamilyTotals | null {
   return totalsForEngines(engineFamilySources(family));
+}
+
+export function engineFamilyWithoutWebSearch(family: GeoEngineFamily): boolean {
+  return family.variants.every(
+    (variant) =>
+      variant.web === null &&
+      (variant.raw === null || !geoEngineUsedWebSearch(variant.raw.engine))
+  );
 }
 
 export function engineFamilyMentionTotals(

@@ -1,0 +1,131 @@
+---
+title: "Serve your site under a path"
+sidebarTitle: "Path on your website"
+description: "Keep your website on acme.com and serve acme.com/blog and acme.com/changelog from Notra with a rewrite."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/subpath
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+To serve your site at `acme.com/blog`, the host that runs `acme.com` forwards every request under `/blog` to Notra and passes the response back, so visitors and search engines only ever see `acme.com`. DNS can't route paths, so this always needs a rewrite (also called a reverse proxy) on your side.
+
+```text
+Visitor ──► acme.com/blog/launch ──► your host ──► https://acme.notra.site/blog/launch
+                                       (rewrite)
+```
+
+## Pick your platform
+
+<Columns cols={3}>
+  <Card title="Vercel" icon="triangle" href="/sites/domains/vercel">
+    `vercel.json`, any framework
+  </Card>
+  <Card title="Next.js" icon="react" href="/sites/domains/nextjs">
+    `next.config.ts`, any host
+  </Card>
+  <Card title="TanStack Start" icon="layer-group" href="/sites/domains/tanstack-start">
+    `vite.config.ts` with Nitro
+  </Card>
+  <Card title="Netlify" icon="cloud" href="/sites/domains/netlify">
+    `_redirects`
+  </Card>
+  <Card title="Cloudflare" icon="cloudflare" href="/sites/domains/cloudflare">
+    A Worker on your zone
+  </Card>
+  <Card title="nginx" icon="server" href="/sites/domains/nginx">
+    `proxy_pass`, plus Caddy
+  </Card>
+</Columns>
+
+<Tip>
+  Click the domain on the **Domains** page. **Manual setup** shows the exact code for your platform, already filled in with your address and section paths, and **Copy agent prompt** copies an instruction you can paste into Claude Code, Cursor or Codex to make the change for you.
+</Tip>
+
+## The steps on every platform
+
+<Steps>
+  <Step title="Set the section paths">
+    Under **Settings → Content → Sections**, set the paths you want on your website, for example `/blog` and `/changelog`, which are the paths you forward. See [Section paths](/sites/domains/overview#section-paths).
+  </Step>
+  <Step title="Add the domain in Notra">
+    Open **Domains → Add domain** and enter the host and path, for example `www.acme.com/blog`. Use the host that actually serves your website, so if `acme.com` redirects to `www.acme.com`, enter `www.acme.com`. The domain shows up with the status **Needs rewrites**.
+  </Step>
+  <Step title="Add the rewrite">
+    Forward each section path and everything below it to your Notra address with the path unchanged, following the guide for your platform.
+  </Step>
+  <Step title="Deploy your website and check">
+    Deploy the change, then click **Check** on the domain. Notra fetches a test file through your website for every section, and once it answers, the domain is **Active** and becomes the site's primary address.
+  </Step>
+  <Step title="Add the sitemaps to your robots.txt">
+    Your `robots.txt` stays yours, so add the section sitemaps to it:
+
+    ```text robots.txt
+    Sitemap: https://www.acme.com/blog/sitemap.xml
+    Sitemap: https://www.acme.com/changelog/sitemap.xml
+    ```
+  </Step>
+</Steps>
+
+## What the rewrite has to do
+
+Every platform guide meets these rules, so if you write your own proxy, check it against them.
+
+| Rule | Why |
+| --- | --- |
+| Forward `/blog` **and** `/blog/*` for every section | Pages, assets, images, feeds, sitemaps and the check file all live under the section path, with assets under `/blog/_notra/assets/` |
+| Keep the path as it is | Notra builds the site for `/blog`, so forward `/blog/launch` to `https://acme.notra.site/blog/launch` rather than to `/launch` |
+| Send `Host: acme.notra.site` | Notra finds the site by its host, so a request with `Host: acme.com` gets a 404, and most rewrites set this for you |
+| Don't follow redirects | Return Notra's `307` and `308` responses to the browser, so your [redirects](/sites/reference/blog-json#redirects) change the URL |
+| Forward `POST` requests with their body | Site analytics sends time on page to `/blog/_notra/e` |
+| Keep the `Accept` header | AI agents ask for Markdown with `Accept: text/markdown`. See [AI agents](/sites/agents) |
+| Don't redirect `/blog` to `/blog/` | The check fails on any redirect, so turn off trailing-slash redirects for these paths |
+| Leave Notra's response headers alone | Notra sends caching, `Content-Security-Policy` and `Vary` headers that fit each file, so don't add `noindex` and don't cache HTML longer than Notra says |
+
+Notra doesn't need cookies or `Authorization` headers, so don't forward them where your platform lets you, which keeps your visitors' sessions on your domain. Keep `User-Agent` and `Referer`, and send the visitor's IP in `X-Forwarded-For`, so [site analytics](/sites/agents#ai-traffic-analytics) can tell visitors and countries apart. The nginx and Cloudflare guides set it explicitly.
+
+## How the check works
+
+**Check** requests `https://www.acme.com/blog/_notra/probe.txt` for every section with the user agent `NotraSitesVerifier/1.0`, and it passes when all of these are true:
+
+- The file comes from this site.
+- `https://www.acme.com/blog` answers without a redirect.
+- The response doesn't carry `X-Robots-Tag: noindex`.
+
+When it passes, Notra rebuilds the site so that canonical URLs, feeds, sitemaps and social previews use `https://www.acme.com/blog`.
+
+## Search engines and AI agents
+
+- Search engines only index pages under your domain, because your Notra address stops being crawled once the domain is active and every page names `www.acme.com/blog/...` as canonical.
+- Each section has its own `sitemap.xml`, `feed.xml` and `llms.txt` under its path, for example `/blog/llms.txt`.
+- `/robots.txt` and `/llms.txt` at the root of your domain belong to your website, so add the sitemaps to `robots.txt` (step 5) and link `/blog/llms.txt` from your own `llms.txt` if you have one.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The check says it could not reach the test file">
+    Open `https://www.acme.com/blog/_notra/probe.txt` in your browser, where you should see a short text that starts with `notra-site=`. If you see your own 404 page, the rewrite isn't live yet or doesn't cover `/blog/*`. If the browser is redirected, you entered the wrong host (`acme.com` instead of `www.acme.com`) or your host adds a trailing slash.
+  </Accordion>
+  <Accordion title="The page loads, but without styles">
+    Your rewrite forwards only `/blog` rather than `/blog/*`, while assets live under `/blog/_notra/assets/`.
+  </Accordion>
+  <Accordion title="Notra answers with a 404 for every page">
+    Your proxy sends your own host in the `Host` header, so set it to your Notra address, for example `proxy_set_header Host acme.notra.site;` in nginx.
+  </Accordion>
+  <Accordion title="Bot protection blocks the check">
+    Firewalls like Vercel's Attack Challenge Mode or Cloudflare's Bot Fight Mode can block `NotraSitesVerifier/1.0`, so allow it for your section paths or pause the protection while you check.
+  </Accordion>
+  <Accordion title="The blog link in the header goes to a 404">
+    The header links between the blog and the changelog, so forward every section that's turned on.
+  </Accordion>
+  <Accordion title="An old URL from my blog.json redirects shows the new page under the old URL">
+    Your proxy follows redirects instead of passing them on. In a Cloudflare Worker, set `redirect: "manual"`, which the other platform guides already handle for you.
+  </Accordion>
+</AccordionGroup>

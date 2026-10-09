@@ -21,29 +21,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { TrafficSheetHero } from "@/components/geo/traffic-sheet-hero";
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
+import { TOP_PAGES_LIMIT } from "@/constants/geo-table";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
+import { useGeoTrafficHostQuery } from "@/lib/hooks/use-geo-traffic-host";
 import { useTrafficSourceColumns } from "@/lib/hooks/use-traffic-source-columns";
 import type {
   GeoTrafficGroupPage,
   GeoTrafficSourceGroup,
   SheetStat,
   TrafficSourceSheetContentProps,
+  TrafficSourcePageColumnLabels,
   TrafficSourceSheetProps,
 } from "@/types/geo";
 import {
+  trafficGroupCurrentMembers,
   trafficGroupKey,
+  trafficGroupPathsAreLowerBound,
   trafficGroupPreviousVisits,
   trafficGroupTopPages,
 } from "@/utils/ai-traffic-groups";
 import { paginatedTableHeightFor } from "@/utils/table";
-
-const TOP_PAGES_LIMIT = 10;
 
 /** A single bot as a one-member group, so it fits the overview's table columns. */
 function botAsGroup(
@@ -69,16 +72,13 @@ function botAsGroup(
 }
 
 function pageColumns(
-  labels: {
-    pages: string;
-    visits: string;
-  },
+  labels: TrafficSourcePageColumnLabels,
   locale: string
 ): TableColumn<GeoTrafficGroupPage>[] {
   return [
     {
       key: "path",
-      header: labels.pages,
+      header: labels.page,
       width: "1fr",
       minWidth: "8rem",
       cell: (row) => (
@@ -114,9 +114,11 @@ function TrafficSourceSheetContent({
   const tGeoShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const [trafficHost] = useGeoTrafficHostQuery();
   const previous = trafficGroupPreviousVisits(group);
   const topPages = trafficGroupTopPages(pages, group, TOP_PAGES_LIMIT);
-  const showMarkdown = group.band !== "ai_referral";
+  const members = trafficGroupCurrentMembers(group);
+  const showMarkdown = group.band !== "ai_referral" && trafficHost === "";
   const stats: SheetStat[] = [
     {
       label: tGeoShared("visits"),
@@ -124,7 +126,10 @@ function TrafficSourceSheetContent({
       delta:
         previous === null ? null : trafficVisitDelta(group.visits, previous),
     },
-    { label: tGeoShared("pages"), value: group.paths.toLocaleString(locale) },
+    {
+      label: tGeoShared("pages"),
+      value: `${trafficGroupPathsAreLowerBound(group) ? "≥ " : ""}${group.paths.toLocaleString(locale)}`,
+    },
     showMarkdown
       ? {
           label: tCommon("labels.markdown"),
@@ -135,12 +140,12 @@ function TrafficSourceSheetContent({
             group.visitorType === "crawler"
               ? t("bots")
               : tCommon("labels.sources"),
-          value: group.members.length.toLocaleString(locale),
+          value: members.length.toLocaleString(locale),
         },
   ];
   const bots = useMemo(
     () =>
-      [...group.members]
+      trafficGroupCurrentMembers(group)
         .sort((left, right) => right.visits - left.visits)
         .map((member) => botAsGroup(group, member)),
     [group]
@@ -197,7 +202,7 @@ function TrafficSourceSheetContent({
         <DataTable
           columns={pageColumns(
             {
-              pages: t("pagesTitle", { count: topPages.length }),
+              page: t("pagesTitle", { count: topPages.length }),
               visits: tGeoShared("visits"),
             },
             locale

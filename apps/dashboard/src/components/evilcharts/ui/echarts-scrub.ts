@@ -5,6 +5,11 @@ type ZrRect = InstanceType<typeof echarts.graphic.Rect>;
 type ZrCircle = InstanceType<typeof echarts.graphic.Circle>;
 
 const SCRUB_Z = 110;
+/**
+ * Canvas layer for scrubbed series and the overlay. Clipping repaints them every
+ * frame; on their own layer the axes and labels on layer 0 stay untouched.
+ */
+export const SCRUB_ZLEVEL = 1;
 const DOT_RADIUS = 4;
 const LINE_WIDTH = 1;
 const HALO_WIDTH = 6;
@@ -204,6 +209,7 @@ export function syncScrubOverlay(
     store.overlay = {
       line: new echarts.graphic.Rect({
         silent: true,
+        zlevel: SCRUB_ZLEVEL,
         z: SCRUB_Z,
         shape: { x: 0, y: 0, width: LINE_WIDTH, height: 0 },
       }),
@@ -229,6 +235,7 @@ export function syncScrubOverlay(
   while (dots.length < nextDots.length) {
     const circle = new echarts.graphic.Circle({
       silent: true,
+      zlevel: SCRUB_ZLEVEL,
       z: SCRUB_Z + 1,
       shape: { cx: 0, cy: 0, r: DOT_RADIUS },
     });

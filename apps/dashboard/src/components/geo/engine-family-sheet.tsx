@@ -28,6 +28,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@notra/ui/components/ui/sheet";
+import { useRetainedValue } from "@notra/ui/hooks/use-retained-value";
 import { useLocale, useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -46,7 +47,6 @@ import {
 } from "@/constants/geo-analytics";
 import { TABLE_ROW_HEIGHT } from "@/constants/table";
 import { useEngineFamilySheet } from "@/lib/hooks/use-engine-family-sheet";
-import { useRetainedValue } from "@/lib/hooks/use-retained-value";
 import { cn } from "@/lib/utils";
 import type { ChartConfig } from "@/types/charts";
 import type {

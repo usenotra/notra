@@ -12,10 +12,11 @@ import {
   trackServerException,
 } from "@/lib/analytics/posthog-server";
 import { afterResponse } from "@/lib/framework/after-response";
-import { createORPCContext, type ORPCRequestMemo } from "@/lib/orpc/context";
+import { createORPCContext } from "@/lib/orpc/context";
 import { createDashboardHandlerPlugins } from "@/lib/orpc/handler-plugins";
 import { dashboardRouter } from "@/lib/orpc/router";
 import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
+import type { ORPCRequestMemo } from "@/types/orpc/context";
 import { isServerFailureError } from "@/utils/orpc-errors";
 
 const handler = new RPCHandler(dashboardRouter, {

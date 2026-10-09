@@ -1,0 +1,1 @@
+ALTER TABLE "sites" ADD COLUMN "preview_comments_enabled" boolean DEFAULT true NOT NULL;

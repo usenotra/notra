@@ -11,6 +11,7 @@
   "ignoreIssues": {
     "source.config.ts": ["files", "exports"],
     "src/schemas/content.ts": ["files", "exports"],
-    "src/constants/content.ts": ["exports"]
+    "src/constants/content.ts": ["exports"],
+    "src/types/state-of-ai-search.ts": ["types"]
   }
 }

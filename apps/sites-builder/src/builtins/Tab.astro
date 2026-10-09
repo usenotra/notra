@@ -1,0 +1,10 @@
+---
+import type { TabProps as Props } from "../types/builtins";
+
+const { title } = Astro.props;
+---
+
+<div data-notra-tab data-title={title} role="tabpanel" class="tab [&>p]:my-0 [&>p+p]:mt-2 [&_pre]:my-0">
+  <p data-notra-tab-title class="mb-2 font-semibold">{title}</p>
+  <slot />
+</div>

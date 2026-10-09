@@ -1,0 +1,147 @@
+---
+title: "Competitors"
+description: "Track the brands AI engines recommend instead of you. Competitors drive share of voice, content gaps and shelf space."
+authors:
+  - handle: dominik
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/geo/competitors
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+The **Competitors** page answers "Who AI engines recommend instead of you". Notra matches competitor names case-insensitively in every answer, so share of voice and content gaps only count the brands on this list. A project can track up to 2,000 competitors, but generated content (personas, conversations, prompt suggestions, briefs) only uses the 25 that AI engines recommend most.
+
+Each competitor has:
+
+- **Name**: the primary string matched in answers.
+- **Website**: a bare domain such as `example.com`, which Notra uses for the logo and for suggestions.
+- **Type**: **Direct** ("Sells what you sell") or **Indirect** ("Solves the same problem differently").
+- **Synonyms**: up to eight alternative spellings or product names that count as the same brand.
+- **Chart color**: the competitor's color in share of voice charts.
+
+The table has **Domain**, **Type** and **Synonyms** columns with a name filter and an **All types** / Direct / Indirect filter, and **Add Competitor** (shortcut `C`) opens the edit form. Below the table, the **Share of voice** card compares mention counts for the selected range.
+
+<Visibility for="agents">
+
+## Create, rename and delete
+
+The API uses a single `PUT` for create and update, which matches on `name` case-insensitively and returns the full competitor list.
+
+```bash
+curl -X PUT https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Globex",
+    "domain": "globex.com",
+    "kind": "direct",
+    "synonyms": ["getglobex"],
+    "color": "#7c3aed"
+  }'
+```
+
+To rename, send the new `name` and the old one as `previousName`:
+
+```bash
+curl -X PUT https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Globex Changelog", "previousName": "Globex", "domain": "globex.com" }'
+```
+
+<ParamField body="name" type="string" required>
+  1 to 128 characters.
+</ParamField>
+<ParamField body="previousName" type="string">
+  Set to rename an existing competitor.
+</ParamField>
+<ParamField body="domain" type="string | null" required>
+  Website domain, up to 128 characters, or `null`.
+</ParamField>
+<ParamField body="synonyms" type="string[]">
+  Up to 8 entries.
+</ParamField>
+<ParamField body="kind" type="'direct' | 'indirect'">
+  Defaults to `direct` when omitted on create.
+</ParamField>
+<ParamField body="color" type="string | null">
+  Chart color, up to 128 characters.
+</ParamField>
+
+`DELETE /v1/projects/{projectId}/geo/competitors/{name}` stops tracking a competitor and matches the name case-insensitively.
+
+</Visibility>
+
+## Suggestions for a domain
+
+Notra can suggest likely competitors for a website and caches the results per organization and domain.
+
+<Visibility for="agents">
+
+```bash
+curl "https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/suggestions?domain=usenotra.com" \
+  -H "Authorization: Bearer $NOTRA_API_KEY"
+```
+
+```json
+{
+  "domain": "usenotra.com",
+  "field": "content automation",
+  "competitors": [
+    { "name": "Globex", "domain": "globex.com", "description": "Changelog and product update tool", "confidence": "high" }
+  ],
+  "organization": { "id": "org_123", "slug": "acme", "name": "Acme", "logo": null }
+}
+```
+
+`confidence` is `high`, `medium` or `null`, and this endpoint allows 10 requests per 10 minutes per organization.
+
+</Visibility>
+
+## Bulk import
+
+**Import CSV** on the Competitors page requires a `name` column, while `domain`, `kind` and `synonyms` are optional. Import updates existing competitors in place instead of duplicating them.
+
+<Visibility for="agents">
+
+The API import endpoint follows the same rules.
+
+<ParamField body="rows" type="array">
+  1 to 2,000 objects with `name` (required), `domain`, `kind` and `synonyms` (up to 8).
+</ParamField>
+<ParamField body="csv" type="string">
+  Raw CSV text, up to 1 MiB, with a `name` column and optional `domain`, `kind` and `synonyms` columns. Notra uses it when `rows` is omitted.
+</ParamField>
+
+```bash
+curl -X POST https://api.usenotra.com/v1/projects/$PROJECT_ID/geo/competitors/import \
+  -H "Authorization: Bearer $NOTRA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rows": [
+      { "name": "Globex", "domain": "globex.com", "kind": "direct" },
+      { "name": "Initech", "domain": "initech.com", "kind": "direct", "synonyms": ["initech app"] }
+    ]
+  }'
+```
+
+The response contains `imported`, `updated`, `skipped`, `issues[]` and the full `competitors[]` list. One request takes up to 2,000 rows, so send the whole list at once instead of splitting it. Import allows 10 requests per 10 minutes per organization.
+
+</Visibility>
+
+## Competitor detail
+
+Click a competitor to open its detail view, which opens as a modal from the Competitors page or as a full page at `/geo/competitors/{name}`. The view shows a **Mentions** chart over the last 30 days by default, and below it a table lists the prompts that produced those mentions, with **Engine**, **Position** (the numeric position, **Mentioned** or **Absent**) and **Last seen** columns. **Edit competitor** opens the same form as the table.
+
+Your own brand also appears in share of voice, and clicking it opens the same view filled with the answers that mention you.
+
+<Visibility for="agents">
+
+The API equivalent is `GET /v1/projects/{projectId}/geo/visibility/competitors/{brand}`, where `brand` is the name that `competitor-share` reports. Without a window it uses the 30-day competitor-detail default, not the project default.
+
+</Visibility>

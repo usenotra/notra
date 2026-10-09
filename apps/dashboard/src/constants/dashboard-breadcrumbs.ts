@@ -16,6 +16,7 @@ export const BREADCRUMB_SEGMENTS = [
   "leaderboard",
   "schedules",
   "settings",
+  "sites",
   "skills",
   "usage",
 ] as const;

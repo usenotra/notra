@@ -21,11 +21,12 @@ import { generateText, Output } from "ai";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { createRequestLogger } from "evlog";
 
-import { commandRoutesForAI } from "@/components/command-palette/registry";
 import { isAnalyticsEnabledForOrganization } from "@/lib/analytics/flag";
 import { getServerSession } from "@/lib/auth/session";
 import { hasAiCreditsGrant } from "@/lib/billing/subscription";
 import { isIrisEnabledForOrganization } from "@/lib/iris/flag";
+import { isSitesEnabledForOrganization } from "@/lib/sites/flag";
+import { commandRoutesForAI } from "@/utils/command-palette";
 import { getClientIp, ratelimit } from "@/utils/ratelimit";
 
 const LIKE_ESCAPE_PATTERN = /[\\%_]/g;
@@ -257,13 +258,18 @@ export async function POST(request: Request) {
   }
 
   const organizationId = member.organizationId;
-  const [hasAiCredits, iris, analytics, entities] = await Promise.all([
+  const [hasAiCredits, iris, analytics, sites, entities] = await Promise.all([
     hasAiCreditsGrant(organizationId).catch(() => false),
     isIrisEnabledForOrganization(organizationId).catch(() => false),
     isAnalyticsEnabledForOrganization(organizationId).catch(() => false),
+    isSitesEnabledForOrganization(organizationId),
     fetchEntityContext(organizationId, query, slug),
   ]);
-  const routes = commandRoutesForAI(slug, hasAiCredits, { iris, analytics });
+  const routes = commandRoutesForAI(slug, hasAiCredits, {
+    iris,
+    analytics,
+    sites,
+  });
 
   const allPaths = [
     ...routes.map((r) => r.path),

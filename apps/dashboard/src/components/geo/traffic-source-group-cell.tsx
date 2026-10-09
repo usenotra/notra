@@ -2,13 +2,16 @@ import { useTranslations } from "use-intl";
 
 import { TrafficSourceGroupIcon } from "@/components/geo/traffic-source-group-icon";
 import type { TrafficSourceGroupCellProps } from "@/types/geo";
-import { hasTrafficGroupBreakdown } from "@/utils/ai-traffic-groups";
+import {
+  hasTrafficGroupBreakdown,
+  trafficGroupCurrentMembers,
+} from "@/utils/ai-traffic-groups";
 
 /** Source name plus bot count; the row opens the source drawer with the breakdown. */
 export function TrafficSourceGroupCell({ group }: TrafficSourceGroupCellProps) {
   const tGeoShared = useTranslations("geo.shared");
   const tCommon = useTranslations("common");
-  const botCount = group.members.length;
+  const botCount = trafficGroupCurrentMembers(group).length;
 
   return (
     <span className="flex min-w-0 items-center gap-2">

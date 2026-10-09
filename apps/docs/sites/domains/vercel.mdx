@@ -1,0 +1,59 @@
+---
+title: "Serve your site under a path on Vercel"
+sidebarTitle: "Vercel"
+description: "Forward acme.com/blog to Notra with rewrites in vercel.json, which works for every framework deployed on Vercel."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/vercel
+  type: how-to
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+This guide forwards `acme.com/blog` to Notra with rewrites in `vercel.json` at the root of the project, which works for every framework on Vercel. Vercel forwards the matching requests to Notra at the edge and keeps the URL in the browser. For Next.js you can also use [`next.config.ts`](/sites/domains/nextjs). Read [the steps on every platform](/sites/domains/subpath#the-steps-on-every-platform) first, and replace `acme.notra.site` with the Notra address on your site's **Domains** page.
+
+<Steps>
+  <Step title="Add the rewrites">
+    <CodeGroup>
+    ```json Blog and changelog
+    {
+      "rewrites": [
+        { "source": "/blog", "destination": "https://acme.notra.site/blog" },
+        { "source": "/blog/:path*", "destination": "https://acme.notra.site/blog/:path*" },
+        { "source": "/changelog", "destination": "https://acme.notra.site/changelog" },
+        { "source": "/changelog/:path*", "destination": "https://acme.notra.site/changelog/:path*" }
+      ]
+    }
+    ```
+
+    ```json Blog only
+    {
+      "rewrites": [
+        { "source": "/blog", "destination": "https://acme.notra.site/blog" },
+        { "source": "/blog/:path*", "destination": "https://acme.notra.site/blog/:path*" }
+      ]
+    }
+    ```
+    </CodeGroup>
+
+    If `vercel.json` already has `rewrites`, add these entries to the list, and since Vercel uses the first rule that matches, put them before any catch-all rewrite.
+  </Step>
+  <Step title="Remove your own /blog routes">
+    If your website already has pages under `/blog`, delete or move them, because files in your deployment win over rewrites, so an existing `/blog` page would hide your Notra site.
+  </Step>
+  <Step title="Deploy and check">
+    Deploy, open `https://www.acme.com/blog/_notra/probe.txt` to confirm the rewrite works, then click **Check** on the domain in Notra.
+  </Step>
+</Steps>
+
+## Limits to keep in mind
+
+- **`trailingSlash: true`** in `vercel.json` redirects `/blog` to `/blog/` and the check fails, so leave it unset or `false`.
+- **Attack Challenge Mode** and bot-protection rules in the Vercel Firewall can block the check and AI crawlers, so allow your section paths, or at least the user agent `NotraSitesVerifier/1.0`.
+- **Headers you set for `/(.*)`** in `vercel.json`, such as a `Content-Security-Policy`, can apply to the forwarded pages too and block the site's own scripts, so exclude your section paths from those header rules.
+- Vercel keeps the `Accept` header and passes Notra's redirects back to the browser, so Markdown for AI agents and your `blog.json` redirects work without extra setup.

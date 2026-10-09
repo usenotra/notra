@@ -94,6 +94,7 @@ import type {
 import { observeChartResize } from "@/components/evilcharts/ui/echarts-resize";
 import {
   SCRUB_MUTE_OPACITY,
+  SCRUB_ZLEVEL,
   clearScrub,
   clipSeriesToX,
   emptyScrubStore,
@@ -1322,6 +1323,9 @@ function buildTooltipOption(ctx: OptionBuildContext): TooltipComponentOption {
       strokeWidth: AXIS_POINTER_WIDTH,
       confine: tooltipSlot.confine,
     }),
+    // Scrub dispatches showTip itself once per snapped day. The native trigger
+    // would rebuild and re-measure the tooltip DOM on every pointer move.
+    ...(tooltipSlot.scrub ? { triggerOn: "none" as const } : {}),
     formatter: withTooltipSizeMotion(createTooltipFormatter(ctx)),
   };
 }
@@ -2369,7 +2373,13 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     const brush = showBrush ? buildBrushOption(ctx, brushBottom) : null;
 
-    const series = [...buildAreaSeries(ctx), ...(brush?.miniSeries ?? [])];
+    const areaSeries = buildAreaSeries(ctx);
+    const series = [
+      ...(tooltipSlot.scrub
+        ? areaSeries.map((entry) => ({ ...entry, zlevel: SCRUB_ZLEVEL }))
+        : areaSeries),
+      ...(brush?.miniSeries ?? []),
+    ];
     // buildAreaSeries has now filled revealSink with each area's full per-datum
     // points — hand them to the hover handler for slicing.
     if (enableHoverReveal || tooltipSlot.scrub) live.revealValues = revealSink;
@@ -2696,6 +2706,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     const leaveScrub = () => {
       if (live.scrubTarget === 0 && live.scrubOpacity === 0) return;
       live.scrubTarget = 0;
+      chart.dispatchAction({ type: "hideTip" });
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         const grid = readScrubGrid(chart);
         if (grid) live.scrubX = grid.x + grid.width;
@@ -2790,6 +2801,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       if (!live.selectionRect) {
         live.selectionRect = new echarts.graphic.Rect({
           silent: true,
+          zlevel: live.handlers.enableScrub ? SCRUB_ZLEVEL : 0,
           z: SELECTION_Z,
           shape: { x: 0, y: 0, width: 0, height: 0 },
         });

@@ -1,0 +1,59 @@
+---
+title: "Choose a domain"
+sidebarTitle: "Overview"
+description: "Serve your site on a subdomain like blog.acme.com or under a path of your existing website like acme.com/blog."
+authors:
+  - handle: jan
+
+docolin:
+  schema_version: 1
+  kind: tools/notra/sites/domains/overview
+  type: explanation
+  applies_to:
+    - notra
+  language: en
+  status: stable
+---
+
+Every site starts on a free Notra address, `https://<address>.notra.site`, which you choose when you create the site. To use your own domain, open the site's **Domains** page and click **Add domain**, which offers two setups:
+
+| | Subdomain | Path on your website |
+| --- | --- | --- |
+| Example | `blog.acme.com/` | `acme.com/blog` |
+| What you change | DNS records at your DNS provider | A rewrite on the host that serves `acme.com` |
+| Your website | Not touched | Keeps serving everything else |
+| Search engines | Treat it as a separate host | Count it toward `acme.com` |
+| Set up in | 5 minutes, plus DNS propagation | 10 minutes, plus a deploy of your website |
+| Guide | [Subdomain](/sites/domains/subdomain) | [Path on your website](/sites/domains/subpath) |
+
+Pick a **subdomain** when you want the simplest setup, and a **path** when you want your blog to build on the authority of your main domain or when your website already links to `/blog`.
+
+<Tip>
+  In the **Add domain** dialog, type `blog.acme.com` for a subdomain or `acme.com/blog` for a path, and Notra picks the matching setup. Use **Keep my website and forward paths instead** or **Point the whole domain to Notra instead** to switch.
+</Tip>
+
+## Section paths
+
+A site has up to two sections, a blog and a changelog. You set their paths when you create the site and under **Settings → Content → Sections** rather than in `blog.json`, so a commit can never move your site somewhere nobody verified.
+
+| Rule | Example |
+| --- | --- |
+| Up to three segments of lowercase letters, digits and dashes | `/blog`, `/updates`, `/changelog/notra` |
+| One section can live at the root | blog at `/`, changelog at `/changelog` |
+| The two paths can't be the same or nested inside each other | Notra rejects `/blog` and `/blog/changelog` |
+| At least one section must be on | Turn a section off with its switch in **Settings**, or leave its path empty when you create the site |
+
+The section paths are the same on every domain, so if the blog is at `/blog`, it's at `blog.acme.com/blog` and `acme.com/blog`. For a subdomain that shows the blog at its root, set the blog path to `/`.
+
+Changing a path rebuilds the site, and the current version stays live until the new build is ready. If you serve the site through a rewrite, update the rewrite too.
+
+## The primary address
+
+When a domain passes its check, it becomes the site's **Primary** address, and Notra rebuilds the site so canonical URLs, feeds, sitemaps, `llms.txt` and social previews point to it. The previous version stays live during the rebuild.
+
+- If you verify several domains, the one you checked last becomes primary.
+- Your Notra address keeps working but tells search engines not to crawl it once a primary domain is set, and every page names the primary address as canonical, so a post is never indexed twice.
+- Removing the primary domain moves the site back to its Notra address and rebuilds it.
+- A domain can only be active on one site at a time.
+
+Notra only ever serves previews on Notra addresses and never on your own domain. See [Previews](/sites/previews).
