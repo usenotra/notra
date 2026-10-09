@@ -41,4 +41,4 @@ For a reviewer outside your workspace, choose **Copy share link** on a preview, 
 
 - Search engines never index previews, because every response sends `X-Robots-Tag: noindex` and `robots.txt` blocks all crawlers.
 - Notra only serves previews on Notra addresses and never on your own domain.
-- Visits to previews don't count in Analytics, but analytics integrations like Plausible still load, so filter preview hosts (`*.notra.site`) in your tool.
+- Visits to previews don't count in built-in Analytics. [Analytics integrations](/sites/analytics-and-scripts#analytics-integrations), including Google Analytics, PostHog, Plausible and Databuddy, are disabled in previews too. Verify incoming events on the live production site after publishing. Custom scripts still run in previews, so any tracking you install through them needs its own preview filter.
