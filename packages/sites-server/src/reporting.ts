@@ -224,7 +224,7 @@ async function reportPreviewComment(
         ((outcome?.kind === "live" || outcome?.kind === "not_live") &&
           latest.status !== "ready") ||
         (outcome?.kind === "skipped" &&
-          !["canceled", "superseded"].includes(latest.status))
+          !["canceled", "superseded", "skipped"].includes(latest.status))
       ) {
         return;
       }

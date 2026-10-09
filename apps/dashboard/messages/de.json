@@ -6942,7 +6942,8 @@
       "superseded": "Ersetzt",
       "failed": "Fehlgeschlagen",
       "canceled": "Abgebrochen",
-      "expired": "Abgelaufen"
+      "expired": "Abgelaufen",
+      "skipped": "Übersprungen"
     },
     "domainStatus": {
       "pending": "Ausstehend",
@@ -7236,7 +7237,10 @@
         "confirm": "Site löschen",
         "done": "{name} gelöscht",
         "failed": "Site konnte nicht gelöscht werden"
-      }
+      },
+      "smartDeployments": "Smart deployments",
+      "beta": "Beta",
+      "smartDeploymentsHint": "Automatische Deployments überspringen, wenn die Eingaben der veröffentlichten Site unverändert sind. Manuelle Redeploys werden immer gebaut."
     },
     "previewFrame": {
       "title": "Vorschau der Site",
@@ -7305,7 +7309,8 @@
         "failed": "Fehlgeschlagen",
         "canceled": "Abgebrochen",
         "superseded": "Ersetzt",
-        "expired": "Abgelaufen"
+        "expired": "Abgelaufen",
+        "skipped": "Übersprungen"
       },
       "actions": {
         "copyUrl": "URL kopieren",
@@ -7367,7 +7372,8 @@
         "failed": "Build fehlgeschlagen",
         "canceled": "Dieser Build wurde abgebrochen, bevor er fertig war.",
         "superseded": "Ein neuerer Commit hat diesen Build ersetzt, bevor er startete.",
-        "expired": "Die Dateien dieses Deployments wurden aufgeräumt. Deploye den Commit neu, um ihn wieder zu bauen."
+        "expired": "Die Dateien dieses Deployments wurden aufgeräumt. Deploye den Commit neu, um ihn wieder zu bauen.",
+        "skipped": "Übersprungen, weil die Site-Eingaben mit der veröffentlichten Version übereinstimmen."
       },
       "log": {
         "title": "Build-Logs",

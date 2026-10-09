@@ -60,7 +60,23 @@ if (process.env.NOTRA_SITES_TIMELINE_TEST_WORKER !== "1") {
         catch: (error) => error,
       }),
   }));
+  mock.module("../src/smart-deployments", () => ({
+    compareSmartDeployment: async () => null,
+    skipUnchangedDeployment: async () => false,
+  }));
   mock.module("../src/deployments", () => ({
+    startDeploymentBuild: async (current: SiteDeployment, startedAt: Date) => {
+      transitions.push("building");
+      if (rejectTransition === "building") {
+        deployment.status = "canceled";
+        return false;
+      }
+      Object.assign(current, {
+        status: "building",
+        startedAt: current.startedAt ?? startedAt,
+      });
+      return true;
+    },
     getDeployment: async () => deployment,
     hasNewerDeployment: async () => false,
     transitionDeployment: async (

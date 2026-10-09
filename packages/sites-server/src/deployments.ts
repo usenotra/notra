@@ -13,6 +13,7 @@ import {
   gt,
   inArray,
   lte,
+  ne,
   notInArray,
   or,
   sql,
@@ -122,24 +123,11 @@ async function insertDeployment(
   if (input.kind === "preview" && !site.previewsEnabled) {
     throw new SiteNotBuildableError("Previews are turned off for this site");
   }
-  await tx.execute(
-    sql`select pg_advisory_xact_lock(hashtextextended(${`sites-deployment-budget:${site.organizationId}`}, 0))`
+  const buildBudgetReserved = !(
+    site.smartDeployments && ["push", "pull_request"].includes(input.trigger)
   );
-  const [usage] = await tx
-    .select({ count: sql<number>`count(*)::int` })
-    .from(siteDeployments)
-    .where(
-      and(
-        eq(siteDeployments.organizationId, site.organizationId),
-        gt(siteDeployments.createdAt, sql`now() - interval '24 hours'`)
-      )
-    );
-  if (
-    (usage?.count ?? 0) >= SITE_BUILD_LIMITS.maxDeploymentsPerOrganizationPerDay
-  ) {
-    throw new SiteNotBuildableError(
-      `This workspace reached ${SITE_BUILD_LIMITS.maxDeploymentsPerOrganizationPerDay} deployments in 24 hours. Try again later.`
-    );
+  if (buildBudgetReserved) {
+    await assertBuildBudget(tx, site.organizationId);
   }
   const target = buildTargetForDeployment({
     site,
@@ -156,6 +144,7 @@ async function insertDeployment(
       previewKey: input.previewKey,
       trigger: input.trigger,
       status: "queued",
+      buildBudgetReserved,
       generation: site.lastGeneration,
       branch: input.branch,
       commitSha: input.commitSha,
@@ -179,6 +168,111 @@ async function insertDeployment(
     dedupeKey: dedupeKey ?? `build:${deployment.id}`,
   });
   return { deployment, jobId };
+}
+
+async function assertBuildBudget(
+  tx: SiteStorageTransaction,
+  organizationId: string,
+  excludeId?: string,
+  alreadyStarted = false
+): Promise<void> {
+  await tx.execute(
+    sql`select pg_advisory_xact_lock(hashtextextended(${`sites-deployment-budget:${organizationId}`}, 0))`
+  );
+  if (alreadyStarted) {
+    return;
+  }
+  const [usage] = await tx
+    .select({ count: sql<number>`count(*)::int` })
+    .from(siteDeployments)
+    .where(
+      and(
+        eq(siteDeployments.organizationId, organizationId),
+        excludeId ? ne(siteDeployments.id, excludeId) : undefined,
+        or(
+          gt(siteDeployments.startedAt, sql`now() - interval '24 hours'`),
+          and(
+            eq(siteDeployments.buildBudgetReserved, true),
+            eq(siteDeployments.status, "queued"),
+            gt(siteDeployments.createdAt, sql`now() - interval '24 hours'`)
+          )
+        )
+      )
+    );
+  if (
+    (usage?.count ?? 0) >= SITE_BUILD_LIMITS.maxDeploymentsPerOrganizationPerDay
+  ) {
+    throw new SiteNotBuildableError(
+      `This workspace reached ${SITE_BUILD_LIMITS.maxDeploymentsPerOrganizationPerDay} deployments in 24 hours. Try again later.`
+    );
+  }
+}
+
+/** Reserve actual builds atomically; smart comparisons can still run at the limit. */
+export async function startDeploymentBuild(
+  deployment: SiteDeployment,
+  startedAt: Date
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const organizationId = await lockSiteOrganization(tx, deployment.siteId);
+    if (!organizationId) {
+      return false;
+    }
+    // Match enqueue's site -> budget -> deployment lock order.
+    const [site] = await tx
+      .select()
+      .from(sites)
+      .where(eq(sites.id, deployment.siteId))
+      .for("update");
+    const [current] = await tx
+      .select()
+      .from(siteDeployments)
+      .where(
+        and(
+          eq(siteDeployments.id, deployment.id),
+          eq(siteDeployments.siteId, deployment.siteId),
+          eq(siteDeployments.organizationId, organizationId)
+        )
+      )
+      .limit(1);
+    if (
+      !current ||
+      !SITE_DEPLOYMENT_TRANSITIONS.building.includes(current.status)
+    ) {
+      return false;
+    }
+    if (
+      !site ||
+      site.status !== "active" ||
+      (current.kind === "preview" && !site.previewsEnabled)
+    ) {
+      await transitionDeployment(
+        current.id,
+        "canceled",
+        {
+          finishedAt: new Date(),
+          errorMessage:
+            site?.status === "active"
+              ? "Previews are turned off for this site."
+              : "The site is offline.",
+        },
+        tx
+      );
+      return false;
+    }
+    await assertBuildBudget(
+      tx,
+      organizationId,
+      deployment.id,
+      current.startedAt !== null
+    );
+    return transitionDeployment(
+      current.id,
+      "building",
+      { startedAt: current.startedAt ?? startedAt },
+      tx
+    );
+  });
 }
 
 export async function enqueueSettingsDeployment(

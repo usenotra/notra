@@ -6942,7 +6942,8 @@
       "superseded": "Superseded",
       "failed": "Failed",
       "canceled": "Canceled",
-      "expired": "Expired"
+      "expired": "Expired",
+      "skipped": "Skipped"
     },
     "domainStatus": {
       "pending": "Pending",
@@ -7236,7 +7237,10 @@
         "confirm": "Delete site",
         "done": "{name} deleted",
         "failed": "Couldn't delete the site"
-      }
+      },
+      "smartDeployments": "Smart deployments",
+      "beta": "Beta",
+      "smartDeploymentsHint": "Skip automatic deployments when the published site inputs are unchanged. Manual redeploys always build."
     },
     "previewFrame": {
       "title": "Site preview",
@@ -7305,7 +7309,8 @@
         "failed": "Failed",
         "canceled": "Canceled",
         "superseded": "Superseded",
-        "expired": "Expired"
+        "expired": "Expired",
+        "skipped": "Skipped"
       },
       "actions": {
         "copyUrl": "Copy URL",
@@ -7367,7 +7372,8 @@
         "failed": "Build failed",
         "canceled": "This build was canceled before it finished.",
         "superseded": "A newer commit replaced this build before it started.",
-        "expired": "This deployment's files were cleaned up. Redeploy its commit to build it again."
+        "expired": "This deployment's files were cleaned up. Redeploy its commit to build it again.",
+        "skipped": "Skipped because the site inputs match the published version."
       },
       "log": {
         "title": "Build logs",

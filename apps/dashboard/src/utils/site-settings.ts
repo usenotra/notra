@@ -5,7 +5,7 @@ import {
   SITE_DEFAULT_CHANGELOG_PATH,
 } from "@/constants/sites";
 import type {
-  SiteRecord,
+  SiteSettingsSource,
   SiteSettingsForm,
   SiteSettingsPatch,
 } from "@/types/sites";
@@ -18,7 +18,9 @@ function comparableMountPath(value: string): string {
   }
 }
 
-export function siteSettingsFormFromSite(site: SiteRecord): SiteSettingsForm {
+export function siteSettingsFormFromSite(
+  site: SiteSettingsSource
+): SiteSettingsForm {
   return {
     name: site.name,
     productionBranch: site.productionBranch,
@@ -29,12 +31,13 @@ export function siteSettingsFormFromSite(site: SiteRecord): SiteSettingsForm {
     changelogPath: site.mounts.changelog ?? SITE_DEFAULT_CHANGELOG_PATH,
     publishMode: site.publishMode,
     previewCommentsEnabled: site.previewCommentsEnabled,
+    smartDeployments: site.smartDeployments,
   };
 }
 
 export function siteSettingsPatch(
   form: SiteSettingsForm,
-  site: SiteRecord
+  site: SiteSettingsSource
 ): SiteSettingsPatch {
   const patch: SiteSettingsPatch = {};
   const name = form.name.trim();
@@ -66,6 +69,9 @@ export function siteSettingsPatch(
   }
   if (form.previewCommentsEnabled !== site.previewCommentsEnabled) {
     patch.previewCommentsEnabled = form.previewCommentsEnabled;
+  }
+  if (form.smartDeployments !== site.smartDeployments) {
+    patch.smartDeployments = form.smartDeployments;
   }
   return patch;
 }

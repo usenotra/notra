@@ -18,6 +18,7 @@ export interface SandboxBuildResult {
 export interface SandboxBuildParams {
   sourceArchive: Uint8Array<ArrayBuffer>;
   rootDirectory: string;
+  snapshotId?: string;
   target: SiteBuildRequestInput;
   onLog?: (log: string) => Promise<void>;
   onComplete?: (build: SandboxBuildResult) => Promise<void>;

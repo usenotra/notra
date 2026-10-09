@@ -137,7 +137,7 @@ export interface SiteChoiceGroupProps<T extends string> {
 }
 
 export interface SiteSettingsRowProps {
-  label: string;
+  label: ReactNode;
   htmlFor?: string;
   description?: ReactNode;
   children: ReactNode;
