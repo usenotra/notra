@@ -2,7 +2,7 @@ import { beforeEach, expect, mock, spyOn, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { siteJobs } from "@notra/db/schema";
+import { siteDeployments, siteJobs } from "@notra/db/schema";
 import { SITE_DEPLOYMENT_TRANSITIONS } from "@notra/sites-core/constants/sites";
 import type { SiteBuildMetrics } from "@notra/sites-core/types/build-metrics";
 import type { SQL } from "drizzle-orm";
@@ -295,12 +295,15 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
   const db = {
     select: (selection?: object) => ({
       from: (table: unknown) => {
-        expect(table).toBe(siteJobs);
+        expect(table === siteJobs || table === siteDeployments).toBe(true);
         const claimable =
           job.status === "pending" && job.attempts < job.maxAttempts;
-        const rows = selection
+        let rows: unknown[] = selection
           ? [{ total: 0, site: 0 }]
           : [job].filter(() => claimable);
+        if (table === siteDeployments) {
+          rows = [deployment];
+        }
         const query = {
           where: () => query,
           limit: async () => rows,

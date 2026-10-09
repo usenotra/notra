@@ -135,11 +135,15 @@ const buildAndPublish = Effect.fn("Sites.buildAndPublish")(function* (
       )
     );
     accessToken = access.token;
-    smartComparison = yield* Effect.tryPromise({
-      try: () => compareSmartDeployment(site, deployment, access),
-      catch: (error) => error,
-    });
-    const skipReason = yield* whyNotBuild(access, deployment);
+    let skipReason = yield* whyNotBuild(access, deployment);
+    if (!skipReason) {
+      smartComparison = yield* Effect.tryPromise({
+        try: () => compareSmartDeployment(site, deployment, access),
+        catch: (error) => error,
+      });
+      // The head or a newer deployment may change during comparison.
+      skipReason = yield* whyNotBuild(access, deployment);
+    }
     if (skipReason) {
       yield* Effect.uninterruptible(
         Effect.tryPromise({

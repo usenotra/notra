@@ -46,12 +46,15 @@ if (!databaseUrl) {
   const { organizations, sites, siteDeployments, siteJobs } =
     await import("@notra/db/schema");
   const { eq } = await import("drizzle-orm");
-  const { SITE_R2_KEYS } = await import("@notra/sites-core/constants/sites");
+  const { SITE_R2_KEYS, SITE_BUILD_LIMITS } =
+    await import("@notra/sites-core/constants/sites");
   const { R2PreconditionFailedError } = await import("../src/errors");
   const objects = new Map<string, { text: string; etag: string }>();
   let sourceFiles: SiteGitTreeEntry[] = [];
   let truncated = false;
   let treeFails = false;
+  let treeCalls = 0;
+  let branchHead = "a".repeat(40);
   let modelFails = false;
   let modelProbability = 0.05;
   let modelCalls = 0;
@@ -70,6 +73,7 @@ if (!databaseUrl) {
     ...octokit,
     createOctokit: () => ({
       request: async () => {
+        treeCalls++;
         if (treeFails) {
           throw new Error("Synthetic tree failure");
         }
@@ -153,7 +157,7 @@ if (!databaseUrl) {
       },
       token: "synthetic",
     }),
-    getBranchHead: async () => ({ sha: "a".repeat(40) }),
+    getBranchHead: async () => ({ sha: branchHead }),
     downloadRepositoryTarballEffect: () =>
       Effect.sync(() => {
         downloadCalls++;
@@ -231,6 +235,7 @@ if (!databaseUrl) {
   const { activateDeployment } = await import("../src/activation");
   const { updateSiteSettings } = await import("../src/sites");
   const { runSiteJob } = await import("../src/runner");
+  const { claimSiteJob } = await import("../src/jobs");
   const queue = async (
     trigger: SiteDeployment["trigger"] = "push",
     previewKey: string | null = null
@@ -290,6 +295,8 @@ if (!databaseUrl) {
     ];
     truncated = false;
     treeFails = false;
+    treeCalls = 0;
+    branchHead = "a".repeat(40);
     modelFails = false;
     modelProbability = 0.05;
     modelCalls = 0;
@@ -333,6 +340,41 @@ if (!databaseUrl) {
     const first = await publish("push");
     expect((await getDeployment(first.id))?.inputFingerprint).toBeTruthy();
     expect(modelCalls).toBe(0);
+  });
+  test.each(["moved-head", "newer-deployment"])(
+    "%s is rejected before tree and model calls",
+    async (mode) => {
+      await publish();
+      const candidate = await queue();
+      if (mode === "moved-head") {
+        branchHead = "c".repeat(40);
+      } else {
+        await queue();
+      }
+      treeCalls = 0;
+      expect((await runDeploymentPipeline(site, candidate)).kind).toBe(
+        "skipped"
+      );
+      expect((await getDeployment(candidate.id))?.status).toBe("superseded");
+      expect(treeCalls).toBe(0);
+      expect(modelCalls).toBe(0);
+      expect(downloadCalls).toBe(1);
+      expect(buildCalls).toBe(1);
+    }
+  );
+  test("a head change during comparison is rechecked before skipping", async () => {
+    await publish();
+    const candidate = await queue();
+    modelHook = async () => {
+      branchHead = "c".repeat(40);
+    };
+    expect((await runDeploymentPipeline(site, candidate)).kind).toBe("skipped");
+    expect((await getDeployment(candidate.id))?.status).toBe("superseded");
+    expect(
+      (await readServingState(site.id))?.state.production?.generation
+    ).toBe(candidate.generation - 1);
+    expect(modelCalls).toBe(1);
+    expect(buildCalls).toBe(1);
   });
   test.each(["manual", "redeploy", "config"] as const)(
     "%s always builds identical inputs",
@@ -453,12 +495,57 @@ if (!databaseUrl) {
       .update(siteJobs)
       .set({ availableAt: new Date(0) })
       .where(eq(siteJobs.id, job.id));
+    await db.insert(siteJobs).values(
+      Array.from({ length: SITE_BUILD_LIMITS.maxConcurrentBuilds }, () => ({
+        id: crypto.randomUUID(),
+        siteId: site.id,
+        kind: "build" as const,
+        status: "running" as const,
+        leaseUntil: new Date(Date.now() + 60_000),
+      }))
+    );
     expect(await runSiteJob(job.id)).toEqual({
       status: "done",
       outcome: "skipped",
     });
     expect(reported).toHaveLength(3);
     expect(modelCalls).toBe(1);
+    expect(buildCalls).toBe(1);
+  });
+  test("a running skipped finalization does not consume capacity for another build", async () => {
+    await publish();
+    await db.insert(siteJobs).values({
+      id: crypto.randomUUID(),
+      siteId: site.id,
+      kind: "build",
+      status: "running",
+      leaseUntil: new Date(Date.now() + 60_000),
+    });
+    const candidate = await queue();
+    const [candidateJob] = await db
+      .select()
+      .from(siteJobs)
+      .where(eq(siteJobs.deploymentId, candidate.id));
+    if (!candidateJob) {
+      throw new Error("Missing candidate job");
+    }
+    let claimed = false;
+    reportHook = async () => {
+      const next = await queue();
+      const [nextJob] = await db
+        .select()
+        .from(siteJobs)
+        .where(eq(siteJobs.deploymentId, next.id));
+      if (!nextJob) {
+        throw new Error("Missing next build job");
+      }
+      claimed = (await claimSiteJob(nextJob.id))?.status === "running";
+    };
+    expect(await runSiteJob(candidateJob.id)).toEqual({
+      status: "done",
+      outcome: "skipped",
+    });
+    expect(claimed).toBe(true);
     expect(buildCalls).toBe(1);
   });
   test("a rollback during evaluation invalidates the live baseline even for the same deployment ID", async () => {
