@@ -4,7 +4,7 @@ export const STATE_OF_AI_SEARCH_PATH = "/state-of-ai-search";
 export const STATE_OF_AI_SEARCH_URL = `${SITE_URL}${STATE_OF_AI_SEARCH_PATH}`;
 export const STATE_OF_AI_SEARCH_TITLE = "State of AI Search";
 export const STATE_OF_AI_SEARCH_DESCRIPTION =
-  "Monthly reports on which brands ChatGPT, Claude and Google's AI Overview recommend, category by category. Rankings, the prompts behind them and the sources the assistants cite.";
+  "Monthly reports on which brands ChatGPT, Claude, Gemini, Perplexity and Google's AI Overview recommend, category by category. Rankings, the prompts behind them and the sources the assistants cite.";
 export const STATE_OF_AI_SEARCH_SIGNUP_SOURCE = "state-of-ai-search";
 
 /** Brands per page in the ranking and the heatmap, which page together. */

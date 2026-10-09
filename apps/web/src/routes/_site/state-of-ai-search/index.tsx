@@ -106,7 +106,7 @@ function StateOfAiSearchIndexPage() {
 
         <div className="flex w-full max-w-[72rem] flex-col px-4 sm:px-6">
           <ReportBlock
-            description="Each report ranks the brands by how often ChatGPT, Claude and Google's AI Overview name them."
+            description="Each report ranks the brands by how often ChatGPT, Claude, Gemini, Perplexity and Google's AI Overview name them."
             readout={`${reports.length} categories`}
             title={latest ? `${latest.editionLabel} reports` : "Reports"}
           >

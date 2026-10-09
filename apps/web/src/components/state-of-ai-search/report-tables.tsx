@@ -179,7 +179,7 @@ export function RankingTable({
     {
       key: "topPick",
       header: "Named first",
-      hint: "Share of answers where this brand comes before every other tracked brand.",
+      hint: "Share of answers that name this brand before any other tracked brand, averaged across the assistants.",
       width: "7.5rem",
       align: "right",
       collapsePriority: 1,
@@ -254,13 +254,15 @@ export function EngineHeatmap({
     },
     ...engines.map((engine): TableColumn<StateOfAiSearchRankingRow> => ({
       key: engine.id,
+      // Icons only: five assistants have to fit half the page width. The
+      // label stays for screen readers and in the cell tooltips.
       header: (
-        <span className="inline-flex items-center gap-1.5">
-          <EngineIcon className="size-3.5" engine={engine.model} />
-          {engine.label}
+        <span className="inline-flex" title={engine.label}>
+          <EngineIcon className="size-4" engine={engine.model} />
+          <span className="sr-only">{engine.label}</span>
         </span>
       ),
-      width: "7.5rem",
+      width: "4.75rem",
       align: "center",
       sortValue: (row) => row.byEngine[engine.id] ?? -1,
       cell: (row) => (
@@ -375,8 +377,18 @@ export function SourcesTable({
   onSelect: (row: StateOfAiSearchSource) => void;
 }) {
   const max = Math.max(...rows.map((row) => row.share), 1);
-  const leaderOf = (row: StateOfAiSearchSource) =>
-    Math.max(...engines.map((engine) => row.byEngine[engine.id] ?? 0));
+  // One column for the assistant that links the domain most; the full split
+  // per assistant is in the source drawer.
+  const leaderOf = (row: StateOfAiSearchSource) => {
+    let leader: { engine: StateOfAiSearchEngine; value: number } | null = null;
+    for (const engine of engines) {
+      const value = row.byEngine[engine.id] ?? 0;
+      if (value > 0 && value > (leader?.value ?? 0)) {
+        leader = { engine, value };
+      }
+    }
+    return leader;
+  };
   const columns: TableColumn<StateOfAiSearchSource>[] = [
     {
       key: "domain",
@@ -385,31 +397,25 @@ export function SourcesTable({
       minWidth: "8rem",
       cell: (row) => <Brand domain={row.domain} name={row.domain} />,
     },
-    ...engines.map((engine): TableColumn<StateOfAiSearchSource> => ({
-      key: engine.id,
-      header: (
-        <span className="inline-flex" title={engine.label}>
-          <EngineIcon className="size-3.5" engine={engine.model} />
-        </span>
-      ),
-      width: "4.5rem",
-      align: "right",
+    {
+      key: "leader",
+      header: "Most cited by",
+      width: "11rem",
       collapsePriority: 1,
       cell: (row) => {
-        const value = row.byEngine[engine.id];
-        const leads = value !== null && value > 0 && value === leaderOf(row);
+        const leader = leaderOf(row);
+        if (!leader) {
+          return <MutedText>–</MutedText>;
+        }
         return (
-          <span
-            className={cn(
-              "tabular-nums",
-              leads ? "text-foreground font-semibold" : "text-muted-foreground"
-            )}
-          >
-            {formatPercent(value)}
+          <span className="flex items-center gap-2">
+            <EngineIcon className="size-3.5" engine={leader.engine.model} />
+            <span className="truncate">{leader.engine.label}</span>
+            <MutedText>{formatPercent(leader.value)}</MutedText>
           </span>
         );
       },
-    })),
+    },
     {
       key: "share",
       header: "Cited in",

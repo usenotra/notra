@@ -18,6 +18,7 @@ import {
   PromptSheet,
 } from "@/components/state-of-ai-search/prompt-sheet";
 import { ReportCarousel } from "@/components/state-of-ai-search/report-carousel";
+import { VisibilityScatter } from "@/components/state-of-ai-search/report-scatter";
 import {
   ReportBlock,
   ReportPair,
@@ -170,7 +171,7 @@ export function ReportView({
         <ReportPair
           left={{
             title: "Visibility",
-            description: `Share of ${report.totals.answers} answers naming the brand. Click a brand for details.`,
+            description: `Share of answers naming the brand, averaged across the ${report.engines.length} assistants. Click a brand for details.`,
             children: (
               <RankingTable
                 onSelect={openBrand}
@@ -199,6 +200,13 @@ export function ReportView({
           title="Prompts"
         >
           <PromptsTable onSelect={openPrompt} rows={report.prompts} />
+        </ReportBlock>
+
+        <ReportBlock
+          description="How often each brand is named against how often it is named first. Top right is the assistants' default pick."
+          title="Named vs. named first"
+        >
+          <VisibilityScatter onSelect={openBrand} rows={report.ranking} />
         </ReportBlock>
 
         {headPrompt ? (
@@ -240,7 +248,7 @@ export function ReportView({
             right={{
               title: "Cited sources",
               description:
-                "Bold marks the assistant that cites the domain most. Click a domain for its pages and prompts.",
+                "Share of answers linking to the domain, averaged across the assistants. Click a domain for its pages, prompts and the split by assistant.",
               children: (
                 <SourcesTable
                   engines={report.engines}

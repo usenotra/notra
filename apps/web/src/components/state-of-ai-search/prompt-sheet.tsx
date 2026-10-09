@@ -139,6 +139,7 @@ export function AnswerViewer({
       header={
         <PromptEngineSwitcher
           active={engine.model}
+          compactOnMobile
           items={switcherItems(report, prompt.responses)}
           transition={ENGINE_PILL_TRANSITION}
           onChange={(model) =>
@@ -381,6 +382,7 @@ function PromptSheetBody({
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <PromptEngineSwitcher
               active={engine.model}
+              compactOnMobile
               items={switcherItems(report, prompt.responses)}
               transition={ENGINE_PILL_TRANSITION}
               onChange={(model) => {

@@ -124,7 +124,7 @@ export function buildStateOfAiSearchIndexMarkdown(): string {
 
 function rankingMarkdown(report: StateOfAiSearchReport): string {
   return markdownSection("Visibility ranking", [
-    "Visibility is the share of answers that name the brand, averaged across the assistants. Named first counts answers that name it before any other tracked brand. Own site cited counts answers that link to the brand's own domain.",
+    "Visibility is the share of answers that name the brand. Named first is the share that name it before any other tracked brand, own site cited the share that link to the brand's own domain. All three are averaged across the assistants, so each assistant counts the same however many answers it gave.",
     "",
     table(
       [
@@ -224,7 +224,7 @@ function quotesMarkdown(report: StateOfAiSearchReport): string | null {
 
 function sourcesMarkdown(report: StateOfAiSearchReport): string {
   return markdownSection("Cited sources", [
-    "The domains the assistants link to most, by share of answers that cite them at least once.",
+    "The domains the assistants link to most, by share of answers that cite them at least once, averaged across the assistants.",
     "",
     table(
       [
