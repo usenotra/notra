@@ -18,6 +18,11 @@ test("panel positions keep wide menus centered and compact menus under their tri
 test("content swaps follow navigation direction without blurring a closing panel", () => {
   expect(NAVBAR_CONTENT_VARIANTS.enter(1).x).toBe(12);
   expect(NAVBAR_CONTENT_VARIANTS.enter(-1).x).toBe(-12);
+  expect(NAVBAR_CONTENT_VARIANTS.enter(1).pointerEvents).toBe("none");
+  expect(NAVBAR_CONTENT_VARIANTS.center.transitionEnd.pointerEvents).toBe(
+    "auto"
+  );
+  expect(NAVBAR_CONTENT_VARIANTS.exit(1).pointerEvents).toBe("none");
   expect(NAVBAR_CONTENT_VARIANTS.exit(1).x).toBe(-4);
   expect(NAVBAR_CONTENT_VARIANTS.exit(-1).x).toBe(4);
   expect(NAVBAR_CONTENT_VARIANTS.exit(0).opacity).toBe(1);

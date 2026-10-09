@@ -259,15 +259,19 @@ function GroupDropdown({
           flipped={open}
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className={PANEL_CLASSNAME}>
-        {open ? (
-          <GroupPanel
-            group={group}
-            item={item}
-            onSelect={onSelect}
-            stagger={stagger}
-          />
-        ) : null}
+      <CollapsibleContent
+        className={cn(
+          PANEL_CLASSNAME,
+          group.layout === "compact" &&
+            "duration-fast transition-opacity ease-out data-ending-style:pointer-events-none data-ending-style:opacity-0 motion-reduce:transition-none"
+        )}
+      >
+        <GroupPanel
+          group={group}
+          item={item}
+          onSelect={onSelect}
+          stagger={stagger}
+        />
       </CollapsibleContent>
     </Collapsible>
   );
@@ -285,7 +289,14 @@ function GroupPanel({
   item: Variants;
 }) {
   if (group.layout === "compact") {
-    return <NavbarCompactPanel group={group} onSelect={onSelect} />;
+    return (
+      <NavbarCompactPanel
+        group={group}
+        item={item}
+        onSelect={onSelect}
+        stagger={stagger}
+      />
+    );
   }
   return (
     <m.div

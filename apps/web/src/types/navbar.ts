@@ -41,6 +41,8 @@ export interface NavbarCompactPanelProps {
   group: MarketingNavGroup;
   onSelect: () => void;
   role?: "menuitem";
+  item?: Variants;
+  stagger?: Variants;
 }
 
 export interface NavbarKbdProps {

@@ -14,12 +14,14 @@ export const NAVBAR_CONTENT_VARIANTS = {
     x: direction * 12,
     opacity: 0,
     filter: "blur(2px)",
+    pointerEvents: "none" as const,
   }),
   center: {
     x: 0,
     opacity: 1,
     filter: "blur(0px)",
-    pointerEvents: "auto" as const,
+    pointerEvents: "none" as const,
+    transitionEnd: { pointerEvents: "auto" as const },
   },
   exit: (direction: number) => ({
     x: direction * -4,

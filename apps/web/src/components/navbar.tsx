@@ -63,7 +63,10 @@ import type {
 } from "@/types/navbar";
 import { copySvgAsset } from "@/utils/copy-svg-asset";
 import { copyToClipboard } from "@/utils/copy-to-clipboard";
-import { getNavbarMenuFocusIndex } from "@/utils/navbar-menu-focus";
+import {
+  handleNavbarMenuKeyDown,
+  handleNavbarTriggerKeyDown,
+} from "@/utils/navbar-menu-keyboard";
 import { getNavbarPanelX } from "@/utils/navbar-panel-position";
 import { getNavbarChromePresentation } from "@/utils/navbar-presentation";
 import {
@@ -361,9 +364,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
     return () => observer.disconnect();
   }, []);
 
-  const activeGroupData = activeGroup
-    ? groups.find((group) => group.label === activeGroup)
-    : null;
+  const activeGroupData = groups.find((group) => group.label === activeGroup);
   const activeSize = activeGroup ? panelSizes.get(activeGroup) : undefined;
   const panelX = getNavbarPanelX(
     activeSize,
@@ -387,7 +388,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
     exitTransition,
     morphTransition,
     shellTransition,
-  } = getNavbarMotion(reduceMotion ?? false, instantMenuMotion);
+  } = getNavbarMotion(Boolean(reduceMotion), instantMenuMotion);
   const mutedNavClass =
     "text-[#1E1E1EA6] hover:text-[#1E1E1E] dark:text-neutral-400 dark:hover:text-white";
 
@@ -511,6 +512,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                     return (
                       <Link
                         className={`duration-fast font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out ${mutedNavClass}`}
+                        data-slot="navbar-entry"
                         to={entry.href}
                         key={entry.href}
                         onFocus={() => setActiveGroup(null)}
@@ -533,36 +535,20 @@ export function Navbar({ variant }: NavbarProps = {}) {
                           : undefined
                       }
                       aria-haspopup="menu"
+                      data-slot="navbar-entry"
                       className={`duration-fast inline-flex cursor-pointer items-center gap-1 font-sans text-base leading-5 tracking-[-0.02em] transition-colors ease-out aria-expanded:text-[#1E1E1E] dark:aria-expanded:text-white ${mutedNavClass}`}
                       key={entry.label}
                       onClick={(event) => {
                         setKeyboardNavigation(event.detail === 0);
                         setActiveGroup(isActive ? null : entry.label);
                       }}
-                      onKeyDown={(event) => {
-                        if (
-                          event.key === "ArrowDown" ||
-                          event.key === "ArrowUp" ||
-                          (event.key === "Tab" && !event.shiftKey && isActive)
-                        ) {
-                          event.preventDefault();
-                          openGroup(entry.label, true);
-                          requestAnimationFrame(() => {
-                            const items = panelRef.current
-                              ?.querySelector<HTMLElement>(
-                                `[id="desktop-navigation-${entry.label}"]`
-                              )
-                              ?.querySelectorAll<HTMLElement>(
-                                '[role="menuitem"]'
-                              );
-                            const index =
-                              event.key === "ArrowUp"
-                                ? (items?.length ?? 1) - 1
-                                : 0;
-                            items?.[index]?.focus();
-                          });
-                        }
-                      }}
+                      onKeyDown={(event) =>
+                        handleNavbarTriggerKeyDown(
+                          event,
+                          entry.label,
+                          openGroup
+                        )
+                      }
                       onMouseEnter={() => {
                         if (
                           window.matchMedia(
@@ -670,45 +656,7 @@ export function Navbar({ variant }: NavbarProps = {}) {
                               id={`desktop-navigation-${activeGroupData.label}`}
                               onKeyDown={(event) => {
                                 setKeyboardNavigation(true);
-                                const items = Array.from(
-                                  event.currentTarget.querySelectorAll<HTMLElement>(
-                                    '[role="menuitem"]'
-                                  )
-                                );
-                                const index = items.indexOf(
-                                  document.activeElement as HTMLElement
-                                );
-                                if (
-                                  event.key === "Tab" &&
-                                  ((event.shiftKey && index === 0) ||
-                                    (!event.shiftKey &&
-                                      index === items.length - 1))
-                                ) {
-                                  event.preventDefault();
-                                  if (event.shiftKey) {
-                                    triggerRefs.current
-                                      .get(activeGroupData.label)
-                                      ?.focus();
-                                  } else {
-                                    event.currentTarget
-                                      .closest("nav")
-                                      ?.querySelector<HTMLAnchorElement>(
-                                        'a[href="/pricing"]'
-                                      )
-                                      ?.focus();
-                                  }
-                                  closePanel();
-                                } else {
-                                  const next = getNavbarMenuFocusIndex(
-                                    event.key,
-                                    index,
-                                    items.length
-                                  );
-                                  if (next !== undefined) {
-                                    event.preventDefault();
-                                    items[next]?.focus();
-                                  }
-                                }
+                                handleNavbarMenuKeyDown(event, closePanel);
                               }}
                               role="menu"
                               transition={contentTransition}
