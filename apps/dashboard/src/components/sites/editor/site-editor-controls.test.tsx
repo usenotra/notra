@@ -31,7 +31,8 @@ test("the mobile file picker can shrink beside the editor actions", () => {
   expect(picker).toBeDefined();
   expect(picker).toContain(`title="${path}"`);
   expect(picker).toContain("min-w-0 shrink md:hidden");
-  const classes = picker?.match(/class="([^"]*)"/)?.[1].split(" ");
+  const classes = picker?.match(/class="([^"]*)"/)?.[1]?.split(" ");
+  expect(classes).toContain("shrink");
   expect(classes).not.toContain("shrink-0");
   expect(html).toContain('role="tablist"');
 });
