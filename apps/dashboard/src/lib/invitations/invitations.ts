@@ -20,8 +20,6 @@ import type {
   InvitationViewer,
 } from "@/types/invitation";
 
-const DEFAULT_ROLE = "member";
-
 async function findInvitation(token: string): Promise<Invitation | null> {
   try {
     return await getWorkOS().userManagement.findInvitationByToken(token);
@@ -107,7 +105,7 @@ export async function loadInvitationPage(
   }
 
   const reason = unavailableReason(invitation);
-  if (reason) {
+  if (reason && reason !== "accepted") {
     return { status: "unavailable", reason };
   }
 
@@ -117,6 +115,14 @@ export async function loadInvitationPage(
     viewer = sameEmail(identity.user.email, invitation.email)
       ? { kind: "match" }
       : { kind: "mismatch", email: identity.user.email };
+  }
+  if (
+    reason === "accepted" &&
+    (viewer.kind !== "match" ||
+      !invitation.acceptedUserId ||
+      invitation.acceptedUserId !== identity?.user.workosUserId)
+  ) {
+    return { status: "unavailable", reason };
   }
 
   const [inviterName, accountExists] = await Promise.all([
@@ -128,7 +134,7 @@ export async function loadInvitationPage(
     status: "pending",
     token,
     email: invitation.email,
-    role: invitation.roleSlug ?? DEFAULT_ROLE,
+    role: invitation.roleSlug ?? "member",
     organization: {
       name: organization.name,
       slug: organization.slug,
@@ -140,7 +146,6 @@ export async function loadInvitationPage(
   };
 }
 
-/** Joins the signed-in user to the organization the invitation belongs to. */
 export async function acceptInvitationByToken(
   token: string
 ): Promise<InvitationActionResult> {
@@ -148,12 +153,18 @@ export async function acceptInvitationByToken(
   if (!identity) {
     return { ok: false, reason: "signed-out" };
   }
+  if (!(identity.user.workosUserId && identity.user.emailVerified)) {
+    return { ok: false, reason: "mismatch" };
+  }
 
   const invitation = await findInvitation(token);
   const organization = invitation
     ? await findOrganization(invitation.organizationId)
     : null;
-  if (!(invitation && organization) || unavailableReason(invitation)) {
+  if (
+    !(invitation?.organizationId && organization) ||
+    (invitation.state !== "accepted" && unavailableReason(invitation))
+  ) {
     return { ok: false, reason: "unavailable" };
   }
   if (!sameEmail(identity.user.email, invitation.email)) {
@@ -161,14 +172,31 @@ export async function acceptInvitationByToken(
   }
 
   try {
-    await getWorkOS().userManagement.acceptInvitation(invitation.id);
-    // The WorkOS webhook also syncs this row; writing it now makes the
-    // dashboard open on the new organization without waiting for it.
+    const accepted =
+      invitation.state === "accepted"
+        ? invitation
+        : await getWorkOS().userManagement.acceptInvitation(invitation.id);
+    if (accepted.acceptedUserId !== identity.user.workosUserId) {
+      return { ok: false, reason: "mismatch" };
+    }
+    // Reconcile current access, not the old invitation's role: a retry must
+    // never re-add a removed member or undo a role change.
+    const memberships =
+      await getWorkOS().userManagement.listOrganizationMemberships({
+        organizationId: invitation.organizationId,
+        userId: identity.user.workosUserId,
+        statuses: ["active"],
+        limit: 1,
+      });
+    const membership = memberships.data[0];
+    if (!membership) {
+      return { ok: false, reason: "unavailable" };
+    }
     await upsertMembership({
       organizationId: organization.id,
       userId: identity.user.id,
-      role: invitation.roleSlug ?? DEFAULT_ROLE,
-      createdAt: new Date(),
+      role: membership.role.slug,
+      createdAt: new Date(membership.createdAt),
     });
   } catch (error) {
     logError("Failed to accept invitation", error);
@@ -190,8 +218,11 @@ export async function declineInvitationByToken(
   if (!invitation) {
     return { ok: false, reason: "unavailable" };
   }
-  if (unavailableReason(invitation)) {
+  if (invitation.state === "revoked") {
     return { ok: true, organizationSlug: null };
+  }
+  if (unavailableReason(invitation)) {
+    return { ok: false, reason: "unavailable" };
   }
 
   try {

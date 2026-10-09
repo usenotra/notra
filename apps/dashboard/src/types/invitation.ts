@@ -34,3 +34,10 @@ export type InvitationPageData =
 export type InvitationActionResult =
   | { ok: true; organizationSlug: string | null }
   | { ok: false; reason: "signed-out" | "mismatch" | "unavailable" | "failed" };
+
+export type InvitationDecision = "idle" | "working" | "accepted" | "declined";
+
+export type PendingInvitation = Extract<
+  InvitationPageData,
+  { status: "pending" }
+>;

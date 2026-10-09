@@ -11,7 +11,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@notra/ui/components/ui/avatar";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/button";
@@ -21,56 +21,34 @@ import {
   declineInvitation,
 } from "@/routes/-invitation-loaders";
 import type {
+  InvitationDecision,
   InvitationOrganization,
   InvitationPageData,
+  PendingInvitation,
 } from "@/types/invitation";
 import { nameInitials } from "@/utils/name-initials";
 
-type Decision = "idle" | "working" | "accepted" | "declined";
-type PendingInvitation = Extract<InvitationPageData, { status: "pending" }>;
-
-/** Squircle corners where the browser supports them, plain rounding elsewhere. */
-const SQUIRCLE_AVATAR =
-  "corner-squircle rounded-xl supports-[corner-shape:squircle]:rounded-2xl after:corner-squircle";
-
-const KNOWN_ROLES = ["member", "admin", "owner"] as const;
-
-function isKnownRole(role: string): role is (typeof KNOWN_ROLES)[number] {
-  return KNOWN_ROLES.some((known) => known === role);
-}
-
 function OrganizationAvatar({
   organization,
-  size,
 }: {
   organization: InvitationOrganization;
-  size: string;
 }) {
   return (
-    <Avatar className={`${SQUIRCLE_AVATAR} ${size}`}>
-      <AvatarImage
-        alt=""
-        className="corner-squircle"
-        src={organization.logo ?? undefined}
-      />
-      <AvatarFallback className="corner-squircle">
-        {nameInitials(organization.name)}
-      </AvatarFallback>
+    <Avatar className="size-16" shape="squircle">
+      <AvatarImage alt="" src={organization.logo ?? undefined} />
+      <AvatarFallback>{nameInitials(organization.name)}</AvatarFallback>
     </Avatar>
   );
 }
 
 function InviterAvatar({ name }: { name: string }) {
   return (
-    <Avatar className={`${SQUIRCLE_AVATAR} size-16`}>
-      <AvatarFallback className="corner-squircle">
-        {nameInitials(name)}
-      </AvatarFallback>
+    <Avatar className="size-16" shape="squircle">
+      <AvatarFallback>{nameInitials(name)}</AvatarFallback>
     </Avatar>
   );
 }
 
-/** The same round badge as a toast: a check for success, a cross otherwise. */
 function OutcomeIcon({ outcome }: { outcome: "success" | "failure" }) {
   const success = outcome === "success";
 
@@ -97,7 +75,7 @@ function Message({
   title: string;
   description: string;
   outcome?: "success" | "failure";
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-6 text-center" role="status">
@@ -189,10 +167,11 @@ function Joined({ organization }: { organization: InvitationOrganization }) {
 function PendingInvitationCard({ data }: { data: PendingInvitation }) {
   const t = useTranslations("auth.invitation");
   const signOut = authClient.useSignOut();
-  const [decision, setDecision] = useState<Decision>("idle");
+  const [decision, setDecision] = useState<InvitationDecision>("idle");
   const [error, setError] = useState<string | null>(null);
   const { organization, inviterName, viewer } = data;
-  const role = isKnownRole(data.role) ? data.role : "member";
+  const role =
+    data.role === "admin" || data.role === "owner" ? data.role : "member";
 
   async function run(action: "accept" | "decline") {
     setDecision("working");
@@ -214,20 +193,19 @@ function PendingInvitationCard({ data }: { data: PendingInvitation }) {
   }
 
   function declineInvitationClick() {
-    run("decline").catch(() => undefined);
+    void run("decline");
   }
 
   function switchAccount() {
-    signOut().catch(() => undefined);
+    signOut().catch(() => setError(t("failed")));
   }
 
   function accept() {
     if (viewer.kind === "signed-out") {
-      // Sign in or sign up first; the account flow returns to this page.
       window.location.assign(data.authHref);
       return;
     }
-    run("accept").catch(() => undefined);
+    void run("accept");
   }
 
   if (viewer.kind === "mismatch") {
@@ -266,7 +244,7 @@ function PendingInvitationCard({ data }: { data: PendingInvitation }) {
               </span>
             </>
           ) : null}
-          <OrganizationAvatar organization={organization} size="size-16" />
+          <OrganizationAvatar organization={organization} />
         </div>
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-balance">
@@ -322,5 +300,5 @@ export function InvitationConfirm({ data }: { data: InvitationPageData }) {
   if (data.status === "unavailable") {
     return <Unavailable reason={data.reason} />;
   }
-  return <PendingInvitationCard data={data} />;
+  return <PendingInvitationCard data={data} key={data.token} />;
 }
