@@ -60,6 +60,8 @@ This guide takes you from an empty repository to a live blog. You need a GitHub 
 
 ## Make it yours
 
+You can also [validate and preview locally](/sites/repository#validate-and-preview-locally) from a Notra toolchain checkout, with or without `blog.json`. Local preview defaults to `/blog` and `/changelog`; use `dev --target` and `validate --target` with an explicit snapshot to match different dashboard paths and default settings. Paths remain dashboard-managed, not settings in `blog.json`.
+
 When the repository has no `blog.json`, the Configure step offers **Open starter PR (optional)**. Notra reads your Brand Identity and website and opens a pull request with a `blog.json`, a `header.mdx`, a `footer.mdx` and a first post that already use your logo, colors and links, so merging it takes the site live with your brand.
 
 To set things up by hand, add a `blog.json` next to your posts:

@@ -53,6 +53,8 @@ Without a `blog.json`, the site builds with the standard layout and the site nam
 
 ## From file to URL
 
+Section paths are managed in the dashboard, not in `blog.json`. The examples below use the default `/blog` and `/changelog` paths.
+
 Every `.md` or `.mdx` file in `blog/` and `changelog/` becomes a page, and the path of the file becomes the URL below the section path:
 
 | File | URL |
@@ -93,3 +95,40 @@ Notra rewrites the path at build time so it works under `/blog`, `/changelog` an
 | Other | `.pdf`, `.txt`, `.woff`, `.woff2` |
 
 Notra skips other files, dotfiles, `node_modules` and symbolic links, and file names may only use letters, digits, spaces and `._-@()+`. For size limits, see [Limits](/sites/reference/limits).
+
+## Validate and preview locally
+
+If you have a checkout of the Notra toolchain with dependencies installed, run these commands from its root, pointing `--source` at your site folder:
+
+```bash
+bun apps/sites-builder/compiler/cli.ts validate --source /path/to/site
+bun apps/sites-builder/compiler/cli.ts dev --source /path/to/site
+```
+
+Both commands work without `blog.json`. Local defaults use the site folder's name, the standard layout, and `/blog` and `/changelog` mounts. Preview opens the blog by default; use `--area changelog` for the changelog. Only one section is served at a time. Stop it with Ctrl+C.
+
+To preview different dashboard settings, pass an explicit build-target snapshot to both commands:
+
+```bash
+bun apps/sites-builder/compiler/cli.ts validate --source /path/to/site --target /path/to/target.json --json
+bun apps/sites-builder/compiler/cli.ts dev --source /path/to/site --target /path/to/target.json --area blog
+```
+
+The target uses the existing build request shape. Keep it outside the site folder:
+
+```json target.json
+{
+  "siteId": "local",
+  "deploymentId": "local",
+  "publicOrigin": "https://acme.example",
+  "mounts": { "blog": "/articles", "changelog": "/releases" },
+  "branding": true,
+  "defaultConfig": { "name": "Acme" }
+}
+```
+
+Omit an area from `mounts` to disable it, or use `/` for a root mount. An explicitly selected area must be enabled. Invalid or overlapping section paths are rejected.
+
+`defaultConfig` supplies settings only when `blog.json` is missing. A real `blog.json` always takes precedence, and an invalid one still fails validation. Without `defaultConfig`, the local folder name supplies the default site name. Neither command writes settings into your source folder.
+
+The target is a snapshot, not an automatic dashboard sync; restart preview after changing it. It does not configure or verify a hosted domain. Preview always uses the local origin, includes drafts and sets `noindex`, regardless of the target's production flags.

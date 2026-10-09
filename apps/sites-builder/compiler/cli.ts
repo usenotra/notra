@@ -5,12 +5,10 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
+import { hasErrors } from "@notra/sites-compiler/utils/diagnostics";
 import { validateSite } from "@notra/sites-compiler/validate";
 import type { SiteDiagnostic } from "@notra/sites-core/types/build";
-import {
-  listMountedAreas,
-  normalizeSiteMounts,
-} from "@notra/sites-core/utils/mounts";
+import { normalizeSiteMounts } from "@notra/sites-core/utils/mounts";
 
 import {
   buildSite,
@@ -22,6 +20,7 @@ import { USAGE } from "./constants/cli";
 import { writeOgImages } from "./og-images";
 import { prepareSite, readSiteFiles } from "./prepare";
 import { createDevRefresh } from "./utils/dev-refresh";
+import { localDefaultConfig, localPreviewArea } from "./utils/local-options";
 
 const TOOLCHAIN_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -55,22 +54,32 @@ async function main() {
   const siteRoot = resolve(values.source ?? ".");
 
   if (command === "validate") {
+    const target = values.target
+      ? await readBuildTarget(values.target)
+      : undefined;
+    if (target) {
+      normalizeSiteMounts(target.mounts);
+    }
     const { collected, files } = await readSiteFiles(siteRoot);
-    const result = validateSite({ files });
+    const result = validateSite({
+      files,
+      defaultConfig: localDefaultConfig(siteRoot, target),
+    });
     const diagnostics = [...collected.diagnostics, ...result.diagnostics];
+    const ok = !hasErrors(diagnostics);
     if (values.json) {
       process.stdout.write(
-        `${JSON.stringify({ ok: result.ok, diagnostics, entries: result.entries }, null, 2)}\n`
+        `${JSON.stringify({ ok, diagnostics, entries: result.entries }, null, 2)}\n`
       );
     } else {
       printDiagnostics(diagnostics);
       process.stderr.write(
-        result.ok
+        ok
           ? `✔ ${result.entries.length} entries, ${files.size} files look good\n`
           : "Validation failed\n"
       );
     }
-    process.exit(result.ok ? 0 : 1);
+    process.exit(ok ? 0 : 1);
   }
 
   if (command === "build") {
@@ -102,16 +111,11 @@ async function main() {
 
   if (command === "dev") {
     const workDir = join(TOOLCHAIN_ROOT, ".notra", "work");
-    const mounts = normalizeSiteMounts({
-      blog: "/blog",
-      changelog: "/changelog",
-    });
-    const mounted = listMountedAreas(mounts);
-    const selected =
-      mounted.find((entry) => entry.area === values.area) ?? mounted[0];
-    if (!selected) {
-      process.exit(1);
-    }
+    const target = values.target
+      ? await readBuildTarget(values.target)
+      : undefined;
+    const { mounts, selected } = localPreviewArea(target, values.area);
+    const defaultConfig = localDefaultConfig(siteRoot, target);
     const paramsPath = join(workDir, "params.dev.json");
     const refresh = createDevRefresh({
       params: {
@@ -122,11 +126,17 @@ async function main() {
         deploymentId: "local",
         noindex: true,
         includeDrafts: true,
-        branding: true,
+        branding: target?.branding ?? true,
         workDir,
         mounts,
       },
-      prepare: () => prepareSite({ siteRoot, workDir, stableAssetNames: true }),
+      prepare: () =>
+        prepareSite({
+          siteRoot,
+          workDir,
+          stableAssetNames: true,
+          defaultConfig,
+        }),
       writeOgImages,
       printDiagnostics,
       reportError: (error) => process.stderr.write(`${String(error)}\n`),

@@ -1,5 +1,5 @@
 export const USAGE = `notra-sites <command>
 
-  validate [--source <dir>] [--json]        Check blog.json, MDX and snippets
+  validate [--source <dir>] [--target <file>] [--json]  Check settings, MDX and snippets
   build --source <dir> --target <file> --out <dir> [--json]
-  dev [--source <dir>] [--area blog|changelog] [--port 4321]`;
+  dev [--source <dir>] [--target <file>] [--area blog|changelog] [--port 4321]`;
