@@ -50,8 +50,17 @@ if (!process.env.NOTRA_SITE_DEFAULTS_TEST_WORKER) {
       data: {
         deployment: {
           status: "failed",
+          branch: "main",
+          commitSha: "abc123",
+          errorMessage: null,
           createdAt: "2026-10-07T00:00:00Z",
-          diagnostics: [{ code: diagnosticCode }],
+          diagnostics: [
+            {
+              code: diagnosticCode,
+              severity: "error",
+              message: "Example build diagnostic",
+            },
+          ],
         },
         log: null,
       },
