@@ -17,6 +17,7 @@ import type { BuildParams } from "../src/types/build-params";
 import { astroBin } from "./build";
 import { ASTRO_LOG_NOISE } from "./constants/build";
 import {
+  ASTRO_READY_SCAN_CHARS,
   ASTRO_READY_URL,
   DEV_PORT_SEARCH_RANGE,
   DEV_READY_TIMEOUT_MS,
@@ -116,17 +117,27 @@ export async function startAstroDev(
   // same port can never pass for it. The reported port wins over the requested one.
   const port = await new Promise<number | null>((resolve) => {
     const timer = setTimeout(() => resolve(null), DEV_READY_TIMEOUT_MS);
-    const onOutput = (chunk: Buffer) => {
-      const text = chunk.toString();
-      forwardOutput(text);
-      const match = ASTRO_READY_URL.exec(text);
-      if (match?.[1]) {
-        clearTimeout(timer);
-        resolve(Number(match[1]));
-      }
+    let ready = false;
+    // Each stream keeps a short tail so a URL split across chunks still matches.
+    const watch = (stream: NodeJS.ReadableStream) => {
+      let tail = "";
+      stream.on("data", (chunk: Buffer) => {
+        const text = chunk.toString();
+        forwardOutput(text);
+        if (ready) {
+          return;
+        }
+        tail = (tail + text).slice(-ASTRO_READY_SCAN_CHARS);
+        const match = ASTRO_READY_URL.exec(tail);
+        if (match?.[1]) {
+          ready = true;
+          clearTimeout(timer);
+          resolve(Number(match[1]));
+        }
+      });
     };
-    child.stdout.on("data", onOutput);
-    child.stderr.on("data", onOutput);
+    watch(child.stdout);
+    watch(child.stderr);
     child.once("exit", () => {
       clearTimeout(timer);
       resolve(null);
