@@ -7,6 +7,15 @@ export const fixtureCounts = {
   vercel: 100_000,
   "http-probes": 5,
 };
+export const windowFixtureDimensions = {
+  projectId: "fixture_project",
+  environment: "validation",
+  httpStatus: "200",
+  requestMethod: "GET",
+  cacheResult: "HIT",
+  runtime: "nodejs",
+  functionStartType: "warm",
+};
 export const windowFixtures = [
   ["vercel.request.count", "count", "project", 230, "count"],
   ["vercel.function_invocation.count", "count", "project", 170, "count"],

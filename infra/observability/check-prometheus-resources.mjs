@@ -14,7 +14,10 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import { loopbackOrigin } from "./check-queries.mjs";
-import { fixtureCounts } from "./constants/prometheus-fixtures.mjs";
+import {
+  fixtureCounts,
+  windowFixtureDimensions,
+} from "./constants/prometheus-fixtures.mjs";
 import { runDocker } from "./utils/docker.mjs";
 
 export async function checkPrometheusResources(
@@ -282,7 +285,7 @@ export async function checkPrometheusResources(
         "Process memory supplement unavailable; cgroup gate remains required"
       );
     }
-    const expressions = [
+    const targets = [
       "notra",
       "notra-accounting",
       "notra-surfaces",
@@ -298,21 +301,39 @@ export async function checkPrometheusResources(
         return definition.panels
           .flatMap((panel) => panel.panels ?? [panel])
           .flatMap((panel) =>
-            panel.datasource?.uid === "notra-prometheus"
-              ? panel.targets.map((target) => target.expr)
-              : []
+            panel.datasource?.uid === "notra-prometheus" ? panel.targets : []
           );
       })
-      .map((expression) =>
-        expression
+      .map(({ expr, legendFormat }) => ({
+        expression: expr
           .replaceAll(`\${environment}`, "validation")
           .replaceAll(`\${project:regex}`, "fixture_project")
-          .replaceAll(`\${metric}`, "vercel.request.count")
-      );
-    for (const expression of expressions) {
-      await query(expression);
+          .replaceAll(`\${metric}`, "vercel.request.count"),
+        legendFormat,
+      }));
+    for (const { expression, legendFormat } of targets) {
+      const result = await query(expression);
+      for (const [, label] of (legendFormat ?? "").matchAll(/\{\{(\w+)\}\}/g)) {
+        for (const series of result) {
+          assert.ok(
+            series.metric[label] && series.metric[label] !== "unattributed",
+            `Missing dashboard legend label ${label}: ${expression}`
+          );
+          const expected =
+            windowFixtureDimensions[
+              label.replace(/_([a-z])/g, (_match, letter) =>
+                letter.toUpperCase()
+              )
+            ];
+          if (expected !== undefined) {
+            assert.equal(series.metric[label], expected);
+          }
+        }
+      }
     }
-    await Promise.all(expressions.slice(0, 4).map(query));
+    await Promise.all(
+      targets.slice(0, 4).map(({ expression }) => query(expression))
+    );
     await sample(
       'notra_vercel_metric_window{metric="vercel.request.count",aggregation="count",breakdown="project"}',
       230

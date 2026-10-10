@@ -42,7 +42,7 @@ export const EXPORTER_METRICS = {
     "Whether the latest query for a catalog metric succeeded.",
   notra_vercel_catalog_success: "Whether the latest catalog request succeeded.",
   notra_vercel_snapshot_fresh:
-    "Whether the snapshot is less than two polling intervals old.",
+    "Whether the latest snapshot succeeded and is less than two polling intervals old.",
   notra_vercel_poll_completed_seconds:
     "Unix timestamp of the last completed catalog poll.",
 };

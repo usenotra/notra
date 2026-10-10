@@ -3,8 +3,13 @@ import { createServer } from "node:http";
 
 import {
   fixtureCounts,
+  windowFixtureDimensions,
   windowFixtures,
 } from "../constants/prometheus-fixtures.mjs";
+import {
+  PLATFORM_BREAKDOWNS,
+  SAFE_DIMENSIONS,
+} from "../vercel/constants/metrics.ts";
 import { metricSamples } from "../vercel/utils/metrics.ts";
 
 const bodies = new Map();
@@ -20,13 +25,11 @@ for (const [job, count] of Object.entries(fixtureCounts)) {
     );
     for (const [id, aggregation, breakdown, value, unit] of windowFixtures) {
       const metric = { id, unit };
-      const dimension = { http: "status", cache: "cache", runtime: "runtime" }[
-        breakdown
-      ];
       const dimensions = [
-        "projectId",
-        "environment",
-        ...(dimension ? [dimension] : []),
+        ...SAFE_DIMENSIONS,
+        ...(PLATFORM_BREAKDOWNS.find(
+          (group) => group.id === id && group.name === breakdown
+        )?.dimensions ?? []),
       ];
       samples.push(
         ...metricSamples(
@@ -34,13 +37,7 @@ for (const [job, count] of Object.entries(fixtureCounts)) {
           { selections: [{ alias: "value", metric, aggregation }] },
           [
             {
-              dimensions: {
-                projectId: "fixture_project",
-                environment: "validation",
-                status: "200",
-                cache: "HIT",
-                runtime: "nodejs",
-              },
+              dimensions: windowFixtureDimensions,
               values: { value },
             },
           ]

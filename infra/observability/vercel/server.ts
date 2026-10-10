@@ -49,7 +49,10 @@ const server = createServer((request, response) => {
       "content-type",
       "text/plain; version=0.0.4; charset=utf-8"
     );
-    const fresh = completedAt && Date.now() - completedAt < 2 * POLL_MS;
+    const fresh =
+      catalogSuccess === 1 &&
+      completedAt &&
+      Date.now() - completedAt < 2 * POLL_MS;
     response.end(
       `${metadata}notra_vercel_catalog_success ${catalogSuccess}\nnotra_vercel_snapshot_fresh ${Number(Boolean(fresh))}\nnotra_vercel_poll_completed_seconds ${completedAt / 1000}\n${fresh ? snapshot : ""}`
     );
