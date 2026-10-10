@@ -52,14 +52,6 @@ export interface SiteLayoutProps {
   children: ReactNode;
 }
 
-export interface SiteRepositoryHoverCardProps {
-  organizationId: string;
-  siteId: string;
-  owner: string;
-  name: string;
-  branch: string;
-}
-
 export interface SitesTableProps {
   organizationId: string;
   organizationSlug: string;

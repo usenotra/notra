@@ -7002,10 +7002,10 @@
     "list": {
       "columns": {
         "site": "Site",
-        "lastDeployment": "Last deployment"
+        "visitors": "Visitors · 7d",
+        "updated": "Updated"
       },
-      "noDeployments": "No deployments yet",
-      "notConnected": "Repository disconnected"
+      "noDeployments": "No deployments yet"
     },
     "status": {
       "queued": "Queued",
@@ -7822,18 +7822,6 @@
       "autosaveInvalid": "Enter valid settings to save your changes.",
       "discardUnsaved": "Discard unsaved changes",
       "removeFailedDescription": "The integration was not removed. Retry the removal or discard the unsaved changes."
-    },
-    "repositoryCard": {
-      "private": "Private",
-      "public": "Public",
-      "language": "Language",
-      "stars": "Stars",
-      "forks": "Forks",
-      "openIssues": "Open issues and PRs",
-      "defaultBranch": "Default branch",
-      "lastPush": "Last push",
-      "openOnGithub": "Open on GitHub",
-      "unavailable": "Couldn't load repository details from GitHub."
     },
     "analyticsPage": {
       "title": "Analytics",

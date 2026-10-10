@@ -10,6 +10,7 @@ import {
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
+import type { AgentFeedbackStatus } from "@notra/db/types/agent-feedback";
 
 import type {
   SiteDeploymentFilters,
@@ -57,9 +58,6 @@ export const SITE_DEPLOYMENTS_PAGE_SIZE = 20;
 export const SITE_OVERVIEW_PREVIEWS_LIMIT = 5;
 export const SITE_TABLE_EMPTY_HEIGHT = 340;
 export const SITE_TABLE_COMPACT_EMPTY_HEIGHT = 300;
-export const SITE_LIST_TABLE_ROW_HEIGHT = 66;
-export const SITE_REPOSITORY_OVERVIEW_STALE_MS = 5 * 60 * 1000;
-export const SITE_REPOSITORY_SKELETON_ROWS = 4;
 export const SITE_SHORT_SHA_LENGTH = 7;
 export const SITE_SHARE_LINK_DAYS = 7;
 
@@ -107,16 +105,26 @@ export const SITE_MANUAL_TRIGGER_ICONS: Partial<
   config: Settings01Icon,
 };
 
-export const SITE_STATUS_DOT_STYLES: Record<SiteDeploymentStatus, string> = {
-  queued: "bg-muted-foreground/50",
-  building: "bg-warning motion-safe:animate-pulse",
-  uploading: "bg-warning motion-safe:animate-pulse",
-  ready: "bg-success",
-  failed: "bg-destructive",
-  superseded: "bg-muted-foreground/40",
-  skipped: "bg-muted-foreground/40",
-  canceled: "bg-muted-foreground/40",
-  expired: "bg-muted-foreground/40",
+/** Ring icon per deployment status, drawn by the agent feedback status icon. */
+export const SITE_STATUS_ICONS: Record<
+  SiteDeploymentStatus,
+  { icon: AgentFeedbackStatus; className: string }
+> = {
+  queued: { icon: "new", className: "text-muted-foreground" },
+  building: {
+    icon: "triaged",
+    className: "text-warning motion-safe:animate-pulse",
+  },
+  uploading: {
+    icon: "triaged",
+    className: "text-warning motion-safe:animate-pulse",
+  },
+  ready: { icon: "resolved", className: "text-success" },
+  failed: { icon: "archived", className: "text-destructive" },
+  superseded: { icon: "archived", className: "text-muted-foreground" },
+  skipped: { icon: "archived", className: "text-muted-foreground" },
+  canceled: { icon: "archived", className: "text-muted-foreground" },
+  expired: { icon: "archived", className: "text-muted-foreground" },
 };
 
 export const SITE_DEPLOYMENT_ROW_HEIGHT = 48;
