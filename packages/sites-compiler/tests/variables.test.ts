@@ -38,6 +38,23 @@ describe("substituteVariables", () => {
     ).toBe('export const label = "Acme Cloud";');
   });
 
+  test.each(["", " ", "\t", "\n", "\r\n  "])(
+    "preserves JSX object attributes after =%j while replacing prose",
+    (whitespace) => {
+      const source = `---\ntitle: "{{ product }}"\n---\n\n<Card style=${whitespace}{{ product }} data=${whitespace}{{ missing }}>Try {{ product }}</Card>\n\nUnknown {{ nope }}.`;
+      const result = substitute(source);
+      expect(result.text).toBe(
+        source
+          .replace('title: "{{ product }}"', 'title: "Acme Cloud"')
+          .replace("Try {{ product }}", "Try Acme Cloud")
+          .replace("{{ nope }}", "\\{\\{ nope \\}\\}")
+      );
+      expect(result.unknown).toEqual([
+        { name: "nope", offset: source.indexOf("{{ nope }}") },
+      ]);
+    }
+  );
+
   test("replaces names with or without spaces", () => {
     expect(substitute("{{ product }} and {{plan_name}}").text).toBe(
       "Acme Cloud and Pro"
