@@ -1,0 +1,9 @@
+apps/dashboard/src/components/geo/web-breakdown-table.tsx
+  ai_agent 23,29,100-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cef9db5940ce118c808a1a9c1808662f0f1b901b",
+  "prompts": {}
+}
