@@ -1,0 +1,20 @@
+apps/dashboard/src/components/geo/web-visitors-section.tsx
+  ai_agent 29
+  s_998943ab480493::t_53464680cdfe81 87,189-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "862ac77ab30bffadd3323526b9d4aef4c4bcde0c",
+  "prompts": {},
+  "sessions": {
+    "s_998943ab480493": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8d1e3293-3674-4929-81f1-9e0a09f663ca",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
