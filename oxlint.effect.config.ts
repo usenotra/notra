@@ -17,5 +17,10 @@ export default defineConfig({
     "effecttsgo/floating-effect": "error",
     "effecttsgo/missing-star-in-yield-effect-gen": "error",
     "effecttsgo/outdated-api": "error",
+    "effecttsgo/return-effect-in-gen": "warn",
+    "effecttsgo/effect-in-void-success": "warn",
+    "effecttsgo/promise-in-effect-success": "warn",
+    "effecttsgo/unsafe-effect-type-assertion": "warn",
+    "effecttsgo/layer-merge-all-with-dependencies": "warn",
   },
 });

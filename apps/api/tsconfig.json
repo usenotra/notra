@@ -6,6 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "outDir": "./dist",
+    "rootDir": "./src",
     "strictNullChecks": true
   },
   "include": ["src"],

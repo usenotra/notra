@@ -124,6 +124,33 @@ The dashboard runs Vite on `127.0.0.1:3000`. Build it with
 perform the full TypeScript check. Existing `NEXT_PUBLIC_*`
 deployment variable names remain supported; they are not framework dependencies.
 
+## Effect diagnostics
+
+`bun install` patches TypeScript 7 and Oxlint with `@effect/tsgo`. Its native
+language server replaces plain TypeScript-Go; do not run both language servers
+side by side. In VS Code or Cursor, use the recommended native TypeScript
+extension and select the workspace TypeScript version when prompted. The shared
+TSConfig enables Effect diagnostics, quick fixes, and refactors.
+
+Run `bun run check:effect` for the focused Effect rules across all workspaces
+that directly depend on Effect. This is also part of `bun run check` and CI.
+Floating Effects, missing `yield*`, and outdated APIs are errors. Nested Effects,
+Promises in success channels, unsafe Effect casts, and dependent layers merged
+with `Layer.mergeAll` are initially warnings. Typechecks also show the language
+service's default diagnostics; warnings do not fail the typecheck, and
+suggestions are omitted from CLI output. Existing Schema constructor overrides
+are also baselined as warnings rather than blocking this tooling rollout.
+Broad style/Effect-native lint presets are deliberately not enabled for our
+mixed React, SDK, and Effect code.
+
+`node --test scripts/effect/diagnostics.test.mjs` exercises valid code, all three
+blocking rules, and the five warning rules against both patched tools. It also
+runs as part of `bun run test`.
+
+If a new workspace adds Effect, include its source directory in `check:effect`.
+Keep `@effect/tsgo`, TypeScript, Oxlint, and `oxlint-tsgolint` pinned to mutually
+supported versions; the installed `@effect/tsgo/README.md` lists compatibility.
+
 ## QStash Local Workflows
 
 If you're testing webhooks or workflows with QStash, set `NEXT_PUBLIC_APP_URL` to a public URL. `localhost` will not work for external callbacks.
