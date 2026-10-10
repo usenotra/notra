@@ -18,6 +18,8 @@ test("Effect lint and compiler diagnostics reject bugs without blocking warnings
         "x",
         "--no-install",
         "oxlint",
+        "--format",
+        "agent",
         "--config",
         "oxlint.effect.config.ts",
         "--tsconfig",
