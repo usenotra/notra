@@ -88,6 +88,9 @@ async function executeTask(
       task.output = result.output;
       task.usage = result.usage;
       task.costUsd = result.costUsd;
+      task.costSource = result.costSource;
+      task.reportedCostUsd = result.reportedCostUsd;
+      task.estimatedCostUsd = result.estimatedCostUsd;
       task.transcript = result.transcript;
       task.called = true;
     }

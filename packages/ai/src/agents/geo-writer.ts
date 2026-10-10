@@ -59,6 +59,7 @@ import { posts } from "@notra/db/schema";
 import {
   generateText,
   type FinishReason,
+  type GenerateTextOnStepEndCallback,
   isStepCount,
   type LanguageModelUsage,
   NoObjectGeneratedError,
@@ -76,9 +77,12 @@ const MARKDOWN_LINK_URL_REGEX = /\]\((\S+?)\)/g;
 const DASH_REGEX = /[–—]/g;
 
 export class GeoWriterError extends Error {
-  constructor(message: string) {
+  readonly usage?: AgentTokenUsage;
+
+  constructor(message: string, usage?: AgentTokenUsage) {
     super(message);
     this.name = "GeoWriterError";
+    this.usage = usage;
   }
 }
 
@@ -219,6 +223,23 @@ export async function generateGeoContentBrief(
     GEO_WRITER_PLANNER_MODEL
   );
   let lastError = "The planner produced no output";
+  // The SDK parses structured output after this callback. Count rejected
+  // output too, without counting a returned result a second time.
+  const recordPlannerStep: GenerateTextOnStepEndCallback = async (step) => {
+    const routeUsage = await summarizeRouteUsage(
+      [step],
+      GEO_WRITER_PLANNER_MODEL
+    ).catch((error: unknown) => {
+      logWarn("[GEO planner] Failed to enrich usage", {
+        error: describeError(error),
+      });
+      return undefined;
+    });
+    usage = mergeTokenUsage(
+      usage,
+      toTokenUsage(step.usage, GEO_WRITER_PLANNER_MODEL, routeUsage)
+    );
+  };
 
   for (
     let attempt = 0;
@@ -238,15 +259,8 @@ export async function generateGeoContentBrief(
             modelId: GEO_WRITER_PLANNER_MODEL,
           }
         ),
+        onStepEnd: recordPlannerStep,
       });
-      const routeUsage = await summarizeRouteUsage(
-        result.steps,
-        GEO_WRITER_PLANNER_MODEL
-      );
-      usage = mergeTokenUsage(
-        usage,
-        toTokenUsage(result.usage, GEO_WRITER_PLANNER_MODEL, routeUsage)
-      );
       if (result.finishReason !== "stop") {
         const failure = describeUnfinishedPlan(
           result.finishReason,
@@ -254,6 +268,9 @@ export async function generateGeoContentBrief(
           result.usage
         );
         lastError = failure.errors.join("; ");
+        if (result.finishReason !== "length") {
+          break;
+        }
         prompt = `${basePrompt}\n\n${buildGeoPlannerRepairPrompt({
           errors: failure.errors,
           previousOutput: failure.previousOutput,
@@ -268,6 +285,15 @@ export async function generateGeoContentBrief(
         .map((issue) => `${issue.path.join(".") || "brief"}: ${issue.message}`)
         .join("; ");
     } catch (error) {
+      if (
+        !NoObjectGeneratedError.isInstance(error) ||
+        (error.finishReason !== undefined &&
+          error.finishReason !== "stop" &&
+          error.finishReason !== "length")
+      ) {
+        lastError = describeError(error);
+        break;
+      }
       const failure = describePlannerFailure(error);
       lastError = failure.errors.join("; ");
       prompt = `${basePrompt}\n\n${buildGeoPlannerRepairPrompt({
@@ -282,7 +308,7 @@ export async function generateGeoContentBrief(
     })}`;
   }
 
-  throw new GeoWriterError(`Failed to plan the article: ${lastError}`);
+  throw new GeoWriterError(`Failed to plan the article: ${lastError}`, usage);
 }
 
 function stripDashesFromText(value: string): string {
@@ -602,7 +628,11 @@ export async function runGeoWriter(
     ),
     tools,
     instructions,
-    stopWhen: isStepCount(GEO_WRITER_MAX_STEPS),
+    stopWhen: [
+      isStepCount(GEO_WRITER_MAX_STEPS),
+      () =>
+        Boolean(postToolsResult.posts?.length || postToolsResult.failReason),
+    ],
     ...buildTelemetryOptions({
       ...telemetryMetadata,
       stage: "geo_writer_draft",

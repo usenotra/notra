@@ -32,7 +32,12 @@ export async function summarizeRouteUsage(
   let route: RouteMetadata | undefined;
   let maxPromptTokens = 0;
   let tokenCostUsd = 0;
-  let pricedSteps = 0;
+  let reportedCostUsd = 0;
+  let estimatedCostUsd = 0;
+  let reportedSteps = 0;
+  let estimatedSteps = 0;
+  let gatewayCostUsd: number | undefined;
+  let upstreamInferenceCostUsd: number | undefined;
 
   for (
     let offset = 0;
@@ -61,43 +66,104 @@ export async function summarizeRouteUsage(
         Number.isFinite(stepRoute.costUsd) &&
         stepRoute.costUsd >= 0
       ) {
-        pricedSteps += 1;
         tokenCostUsd += stepRoute.costUsd;
+        reportedCostUsd += stepRoute.costUsd;
+        reportedSteps += 1;
+        if (
+          typeof stepRoute.gatewayCostUsd === "number" &&
+          Number.isFinite(stepRoute.gatewayCostUsd) &&
+          stepRoute.gatewayCostUsd >= 0
+        ) {
+          gatewayCostUsd = (gatewayCostUsd ?? 0) + stepRoute.gatewayCostUsd;
+        }
+        if (
+          typeof stepRoute.upstreamInferenceCostUsd === "number" &&
+          Number.isFinite(stepRoute.upstreamInferenceCostUsd) &&
+          stepRoute.upstreamInferenceCostUsd >= 0
+        ) {
+          upstreamInferenceCostUsd =
+            (upstreamInferenceCostUsd ?? 0) +
+            stepRoute.upstreamInferenceCostUsd;
+        }
       } else if (usage) {
-        pricedSteps += 1;
         const serviceTier =
           step.providerMetadata?.gateway?.serviceTier ??
           step.providerMetadata?.openai?.serviceTier;
-        tokenCostUsd += calculateTokenCostUsd(
+        const estimatedCost = calculateTokenCostUsd(
           usage,
           stepRoute?.model ?? modelId,
           stepRoute?.gateway ?? "direct",
           typeof serviceTier === "string" ? serviceTier : undefined
         );
+        if (Number.isFinite(estimatedCost) && estimatedCost >= 0) {
+          tokenCostUsd += estimatedCost;
+          estimatedCostUsd += estimatedCost;
+          estimatedSteps += 1;
+        }
       }
     }
   }
 
-  if (pricedSteps === 0) {
+  if (reportedSteps === 0 && estimatedSteps === 0) {
     return { route };
   }
 
-  return { route, maxPromptTokens, tokenCostUsd };
+  let costSource: RouteUsageSummary["costSource"] =
+    reportedSteps > 0 ? "reported" : "estimated";
+  if (reportedSteps > 0 && estimatedSteps > 0) {
+    costSource = "mixed";
+  }
+
+  return {
+    route,
+    maxPromptTokens,
+    tokenCostUsd,
+    costSource,
+    reportedCostUsd,
+    estimatedCostUsd,
+    reportedSteps,
+    estimatedSteps,
+    ...(gatewayCostUsd === undefined ? {} : { gatewayCostUsd }),
+    ...(upstreamInferenceCostUsd === undefined
+      ? {}
+      : { upstreamInferenceCostUsd }),
+  };
 }
 
 /**
- * Flatten route metadata into snake_case properties for billing/usage events.
+ * Flatten last-call identity and known reported component subtotals for billing
+ * events. Component subtotals may be partial when steps lack a breakdown.
  */
 export function routeUsageProperties(summary: RouteUsageSummary | undefined) {
-  if (!summary?.route) {
+  if (!summary) {
     return {};
   }
   const { route } = summary;
   return {
-    gateway: route.gateway,
-    upstream_provider: route.upstreamProvider,
-    route_reason: route.reason,
-    fallback_from: route.fallbackFrom,
-    fallback_reason: route.fallbackReason,
+    ...(route
+      ? {
+          gateway: route.gateway,
+          upstream_provider: route.upstreamProvider,
+          route_reason: route.reason,
+          fallback_from: route.fallbackFrom,
+          fallback_reason: route.fallbackReason,
+          ...(route.isByok === undefined ? {} : { is_byok: route.isByok }),
+        }
+      : {}),
+    ...(summary.costSource === undefined
+      ? {}
+      : {
+          cost_source: summary.costSource,
+          reported_cost_usd: summary.reportedCostUsd,
+          estimated_cost_usd: summary.estimatedCostUsd,
+          reported_steps: summary.reportedSteps,
+          estimated_steps: summary.estimatedSteps,
+        }),
+    ...(summary.gatewayCostUsd === undefined
+      ? {}
+      : { gateway_cost_usd: summary.gatewayCostUsd }),
+    ...(summary.upstreamInferenceCostUsd === undefined
+      ? {}
+      : { upstream_inference_cost_usd: summary.upstreamInferenceCostUsd }),
   };
 }

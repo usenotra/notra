@@ -91,7 +91,15 @@ export interface RouteMetadata {
   plan?: Plan;
   generationId?: string;
   upstreamProvider?: string;
+  /** Customer total: gateway charge plus separately reported BYOK inference. */
   costUsd?: number;
+  /** Gateway charge, including inference for system credentials; not just a fee. */
+  gatewayCostUsd?: number;
+  /** Separately reported upstream inference (BYOK only); not a market benchmark. */
+  upstreamInferenceCostUsd?: number;
+  /** Omitted when the provider metadata does not identify credential type. */
+  isByok?: boolean;
+  costSource?: "reported";
   fallbackFrom?: GatewayId;
   fallbackReason?: FallbackReason;
   /** Whether the call that produced this metadata ran with ZDR enforced. */
@@ -142,13 +150,31 @@ export interface GatewayAdapter {
   ): Partial<
     Pick<
       RouteMetadata,
-      "generationId" | "upstreamProvider" | "model" | "costUsd"
+      | "generationId"
+      | "upstreamProvider"
+      | "model"
+      | "costUsd"
+      | "gatewayCostUsd"
+      | "upstreamInferenceCostUsd"
+      | "isByok"
+      | "costSource"
     >
   >;
   lookupRouteMetadata?(
     generationId: string
   ): Promise<
-    Partial<Pick<RouteMetadata, "upstreamProvider" | "model" | "costUsd">>
+    Partial<
+      Pick<
+        RouteMetadata,
+        | "upstreamProvider"
+        | "model"
+        | "costUsd"
+        | "gatewayCostUsd"
+        | "upstreamInferenceCostUsd"
+        | "isByok"
+        | "costSource"
+      >
+    >
   >;
 }
 
@@ -353,6 +379,16 @@ export interface RouteUsageSummary {
   maxPromptTokens?: number;
   /** Reported modeled spend when complete, otherwise estimated token cost, summed per call. */
   tokenCostUsd?: number;
+  /** Provenance of the priced steps, independent of the last call's route. */
+  costSource?: "reported" | "estimated" | "mixed";
+  reportedCostUsd?: number;
+  estimatedCostUsd?: number;
+  reportedSteps?: number;
+  estimatedSteps?: number;
+  /** Known reported gateway subtotal; may be partial when steps lack a breakdown. */
+  gatewayCostUsd?: number;
+  /** Known reported upstream subtotal; may be partial, not the full provider cost. */
+  upstreamInferenceCostUsd?: number;
 }
 
 export interface RouteUsageStep {

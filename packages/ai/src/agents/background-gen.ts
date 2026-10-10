@@ -164,7 +164,10 @@ export async function runBackgroundGen(
       fail: createFailTool(postToolsResult),
     },
     instructions,
-    stopWhen: isStepCount(50),
+    stopWhen: [
+      isStepCount(50),
+      () => Boolean(postToolsResult.skipReason || postToolsResult.failReason),
+    ],
     ...buildTelemetryOptions(telemetryMetadata),
   });
 

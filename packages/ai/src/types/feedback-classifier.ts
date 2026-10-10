@@ -10,6 +10,8 @@ export interface ClassifyAgentFeedbackParams {
   title?: string | null;
   contextUrl?: string | null;
   agentClient?: string | null;
+  /** Fields the caller preserves; omit to retain full generated-title behavior. */
+  suppliedFields?: Partial<AgentFeedbackClassification>;
 }
 
 export interface AgentFeedbackClassification {

@@ -13,14 +13,17 @@ function MetricChart({
 }: {
   title: string;
   summaries: readonly ContenderSummary[];
-  value: (summary: ContenderSummary) => number;
+  value: (summary: ContenderSummary) => number | undefined;
   format: (value: number) => string;
   width: number;
   higherIsBetter: boolean;
 }) {
   const values = summaries.map(value);
-  const max = Math.max(...values, 0) || 1;
-  const valid = values.filter((item) => item > 0);
+  const known = values.filter(
+    (item): item is number => item !== undefined && Number.isFinite(item)
+  );
+  const max = Math.max(...known, 0) || 1;
+  const valid = known.filter((item) => item > 0);
   const best = higherIsBetter ? Math.max(...valid) : Math.min(...valid);
   const barWidth = Math.max(6, width - 34);
   return (
@@ -36,17 +39,24 @@ function MetricChart({
       flexGrow={1}
     >
       {summaries.map((summary, index) => {
-        const current = values[index] ?? 0;
-        const isBest = current > 0 && current === best && summaries.length > 1;
+        const current = values[index];
+        const isBest =
+          current !== undefined &&
+          current > 0 &&
+          current === best &&
+          summaries.length > 1;
         return (
           <text key={summary.contenderKey}>
             <span fg={theme.text}>{pad(summary.label, 16)} </span>
             <span fg={seriesColor(index)}>
-              {pad(bar(current / max, barWidth), barWidth)}
+              {pad(
+                current === undefined ? "" : bar(current / max, barWidth),
+                barWidth
+              )}
             </span>
             <span
               fg={isBest ? theme.good : theme.muted}
-            >{` ${padStart(format(current), 8)}`}</span>
+            >{` ${padStart(current === undefined ? "–" : format(current), 8)}`}</span>
             <span fg={theme.good}>{isBest ? " ★" : "  "}</span>
           </text>
         );
@@ -225,7 +235,7 @@ export function OverviewTab({
       >
         <text
           fg={theme.faint}
-        >{`${pad("model", 18)}${padStart("calls", 8)}${padStart("errors", 8)}${padStart("in tok", 10)}${padStart("out tok", 10)}${padStart("cost", 10)}${padStart("judge", 9)}${padStart("$/pass", 10)}`}</text>
+        >{`${pad("model", 18)}${padStart("calls", 8)}${padStart("errors", 8)}${padStart("in tok", 10)}${padStart("out tok", 10)}${padStart("cost", 10)} ${pad("source", 10)}${padStart("judge", 9)} ${pad("source", 10)}${padStart("$/pass", 10)}`}</text>
         {summaries.map((summary, index) => (
           <text key={summary.contenderKey}>
             <span fg={seriesColor(index)}>{"■ "}</span>
@@ -243,12 +253,16 @@ export function OverviewTab({
             <span fg={theme.text}>
               {padStart(formatUsd(summary.costUsd), 10)}
             </span>
+            <span fg={theme.faint}>{` ${pad(summary.costSource, 10)}`}</span>
             <span fg={theme.faint}>
               {padStart(formatUsd(summary.judgeCostUsd), 9)}
             </span>
+            <span
+              fg={theme.faint}
+            >{` ${pad(summary.judgeCostSource ?? "–", 10)}`}</span>
             <span fg={theme.muted}>
               {padStart(
-                summary.passRate > 0
+                summary.passRate > 0 && summary.costUsd !== undefined
                   ? formatUsd(
                       summary.costUsd / (summary.passRate * summary.done)
                     )

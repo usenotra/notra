@@ -107,6 +107,7 @@ export interface IrisPlanResult {
   output: PlannerOutput | null;
   violations: string[];
   costCents: number;
+  inputHash?: string;
 }
 
 export interface IrisTaskOutcome {

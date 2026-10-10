@@ -416,6 +416,7 @@ const runSync = Effect.fn("geo.searchConsole.generateSuggestions")(function* (
 
   const models = yield* GeoModelService;
   const generated = yield* models.suggest({
+    organizationId,
     companyName: settingsRow?.companyName ?? null,
     companyDescription: brandRow?.companyDescription ?? null,
     competitors,

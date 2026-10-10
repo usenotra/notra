@@ -21,6 +21,7 @@ import type {
   AgentFeedbackClassification,
   ClassifyAgentFeedbackParams,
 } from "@notra/ai/types/feedback-classifier";
+import { fallbackFeedbackTitle } from "@notra/ai/utils/feedback-title";
 import { logError } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { generateText, Output } from "ai";
@@ -75,11 +76,56 @@ async function generateClassification(
 /**
  * Kind and sentiment come from the typed evaluation model; the LLM runs in
  * parallel for the title and covers everything when the evaluation is
- * unavailable.
+ * unavailable. Callers preserving supplied fields opt out of discarded work.
  */
 export async function classifyAgentFeedback(
   params: ClassifyAgentFeedbackParams
 ): Promise<AgentFeedbackClassification | null> {
+  const supplied = params.suppliedFields;
+  if (supplied?.kind && supplied.sentiment) {
+    if (supplied.title) {
+      return {
+        kind: supplied.kind,
+        sentiment: supplied.sentiment,
+        title: supplied.title,
+      };
+    }
+    const generated = await generateClassification(params);
+    // Known labels can use the existing title fallback without evaluating them.
+    return (
+      generated ?? {
+        kind: supplied.kind,
+        sentiment: supplied.sentiment,
+        title: fallbackFeedbackTitle(params.message, params.title),
+      }
+    );
+  }
+  if (supplied?.title) {
+    const evaluation = await getEvaluationClient().tryEvaluate({
+      feature: FEEDBACK_CLASSIFIER_FEATURE,
+      organizationId: params.organizationId,
+      state: buildFeedbackEvaluationState(params),
+      questions: {
+        ...(!supplied.kind && { kind: FEEDBACK_EVALUATION_QUESTIONS.kind }),
+        ...(!supplied.sentiment && {
+          sentiment: FEEDBACK_EVALUATION_QUESTIONS.sentiment,
+        }),
+      },
+      timeoutMs: FEEDBACK_CLASSIFIER_TIMEOUT_MS,
+    });
+    const kindAnswer = evaluation?.answers.kind;
+    const sentimentAnswer = evaluation?.answers.sentiment;
+    const kind =
+      supplied.kind ??
+      (kindAnswer?.type === "choice" ? kindAnswer.choice : undefined);
+    const sentiment =
+      supplied.sentiment ??
+      (sentimentAnswer?.type === "choice" ? sentimentAnswer.choice : undefined);
+    if (kind && sentiment) {
+      return { kind, sentiment, title: supplied.title };
+    }
+    return generateClassification(params);
+  }
   const [evaluation, generated] = await Promise.all([
     getEvaluationClient().tryEvaluate({
       feature: FEEDBACK_CLASSIFIER_FEATURE,

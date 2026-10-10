@@ -171,6 +171,16 @@ export function buildRouteMetadata(
       ? { upstreamProvider: extracted.upstreamProvider }
       : {}),
     ...(extracted.costUsd === undefined ? {} : { costUsd: extracted.costUsd }),
+    ...(extracted.gatewayCostUsd === undefined
+      ? {}
+      : { gatewayCostUsd: extracted.gatewayCostUsd }),
+    ...(extracted.upstreamInferenceCostUsd === undefined
+      ? {}
+      : { upstreamInferenceCostUsd: extracted.upstreamInferenceCostUsd }),
+    ...(extracted.isByok === undefined ? {} : { isByok: extracted.isByok }),
+    ...(extracted.costSource === undefined
+      ? {}
+      : { costSource: extracted.costSource }),
     ...(decision.fallbackFrom ? { fallbackFrom: decision.fallbackFrom } : {}),
     ...(decision.fallbackReason
       ? { fallbackReason: decision.fallbackReason }

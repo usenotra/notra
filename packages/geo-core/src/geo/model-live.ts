@@ -233,6 +233,7 @@ export const geoModelLive = Layer.succeed(
             },
           });
           return {
+            steps: result.steps,
             ...result.output,
             usage: usageWithModel(
               result.usage,
@@ -254,7 +255,24 @@ export const geoModelLive = Layer.succeed(
                 cause: new Error("Judge model request timed out"),
               })
             ),
-        })
+        }),
+        Effect.flatMap(({ steps, ...judged }) =>
+          Effect.promise(async () => {
+            const routeUsage = await summarizeRouteUsage(
+              steps,
+              GEO_JUDGE_MODEL
+            );
+            return {
+              ...judged,
+              usage: usageWithModel(
+                judged.usage,
+                GEO_JUDGE_MODEL,
+                routeUsage.route ?? judged.usage.route,
+                routeUsage.tokenCostUsd
+              ),
+            };
+          })
+        )
       )
     ),
     evaluateMention: Effect.fn("GeoModel.evaluateMention")((input) =>
@@ -317,7 +335,9 @@ export const geoModelLive = Layer.succeed(
       Effect.tryPromise({
         try: async (signal) => {
           const result = await generateText({
-            model: gateway(GSC_SUGGESTION_MODEL, {}),
+            model: gateway(GSC_SUGGESTION_MODEL, {
+              organizationId: input.organizationId,
+            }),
             output: Output.object({
               schema: geoSearchConsoleSuggestionSchema,
             }),

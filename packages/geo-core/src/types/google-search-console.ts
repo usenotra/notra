@@ -56,6 +56,7 @@ export interface GscSyncPayload {
 }
 
 export interface GscSuggestionGenerationParams {
+  organizationId: string;
   companyName: string | null;
   companyDescription: string | null;
   competitors: string[];

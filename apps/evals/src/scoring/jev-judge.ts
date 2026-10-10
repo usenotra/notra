@@ -2,12 +2,7 @@ import type { Experimental_EvaluationQuestion } from "ai";
 
 import { JEV_MODEL_ID } from "../constants/contenders";
 import { callJev } from "../models/gateway";
-
-export interface JudgeVerdict {
-  /** question id → probability (boolean) or normalized score 0..1 (score/choice). */
-  readonly values: Record<string, number>;
-  readonly costUsd: number;
-}
+import type { JudgeVerdict } from "../types/eval";
 
 type Questions = Readonly<Record<string, Experimental_EvaluationQuestion>>;
 
@@ -31,7 +26,7 @@ function demoVerdict(
     const noise = (hash(`${id}:${seedText}`) % 1000) / 1000;
     values[id] = Math.max(0, Math.min(1, quality * 0.8 + noise * 0.35));
   }
-  return { values, costUsd: 0 };
+  return { values, costUsd: 0, costSource: "estimated" };
 }
 
 /**
@@ -82,5 +77,5 @@ export async function judgeWithJev(params: {
         keys.indexOf(answer.choice ?? "") / Math.max(1, keys.length - 1);
     }
   }
-  return { values, costUsd: result.costUsd ?? 0 };
+  return { values, costUsd: result.costUsd, costSource: result.costSource };
 }

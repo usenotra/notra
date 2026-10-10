@@ -13,6 +13,7 @@ import type {
   RouteRequest,
   RouterLogger,
 } from "@notra/ai/types/router";
+import { getOperationalContext } from "@notra/ai/utils/operational-context";
 import { recordRequestAICost } from "@notra/ai/utils/request-ai-usage";
 
 import { createCreditTracker } from "./credits";
@@ -153,13 +154,33 @@ export function createModelRouter(config: ModelRouterConfig): ModelRouter {
         if (enriched.costUsd !== undefined) {
           recordRequestAICost(metadata.generationId, enriched.costUsd);
         }
+        try {
+          logger.info("ai.call.cost_enriched", {
+            ...getOperationalContext(),
+            generationId: metadata.generationId,
+            gateway: metadata.gateway,
+            model: enriched.model ?? metadata.model,
+            upstreamProvider: enriched.upstreamProvider,
+            costUsd: enriched.costUsd,
+            gatewayCostUsd: enriched.gatewayCostUsd,
+            upstreamInferenceCostUsd: enriched.upstreamInferenceCostUsd,
+            isByok: enriched.isByok,
+            costSource: enriched.costSource,
+          });
+        } catch {
+          // Enrichment can outlive its request; logging is still best-effort.
+        }
         return { ...metadata, ...enriched };
       } catch (error) {
-        logger.warn("ai.router.generation_lookup_failed", {
-          gateway: metadata.gateway,
-          generationId: metadata.generationId,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        try {
+          logger.warn("ai.router.generation_lookup_failed", {
+            gateway: metadata.gateway,
+            generationId: metadata.generationId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        } catch {
+          // A broken logging sink must not discard the original route either.
+        }
         return metadata;
       }
     },

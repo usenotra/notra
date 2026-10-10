@@ -14,10 +14,14 @@ import type {
   PickerSettings,
   SuitePick,
 } from "../types/picker";
+import { aggregateCosts } from "./cost";
 import { mean, percentile } from "./stats";
 
 /** Per-call spend reads badly at classifier prices, so show it per 1k calls. */
-export function formatPerThousand(costPerCall: number): string {
+export function formatPerThousand(costPerCall: number | undefined): string {
+  if (costPerCall === undefined || !Number.isFinite(costPerCall)) {
+    return "–";
+  }
   const usd = costPerCall * 1000;
   if (usd <= 0) {
     return "$0";
@@ -51,10 +55,8 @@ function evidenceFromTasks(
     (task) => task.status === "done" || task.status === "error"
   );
   const errors = attempted.length - finished.length;
-  let spend = 0;
-  for (const task of attempted) {
-    spend += task.costUsd ?? 0;
-  }
+  const cost = aggregateCosts(attempted);
+  const costKnown = cost.costUsd !== undefined;
   const scores = finished.map((task) => task.score?.score ?? 0);
   const contender = run.config.contenders.find(
     (item) => item.modelId === modelId
@@ -74,8 +76,10 @@ function evidenceFromTasks(
       finished.map((task) => task.durationMs ?? 0).filter((ms) => ms > 0),
       50
     ),
-    costPerCall: attempted.length ? spend / attempted.length : 0,
-    costKnown: finished.every((task) => task.costUsd !== undefined),
+    costPerCall:
+      cost.costUsd === undefined ? undefined : cost.costUsd / attempted.length,
+    costSource: cost.costSource,
+    costKnown,
   };
 }
 
@@ -120,6 +124,8 @@ function isOnFrontier(
   return !all.some(
     (other) =>
       other !== item &&
+      other.costPerCall !== undefined &&
+      item.costPerCall !== undefined &&
       other.score >= item.score &&
       other.costPerCall <= item.costPerCall &&
       (other.score > item.score || other.costPerCall < item.costPerCall)
@@ -195,12 +201,16 @@ export function pickForSuite({
         blocker,
       };
     })
-    .sort((a, b) => a.costPerCall - b.costPerCall);
+    .sort((a, b) => (a.costPerCall ?? Infinity) - (b.costPerCall ?? Infinity));
 
   // Cheapest model that clears the bar; latency breaks ties.
   const recommended = evidence
     .filter((item) => item.eligible)
-    .sort((a, b) => a.costPerCall - b.costPerCall || a.p50Ms - b.p50Ms)[0];
+    .sort(
+      (a, b) =>
+        (a.costPerCall ?? Infinity) - (b.costPerCall ?? Infinity) ||
+        a.p50Ms - b.p50Ms
+    )[0];
   const production = evidence.find(
     (item) => item.modelId === suite.productionModel
   );
@@ -239,9 +249,13 @@ export function pickForSuite({
     includedIn,
     smallSample: recommended ? recommended.cases < MIN_CASES : false,
     monthlyNow:
-      production && !includedIn ? production.costPerCall * volume : undefined,
+      production?.costPerCall !== undefined && !includedIn
+        ? production.costPerCall * volume
+        : undefined,
     monthlyRecommended:
-      recommended && !includedIn ? recommended.costPerCall * volume : undefined,
+      recommended?.costPerCall !== undefined && !includedIn
+        ? recommended.costPerCall * volume
+        : undefined,
   };
 }
 

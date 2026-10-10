@@ -429,13 +429,6 @@ export async function planIrisRun(input: {
 
       const planned = invoked.success;
 
-      yield* recordPlannerOutput({
-        runId: input.runId,
-        plannerOutput: planned.output,
-        plannerInputHash: planned.inputHash,
-        costCents: planned.costCents,
-      });
-
       const violations = validatePlannerOutputAgainstMandate(
         planned.output,
         input.mandate
@@ -451,6 +444,7 @@ export async function planIrisRun(input: {
           output: planned.output,
           violations,
           costCents: planned.costCents,
+          inputHash: planned.inputHash,
         } satisfies IrisPlanResult;
       }
 
@@ -459,9 +453,20 @@ export async function planIrisRun(input: {
         output: planned.output,
         violations: [],
         costCents: planned.costCents,
+        inputHash: planned.inputHash,
       } satisfies IrisPlanResult;
     })
   );
+}
+
+// A failed write must not repeat a completed, paid planner invocation.
+planIrisRun.maxRetries = 0;
+
+export async function persistIrisPlannerOutput(
+  input: Parameters<typeof recordPlannerOutput>[0]
+): Promise<void> {
+  "use step";
+  await Effect.runPromise(recordPlannerOutput(input));
 }
 
 export async function persistIrisPlan(input: {
@@ -543,14 +548,15 @@ export async function runIrisTask(input: {
         } satisfies IrisTaskOutcome;
       }
 
-      if (started.alreadyExisted && started.action.status === "executing") {
-        const errorMessage =
-          "A previous attempt of this action is still recorded as executing, so it was not run again";
-        yield* finishAction({
-          actionId: started.action.id,
-          status: "unknown",
-          error: { message: errorMessage },
-        });
+      if (started.alreadyExisted) {
+        const errorMessage = `A previous attempt of this action is recorded as ${started.action.status}, so it was not run again`;
+        if (started.action.status === "executing") {
+          yield* finishAction({
+            actionId: started.action.id,
+            status: "unknown",
+            error: { message: errorMessage },
+          });
+        }
         yield* markTask({
           taskId: input.task.taskId,
           status: "failed",
@@ -560,7 +566,8 @@ export async function runIrisTask(input: {
           organizationId: input.organizationId,
           runId: input.runId,
           taskId: input.task.taskId,
-          kind: "task.unknown",
+          kind:
+            started.action.status === "failed" ? "task.failed" : "task.unknown",
           state: { localId: input.task.localId, errorMessage },
         });
         return {

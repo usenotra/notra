@@ -108,6 +108,7 @@ export function createModelCallTelemetry({
       const failed = result.finishReason.unified === "error";
       const generationId =
         result.providerMetadata?.[ROUTER_METADATA_KEY]?.generationId;
+      const routeMetadata = result.providerMetadata?.[ROUTER_METADATA_KEY];
       recordRequestAIUsage({
         model: route?.decision.modelId ?? request.modelId,
         inputTokens,
@@ -133,12 +134,35 @@ export function createModelCallTelemetry({
             typeof serviceTier === "string" ? serviceTier : undefined,
           reasoningTokens: result.usage.outputTokens.reasoning,
           finishReason: result.finishReason.unified,
+          ...(typeof routeMetadata?.costUsd === "number"
+            ? { costUsd: routeMetadata.costUsd }
+            : {}),
           responseId:
             result.responseId ??
             (typeof generationId === "string" ? generationId : undefined),
         },
         {
           ...(typeof generationId === "string" ? { generationId } : {}),
+          upstreamProvider:
+            typeof routeMetadata?.upstreamProvider === "string"
+              ? routeMetadata.upstreamProvider
+              : undefined,
+          gatewayCostUsd:
+            typeof routeMetadata?.gatewayCostUsd === "number"
+              ? routeMetadata.gatewayCostUsd
+              : undefined,
+          upstreamInferenceCostUsd:
+            typeof routeMetadata?.upstreamInferenceCostUsd === "number"
+              ? routeMetadata.upstreamInferenceCostUsd
+              : undefined,
+          isByok:
+            typeof routeMetadata?.isByok === "boolean"
+              ? routeMetadata.isByok
+              : undefined,
+          costSource:
+            typeof routeMetadata?.costSource === "string"
+              ? routeMetadata.costSource
+              : undefined,
           ...(failed
             ? { error: "Provider returned an error finish reason" }
             : {}),

@@ -22,11 +22,11 @@ export interface HeadlessArgs {
 function printSummary(run: EvalRun) {
   const rows = summarizeRun(run).sort((a, b) => b.accuracy - a.accuracy);
   console.log(
-    `\n${pad("model", 28)}${padStart("score", 8)}${padStart("pass", 8)}${padStart("p50", 9)}${padStart("p95", 9)}${padStart("cost", 10)}${padStart("errors", 8)}`
+    `\n${pad("model", 28)}${padStart("score", 8)}${padStart("pass", 8)}${padStart("p50", 9)}${padStart("p95", 9)}${padStart("cost", 10)} ${pad("source", 10)}${padStart("errors", 8)}`
   );
   for (const row of rows) {
     console.log(
-      `${pad(row.label, 28)}${padStart(formatPct(row.accuracy), 8)}${padStart(formatPct(row.passRate), 8)}${padStart(formatMs(row.p50Ms), 9)}${padStart(formatMs(row.p95Ms), 9)}${padStart(formatUsd(row.costUsd), 10)}${padStart(String(row.errors), 8)}`
+      `${pad(row.label, 28)}${padStart(formatPct(row.accuracy), 8)}${padStart(formatPct(row.passRate), 8)}${padStart(formatMs(row.p50Ms), 9)}${padStart(formatMs(row.p95Ms), 9)}${padStart(formatUsd(row.costUsd), 10)} ${pad(row.costSource, 10)}${padStart(String(row.errors), 8)}`
     );
     const fields = Object.entries(row.fieldAccuracy)
       .map(([field, value]) => `${field} ${formatPct(value)}`)
@@ -173,7 +173,7 @@ export async function printPicks(args: {
     for (const item of pick.evidence) {
       const mark = item.modelId === next?.modelId ? "★" : " ";
       console.log(
-        `   ${mark} ${pad(item.label, 22)}${padStart(formatPct(item.score), 7)} ±${(item.scoreSe * 100).toFixed(1).padStart(4)}${padStart(formatPerThousand(item.costPerCall), 10)}/1k${padStart(formatMs(item.p50Ms), 8)}  ${item.blocker ?? (item.frontier ? "frontier" : "")}`
+        `   ${mark} ${pad(item.label, 22)}${padStart(formatPct(item.score), 7)} ±${(item.scoreSe * 100).toFixed(1).padStart(4)}${padStart(formatPerThousand(item.costPerCall), 10)}/1k${padStart(formatMs(item.p50Ms), 8)}  ${item.blocker ?? (item.frontier ? "frontier" : "")} ${item.costSource}`
       );
     }
     if (pick.candidates.length) {

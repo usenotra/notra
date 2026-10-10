@@ -242,6 +242,7 @@ export const collectionTitleSuite: EvalSuite<
       pass: fields.every((item) => item.score >= 0.5),
       fields,
       judgeCostUsd: verdict.costUsd,
+      judgeCostSource: verdict.costSource,
     };
   },
   demoOutput(testCase, demo) {

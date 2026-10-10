@@ -228,6 +228,11 @@ export const submitFeedback = Effect.fn("feedback.submit")(function* ({
         title: body.title,
         contextUrl: body.contextUrl,
         agentClient: body.agentClient,
+        suppliedFields: {
+          kind: body.kind,
+          sentiment: body.sentiment,
+          title: body.title,
+        },
       })
     : null;
 
