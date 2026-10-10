@@ -56,8 +56,17 @@ See `.env.example` in this directory for the service-specific variables.
 
 ## Railway configuration
 
-Create an `ai-traffic-ingest` service in the `notra` project. Keep the build root
-at `/`, since the app imports workspace packages. Configure the service with:
+The existing `notra-prod` / `production` service is described in
+[`../../.railway/ai-traffic.ts`](../../.railway/ai-traffic.ts). Reuse that service,
+its two Virginia replicas, and the existing shared database, Upstash, and Tinybird
+configuration; do not provision replacements. See the
+[Railway IaC guide](../../.railway/README.md) for read-only plans and adoption.
+The repository's scheduled release owns deployments and keeps watch patterns
+unset; the manual setup below is for a new standalone installation.
+
+For a new installation, create an `ai-traffic-ingest` service in your own Railway
+project. Keep the build root at `/`, since the app imports workspace packages.
+Configure the service with:
 
 | Setting | Value |
 | --- | --- |
