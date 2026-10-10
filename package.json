@@ -30,7 +30,8 @@
     "prepare": "husky && ./scripts/prepare-effect.sh && effect-tsgo patch --typescript --oxlint",
     "brew:setup": "dotenv -- bun packages/email/scripts/brew-setup.ts",
     "brew:test-send": "dotenv -- bun packages/email/scripts/brew-test-send.tsx",
-    "brew:previews": "dotenv -- bun packages/email/scripts/brew-previews.tsx"
+    "brew:previews": "dotenv -- bun packages/email/scripts/brew-previews.tsx",
+    "geo:smoke": "dotenv -- bun apps/geo-runner/scripts/smoke.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

@@ -75,14 +75,20 @@ export function createVercelAdapter(
         apiKey: config.apiKey,
         headers: config.headers,
         baseURL: config.baseURL,
-        fetch: (input, init) =>
-          (config.fetch ?? fetch)(input, {
-            ...init,
-            signal: AbortSignal.any([
-              AbortSignal.timeout(3000),
-              ...(init?.signal ? [init.signal] : []),
-            ]),
-          }),
+        fetch: Object.assign(
+          (
+            input: Parameters<typeof fetch>[0],
+            init: Parameters<typeof fetch>[1]
+          ) =>
+            (config.fetch ?? fetch)(input, {
+              ...init,
+              signal: AbortSignal.any([
+                AbortSignal.timeout(3000),
+                ...(init?.signal ? [init.signal] : []),
+              ]),
+            }),
+          config.fetch ?? fetch
+        ),
       }).getGenerationInfo({ id: generationId });
       const costUsd =
         generation.totalCost +

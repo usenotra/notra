@@ -806,6 +806,13 @@
       "when": 1791532800000,
       "tag": "0114_site_smart_deployments",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1791550292096,
+      "tag": "0115_geo_adhoc_scans",
+      "breakpoints": true
     }
   ]
 }

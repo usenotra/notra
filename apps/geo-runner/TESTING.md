@@ -1,0 +1,144 @@
+# Runner verification, 2026-10-07
+
+The implementation at commit `9e6491f` was exercised in an isolated Daytona sandbox on Linux
+x86-64 with Bun 1.4.0, 2 CPUs, 4 GiB RAM, and 8 GiB disk. Source uploads contained
+Git-tracked files only. No production database, billing key, or provider key was
+sent to the sandbox. Database tests use PGlite; provider and billing boundaries
+are deterministic test doubles.
+
+| Check | Observed result |
+| --- | --- |
+| Full GEO Core suite | 153 passed, 0 failed, 677 assertions |
+| Runner HTTP, queue and shutdown suite | 19 passed, 0 failed, 173 assertions |
+| Shared AI router tests, locally | 42 passed |
+| DB migration guard | 111 migrations validated against `origin/main` |
+| Local typechecks | Runner, Core, DB, AI, dashboard, and API passed |
+| Daytona runner typecheck and bundle | Passed with Bun 1.4.0 |
+| Repository formatting/lint and pre-commit Knip | Passed; existing UI lint warnings remain |
+| Dockerfile | All three stages built in Daytona from the pinned Bun Alpine image |
+
+The compiled bundle was also started as an actual HTTP process, using an
+unreachable placeholder database URL and no provider or billing credentials.
+`/health` returned `200`, `/ready` returned `503`, unauthenticated scan creation
+returned `401`, malformed JSON returned `400`, and an oversized body returned
+`413`. A burst of 100 unauthenticated requests was entirely rejected. Idle
+SIGTERM shutdown exited with code 0 in 11 ms in that sandbox.
+The final Alpine image repeated those status and burst checks successfully;
+idle SIGTERM shutdown exited with code 0 in 10 ms. All test sandboxes were
+deleted after verification.
+
+Reproduce the isolated suites from the repository root:
+
+```sh
+bun install --frozen-lockfile
+bun run --filter=@notra/geo-core test
+bun run --filter=geo-runner test
+bun run --filter=geo-runner check-types
+bun run --filter=geo-runner build
+bun run db:check --base=origin/main
+docker build -f apps/geo-runner/Dockerfile -t notra-geo-runner .
+```
+
+The tests exercise malformed and oversized bodies, missing/weak/incorrect
+credentials, organization/project isolation, idempotency conflicts, unsupported
+models and languages, unavailable web search, ZDR restrictions, empty answers,
+provider failures, and stale scans. They also cover concurrent atomic claims,
+full queue capacity, duplicate offers, local draining, cancellation and billing
+release, cleanup rejection, and cleanup that never resolves.
+
+A two-replica regression reproduces a rejecting creator racing an accepted
+same-key retry. The rejected request must leave the durable scan intact.
+Readiness tests verify missing configuration and an absent scan table return
+`503`. Search source candidates alone must leave `ownedSourceCited=false`.
+
+The result-field fixture verifies USD 0.25 for the answer plus USD 0.50 for the
+judge produces `costUsd=0.75`, `judgeTokens=7`, and billing usage of 9 total
+tokens. These are fixture values, not measured real-provider prices.
+
+The initial default 1 GiB sandbox hit its memory limit while installing the
+monorepo. Installation succeeded in the larger sandbox. Running all monorepo
+typechecks concurrently also exceeded its memory budget; the relevant host and
+package typechecks passed locally. These failures do not establish runner
+memory requirements under production load.
+
+## CLI and billing follow-up
+
+After merging `main` at `ac4094645`, the updated CLI and billing fixes were
+verified again in a fresh Daytona sandbox with the same Bun 1.4.0 image and
+resource limits. The full GEO Core suite passed 161 tests and 707 assertions.
+The runner suite passed 29 tests and 227 assertions, including 10 CLI tests.
+The runner typecheck and final bundle build also passed in this sandbox.
+
+The CLI tests start actual Bun subprocesses against local HTTP servers. They
+verify JSON output without database configuration, scoped read-only polling,
+503 and lost-response retries with the same idempotency key, rejected redirects,
+invalid model IDs and response shapes, failed scans, deadlines, and fixture
+refusal before HTTP or database access. Fixture guards also reject PostgreSQL
+query parameters that could override a loopback hostname.
+
+Five billing regressions exercise the real shared reservation and settlement
+functions against a mocked Autumn boundary. They verify reserving all eligible
+answers, releasing empty answer-quota runs, settling partial successes, charging
+retained paid usage in credit mode, and refusing model calls without balance.
+Three judge-cost regressions use the AI SDK and real pricing logic to verify
+Flex estimates, precedence of reported route costs, and unchanged OpenRouter
+pricing. All amounts in these tests are fixture values.
+
+The six relevant local typechecks passed for Runner, GEO Core, AI, DB, dashboard,
+and API. The shared router's 42 tests and repository formatting/lint also
+passed. Existing UI lint warnings remain. These follow-up tests use simulated
+providers and Autumn; they do not prove a real customer charge or complete
+capture of failed-retry costs.
+
+## Migration conflict follow-up
+
+After merging scheduled publishing from `main` at `f26d61a7e`, the GEO migration
+became `0111_geo_adhoc_scans`. Existing main migrations and snapshots remain
+unchanged. The append-only guard validates 112 migrations; the new snapshot
+preserves scheduled-publication tables and extends main with the adhoc table.
+Eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
+typecheck and build passed locally. No live database migration ran.
+
+A later merge of `main` at `6e845aa85` preserved its new scheduled-publication
+`attempt_outcome` migration and moved GEO to `0112_geo_adhoc_scans`. All existing
+main migration files remain unchanged. The guard validates 113 migrations;
+eight migration tests, DB types, 161 Core tests, 29 runner tests, and the runner
+typecheck and build passed locally without connecting to a live database.
+
+The merge of `main` at `8c8d09c61` preserves `0112_sites` and moves the GEO
+migration to `0113_geo_adhoc_scans`. All main migration files remain unchanged;
+the guard validates 114 migrations. Eight migration tests, 188 Core tests
+(one PostgreSQL-only test skipped), 29 runner tests, typechecks and lint passed.
+The adhoc billing helper import follows its new location in `@notra/ai`.
+
+The subsequent merge at `cba4806bf` preserves `0113_site_preview_comments`
+and moves the adhoc migration to `0114_geo_adhoc_scans`. The guard validates
+115 migrations. The complete DB suite passes 10 tests, with seven PostgreSQL
+tests skipped without `SITES_TEST_DATABASE_URL`. The Sites telemetry test uses
+main's check for its journal entry rather than requiring it to be last.
+
+The merge at `1d7afaaa9` preserves `0114_site_smart_deployments` and moves
+the adhoc migration to `0115_geo_adhoc_scans`. The guard validates 116 migrations;
+all main migration files and journal entries remain unchanged. The DB suite,
+runner tests, types and isolated Docker install/build pass with the updated
+dependencies. No Alpine image or live database was used for these local checks.
+
+On 2026-10-07, a separate Daytona run exercised one real grounded model answer
+and its Judge through the CLI against isolated PGlite fixtures. Same-key replay
+made no additional external requests; authentication, organization boundaries
+and idempotency conflicts passed. Billing used the unmetered development path.
+The [complete report](https://0tcw1n97jymk.postplan.dev) records that earlier
+`383ecedc4` source revision, rather than this later merge.
+
+## Remaining production checks
+
+The Railway service was deleted at the user's request. There is no active
+runner deployment. Sandbox tests did not use production Autumn credentials.
+No production migration, real customer charge, or production Axiom drain was
+verified. Follow the [activation steps](README.md#railway-setup) before enabling
+callers.
+
+The in-process queue has no automatic restart recovery. A same-key retry or
+explicit reoffer recovers queued work; otherwise it expires after 12 hours.
+The concurrency tests simulate multiple replicas through real database claims
+and separate queue handlers. They do not constitute a sustained Railway load test.

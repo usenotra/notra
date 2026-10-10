@@ -77,6 +77,11 @@ function buildAdapters(): Partial<Record<GatewayId, GatewayAdapter>> {
   return adapters;
 }
 
+/** True when the router can register at least one gateway adapter. */
+export function isAiGatewayConfigured(): boolean {
+  return Object.keys(buildAdapters()).length > 0;
+}
+
 function createRouter(): ModelRouter {
   // The public demo has no provider keys; answer every call in-process.
   if (isDemoMode()) {

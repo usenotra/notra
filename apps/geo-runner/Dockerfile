@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Build from the monorepo root changes here
-#   docker build -f apps/api/Dockerfile -t notra-api .
+# Build from the monorepo root:
+#   docker build -f apps/geo-runner/Dockerfile -t notra-geo-runner .
 
 # ─── Stage 1: install dependencies ───────────────────────────────────────────
 FROM oven/bun:1.4.0-alpine@sha256:07235578f79ef8c6f97d94aee7938e76f5cdba5f21ae5dbfdd3d3d38058437eb AS deps
@@ -39,15 +39,14 @@ COPY packages/utils/package.json ./packages/utils/package.json
 COPY packages/webhooks/package.json ./packages/webhooks/package.json
 
 # Install all workspace deps. Root prepare scripts are local-dev only.
-RUN bun install --ignore-scripts
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # ─── Stage 2: build ──────────────────────────────────────────────────────────
 FROM deps AS builder
 
-# Copy source for all packages the API depends on
+# Copy source for all packages the runner depends on
 COPY packages/ai ./packages/ai
 COPY packages/analytics ./packages/analytics
-COPY packages/content-generation ./packages/content-generation
 COPY packages/typescript-config ./packages/typescript-config
 COPY packages/db ./packages/db
 COPY packages/geo-core ./packages/geo-core
@@ -55,10 +54,9 @@ COPY packages/posthog ./packages/posthog
 COPY packages/schemas ./packages/schemas
 COPY packages/sites-core ./packages/sites-core
 COPY packages/utils ./packages/utils
-COPY packages/webhooks ./packages/webhooks
-COPY apps/api ./apps/api
+COPY apps/geo-runner ./apps/geo-runner
 
-WORKDIR /app/apps/api
+WORKDIR /app/apps/geo-runner
 RUN bun run build
 
 # ─── Stage 3: production image ───────────────────────────────────────────────
@@ -66,7 +64,7 @@ FROM oven/bun:1.4.0-alpine@sha256:07235578f79ef8c6f97d94aee7938e76f5cdba5f21ae5d
 
 WORKDIR /app
 
-COPY --from=builder /app/apps/api/dist/index.mjs ./dist/index.mjs
+COPY --from=builder /app/apps/geo-runner/dist/index.mjs ./dist/index.mjs
 
 USER bun
 
@@ -75,4 +73,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["bun", "run","dist/index.mjs"]
+CMD ["bun", "run", "dist/index.mjs"]

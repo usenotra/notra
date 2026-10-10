@@ -1,6 +1,7 @@
 import { PGlite } from "@electric-sql/pglite";
 import {
   brandSettings,
+  geoAdhocScans,
   brandSitemaps,
   brandSitemapPages,
   brandSitemapStatusEnum,
@@ -69,6 +70,7 @@ const schema = {
   projects,
   geoSettings,
   geoScans,
+  geoAdhocScans,
   geoScansRelations,
   geoScanEvents,
   geoScanEventsRelations,
