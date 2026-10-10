@@ -26,6 +26,7 @@ import {
   TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
 import { WEB_DEVICE_ICONS, WEB_LIST_LIMIT } from "@/constants/web-analytics";
+import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import type {
   WebBreakdownRow,
   WebMetricProps,
@@ -83,6 +84,7 @@ export function WebVisitorsSection({
 }: WebVisitorsSectionProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
+  const sideBySide = useDesktopBreakpoint();
   const { totals } = web;
   const aiTraffic = traffic ?? GEO_EMPTY_TRAFFIC_RESPONSE;
   const previousAi = toGeoTrafficPreviousTotals(
@@ -184,13 +186,14 @@ export function WebVisitorsSection({
     };
   });
 
-  // Tables that sit side by side share one height, set by the longer list.
-  const topHeight = webTableHeight(
-    Math.max(pageRows.length, sourceRows.length)
-  );
-  const audienceHeight = webTableHeight(
-    Math.max(countryRows.length, deviceRows.length)
-  );
+  // Side by side, a pair shares the taller of its own heights (an empty list
+  // keeps its empty-state height). Stacked, each table sizes itself.
+  const pairHeight = (first: number, second: number) =>
+    sideBySide
+      ? Math.max(webTableHeight(first), webTableHeight(second))
+      : undefined;
+  const topHeight = pairHeight(pageRows.length, sourceRows.length);
+  const audienceHeight = pairHeight(countryRows.length, deviceRows.length);
 
   return (
     <section className="flex flex-col gap-6">
