@@ -2,6 +2,7 @@
 
 import { Calendar03Icon, Download04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Image } from "@notra/ui/components/framework-provider";
 import { CompetitorLogo } from "@notra/ui/components/geo/competitor-logo";
 import { EngineIcon } from "@notra/ui/components/geo/engine-icon";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
@@ -36,6 +37,7 @@ import {
 } from "@/components/state-of-ai-search/report-ui";
 import { SourceSheet } from "@/components/state-of-ai-search/source-sheet";
 import {
+  REPORT_HERO_LOGO_SOURCES,
   REPORT_SURFACE_LIFT,
   STATE_OF_AI_SEARCH_CTA_HEADING,
   STATE_OF_AI_SEARCH_CTA_SUBCOPY,
@@ -78,6 +80,13 @@ function PodiumLogos({ leaders }: { leaders: StateOfAiSearchRankingRow[] }) {
           return [];
         }
         const first = rank === 0;
+        const logoSrc = row.domain
+          ? REPORT_HERO_LOGO_SOURCES[row.domain]
+          : undefined;
+        const logoClassName = cn(
+          "rounded-[0.2em] bg-white",
+          first ? "size-[0.8em]" : "size-[0.62em]"
+        );
         return [
           <span
             className={cn(
@@ -88,14 +97,22 @@ function PodiumLogos({ leaders }: { leaders: StateOfAiSearchRankingRow[] }) {
             )}
             key={row.name}
           >
-            <CompetitorLogo
-              className={cn(
-                "rounded-[0.2em] bg-white",
-                first ? "size-[0.8em]" : "size-[0.62em]"
-              )}
-              domain={row.domain}
-              name={row.name}
-            />
+            {logoSrc ? (
+              <Image
+                alt={`${row.name} logo`}
+                className={logoClassName}
+                height={80}
+                src={logoSrc}
+                unoptimized
+                width={80}
+              />
+            ) : (
+              <CompetitorLogo
+                className={logoClassName}
+                domain={row.domain}
+                name={row.name}
+              />
+            )}
           </span>,
         ];
       })}

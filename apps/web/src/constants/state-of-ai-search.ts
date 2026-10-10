@@ -14,6 +14,11 @@ export const PROMPTS_PAGE_SIZE = 10;
 export const REPORT_ROW_HEIGHT = 48;
 export const REPORT_LEADER_LOGOS = 3;
 
+export const REPORT_HERO_LOGO_SOURCES: Record<string, string> = {
+  "clerk.com": "/logos/brands/clerk.svg",
+  "render.com": "/logos/brands/render.svg",
+};
+
 export const STATE_OF_AI_SEARCH_CTA_HEADING = "Where do you rank in AI search?";
 export const STATE_OF_AI_SEARCH_CTA_SUBCOPY =
   "Notra runs these checks daily for your brand and your prompts, then drafts the content that moves the answer.";
