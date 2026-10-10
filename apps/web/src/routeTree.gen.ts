@@ -72,6 +72,7 @@ import { Route as SiteFeaturesIndexRouteImport } from './routes/_site/features/i
 import { Route as SiteFeaturesAiCrawlerLogsRouteImport } from './routes/_site/features/ai-crawler-logs'
 import { Route as SiteFeaturesConversationsRouteImport } from './routes/_site/features/conversations'
 import { Route as SiteFeaturesPersonasRouteImport } from './routes/_site/features/personas'
+import { Route as SiteFeaturesSitesRouteImport } from './routes/_site/features/sites'
 import { Route as SiteIntegrationsIndexRouteImport } from './routes/_site/integrations/index'
 import { Route as SiteIntegrationsIdRouteImport } from './routes/_site/integrations/$id'
 import { Route as SiteIntegrationsGithubRouteImport } from './routes/_site/integrations/github'
@@ -434,6 +435,11 @@ const SiteFeaturesPersonasRoute = SiteFeaturesPersonasRouteImport.update({
   path: '/features/personas',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteFeaturesSitesRoute = SiteFeaturesSitesRouteImport.update({
+  id: '/features/sites',
+  path: '/features/sites',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteIntegrationsIndexRoute = SiteIntegrationsIndexRouteImport.update({
   id: '/integrations/',
   path: '/integrations/',
@@ -714,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/features/ai-crawler-logs': typeof SiteFeaturesAiCrawlerLogsRoute
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
+  '/features/sites': typeof SiteFeaturesSitesRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
   '/integrations/github': typeof SiteIntegrationsGithubRoute
   '/integrations/granola': typeof SiteIntegrationsGranolaRoute
@@ -815,6 +822,7 @@ export interface FileRoutesByTo {
   '/features/ai-crawler-logs': typeof SiteFeaturesAiCrawlerLogsRoute
   '/features/conversations': typeof SiteFeaturesConversationsRoute
   '/features/personas': typeof SiteFeaturesPersonasRoute
+  '/features/sites': typeof SiteFeaturesSitesRoute
   '/integrations/$id': typeof SiteIntegrationsIdRoute
   '/integrations/github': typeof SiteIntegrationsGithubRoute
   '/integrations/granola': typeof SiteIntegrationsGranolaRoute
@@ -922,6 +930,7 @@ export interface FileRoutesById {
   '/_site/features/ai-crawler-logs': typeof SiteFeaturesAiCrawlerLogsRoute
   '/_site/features/conversations': typeof SiteFeaturesConversationsRoute
   '/_site/features/personas': typeof SiteFeaturesPersonasRoute
+  '/_site/features/sites': typeof SiteFeaturesSitesRoute
   '/_site/integrations/$id': typeof SiteIntegrationsIdRoute
   '/_site/integrations/github': typeof SiteIntegrationsGithubRoute
   '/_site/integrations/granola': typeof SiteIntegrationsGranolaRoute
@@ -1025,6 +1034,7 @@ export interface FileRouteTypes {
     | '/features/ai-crawler-logs'
     | '/features/conversations'
     | '/features/personas'
+    | '/features/sites'
     | '/integrations/$id'
     | '/integrations/github'
     | '/integrations/granola'
@@ -1126,6 +1136,7 @@ export interface FileRouteTypes {
     | '/features/ai-crawler-logs'
     | '/features/conversations'
     | '/features/personas'
+    | '/features/sites'
     | '/integrations/$id'
     | '/integrations/github'
     | '/integrations/granola'
@@ -1232,6 +1243,7 @@ export interface FileRouteTypes {
     | '/_site/features/ai-crawler-logs'
     | '/_site/features/conversations'
     | '/_site/features/personas'
+    | '/_site/features/sites'
     | '/_site/integrations/$id'
     | '/_site/integrations/github'
     | '/_site/integrations/granola'
@@ -1771,6 +1783,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteFeaturesPersonasRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/features/sites': {
+      id: '/_site/features/sites'
+      path: '/features/sites'
+      fullPath: '/features/sites'
+      preLoaderRoute: typeof SiteFeaturesSitesRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/integrations/': {
       id: '/_site/integrations/'
       path: '/integrations'
@@ -2154,6 +2173,7 @@ interface SiteRouteChildren {
   SiteFeaturesAiCrawlerLogsRoute: typeof SiteFeaturesAiCrawlerLogsRoute
   SiteFeaturesConversationsRoute: typeof SiteFeaturesConversationsRoute
   SiteFeaturesPersonasRoute: typeof SiteFeaturesPersonasRoute
+  SiteFeaturesSitesRoute: typeof SiteFeaturesSitesRoute
   SiteIntegrationsIdRoute: typeof SiteIntegrationsIdRoute
   SiteIntegrationsGithubRoute: typeof SiteIntegrationsGithubRoute
   SiteIntegrationsGranolaRoute: typeof SiteIntegrationsGranolaRoute
@@ -2199,6 +2219,7 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteFeaturesAiCrawlerLogsRoute: SiteFeaturesAiCrawlerLogsRoute,
   SiteFeaturesConversationsRoute: SiteFeaturesConversationsRoute,
   SiteFeaturesPersonasRoute: SiteFeaturesPersonasRoute,
+  SiteFeaturesSitesRoute: SiteFeaturesSitesRoute,
   SiteIntegrationsIdRoute: SiteIntegrationsIdRoute,
   SiteIntegrationsGithubRoute: SiteIntegrationsGithubRoute,
   SiteIntegrationsGranolaRoute: SiteIntegrationsGranolaRoute,
