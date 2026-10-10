@@ -52,9 +52,11 @@ Knip, and the dashboard production build passed. Existing repository lint and
 bundler warnings remain; no production credentials or paid inference were
 used in these tests.
 
-Follow-up review fixes do not replace the clean-revision snapshot above. A
-local dirty-checkout rerun reproduced both revisions' complete harness
-measurements unchanged; Iris's opt-in historical comparison also remains
+Follow-up review fixes do not replace the original clean-revision snapshot
+above. [`results-review.json`](./results-review.json) records the same clean
+baseline and clean reviewed implementation
+`44c6b68eb609f0ac6d44cb790c7edc242566cc98`. Both revisions' complete harness
+measurements are unchanged; Iris's opt-in historical comparison also remains
 4→1 planner calls, 4→4 persistence attempts, and 1→0 ambiguous/failed action
 re-executions. These checks are not new live-spend measurements.
 
