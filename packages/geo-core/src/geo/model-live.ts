@@ -280,6 +280,7 @@ export const geoModelLive = Layer.succeed(
         const result = await getEvaluationClient().tryEvaluate({
           feature: GEO_MENTION_EVALUATION_FEATURE,
           organizationId: input.organizationId,
+          logContext: input.logContext,
           state: buildMentionEvaluationState(input),
           questions: MENTION_EVALUATION_QUESTIONS,
           timeoutMs: GEO_MENTION_EVALUATION_TIMEOUT_MS,

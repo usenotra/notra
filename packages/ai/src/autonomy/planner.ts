@@ -47,13 +47,15 @@ const buildPlannerInputFingerprint = (input: IrisPlannerInput) => ({
 
 const generatePlannerDraft = Effect.fn("iris.planner.generate")(function* (
   prompt: string,
-  organizationId: string
+  organizationId: string,
+  runId?: string
 ) {
   const generated = yield* Effect.tryPromise({
     try: async () => {
       const result = await generateText({
         model: gateway(IRIS_PLANNER_MODEL_ID, {
           organizationId,
+          logContext: { runId },
         }),
         output: Output.object({ schema: plannerDraftOutputSchema }),
         instructions: buildIrisPlannerSystemPrompt(),
@@ -199,7 +201,8 @@ export const invokeIrisPlanner = Effect.fn("iris.planner.invoke")(function* (
     const attemptCostCents = costCents;
     const generated = yield* generatePlannerDraft(
       prompt,
-      input.mandate.organizationId
+      input.mandate.organizationId,
+      input.runId
     ).pipe(
       Effect.catch((error) =>
         Effect.fail(

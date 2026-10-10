@@ -1,3 +1,4 @@
+import { gatewayAttributionOptions } from "@notra/ai/utils/usage-attribution";
 import { getOrganizationId } from "@notra/tools/utils/organization";
 import { defineDynamic } from "eve";
 
@@ -11,18 +12,19 @@ export function createSessionAgentModel(
   const model = createAgentModel(modelId, tag);
   return defineDynamic({
     events: {
-      "step.started": (_event, ctx) => {
+      "step.started": (event, ctx) => {
         const organizationId = getOrganizationId(ctx);
-        const gatewayOptions: Record<string, string> = {};
-        if (organizationId) {
-          gatewayOptions.user = organizationId;
-        }
+        const turnId = (event as { data?: { turnId?: unknown } }).data?.turnId;
         return {
           model,
           modelContextWindowTokens,
           modelOptions: {
             providerOptions: {
-              gateway: gatewayOptions,
+              gateway: gatewayAttributionOptions({
+                organizationId,
+                sessionId: ctx.session.id,
+                turnId: typeof turnId === "string" ? turnId : undefined,
+              }),
             },
           },
         };

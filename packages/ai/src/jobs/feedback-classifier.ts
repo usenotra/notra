@@ -45,6 +45,7 @@ async function generateClassification(
     const { output } = await generateText({
       model: gateway(FEEDBACK_CLASSIFIER_MODEL_ID, {
         organizationId: params.organizationId,
+        logContext: { runId: params.feedbackId },
       }),
       output: Output.object({ schema: feedbackClassificationSchema }),
       instructions: FEEDBACK_CLASSIFIER_SYSTEM_PROMPT,
@@ -104,6 +105,7 @@ export async function classifyAgentFeedback(
     const evaluation = await getEvaluationClient().tryEvaluate({
       feature: FEEDBACK_CLASSIFIER_FEATURE,
       organizationId: params.organizationId,
+      logContext: { runId: params.feedbackId },
       state: buildFeedbackEvaluationState(params),
       questions: {
         ...(!supplied.kind && { kind: FEEDBACK_EVALUATION_QUESTIONS.kind }),
@@ -130,6 +132,7 @@ export async function classifyAgentFeedback(
     getEvaluationClient().tryEvaluate({
       feature: FEEDBACK_CLASSIFIER_FEATURE,
       organizationId: params.organizationId,
+      logContext: { runId: params.feedbackId },
       state: buildFeedbackEvaluationState(params),
       questions: FEEDBACK_EVALUATION_QUESTIONS,
       timeoutMs: FEEDBACK_CLASSIFIER_TIMEOUT_MS,

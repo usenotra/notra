@@ -18,6 +18,7 @@ import { getGitHubMentionPathBlockReason } from "@notra/ai/utils/github-mention-
 import { consumeGitHubMentionSandboxStream } from "@notra/ai/utils/github-mention-sandbox-usage";
 import { commitFilesToPullRequest } from "@notra/ai/utils/github-pr-commit";
 import { syncPublishedPostAfterCommit } from "@notra/ai/utils/update-published-content";
+import { gatewayReportingHeaders } from "@notra/ai/utils/usage-attribution";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
 import { Agent, Box } from "@upstash/box";
 
@@ -137,6 +138,10 @@ export async function runGitHubMentionSandbox(params: {
   const starting = Box.create({
     apiKey: boxApiKey,
     runtime: "node" satisfies Runtime,
+    attachHeaders: gatewayReportingHeaders("github-mention-sandbox", {
+      organizationId: params.context.organizationId,
+      runId: params.context.deliveryId ?? undefined,
+    }),
     agent: {
       harness: Agent.OpenCode,
       model: SANDBOX_MODEL_ID as VercelModel,

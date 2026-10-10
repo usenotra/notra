@@ -23,19 +23,25 @@ import type { DiagramSpec } from "@notra/ai/types/excalidraw-diagram";
 import type {
   GenerateRepoImageInput,
   GenerateRepoImageResult,
+  GenerateRepoImageParams,
   RepoImageFormat,
   RepoImageRender,
   RepoImageSourceContext,
 } from "@notra/ai/types/repo-image";
 import { createOctokit } from "@notra/ai/utils/octokit";
+import { getOperationalContext } from "@notra/ai/utils/operational-context";
 import { withBoxRetry } from "@notra/ai/utils/repo-image-box";
 import { cleanupRepoImageSandbox } from "@notra/ai/utils/repo-image-sandbox-cleanup";
 import {
   injectBrandIdentitySkill,
   injectHumanizerSkill,
 } from "@notra/ai/utils/repo-image-skills";
-import { logError, logWarn } from "@notra/ai/utils/server-log";
+import { logError, logInfo, logWarn } from "@notra/ai/utils/server-log";
 import { withLongFetchTimeouts } from "@notra/ai/utils/undici-dispatcher";
+import {
+  gatewayReportingHeaders,
+  withUsageContext,
+} from "@notra/ai/utils/usage-attribution";
 import type { BoxConfig, Runtime, VercelModel } from "@upstash/box";
 import { Agent, Box } from "@upstash/box";
 
@@ -237,19 +243,19 @@ async function buildSourceContext(params: {
   };
 }
 
-export async function generateRepoImage(params: {
-  input: GenerateRepoImageInput;
-  userId: string | null;
-  restoreSnapshotId?: string | null;
-  /**
-   * Latest saved diagram spec. Manual and fast AI edits happen outside the
-   * sandbox, so the restored snapshot can hold an older diagram.json.
-   */
-  restoreDiagramSpec?: DiagramSpec | null;
-  snapshotName?: string;
-  /** Override for model comparisons; production uses IMAGE_GEN_MODEL_ID. */
-  agentModelId?: string;
-}): Promise<GenerateRepoImageResult> {
+export async function generateRepoImage(
+  params: GenerateRepoImageParams
+): Promise<GenerateRepoImageResult> {
+  return await withUsageContext(
+    params.input.organizationId,
+    { ...params.logContext },
+    () => generateRepoImageWithContext(params)
+  );
+}
+
+async function generateRepoImageWithContext(
+  params: GenerateRepoImageParams
+): Promise<GenerateRepoImageResult> {
   const { input, restoreDiagramSpec, restoreSnapshotId, snapshotName, userId } =
     params;
 
@@ -313,9 +319,18 @@ export async function generateRepoImage(params: {
 
   return await withLongFetchTimeouts(async () => {
     const runtime = "node" satisfies Runtime;
+    const attributionRunId =
+      params.logContext?.runId ??
+      getOperationalContext()?.runId ??
+      crypto.randomUUID();
     const boxConfig = {
       apiKey: upstashBoxApiKey,
       runtime: runtime as Runtime,
+      attachHeaders: gatewayReportingHeaders("content-image-agent", {
+        ...params.logContext,
+        organizationId: input.organizationId,
+        runId: attributionRunId,
+      }),
       git: {
         ...(token ? { token } : {}),
         userName: "notra-bot",
@@ -331,6 +346,18 @@ export async function generateRepoImage(params: {
     const box = restoreSnapshotId
       ? await withBoxRetry(() => Box.fromSnapshot(restoreSnapshotId, boxConfig))
       : await withBoxRetry(() => Box.create(boxConfig));
+    try {
+      logInfo("ai.box.started", {
+        ...params.logContext,
+        feature: "content-image-agent",
+        organizationId: input.organizationId,
+        runId: attributionRunId,
+        boxId: box.id,
+        model: params.agentModelId ?? IMAGE_GEN_MODEL_ID,
+      });
+    } catch {
+      // A broken logging sink must not strand a newly created box.
+    }
 
     const format: RepoImageFormat = input.format ?? "marketing";
     const formatRunner = FORMAT_RUNNERS[format];

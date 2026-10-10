@@ -54,6 +54,7 @@ import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { logWarn } from "@notra/ai/utils/server-log";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
+import { withUsageContext } from "@notra/ai/utils/usage-attribution";
 import { db } from "@notra/db/drizzle";
 import { posts } from "@notra/db/schema";
 import {
@@ -201,6 +202,14 @@ function describePlannerFailure(error: unknown): PlannerFailure {
 export async function generateGeoContentBrief(
   options: GenerateGeoContentBriefOptions
 ): Promise<GenerateGeoContentBriefResult> {
+  return await withUsageContext(options.organizationId, undefined, () =>
+    generateGeoContentBriefWithContext(options)
+  );
+}
+
+async function generateGeoContentBriefWithContext(
+  options: GenerateGeoContentBriefOptions
+): Promise<GenerateGeoContentBriefResult> {
   const { organizationId, input, log } = options;
 
   await assertRouteHasCredits({
@@ -254,7 +263,7 @@ export async function generateGeoContentBrief(
         prompt,
         maxOutputTokens: GEO_WRITER_PLANNER_MAX_TOKENS,
         providerOptions: withRouterDefaults(
-          { gateway: { tags: ["geo-writer"] } },
+          { gateway: { tags: ["geo-writer", "feature:geo-writer-planner"] } },
           {
             modelId: GEO_WRITER_PLANNER_MODEL,
           }
@@ -416,7 +425,7 @@ async function humanizeMarkdown(
     prompt: buildGeoHumanizerPrompt(markdown),
     maxOutputTokens: GEO_WRITER_HUMANIZER_MAX_TOKENS,
     providerOptions: withRouterDefaults(
-      { gateway: { tags: ["geo-writer"] } },
+      { gateway: { tags: ["geo-writer", "feature:geo-writer-humanizer"] } },
       {
         modelId: GEO_WRITER_MODEL,
       }
@@ -541,6 +550,16 @@ function formatMonthYear(date: Date): string {
 }
 
 export async function runGeoWriter(
+  options: RunGeoWriterOptions
+): Promise<GeoWriterResult> {
+  return await withUsageContext(
+    options.organizationId,
+    options.telemetryMetadata,
+    () => runGeoWriterWithContext(options)
+  );
+}
+
+async function runGeoWriterWithContext(
   options: RunGeoWriterOptions
 ): Promise<GeoWriterResult> {
   const {

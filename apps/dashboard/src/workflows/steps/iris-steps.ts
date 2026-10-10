@@ -399,6 +399,7 @@ export async function planIrisRun(input: {
     Effect.gen(function* () {
       const invoked = yield* Effect.result(
         invokeIrisPlanner({
+          runId: input.runId,
           mandate: input.mandate,
           signalSummaries: input.signalSummaries,
           recentActionSummaries: input.recentActionSummaries,

@@ -1,4 +1,6 @@
+import type { LanguageModelV4CallOptions } from "@ai-sdk/provider";
 import { ROUTER_METADATA_KEY } from "@notra/ai/constants/router";
+import { log } from "@notra/ai/evlog";
 import type {
   ModelCallTelemetry,
   ModelCallTelemetryOptions,
@@ -6,6 +8,7 @@ import type {
 import type { ResolvedRoute, RouterLogFields } from "@notra/ai/types/router";
 import { getOperationalContext } from "@notra/ai/utils/operational-context";
 import { recordRequestAIUsage } from "@notra/ai/utils/request-ai-usage";
+import { getUsageAttribution } from "@notra/ai/utils/usage-attribution";
 
 /** One lifecycle per SDK model invocation, including any router fallback. */
 export function createModelCallTelemetry({
@@ -16,7 +19,12 @@ export function createModelCallTelemetry({
   providerOptions,
 }: ModelCallTelemetryOptions): ModelCallTelemetry {
   const callId = crypto.randomUUID();
-  const context = { ...getOperationalContext(), ...request.logContext };
+  const attribution = getUsageAttribution(providerOptions);
+  const context = {
+    ...attribution,
+    ...getOperationalContext(),
+    ...request.logContext,
+  };
   const tags = providerOptions?.gateway?.tags;
   const startedAt = performance.now();
   let route: ResolvedRoute | undefined;
@@ -39,10 +47,14 @@ export function createModelCallTelemetry({
         callId,
         operation,
         organizationId: request.organizationId ?? context.organizationId,
+        attribution:
+          Array.isArray(tags) && tags.includes("attribution:complete")
+            ? "complete"
+            : "partial",
         requestedModel: request.modelId,
         model: route?.decision.modelId ?? request.modelId,
         gateway: route?.decision.gateway ?? request.gateway,
-        attemptCount,
+        attemptCount: attemptCount || 1,
         fallbackFrom: route?.decision.fallbackFrom,
         fallbackReason: route?.decision.fallbackReason,
         zdrEnforced: route?.decision.zdrEnforced,
@@ -107,7 +119,8 @@ export function createModelCallTelemetry({
         result.providerMetadata?.openai?.serviceTier;
       const failed = result.finishReason.unified === "error";
       const generationId =
-        result.providerMetadata?.[ROUTER_METADATA_KEY]?.generationId;
+        result.providerMetadata?.[ROUTER_METADATA_KEY]?.generationId ??
+        result.providerMetadata?.gateway?.generationId;
       const routeMetadata = result.providerMetadata?.[ROUTER_METADATA_KEY];
       recordRequestAIUsage({
         model: route?.decision.modelId ?? request.modelId,
@@ -162,7 +175,7 @@ export function createModelCallTelemetry({
           costSource:
             typeof routeMetadata?.costSource === "string"
               ? routeMetadata.costSource
-              : undefined,
+              : "unknown",
           ...(failed
             ? { error: "Provider returned an error finish reason" }
             : {}),
@@ -199,4 +212,23 @@ export function createModelCallTelemetry({
       );
     },
   };
+}
+
+/** Direct Eve models share the router's lifecycle logs without changing routes. */
+export function createGatewayCallTelemetry(
+  modelId: string,
+  params: Pick<LanguageModelV4CallOptions, "providerOptions" | "abortSignal">,
+  operation: "generate" | "stream" | "evaluate"
+) {
+  return createModelCallTelemetry({
+    logger: {
+      info: (event, fields) => log.info({ event, ...fields }),
+      warn: (event, fields) => log.warn({ event, ...fields }),
+      error: (event, fields) => log.error({ event, ...fields }),
+    },
+    request: { modelId, gateway: "vercel" },
+    providerOptions: params.providerOptions,
+    signal: params.abortSignal,
+    operation,
+  });
 }

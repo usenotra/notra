@@ -8,6 +8,7 @@ import type {
   DiagramSpec,
   ExcalidrawScene,
 } from "@notra/ai/types/excalidraw-diagram";
+import type { OperationalContext } from "@notra/ai/types/operational-log";
 import type * as z from "zod";
 
 export type RepoImageMode = z.infer<typeof repoImageModeSchema>;
@@ -23,6 +24,18 @@ export type RepoImageErrorCode =
 export type GenerateRepoImageInput = z.infer<
   typeof generateRepoImageInputSchema
 >;
+
+export interface GenerateRepoImageParams {
+  input: GenerateRepoImageInput;
+  userId: string | null;
+  restoreSnapshotId?: string | null;
+  /** The latest saved spec can be newer than the restored sandbox snapshot. */
+  restoreDiagramSpec?: DiagramSpec | null;
+  snapshotName?: string;
+  /** Override for model comparisons; production uses IMAGE_GEN_MODEL_ID. */
+  agentModelId?: string;
+  logContext?: Partial<OperationalContext>;
+}
 
 export interface GenerateRepoImageResult {
   format: RepoImageFormat;

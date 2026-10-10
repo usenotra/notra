@@ -13,7 +13,7 @@ import type {
 export interface ModelCallTelemetryOptions {
   logger: RouterLogger;
   request: RouteRequest;
-  operation: "generate" | "stream";
+  operation: "generate" | "stream" | "evaluate";
   signal?: AbortSignal;
   providerOptions?: SharedV4ProviderOptions;
 }

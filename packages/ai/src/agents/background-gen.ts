@@ -32,6 +32,7 @@ import type {
 import { summarizeRouteUsage } from "@notra/ai/utils/route-usage";
 import { buildTelemetryOptions } from "@notra/ai/utils/tcc";
 import { toAgentTokenUsage } from "@notra/ai/utils/token-usage";
+import { withUsageContext } from "@notra/ai/utils/usage-attribution";
 import { isStepCount, ToolLoopAgent } from "ai";
 
 export class ContentGenerationSkippedError extends Error {
@@ -42,6 +43,16 @@ export class ContentGenerationSkippedError extends Error {
 }
 
 export async function runBackgroundGen(
+  options: BackgroundGenOptions
+): Promise<BackgroundGenResult> {
+  return await withUsageContext(
+    options.organizationId,
+    options.telemetryMetadata,
+    () => runBackgroundGenWithContext(options)
+  );
+}
+
+async function runBackgroundGenWithContext(
   options: BackgroundGenOptions
 ): Promise<BackgroundGenResult> {
   const {

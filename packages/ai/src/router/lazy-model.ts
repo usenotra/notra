@@ -31,6 +31,7 @@ import type {
 } from "@notra/ai/types/router";
 import { createModelCallTelemetry } from "@notra/ai/utils/model-call-telemetry";
 import { observeModelStream } from "@notra/ai/utils/observe-model-stream";
+import { withUsageAttribution } from "@notra/ai/utils/usage-attribution";
 
 import { GatewayUnavailableError } from "./errors";
 import { otherGateway } from "./policy";
@@ -290,8 +291,9 @@ export class RoutedLanguageModel implements LanguageModelV4 {
   }
 
   async doGenerate(
-    options: LanguageModelV4CallOptions
+    inputOptions: LanguageModelV4CallOptions
   ): Promise<LanguageModelV4GenerateResult> {
+    const options = this.withAttribution(inputOptions);
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -321,8 +323,9 @@ export class RoutedLanguageModel implements LanguageModelV4 {
   }
 
   async doStream(
-    options: LanguageModelV4CallOptions
+    inputOptions: LanguageModelV4CallOptions
   ): Promise<LanguageModelV4StreamResult> {
+    const options = this.withAttribution(inputOptions);
     const telemetry = createModelCallTelemetry({
       logger: this.context.logger,
       request: this.context.request,
@@ -380,6 +383,18 @@ export class RoutedLanguageModel implements LanguageModelV4 {
       decision,
       adapter,
       model: adapter.createModel(decision.requestedModelId),
+    };
+  }
+
+  private withAttribution(options: LanguageModelV4CallOptions) {
+    return {
+      ...options,
+      providerOptions: withUsageAttribution(options.providerOptions, {
+        ...this.context.request.logContext,
+        ...(this.context.request.organizationId
+          ? { organizationId: this.context.request.organizationId }
+          : {}),
+      }),
     };
   }
 
