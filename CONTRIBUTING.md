@@ -438,6 +438,13 @@ unless each deployment reaches `SUCCESS` with the release SHA. Railway watch
 patterns must stay unset: a deployment skipped by them would leave a service
 behind production and fails the release.
 
+The existing demo and ingest infrastructure is described in `.railway/demo.ts`
+and `.railway/ai-traffic.ts`. These reuse the current services and preserved
+variables; they do not apply on merge or replace the release workflow. See
+[the Railway IaC guide](.railway/README.md) for ownership boundaries and read-only
+plans. `bun run railway:check` checks the definitions without Railway credentials
+and also runs as part of the root test command.
+
 The production API at `api.usenotra.com` is hosted on Unkey Compute, not the
 Railway `demo-api` service. Its scheduled release is opt-in: add the GitHub Actions
 secret `UNKEY_DEPLOY_ROOT_KEY` to enable it. Without that secret, the workflow

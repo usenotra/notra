@@ -1,0 +1,9 @@
+{
+  "extends": "../packages/typescript-config/base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": ["bun-types"]
+  },
+  "include": ["*.ts", "tests/**/*.ts"]
+}
