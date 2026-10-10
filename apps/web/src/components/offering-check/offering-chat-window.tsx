@@ -1,4 +1,3 @@
-import { AiBrain01Icon, GlobalSearchIcon } from "@hugeicons/core-free-icons";
 import { MessageResponse } from "@notra/ui/components/ai-elements/message";
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { ChatgptMessage } from "@notra/ui/components/ai-skins/chatgpt/chatgpt-message";
@@ -26,9 +25,8 @@ import {
 } from "@/utils/offering-markdown";
 import { offeringQuestionTitle } from "@/utils/offering-questions";
 
-import { OfferingSearchActivity } from "./offering-search-activity";
+import { OfferingChatTrace } from "./offering-chat-trace";
 import { OfferingSources } from "./offering-sources";
-import { OfferingTraceStep } from "./offering-trace-step";
 
 function OfferingChatReasoning({
   thread,
@@ -37,18 +35,22 @@ function OfferingChatReasoning({
   const reasoning = thread.reasoning.trim();
   const answered = thread.seconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
-  const { domains, queries } = thread;
-  const searched = queries.length > 0 || domains.length > 0;
   const started =
-    answered || searched || reasoning.length > 0 || thread.answer.length > 0;
+    answered ||
+    thread.queries.length > 0 ||
+    thread.domains.length > 0 ||
+    reasoning.length > 0 ||
+    thread.answer.length > 0;
 
   if (!started) {
     return (
       <Shimmer className="text-[15px] leading-7 font-medium">
-        Searching the web
+        {webSearch ? "Searching the web" : "Thinking"}
       </Shimmer>
     );
   }
+
+  const searchSkipped = webSearch && thread.result?.searchUsed === false;
 
   return (
     <div className="flex flex-col items-start gap-2.5">
@@ -56,38 +58,13 @@ function OfferingChatReasoning({
         complete={answered}
         seconds={thread.seconds ?? liveSeconds}
       >
-        {reasoning.length > 0 || searched ? (
-          <div className="border-border mb-2 flex flex-col gap-3 border-l pl-3.5">
-            {reasoning.length > 0 ? (
-              <OfferingTraceStep icon={AiBrain01Icon} label="Thought">
-                <MessageResponse className="text-muted-foreground text-[14px] leading-6 [&_p]:my-1.5 [&_p:first-child]:mt-0 [&_strong]:font-medium">
-                  {reasoning}
-                </MessageResponse>
-              </OfferingTraceStep>
-            ) : null}
-            {searched ? (
-              <OfferingTraceStep
-                icon={GlobalSearchIcon}
-                label="Searched the web"
-                meta={`${domains.length} ${domains.length === 1 ? "site" : "sites"}`}
-              >
-                <OfferingSearchActivity
-                  domains={domains}
-                  links={Object.fromEntries(
-                    (thread.result?.sources ?? []).map((source) => [
-                      source.domain,
-                      source.topUrl,
-                    ])
-                  )}
-                  live={!answered}
-                  queries={queries}
-                />
-              </OfferingTraceStep>
-            ) : null}
-          </div>
-        ) : null}
+        <OfferingChatTrace
+          answered={answered}
+          reasoning={reasoning}
+          thread={thread}
+        />
       </ChatgptReasoning>
-      {webSearch && thread.result?.searchUsed === false ? (
+      {searchSkipped ? (
         <p className="text-muted-foreground text-[14px] leading-6">
           {OFFERING_SEARCH_SKIPPED_HINT}
         </p>

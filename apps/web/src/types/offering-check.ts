@@ -156,6 +156,12 @@ export interface OfferingChatReasoningProps {
   webSearch: boolean;
 }
 
+export interface OfferingChatTraceProps {
+  thread: OfferingThread;
+  reasoning: string;
+  answered: boolean;
+}
+
 export interface OfferingMarkdownNode {
   type: string;
   tagName?: string;
