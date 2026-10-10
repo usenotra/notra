@@ -1,7 +1,7 @@
 "use client";
 
 import { todayIsoDate } from "@notra/geo-core/utils/day-label";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
 import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
@@ -43,6 +43,7 @@ export function WebTrendChart({
     range?.to
   );
   const share = webTrendShare(rows);
+  const [hiddenKeys, setHiddenKeys] = useState<readonly string[]>([]);
   const series = [
     {
       key: WEB_TREND_PEOPLE_KEY,
@@ -57,8 +58,20 @@ export function WebTrendChart({
       color: CHART_SECONDARY_COLOR,
     },
   ];
+  const visibleSeries = series.filter(
+    (entry) => !hiddenKeys.includes(entry.key)
+  );
+  const toggleSeries = (key: string) => {
+    setHiddenKeys((current) => {
+      if (current.includes(key)) {
+        return current.filter((hiddenKey) => hiddenKey !== key);
+      }
+      // The chart always keeps one series on screen.
+      return current.length + 1 >= series.length ? current : [...current, key];
+    });
+  };
   const config: ChartConfig = Object.fromEntries(
-    series.map((entry) => [
+    visibleSeries.map((entry) => [
       entry.key,
       { label: entry.label, colors: seriesColors(entry.color) },
     ])
@@ -66,8 +79,11 @@ export function WebTrendChart({
   const markIncompleteTail = rows.at(-1)?.rawDay === todayIsoDate();
 
   return (
-    <div className={TRAFFIC_HERO_CHART_SURFACE_CLASS}>
-      <h2 className="mb-3 text-sm font-medium">{t("trendTitle")}</h2>
+    <div
+      aria-label={t("trendTitle")}
+      className={TRAFFIC_HERO_CHART_SURFACE_CLASS}
+      role="group"
+    >
       <EChartsAreaChart
         animation={false}
         chartOptions={TRAFFIC_HERO_CHART_OPTIONS}
@@ -78,13 +94,14 @@ export function WebTrendChart({
         stackType="stacked"
         xDataKey="day"
       >
-        <EChartsAreaChart.Grid variant="solid" />
-        <EChartsAreaChart.XAxis dataKey="day" />
+        <EChartsAreaChart.Grid opacity={0.5} variant="solid" />
+        <EChartsAreaChart.XAxis dataKey="day" hideDots />
         <EChartsAreaChart.YAxis
+          hideDots
           interval={share === null ? 1 : undefined}
           max={share === null ? 1 : undefined}
         />
-        {series.map((entry) => (
+        {visibleSeries.map((entry) => (
           <EChartsAreaChart.Area
             dataKey={entry.key}
             enableBufferLine={markIncompleteTail}
@@ -106,27 +123,37 @@ export function WebTrendChart({
           valueFormatter={(value: number) => formatChartInteger(value, locale)}
         />
       </EChartsAreaChart>
-      <ul className="border-border mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 border-t pt-3 text-xs">
-        {series.map((entry) => (
-          <li className="flex items-center gap-1.5" key={entry.key}>
-            <span
-              aria-hidden="true"
-              className="corner-squircle size-2 rounded-xs bg-(--dot-light) dark:bg-(--dot-dark)"
-              style={
-                {
-                  "--dot-light": entry.color.light,
-                  "--dot-dark": entry.color.dark,
-                } as CSSProperties
-              }
-            />
-            <span>{entry.label}</span>
-            {entry.share === undefined ? null : (
-              <span className="text-muted-foreground tabular-nums">
-                {t("share", { share: formatWebShare(entry.share) })}
-              </span>
-            )}
-          </li>
-        ))}
+      <ul className="border-border mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t pt-3 text-xs">
+        {series.map((entry) => {
+          const isVisible = !hiddenKeys.includes(entry.key);
+          return (
+            <li key={entry.key}>
+              <button
+                aria-pressed={isVisible}
+                className="hover:bg-muted focus-visible:ring-ring flex items-center gap-1.5 rounded-md px-2 py-1 transition-opacity outline-none focus-visible:ring-2 aria-[pressed=false]:line-through aria-[pressed=false]:opacity-40"
+                onClick={() => toggleSeries(entry.key)}
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  className="corner-squircle size-2 rounded-xs bg-(--dot-light) dark:bg-(--dot-dark)"
+                  style={
+                    {
+                      "--dot-light": entry.color.light,
+                      "--dot-dark": entry.color.dark,
+                    } as CSSProperties
+                  }
+                />
+                <span>{entry.label}</span>
+                {entry.share === undefined ? null : (
+                  <span className="text-muted-foreground tabular-nums">
+                    {t("share", { share: formatWebShare(entry.share) })}
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

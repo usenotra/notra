@@ -26,13 +26,18 @@ import {
   TRAFFIC_HERO_METRICS_SURFACE_CLASS,
 } from "@/constants/geo-traffic-hero";
 import { WEB_DEVICE_ICONS, WEB_LIST_LIMIT } from "@/constants/web-analytics";
+import { useDesktopBreakpoint } from "@/lib/hooks/use-desktop-breakpoint";
 import type {
   WebBreakdownRow,
   WebMetricProps,
   WebVisitorsSectionProps,
 } from "@/types/geo";
 import { countryName } from "@/utils/country";
-import { formatVisibleDuration, webSourceName } from "@/utils/web-analytics";
+import {
+  formatVisibleDuration,
+  webSourceName,
+  webTableHeight,
+} from "@/utils/web-analytics";
 
 function WebMetric({
   label,
@@ -79,6 +84,7 @@ export function WebVisitorsSection({
 }: WebVisitorsSectionProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
+  const sideBySide = useDesktopBreakpoint();
   const { totals } = web;
   const aiTraffic = traffic ?? GEO_EMPTY_TRAFFIC_RESPONSE;
   const previousAi = toGeoTrafficPreviousTotals(
@@ -180,6 +186,15 @@ export function WebVisitorsSection({
     };
   });
 
+  // Side by side, a pair shares the taller of its own heights (an empty list
+  // keeps its empty-state height). Stacked, each table sizes itself.
+  const pairHeight = (first: number, second: number) =>
+    sideBySide
+      ? Math.max(webTableHeight(first), webTableHeight(second))
+      : undefined;
+  const topHeight = pairHeight(pageRows.length, sourceRows.length);
+  const audienceHeight = pairHeight(countryRows.length, deviceRows.length);
+
   return (
     <section className="flex flex-col gap-6">
       <div className={TRAFFIC_HERO_FRAME_CLASS}>
@@ -220,6 +235,7 @@ export function WebVisitorsSection({
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <WebBreakdownTable
+          height={topHeight}
           nameHeader={t("page")}
           rows={pageRows}
           showAvgTime={engagement !== undefined}
@@ -228,6 +244,7 @@ export function WebVisitorsSection({
           valueHeader={t("columnViews")}
         />
         <WebBreakdownTable
+          height={topHeight}
           nameHeader={t("columnSource")}
           rows={sourceRows}
           title={t("referrers")}
@@ -236,12 +253,14 @@ export function WebVisitorsSection({
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <WebBreakdownTable
+          height={audienceHeight}
           nameHeader={t("columnCountry")}
           rows={countryRows}
           title={t("countries")}
           valueHeader={t("visitors")}
         />
         <WebBreakdownTable
+          height={audienceHeight}
           nameHeader={t("columnDevice")}
           rows={deviceRows}
           title={t("devices")}
