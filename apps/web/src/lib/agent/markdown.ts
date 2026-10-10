@@ -5,9 +5,9 @@ export function buildAgentPageMarkdown() {
   const agent = buildAgentJson();
 
   return [
-    "# Notra Agent Interface",
+    "# Notra agent interface",
     "",
-    "Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini and Perplexity, compare your share of voice with competitors and turn content gaps into articles in your brand voice.",
+    "Notra is a GEO tool that tracks how ChatGPT, Claude, Gemini and Perplexity answer the questions your buyers ask. Agents can read and manage projects, prompts, scans and posts through the API and the MCP server listed below.",
     "",
     markdownSection(
       "What you can do with Notra",
@@ -15,9 +15,9 @@ export function buildAgentPageMarkdown() {
     ),
     markdownSection("Discovery", [
       `- Agent JSON: ${siteUrl("/.well-known/agent.json")}`,
-      `- Agent Card: ${siteUrl("/.well-known/agent-card.json")}`,
-      `- API Catalog: ${siteUrl("/.well-known/api-catalog")}`,
-      `- Integration Surfaces: ${siteUrl("/.well-known/integrations.json")}`,
+      `- Agent card: ${siteUrl("/.well-known/agent-card.json")}`,
+      `- API catalog: ${siteUrl("/.well-known/api-catalog")}`,
+      `- Integrations manifest: ${siteUrl("/.well-known/integrations.json")}`,
       `- Auth guide: ${agent.api.auth}`,
     ]),
     markdownSection("Endpoints", [
