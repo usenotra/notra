@@ -242,12 +242,26 @@ function PromptOverview({
     const highlight = response.highlights.find((item) => item.brand === name);
     return row ? [{ position: index + 1, row, highlight }] : [];
   });
+  const namedFirst = report.ranking.find(
+    (item) => item.name === response.mentioned[0]
+  );
   return (
     <SheetScrollArea className="flex flex-col gap-8">
       <StatStrip
         stats={[
           { label: "Brands named", value: response.mentioned.length },
-          { label: "Named first", value: response.mentioned[0] ?? "–" },
+          {
+            label: "Named first",
+            value: namedFirst ? (
+              <Brand
+                className="gap-1.5"
+                domain={namedFirst.domain}
+                name={namedFirst.name}
+              />
+            ) : (
+              (response.mentioned[0] ?? "–")
+            ),
+          },
           { label: "Sources", value: response.sources.length },
         ]}
       />
@@ -407,11 +421,13 @@ function PromptSheetBody({
             {prompt.topPick ? (
               <>
                 <span aria-hidden="true">·</span>
-                <span>
-                  Named first:{" "}
-                  <span className="text-foreground font-medium">
-                    {prompt.topPick.name}
-                  </span>
+                <span className="inline-flex min-w-0 items-center gap-1.5">
+                  <span className="shrink-0">Named first:</span>
+                  <Brand
+                    className="text-foreground gap-1 font-medium [&>span:first-child]:size-3.5"
+                    domain={prompt.topPick.domain}
+                    name={prompt.topPick.name}
+                  />
                 </span>
               </>
             ) : null}
