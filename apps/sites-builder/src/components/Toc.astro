@@ -1,44 +1,117 @@
 ---
-import type { TocProps as Props } from "../types/toc";
+import type { TocProps as Props, TocSection } from "../types/toc";
 
-const items = Astro.props.headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const { inline = false } = Astro.props;
+const sections: TocSection[] = [];
+for (const heading of Astro.props.headings) {
+  if (heading.depth === 2 || (heading.depth === 3 && sections.length === 0)) {
+    sections.push({ slug: heading.slug, text: heading.text, children: [] });
+  } else if (heading.depth === 3) {
+    sections.at(-1)?.children.push({ slug: heading.slug, text: heading.text });
+  }
+}
+const count = sections.reduce((total, section) => total + 1 + section.children.length, 0);
 ---
 
 {
-  items.length > 1 && (
-    <nav id="table-of-contents" aria-label="On this page" data-toc>
-      <p class="mb-3 text-sm font-medium">On this page</p>
-      <ul class="flex flex-col border-l border-border">
-        {items.map((item) => (
-          <li>
-            <a href={`#${item.slug}`} data-toc-link={item.slug} class:list={["-ml-px block border-l border-transparent py-1.5 text-sm leading-snug text-muted-foreground transition-colors duration-150 hover:text-foreground data-[active]:border-foreground data-[active]:text-foreground", item.depth === 3 ? "pl-7" : "pl-4"]}>
-              {item.text}
+  count > 1 && (
+    <nav id={inline ? undefined : "table-of-contents"} aria-label="On this page" class="toc" data-toc data-toc-inline={inline ? "" : undefined}>
+      {!inline && <p class="post-meta mb-3">On this page</p>}
+      <ol class="toc-tree">
+        {sections.map((section) => (
+          <li data-toc-section={section.slug}>
+            <a href={`#${section.slug}`} data-toc-link={section.slug} class="toc-link">
+              {section.text}
             </a>
+            {section.children.length > 0 && (
+              <div class="toc-children">
+                <ol>
+                  {section.children.map((child) => (
+                    <li>
+                      <a href={`#${child.slug}`} data-toc-link={child.slug} data-toc-parent={section.slug} class="toc-link">
+                        {child.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
           </li>
         ))}
-      </ul>
+      </ol>
     </nav>
   )
 }
 
 <script>
   const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+  const sections = [...document.querySelectorAll<HTMLLIElement>("[data-toc-section]")];
   const headings = links
     .map((link) => document.getElementById(link.dataset.tocLink ?? ""))
     .filter((heading): heading is HTMLElement => heading !== null);
-  const update = () => {
-    let current = headings[0]?.id;
+  let frame = 0;
+  // Anchors land at scroll-padding-top; a heading counts as reached a few
+  // pixels before that so rounding never leaves the previous one active.
+  const reachedAt = () => (Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) + 8;
+  // The heading the reader just jumped to. Only matters at the very bottom,
+  // where several headings are on screen and none can reach the offset.
+  const fromHash = () => {
+    try {
+      return decodeURIComponent(location.hash.slice(1)) || null;
+    } catch {
+      return null;
+    }
+  };
+  let jumped: string | null = fromHash();
+  const activeHeading = () => {
+    const offset = reachedAt();
+    let current = headings[0];
     for (const heading of headings) {
-      if (heading.getBoundingClientRect().top <= 120) {
-        current = heading.id;
+      if (heading.getBoundingClientRect().top <= offset) {
+        current = heading;
       }
     }
+    const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+    if (!atBottom) {
+      jumped = null;
+      return current?.id;
+    }
+    const visible = headings.filter((heading) => heading.getBoundingClientRect().top < innerHeight);
+    const target = visible.find((heading) => heading.id === jumped);
+    return (target ?? visible.at(-1) ?? current)?.id;
+  };
+  const update = () => {
+    frame = 0;
+    const current = activeHeading();
+    const active = links.find((link) => link.dataset.tocLink === current && !link.closest("[data-toc-inline]"));
+    const section = active?.dataset.tocParent ?? current;
     for (const link of links) {
       link.toggleAttribute("data-active", link.dataset.tocLink === current);
     }
+    for (const item of sections) {
+      item.toggleAttribute("data-expanded", item.dataset.tocSection === section);
+    }
   };
+  const schedule = () => {
+    frame ||= requestAnimationFrame(update);
+  };
+  for (const link of links) {
+    link.addEventListener("click", () => {
+      jumped = link.dataset.tocLink ?? null;
+      const menu = link.closest("details");
+      if (menu) {
+        menu.open = false;
+      }
+      schedule();
+    });
+  }
   if (headings.length > 0) {
     update();
-    addEventListener("scroll", update, { passive: true });
+    addEventListener("scroll", schedule, { passive: true });
+    addEventListener("hashchange", () => {
+      jumped = fromHash();
+      schedule();
+    });
+    addEventListener("resize", schedule, { passive: true });
   }
 </script>

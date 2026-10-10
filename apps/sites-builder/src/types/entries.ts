@@ -31,6 +31,10 @@ export interface PostCardProps {
   headingLevel?: "h2" | "h3";
   variant?: "card" | "feature" | "row";
   featured?: boolean;
+  placeholder?: boolean;
+  showAuthor?: boolean;
+  /** Loads the cover eagerly; only for the first card above the fold. */
+  priority?: boolean;
 }
 
 export interface PostPaginationProps {

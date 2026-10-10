@@ -1,0 +1,12 @@
+{
+  "$schema": "https://usenotra.com/schemas/blog.json",
+  "name": "TOC Playground",
+  "description": "Long posts for testing the table of contents.",
+  "blog": {
+    "title": "TOC Playground",
+    "description": "Scroll through a long post to see sections unfold."
+  },
+  "authors": {
+    "notra": { "name": "Notra" }
+  }
+}

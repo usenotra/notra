@@ -101,27 +101,11 @@ export const siteContextualSchema = z
         ])
       )
       .max(12)
-      .default([
-        "copy",
-        "view",
-        "chatgpt",
-        "claude",
-        "t3chat",
-        "perplexity",
-        "grok",
-      ]),
+      .default(["copy", "view", "chatgpt", "claude", "perplexity", "grok"]),
     display: z.enum(["meta", "none"]).default("meta"),
   })
   .default({
-    options: [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "t3chat",
-      "perplexity",
-      "grok",
-    ],
+    options: ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
     display: "meta",
   });
 
@@ -192,11 +176,11 @@ export const siteLayoutSchema = z
 
 const blogHeroSchema = z
   .object({
-    style: z.enum(["wash", "plain", "image", "none"]).default("wash"),
+    style: z.enum(["wash", "plain", "image", "none"]).default("plain"),
     eyebrow: z.string().trim().max(60).optional(),
     image: sitePathSchema.optional(),
   })
-  .default({ style: "wash" });
+  .default({ style: "plain" });
 
 export const siteBlogSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),

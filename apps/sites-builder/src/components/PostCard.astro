@@ -3,39 +3,44 @@ import type { PostCardProps as Props } from "../types/entries";
 import { POST_CARD_RADIUS } from "../constants/post-card";
 import { authorsOf } from "../lib/authors";
 import { blogOptions } from "../lib/options";
-import { assetUrl, href } from "../lib/params";
+import { assetUrl, config, href } from "../lib/params";
+import { logoFor } from "../lib/theme";
 import { formatDate, isoDate } from "../utils/dates";
 import { excerpt } from "../utils/excerpt";
 import { readingMinutes } from "../utils/reading-time";
 import AuthorAvatar from "./AuthorAvatar.astro";
 
-const { entry, headingLevel: Heading = "h2", variant = "card", featured = false } = Astro.props;
+const { entry, headingLevel: Heading = "h2", variant = "card", featured = false, placeholder = false, showAuthor = true, priority = false } = Astro.props;
 const show = blogOptions.card;
-const [author] = show.author ? authorsOf(entry) : [];
+const [author] = show.author && showAuthor ? authorsOf(entry) : [];
 const summary = show.excerpt ? (entry.data.description ?? excerpt(entry.body)) : undefined;
 const image = show.image && variant !== "row" ? assetUrl(entry.data.image) : undefined;
+const framed = Boolean(image) || (placeholder && variant !== "row");
+const lightLogo = logoFor("light");
+const darkLogo = logoFor("dark") ?? lightLogo;
 const minutes = show.readingTime ? readingMinutes(entry.body) : undefined;
 const hasMeta = Boolean(author) || show.date || minutes !== undefined || entry.data.draft;
 const radius = POST_CARD_RADIUS[variant];
-const linkClass = `after:absolute after:inset-0 after:z-10 ${radius} focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-primary`;
+const linkClass = `after:absolute after:inset-0 after:z-10 ${radius} focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-primary`;
+const titleClass = "font-heading text-balance decoration-foreground/25 decoration-1 underline-offset-[0.2em] group-hover:underline";
 ---
 
 {
   variant === "row" ? (
-    <article class="group relative grid gap-1.5 rounded-xl py-6 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-8">
-      <div class="font-mono text-sm text-muted-foreground tabular-nums sm:pt-1">
+    <article class="group relative grid gap-1.5 py-7 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-8">
+      <div class="text-sm text-muted-foreground tabular-nums sm:pt-1">
         {show.date && <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>}
-        {featured && <p class="text-primary">Featured</p>}
+        {featured && <p class="font-medium text-primary">Featured</p>}
       </div>
       <div class="flex min-w-0 flex-col gap-2">
-        <Heading class="font-heading text-xl font-medium tracking-[-0.015em] text-balance transition-colors duration-150 group-hover:text-primary">
+        <Heading class:list={[titleClass, "text-xl leading-snug font-semibold tracking-[-0.02em]"]}>
           <a href={href(entry.id)} class={linkClass}>{entry.data.title}</a>
         </Heading>
-        {summary && <p class="line-clamp-2 text-base leading-7 text-muted-foreground">{summary}</p>}
+        {summary && <p class="line-clamp-2 text-[0.9375rem] leading-7 text-pretty text-muted-foreground">{summary}</p>}
         {(author || minutes !== undefined || entry.data.draft) && (
-          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+          <div class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {author && (
-              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors hover:text-foreground" : "pointer-events-none"]}>
+              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors duration-150 hover:text-foreground" : "pointer-events-none"]}>
                 <AuthorAvatar author={author} size={20} />
                 <span>{author.name}</span>
               </a>
@@ -50,33 +55,49 @@ const linkClass = `after:absolute after:inset-0 after:z-10 ${radius} focus-visib
   ) : (
     <article
       class:list={[
-        "post-card group relative isolate flex h-full overflow-hidden border transition-colors duration-150",
-        variant === "feature" ? "flex-col rounded-3xl md:flex-row" : "flex-col rounded-2xl",
+        "group relative isolate flex h-full",
+        variant === "feature" ? (framed ? "flex-col gap-6 md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:items-center md:gap-10" : "flex-col border-t border-border pt-8") : "flex-col gap-5 max-sm:flex-row-reverse max-sm:items-start max-sm:gap-4",
+        variant === "card" && !framed && "border-t border-border pt-6 max-sm:border-t-0 max-sm:pt-0",
       ]}
     >
-      {image && (
-        <div class:list={["shrink-0 overflow-hidden", variant === "feature" ? "md:order-last md:w-1/2" : ""]}>
-          <img src={image} alt="" loading="lazy" class:list={["aspect-[1200/630] w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]", variant === "feature" && "md:h-full"]} />
+      {framed && (
+        <div class:list={["image-outline overflow-hidden bg-muted", variant === "feature" ? "rounded-2xl" : "rounded-xl max-sm:w-22 max-sm:shrink-0 max-sm:rounded-lg"]}>
+          {image ? (
+            <img src={image} alt="" loading={priority ? "eager" : "lazy"} class:list={["aspect-[1200/630] w-full object-cover transition-transform duration-300 ease-[var(--ease-emphasized)] group-hover:scale-[1.015]", variant === "card" && "max-sm:aspect-square"]} />
+          ) : (
+            <div aria-hidden="true" class:list={["post-placeholder flex aspect-[1200/630] w-full items-center justify-center", variant === "card" && "max-sm:aspect-square"]}>
+              {lightLogo ? (
+                <>
+                  <img src={lightLogo} alt="" class="size-9 object-contain opacity-70 grayscale max-sm:size-6 dark:hidden" />
+                  <img src={darkLogo} alt="" class="hidden size-9 object-contain opacity-70 grayscale max-sm:size-6 dark:block" />
+                </>
+              ) : (
+                <span class="font-heading text-lg font-semibold tracking-[-0.02em] text-muted-foreground max-sm:text-xs">{config.name}</span>
+              )}
+            </div>
+          )}
         </div>
       )}
-      <div class:list={["flex flex-1 flex-col", variant === "feature" ? "p-6 sm:p-8" : "p-6"]}>
-        <div class="flex flex-col gap-3">
-          {featured && <p class="font-mono text-sm text-primary">Featured</p>}
+      <div class="flex min-w-0 flex-1 flex-col">
+        <div class:list={["flex flex-col", variant === "card" ? "gap-2.5 max-sm:gap-1.5" : "gap-2.5"]}>
+          {featured && <p class="text-sm font-medium text-primary">Featured</p>}
           <Heading
             class:list={[
-              "font-heading font-medium tracking-[-0.015em] text-balance transition-colors duration-150 group-hover:text-primary",
-              variant === "feature" ? "text-2xl leading-tight sm:text-[2rem]" : "text-xl sm:text-2xl",
+              titleClass,
+              variant === "feature" ? "text-[1.75rem] leading-[1.15] font-semibold tracking-[-0.03em] sm:text-4xl" : "text-lg leading-snug font-semibold tracking-[-0.015em] max-sm:text-base",
             ]}
           >
             <a href={href(entry.id)} class={linkClass}>{entry.data.title}</a>
           </Heading>
-          {summary && <p class:list={["text-base leading-7 text-muted-foreground", variant === "feature" ? "line-clamp-4 sm:text-lg sm:leading-8" : "line-clamp-3"]}>{summary}</p>}
+          {summary && (
+            <p class:list={["text-pretty text-muted-foreground", variant === "feature" ? "line-clamp-3 text-base leading-7 sm:text-lg sm:leading-8" : "line-clamp-2 text-[0.9375rem] leading-6 max-sm:text-sm max-sm:leading-5"]}>{summary}</p>
+          )}
         </div>
         {hasMeta && (
-          <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-6 text-sm text-muted-foreground">
+          <div class:list={["mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground tabular-nums", variant === "feature" ? "pt-6" : "pt-4 max-sm:pt-3 max-sm:text-[0.8125rem]"]}>
             {author && (
-              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors hover:text-foreground" : "pointer-events-none"]}>
-                <AuthorAvatar author={author} size={24} />
+              <a href={author.href} class:list={["relative z-20 flex items-center gap-2 rounded-sm", author.href ? "transition-colors duration-150 hover:text-foreground" : "pointer-events-none"]}>
+                <AuthorAvatar author={author} size={20} />
                 <span>{author.name}</span>
               </a>
             )}

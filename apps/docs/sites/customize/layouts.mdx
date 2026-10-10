@@ -38,7 +38,7 @@ The `blog` and `changelog` objects in `blog.json` set how the blog index, its po
 | `title` | The heading, up to 120 characters | `"Blog"` |
 | `description` | The line under it, up to 400 characters | The site's `description` |
 | `layout` | `grid`: cards in columns. `list`: date and title rows. `magazine`: one large card, then a grid | `grid` |
-| `hero.style` | `wash`: a tinted panel. `plain`: title only. `image`: `hero.image` behind the title. `none`: no hero | `wash` |
+| `hero.style` | `wash`: a tinted panel. `plain`: title only. `image`: `hero.image` behind the title. `none`: no hero | `plain` |
 | `hero.eyebrow` | A short line above the title, up to 60 characters | none |
 | `hero.image` | Background for the `image` style, like `/images/hero.jpg` | none |
 | `featured` | `"latest"`, `"none"` or up to 6 post paths like `["2026/launch"]`, pinned on top | `"none"` |
@@ -84,8 +84,8 @@ To hide the "Updated" date, set `"metadata": { "timestamp": false }`.
 | --- | --- | --- |
 | `title` | The heading | `"Changelog"` |
 | `description` | The line under it | The site's `description` |
-| `layout` | `timeline`: a date column next to each entry. `cards`: one card per entry. `compact`: title, date, version and summary only | `timeline` |
-| `hero` | Works like the blog's | `wash` |
+| `layout` | `timeline`: entries stacked with date, a large title, the description as subtitle and the cover image. `cards`: one card per entry. `compact`: title, date, version and summary only | `timeline` |
+| `hero` | Works like the blog's | `plain` |
 
 ## Your own hero
 

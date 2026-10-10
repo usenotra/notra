@@ -5,7 +5,7 @@ const { label, description } = Astro.props;
 const anchor = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 ---
 
-<section id={anchor} class="update not-prose my-10 grid scroll-mt-20 gap-2 border-t border-border pt-8 sm:grid-cols-[8.5rem_1fr] sm:gap-6">
+<section id={anchor} class="update not-prose my-10 grid gap-2 border-t border-border pt-8 sm:grid-cols-[8.5rem_1fr] sm:gap-6">
   <div class="text-sm text-muted-foreground">
     <p class="font-medium text-foreground">{label}</p>
     {description && <p class="mt-0.5">{description}</p>}

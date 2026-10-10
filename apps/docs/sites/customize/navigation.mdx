@@ -89,7 +89,7 @@ The banner is one line of Markdown (links, bold, italic, code) of up to 300 char
 
 ## Post actions
 
-Every blog post has **Copy article** and an **Open in** menu next to its date, so readers can copy the post as Markdown or ask an AI assistant about it. `contextual` sets what the menu offers:
+Every blog post has a **Copy page** button with a dropdown next to its authors, so readers can copy the post as Markdown or ask an AI assistant about it. `contextual` sets what the menu offers:
 
 ```json blog.json
 "contextual": {
@@ -100,6 +100,6 @@ Every blog post has **Copy article** and an **Open in** menu next to its date, s
 }
 ```
 
-- The built-in options are `copy`, `view` (the Markdown version), `chatgpt`, `claude`, `t3chat`, `perplexity` and `grok`, and all seven show by default.
+- The built-in options are `copy`, `view` (the Markdown version), `chatgpt`, `claude`, `t3chat`, `perplexity` and `grok`. All of them except `t3chat` show by default.
 - Your own options take a `title` and an `href`, plus an optional `description` and Lucide `icon`. Notra replaces `{url}` and `{markdownUrl}` in the `href` with the post's address.
 - The menu holds up to 12 options, and `"display": "none"` hides the actions.

@@ -114,7 +114,7 @@ test("real fixture and empty-source builds use snapshot config without adding so
         if (source === "fixture") {
           expect(html).toContain("Leaf import build proof");
           expect(html).toContain('aria-label="Sections"');
-          expect(html).toContain("data-theme-toggle");
+          expect(html).toContain("data-theme-switch");
         }
         const markdown404 = await readFile(
           join(outDir, area, "404.md"),

@@ -102,7 +102,7 @@ See [Logo, navigation and banner](/sites/customize/navigation).
 | `banner.type` | `"info" \| "warning" \| "critical"` | `"info"` | Banner color |
 | `banner.color` | Color, or `{ light, dark }` | | Your own banner color |
 | `banner.dismissible` | boolean | `false` | Show a close button |
-| `contextual.options` | Up to 12 of `copy`, `view`, `chatgpt`, `claude`, `t3chat`, `perplexity`, `grok` or `{ title, href, description?, icon? }` | All seven built-ins | The post actions menu |
+| `contextual.options` | Up to 12 of `copy`, `view`, `chatgpt`, `claude`, `t3chat`, `perplexity`, `grok` or `{ title, href, description?, icon? }` | All built-ins except `t3chat` | The post actions menu |
 | `contextual.display` | `"meta" \| "none"` | `"meta"` | `none` hides the post actions |
 
 Link labels are up to 60 characters.
@@ -116,7 +116,7 @@ See [Layouts](/sites/customize/layouts#blog).
 | `blog.title` | string, 1 to 120 characters | `"Blog"` | Index heading |
 | `blog.description` | string, up to 400 characters | Site `description` | Line under the heading |
 | `blog.layout` | `"grid" \| "list" \| "magazine"` | `"grid"` | Index layout |
-| `blog.hero.style` | `"wash" \| "plain" \| "image" \| "none"` | `"wash"` | Index hero |
+| `blog.hero.style` | `"wash" \| "plain" \| "image" \| "none"` | `"plain"` | Index hero |
 | `blog.hero.eyebrow` | string, up to 60 characters | | Line above the heading |
 | `blog.hero.image` | Path | | Image for the `image` style |
 | `blog.featured` | `"latest" \| "none"` or up to 6 post paths | `"none"` | Posts pinned on top |
@@ -138,7 +138,7 @@ See [Layouts](/sites/customize/layouts#blog).
 | `changelog.title` | string, 1 to 120 characters | `"Changelog"` | Index heading |
 | `changelog.description` | string, up to 400 characters | Site `description` | Line under the heading |
 | `changelog.layout` | `"timeline" \| "cards" \| "compact"` | `"timeline"` | Index layout |
-| `changelog.hero` | Same as `blog.hero` | `"wash"` | Index hero |
+| `changelog.hero` | Same as `blog.hero` | `"plain"` | Index hero |
 
 ## Authors
 

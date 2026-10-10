@@ -13,6 +13,7 @@ export interface AuthorAvatarProps {
   author: ResolvedAuthor;
   size?: number;
   class?: string;
+  loading?: "eager" | "lazy";
 }
 
 export interface AuthorListProps {

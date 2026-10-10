@@ -17,14 +17,14 @@ const slotSpacing = CHANGELOG_SLOT_SPACING[layout];
   <AreaHero title={areaTitle("changelog")} description={areaDescription("changelog")} />
 </SiteSlot>
 
-<div class="mx-auto mt-12 max-w-(--layout-reading) md:mt-16">
+<div class="mx-auto mt-10 max-w-(--layout-reading) md:mt-14">
   {
     entries.length === 0 ? (
       <p class="mt-12 text-sm text-muted-foreground">Nothing shipped yet. Add an .mdx file to changelog/ and push.</p>
     ) : (
       <div
         class:list={[
-          layout === "timeline" && "divide-y divide-border [&>section]:py-10 [&>section:first-child]:pt-0",
+          layout === "timeline" && "flex flex-col gap-20 border-t border-border pt-10",
           layout === "cards" && "flex flex-col gap-6",
           layout === "compact" && "divide-y divide-border border-y border-border",
         ]}

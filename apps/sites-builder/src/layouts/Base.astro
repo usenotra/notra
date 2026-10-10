@@ -1,5 +1,6 @@
 ---
 import type { BaseLayoutProps as Props } from "../types/seo";
+import interFont from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import "../styles/global.css";
 import "@notra/custom-css";
 import Banner from "../components/Banner.astro";
@@ -8,9 +9,9 @@ import CustomChrome from "../components/CustomChrome.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { siteBanner } from "../lib/banner";
-import { THEME_AREAS } from "../constants/areas";
 import { absoluteUrl, areaTitle, config, llmsHref, namedAreaTitle, params } from "../lib/params";
 import { extraMetaTags, socialImage, structuredData, themeColors, touchIcon, twitterHandle } from "../lib/seo";
+import { listedAreas } from "../lib/entries";
 import { chromeComponent } from "../lib/site-files";
 import { decorationClass, faviconFor, fontFaces, fontStylesheetUrl, themeStyle } from "../lib/theme";
 import { mountPath } from "../utils/paths";
@@ -23,11 +24,13 @@ const robots = params.noindex || noindex ? "noindex, nofollow" : "index, follow,
 const twitterSite = twitterHandle();
 const colors = themeColors();
 const appleTouchIcon = touchIcon();
-const feeds = THEME_AREAS.flatMap((area) => {
+const feeds = (await listedAreas({ keepCurrent: false })).flatMap((area) => {
   const mount = params.mounts[area];
   return mount ? [{ title: namedAreaTitle(area), href: mountPath(mount, "feed.xml") }] : [];
 });
 const fontsUrl = fontStylesheetUrl();
+// Inter is only the default; skip the preload when the site brings its own body font.
+const preloadInter = !(config.fonts?.body?.family ?? config.fonts?.family);
 const appearance = config.appearance;
 const codeDark = config.styling.codeblocks === "dark";
 const lightFavicon = faviconFor("light");
@@ -73,13 +76,15 @@ const customFooter = Boolean(chromeComponent("footer"));
     <meta name="generator" content="Notra Sites" />
     {metaTags.map((tag) => (tag.key === "property" ? <meta property={tag.value} content={tag.content} /> : <meta name={tag.value} content={tag.content} />))}
     {jsonLd && <script type="application/ld+json" set:html={structuredData(jsonLd)} />}
+    {preloadInter && <link rel="preload" href={interFont} as="font" type="font/woff2" crossorigin />}
     {fontsUrl && <link rel="stylesheet" href={fontsUrl} />}
     <style is:inline set:html={`${fontFaces()}${themeStyle()}`}></style>
     <script is:inline define:vars={{ appearance }}>
       const stored = appearance.strict ? null : localStorage.getItem("notra-theme");
-      const mode = stored ?? appearance.default;
+      const mode = stored === "light" || stored === "dark" || stored === "system" ? stored : appearance.default;
       const dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
       document.documentElement.classList.toggle("dark", dark);
+      document.documentElement.dataset.themeMode = mode;
     </script>
     {
       dismissKey && (

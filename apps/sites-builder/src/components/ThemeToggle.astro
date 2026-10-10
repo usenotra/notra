@@ -1,23 +1,69 @@
 ---
+import { THEME_MODES } from "../constants/theme";
 import { config } from "../lib/params";
 import Icon from "./Icon.astro";
 ---
 
 {
   !config.appearance.strict && (
-    <button type="button" data-theme-toggle class="btn btn-ghost btn-icon" aria-label="Toggle dark mode">
-      <Icon name="sun" size={16} class="dark:hidden" />
-      <Icon name="moon" size={16} class="hidden dark:block" />
-    </button>
+    <div role="radiogroup" aria-label="Theme" class="theme-switch" data-theme-switch>
+      {THEME_MODES.map((mode) => (
+        <button type="button" role="radio" aria-checked="false" tabindex="-1" aria-label={mode.label} title={mode.label} data-theme-option={mode.value}>
+          <Icon name={mode.icon} size={14} />
+        </button>
+      ))}
+    </div>
   )
 }
 
 <script>
-  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")) {
-    button.addEventListener("click", () => {
-      const dark = !document.documentElement.classList.contains("dark");
-      document.documentElement.classList.toggle("dark", dark);
-      localStorage.setItem("notra-theme", dark ? "dark" : "light");
+  const root = document.documentElement;
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  const options = () => [...document.querySelectorAll<HTMLButtonElement>("[data-theme-option]")];
+  const apply = (mode: string) => {
+    root.dataset.themeMode = mode;
+    root.classList.toggle("dark", mode === "dark" || (mode === "system" && media.matches));
+    for (const option of options()) {
+      const checked = option.dataset.themeOption === mode;
+      option.setAttribute("aria-checked", String(checked));
+      // Roving tabindex: the group is one Tab stop, arrows move inside it.
+      option.tabIndex = checked ? 0 : -1;
+    }
+  };
+  const choose = (mode: string) => {
+    apply(mode);
+    try {
+      localStorage.setItem("notra-theme", mode);
+    } catch {
+      // Blocked storage only loses the saved preference, not the switch.
+    }
+  };
+  apply(root.dataset.themeMode ?? "system");
+  for (const group of document.querySelectorAll<HTMLElement>("[data-theme-switch]")) {
+    group.addEventListener("click", (event) => {
+      const option = (event.target as Element).closest<HTMLButtonElement>("[data-theme-option]");
+      if (option) {
+        choose(option.dataset.themeOption ?? "system");
+      }
+    });
+    group.addEventListener("keydown", (event) => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      if (!step) {
+        return;
+      }
+      event.preventDefault();
+      const buttons = [...group.querySelectorAll<HTMLButtonElement>("[data-theme-option]")];
+      const current = buttons.findIndex((button) => button === document.activeElement);
+      const next = buttons[(current + step + buttons.length) % buttons.length];
+      if (next) {
+        next.focus();
+        choose(next.dataset.themeOption ?? "system");
+      }
     });
   }
+  media.addEventListener("change", () => {
+    if (root.dataset.themeMode === "system") {
+      apply("system");
+    }
+  });
 </script>
