@@ -32,7 +32,11 @@ import type {
   WebVisitorsSectionProps,
 } from "@/types/geo";
 import { countryName } from "@/utils/country";
-import { formatVisibleDuration, webSourceName } from "@/utils/web-analytics";
+import {
+  formatVisibleDuration,
+  webSourceName,
+  webTableHeight,
+} from "@/utils/web-analytics";
 
 function WebMetric({
   label,
@@ -180,6 +184,14 @@ export function WebVisitorsSection({
     };
   });
 
+  // Tables that sit side by side share one height, set by the longer list.
+  const topHeight = webTableHeight(
+    Math.max(pageRows.length, sourceRows.length)
+  );
+  const audienceHeight = webTableHeight(
+    Math.max(countryRows.length, deviceRows.length)
+  );
+
   return (
     <section className="flex flex-col gap-6">
       <div className={TRAFFIC_HERO_FRAME_CLASS}>
@@ -220,6 +232,7 @@ export function WebVisitorsSection({
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <WebBreakdownTable
+          height={topHeight}
           nameHeader={t("page")}
           rows={pageRows}
           showAvgTime={engagement !== undefined}
@@ -228,6 +241,7 @@ export function WebVisitorsSection({
           valueHeader={t("columnViews")}
         />
         <WebBreakdownTable
+          height={topHeight}
           nameHeader={t("columnSource")}
           rows={sourceRows}
           title={t("referrers")}
@@ -236,12 +250,14 @@ export function WebVisitorsSection({
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <WebBreakdownTable
+          height={audienceHeight}
           nameHeader={t("columnCountry")}
           rows={countryRows}
           title={t("countries")}
           valueHeader={t("visitors")}
         />
         <WebBreakdownTable
+          height={audienceHeight}
           nameHeader={t("columnDevice")}
           rows={deviceRows}
           title={t("devices")}

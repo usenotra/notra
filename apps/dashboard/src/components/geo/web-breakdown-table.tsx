@@ -20,6 +20,7 @@ export function WebBreakdownTable({
   nameHeader,
   valueHeader,
   rows,
+  height = webTableHeight(rows.length),
   showFromAi = false,
   showAvgTime = false,
 }: WebBreakdownTableProps) {
@@ -95,7 +96,8 @@ export function WebBreakdownTable({
         defaultSort={{ key: "value", direction: "desc" }}
         emptyState={<WebAnalyticsEmpty />}
         getRowId={(row) => row.key}
-        height={webTableHeight(rows.length)}
+        height={height}
+        minHeight={height}
         rowHeight={WEB_TABLE_ROW_HEIGHT}
         scrollFade={false}
       />

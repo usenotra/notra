@@ -1936,6 +1936,8 @@ export interface WebBreakdownTableProps {
   nameHeader: string;
   valueHeader: string;
   rows: readonly WebBreakdownRow[];
+  /** Pixel height, used as both floor and cap. Side-by-side tables share one value. */
+  height?: number;
   showFromAi?: boolean;
   showAvgTime?: boolean;
 }
