@@ -42,7 +42,7 @@ export const LANDING_SECTIONS: LandingSection[] = [
         title: "Tooltip",
       },
       {
-        description: "A muted header band tucked behind the content card.",
+        description: "A shell header with a 2px rim around the content card.",
         href: "/components/duotone-tooltip",
         preview: "duotone-tooltip",
         title: "Duotone Tooltip",
