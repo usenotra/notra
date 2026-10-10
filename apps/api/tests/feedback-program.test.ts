@@ -1,9 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 
-import type {
-  AgentFeedbackClassification,
-  ClassifyAgentFeedbackParams,
-} from "@notra/ai/types/feedback-classifier";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { Effect } from "effect";
 
@@ -11,20 +7,13 @@ import { FeedbackProjectNotFoundError } from "../src/errors/feedback";
 import { listFeedback, submitFeedback } from "../src/programs/feedback";
 import type { AgentFeedbackRow } from "../src/types/feedback";
 
-const classify = mock(
-  async (
-    _params: ClassifyAgentFeedbackParams
-  ): Promise<AgentFeedbackClassification | null> => ({
+mock.module("@notra/ai/jobs/feedback-classifier", () => ({
+  classifyAgentFeedback: mock(async () => ({
     kind: "bug" as const,
     sentiment: "negative" as const,
     title: "Classified title",
-  })
-);
-mock.module("@notra/ai/jobs/feedback-classifier", () => ({
-  classifyAgentFeedback: classify,
+  })),
 }));
-
-beforeEach(() => classify.mockClear());
 
 const now = new Date("2026-01-01T00:00:00.000Z");
 
@@ -57,50 +46,6 @@ function feedbackRow(
 }
 
 describe("feedback programs", () => {
-  test.each(
-    [false, true].flatMap((failed) =>
-      [0, 1, 2, 3, 4, 5, 6, 7].map((mask) => ({ mask, failed }))
-    )
-  )(
-    "submitFeedback preserves supplied fields for combination %j",
-    async ({ mask, failed }) => {
-      if (failed && mask !== 7) {
-        classify.mockResolvedValueOnce(null);
-      }
-      const supplied = {
-        kind: mask & 1 ? ("praise" as const) : undefined,
-        sentiment: mask & 2 ? ("positive" as const) : undefined,
-        title: mask & 4 ? "Provided title" : undefined,
-      };
-      const values = mock((input: Record<string, unknown>) => ({
-        onConflictDoNothing: () => ({
-          returning: async () => [{ ...feedbackRow(), ...input }],
-        }),
-      }));
-      const result = await Effect.runPromise(
-        submitFeedback({
-          db: { insert: () => ({ values }) },
-          organizationId: "org_a",
-          body: { message: "Feedback message", source: "api", ...supplied },
-        })
-      );
-      expect(result.feedback).toMatchObject({
-        kind: supplied.kind ?? (failed ? "other" : "bug"),
-        sentiment: supplied.sentiment ?? (failed ? null : "negative"),
-        title: supplied.title ?? (failed ? null : "Classified title"),
-      });
-      expect(classify).toHaveBeenCalledTimes(mask === 7 ? 0 : 1);
-      if (mask !== 7) {
-        expect(classify).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: supplied.title,
-            suppliedFields: supplied,
-          })
-        );
-      }
-    }
-  );
-
   test("submitFeedback returns an existing row for a repeated idempotency key", async () => {
     const existing = feedbackRow();
     const db = {

@@ -7,6 +7,13 @@ repository pins Bun 1.4.0; the measured runtime is recorded in each report.
 
 ## Reproduce
 
+The PR's added regression suites and test fixtures were removed at the user's
+request. Existing repository tests are unchanged. The benchmark harness and
+saved reports remain; `worker.test.ts` is its isolated measurement worker,
+not an added application regression suite. Test counts and fault-fixture
+measurements below describe historical validation before that removal. Their
+source remains available in commit `7a86accd7910d5fa3b13d8566ea4bb0cb8163095`.
+
 Create a clean detached checkout at the baseline revision and install its
 locked dependencies. No environment file or provider credentials are needed
 for the benchmark.
@@ -104,13 +111,10 @@ retention/privacy policy is changed.
 
 ## Writer and workflow fault fixtures
 
-These commands opt into historical-source comparisons; normal regression tests
-do not require the baseline commit to exist in a shallow CI checkout.
-
-```sh
-NOTRA_AGENT_COST_BENCH=1 NOTRA_AGENT_COST_TEST_CHILD=1 bun --no-env-file test packages/ai/src/agents/agent-cost-regressions.test.ts
-NOTRA_IRIS_RETRY_BENCHMARK=1 bun --no-env-file test apps/dashboard/src/workflows/iris-retry-boundaries.test.ts
-```
+These are historical measurements from the removed writer/workflow regression
+fixtures. To rerun them, use a separate checkout of
+`7a86accd7910d5fa3b13d8566ea4bb0cb8163095` and its documented opt-in commands;
+those suites are no longer part of the current branch.
 
 | Metric, fixed mock responses/faults | Baseline | Candidate |
 | --- | ---: | ---: |
@@ -143,11 +147,8 @@ initialized all-zero unfinished-run counters remain unknown and cannot create
 a minimum bill. A failed Iris action's original stored error remains visible
 when a reporting retry skips execution.
 
-Chat repair and reference regression fixtures are also reproducible:
-
-```sh
-bun --no-env-file test --isolate packages/ai/src/orchestration/orchestrate-standalone.test.ts packages/ai/src/utils/brand-references.test.ts
-```
+Chat repair and reference measurements below also come from the removed
+regression fixtures, available in the same historical commit.
 
 | Metric, fixed repair/reference inputs | Baseline | Candidate |
 | --- | ---: | ---: |
