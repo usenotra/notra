@@ -11,6 +11,10 @@ import {
   OFFERING_CHECK_MODEL_LABEL,
   OFFERING_SEARCH_SKIPPED_HINT,
 } from "@/constants/offering-check";
+import {
+  OFFERING_ANSWER_MARKDOWN_CLASS,
+  OFFERING_ENTER_CLASS,
+} from "@/constants/offering-check-styles";
 import { useElapsedSeconds } from "@/lib/offering-check/use-elapsed-seconds";
 import type {
   OfferingChatReasoningProps,
@@ -25,11 +29,6 @@ import { offeringQuestionTitle } from "@/utils/offering-questions";
 import { OfferingSearchActivity } from "./offering-search-activity";
 import { OfferingSources } from "./offering-sources";
 import { OfferingTraceStep } from "./offering-trace-step";
-
-const ANSWER_MARKDOWN_CLASS =
-  "[&_h1]:mt-0 [&_h1]:mb-2 [&_h1]:text-[1.15em] [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2]:text-[1.05em] [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-[1em] [&_h3]:font-semibold [&_p]:my-2.5 [&_ul]:my-2.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1";
-const ENTER_CLASS =
-  "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500 motion-reduce:animate-none";
 
 function OfferingChatReasoning({
   thread,
@@ -123,7 +122,7 @@ export function OfferingChatWindow({
       >
         <div className="flex flex-col gap-5 px-5 py-5">
           <ChatgptMessage
-            className={cn("[&>div]:max-w-[88%]", ENTER_CLASS)}
+            className={cn("[&>div]:max-w-[88%]", OFFERING_ENTER_CLASS)}
             from="user"
           >
             {thread.question.text}
@@ -131,7 +130,7 @@ export function OfferingChatWindow({
 
           <ChatgptMessage
             className={cn(
-              ENTER_CLASS,
+              OFFERING_ENTER_CLASS,
               "[animation-delay:300ms] motion-reduce:[animation-delay:0ms]"
             )}
             from="assistant"
@@ -142,7 +141,7 @@ export function OfferingChatWindow({
             {answer.length > 0 ? (
               <MessageResponse
                 className={cn(
-                  ANSWER_MARKDOWN_CLASS,
+                  OFFERING_ANSWER_MARKDOWN_CLASS,
                   geoAnswerMarkdownFontClass("chatgpt")
                 )}
                 rehypePlugins={[createFeatureHighlightPlugin(feature)]}

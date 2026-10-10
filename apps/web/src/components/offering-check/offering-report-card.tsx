@@ -8,6 +8,10 @@ import {
   OFFERING_CHECK_MODEL_LABEL,
   OFFERING_LINK_COPIED_MS,
 } from "@/constants/offering-check";
+import {
+  OFFERING_CARD_SWAP_CLASS,
+  OFFERING_CARD_SWAP_HIDDEN,
+} from "@/constants/offering-check-styles";
 import { useElapsedSeconds } from "@/lib/offering-check/use-elapsed-seconds";
 import type {
   OfferingReportCardProps,
@@ -20,10 +24,6 @@ import { summarizeOfferingSources } from "@/utils/offering-sources";
 
 import { OfferingFavicon } from "./offering-favicon";
 import { OfferingVerdictRow } from "./offering-verdict-row";
-
-const SWAP_CLASS =
-  "transition-[opacity,scale,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] [grid-area:1/1] motion-reduce:transition-none";
-const SWAP_HIDDEN = "scale-50 opacity-0 blur-[2px]";
 
 function ReportStat({
   label,
@@ -68,15 +68,19 @@ function CopyLinkButton() {
     >
       <span className="grid size-3.5 place-items-center">
         <HugeiconsIcon
-          className={cn("size-3.5", SWAP_CLASS, copied ? SWAP_HIDDEN : null)}
+          className={cn(
+            "size-3.5",
+            OFFERING_CARD_SWAP_CLASS,
+            copied ? OFFERING_CARD_SWAP_HIDDEN : null
+          )}
           icon={Link04Icon}
           strokeWidth={2}
         />
         <HugeiconsIcon
           className={cn(
             "size-3.5 text-[#1C6B3F] dark:text-[#86EFAC]",
-            SWAP_CLASS,
-            copied ? null : SWAP_HIDDEN
+            OFFERING_CARD_SWAP_CLASS,
+            copied ? null : OFFERING_CARD_SWAP_HIDDEN
           )}
           icon={Tick02Icon}
           strokeWidth={2}

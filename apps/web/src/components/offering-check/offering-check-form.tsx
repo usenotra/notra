@@ -17,6 +17,10 @@ import {
   OFFERING_CHECK_FEATURE_MAX_LENGTH,
   OFFERING_REPORT_PATH,
 } from "@/constants/offering-check";
+import {
+  OFFERING_FORM_SWAP_CLASS,
+  OFFERING_FORM_SWAP_HIDDEN,
+} from "@/constants/offering-check-styles";
 import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { preflightOfferingCheck } from "@/lib/offering-check/preflight";
 import { useSampleTyping } from "@/lib/offering-check/use-sample-typing";
@@ -38,10 +42,6 @@ import { OfferingDomainFavicon } from "./offering-domain-favicon";
 import { OfferingErrorTooltip } from "./offering-error-tooltip";
 import { OfferingFavicon } from "./offering-favicon";
 import { OfferingSentenceField } from "./offering-sentence-field";
-
-const SWAP_CLASS =
-  "transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)] [grid-area:1/1] motion-reduce:transition-none";
-const SWAP_HIDDEN = "scale-25 opacity-0 blur-[4px]";
 
 export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const navigate = useNavigate();
@@ -330,13 +330,19 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           <span className="grid place-items-center">
             <span
               aria-hidden={pending}
-              className={cn(SWAP_CLASS, pending ? SWAP_HIDDEN : null)}
+              className={cn(
+                OFFERING_FORM_SWAP_CLASS,
+                pending ? OFFERING_FORM_SWAP_HIDDEN : null
+              )}
             >
               Ask AI
             </span>
             <span
               aria-hidden
-              className={cn(SWAP_CLASS, pending ? null : SWAP_HIDDEN)}
+              className={cn(
+                OFFERING_FORM_SWAP_CLASS,
+                pending ? null : OFFERING_FORM_SWAP_HIDDEN
+              )}
             >
               <HugeiconsIcon
                 className={cn(
