@@ -1,0 +1,56 @@
+apps/sites-builder/src/styles/global.css
+  s_ca5f34f584eae8::t_e1b17dc29ea0e6 382-386
+  s_ca5f34f584eae8::t_efc732386f3fc5 214-219
+apps/sites-builder/src/components/Toc.astro
+  s_ca5f34f584eae8::t_c02320c0d65ea8 58-64
+apps/docs/sites/reference/blog-json.mdx
+  s_ca5f34f584eae8::t_efc732386f3fc5 119,141
+apps/sites-builder/tests/default-config.test.ts
+  s_ca5f34f584eae8::t_92e064ea8b7b14 117
+apps/web/public/schemas/blog.json
+  s_ca5f34f584eae8::t_efc732386f3fc5 607,612,730,735
+apps/sites-builder/src/layouts/Base.astro
+  s_ca5f34f584eae8::t_c02320c0d65ea8 27
+apps/sites-builder/src/components/BlogIndex.astro
+  s_ca5f34f584eae8::t_c02320c0d65ea8 40,42
+apps/sites-builder/src/components/ThemeToggle.astro
+  s_ca5f34f584eae8::t_168ffcfa9af301 11,22,26-30,33-35,37-61
+apps/sites-builder/src/types/entries.ts
+  s_ca5f34f584eae8::t_c02320c0d65ea8 36-37
+apps/sites-builder/compiler/constants/cli.ts
+  s_ca5f34f584eae8::t_876a1b47314cd9 8-9
+apps/sites-builder/src/components/Footer.astro
+  s_ca5f34f584eae8::t_c02320c0d65ea8 52-63
+apps/sites-builder/src/components/PostCard.astro
+  s_ca5f34f584eae8::t_c02320c0d65ea8 13,66
+packages/sites-core/src/schemas/site-layout.ts
+  s_ca5f34f584eae8::t_efc732386f3fc5 179,183
+apps/sites-builder/compiler/cli.ts
+  s_ca5f34f584eae8::t_c8fc35d899a2a4 18,114-125
+apps/sites-builder/compiler/dev-server.ts
+  s_ca5f34f584eae8::t_876a1b47314cd9 5,20-21,56-57,61-62,66-76,115-133,135,139,160-165,202-206,242-243,252-253
+  s_ca5f34f584eae8::t_c8fc35d899a2a4 78-80
+apps/sites-builder/src/components/AreaHero.astro
+  s_ca5f34f584eae8::t_efc732386f3fc5 9,25-26
+apps/docs/sites/customize/layouts.mdx
+  s_ca5f34f584eae8::t_efc732386f3fc5 41,88
+apps/sites-builder/src/lib/entries.ts
+  s_ca5f34f584eae8::t_c02320c0d65ea8 31-34,48-49
+  s_ca5f34f584eae8::t_efc732386f3fc5 35-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "26adce9ec9c4436d3fcc6778cbf1bc67c9133c5b",
+  "prompts": {},
+  "sessions": {
+    "s_ca5f34f584eae8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f722cda3-63b9-47cb-96d1-3f52739952d2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
