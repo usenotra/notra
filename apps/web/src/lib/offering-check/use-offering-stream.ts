@@ -263,12 +263,16 @@ export function useOfferingStream(
   input: OfferingCheckInput,
   turnstileToken: string
 ): { state: OfferingLiveState; verify: (token: string) => void } {
-  const { domain, feature, problem } = input;
+  const { domain, feature, problem, webSearch } = input;
   // The token from the form is only used for the first request.
   const [initialToken] = useState(turnstileToken);
   const store = useMemo(
-    () => createOfferingStreamStore({ domain, feature, problem }, initialToken),
-    [domain, feature, problem, initialToken]
+    () =>
+      createOfferingStreamStore(
+        { domain, feature, problem, webSearch },
+        initialToken
+      ),
+    [domain, feature, problem, webSearch, initialToken]
   );
   const state = useSyncExternalStore(
     store.subscribe,

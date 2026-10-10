@@ -6,7 +6,6 @@ import {
   OFFERING_SAMPLE_TYPING,
 } from "@/constants/offering-check";
 import type {
-  OfferingCheckInput,
   OfferingSampleField,
   OfferingSampleValues,
   OfferingTypingFrame,
@@ -114,7 +113,7 @@ export function useSampleTyping(
 
   // Driven by elapsed time, so slow renders skip characters instead of
   // stretching the whole animation.
-  const typeSample = (sample: OfferingCheckInput) => {
+  const typeSample = (sample: OfferingSampleValues) => {
     cancel();
     target.current = sample;
     if (getReducedMotionSnapshot()) {

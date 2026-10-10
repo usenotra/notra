@@ -9,6 +9,10 @@ import {
   OFFERING_CHECK_SIGNUP_SOURCE,
   OFFERING_REPORT_FAILURE_MESSAGES,
 } from "@/constants/offering-check";
+import {
+  OFFERING_BACK_LINK_CLASS,
+  OFFERING_BODY_CLASS,
+} from "@/constants/offering-check-styles";
 import { OFFERING_TURNSTILE_ACTION } from "@/constants/turnstile";
 import { useOfferingStream } from "@/lib/offering-check/use-offering-stream";
 import type { OfferingReportProps } from "@/types/offering-check";
@@ -16,11 +20,6 @@ import { getOfferingHeroCopy } from "@/utils/offering-copy";
 
 import { OfferingChatWindow } from "./offering-chat-window";
 import { OfferingReportCard } from "./offering-report-card";
-
-const metaClass =
-  "font-sans text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70";
-const backLinkClass =
-  "font-sans text-[0.9375rem]/6 font-medium text-[#8B5CF6] hover:underline dark:text-[#A78BFA]";
 
 export function OfferingReport({ input }: OfferingReportProps) {
   const turnstileToken = useRouterState({
@@ -74,11 +73,12 @@ export function OfferingReport({ input }: OfferingReportProps) {
         />
         <div className="flex w-full max-w-[64rem] px-4 sm:px-6">
           <Link
-            className={backLinkClass}
+            className={OFFERING_BACK_LINK_CLASS}
             search={{
               domain: input.domain,
               feature: input.feature || undefined,
               problem: input.problem || undefined,
+              webSearch: input.webSearch || undefined,
             }}
             to={OFFERING_CHECK_PATH}
           >
@@ -111,6 +111,7 @@ export function OfferingReport({ input }: OfferingReportProps) {
             hasFeature={hasFeature}
             key={thread.question.kind}
             thread={thread}
+            webSearch={input.webSearch}
           />
         ))}
 
@@ -121,7 +122,7 @@ export function OfferingReport({ input }: OfferingReportProps) {
               {state.threads.length === 1 ? "one question" : "two questions"} to
               one model
             </h2>
-            <p className={`${metaClass} max-w-[36rem]`}>
+            <p className={`${OFFERING_BODY_CLASS} max-w-[36rem]`}>
               Notra asks ChatGPT, Claude, Gemini and Perplexity about your
               product every day, shows where they get it wrong and drafts the
               content that fixes it.

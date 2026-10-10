@@ -85,7 +85,7 @@ export function OfferingSentenceField({
         <input
           aria-describedby={invalid ? "offering-check-error" : undefined}
           aria-invalid={invalid}
-          className="max-w-full min-w-[1ch] bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none placeholder:text-[#8B5CF659] motion-reduce:transition-none dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA59]"
+          className="max-w-full min-w-[1ch] bg-transparent p-0 leading-[inherit] text-[#8B5CF6] caret-[#8B5CF6] transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none placeholder:text-[#8B5CF699] motion-reduce:transition-none dark:text-[#A78BFA] dark:placeholder:text-[#A78BFA8C]"
           id={id}
           ref={input}
           size={Math.max(value.length, placeholder.length, 1)}

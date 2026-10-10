@@ -22,10 +22,10 @@ export const OFFERING_CHECK_PREFLIGHT_PATH = `${OFFERING_CHECK_API_PATH}/preflig
 export const OFFERING_CHECK_TITLE = "Does AI Know Your Features?";
 
 export const OFFERING_CHECK_DESCRIPTION =
-  "Check if AI knows a feature by name, and whether it recommends it when a buyer only describes the problem. We ask GPT-6 with web search and show what it says and which pages it read. Free, no sign-up.";
+  "Check if AI knows a feature by name, and whether it recommends it when a buyer only describes the problem. We ask GPT-6 from its own knowledge or with web search and show what it says. Free, no sign-up.";
 
 export const OFFERING_CHECK_HERO_SUBTITLE =
-  "Name a feature you shipped and the problem it solves. We ask GPT-6 about it by name and by problem, the way buyers do, and show what it finds and which pages it read. Free, no sign-up.";
+  "Name a feature you shipped and the problem it solves. We ask GPT-6 about it by name and by problem, the way buyers do, and show what it says. Turn on web search to see which pages it reads. Free, no sign-up.";
 
 export const OFFERING_CHECK_MODEL = "openai/gpt-6-luna";
 
@@ -187,11 +187,10 @@ export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
     badgeClassName:
       "bg-[#DFF5E8] text-[#1C6B3F] dark:bg-[#22C55E2E] dark:text-[#86EFAC]",
     textClassName: "text-[#1C6B3F] dark:text-[#86EFAC]",
-    heroLead: "AI finds ",
-    featureBody:
-      "It finds the feature and can describe what it does from the pages available on the web.",
+    heroLead: "AI knows ",
+    featureBody: "It knows the feature and can describe what it does.",
     companyBody:
-      "It finds your product and can describe concrete products or features from the pages available on the web.",
+      "It knows your product and can describe concrete products or features.",
     problemLead: "AI recommends ",
     problemBody:
       "Asked about the problem without the name, it points buyers straight to the feature.",
@@ -228,9 +227,9 @@ export const OFFERING_VERDICTS: Record<OfferingVerdict, OfferingVerdictCopy> = {
     textClassName: "text-[#9B1C1C] dark:text-[#FCA5A5]",
     heroLead: "AI does not know ",
     featureBody:
-      "Even with web search it could not find it. Anyone asking an assistant about it hears that it does not exist.",
+      "It could not tell what it is. Anyone asking an assistant about it hears that it does not exist.",
     companyBody:
-      "Even with web search it could not say what you offer. Anyone asking an assistant about you gets nothing.",
+      "It could not say what you offer. Anyone asking an assistant about you gets nothing.",
     problemLead: "AI never suggests ",
     problemBody:
       "Asked about the problem, it does not bring the feature up. Buyers who do not know the name will not find it.",
@@ -314,7 +313,7 @@ export const OFFERING_HIGHLIGHT_CLASSES = [
 
 // Report copy while the check runs.
 export const OFFERING_PENDING_HERO_BODY =
-  "Searching the web now. You are watching the answer come in.";
+  "Asking the model now. You are watching the answer come in.";
 
 /** Which form field a notice belongs to; the rest show below the form. */
 export const OFFERING_NOTICE_FIELD: Partial<

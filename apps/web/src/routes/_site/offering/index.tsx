@@ -3,85 +3,41 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MarketingHeroWash } from "@/components/marketing-hero-wash";
 import { OfferingCheckForm } from "@/components/offering-check/offering-check-form";
 import {
-  OFFERING_CHECK_DESCRIPTION,
   OFFERING_CHECK_HERO_SUBTITLE,
   OFFERING_CHECK_SAMPLES,
-  OFFERING_CHECK_TITLE,
-  OFFERING_CHECK_URL,
 } from "@/constants/offering-check";
-import type { Metadata } from "@/types/metadata";
+import {
+  OFFERING_CHECK_BREADCRUMB_JSONLD,
+  OFFERING_CHECK_METADATA,
+  OFFERING_CHECK_SOFTWARE_JSONLD,
+} from "@/constants/offering-check-page";
+import {
+  OFFERING_BODY_CLASS,
+  OFFERING_SECTION_TITLE_CLASS,
+} from "@/constants/offering-check-styles";
 import { buildHead } from "@/utils/head";
-import { buildBreadcrumbJsonLd, serializeJsonLd } from "@/utils/jsonld";
-import { DEFAULT_SOCIAL_IMAGE, TWITTER_HANDLE } from "@/utils/metadata";
-import { SITE_URL } from "@/utils/urls";
-
-const title = OFFERING_CHECK_TITLE;
-const description = OFFERING_CHECK_DESCRIPTION;
-const url = OFFERING_CHECK_URL;
-
-const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: url },
-  openGraph: {
-    title,
-    description,
-    url,
-    type: "website",
-    siteName: "Notra",
-    images: [DEFAULT_SOCIAL_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description,
-    images: [DEFAULT_SOCIAL_IMAGE.url],
-    site: TWITTER_HANDLE,
-    creator: TWITTER_HANDLE,
-  },
-};
-
-const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-  { name: "Home", url: SITE_URL },
-  { name: title, url },
-]);
-
-const softwareJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: title,
-  url,
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  description,
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-};
+import { serializeJsonLd } from "@/utils/jsonld";
 
 export const Route = createFileRoute("/_site/offering/")({
-  head: () => buildHead(metadata),
+  head: () => buildHead(OFFERING_CHECK_METADATA),
   component: OfferingCheckPage,
 });
-
-const sectionTitleClass =
-  "font-display text-[1.625rem]/8 font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-white";
-const bodyClass =
-  "font-sans text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70";
 
 function OfferingCheckPage() {
   return (
     <div className="flex w-full flex-col items-center">
       <script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: server-built JSON-LD
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(OFFERING_CHECK_BREADCRUMB_JSONLD),
+        }}
         type="application/ld+json"
       />
       <script
         // biome-ignore lint/security/noDangerouslySetInnerHtml: server-built JSON-LD
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(softwareJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(OFFERING_CHECK_SOFTWARE_JSONLD),
+        }}
         type="application/ld+json"
       />
 
@@ -103,26 +59,36 @@ function OfferingCheckPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className={sectionTitleClass}>Why we search the web</h2>
-            <p className={bodyClass}>
-              Model training is months old and thin on anything you shipped
-              recently. Web search can find fresh product pages, docs and
-              changelogs, but only when those pages rank for the question. This
-              check shows what the model can find now and which sources shape
-              its answer.
+            <h2 className={OFFERING_SECTION_TITLE_CLASS}>
+              Memory or web search
+            </h2>
+            <p className={OFFERING_BODY_CLASS}>
+              By default the model answers from what it learned in training,
+              which is how assistants often reply when they skip the search.
+              That knowledge is months old and thin on anything you shipped
+              recently, so a miss here usually means the feature has not been
+              written about enough yet.
+            </p>
+            <p className={OFFERING_BODY_CLASS}>
+              Turn on web search to see whether your product pages, docs and
+              changelogs change the answer and which sources the model reads.
+              Search only finds pages that rank for the question, so a miss with
+              search on points to pages that are hard to find.
             </p>
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className={sectionTitleClass}>What to do when it does not</h2>
-            <p className={bodyClass}>
+            <h2 className={OFFERING_SECTION_TITLE_CLASS}>
+              What to do when it does not
+            </h2>
+            <p className={OFFERING_BODY_CLASS}>
               Give the feature its own page with its name in the title, and say
               what it does in the first paragraph. Mention it in your changelog
               and docs, and link those pages from your homepage so crawlers
               reach them. Look at which sites the model read instead of yours.
               Those are the places where a mention moves the answer.
             </p>
-            <p className={bodyClass}>
+            <p className={OFFERING_BODY_CLASS}>
               One check is one sample. Models answer differently from run to run
               and from one assistant to the next, so a single miss is a hint and
               a pattern across many prompts is a finding. Notra runs those

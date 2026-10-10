@@ -3,7 +3,6 @@ import { openai } from "@ai-sdk/openai";
 import { generateText, Output, streamText } from "ai";
 
 import {
-  OFFERING_CHECK_GATEWAY_TAG,
   OFFERING_CHECK_MAX_OTHER_OFFERINGS,
   OFFERING_CHECK_MAX_OUTPUT_TOKENS,
   OFFERING_CHECK_MAX_QUERIES,
@@ -12,7 +11,8 @@ import {
   OFFERING_MS_PER_SECOND,
 } from "@/constants/offering-check";
 import {
-  OFFERING_ANSWER_SYSTEM_PROMPT,
+  OFFERING_ANSWER_OFFLINE_SYSTEM_PROMPT,
+  OFFERING_ANSWER_SEARCH_SYSTEM_PROMPT,
   OFFERING_JUDGE_SYSTEM_PROMPT,
 } from "@/constants/offering-check-prompts";
 import { offeringJudgeSchema } from "@/schemas/offering-check";
@@ -25,45 +25,14 @@ import type {
   OfferingStreamEmit,
 } from "@/types/offering-check";
 import { domainOfUrl } from "@/utils/offering-domain";
+import { offeringGatewayOptions } from "@/utils/offering-gateway";
 import { stripAnswerCitations } from "@/utils/offering-markdown";
+import { uniqueOfferings } from "@/utils/offering-offerings";
 import { buildOfferingQuestions } from "@/utils/offering-questions";
+import { readOfferingSearchOutput } from "@/utils/offering-search-output";
 import { groupSourcesByDomain } from "@/utils/offering-sources";
 
 import { buildOfferingJudgePrompt } from "./prompts";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function readSearchOutput(output: unknown) {
-  if (!isRecord(output)) {
-    return { queries: [], urls: [] };
-  }
-  const action = isRecord(output.action) ? output.action : {};
-  const listed = Array.isArray(action.queries)
-    ? action.queries
-    : [action.query];
-  const queries = listed.flatMap((query) =>
-    typeof query === "string" && query.trim().length > 0 ? [query.trim()] : []
-  );
-  const urls = (Array.isArray(output.sources) ? output.sources : []).flatMap(
-    (source) =>
-      isRecord(source) && typeof source.url === "string" ? [source.url] : []
-  );
-  return { queries, urls };
-}
-
-/**
- * Tags every gateway call so the free tool's spend shows up on its own in
- * AI Gateway, split by step. Visitors type these prompts, so they are never
- * used for training.
- */
-function offeringGatewayOptions(step: string) {
-  return {
-    tags: [OFFERING_CHECK_GATEWAY_TAG, `${OFFERING_CHECK_GATEWAY_TAG}-${step}`],
-    disallowPromptTraining: true,
-  };
-}
 
 async function answerQuestion(
   input: OfferingCheckInput,
@@ -74,11 +43,13 @@ async function answerQuestion(
   const { kind } = question;
   const stream = streamText({
     model: gateway(OFFERING_CHECK_MODEL),
-    instructions: OFFERING_ANSWER_SYSTEM_PROMPT,
+    instructions: input.webSearch
+      ? OFFERING_ANSWER_SEARCH_SYSTEM_PROMPT
+      : OFFERING_ANSWER_OFFLINE_SYSTEM_PROMPT,
     prompt: question.text,
-    tools: {
-      web_search: openai.tools.webSearch({ searchContextSize: "low" }),
-    },
+    tools: input.webSearch
+      ? { web_search: openai.tools.webSearch({ searchContextSize: "low" }) }
+      : undefined,
     reasoning: "low",
     providerOptions: {
       openai: { reasoningSummary: "auto" },
@@ -103,7 +74,7 @@ async function answerQuestion(
       reasoning += part.text;
       emit({ type: "reasoning", kind, text: part.text });
     } else if (part.type === "tool-result") {
-      const found = readSearchOutput(part.output);
+      const found = readOfferingSearchOutput(part.output);
       for (const query of found.queries) {
         queries.add(query);
       }
@@ -142,20 +113,6 @@ async function answerQuestion(
     searchUsed: queries.size > 0 || retrievedUrls.length > 0,
     sources: groupSourcesByDomain(input.domain, retrievedUrls, citedUrls),
   };
-}
-
-/** The judge sometimes repeats an offering with different casing or spacing. */
-function uniqueOfferings(offerings: readonly string[]): string[] {
-  const seen = new Set<string>();
-  return offerings.flatMap((offering) => {
-    const name = offering.trim();
-    const key = name.toLowerCase();
-    if (!name || seen.has(key)) {
-      return [];
-    }
-    seen.add(key);
-    return [name];
-  });
 }
 
 /**
