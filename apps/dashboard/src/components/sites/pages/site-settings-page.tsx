@@ -1,262 +1,309 @@
 "use client";
 
-import { Folder01Icon, GitBranchIcon } from "@hugeicons/core-free-icons";
+import {
+  Analytics01Icon,
+  ArrowUpRight01Icon,
+  CodeIcon,
+  Comment01Icon,
+  FlashIcon,
+  Folder01Icon,
+  GitBranchIcon,
+  GithubIcon,
+  GitPullRequestIcon,
+  Layers01Icon,
+  SparklesIcon,
+  Tag01Icon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ConfirmDialog } from "@notra/ui/components/shared/confirm-dialog";
 import { PageHeading } from "@notra/ui/components/shared/page-heading";
 import { Badge } from "@notra/ui/components/ui/badge";
+import { Field, FieldError, FieldLabel } from "@notra/ui/components/ui/field";
 import { Input } from "@notra/ui/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@notra/ui/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@notra/ui/components/ui/select";
 import { Switch } from "@notra/ui/components/ui/switch";
-import { TitleCard } from "@notra/ui/components/ui/title-card";
 import { useMutation } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
+import { Button, buttonVariants } from "@/components/button";
 import { useSite } from "@/components/sites/site-context";
-import {
-  SiteChoiceGroup,
-  SiteSectionsFields,
-} from "@/components/sites/site-form-fields";
-import { SitePreviewAccessControl } from "@/components/sites/site-preview-access-control";
+import { SitePreviewAccessForm } from "@/components/sites/site-preview-access-control";
 import { SiteSettingsDangerZone } from "@/components/sites/site-settings-danger-zone";
-import { SiteSettingsRow } from "@/components/sites/site-settings-row";
-import { SiteSettingsSaveBar } from "@/components/sites/site-settings-save-bar";
+import { SiteSettingsEditor } from "@/components/sites/site-settings-editor";
+import {
+  SiteSettingsGroup,
+  SiteSettingsHint,
+  SiteSettingsItem,
+  SiteSettingsList,
+  SiteSettingsSwitchItem,
+  SiteSettingsValue,
+} from "@/components/sites/site-settings-item";
 import { SiteSuggestInput } from "@/components/sites/site-suggest-input";
-import { SiteVariablesSettings } from "@/components/sites/site-variables-settings";
+import {
+  SiteVariablesSettings,
+  useSiteVariablesCount,
+} from "@/components/sites/site-variables-settings";
 import { SITE_NAME_MAX_LENGTH } from "@/constants/sites-form";
+import {
+  useGitHubCallbackErrorToast,
+  useResumeGitHubInstall,
+} from "@/hooks/use-github-install-callbacks";
 import { useRepositorySuggestions } from "@/lib/hooks/use-repository-suggestions";
 import { useSitePublishModeOptions } from "@/lib/hooks/use-site-publish-mode-options";
-import { useSiteRootDirectoryToggle } from "@/lib/hooks/use-site-root-directory-toggle";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
+import { useUpdateSiteSettings } from "@/lib/hooks/use-update-site-settings";
+import { startGitHubInstall } from "@/lib/integrations/github/install";
 import { dashboardOrpc } from "@/lib/orpc/query";
-import type { SiteSettingsFormProps } from "@/types/components/sites";
-import type { SiteSettingsForm as SiteSettingsFormValues } from "@/types/sites";
+import type {
+  SiteBranchFieldProps,
+  SiteRootDirectoryFieldProps,
+  SiteSectionFieldProps,
+  SiteSettingsToggleProps,
+} from "@/types/components/site-settings";
+import type { SitePublishMode, SiteSettingsRowKey } from "@/types/sites";
 import { toErrorMessage } from "@/utils/error-message";
-import {
-  siteSettingsFormFromSite,
-  siteSettingsPatch,
-} from "@/utils/site-settings";
+import { githubRepositoryUrl, siteHref } from "@/utils/site-links";
+import { sitePreviewAccessMode } from "@/utils/site-preview-access";
 
 export function SiteSettingsPage() {
-  const { organizationId, organizationSlug, siteId, detail } = useSite();
-  return (
-    <SiteSettingsForm
-      detail={detail}
-      key={detail.site.id}
-      organizationId={organizationId}
-      organizationSlug={organizationSlug}
-      siteId={siteId}
-    />
-  );
+  const { organizationId, organizationSlug, siteId } = useSite();
+  useGitHubCallbackErrorToast();
+  useResumeGitHubInstall({
+    callbackPath: siteHref(organizationSlug, siteId, "settings"),
+    organizationId,
+  });
+  // Drafts belong to one site; switching sites must start from fresh state.
+  return <SiteSettingsContent key={siteId} />;
 }
 
-function SiteSettingsForm({
-  organizationId,
-  organizationSlug,
-  siteId,
-  detail,
-}: SiteSettingsFormProps) {
+function SiteSettingsContent() {
+  const { organizationId, organizationSlug, siteId, detail } = useSite();
   const t = useTranslations("sites.settings");
   const tPage = useTranslations("sites.settingsPage");
   const tNew = useTranslations("sites.new");
   const tSections = useTranslations("sites.sections");
-  const id = useId();
-  const invalidateSites = useInvalidateSites();
-  const publishModeOptions = useSitePublishModeOptions();
+  const tPreview = useTranslations("sites.previewAccess");
+  const tVariables = useTranslations("sites.variables");
+  const variablesCount = useSiteVariablesCount();
+  const [openRow, setOpenRow] = useState<SiteSettingsRowKey | null>(null);
   const { site } = detail;
-  const [form, setForm] = useState<SiteSettingsFormValues>(() =>
-    siteSettingsFormFromSite(site)
-  );
-  const suggestions = useRepositorySuggestions({
-    organizationId,
-    siteId,
-    branch: form.productionBranch.trim(),
-  });
-  const patch = siteSettingsPatch(form, site);
-  const dirty = Object.keys(patch).length > 0;
-  const valid =
-    form.name.trim().length > 0 &&
-    form.productionBranch.trim().length > 0 &&
-    (form.blogEnabled || form.changelogEnabled);
 
-  const update = <K extends keyof SiteSettingsFormValues>(
-    key: K,
-    value: SiteSettingsFormValues[K]
-  ) => setForm((current) => ({ ...current, [key]: value }));
-  const subdirectory = useSiteRootDirectoryToggle(form.rootDirectory, (value) =>
-    update("rootDirectory", value)
-  );
-
-  const saveMutation = useMutation({
-    mutationFn: () =>
-      dashboardOrpc.sites.update.call({ organizationId, siteId, ...patch }),
-    onSuccess: async (result) => {
-      setForm(siteSettingsFormFromSite(result.site));
-      toast.success(result.rebuilding ? t("savedRebuilding") : t("saved"));
-      await invalidateSites();
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, t("saveFailed")));
-    },
+  const row = (key: SiteSettingsRowKey) => ({
+    open: openRow === key,
+    onOpenChange: (open: boolean) => setOpenRow(open ? key : null),
   });
+  // Only close the row that finished saving; another row may be open by now.
+  const closeRow = (key: SiteSettingsRowKey) => () =>
+    setOpenRow((current) => (current === key ? null : current));
+  const previewMode = site.previewsEnabled
+    ? sitePreviewAccessMode(site)
+    : "off";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeading description={tPage("description")} title={tPage("title")} />
-      <form
-        className="space-y-6"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (dirty && valid && !saveMutation.isPending) {
-            saveMutation.mutate();
+
+      <SiteSettingsList>
+        <SiteSettingsItem
+          description={t("nameHint")}
+          icon={Tag01Icon}
+          title={tNew("name")}
+          value={<SiteNameField />}
+        />
+        <SiteSettingsItem
+          {...row("repository")}
+          description={t("repositoryHint")}
+          icon={GithubIcon}
+          title={t("repository")}
+          value={
+            <SiteSettingsValue>
+              {site.repository
+                ? `${site.repository.owner}/${site.repository.name}`
+                : t("noRepository")}
+            </SiteSettingsValue>
           }
-        }}
-      >
-        <TitleCard as="section" heading={t("general")} headingAs="h2">
-          <div className="divide-border divide-y">
-            <SiteSettingsRow htmlFor={`${id}-name`} label={tNew("name")}>
-              <Input
-                id={`${id}-name`}
-                maxLength={SITE_NAME_MAX_LENGTH}
-                onChange={(event) => update("name", event.target.value)}
-                value={form.name}
-              />
-            </SiteSettingsRow>
-            <SiteSettingsRow
-              description={tNew("branchHint")}
-              htmlFor={`${id}-branch`}
-              label={tNew("branch")}
-            >
-              <SiteSuggestInput
-                emptyLabel={tNew("noBranchMatch")}
-                icon={GitBranchIcon}
-                id={`${id}-branch`}
-                onValueChange={(value) => update("productionBranch", value)}
-                suggestions={suggestions.branches}
+        >
+          <RepositoryPanel />
+        </SiteSettingsItem>
+        <SiteSettingsItem
+          {...row("branch")}
+          description={tNew("branchHint")}
+          icon={GitBranchIcon}
+          title={tNew("branch")}
+          value={
+            <SiteSettingsValue mono>{site.productionBranch}</SiteSettingsValue>
+          }
+        >
+          <SiteSettingsEditor
+            isValid={(form) => form.productionBranch.trim().length > 0}
+            onDone={closeRow("branch")}
+          >
+            {(form, update) => (
+              <BranchField
+                onChange={(value) => update("productionBranch", value)}
                 value={form.productionBranch}
               />
-            </SiteSettingsRow>
-            <SiteSettingsRow
-              description={tNew("subdirectoryHint")}
-              htmlFor={`${id}-subdirectory`}
-              label={tNew("subdirectory")}
-            >
-              <div className="flex lg:h-full lg:items-center">
-                <Switch
-                  checked={subdirectory.checked}
-                  id={`${id}-subdirectory`}
-                  onCheckedChange={subdirectory.onCheckedChange}
-                />
-              </div>
-            </SiteSettingsRow>
-            {subdirectory.checked ? (
-              <SiteSettingsRow
-                description={tNew("rootDirectoryPathHint")}
-                htmlFor={`${id}-root`}
-                label={tNew("rootDirectoryPath")}
-              >
-                <SiteSuggestInput
-                  emptyLabel={tNew("noDirectoryMatch")}
-                  icon={Folder01Icon}
-                  id={`${id}-root`}
-                  onValueChange={(value) => update("rootDirectory", value)}
-                  placeholder={tNew("rootDirectoryPlaceholder")}
-                  suggestions={suggestions.configDirectories.filter(Boolean)}
-                  value={form.rootDirectory}
-                />
-              </SiteSettingsRow>
-            ) : null}
-          </div>
-        </TitleCard>
-
-        <TitleCard as="section" heading={t("content")} headingAs="h2">
-          <SiteSettingsRow
-            description={tPage("sectionsHint")}
-            label={tSections("title")}
-          >
-            <SiteSectionsFields
-              blogEnabled={form.blogEnabled}
-              blogPath={form.blogPath}
-              changelogEnabled={form.changelogEnabled}
-              changelogPath={form.changelogPath}
-              idPrefix={id}
-              onBlogEnabledChange={(value) => update("blogEnabled", value)}
-              onBlogPathChange={(value) => update("blogPath", value)}
-              onChangelogEnabledChange={(value) =>
-                update("changelogEnabled", value)
-              }
-              onChangelogPathChange={(value) => update("changelogPath", value)}
-            />
-          </SiteSettingsRow>
-        </TitleCard>
-
-        <TitleCard as="section" heading={t("previews")} headingAs="h2">
-          <SiteSettingsRow
-            description={t("previewsEnabledHint")}
-            label={t("previewBuilds")}
-          >
-            <div className="flex">
-              <SitePreviewAccessControl />
-            </div>
-          </SiteSettingsRow>
-          <SiteSettingsRow
-            description={t("previewCommentsHint")}
-            htmlFor={`${id}-preview-comments`}
-            label={t("previewComments")}
-          >
-            <div className="flex lg:h-full lg:items-center">
-              <Switch
-                aria-label={t("previewComments")}
-                checked={form.previewCommentsEnabled}
-                id={`${id}-preview-comments`}
-                onCheckedChange={(value) =>
-                  update("previewCommentsEnabled", value)
-                }
+            )}
+          </SiteSettingsEditor>
+        </SiteSettingsItem>
+        <SiteSettingsItem
+          {...row("rootDirectory")}
+          description={t("rootDirectoryHint")}
+          icon={Folder01Icon}
+          title={t("rootDirectory")}
+          value={
+            <SiteSettingsValue mono>
+              {site.rootDirectory ? `./${site.rootDirectory}` : "./"}
+            </SiteSettingsValue>
+          }
+        >
+          <SiteSettingsEditor onDone={closeRow("rootDirectory")}>
+            {(form, update) => (
+              <RootDirectoryField
+                branch={form.productionBranch}
+                onChange={(value) => update("rootDirectory", value)}
+                value={form.rootDirectory}
               />
-            </div>
-          </SiteSettingsRow>
-        </TitleCard>
+            )}
+          </SiteSettingsEditor>
+        </SiteSettingsItem>
+        <SiteSettingsToggle
+          description={t("smartDeploymentsHint")}
+          field="smartDeployments"
+          icon={FlashIcon}
+          title={
+            <span className="inline-flex items-center gap-2">
+              {t("smartDeployments")}
+              <Badge size="sm" variant="secondary">
+                {t("beta")}
+              </Badge>
+            </span>
+          }
+        />
+      </SiteSettingsList>
 
-        <TitleCard as="section" heading={t("publishing")} headingAs="h2">
-          <SiteSettingsRow
-            description={t("smartDeploymentsHint")}
-            htmlFor={`${id}-smart-deployments`}
-            label={
-              <span className="inline-flex items-center gap-2">
-                {t("smartDeployments")}
-                <Badge variant="secondary">{t("beta")}</Badge>
-              </span>
+      <SiteSettingsGroup icon={Layers01Icon} title={t("contentGroup")}>
+        <SiteSettingsList>
+          <SiteSettingsItem
+            {...row("sections")}
+            description={t("sectionsRowHint")}
+            icon={Layers01Icon}
+            title={tSections("title")}
+            value={
+              <SiteSettingsValue mono>
+                {[site.mounts.blog, site.mounts.changelog]
+                  .filter(Boolean)
+                  .join("  ·  ")}
+              </SiteSettingsValue>
             }
           >
-            <div className="flex lg:h-full lg:items-center">
-              <Switch
-                aria-label={t("smartDeployments")}
-                checked={form.smartDeployments}
-                id={`${id}-smart-deployments`}
-                onCheckedChange={(value) => update("smartDeployments", value)}
-              />
-            </div>
-          </SiteSettingsRow>
-          <SiteSettingsRow label={tNew("publishMode")}>
-            <SiteChoiceGroup
-              hideLabel
-              label={tNew("publishMode")}
-              onValueChange={(value) => update("publishMode", value)}
-              options={publishModeOptions}
-              value={form.publishMode}
-            />
-          </SiteSettingsRow>
-        </TitleCard>
-
-        {dirty ? (
-          <SiteSettingsSaveBar
-            canSave={valid}
-            isSaving={saveMutation.isPending}
-            onReset={() => setForm(siteSettingsFormFromSite(site))}
+            <SiteSettingsEditor
+              isValid={(form) => form.blogEnabled || form.changelogEnabled}
+              onDone={closeRow("sections")}
+            >
+              {(form, update) => (
+                <>
+                  <SiteSectionField
+                    enabled={form.blogEnabled}
+                    onEnabledChange={(value) => update("blogEnabled", value)}
+                    onPathChange={(value) => update("blogPath", value)}
+                    path={form.blogPath}
+                    title={tSections("blog")}
+                  />
+                  <SiteSectionField
+                    enabled={form.changelogEnabled}
+                    onEnabledChange={(value) =>
+                      update("changelogEnabled", value)
+                    }
+                    onPathChange={(value) => update("changelogPath", value)}
+                    path={form.changelogPath}
+                    title={tSections("changelog")}
+                  />
+                  {form.blogEnabled || form.changelogEnabled ? (
+                    <SiteSettingsHint>{tPage("sectionsHint")}</SiteSettingsHint>
+                  ) : (
+                    <FieldError>{tSections("atLeastOne")}</FieldError>
+                  )}
+                </>
+              )}
+            </SiteSettingsEditor>
+          </SiteSettingsItem>
+          <SiteSettingsItem
+            description={t("publishModeHint")}
+            icon={GitPullRequestIcon}
+            title={tNew("publishMode")}
+            value={<PublishModeSelect />}
           />
-        ) : null}
-      </form>
+          <SiteSettingsItem
+            {...row("variables")}
+            description={t("variablesHint")}
+            icon={CodeIcon}
+            title={tVariables("title")}
+            value={
+              variablesCount === null ? null : (
+                <SiteSettingsValue>
+                  {t("variablesCount", { count: variablesCount })}
+                </SiteSettingsValue>
+              )
+            }
+          >
+            <SiteVariablesSettings />
+          </SiteSettingsItem>
+        </SiteSettingsList>
+      </SiteSettingsGroup>
 
-      <SiteVariablesSettings />
+      <SiteSettingsGroup icon={ViewIcon} title={t("previews")}>
+        <SiteSettingsList>
+          <SiteSettingsItem
+            {...row("previewAccess")}
+            description={t("previewsEnabledHint")}
+            icon={ViewIcon}
+            title={t("previewBuilds")}
+            value={
+              <SiteSettingsValue>
+                {tPreview(`trigger.${previewMode}`)}
+              </SiteSettingsValue>
+            }
+          >
+            <div className="max-w-xl">
+              <SitePreviewAccessForm onDone={closeRow("previewAccess")} />
+            </div>
+          </SiteSettingsItem>
+          <SiteSettingsToggle
+            description={t("previewCommentsHint")}
+            field="previewCommentsEnabled"
+            icon={Comment01Icon}
+            title={t("previewComments")}
+          />
+        </SiteSettingsList>
+      </SiteSettingsGroup>
+
+      <SiteSettingsGroup icon={Analytics01Icon} title={t("visitors")}>
+        <SiteSettingsList>
+          <SiteAnalyticsToggle />
+          <SiteSettingsToggle
+            description={tPage("brandingHint")}
+            field="showBranding"
+            icon={SparklesIcon}
+            title={tPage("brandingLabel")}
+          />
+        </SiteSettingsList>
+      </SiteSettingsGroup>
 
       <SiteSettingsDangerZone
         organizationId={organizationId}
@@ -265,5 +312,328 @@ function SiteSettingsForm({
         siteId={siteId}
       />
     </div>
+  );
+}
+
+function RepositoryPanel() {
+  const t = useTranslations("sites.settings");
+  const { organizationId, organizationSlug, siteId, detail } = useSite();
+  const { repository } = detail.site;
+  const [installing, setInstalling] = useState(false);
+  const manageAccess = async () => {
+    setInstalling(true);
+    const result = await startGitHubInstall({
+      organizationId,
+      callbackPath: siteHref(organizationSlug, siteId, "settings"),
+    });
+    if (!result.started) {
+      setInstalling(false);
+      toast.error(
+        result.reason === "install-start-failed" && result.message
+          ? result.message
+          : t("manageGitHubFailed")
+      );
+    }
+  };
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="text-muted-foreground max-w-md text-sm text-pretty">
+        {t("repositoryChangeHint")}
+      </p>
+      <div className="flex items-center gap-2">
+        {repository ? (
+          <a
+            className={buttonVariants({ size: "sm", variant: "ghost" })}
+            href={githubRepositoryUrl(repository)}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {t("openOnGitHub")}
+            <HugeiconsIcon
+              aria-hidden="true"
+              data-icon="inline-end"
+              icon={ArrowUpRight01Icon}
+            />
+          </a>
+        ) : null}
+        <Button
+          loading={installing}
+          onClick={manageAccess}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          <HugeiconsIcon
+            aria-hidden="true"
+            data-icon="inline-start"
+            icon={GithubIcon}
+          />
+          {t("manageGitHub")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function BranchField({ value, onChange }: SiteBranchFieldProps) {
+  const t = useTranslations("sites.settings");
+  const tNew = useTranslations("sites.new");
+  const { organizationId, siteId } = useSite();
+  const id = useId();
+  const suggestions = useRepositorySuggestions({
+    organizationId,
+    siteId,
+    branch: value.trim(),
+  });
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{tNew("branch")}</FieldLabel>
+      <SiteSuggestInput
+        emptyLabel={tNew("noBranchMatch")}
+        icon={GitBranchIcon}
+        id={id}
+        onValueChange={onChange}
+        suggestions={suggestions.branches}
+        value={value}
+      />
+      <SiteSettingsHint>{t("branchFieldHint")}</SiteSettingsHint>
+    </Field>
+  );
+}
+
+function RootDirectoryField({
+  value,
+  branch,
+  onChange,
+}: SiteRootDirectoryFieldProps) {
+  const t = useTranslations("sites.settings");
+  const tNew = useTranslations("sites.new");
+  const { organizationId, siteId } = useSite();
+  const id = useId();
+  const suggestions = useRepositorySuggestions({
+    organizationId,
+    siteId,
+    branch: branch.trim(),
+  });
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>
+        {t("rootDirectory")}
+        <Badge size="sm" variant="outline">
+          {t("optional")}
+        </Badge>
+      </FieldLabel>
+      <SiteSuggestInput
+        emptyLabel={tNew("noDirectoryMatch")}
+        icon={Folder01Icon}
+        id={id}
+        onValueChange={onChange}
+        placeholder={t("rootDirectoryPlaceholder")}
+        suggestions={suggestions.configDirectories.filter(Boolean)}
+        value={value}
+      />
+      <SiteSettingsHint>{t("rootDirectoryFieldHint")}</SiteSettingsHint>
+    </Field>
+  );
+}
+
+function SiteNameField() {
+  const tNew = useTranslations("sites.new");
+  const tCommon = useTranslations("common");
+  const { site } = useSite().detail;
+  const [draft, setDraft] = useState(site.name);
+  const save = useUpdateSiteSettings();
+  const next = draft.trim();
+  const dirty = next.length > 0 && next !== site.name;
+  return (
+    <form
+      className="w-full sm:w-64 sm:shrink-0"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (dirty && !save.isPending) {
+          save.mutate({ name: next });
+        }
+      }}
+    >
+      <InputGroup>
+        <InputGroupInput
+          aria-label={tNew("name")}
+          readOnly={save.isPending}
+          maxLength={SITE_NAME_MAX_LENGTH}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setDraft(site.name);
+            }
+          }}
+          value={draft}
+        />
+        {dirty || save.isPending ? (
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              loading={save.isPending}
+              onClick={() => {
+                if (!save.isPending) {
+                  save.mutate({ name: next });
+                }
+              }}
+              variant="secondary"
+            >
+              {tCommon("actions.save")}
+            </InputGroupButton>
+          </InputGroupAddon>
+        ) : null}
+      </InputGroup>
+    </form>
+  );
+}
+
+function SiteSectionField({
+  title,
+  enabled,
+  path,
+  onEnabledChange,
+  onPathChange,
+}: SiteSectionFieldProps) {
+  const tSections = useTranslations("sites.sections");
+  const id = useId();
+  return (
+    <Field>
+      <div className="flex items-center gap-2.5">
+        <Switch
+          checked={enabled}
+          id={`${id}-enabled`}
+          onCheckedChange={onEnabledChange}
+          size="sm"
+        />
+        <FieldLabel htmlFor={`${id}-enabled`}>{title}</FieldLabel>
+      </div>
+      <Input
+        aria-label={tSections("pathLabel", { section: title })}
+        disabled={!enabled}
+        onChange={(event) => onPathChange(event.target.value)}
+        placeholder="/"
+        value={path}
+      />
+    </Field>
+  );
+}
+
+function PublishModeSelect() {
+  const tNew = useTranslations("sites.new");
+  const { site } = useSite().detail;
+  const options = useSitePublishModeOptions();
+  const save = useUpdateSiteSettings();
+  const value =
+    save.isPending && save.variables.publishMode
+      ? save.variables.publishMode
+      : site.publishMode;
+  return (
+    <Select
+      disabled={save.isPending}
+      onValueChange={(next: SitePublishMode | null) => {
+        if (next && next !== site.publishMode) {
+          save.mutate({ publishMode: next });
+        }
+      }}
+      value={value}
+    >
+      <SelectTrigger aria-label={tNew("publishMode")} className="shrink-0">
+        <SelectValue>
+          {(current: SitePublishMode) =>
+            options.find((option) => option.value === current)?.title
+          }
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent align="end" alignItemWithTrigger={false} className="w-72">
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <span className="flex flex-col">
+              <span>{option.title}</span>
+              <span className="text-muted-foreground text-xs">
+                {option.description}
+              </span>
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function SiteSettingsToggle({
+  field,
+  icon,
+  title,
+  description,
+}: SiteSettingsToggleProps) {
+  const { site } = useSite().detail;
+  const save = useUpdateSiteSettings();
+  const pending = save.isPending ? save.variables?.[field] : undefined;
+  return (
+    <SiteSettingsSwitchItem
+      checked={pending ?? site[field]}
+      description={description}
+      disabled={save.isPending}
+      icon={icon}
+      onCheckedChange={(checked) => save.mutate({ [field]: checked })}
+      title={title}
+    />
+  );
+}
+
+function SiteAnalyticsToggle() {
+  const t = useTranslations("sites.settings");
+  const { organizationId, siteId, detail } = useSite();
+  const invalidateSites = useInvalidateSites();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const analyticsOn = detail.site.analyticsEnabled;
+  const mutation = useMutation({
+    mutationFn: (analyticsEnabled: boolean) =>
+      dashboardOrpc.sites.update.call({
+        organizationId,
+        siteId,
+        analyticsEnabled,
+      }),
+    onSuccess: async (_result, next) => {
+      toast.success(next ? t("analytics.enabled") : t("analytics.done"));
+      setConfirmOpen(false);
+      await invalidateSites();
+    },
+    onError: (error) => {
+      toast.error(toErrorMessage(error, t("analytics.failed")));
+    },
+  });
+  return (
+    <>
+      <SiteSettingsSwitchItem
+        checked={analyticsOn}
+        description={t("analyticsHint")}
+        disabled={mutation.isPending}
+        icon={Analytics01Icon}
+        onCheckedChange={() => setConfirmOpen(true)}
+        title={t("analyticsLabel")}
+      />
+      <ConfirmDialog
+        confirmLabel={
+          analyticsOn ? t("analytics.action") : t("analytics.enable")
+        }
+        description={
+          analyticsOn
+            ? t("analytics.confirmDescription")
+            : t("analytics.enableConfirmDescription")
+        }
+        variant={analyticsOn ? "destructive" : "default"}
+        onConfirm={() => mutation.mutate(!analyticsOn)}
+        onOpenChange={setConfirmOpen}
+        open={confirmOpen}
+        pending={mutation.isPending}
+        title={
+          analyticsOn
+            ? t("analytics.confirmTitle")
+            : t("analytics.enableConfirmTitle")
+        }
+      />
+    </>
   );
 }

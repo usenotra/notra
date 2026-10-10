@@ -100,28 +100,6 @@ export interface SiteAddressInputProps {
   describedBy?: string;
 }
 
-export interface SiteSectionsFieldsProps {
-  idPrefix: string;
-  blogEnabled: boolean;
-  changelogEnabled: boolean;
-  blogPath: string;
-  changelogPath: string;
-  onBlogEnabledChange: (value: boolean) => void;
-  onChangelogEnabledChange: (value: boolean) => void;
-  onBlogPathChange: (value: string) => void;
-  onChangelogPathChange: (value: string) => void;
-}
-
-export interface SiteSectionRowProps {
-  id: string;
-  title: string;
-  description: string;
-  enabled: boolean;
-  path: string;
-  onEnabledChange: (value: boolean) => void;
-  onPathChange: (value: string) => void;
-}
-
 export interface SiteChoiceGroupProps<T extends string> {
   label: string;
   value: T;
@@ -129,13 +107,6 @@ export interface SiteChoiceGroupProps<T extends string> {
   onValueChange: (value: T) => void;
   disabled?: boolean;
   hideLabel?: boolean;
-}
-
-export interface SiteSettingsRowProps {
-  label: ReactNode;
-  htmlFor?: string;
-  description?: ReactNode;
-  children: ReactNode;
 }
 
 export interface SiteDeleteDialogProps extends SiteScope {
@@ -404,20 +375,9 @@ export interface SitePreviewBranchDialogProps extends SiteScope {
   onOpenChange: (open: boolean) => void;
 }
 
-export interface SiteSettingsFormProps extends SiteScope {
-  organizationSlug: string;
-  detail: SiteDetail;
-}
-
 export interface SiteSettingsDangerZoneProps extends SiteScope {
   organizationSlug: string;
   site: SiteRecord;
-}
-
-export interface SiteSettingsSaveBarProps {
-  canSave: boolean;
-  isSaving: boolean;
-  onReset: () => void;
 }
 
 export interface SitePublishDialogProps extends SiteScope {

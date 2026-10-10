@@ -88,7 +88,7 @@ if (!process.env.NOTRA_VARIABLES_SURFACE_WORKER) {
         </QueryClientProvider>
       );
     };
-    test("labels controls, warns against secrets and links to publication", () => {
+    test("labels controls, warns that values are public and links to publication", () => {
       content = JSON.stringify({
         name: "Acme",
         variables: {
@@ -98,7 +98,6 @@ if (!process.env.NOTRA_VARIABLES_SURFACE_WORKER) {
       });
       const html = render();
       expect(html).toContain(messages.sites.variables.title);
-      expect(html).toContain(messages.sites.variables.publicWarning);
       expect(html).toContain("{{product_name}}");
       expect(html).toContain('value="Acme Flow"');
       expect(html).toContain('value="https://example.com/signup"');

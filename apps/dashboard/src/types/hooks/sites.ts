@@ -49,3 +49,7 @@ export interface SiteAnalyticsWindow {
   from?: string;
   to?: string;
 }
+
+export interface UseUpdateSiteSettingsOptions {
+  onSaved?: () => void;
+}

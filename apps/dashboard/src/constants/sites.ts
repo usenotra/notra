@@ -204,3 +204,6 @@ export const SITE_DEPLOYMENT_SUMMARY_SURFACE_CLASS =
   "bg-background shadow-lift grid gap-6 rounded-[14px] border p-5 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]";
 export const SITE_DEPLOYMENT_LOG_SURFACE_CLASS =
   "bg-background shadow-lift overflow-hidden rounded-[14px] border";
+
+export const SITE_SETTINGS_PANEL_CLASSNAME =
+  "h-[var(--collapsible-panel-height)] overflow-hidden outline-none transition-[height,opacity] duration-normal ease-emphasized motion-reduce:transition-none data-[ending-style]:h-0 data-[ending-style]:opacity-0 data-[starting-style]:h-0 data-[starting-style]:opacity-0";
