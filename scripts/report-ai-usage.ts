@@ -92,7 +92,6 @@ console.log(
   JSON.stringify(
     {
       scope: {
-        apiKeyId,
         startDate: values.start,
         endDate: values.end,
         organizationId: values["user-id"],

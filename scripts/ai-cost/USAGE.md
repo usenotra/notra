@@ -4,6 +4,7 @@
 the Upstash key's ID, not its display name; Jan is a development key and must
 not be included. The authentication key and selected reporting key may differ.
 There is no team-wide default and no credential is written to the report.
+The selected API key ID is used only as a query filter, not printed in the JSON.
 
 ```sh
 # AI_GATEWAY_API_KEY must already be set for reporting authentication.
