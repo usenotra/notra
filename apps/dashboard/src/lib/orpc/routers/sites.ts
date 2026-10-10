@@ -244,7 +244,7 @@ export const sitesRouter = {
       const details = await Promise.all(
         rows.map(async (site) => {
           const [latest, state] = await Promise.all([
-            listSiteDeployments(site.id, 1),
+            listSiteDeployments(site.id, 1, [], "production"),
             servingState(site.id),
           ]);
           return { site, latest: latest[0], state };

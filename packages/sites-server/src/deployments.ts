@@ -425,12 +425,20 @@ export async function getSite(
 export async function listSiteDeployments(
   siteId: string,
   limit = 50,
-  referencedIds: readonly string[] = []
+  referencedIds: readonly string[] = [],
+  kind?: SiteDeployment["kind"]
 ): Promise<SiteDeployment[]> {
   const recent = await db
     .select()
     .from(siteDeployments)
-    .where(eq(siteDeployments.siteId, siteId))
+    .where(
+      kind
+        ? and(
+            eq(siteDeployments.siteId, siteId),
+            eq(siteDeployments.kind, kind)
+          )
+        : eq(siteDeployments.siteId, siteId)
+    )
     .orderBy(desc(siteDeployments.createdAt))
     .limit(limit);
   const known = new Set(recent.map((deployment) => deployment.id));

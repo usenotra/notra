@@ -38,14 +38,15 @@ const SITE_LIST_ATTENTION_STATUSES: ReadonlySet<SiteDeploymentStatus> = new Set(
 );
 
 /**
- * The list shows the state of the site, not of its newest deployment: a
- * skipped, superseded or canceled newest deployment leaves the previous one
+ * The list shows the state of the site, not of its newest production
+ * deployment: a skipped, superseded or canceled one leaves the previous one
  * serving, so the site is still live.
  */
 export function siteListStatus(site: {
   liveDeploymentId: string | null;
   liveSince: Date | string | null;
   latestDeployment: {
+    id: string;
     status: SiteDeploymentStatus;
     live: boolean;
     createdAt: Date | string;
@@ -61,7 +62,7 @@ export function siteListStatus(site: {
   }
   const servedByOlderDeployment =
     site.liveDeploymentId !== null &&
-    !latest.live &&
+    latest.id !== site.liveDeploymentId &&
     !SITE_LIST_ATTENTION_STATUSES.has(latest.status);
   if (servedByOlderDeployment) {
     return {

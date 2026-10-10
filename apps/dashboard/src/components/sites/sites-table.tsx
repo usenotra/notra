@@ -89,7 +89,10 @@ export function SitesTable({
       header: tCommon("labels.status"),
       width: "11rem",
       sortable: true,
-      sortValue: (site) => siteListStatus(site)?.status ?? "",
+      sortValue: (site) =>
+        site.status === "suspended"
+          ? "offline"
+          : (siteListStatus(site)?.status ?? ""),
       cell: (site) => {
         if (site.status === "suspended") {
           return <SiteOfflineStatus />;
