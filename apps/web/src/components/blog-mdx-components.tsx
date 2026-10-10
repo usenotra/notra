@@ -2,10 +2,22 @@ import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { MDXComponents } from "mdx/types";
 
+import {
+  DemoApiFlowDiagram,
+  DemoCookieDiagram,
+  DemoDeploymentsDiagram,
+  DemoPoolDiagram,
+  DemoRebaseDiagram,
+} from "@/components/blog-diagrams/notra-demo";
 import { getMDXComponents } from "@/mdx-components";
 
 export function getBlogMDXComponents(): MDXComponents {
   return getMDXComponents({
+    DemoApiFlowDiagram,
+    DemoCookieDiagram,
+    DemoDeploymentsDiagram,
+    DemoPoolDiagram,
+    DemoRebaseDiagram,
     pre: ({ children, ...props }) => (
       <div className="code-block">
         <button
