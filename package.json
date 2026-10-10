@@ -48,6 +48,7 @@
     "oxfmt": "0.64.0",
     "oxlint": "1.82.0",
     "oxlint-tsgolint": "7.0.2001",
+    "railway": "3.13.1",
     "turbo": "2.11.5",
     "typescript": "7.0.2",
     "ultracite": "7.10.6"

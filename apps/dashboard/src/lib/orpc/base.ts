@@ -1,3 +1,7 @@
+import {
+  getOperationalContext,
+  runWithOperationalContext,
+} from "@notra/ai/utils/operational-context";
 import { isDemoMode } from "@notra/utils/demo-mode";
 import { os } from "@orpc/server";
 
@@ -21,12 +25,27 @@ export const baseProcedure = os
     const { logDemoUiAction } = await logger;
     logDemoUiAction({ path, input, output: result.output, durationMs });
     return result;
+  })
+  .use(({ next }) => {
+    const parent = getOperationalContext();
+    // Each batched procedure gets its own mutable attribution scope. The active
+    // UI organization is not proof that this procedure targets that tenant.
+    return parent
+      ? runWithOperationalContext(
+          { ...parent, organizationId: undefined },
+          next
+        )
+      : next();
   });
 
 export const authorizedProcedure = baseProcedure.use(
   async ({ context, next }) => {
     const auth = await assertAuthenticated({ headers: context.headers });
 
+    const operationalContext = getOperationalContext();
+    if (operationalContext) {
+      operationalContext.userId = auth.user.id;
+    }
     return next({
       context: {
         ...context,

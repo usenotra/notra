@@ -20,9 +20,11 @@ export function createModelCallTelemetry({
   const tags = providerOptions?.gateway?.tags;
   const startedAt = performance.now();
   let route: ResolvedRoute | undefined;
+  let servedModelId: string | undefined;
   let attemptCount = 0;
   let msToFirstChunk: number | undefined;
   let finished = false;
+  let completionRecorded = false;
 
   function emit(
     level: "info" | "warn" | "error",
@@ -40,7 +42,7 @@ export function createModelCallTelemetry({
         operation,
         organizationId: request.organizationId ?? context.organizationId,
         requestedModel: request.modelId,
-        model: route?.decision.modelId ?? request.modelId,
+        model: servedModelId ?? route?.decision.modelId ?? request.modelId,
         gateway: route?.decision.gateway ?? request.gateway,
         attemptCount,
         fallbackFrom: route?.decision.fallbackFrom,
@@ -69,7 +71,7 @@ export function createModelCallTelemetry({
     emit(level, event, {
       durationMs,
       ai: {
-        model: route?.decision.modelId ?? request.modelId,
+        model: servedModelId ?? route?.decision.modelId ?? request.modelId,
         msToFinish: durationMs,
         msToFirstChunk,
         ...ai,
@@ -97,9 +99,12 @@ export function createModelCallTelemetry({
       msToFirstChunk ??= Math.round(performance.now() - startedAt);
     },
     complete(result) {
-      if (finished) {
+      // A streamed error may precede the provider's final usage/charge report.
+      // Terminal events and accounting have independent once-only boundaries.
+      if (completionRecorded) {
         return;
       }
+      completionRecorded = true;
       const inputTokens = result.usage.inputTokens.total;
       const outputTokens = result.usage.outputTokens.total;
       const serviceTier =
@@ -108,8 +113,43 @@ export function createModelCallTelemetry({
       const failed = result.finishReason.unified === "error";
       const generationId =
         result.providerMetadata?.[ROUTER_METADATA_KEY]?.generationId;
+      const metadata = result.providerMetadata?.[ROUTER_METADATA_KEY];
+      servedModelId =
+        typeof metadata?.model === "string" && metadata.model.trim().length > 0
+          ? metadata.model
+          : undefined;
+      // OpenRouter returns charges with usage; Vercel enriches them separately.
+      if (
+        route?.decision.gateway === "openrouter" &&
+        typeof metadata?.gatewayCostUsd === "number" &&
+        Number.isFinite(metadata.gatewayCostUsd) &&
+        metadata.gatewayCostUsd >= 0
+      ) {
+        const byokInferenceCostUsd =
+          typeof metadata.byokInferenceCostUsd === "number" &&
+          Number.isFinite(metadata.byokInferenceCostUsd) &&
+          metadata.byokInferenceCostUsd >= 0
+            ? metadata.byokInferenceCostUsd
+            : undefined;
+        emit("info", "ai.cost.reported", {
+          costId: `openrouter:${result.responseId ?? callId}`,
+          gatewayCostUsd: metadata.gatewayCostUsd,
+          byokInferenceCostUsd,
+          costUsd:
+            byokInferenceCostUsd !== undefined &&
+            typeof metadata.costUsd === "number" &&
+            Number.isFinite(metadata.costUsd) &&
+            metadata.costUsd >= 0
+              ? metadata.costUsd
+              : undefined,
+          upstreamProvider:
+            typeof metadata.upstreamProvider === "string"
+              ? metadata.upstreamProvider
+              : undefined,
+        });
+      }
       recordRequestAIUsage({
-        model: route?.decision.modelId ?? request.modelId,
+        model: servedModelId ?? route?.decision.modelId ?? request.modelId,
         inputTokens,
         outputTokens,
         cacheReadTokens: result.usage.inputTokens.cacheRead,

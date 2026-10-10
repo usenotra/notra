@@ -56,6 +56,7 @@ const context: ORPCContext = {
   session: null,
   user: null,
   requestMemo: {
+    authorizedOrganizationIds: new Set(),
     shelfMembersByOrganization: new Map(),
     analyticsEnabledByOrganization: new Map(),
     sitesEnabledByOrganization: new Map(),

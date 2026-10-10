@@ -7,7 +7,11 @@ import type {
   VercelAdapterConfig,
 } from "@notra/ai/types/router";
 
-import { isModelSupported, toVercelModelId } from "../model-ids";
+import {
+  isModelSupported,
+  stripVercelNamespace,
+  toVercelModelId,
+} from "../model-ids";
 import { buildVercelProviderOptions } from "../provider-options";
 
 function parseBalance(value: unknown): number | null {
@@ -60,15 +64,19 @@ export function createVercelAdapter(
     },
     getBalance,
     extractRouteMetadata(
-      providerMetadata: SharedV4ProviderMetadata | undefined
+      providerMetadata: SharedV4ProviderMetadata | undefined,
+      servedModelId?: string
     ) {
       const gateway = providerMetadata?.gateway;
-      if (!gateway || typeof gateway !== "object") {
-        return {};
-      }
-      const record = gateway as Record<string, unknown>;
-      const generationId = readString(record.generationId);
-      return generationId ? { generationId } : {};
+      const generationId =
+        gateway && typeof gateway === "object"
+          ? readString(gateway.generationId)
+          : undefined;
+      const model = readString(servedModelId?.trim());
+      return {
+        ...(generationId ? { generationId } : {}),
+        ...(model ? { model: stripVercelNamespace(model) } : {}),
+      };
     },
     async lookupRouteMetadata(generationId) {
       const generation = await createGateway({
@@ -87,9 +95,19 @@ export function createVercelAdapter(
       const costUsd =
         generation.totalCost +
         (generation.isByok ? generation.upstreamInferenceCost : 0);
+      const byokInferenceCostUsd = generation.isByok
+        ? generation.upstreamInferenceCost
+        : 0;
       return {
         model: generation.model,
         upstreamProvider: generation.providerName,
+        isByok: generation.isByok,
+        ...(Number.isFinite(generation.totalCost) && generation.totalCost >= 0
+          ? { gatewayCostUsd: generation.totalCost }
+          : {}),
+        ...(Number.isFinite(byokInferenceCostUsd) && byokInferenceCostUsd >= 0
+          ? { byokInferenceCostUsd }
+          : {}),
         ...(Number.isFinite(generation.totalCost) &&
         generation.totalCost >= 0 &&
         (!generation.isByok ||

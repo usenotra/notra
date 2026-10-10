@@ -1,4 +1,5 @@
 import { createMCPClient, type MCPClient } from "@ai-sdk/mcp";
+import { observeMcpTool } from "@notra/ai/utils/observe-mcp-tool";
 import { logError } from "@notra/ai/utils/server-log";
 import { db } from "@notra/db/drizzle";
 import { mcpServerIntegrations } from "@notra/db/schema";
@@ -336,88 +337,99 @@ function createRuntimeMcpTool({
       indexedTool.description ??
       `MCP tool ${indexedTool.serverToolName} from ${indexedTool.serverName}`,
     inputSchema: jsonSchema(toAiSdkInputJsonSchema(indexedTool.inputSchema)),
-    execute: async (input, options) => {
-      const isActivated = await isMcpToolActivatedForSession({
-        organizationId,
-        sessionId,
-        surface,
-        toolId: indexedTool.id,
-      });
-
-      if (!isActivated) {
-        throw new Error(
-          `MCP tool ${indexedTool.runtimeToolName} is not active for this session. Use activateMcpTools first.`
-        );
-      }
-
-      try {
-        const latestTool =
-          (await getIndexedMcpToolByRuntimeName({
-            organizationId,
-            runtimeToolName: indexedTool.runtimeToolName,
-          })) ?? indexedTool;
-        if (latestTool.status !== "active" || !latestTool.serverEnabled) {
-          throw new Error(
-            `MCP tool ${indexedTool.runtimeToolName} is no longer available. Search and activate the tool again before retrying.`
-          );
-        }
-        let clientEntry = await getMcpClient({
+    execute: async (input, options) =>
+      observeMcpTool(
+        {
           organizationId,
-          integrationId: latestTool.serverIntegrationId,
-          clients,
-        });
-        const output = await withMcpOAuthRetry({
-          integrationId: latestTool.serverIntegrationId,
-          organizationId,
-          requestAuth: clientEntry.requestAuth,
-          operation: async (_requestAuth, isRetry) => {
-            if (isRetry) {
-              await retireMcpClient({
-                clientEntry,
-                clients,
-                integrationId: latestTool.serverIntegrationId,
-                retiredClients,
-              });
-              clientEntry = await getMcpClient({
-                organizationId,
-                integrationId: latestTool.serverIntegrationId,
-                clients,
-              });
-            }
-            return executeMcpTool({
-              clientEntry,
-              indexedTool: latestTool,
-              input,
-              options,
-            });
-          },
-        });
-
-        await touchMcpSessionToolActivation({
-          organizationId,
-          sessionId,
-          surface,
+          integrationId: indexedTool.serverIntegrationId,
           toolId: indexedTool.id,
-        });
-
-        return output;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (isLikelySchemaOrUnknownToolError(message)) {
-          await markMcpToolIndexRowStale({
+          surface,
+        },
+        async () => {
+          const isActivated = await isMcpToolActivatedForSession({
             organizationId,
+            sessionId,
+            surface,
             toolId: indexedTool.id,
-            errorMessage: message,
           });
-          return {
-            isError: true,
-            message:
-              "The MCP tool definition appears stale. Search and activate the tool again before retrying.",
-          };
-        }
-        throw error;
-      }
-    },
+
+          if (!isActivated) {
+            throw new Error(
+              `MCP tool ${indexedTool.runtimeToolName} is not active for this session. Use activateMcpTools first.`
+            );
+          }
+
+          try {
+            const latestTool =
+              (await getIndexedMcpToolByRuntimeName({
+                organizationId,
+                runtimeToolName: indexedTool.runtimeToolName,
+              })) ?? indexedTool;
+            if (latestTool.status !== "active" || !latestTool.serverEnabled) {
+              throw new Error(
+                `MCP tool ${indexedTool.runtimeToolName} is no longer available. Search and activate the tool again before retrying.`
+              );
+            }
+            let clientEntry = await getMcpClient({
+              organizationId,
+              integrationId: latestTool.serverIntegrationId,
+              clients,
+            });
+            const output = await withMcpOAuthRetry({
+              integrationId: latestTool.serverIntegrationId,
+              organizationId,
+              requestAuth: clientEntry.requestAuth,
+              operation: async (_requestAuth, isRetry) => {
+                if (isRetry) {
+                  await retireMcpClient({
+                    clientEntry,
+                    clients,
+                    integrationId: latestTool.serverIntegrationId,
+                    retiredClients,
+                  });
+                  clientEntry = await getMcpClient({
+                    organizationId,
+                    integrationId: latestTool.serverIntegrationId,
+                    clients,
+                  });
+                }
+                return executeMcpTool({
+                  clientEntry,
+                  indexedTool: latestTool,
+                  input,
+                  options,
+                });
+              },
+            });
+
+            await touchMcpSessionToolActivation({
+              organizationId,
+              sessionId,
+              surface,
+              toolId: indexedTool.id,
+            });
+
+            return output;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            if (isLikelySchemaOrUnknownToolError(message)) {
+              await markMcpToolIndexRowStale({
+                organizationId,
+                toolId: indexedTool.id,
+                errorMessage: message,
+              });
+              return {
+                isError: true,
+                message:
+                  "The MCP tool definition appears stale. Search and activate the tool again before retrying.",
+              };
+            }
+            throw error;
+          }
+        },
+        { signal: options.abortSignal }
+      ),
     metadata: {
       notra: {
         type: "mcp",

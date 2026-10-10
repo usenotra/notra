@@ -29,7 +29,10 @@ import {
   geoProjectContextMiddleware,
 } from "./middleware/geo-context";
 import { geoEntitlementMiddleware } from "./middleware/geo-entitlement";
-import { apiObservabilityMiddleware } from "./middleware/observability";
+import {
+  apiAuthTelemetryMiddleware,
+  apiObservabilityMiddleware,
+} from "./middleware/observability";
 import { subscriptionMiddleware } from "./middleware/subscription";
 import { agentChatsRoutes } from "./routes/agent-chats";
 import { brandIdentitiesRoutes } from "./routes/brand-identities";
@@ -265,6 +268,8 @@ app.use("/v2/*", apiAnalyticsMiddleware);
 
 app.use("/v1/*", unlessPublicFeedbackIngest(oauthScopeMiddleware));
 app.use("/v2/*", oauthScopeMiddleware);
+app.use("/v1/*", apiAuthTelemetryMiddleware);
+app.use("/v2/*", apiAuthTelemetryMiddleware);
 
 app.use("/v1/*", unlessFeedbackRequest(subscriptionMiddleware()));
 app.use("/v2/*", subscriptionMiddleware());

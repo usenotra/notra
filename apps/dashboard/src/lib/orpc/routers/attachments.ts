@@ -15,6 +15,7 @@ import {
   getR2StorageConfig,
   isR2StorageConfigured,
 } from "@/lib/upload/r2";
+import { recordAuthorizedOrganization } from "@/utils/rpc-telemetry";
 
 const IMAGE_MIME_TYPES = [
   "image/jpeg",
@@ -89,6 +90,7 @@ function buildPublicUrl(key: string) {
 }
 
 async function requireOrganizationAccess(
+  headers: Headers,
   userId: string,
   organizationId: string | null | undefined
 ) {
@@ -112,6 +114,7 @@ async function requireOrganizationAccess(
     });
   }
 
+  recordAuthorizedOrganization(headers, organizationId, userId);
   return organizationId;
 }
 
@@ -120,6 +123,7 @@ export const attachmentsRouter = {
     .input(listAttachmentsInputSchema)
     .handler(async ({ context, input }) => {
       const organizationId = await requireOrganizationAccess(
+        context.headers,
         context.user.id,
         input.organizationId
       );
@@ -175,6 +179,7 @@ export const attachmentsRouter = {
     .input(deleteManyAttachmentsInputSchema)
     .handler(async ({ context, input }) => {
       const organizationId = await requireOrganizationAccess(
+        context.headers,
         context.user.id,
         input.organizationId
       );

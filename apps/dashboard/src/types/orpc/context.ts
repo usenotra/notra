@@ -5,6 +5,9 @@ import type { GeoShelfMember } from "@/types/geo-shelf";
 type SessionData = Awaited<ReturnType<typeof getServerSession>>;
 
 export interface ORPCRequestMemo {
+  authenticatedUserId?: string;
+  /** Membership-verified targets across all procedures in this HTTP request. */
+  readonly authorizedOrganizationIds: Set<string>;
   readonly shelfMembersByOrganization: Map<string, Promise<GeoShelfMember[]>>;
   readonly analyticsEnabledByOrganization: Map<string, Promise<boolean>>;
   readonly sitesEnabledByOrganization: Map<string, Promise<boolean>>;

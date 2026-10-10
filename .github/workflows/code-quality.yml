@@ -73,6 +73,21 @@ jobs:
       - name: Run unit and integration tests
         run: bun run test --force
 
+      - name: Test observability configuration and dashboard regressions
+        run: bun test --isolate infra/observability
+
+      - name: Typecheck Railway infrastructure
+        run: bunx --no-install tsc --project .railway/tsconfig.json
+
+      - name: Typecheck Vercel metric exporter
+        run: bunx --no-install tsc --project infra/observability/vercel/tsconfig.json
+
+      - name: Validate observability configuration with pinned native binaries
+        run: node infra/observability/validate-config.mjs
+
+      - name: Evaluate dashboard queries against disposable pinned Loki fixtures
+        run: node infra/observability/check-queries.mjs
+
       - name: Verify production markdown endpoints
         run: |
           bun run build --filter=web

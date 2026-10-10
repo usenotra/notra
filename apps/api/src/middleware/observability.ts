@@ -1,8 +1,36 @@
 import { useLogger as getRequestLogger, withEvlog } from "@notra/ai/evlog";
-import { runWithOperationalContext } from "@notra/ai/utils/operational-context";
+import {
+  getOperationalContext,
+  runWithOperationalContext,
+} from "@notra/ai/utils/operational-context";
 import type { Context, Next } from "hono";
 
+import {
+  type AuthData,
+  getOrganizationIdFromAuth,
+  isOAuthAuth,
+} from "../types/auth";
 import { apiRequestLogFields } from "../utils/analytics";
+
+export async function apiAuthTelemetryMiddleware(
+  c: Context,
+  next: Next
+): Promise<void> {
+  const parent = getOperationalContext();
+  const auth: AuthData | undefined = c.get("auth");
+  if (!parent || !auth) {
+    await next();
+    return;
+  }
+  await runWithOperationalContext(
+    {
+      ...parent,
+      organizationId: getOrganizationIdFromAuth(auth),
+      userId: isOAuthAuth(auth) ? auth.userId : undefined,
+    },
+    next
+  );
+}
 
 export async function apiObservabilityMiddleware(
   c: Context,

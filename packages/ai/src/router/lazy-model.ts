@@ -162,6 +162,9 @@ export function buildRouteMetadata(
   );
   return {
     gateway: decision.gateway,
+    ...(decision.organizationId
+      ? { organizationId: decision.organizationId }
+      : {}),
     requestedModel: decision.requestedModelId,
     model: extracted.model ?? decision.modelId,
     reason: decision.reason,
@@ -171,6 +174,13 @@ export function buildRouteMetadata(
       ? { upstreamProvider: extracted.upstreamProvider }
       : {}),
     ...(extracted.costUsd === undefined ? {} : { costUsd: extracted.costUsd }),
+    ...(extracted.gatewayCostUsd === undefined
+      ? {}
+      : { gatewayCostUsd: extracted.gatewayCostUsd }),
+    ...(extracted.byokInferenceCostUsd === undefined
+      ? {}
+      : { byokInferenceCostUsd: extracted.byokInferenceCostUsd }),
+    ...(extracted.isByok === undefined ? {} : { isByok: extracted.isByok }),
     ...(decision.fallbackFrom ? { fallbackFrom: decision.fallbackFrom } : {}),
     ...(decision.fallbackReason
       ? { fallbackReason: decision.fallbackReason }

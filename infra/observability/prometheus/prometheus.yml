@@ -1,0 +1,75 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+scrape_configs:
+  - job_name: prometheus
+    sample_limit: 10000
+    body_size_limit: 8MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["localhost:9090"]
+  - job_name: loki
+    sample_limit: 10000
+    body_size_limit: 8MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["loki.railway.internal:3100"]
+  - job_name: collector
+    sample_limit: 2000
+    body_size_limit: 2MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["otel-collector.railway.internal:8888"]
+  - job_name: application-metrics
+    sample_limit: 50000
+    body_size_limit: 16MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["otel-collector.railway.internal:8889"]
+  - job_name: blackbox
+    sample_limit: 2000
+    body_size_limit: 2MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["blackbox.railway.internal:9115"]
+  - job_name: vercel
+    sample_limit: 100000
+    body_size_limit: 32MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    static_configs:
+      - targets: ["vercel-metrics.railway.internal:9091"]
+  - job_name: http-probes
+    sample_limit: 500
+    body_size_limit: 1MB
+    label_limit: 128
+    label_name_length_limit: 256
+    label_value_length_limit: 2048
+    metrics_path: /probe
+    params:
+      module: [https_2xx]
+    static_configs:
+      - targets:
+          - https://www.usenotra.com
+          - https://app.usenotra.com
+          - https://api.usenotra.com/ping
+          - https://ingest.usenotra.com/readyz
+          - https://mcp.usenotra.com/.well-known/oauth-protected-resource
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox.railway.internal:9115

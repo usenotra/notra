@@ -1,0 +1,490 @@
+{
+  "version": 1,
+  "contract": "Push each raw line at evaluationTime - ageSeconds with its stream labels to a disposable pinned Loki. For every comparison query, interpolate environment, organization, $__range and $__auto from each selection, execute both baseline and dashboard target as instant queries at evaluationTime, and compare sorted complete label/value results (floating-point tolerance 1e-9). Reject result labels outside the expected grouping; neither path may return __error__. These fixtures are not production data. Raw lines deliberately include malformed and escaped-key JSON; do not reserialize them before pushing.",
+  "expectationContract": "Each expectation names a dashboard and exact panel/ref targets, complete instant vectors and explicit selections. Execute each target for every listed selection and compare against its independently stated vector. Expected values are not calculated from events or dashboard queries. The same contract applies to surface-query-fixtures.json.",
+  "parserSemantics": "API grouping fixtures retain representative missing/null/empty labels because native and explicit JSON parsing differ there. Other domains reuse that parser behavior rather than repeating the permutation matrix. Cost fixtures independently exercise repeated IDs, missing identifiers, unknown/invalid numerics and customer filtering; runtime fixtures preserve latest-sample zero.",
+  "range": "5m",
+  "selections": [
+    { "environment": "validation", "organization": ".*" },
+    { "environment": "validation", "organization": "org_beta" },
+    { "environment": "production", "organization": ".*" }
+  ],
+  "comparisons": [
+    {
+      "dashboard": "notra-overview",
+      "panelId": 6,
+      "refId": "A",
+      "grouping": ["routeId"],
+      "baseline": "sum by (routeId) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | __error__=\"\" [$__auto]))"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 7,
+      "refId": "A",
+      "grouping": ["routeId"],
+      "baseline": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | unwrap durationMs | __error__=\"\" [$__auto]) by (routeId)"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 8,
+      "refId": "A",
+      "grouping": ["routeId"],
+      "baseline": "sum by (routeId) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | status >= 500 | __error__=\"\" [$__auto]))"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 9,
+      "refId": "A",
+      "grouping": ["model", "event"],
+      "baseline": "sum by (model,event) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=~\"ai.call.(completed|failed|aborted|incomplete)\" | organizationId=~\"${organization:raw}\" | __error__=\"\" [$__auto]))"
+    },
+    {
+      "dashboard": "notra-accounting",
+      "panelId": 10,
+      "refId": "A",
+      "grouping": [],
+      "baseline": "sum(max by (costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | costId!=\"\" | unwrap gatewayCostUsd | __error__=\"\" [$__range])))"
+    },
+    {
+      "dashboard": "notra-accounting",
+      "panelId": 11,
+      "refId": "A",
+      "grouping": [],
+      "baseline": "sum(max by (costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | costId!=\"\" | unwrap byokInferenceCostUsd | __error__=\"\" [$__range])))"
+    },
+    {
+      "dashboard": "notra-accounting",
+      "panelId": 12,
+      "refId": "A",
+      "grouping": ["gateway"],
+      "baseline": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.router.credits\" | unwrap balance | __error__=\"\" [$__range]) by (gateway)"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 13,
+      "refId": "A",
+      "grouping": ["model"],
+      "baseline": "sum by (model) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.call.completed\" | organizationId=~\"${organization:raw}\" | unwrap ai_totalTokens | __error__=\"\" [$__auto]))"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 14,
+      "refId": "A",
+      "grouping": ["model"],
+      "baseline": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.call.completed\" | organizationId=~\"${organization:raw}\" | unwrap ai_msToFirstChunk | __error__=\"\" [$__auto]) by (model)"
+    },
+    {
+      "dashboard": "notra-overview",
+      "panelId": 15,
+      "refId": "A",
+      "grouping": ["outcome", "reason"],
+      "baseline": "sum by (outcome,reason) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"geo.ingest\" | organizationId=~\"${organization:raw}\" | unwrap weight | __error__=\"\" [$__auto]))"
+    },
+    {
+      "dashboard": "notra-accounting",
+      "panelId": 16,
+      "refId": "A",
+      "grouping": ["organizationId"],
+      "baseline": "topk(20, sum by (organizationId) (count_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | organizationId!=\"\" | __error__=\"\" [$__range])))"
+    },
+    {
+      "dashboard": "notra-accounting",
+      "panelId": 18,
+      "refId": "A",
+      "grouping": ["organizationId"],
+      "baseline": "topk(20, sum by (organizationId) (max by (organizationId,costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | organizationId!=\"\" | costId!=\"\" | unwrap costUsd | __error__=\"\" [$__range]))))"
+    }
+  ],
+  "streams": [
+    {
+      "labels": {
+        "service_name": "notra-history-database-fixture",
+        "deployment_environment_name": "validation",
+        "history_snapshot": "20261010T113508391Z"
+      },
+      "entries": [
+        {
+          "ageSeconds": 240,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:a\",\"costId\":\"geo-scan:a\",\"costUsd\":3,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 230,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:a\",\"costId\":\"geo-scan:a\",\"costUsd\":3,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 220,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:b\",\"costId\":\"geo-scan:b\",\"weight\":1,\"outcome\":\"failed\"}"
+        },
+        {
+          "ageSeconds": 210,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_beta\",\"callId\":\"scan:c\",\"costId\":\"geo-scan:c\",\"costUsd\":5,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 200,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_beta\",\"callId\":\"scan:d\",\"costId\":\"geo-scan:d\",\"costUsd\":0,\"weight\":1,\"outcome\":\"completed\"}"
+        }
+      ]
+    },
+    {
+      "labels": {
+        "service_name": "fixture-api",
+        "deployment_environment_name": "validation"
+      },
+      "entries": [
+        {
+          "case": "api-success-zero",
+          "ageSeconds": 240,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"content\",\"status\":200,\"durationMs\":0,\"requestId\":\"req_a\"}"
+        },
+        {
+          "case": "api-server-error",
+          "ageSeconds": 230,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"content\",\"status\":503,\"durationMs\":100,\"requestId\":\"req_b\"}"
+        },
+        {
+          "case": "api-second-org",
+          "ageSeconds": 220,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_beta\",\"routeId\":\"content\",\"status\":500,\"durationMs\":200}"
+        },
+        {
+          "case": "missing-numeric-fields",
+          "ageSeconds": 200,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"missing\"}"
+        },
+        {
+          "case": "invalid-numeric-fields",
+          "ageSeconds": 190,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"invalid\",\"status\":\"bad\",\"durationMs\":\"bad\"}"
+        },
+        {
+          "case": "missing-org-and-group",
+          "ageSeconds": 180,
+          "line": "{\"event\":\"api.request.completed\",\"status\":200,\"durationMs\":30}"
+        },
+        {
+          "case": "unrelated-event-with-matching-text",
+          "ageSeconds": 170,
+          "line": "{\"event\":\"other\",\"organizationId\":\"org_alpha\",\"routeId\":\"content\",\"status\":503,\"durationMs\":999,\"note\":\"api.request.completed\"}"
+        },
+        { "case": "malformed-json", "ageSeconds": 160, "line": "{not-json}" },
+        {
+          "case": "escaped-event-key",
+          "ageSeconds": 140,
+          "line": "{\"ev\\u0065nt\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"health\",\"status\":200,\"durationMs\":10}"
+        },
+        {
+          "case": "empty-api-group",
+          "ageSeconds": 130,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"\",\"status\":503,\"durationMs\":0}"
+        },
+        {
+          "case": "null-api-group",
+          "ageSeconds": 120,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":null,\"status\":503,\"durationMs\":50}"
+        },
+        {
+          "case": "missing-api-group",
+          "ageSeconds": 110,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"status\":503,\"durationMs\":20}"
+        },
+        {
+          "case": "missing-org",
+          "ageSeconds": 80,
+          "line": "{\"event\":\"api.request.completed\",\"routeId\":\"missing-org\",\"status\":503,\"durationMs\":150}"
+        }
+      ]
+    },
+    {
+      "labels": {
+        "service_name": "fixture-ai",
+        "deployment_environment_name": "validation"
+      },
+      "entries": [
+        {
+          "case": "ai-nested-zero",
+          "ageSeconds": 240,
+          "line": "{\"event\":\"ai.call.completed\",\"organizationId\":\"org_alpha\",\"model\":\"model-a\",\"ai\":{\"totalTokens\":0,\"msToFirstChunk\":0},\"callId\":\"call_a\"}"
+        },
+        {
+          "case": "ai-nested-positive",
+          "ageSeconds": 230,
+          "line": "{\"event\":\"ai.call.completed\",\"organizationId\":\"org_alpha\",\"model\":\"model-a\",\"ai\":{\"totalTokens\":100,\"msToFirstChunk\":100},\"callId\":\"call_b\"}"
+        },
+        {
+          "case": "ai-second-org-model",
+          "ageSeconds": 220,
+          "line": "{\"event\":\"ai.call.completed\",\"organizationId\":\"org_beta\",\"model\":\"model-b\",\"ai\":{\"totalTokens\":200,\"msToFirstChunk\":200}}"
+        },
+        {
+          "case": "ai-failed",
+          "ageSeconds": 210,
+          "line": "{\"event\":\"ai.call.failed\",\"organizationId\":\"org_beta\",\"model\":\"model-a\"}"
+        },
+        {
+          "case": "missing-nested-ai",
+          "ageSeconds": 180,
+          "line": "{\"event\":\"ai.call.completed\",\"organizationId\":\"org_alpha\",\"model\":\"model-a\"}"
+        },
+        {
+          "case": "gateway-cost-first",
+          "ageSeconds": 160,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"costId\":\"vercel:gen-a\",\"gatewayCostUsd\":1,\"byokInferenceCostUsd\":0,\"costUsd\":1,\"generationId\":\"gen-a\"}"
+        },
+        {
+          "case": "gateway-cost-repeat",
+          "ageSeconds": 150,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"costId\":\"vercel:gen-a\",\"gatewayCostUsd\":1,\"byokInferenceCostUsd\":0,\"costUsd\":1,\"requestId\":\"req-repeat\"}"
+        },
+        {
+          "case": "byok-cost-first",
+          "ageSeconds": 140,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_beta\",\"costId\":\"openrouter:gen-b\",\"gatewayCostUsd\":0,\"byokInferenceCostUsd\":2,\"costUsd\":2}"
+        },
+        {
+          "case": "byok-cost-repeat",
+          "ageSeconds": 130,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_beta\",\"costId\":\"openrouter:gen-b\",\"gatewayCostUsd\":0,\"byokInferenceCostUsd\":2,\"costUsd\":2,\"callId\":\"repeat\"}"
+        },
+        {
+          "case": "missing-cost-id",
+          "ageSeconds": 120,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"gatewayCostUsd\":99,\"byokInferenceCostUsd\":99,\"costUsd\":198}"
+        },
+        {
+          "case": "missing-cost-values",
+          "ageSeconds": 110,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"costId\":\"missing\"}"
+        },
+        {
+          "case": "invalid-cost-values",
+          "ageSeconds": 100,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"costId\":\"invalid\",\"gatewayCostUsd\":\"bad\",\"byokInferenceCostUsd\":\"bad\",\"costUsd\":\"bad\"}"
+        },
+        {
+          "case": "credits-earlier",
+          "ageSeconds": 90,
+          "line": "{\"event\":\"ai.router.credits\",\"gateway\":\"vercel\",\"balance\":10}"
+        },
+        {
+          "case": "credits-latest-zero",
+          "ageSeconds": 80,
+          "line": "{\"event\":\"ai.router.credits\",\"gateway\":\"vercel\",\"balance\":0}"
+        },
+        {
+          "case": "credits-second-gateway",
+          "ageSeconds": 70,
+          "line": "{\"event\":\"ai.router.credits\",\"gateway\":\"openrouter\",\"balance\":20}"
+        },
+        {
+          "case": "null-cost-values",
+          "ageSeconds": 61,
+          "line": "{\"event\":\"ai.cost.reported\",\"organizationId\":\"org_alpha\",\"costId\":\"null-values\",\"gatewayCostUsd\":null,\"byokInferenceCostUsd\":null,\"costUsd\":null}"
+        }
+      ]
+    },
+    {
+      "labels": {
+        "service_name": "fixture-ingest",
+        "deployment_environment_name": "validation"
+      },
+      "entries": [
+        {
+          "case": "weighted-ingest-alpha",
+          "ageSeconds": 240,
+          "line": "{\"event\":\"geo.ingest\",\"organizationId\":\"org_alpha\",\"outcome\":\"ingested\",\"runtime\":\"railway\",\"weight\":10}"
+        },
+        {
+          "case": "weighted-ingest-beta",
+          "ageSeconds": 230,
+          "line": "{\"event\":\"geo.ingest\",\"organizationId\":\"org_beta\",\"outcome\":\"dropped\",\"runtime\":\"railway\",\"reason\":\"visitor_type\",\"weight\":5}"
+        },
+        {
+          "case": "runtime-earlier",
+          "ageSeconds": 120,
+          "line": "{\"event\":\"geo.ingest.runtime\",\"rssBytes\":2048,\"heapUsedBytes\":1024,\"activeRequests\":2,\"pendingTasks\":3,\"bufferedEvents\":4,\"databaseWaitingRequests\":5}"
+        },
+        {
+          "case": "runtime-latest-zero",
+          "ageSeconds": 60,
+          "line": "{\"event\":\"geo.ingest.runtime\",\"rssBytes\":1024,\"heapUsedBytes\":512,\"activeRequests\":0,\"pendingTasks\":0,\"bufferedEvents\":0,\"databaseWaitingRequests\":0}"
+        },
+        {
+          "case": "missing-ingest-groups",
+          "ageSeconds": 59,
+          "line": "{\"event\":\"geo.ingest\",\"organizationId\":\"org_alpha\",\"weight\":1}"
+        }
+      ]
+    },
+    {
+      "labels": {
+        "service_name": "fixture-api",
+        "deployment_environment_name": "production"
+      },
+      "entries": [
+        {
+          "case": "other-environment",
+          "ageSeconds": 240,
+          "line": "{\"event\":\"api.request.completed\",\"organizationId\":\"org_alpha\",\"routeId\":\"production\",\"status\":503,\"durationMs\":999}"
+        }
+      ]
+    }
+  ],
+  "expectations": [
+    {
+      "dashboard": "notra-overview",
+      "selections": [{ "environment": "validation", "organization": ".*" }],
+      "targets": [
+        {
+          "panelId": 107,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 8] }]
+        },
+        {
+          "panelId": 108,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_alpha" }, "value": [0, 3] },
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 5] }
+          ]
+        },
+        {
+          "panelId": 115,
+          "refId": "A",
+          "grouping": ["outcome"],
+          "vector": [
+            { "metric": { "outcome": "completed" }, "value": [0, 3] },
+            { "metric": { "outcome": "failed" }, "value": [0, 1] }
+          ]
+        },
+        {
+          "panelId": 117,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_alpha" }, "value": [0, 2] },
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 2] }
+          ]
+        }
+      ]
+    },
+    {
+      "dashboard": "notra-accounting",
+      "selections": [{ "environment": "validation", "organization": ".*" }],
+      "targets": [
+        {
+          "panelId": 10,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 1] }]
+        },
+        {
+          "panelId": 11,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 2] }]
+        },
+        {
+          "panelId": 18,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_alpha" }, "value": [0, 1] },
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 2] }
+          ]
+        }
+      ]
+    },
+    {
+      "dashboard": "notra-accounting",
+      "selections": [
+        { "environment": "validation", "organization": "org_beta" }
+      ],
+      "targets": [
+        {
+          "panelId": 10,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 0] }]
+        },
+        {
+          "panelId": 11,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 2] }]
+        },
+        {
+          "panelId": 18,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 2] }
+          ]
+        }
+      ]
+    },
+    {
+      "dashboard": "notra-overview",
+      "selections": [
+        { "environment": "validation", "organization": "org_beta" }
+      ],
+      "targets": [
+        {
+          "panelId": 19,
+          "refId": "A",
+          "grouping": ["service_name"],
+          "vector": [
+            {
+              "metric": { "service_name": "fixture-ingest" },
+              "value": [0, 1024]
+            }
+          ]
+        },
+        {
+          "panelId": 19,
+          "refId": "B",
+          "grouping": ["service_name"],
+          "vector": [
+            {
+              "metric": { "service_name": "fixture-ingest" },
+              "value": [0, 512]
+            }
+          ]
+        },
+        {
+          "panelId": 20,
+          "refId": "A",
+          "grouping": ["service_name"],
+          "vector": [
+            { "metric": { "service_name": "fixture-ingest" }, "value": [0, 0] }
+          ]
+        },
+        {
+          "panelId": 20,
+          "refId": "B",
+          "grouping": ["service_name"],
+          "vector": [
+            { "metric": { "service_name": "fixture-ingest" }, "value": [0, 0] }
+          ]
+        },
+        {
+          "panelId": 20,
+          "refId": "C",
+          "grouping": ["service_name"],
+          "vector": [
+            { "metric": { "service_name": "fixture-ingest" }, "value": [0, 0] }
+          ]
+        },
+        {
+          "panelId": 20,
+          "refId": "D",
+          "grouping": ["service_name"],
+          "vector": [
+            { "metric": { "service_name": "fixture-ingest" }, "value": [0, 0] }
+          ]
+        }
+      ]
+    }
+  ]
+}

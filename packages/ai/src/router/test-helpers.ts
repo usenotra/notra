@@ -7,6 +7,7 @@ import type {
   SharedV4ProviderMetadata,
   SharedV4ProviderOptions,
 } from "@ai-sdk/provider";
+import { ROUTER_METADATA_KEY } from "@notra/ai/constants/router";
 import type {
   ModelRouter,
   RouterLogger,
@@ -25,6 +26,12 @@ import {
   buildOpenRouterProviderOptions,
   buildVercelProviderOptions,
 } from "./provider-options";
+
+export function metadataOf(result: {
+  providerMetadata?: SharedV4ProviderMetadata;
+}) {
+  return result.providerMetadata?.[ROUTER_METADATA_KEY];
+}
 
 export function createFakeAdapter(options: FakeAdapterOptions): FakeAdapter {
   const calls: RecordedRouterCall[] = [];
