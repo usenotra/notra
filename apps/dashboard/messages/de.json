@@ -7002,10 +7002,10 @@
     "list": {
       "columns": {
         "site": "Site",
-        "lastDeployment": "Letztes Deployment"
+        "visitors": "Besucher · 7 T",
+        "updated": "Aktualisiert"
       },
-      "noDeployments": "Noch keine Deployments",
-      "notConnected": "Repository getrennt"
+      "noDeployments": "Noch keine Deployments"
     },
     "status": {
       "queued": "In Warteschlange",
@@ -7798,18 +7798,6 @@
       "autosaveInvalid": "Gib gültige Einstellungen ein, um deine Änderungen zu speichern.",
       "discardUnsaved": "Ungespeicherte Änderungen verwerfen",
       "removeFailedDescription": "Die Integration wurde nicht entfernt. Wiederhole das Entfernen oder verwirf die ungespeicherten Änderungen."
-    },
-    "repositoryCard": {
-      "private": "Privat",
-      "public": "Öffentlich",
-      "language": "Sprache",
-      "stars": "Sterne",
-      "forks": "Forks",
-      "openIssues": "Offene Issues und PRs",
-      "defaultBranch": "Standard-Branch",
-      "lastPush": "Letzter Push",
-      "openOnGithub": "Auf GitHub öffnen",
-      "unavailable": "Repository-Details konnten nicht von GitHub geladen werden."
     },
     "analyticsPage": {
       "title": "Analytics",

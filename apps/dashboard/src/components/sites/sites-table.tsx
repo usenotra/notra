@@ -1,24 +1,57 @@
 "use client";
 
+import { trafficVisitDelta } from "@notra/geo-core/utils/ai-traffic";
 import {
   DataTable,
   type TableColumn,
 } from "@notra/ui/components/ui/data-table";
-import { useTranslations } from "use-intl";
+import { useLocale, useTranslations } from "use-intl";
 
-import { SiteRelativeTime } from "@/components/sites/site-relative-time";
-import { SiteRepositoryHoverCard } from "@/components/sites/site-repository-hover-card";
+import { GeoStatDelta } from "@/components/geo/geo-stat-delta";
+import { RelativeTime } from "@/components/relative-time";
 import {
   SiteOfflineStatus,
   SiteStatusDot,
 } from "@/components/sites/site-status-dot";
-import { SITE_LIST_TABLE_ROW_HEIGHT } from "@/constants/sites";
-import { TABLE_ROW_HEIGHT } from "@/constants/table";
+import { SITE_OVERVIEW_ANALYTICS_DAYS } from "@/constants/sites";
+import { useSiteAnalytics } from "@/lib/hooks/use-sites";
 import { useRouter } from "@/lib/navigation";
 import type { SitesTableProps } from "@/types/components/sites";
 import type { SiteListItem } from "@/types/sites";
+import { formatMetric } from "@/utils/analytics-charts";
+import { siteListStatus } from "@/utils/site-deployments";
 import { displayUrl, siteHref } from "@/utils/site-links";
 import { paginatedTableHeightFor } from "@/utils/table";
+
+const SITES_TABLE_ROW_HEIGHT = 48;
+
+function SiteVisitorsCell({
+  organizationId,
+  site,
+}: {
+  organizationId: string;
+  site: SiteListItem;
+}) {
+  const locale = useLocale();
+  const query = useSiteAnalytics(organizationId, site.id, {
+    days: SITE_OVERVIEW_ANALYTICS_DAYS,
+  });
+  const totals = query.data?.web.totals;
+  if (!totals) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+  return (
+    <span className="inline-flex items-baseline gap-2">
+      <span className="font-medium tabular-nums">
+        {formatMetric(totals.visitors, locale, "-")}
+      </span>
+      <GeoStatDelta
+        delta={trafficVisitDelta(totals.visitors, totals.previousVisitors)}
+        variant="plain"
+      />
+    </span>
+  );
+}
 
 export function SitesTable({
   organizationId,
@@ -33,14 +66,14 @@ export function SitesTable({
     {
       key: "name",
       header: t("columns.site"),
-      width: "1.4fr",
+      width: "1fr",
       minWidth: "14rem",
       sortable: true,
       cell: (site) => (
-        <span className="flex min-w-0 flex-col">
+        <span className="flex min-w-0 items-baseline gap-2">
           <span className="truncate font-medium">{site.name}</span>
           <a
-            className="text-muted-foreground hover:text-foreground w-fit max-w-full truncate text-xs hover:underline"
+            className="text-muted-foreground hover:text-foreground hidden min-w-0 truncate text-xs hover:underline sm:inline"
             href={site.liveUrl}
             onClick={(event) => event.stopPropagation()}
             rel="noopener noreferrer"
@@ -52,70 +85,56 @@ export function SitesTable({
       ),
     },
     {
-      key: "repository",
-      header: tCommon("labels.repository"),
-      width: "1.2fr",
-      minWidth: "12rem",
-      collapsePriority: 2,
-      sortValue: (site) =>
-        site.repository
-          ? `${site.repository.owner}/${site.repository.name}`
-          : "",
-      cell: (site) =>
-        site.repository ? (
-          <SiteRepositoryHoverCard
-            branch={site.productionBranch}
-            name={site.repository.name}
-            organizationId={organizationId}
-            owner={site.repository.owner}
-            siteId={site.id}
-          />
-        ) : (
-          <span className="text-muted-foreground">{t("notConnected")}</span>
-        ),
-    },
-    {
       key: "status",
       header: tCommon("labels.status"),
-      width: "8.5rem",
-      sortValue: (site) => site.latestDeployment?.status ?? "",
+      width: "11rem",
+      sortable: true,
+      sortValue: (site) => siteListStatus(site)?.status ?? "",
       cell: (site) => {
         if (site.status === "suspended") {
           return <SiteOfflineStatus />;
         }
-        if (!site.latestDeployment) {
+        const state = siteListStatus(site);
+        if (!state) {
           return (
             <span className="text-muted-foreground">{t("noDeployments")}</span>
           );
         }
-        return (
-          <SiteStatusDot
-            live={site.latestDeployment.live}
-            status={site.latestDeployment.status}
-          />
-        );
+        return <SiteStatusDot live={state.live} status={state.status} />;
       },
     },
     {
-      key: "updated",
-      header: t("columns.lastDeployment"),
-      width: "9rem",
+      key: "visitors",
+      header: t("columns.visitors"),
+      width: "10rem",
       align: "right",
       collapsePriority: 1,
-      sortable: true,
-      sortValue: (site) =>
-        site.latestDeployment
-          ? new Date(site.latestDeployment.createdAt).getTime()
-          : 0,
       cell: (site) =>
-        site.latestDeployment ? (
-          <SiteRelativeTime
-            className="text-muted-foreground"
-            date={site.latestDeployment.createdAt}
-          />
+        site.status === "suspended" || !site.analyticsEnabled ? (
+          <span className="text-muted-foreground">-</span>
+        ) : (
+          <SiteVisitorsCell organizationId={organizationId} site={site} />
+        ),
+    },
+    {
+      key: "updated",
+      header: t("columns.updated"),
+      width: "9rem",
+      align: "right",
+      collapsePriority: 2,
+      sortable: true,
+      sortValue: (site) => {
+        const state = siteListStatus(site);
+        return state ? new Date(state.at).getTime() : 0;
+      },
+      cell: (site) => {
+        const state = siteListStatus(site);
+        return state ? (
+          <RelativeTime iso={new Date(state.at).toISOString()} />
         ) : (
           <span className="text-muted-foreground">-</span>
-        ),
+        );
+      },
     },
   ];
 
@@ -124,13 +143,14 @@ export function SitesTable({
       columns={columns}
       data={sites}
       getRowId={(site) => site.id}
-      height={paginatedTableHeightFor(sites.length, SITE_LIST_TABLE_ROW_HEIGHT)}
+      defaultSort={{ key: "updated", direction: "desc" }}
+      height={paginatedTableHeightFor(sites.length, SITES_TABLE_ROW_HEIGHT)}
       onRowClick={(site) => router.push(siteHref(organizationSlug, site.id))}
       onRowPointerEnter={(site) =>
         router.prefetch(siteHref(organizationSlug, site.id))
       }
-      headerHeight={TABLE_ROW_HEIGHT}
-      rowHeight={SITE_LIST_TABLE_ROW_HEIGHT}
+      resizable
+      rowHeight={SITES_TABLE_ROW_HEIGHT}
       scrollFade={false}
     />
   );

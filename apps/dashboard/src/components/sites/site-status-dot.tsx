@@ -3,7 +3,8 @@
 import { Shimmer } from "@notra/ui/components/ai-elements/shimmer";
 import { useTranslations } from "use-intl";
 
-import { SITE_STATUS_DOT_STYLES } from "@/constants/sites";
+import { AgentFeedbackStatusIcon } from "@/components/agent-feedback/feedback-status-icon";
+import { SITE_STATUS_ICONS } from "@/constants/sites";
 import { cn } from "@/lib/utils";
 import type { SiteStatusDotProps } from "@/types/components/sites";
 import { isDeploymentInProgress } from "@/utils/site-deployments";
@@ -23,24 +24,15 @@ export function SiteStatusDot({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 text-sm whitespace-nowrap",
+        "inline-flex items-center gap-1.5 text-sm whitespace-nowrap",
         className
       )}
     >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "size-2 shrink-0 rounded-full",
-          SITE_STATUS_DOT_STYLES[status]
-        )}
+      <AgentFeedbackStatusIcon
+        className={SITE_STATUS_ICONS[status].className}
+        status={SITE_STATUS_ICONS[status].icon}
       />
-      {running ? (
-        <Shimmer as="span" className="font-medium">
-          {label}
-        </Shimmer>
-      ) : (
-        <span className="font-medium">{label}</span>
-      )}
+      {running ? <Shimmer as="span">{label}</Shimmer> : <span>{label}</span>}
       {duration ? (
         <span className="text-muted-foreground tabular-nums">{duration}</span>
       ) : null}
@@ -51,12 +43,12 @@ export function SiteStatusDot({
 export function SiteOfflineStatus() {
   const t = useTranslations("sites.detail");
   return (
-    <span className="inline-flex items-center gap-2 text-sm whitespace-nowrap">
-      <span
-        aria-hidden="true"
-        className="bg-muted-foreground/40 size-2 shrink-0 rounded-full"
+    <span className="inline-flex items-center gap-1.5 text-sm whitespace-nowrap">
+      <AgentFeedbackStatusIcon
+        className="text-muted-foreground"
+        status="archived"
       />
-      <span className="font-medium">{t("offline")}</span>
+      <span>{t("offline")}</span>
     </span>
   );
 }

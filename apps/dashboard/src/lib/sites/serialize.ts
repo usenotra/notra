@@ -54,6 +54,7 @@ export function serializeSite(
     showBranding: site.showBranding,
     analyticsEnabled: site.analyticsEnabled,
     liveDeploymentId: state?.production?.deploymentId ?? null,
+    liveSince: state?.production?.activatedAt ?? null,
     createdAt: site.createdAt,
   };
 }

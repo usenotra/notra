@@ -33,6 +33,46 @@ export function hasDeploymentInProgress(
   );
 }
 
+const SITE_LIST_ATTENTION_STATUSES: ReadonlySet<SiteDeploymentStatus> = new Set(
+  ["queued", "building", "uploading", "failed"]
+);
+
+/**
+ * The list shows the state of the site, not of its newest deployment: a
+ * skipped, superseded or canceled newest deployment leaves the previous one
+ * serving, so the site is still live.
+ */
+export function siteListStatus(site: {
+  liveDeploymentId: string | null;
+  liveSince: Date | string | null;
+  latestDeployment: {
+    status: SiteDeploymentStatus;
+    live: boolean;
+    createdAt: Date | string;
+  } | null;
+}): {
+  status: SiteDeploymentStatus;
+  live: boolean;
+  at: Date | string;
+} | null {
+  const latest = site.latestDeployment;
+  if (!latest) {
+    return null;
+  }
+  const servedByOlderDeployment =
+    site.liveDeploymentId !== null &&
+    !latest.live &&
+    !SITE_LIST_ATTENTION_STATUSES.has(latest.status);
+  if (servedByOlderDeployment) {
+    return {
+      status: "ready",
+      live: true,
+      at: site.liveSince ?? latest.createdAt,
+    };
+  }
+  return { status: latest.status, live: latest.live, at: latest.createdAt };
+}
+
 export function stripAnsi(text: string): string {
   return text.replace(ANSI_SEQUENCE, "");
 }
