@@ -23,5 +23,6 @@ export function getOfferingCheckCacheIdentity(
     input.domain.toLowerCase(),
     normalizeOfferingCheckText(input.feature),
     normalizeOfferingCheckText(input.problem),
+    input.webSearch,
   ]);
 }

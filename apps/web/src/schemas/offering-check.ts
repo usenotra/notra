@@ -1,5 +1,5 @@
 // biome-ignore lint/performance/noNamespaceImport: Zod recommended way of importing
-import { parseAsString } from "nuqs";
+import { parseAsBoolean, parseAsString } from "nuqs";
 import * as z from "zod";
 
 import {
@@ -88,6 +88,7 @@ export const offeringCheckRequestSchema = z
           )
       )
       .default(""),
+    webSearch: z.boolean().default(false),
   })
   .transform((input) => ({
     ...input,
@@ -187,6 +188,7 @@ export const offeringReportSearchSchema = z.object({
   domain: searchTextSchema,
   feature: searchTextSchema,
   problem: searchTextSchema,
+  webSearch: z.boolean().optional().catch(undefined),
 });
 
 // The form lives in the URL, so going back from a report keeps the input and
@@ -195,4 +197,5 @@ export const offeringFormParsers = {
   domain: parseAsString.withDefault(""),
   feature: parseAsString.withDefault(""),
   problem: parseAsString.withDefault(""),
+  webSearch: parseAsBoolean.withDefault(false),
 };

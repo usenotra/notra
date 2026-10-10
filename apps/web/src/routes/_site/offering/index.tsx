@@ -103,13 +103,19 @@ function OfferingCheckPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className={sectionTitleClass}>Why we search the web</h2>
+            <h2 className={sectionTitleClass}>Memory or web search</h2>
             <p className={bodyClass}>
-              Model training is months old and thin on anything you shipped
-              recently. Web search can find fresh product pages, docs and
-              changelogs, but only when those pages rank for the question. This
-              check shows what the model can find now and which sources shape
-              its answer.
+              By default the model answers from what it learned in training,
+              which is how assistants often reply when they skip the search.
+              That knowledge is months old and thin on anything you shipped
+              recently, so a miss here usually means the feature has not been
+              written about enough yet.
+            </p>
+            <p className={bodyClass}>
+              Turn on web search to see whether your product pages, docs and
+              changelogs change the answer and which sources the model reads.
+              Search only finds pages that rank for the question, so a miss with
+              search on points to pages that are hard to find.
             </p>
           </div>
 

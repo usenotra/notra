@@ -11,6 +11,8 @@ export interface OfferingCheckInput {
   feature: string;
   /** What the feature solves, in the buyer's words. Empty when not given. */
   problem: string;
+  /** Lets the model search the web. Off means training data only. */
+  webSearch: boolean;
 }
 
 export interface OfferingQuestion {
@@ -91,7 +93,7 @@ export interface OfferingVerdictCopy {
   problemBody: string;
 }
 
-export type OfferingCheckSample = OfferingCheckInput;
+export type OfferingCheckSample = OfferingSampleValues;
 
 export type OfferingRateLimitScope = "visitor" | "site" | "busy";
 
@@ -146,10 +148,12 @@ export interface OfferingChatWindowProps {
   feature: string;
   hasFeature: boolean;
   thread: OfferingThread;
+  webSearch: boolean;
 }
 
 export interface OfferingChatReasoningProps {
   thread: OfferingThread;
+  webSearch: boolean;
 }
 
 export interface OfferingMarkdownNode {

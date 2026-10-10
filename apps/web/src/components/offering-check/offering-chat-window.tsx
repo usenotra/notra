@@ -31,7 +31,10 @@ const ANSWER_MARKDOWN_CLASS =
 const ENTER_CLASS =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500 motion-reduce:animate-none";
 
-function OfferingChatReasoning({ thread }: OfferingChatReasoningProps) {
+function OfferingChatReasoning({
+  thread,
+  webSearch,
+}: OfferingChatReasoningProps) {
   const reasoning = thread.reasoning.trim();
   const answered = thread.seconds !== null;
   const liveSeconds = useElapsedSeconds(!answered);
@@ -85,7 +88,7 @@ function OfferingChatReasoning({ thread }: OfferingChatReasoningProps) {
           </div>
         ) : null}
       </ChatgptReasoning>
-      {thread.result?.searchUsed === false ? (
+      {webSearch && thread.result?.searchUsed === false ? (
         <p className="text-muted-foreground text-[14px] leading-6">
           {OFFERING_SEARCH_SKIPPED_HINT}
         </p>
@@ -98,6 +101,7 @@ export function OfferingChatWindow({
   feature,
   hasFeature,
   thread,
+  webSearch,
 }: OfferingChatWindowProps) {
   const answer = stripAnswerCitations(thread.answer);
   const answered = thread.seconds !== null;
@@ -131,7 +135,9 @@ export function OfferingChatWindow({
               "[animation-delay:300ms] motion-reduce:[animation-delay:0ms]"
             )}
             from="assistant"
-            reasoning={<OfferingChatReasoning thread={thread} />}
+            reasoning={
+              <OfferingChatReasoning thread={thread} webSearch={webSearch} />
+            }
           >
             {answer.length > 0 ? (
               <MessageResponse

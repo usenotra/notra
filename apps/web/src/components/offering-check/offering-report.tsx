@@ -79,6 +79,7 @@ export function OfferingReport({ input }: OfferingReportProps) {
               domain: input.domain,
               feature: input.feature || undefined,
               problem: input.problem || undefined,
+              webSearch: input.webSearch || undefined,
             }}
             to={OFFERING_CHECK_PATH}
           >
@@ -111,6 +112,7 @@ export function OfferingReport({ input }: OfferingReportProps) {
             hasFeature={hasFeature}
             key={thread.question.kind}
             thread={thread}
+            webSearch={input.webSearch}
           />
         ))}
 

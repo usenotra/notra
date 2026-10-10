@@ -12,7 +12,8 @@ import {
   OFFERING_MS_PER_SECOND,
 } from "@/constants/offering-check";
 import {
-  OFFERING_ANSWER_SYSTEM_PROMPT,
+  OFFERING_ANSWER_OFFLINE_SYSTEM_PROMPT,
+  OFFERING_ANSWER_SEARCH_SYSTEM_PROMPT,
   OFFERING_JUDGE_SYSTEM_PROMPT,
 } from "@/constants/offering-check-prompts";
 import { offeringJudgeSchema } from "@/schemas/offering-check";
@@ -74,11 +75,13 @@ async function answerQuestion(
   const { kind } = question;
   const stream = streamText({
     model: gateway(OFFERING_CHECK_MODEL),
-    instructions: OFFERING_ANSWER_SYSTEM_PROMPT,
+    instructions: input.webSearch
+      ? OFFERING_ANSWER_SEARCH_SYSTEM_PROMPT
+      : OFFERING_ANSWER_OFFLINE_SYSTEM_PROMPT,
     prompt: question.text,
-    tools: {
-      web_search: openai.tools.webSearch({ searchContextSize: "low" }),
-    },
+    tools: input.webSearch
+      ? { web_search: openai.tools.webSearch({ searchContextSize: "low" }) }
+      : undefined,
     reasoning: "low",
     providerOptions: {
       openai: { reasoningSummary: "auto" },

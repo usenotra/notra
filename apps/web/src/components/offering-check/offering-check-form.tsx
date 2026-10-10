@@ -2,6 +2,7 @@ import { Loading03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CtaButton } from "@notra/ui/components/shared/cta-button";
 import { Label } from "@notra/ui/components/ui/label";
+import { Switch } from "@notra/ui/components/ui/switch";
 import { Textarea } from "@notra/ui/components/ui/textarea";
 import { cn } from "@notra/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
@@ -26,6 +27,7 @@ import {
 import type {
   OfferingCheckFormProps,
   OfferingCheckInput,
+  OfferingCheckSample,
   OfferingFormProblem,
   OfferingSampleField,
 } from "@/types/offering-check";
@@ -43,7 +45,7 @@ const SWAP_HIDDEN = "scale-25 opacity-0 blur-[4px]";
 
 export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
   const navigate = useNavigate();
-  const [{ domain, feature, problem }, setValues] = useQueryStates(
+  const [{ domain, feature, problem, webSearch }, setValues] = useQueryStates(
     offeringFormParsers,
     {
       clearOnDefault: true,
@@ -104,6 +106,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           domain: input.domain,
           feature: input.feature || undefined,
           problem: input.problem || undefined,
+          webSearch: input.webSearch || undefined,
         },
         // Tokens are single-use: the report spends this one on its scan, and
         // the form needs a new one if the visitor comes back.
@@ -117,14 +120,17 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
     }
   };
 
-  const fillSample = (sample: OfferingCheckInput) => {
+  const fillSample = (sample: OfferingCheckSample) => {
     setNotice(null);
     typeSample(sample);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const values = finishTyping() ?? { domain, feature, problem };
+    const values = {
+      ...(finishTyping() ?? { domain, feature, problem }),
+      webSearch,
+    };
     const parsed = offeringCheckRequestSchema.safeParse(values);
     if (parsed.success) {
       openReport(parsed.data);
@@ -214,16 +220,16 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
       <div
         className={cn(
           "flex flex-col gap-2 pt-6 transition-opacity duration-200",
-          problemEnabled ? null : "opacity-50"
+          problemEnabled ? null : "opacity-60"
         )}
       >
         <Label
-          className="text-foreground text-sm/4.5 font-medium"
+          className="text-foreground gap-1 text-sm/4.5 font-medium"
           htmlFor="offering-check-problem"
         >
           What problem does it solve?
-          <span className="pl-1.5 font-normal text-[#1E1E1E80] dark:text-white/45">
-            optional
+          <span className="font-normal text-[#1E1E1E80] dark:text-white/45">
+            (Optional)
           </span>
         </Label>
         <OfferingErrorTooltip attempt={attempt} error={errorFor("problem")}>
@@ -235,7 +241,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
               }
               aria-invalid={errorFor("problem") !== null}
               data-active={typingField === "problem" || undefined}
-              className="min-h-20 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 pt-3 pb-7 text-[0.9375rem]/6 shadow-none transition-[border-color,box-shadow] placeholder:text-[#1E1E1E66] data-active:border-[#8B5CF6] data-active:ring-3 data-active:ring-[#8B5CF6]/20 dark:border-white/12 dark:placeholder:text-white/40"
+              className="min-h-20 resize-none rounded-xl border-[#E4E4E4] bg-transparent px-3.5 pt-3 pb-7 text-[0.9375rem]/6 shadow-none transition-[border-color,box-shadow] placeholder:text-[#1E1E1E80] disabled:bg-transparent disabled:opacity-100 data-active:border-[#8B5CF6] data-active:ring-3 data-active:ring-[#8B5CF6]/20 dark:border-white/12 dark:placeholder:text-white/50 dark:disabled:bg-transparent"
               id="offering-check-problem"
               maxLength={OFFERING_CHECK_PROBLEM_MAX_LENGTH}
               name="problem"
@@ -267,6 +273,18 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           </div>
         </OfferingErrorTooltip>
       </div>
+
+      <Label className="mt-5 flex w-fit cursor-pointer items-center gap-2.5 text-sm/5 font-medium">
+        <Switch
+          aria-label="Let the model search the web"
+          checked={webSearch}
+          disabled={pending}
+          onCheckedChange={(checked) => {
+            void setValues({ webSearch: checked });
+          }}
+        />
+        Let the model search the web
+      </Label>
 
       {/* Field errors show as a tooltip on the field; this repeats them for screen readers. */}
       {shown?.field ? (
@@ -305,7 +323,7 @@ export function OfferingCheckForm({ samples }: OfferingCheckFormProps) {
           ))}
         </div>
         <CtaButton
-          className="font-display h-auto shrink-0 self-start rounded-[2.5625rem] px-6 py-3 text-[1.125rem] leading-[1.14] font-medium tracking-[-0.015em] transition-[scale] duration-150 ease-out active:scale-[0.96] motion-reduce:active:scale-100 sm:self-auto"
+          className="font-display h-auto w-full shrink-0 rounded-[2.5625rem] px-6 py-3 text-[1.125rem] leading-[1.14] font-medium tracking-[-0.015em] transition-[scale] duration-150 ease-out active:scale-[0.96] motion-reduce:active:scale-100 sm:w-auto"
           disabled={pending}
           type="submit"
         >

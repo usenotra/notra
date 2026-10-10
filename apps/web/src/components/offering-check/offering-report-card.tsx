@@ -115,8 +115,8 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
                   <Skeleton className="h-8 w-40" />
                 )}
                 <p className="truncate text-[0.8125rem]/5 text-[#1E1E1E99] dark:text-white/50">
-                  {input.domain} · asked {OFFERING_CHECK_MODEL_LABEL} with web
-                  search
+                  {input.domain} · asked {OFFERING_CHECK_MODEL_LABEL}{" "}
+                  {input.webSearch ? "with web search" : "without web search"}
                 </p>
               </div>
             </div>
@@ -152,20 +152,26 @@ export function OfferingReportCard({ input, state }: OfferingReportCardProps) {
             label="Answered in"
             value={`${answered ? slowest : liveSeconds}s`}
           />
-          <ReportStat
-            label="Sites searched"
-            value={sources?.sites ?? liveSites}
-          />
-          <ReportStat
-            label="Pages read"
-            pending={!result}
-            value={sources?.pages ?? null}
-          />
-          <ReportStat
-            label="Your site"
-            pending={!result}
-            value={sources?.ownSite ?? null}
-          />
+          {input.webSearch ? (
+            <>
+              <ReportStat
+                label="Sites searched"
+                value={sources?.sites ?? liveSites}
+              />
+              <ReportStat
+                label="Pages read"
+                pending={!result}
+                value={sources?.pages ?? null}
+              />
+              <ReportStat
+                label="Your site"
+                pending={!result}
+                value={sources?.ownSite ?? null}
+              />
+            </>
+          ) : (
+            <ReportStat label="Web search" value="Off" />
+          )}
         </dl>
 
         {result && result.otherOfferings.length > 0 ? (
