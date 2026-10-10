@@ -154,8 +154,25 @@
         {
           "id": 8,
           "title": "Top organizations by observed MCP calls (selected range)",
-          "type": "barchart",
+          "type": "bargauge",
           "gridPos": { "x": 0, "y": 25, "w": 12, "h": 8 },
+          "transformations": [
+            { "id": "prepareTimeSeries", "options": { "format": "multi" } }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "displayName": "${__field.labels.organizationId}",
+              "min": 0,
+              "decimals": 0,
+              "unit": "short"
+            }
+          },
+          "options": {
+            "orientation": "horizontal",
+            "displayMode": "basic",
+            "showUnfilled": false,
+            "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+          },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "targets": [
             {
@@ -169,8 +186,25 @@
         {
           "id": 9,
           "title": "Top authenticated users by API / MCP events (selected range)",
-          "type": "barchart",
+          "type": "bargauge",
           "gridPos": { "x": 12, "y": 25, "w": 12, "h": 8 },
+          "transformations": [
+            { "id": "prepareTimeSeries", "options": { "format": "multi" } }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "displayName": "${__field.labels.userId}",
+              "min": 0,
+              "decimals": 0,
+              "unit": "short"
+            }
+          },
+          "options": {
+            "orientation": "horizontal",
+            "displayMode": "basic",
+            "showUnfilled": false,
+            "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+          },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "targets": [
             {

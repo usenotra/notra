@@ -27,14 +27,48 @@ compactor:
   working_directory: /loki/compactor
   retention_enabled: true
   delete_request_store: filesystem
+  retention_delete_worker_count: 10
+ingester:
+  concurrent_flushes: 4
+  wal:
+    replay_memory_ceiling: 128MB
+querier:
+  max_concurrent: 2
+chunk_store_config:
+  chunk_cache_config:
+    embedded_cache:
+      enabled: true
+      max_size_mb: 16
+query_range:
+  index_stats_results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 16
+  volume_results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 16
+  series_results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 16
+  label_results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 16
 limits_config:
   retention_period: 336h
   ingestion_rate_mb: 4
   ingestion_burst_size_mb: 8
   allow_structured_metadata: true
   max_query_length: 336h
-  max_query_parallelism: 4
-  tsdb_max_query_parallelism: 4
+  max_query_series: 65536
+  max_query_parallelism: 2
+  tsdb_max_query_parallelism: 2
   otlp_config:
     resource_attributes:
       ignore_defaults: true

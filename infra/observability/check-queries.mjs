@@ -6,6 +6,8 @@ import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
+import { costCapacityStreams } from "./utils/cost-capacity.mjs";
+import { runDocker } from "./utils/docker.mjs";
 import { upstreamImage } from "./validate-config.mjs";
 
 export function interpolateQuery(query, selection, range = "5m") {
@@ -107,18 +109,20 @@ export function loopbackOrigin(portOutput) {
   return `http://127.0.0.1:${port}`;
 }
 
-export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
+export async function checkQueries(
+  spawn = spawnSync,
+  fetchImpl = fetch,
+  capacity = false
+) {
+  // Include image setup and reserve bounded cleanup inside the five-minute capacity budget.
+  const capacityDeadline = capacity ? Date.now() + 255_000 : undefined;
   function docker(args, timeout = 10_000) {
-    const result = spawn("docker", args, { encoding: "utf8", timeout });
-    if (result.error || result.status !== 0) {
-      throw Object.assign(
-        new Error(
-          `Docker ${args[0]} failed: ${result.error?.message || result.stderr || result.signal || result.status}`
-        ),
-        { exitCode: result.status || 1 }
-      );
+    if (capacity) {
+      const remaining = capacityDeadline - Date.now();
+      assert.ok(remaining > 0, "Loki capacity deadline exceeded");
+      return runDocker(args, Math.min(timeout, remaining), spawn);
     }
-    return result.stdout;
+    return runDocker(args, timeout, spawn);
   }
   try {
     docker(["info", "--format", "{{.ServerVersion}}"]);
@@ -168,14 +172,27 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
   // Pull before attempting creation; all Docker calls are bounded. No .env,
   // production volumes, credentials, or service endpoints are used.
   docker(["pull", image], 120_000);
+  const deadline = capacityDeadline ?? Date.now() + 120_000;
   let failure;
   try {
+    if (capacity) {
+      docker(
+        [
+          "build",
+          "--tag",
+          name,
+          fileURLToPath(new URL("loki", import.meta.url)),
+        ],
+        120_000
+      );
+    }
     docker([
       "run",
       "--detach",
       "--rm",
       "--name",
       name,
+      ...(capacity ? ["--memory=1g", "--memory-swap=1g", "--cpus=2"] : []),
       "--read-only",
       "--user",
       "10001:10001",
@@ -191,12 +208,11 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
       `type=bind,source=${fileURLToPath(new URL("loki/loki.yml", import.meta.url))},target=/etc/loki/notra.yml,readonly`,
       "--entrypoint",
       "/usr/bin/loki",
-      image,
+      capacity ? name : image,
       "-config.file=/etc/loki/notra.yml",
       "-ingester.wal-dir=/loki/wal",
     ]);
     const origin = loopbackOrigin(docker(["port", name, "3100/tcp"]));
-    const deadline = Date.now() + 120_000;
     const request = async (path, options = {}) => {
       const remaining = deadline - Date.now();
       assert.ok(remaining > 0, "Loki query check deadline exceeded");
@@ -206,7 +222,9 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
       return fetchImpl(url, {
         ...options,
         redirect: "error",
-        signal: AbortSignal.timeout(Math.min(5000, remaining)),
+        signal: AbortSignal.timeout(
+          Math.min(capacity ? 20_000 : 5000, remaining)
+        ),
       });
     };
     const readyDeadline = Date.now() + 60_000;
@@ -236,9 +254,11 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
       204,
       `Loki fixture push failed: ${await pushed.text()}`
     );
-    const query = async (expression, selection) => {
+    const timings = [];
+    const query = async (expression, selection, range = fixtures.range) => {
+      const started = performance.now();
       const params = new URLSearchParams({
-        query: interpolateQuery(expression, selection, fixtures.range),
+        query: interpolateQuery(expression, selection, range),
         time: String(evaluationTime),
       });
       const response = await request(`/loki/api/v1/query?${params}`);
@@ -250,6 +270,14 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
       const body = JSON.parse(text);
       assert.equal(body.status, "success");
       assert.equal(body.data.resultType, "vector");
+      const milliseconds = performance.now() - started;
+      if (selection.environment === "capacity") {
+        timings.push(milliseconds);
+        console.log(
+          `Cost query ${selection.organization} ${milliseconds.toFixed(1)}ms: ${JSON.stringify(body.data.result)}`
+        );
+        assert.ok(milliseconds < 15_000, "Cost query exceeded 15 seconds");
+      }
       return body.data.result;
     };
     for (const selection of fixtures.selections) {
@@ -328,9 +356,233 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
         }
       }
     }
+    const boundaryPush = await request("/loki/api/v1/push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        pushPayload(
+          [
+            {
+              labels: {
+                service_name: "notra-history-database-boundary",
+                deployment_environment_name: "boundary",
+                history_snapshot: "20261010T113508391Z",
+              },
+              entries: [
+                [86401, "outside", 8],
+                [86400, "edge", 4],
+                [86399, "inside", 2],
+                [86398, "inside", 2],
+              ].map(([ageSeconds, costId, costUsd]) => ({
+                ageSeconds,
+                line: JSON.stringify({
+                  event: "history.geo.scan",
+                  organizationId: "org_boundary",
+                  costId,
+                  costUsd,
+                }),
+              })),
+            },
+          ],
+          evaluationTime
+        )
+      ),
+    });
+    assert.equal(boundaryPush.status, 204, await boundaryPush.text());
+    // Old fixture chunks need store visibility; do not widen production ingestion queries.
+    const boundaryFlush = await request("/flush", { method: "POST" });
+    assert.ok(boundaryFlush.ok, await boundaryFlush.text());
+    const boundaryExpression = target("notra-overview", 109, "A");
+    const boundarySelection = { environment: "boundary", organization: ".*" };
+    let boundaryVector = [];
+    const visibilityDeadline = Date.now() + 5000;
+    while (boundaryVector.length === 0 && Date.now() < visibilityDeadline) {
+      boundaryVector = await query(boundaryExpression, boundarySelection);
+      if (boundaryVector.length === 0) {
+        await delay(250);
+      }
+    }
+    compareVectors(
+      boundaryVector,
+      [{ metric: { organizationId: "org_boundary" }, value: [0, 2] }],
+      ["organizationId"]
+    );
+    // Pinned native Loki excludes the exact left edge, as well as the older sample.
+    compareVectors(
+      await query(
+        boundaryExpression.replace(
+          "| unwrap costUsd",
+          '| costId="edge" | unwrap costUsd'
+        ),
+        boundarySelection
+      ),
+      [],
+      ["organizationId"]
+    );
+    const count = capacity ? 50_000 : 600;
+    for (const stream of costCapacityStreams(count, capacity)) {
+      const body = JSON.stringify(pushPayload([stream], evaluationTime));
+      assert.ok(
+        Buffer.byteLength(body) < 1024 * 1024,
+        "Fixture batch exceeds 1 MiB"
+      );
+      const response = await request("/loki/api/v1/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      assert.equal(response.status, 204, await response.text());
+      if (capacity) {
+        await delay(Math.ceil(Buffer.byteLength(body) / 2000));
+      }
+    }
+    // Old six-day chunks must be persisted before the store can query them.
+    if (capacity) {
+      const response = await request("/flush", { method: "POST" });
+      assert.ok(response.ok, await response.text());
+    }
+    for (const [dashboard, ids] of [
+      ["notra-overview", [110, 111, 118]],
+      ["notra-accounting", [10, 11, 18]],
+    ]) {
+      for (const organization of [
+        ".*",
+        "org_capacity_a",
+        "org_capacity_absent",
+      ]) {
+        for (const [index, id] of ids.entries()) {
+          const grouping = index === 2 ? ["organizationId"] : [];
+          const selected = organization === "org_capacity_a";
+          let expected = [];
+          if (organization !== "org_capacity_absent") {
+            if (index === 2) {
+              expected = (
+                selected
+                  ? ["org_capacity_a"]
+                  : ["org_capacity_a", "org_capacity_b"]
+              ).map((org) => ({
+                metric: { organizationId: org },
+                value: [0, capacity ? 37_500 : 450],
+              }));
+            } else {
+              expected = [
+                {
+                  metric: {},
+                  value: [
+                    0,
+                    (capacity ? [25_000, 50_000] : [300, 600])[index] /
+                      (selected ? 2 : 1),
+                  ],
+                },
+              ];
+            }
+          }
+          compareVectors(
+            await query(
+              target(dashboard, id, "A"),
+              { environment: "capacity", organization },
+              capacity ? "7d" : "5m"
+            ),
+            expected,
+            grouping
+          );
+        }
+      }
+    }
+    if (capacity) {
+      for (let offset = 0; offset < 65_537; offset += 1000) {
+        const body = JSON.stringify(
+          pushPayload(
+            [
+              {
+                labels: {
+                  service_name: "notra-rejection-fixtures",
+                  deployment_environment_name: "rejection",
+                },
+                entries: Array.from(
+                  { length: Math.min(1000, 65_537 - offset) },
+                  (_, index) => ({
+                    ageSeconds: 10,
+                    line: JSON.stringify({
+                      costId: `rejection:${offset + index}`,
+                      gatewayCostUsd: 0.5,
+                    }),
+                  })
+                ),
+              },
+            ],
+            evaluationTime
+          )
+        );
+        assert.ok(Buffer.byteLength(body) < 1024 * 1024);
+        const pushed = await request("/loki/api/v1/push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        assert.equal(pushed.status, 204, await pushed.text());
+        await delay(Math.ceil(Buffer.byteLength(body) / 2000));
+      }
+      const diagnostic = new URLSearchParams({
+        query:
+          'max_over_time({deployment_environment_name="rejection"} | json costId="costId", gatewayCostUsd="gatewayCostUsd" | unwrap gatewayCostUsd | __error__="" [5m])',
+        time: String(evaluationTime),
+      });
+      const response = await request(`/loki/api/v1/query?${diagnostic}`);
+      assert.equal(
+        response.status,
+        400,
+        "Above-cap diagnostic must fail visibly"
+      );
+      assert.match(await response.text(), /maximum number of series/);
+      const metrics = docker([
+        "exec",
+        name,
+        "sh",
+        "-c",
+        "cat /sys/fs/cgroup/memory.peak /sys/fs/cgroup/memory.events",
+      ]);
+      console.log(`Loki cgroup (tmpfs included):\n${metrics}`);
+      assert.ok(
+        Number(metrics.split("\n")[0]) < 768 * 1024 * 1024,
+        "Loki peak exceeds 768 MiB"
+      );
+      assert.match(metrics, /\noom 0\n/);
+      assert.match(metrics, /\noom_kill 0\n/);
+      console.log(
+        `Capacity ${count} IDs + 100 replays / 7d / sequential; slowest ${Math.max(...timings).toFixed(1)}ms`
+      );
+    }
   } catch (error) {
     failure = error;
   } finally {
+    if (capacity) {
+      const metrics = spawn(
+        "docker",
+        [
+          "exec",
+          name,
+          "sh",
+          "-c",
+          "cat /sys/fs/cgroup/memory.peak /sys/fs/cgroup/memory.events",
+        ],
+        { encoding: "utf8", timeout: 10_000 }
+      );
+      console.log(
+        `Final cgroup evidence (tmpfs included):\n${metrics.stdout || metrics.stderr}`
+      );
+      const inspected = spawn(
+        "docker",
+        [
+          "inspect",
+          "--format",
+          "OOMKilled={{.State.OOMKilled}} memory={{.HostConfig.Memory}} swap={{.HostConfig.MemorySwap}} CPUs={{.HostConfig.NanoCpus}}",
+          name,
+        ],
+        { encoding: "utf8", timeout: 10_000 }
+      );
+      console.log(inspected.stdout || inspected.stderr);
+    }
     const removed = spawn("docker", ["rm", "--force", name], {
       encoding: "utf8",
       timeout: 10_000,
@@ -348,6 +600,20 @@ export async function checkQueries(spawn = spawnSync, fetchImpl = fetch) {
         failure = new Error(message);
       }
     }
+    if (capacity) {
+      const removedImage = spawn("docker", ["image", "rm", name], {
+        encoding: "utf8",
+        timeout: 10_000,
+      });
+      if (
+        (removedImage.error || removedImage.status !== 0) &&
+        !removedImage.stderr?.includes("No such image")
+      ) {
+        failure ??= new Error(
+          `Failed to remove disposable image ${name}: ${removedImage.stderr}`
+        );
+      }
+    }
   }
   if (failure) {
     throw failure;
@@ -362,7 +628,15 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   try {
-    await checkQueries();
+    assert.ok(
+      process.argv.slice(2).every((arg) => arg === "--cost-capacity"),
+      "Unknown query-check argument"
+    );
+    await checkQueries(
+      spawnSync,
+      fetch,
+      process.argv.includes("--cost-capacity")
+    );
   } catch (error) {
     console.error(error.message);
     process.exitCode = error.exitCode || 1;

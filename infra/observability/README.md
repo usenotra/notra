@@ -78,12 +78,28 @@ target organization from the active UI session.
 
 ### Dashboard scope
 
-Operations keeps the existing `notra-overview` URL and 30-second refresh. Historical
-selected-range gateway usage, BYOK usage value, gateway balance and organization
-rankings (original panel IDs 10, 11, 12, 16 and 18) move intact to the provisioned
-`notra-accounting` dashboard, with auto-refresh disabled. Native dashboard links
-carry environment, organization and selected time range both ways. Change the
-range or manually refresh accounting when you need another observation.
+The `notra-overview` start page prioritizes AI spend, GEO and API latency: reported
+GEO scan usage value, separate live gateway/BYOK cards, customer cost rankings,
+API p95/errors, GEO cost trends and scan outcomes. Customer bars link back to the
+same dashboard with that opaque organization ID and the time/environment filters.
+Customer names are not collected. GEO history remains the frozen 3–10 October
+snapshot; live spend/latency still require telemetry activation. Historical scan
+costs are not combined with live call costs, avoiding double-counting.
+
+Infrastructure probes, ingest capacity and team-wide daily aggregates are collapsed
+below the product metrics. Probe response time is explicitly not API latency.
+The existing URL and 30-second refresh remain. `notra-accounting` retains the
+gateway/BYOK, shared balance and detailed rankings (IDs 10, 11, 12, 16 and 18), with
+auto-refresh disabled. Dashboard links preserve the time/environment/customer
+filters; change the range or manually refresh accounting for another observation.
+
+The spend/GEO/latency layout was deployed to Grafana on 2026-10-10 as
+`85aa9cab-ea2e-42a1-bebf-d5a0522dda2e` (`SUCCESS`). All four provisioned dashboard
+definitions match source. Private production queries return GEO cost totals,
+top-ten customer cost/scan rankings and scan outcomes; live gateway/BYOK and API
+latency queries remain empty as expected before application telemetry activation.
+Only Grafana was deployed; no service settings, volumes or application releases
+were changed. Browser rendering remains unverified.
 
 Numeric Loki queries retain only the event, filters, grouping and numeric fields
 they use. Cost/ranking and runtime queries use explicit JSON extraction. Queries
@@ -93,6 +109,14 @@ grouping semantics. Nested token/first-chunk fields retain their original aliase
 The logs panel intentionally keeps full JSON parsing for details. Organization regex is
 trusted-team input, not authorization. The shared gateway balance and ingest
 capacity are not organization-scoped; their panels say so.
+
+OpenRouter cost events treat absent/null upstream inference cost as **unknown**, not
+zero. Measured gateway charges remain available; a combined `costUsd` is reported
+only when both components are measured. Customer cost rankings therefore cover
+reported complete totals, not all spend. The legacy OpenRouter billing fallback
+is unchanged. See the official [API overview](https://openrouter.ai/docs/projects/docs/api_reference/overview)
+and [usage accounting](https://openrouter.ai/docs/cookbook/administration/usage-accounting)
+references. These application changes are source-only, not activated telemetry.
 
 The two capacity panels show latest ingest RSS/heap and active requests, pending
 tasks, buffered events and database waiters over a five-minute sample window.
@@ -179,6 +203,11 @@ The separate `geo.ingest.runtime` allowlist accepts only finite nonnegative nume
 capacity fields (safe integers for request/task/buffer/pool counts). Strings,
 unknown fields and free-text runtime reasons are excluded. These fields do not
 cross the projection on any other event.
+
+OTLP fields are sanitized **before entering the exporter buffer**; rich Axiom
+payloads remain unchanged. Dynamic-router request-wide AI counters have one owner,
+and final stream status determines the request outcome even after an earlier
+handler success. These fixes do not change standalone MCP source or deployment.
 
 The exporter uses batches of 50, a 1,000-event memory buffer, three attempts and
 three-second HTTP timeouts. It is best-effort telemetry, not an accounting ledger.
@@ -402,12 +431,134 @@ local cloudflared config file. Tunnel and admin secrets must never be committed.
 
 ## Checks and extensions
 
+### Local monitoring readiness (2026-10-10)
+
+These source changes are **not deployed** and do not activate application telemetry.
+The added 600-ID regression reproduced Loki's HTTP 400 `maximum number of series
+(500)` error. Keeping only the cost ID and unwrapped value still failed: stable-ID
+deduplication cannot remove the necessary per-ID series. Dashboard queries and
+their missing-value, environment and customer semantics were not changed.
+
+The finite `max_query_series: 65536` passed the original 36 native
+comparisons, exact-vector fixtures and all six cost targets with 600 IDs plus 100
+replays, global/selected/absent customer filters. The corrected GEO boundary check
+and `node infra/observability/check-queries.mjs --cost-capacity` also passed
+50,000 IDs spread across six days, 100 replays, a seven-day range and sequential
+queries: gateway 25,000, BYOK 50,000, and each customer's total 37,500. Selected
+gateway/BYOK were 12,500/25,000; absent customers remained empty. Maximum query
+latency in the original untuned baseline was **603.2 ms**; final cgroup peak was
+**379,568,128 bytes (362 MiB)**,
+including tmpfs, under a 1-GiB/no-swap/two-CPU test budget. OOM counters were zero.
+A separate 65,537-ID diagnostic was rejected with HTTP 400, never rendered as zero.
+This is not evidence for concurrent viewers, arbitrary customers or 14-day ranges.
+
+The capacity mode builds the existing Loki final-image context so its Alpine
+shell can read native cgroup counters; the pinned upstream image has no shell.
+This is the only harness deviation from Plan 001's upstream-image lifecycle.
+It retains the direct non-root binary entrypoint, read-only filesystem, fixture
+tmpfs, loopback port, bounded requests/deadline and run-scoped image/container
+cleanup. It does **not** validate the ownership entrypoint or WAL recovery.
+
+The earlier empty GEO boundary result was a fixture setup error, not a business
+query defect. A disposable pinned instance reported `query_ingesters_within: 3h`;
+the 24-hour-old fixture was empty before `/flush`, then visible after 308 ms.
+The retained regression now exercises actual rolling-24-hour panel **109**, with
+organization grouping, a bounded post-flush visibility wait, an inside-range
+replay and just-outside/exact-edge samples. Native Loki returns USD 2 for the
+inside ID only: its exact left edge is excluded. Production ingestion/query
+windows were not widened, and the original dashboard expression was not changed.
+
+Pinned effective configuration showed five active 100-MB embedded caches: chunks,
+index-statistics, volume, series and labels. These are now **16 MB each**; inactive
+range/instant-metric and legacy-index/bloom caches were not counted or altered.
+WAL replay is **128 MB**, concurrent flushes **4**, retention-deletion workers
+**10**, querier workers **2**, and both query parallelism settings **2**. Native
+validation, default queries and the full capacity gate passed with these settings:
+**318,607,360 bytes (304 MiB)** peak including tmpfs, **606.1 ms** maximum query
+latency and no OOM. The final repeat passed at **317,177,856 bytes (302 MiB)**
+and **501.8 ms**. These local runs do not establish guaranteed savings.
+
+`node infra/observability/check-loki-resources.mjs` passed the packaged ownership
+entrypoint as UID **10001**, with fresh persistent fixture storage and the same
+1-GiB/no-swap/two-CPU budget. Two accepted sentinel IDs were proven WAL-only by
+zero flushes, no persisted chunk files and a **121,831-byte WAL** before SIGKILL.
+Recovery replayed exactly **702 entries / 102,068 bytes**, including both sentinel
+IDs; final startup took **15.954 s**, replay **10 ms**. Four concurrent cost queries under
+two workers finished within **63.8 ms** with exact totals; all 30 concurrently
+accepted IDs remained queryable. Final first/restarted peaks were **210,546,688 /
+202,104,832 bytes**, with no OOM. This is not a 50-GB restore or a concurrent
+50,000-ID viewer test. A Loki-only 1-GiB production cap is a separately approved
+follow-up requiring active-load, storage-growth and recovery checks; no IaC cap
+or production setting was changed.
+
+After Docker availability was restored, final config validation, default native
+queries, cost capacity, WAL recovery and Prometheus resource gates all passed.
+Supplementary Loki allocated-heap/RSS snapshots were 46,415,096/190,824,448 bytes
+before recovery and 39,503,072/182,906,880 bytes after recovery. Process snapshots
+are not replacements for the cgroup peak/OOM gate. The supervising reviewer owns
+the plan index; it was not edited.
+
+#### Prometheus accepted source budgets
+
+| Job | Samples per scrape | Body size |
+| --- | ---: | ---: |
+| prometheus, loki | 10,000 each | 8 MB each |
+| collector, blackbox | 2,000 each | 2 MB each |
+| application-metrics | 50,000 | 16 MB |
+| vercel | 100,000 | 32 MB |
+| each http-probes target | 500 | 1 MB |
+
+Every job also has finite ceilings of 128 labels, 256-byte label names and
+2,048-byte label values. The final image explicitly allows four concurrent
+queries and 5,000,000 samples per query; UID 65534 and actual flags were verified.
+Production targets, intervals, exporter semantics and retention remain unchanged.
+The pinned binary accepts the existing retention flags but marks them deprecated;
+retention migration is outside this patch.
+
+`node infra/observability/check-prometheus-resources.mjs` generated simultaneous
+50,000 application and 100,000 Vercel samples with realistic labels and native
+`metricSamples` output. All seven targets were healthy; exact head count was
+154,440 (including scrape diagnostics). Valid scrapes finished within the fixture
+two-second timeout: application 230 ms, Vercel 389 ms. All real dashboard PromQL
+expressions, including collapsed panels, and four concurrent queries passed;
+the largest measured normal query was 81.4 ms. Repeated completed-window Vercel
+gauges stayed exactly 230, not an accumulated total.
+
+The final image was capped at 1 GiB, no swap and two CPUs. Normal cgroup peak was
+604,864,512 bytes (about 577 MiB), below the 768-MiB acceptance bound, with zero
+OOM events. Supplementary allocated-heap/RSS snapshots were
+413,805,448/569,470,976 bytes. Separate excess sample/body/label-count/name/value
+fixtures produced visible scrape errors and `up=0`; restoring valid input
+recovered `up=1` each time. A derived test-only ten-sample query cap rejected a
+query visibly and then allowed an ordinary query; its cgroup peak was
+504,963,072 bytes, no OOM. This does not replace validation of the source
+5,000,000-sample query flag.
+
+`up=0` can mean scrape-budget rejection, not just an unavailable service.
+Per-scrape limits do not bound series churn over time. TSDB head/WAL storage needs
+monitoring independently of the 4-GB persisted-block retention limit; sustained
+production load and Railway hard caps require separate review. Fixture discovery
+waits for every completed scrape, and fixture mode changes use atomic rename so
+concurrent scrapes cannot crash the exporter on partial JSON. The compact harness
+failure test covers fixture-only mounts, loopback listeners, deadlines and
+exact-name cleanup. Gates remove their own containers, images, networks and
+storage even on failure; no preview stack is recreated.
+
+Only dashboard help links/copy changed: history explicitly describes the selected
+range's intersection with the frozen snapshot, full-snapshot links use the
+canonical absolute timestamps, and the inline accounting-to-overview link keeps
+time/environment/customer filters. Retention, default live windows and Vercel's
+completed-window gauge semantics remain unchanged.
+
 ```sh
 bun test --isolate infra/observability
 bunx --no-install tsc --project .railway/tsconfig.json
 bunx --no-install tsc --project infra/observability/vercel/tsconfig.json
 node infra/observability/validate-config.mjs
 node infra/observability/check-queries.mjs
+node infra/observability/check-queries.mjs --cost-capacity
+node infra/observability/check-loki-resources.mjs
+node infra/observability/check-prometheus-resources.mjs
 bun test --isolate packages/ai/src/utils/telemetry-event.test.ts \
   packages/ai/src/utils/otlp-pipeline.test.ts \
   packages/ai/src/utils/checkpoint-pipeline.test.ts \
@@ -437,7 +588,7 @@ references, environment/org selections and known deduplicated accounting/runtime
 values. It includes malformed JSON, missing/invalid numerics, unrelated events,
 escaped event keys, nested AI fields, multiple organizations and repeated cost IDs.
 Both fixture files now state exact expected panel vectors and selections using
-the same contract. One assertion loop runs 24 exact checks across 17 accounting,
+the same contract. One assertion loop runs 28 exact checks across 21 GEO, accounting,
 runtime and API/MCP targets independently of the 36 baseline/current comparisons; it does
 not recompute expectations from fixture events or query implementation.
 The source tests check this contract, not Loki execution or live deployment.
@@ -446,12 +597,12 @@ Loki and collector binaries, then `check-queries.mjs` evaluates 36 baseline/curr
 query comparisons and known cost/runtime values against disposable pinned Loki.
 Only fixture data and a loopback ephemeral port are used; its uniquely named
 container is removed afterward. Both commands require a running Docker daemon
-and fail rather than skip when unavailable. Before the fixture trim, all three native
-config validators, 60 native query comparisons and explicit cost/runtime expectations
-passed locally on 2026-10-10. The trimmed fixtures passed source tests but have not
-been rerun against native Loki. Local Grafana provisioning and non-root Blackbox checks
-also passed before the trim.
-The CI steps are wired in source but have not run remotely (nothing was pushed).
+and fail rather than skip when unavailable. All three native config validators,
+36 baseline/current comparisons and 28 exact checks passed locally on 2026-10-10,
+including the GEO customer-cost and scan-status queries. Local Grafana provisioning
+and non-root Blackbox checks passed before this layout change. Browser rendering of
+the new layout remains unverified. Local checks do not establish remote CI status
+or deploy the dashboards.
 
 Security checks: anonymous or forged-identity Grafana requests must redirect to
 Access; OTLP without a valid token must return 401; telemetry `/`, `/api/health`

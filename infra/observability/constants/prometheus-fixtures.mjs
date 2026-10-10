@@ -1,0 +1,46 @@
+export const fixtureCounts = {
+  prometheus: 900,
+  loki: 2800,
+  collector: 500,
+  "application-metrics": 50_000,
+  blackbox: 200,
+  vercel: 100_000,
+  "http-probes": 5,
+};
+export const windowFixtures = [
+  ["vercel.request.count", "count", "project", 230, "count"],
+  ["vercel.function_invocation.count", "count", "project", 170, "count"],
+  [
+    "vercel.function_invocation.function_duration_ms",
+    "p95",
+    "project",
+    120,
+    "milliseconds",
+  ],
+  [
+    "vercel.function_invocation.function_duration_ms",
+    "p99",
+    "project",
+    160,
+    "milliseconds",
+  ],
+  [
+    "vercel.function_invocation.function_cpu_time_ms",
+    "avg",
+    "project",
+    14,
+    "milliseconds",
+  ],
+  [
+    "vercel.function_invocation.peak_memory_mb",
+    "p95",
+    "project",
+    85,
+    "megabytes",
+  ],
+  ["vercel.request.count", "count", "http", 230, "count"],
+  ["vercel.request.fdt_total_bytes", "sum", "project", 840000, "bytes"],
+  ["vercel.function_invocation.count", "count", "runtime", 170, "count"],
+  ["vercel.request.count", "count", "cache", 230, "count"],
+  ["vercel.ai_gateway.request.cost", "sum", "project", 1.5, "USD"],
+];

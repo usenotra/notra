@@ -1,7 +1,9 @@
 import { OTLP_AUTH_ERROR_PATTERN } from "@notra/ai/constants/evlog";
+import type { CheckpointLogPipeline } from "@notra/ai/types/evlog";
 import { sendOTLPBatch } from "@notra/ai/utils/send-otlp-batch";
 import { createShippingPipeline } from "@notra/ai/utils/shipping-pipeline";
 import { telemetryEvent } from "@notra/ai/utils/telemetry-event";
+import type { DrainContext } from "evlog";
 
 export function createOTLPPipeline() {
   const endpoint = process.env.NOTRA_OTLP_ENDPOINT;
@@ -29,10 +31,10 @@ export function createOTLPPipeline() {
     console.warn("[otlp] invalid NOTRA_OTLP_ENDPOINT; export disabled");
     return undefined;
   }
-  return createShippingPipeline(
+  const pipeline = createShippingPipeline(
     (batch) =>
       sendOTLPBatch(
-        batch.map(({ event }) => telemetryEvent(event)),
+        batch.map(({ event }) => event),
         {
           endpoint,
           headers: { Authorization: `Bearer ${token}` },
@@ -51,4 +53,12 @@ export function createOTLPPipeline() {
         "[otlp] authentication rejected; export disabled until reinitialization or next deploy",
     }
   );
+  const push = (ctx: DrainContext) => {
+    pipeline({ event: telemetryEvent(ctx.event) });
+  };
+  return Object.defineProperty(
+    Object.assign(push, { flush: () => pipeline.flush() }),
+    "pending",
+    { get: () => pipeline.pending, enumerable: true }
+  ) as CheckpointLogPipeline;
 }

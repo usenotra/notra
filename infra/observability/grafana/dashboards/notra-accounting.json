@@ -1,15 +1,15 @@
 {
   "uid": "notra-accounting",
-  "title": "Notra · Usage and data coverage",
+  "title": "Notra · AI spend details",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "editable": false,
   "refresh": "",
   "time": { "from": "now-7d", "to": "now" },
   "tags": ["notra", "accounting"],
   "links": [
     {
-      "title": "Operations",
+      "title": "Spend, GEO & API overview",
       "type": "link",
       "url": "/d/notra-overview",
       "includeVars": true,
@@ -27,7 +27,7 @@
       },
       {
         "name": "organization",
-        "label": "Customer ID (advanced filter)",
+        "label": "Customer ID",
         "type": "textbox",
         "query": ".*",
         "current": { "text": ".*", "value": ".*" }
@@ -37,17 +37,17 @@
   "panels": [
     {
       "id": 1,
-      "title": "Usage is not an invoice",
+      "title": "AI spend coverage",
       "type": "text",
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
       "options": {
         "mode": "markdown",
-        "content": "**GEO history is available below**, imported from the production database on 10 October. The gateway/BYOK split and balance are **not connected yet**; they are not zero. Missing data is not zero. Reported usage values are **not invoice cash paid**. Never add scan totals to individual check costs. These snapshots are not a live sync; source timestamps are preserved and replays are deduplicated."
+        "content": "**GEO history: selected-range intersection with the frozen 3–10 Oct 2026 snapshot.** [View the full snapshot](/d/notra-accounting?from=2026-10-03T11:35:08.391Z&to=2026-10-10T11:35:08.391Z&var-environment=${environment}&var-organization=${organization:percentencode}). Gateway/BYOK accounting awaits telemetry activation. Reported usage is not invoice cash paid; never add scan totals to individual checks. Missing data is not zero. [Customer rankings and API latency](/d/notra-overview?${__url_time_range}&var-environment=${environment}&var-organization=${organization:percentencode})."
       }
     },
     {
       "id": 200,
-      "title": "Live gateway and BYOK accounting · deployment required",
+      "title": "Gateway, BYOK & balance · live collection pending",
       "type": "row",
       "collapsed": true,
       "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 },
@@ -57,7 +57,7 @@
           "title": "Gateway charges · collection pending",
           "description": "Includes charges against free or purchased gateway credits; not cash payments. Deduplicates repeated generation lookups.",
           "type": "stat",
-          "gridPos": { "x": 0, "y": 9, "w": 8, "h": 5 },
+          "gridPos": { "x": 0, "y": 11, "w": 8, "h": 5 },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
           "targets": [
@@ -73,7 +73,7 @@
           "title": "BYOK usage · collection pending",
           "description": "Provider-reported inference value, before provider credits, discounts and invoice adjustments. Not cash paid.",
           "type": "stat",
-          "gridPos": { "x": 8, "y": 9, "w": 8, "h": 5 },
+          "gridPos": { "x": 8, "y": 11, "w": 8, "h": 5 },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
           "targets": [
@@ -89,7 +89,7 @@
           "title": "Gateway balance · collection pending",
           "description": "Last observation per gateway in the selected range, not a live billing balance. Shared gateway balance is independent of the organization filter.",
           "type": "stat",
-          "gridPos": { "x": 16, "y": 9, "w": 8, "h": 5 },
+          "gridPos": { "x": 16, "y": 11, "w": 8, "h": 5 },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
           "targets": [
@@ -105,7 +105,22 @@
           "id": 16,
           "title": "Top organizations by observed API requests",
           "type": "bargauge",
-          "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 },
+          "gridPos": { "x": 0, "y": 16, "w": 12, "h": 7 },
+          "transformations": [
+            { "id": "prepareTimeSeries", "options": { "format": "multi" } }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "displayName": "${__field.labels.organizationId}",
+              "min": 0
+            }
+          },
+          "options": {
+            "orientation": "horizontal",
+            "displayMode": "basic",
+            "showUnfilled": false,
+            "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+          },
           "datasource": { "type": "loki", "uid": "notra-loki" },
           "targets": [
             {
@@ -121,9 +136,24 @@
           "title": "Top organizations by reported AI usage value",
           "description": "Gateway charges plus BYOK inference value; not invoice cash paid. Requires attributable reported cost events.",
           "type": "bargauge",
-          "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 },
+          "gridPos": { "x": 12, "y": 16, "w": 12, "h": 7 },
+          "transformations": [
+            { "id": "prepareTimeSeries", "options": { "format": "multi" } }
+          ],
+          "options": {
+            "orientation": "horizontal",
+            "displayMode": "basic",
+            "showUnfilled": false,
+            "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+          },
           "datasource": { "type": "loki", "uid": "notra-loki" },
-          "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyUSD",
+              "min": 0,
+              "displayName": "${__field.labels.organizationId}"
+            }
+          },
           "targets": [
             {
               "refId": "A",
@@ -137,7 +167,7 @@
     },
     {
       "id": 101,
-      "title": "GEO scans · imported database history",
+      "title": "GEO scans · history",
       "type": "stat",
       "gridPos": { "x": 0, "y": 4, "w": 8, "h": 5 },
       "datasource": { "type": "loki", "uid": "notra-loki" },
@@ -154,7 +184,7 @@
     },
     {
       "id": 102,
-      "title": "GEO reported usage value · not payments",
+      "title": "GEO AI usage value · history",
       "type": "stat",
       "gridPos": { "x": 8, "y": 4, "w": 8, "h": 5 },
       "datasource": { "type": "loki", "uid": "notra-loki" },

@@ -6,4 +6,4 @@ COPY --from=upstream /bin/promtool /bin/promtool
 COPY prometheus.yml /etc/prometheus/prometheus.yml
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
-CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=30d", "--storage.tsdb.retention.size=4GB", "--web.listen-address=[::]:9090"]
+CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=30d", "--storage.tsdb.retention.size=4GB", "--web.listen-address=[::]:9090", "--query.max-concurrency=4", "--query.max-samples=5000000"]

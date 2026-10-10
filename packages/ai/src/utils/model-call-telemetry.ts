@@ -125,16 +125,18 @@ export function createModelCallTelemetry({
         Number.isFinite(metadata.gatewayCostUsd) &&
         metadata.gatewayCostUsd >= 0
       ) {
+        const byokInferenceCostUsd =
+          typeof metadata.byokInferenceCostUsd === "number" &&
+          Number.isFinite(metadata.byokInferenceCostUsd) &&
+          metadata.byokInferenceCostUsd >= 0
+            ? metadata.byokInferenceCostUsd
+            : undefined;
         emit("info", "ai.cost.reported", {
           costId: `openrouter:${result.responseId ?? callId}`,
           gatewayCostUsd: metadata.gatewayCostUsd,
-          byokInferenceCostUsd:
-            typeof metadata.byokInferenceCostUsd === "number" &&
-            Number.isFinite(metadata.byokInferenceCostUsd) &&
-            metadata.byokInferenceCostUsd >= 0
-              ? metadata.byokInferenceCostUsd
-              : undefined,
+          byokInferenceCostUsd,
           costUsd:
+            byokInferenceCostUsd !== undefined &&
             typeof metadata.costUsd === "number" &&
             Number.isFinite(metadata.costUsd) &&
             metadata.costUsd >= 0

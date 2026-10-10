@@ -98,6 +98,35 @@
   "streams": [
     {
       "labels": {
+        "service_name": "notra-history-database-fixture",
+        "deployment_environment_name": "validation",
+        "history_snapshot": "20261010T113508391Z"
+      },
+      "entries": [
+        {
+          "ageSeconds": 240,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:a\",\"costId\":\"geo-scan:a\",\"costUsd\":3,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 230,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:a\",\"costId\":\"geo-scan:a\",\"costUsd\":3,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 220,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_alpha\",\"callId\":\"scan:b\",\"costId\":\"geo-scan:b\",\"weight\":1,\"outcome\":\"failed\"}"
+        },
+        {
+          "ageSeconds": 210,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_beta\",\"callId\":\"scan:c\",\"costId\":\"geo-scan:c\",\"costUsd\":5,\"weight\":1,\"outcome\":\"completed\"}"
+        },
+        {
+          "ageSeconds": 200,
+          "line": "{\"event\":\"history.geo.scan\",\"organizationId\":\"org_beta\",\"callId\":\"scan:d\",\"costId\":\"geo-scan:d\",\"costUsd\":0,\"weight\":1,\"outcome\":\"completed\"}"
+        }
+      ]
+    },
+    {
+      "labels": {
         "service_name": "fixture-api",
         "deployment_environment_name": "validation"
       },
@@ -301,6 +330,45 @@
     }
   ],
   "expectations": [
+    {
+      "dashboard": "notra-overview",
+      "selections": [{ "environment": "validation", "organization": ".*" }],
+      "targets": [
+        {
+          "panelId": 107,
+          "refId": "A",
+          "grouping": [],
+          "vector": [{ "metric": {}, "value": [0, 8] }]
+        },
+        {
+          "panelId": 108,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_alpha" }, "value": [0, 3] },
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 5] }
+          ]
+        },
+        {
+          "panelId": 115,
+          "refId": "A",
+          "grouping": ["outcome"],
+          "vector": [
+            { "metric": { "outcome": "completed" }, "value": [0, 3] },
+            { "metric": { "outcome": "failed" }, "value": [0, 1] }
+          ]
+        },
+        {
+          "panelId": 117,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "org_alpha" }, "value": [0, 2] },
+            { "metric": { "organizationId": "org_beta" }, "value": [0, 2] }
+          ]
+        }
+      ]
+    },
     {
       "dashboard": "notra-accounting",
       "selections": [{ "environment": "validation", "organization": ".*" }],

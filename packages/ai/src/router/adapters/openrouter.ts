@@ -114,10 +114,12 @@ export function createOpenRouterAdapter(
         usage.costDetails && typeof usage.costDetails === "object"
           ? (usage.costDetails as Record<string, unknown>)
           : undefined;
+      const measuredUpstreamCost = readNumber(
+        costDetails?.upstreamInferenceCost
+      );
+      // Keep the legacy billing fallback separate from measured telemetry.
       const upstreamCost =
-        usage.costDetails === undefined
-          ? 0
-          : readNumber(costDetails?.upstreamInferenceCost);
+        usage.costDetails === undefined ? 0 : measuredUpstreamCost;
       const costUsd =
         gatewayCost !== undefined &&
         gatewayCost >= 0 &&
@@ -130,8 +132,8 @@ export function createOpenRouterAdapter(
         ...(gatewayCost !== undefined && gatewayCost >= 0
           ? { gatewayCostUsd: gatewayCost }
           : {}),
-        ...(upstreamCost !== undefined && upstreamCost >= 0
-          ? { byokInferenceCostUsd: upstreamCost }
+        ...(measuredUpstreamCost !== undefined && measuredUpstreamCost >= 0
+          ? { byokInferenceCostUsd: measuredUpstreamCost }
           : {}),
         ...(costUsd !== undefined && Number.isFinite(costUsd)
           ? { costUsd }

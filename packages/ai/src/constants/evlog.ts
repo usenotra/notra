@@ -1,6 +1,18 @@
 export const DEFAULT_AXIOM_AI_DATASET = "ai-logs";
 export const DEFAULT_AXIOM_GEO_DATASET = "notra-geo-scan";
 export const GEO_LOG_EVENT_PREFIX = "geo.";
+export const REQUEST_AI_USAGE_FIELDS = new Set([
+  "calls",
+  "model",
+  "models",
+  "inputTokens",
+  "outputTokens",
+  "totalTokens",
+  "cacheReadTokens",
+  "cacheWriteTokens",
+  "reasoningTokens",
+  "costUsd",
+]);
 // Bad token, missing ingest permission, or unknown dataset. Retrying cannot
 // succeed until the env changes, which requires a redeploy anyway.
 export const AXIOM_PERMANENT_ERROR_PATTERN =
