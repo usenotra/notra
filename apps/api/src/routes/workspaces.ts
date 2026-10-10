@@ -7,6 +7,7 @@ import {
 import { WorkspaceInvitationServiceError } from "../errors/workspaces";
 import {
   getOrganizationIdFromAuth,
+  isAccountKeyAuth,
   isIngestAuth,
   isOAuthAuth,
 } from "../types/auth";
@@ -24,7 +25,7 @@ const getWorkspacesRoute = createRoute({
   operationId: "getWorkspaces",
   summary: "Get authenticated workspace context",
   description:
-    "Returns the current workspace and authentication details. OAuth users also receive their accepted memberships and can opt into pending invitations; organization API keys only receive their current workspace. Discovery does not change the workspace bound to the bearer token.",
+    "Returns the current workspace and authentication details. OAuth users and account-wide API keys also receive their accepted memberships and can opt into pending invitations; single-organization API keys only receive their current workspace. Discovery does not change the workspace bound to the bearer token.",
   request: {
     query: getWorkspacesQuerySchema,
   },
@@ -62,7 +63,11 @@ workspaceRoutes.openapi(getWorkspacesRoute, async (c) => {
 
   const includePending = c.req.valid("query").includePending === "true";
   const workosApiKey = c.env?.WORKOS_API_KEY;
-  if (isOAuthAuth(auth) && includePending && !workosApiKey) {
+  if (
+    (isOAuthAuth(auth) || isAccountKeyAuth(auth)) &&
+    includePending &&
+    !workosApiKey
+  ) {
     return c.json({ error: "Authentication service unavailable" }, 503);
   }
 
