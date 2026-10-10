@@ -143,10 +143,6 @@ are also baselined as warnings rather than blocking this tooling rollout.
 Broad style/Effect-native lint presets are deliberately not enabled for our
 mixed React, SDK, and Effect code.
 
-`node --test scripts/effect/diagnostics.test.mjs` exercises valid code, all three
-blocking rules, and the five warning rules against both patched tools. It also
-runs as part of `bun run test`.
-
 If a new workspace adds Effect, include its source directory in `check:effect`.
 Keep `@effect/tsgo`, TypeScript, Oxlint, and `oxlint-tsgolint` pinned to mutually
 supported versions; the installed `@effect/tsgo/README.md` lists compatibility.
