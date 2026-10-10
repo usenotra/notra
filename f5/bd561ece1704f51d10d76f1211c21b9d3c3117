@@ -1,0 +1,19 @@
+apps/dashboard/src/components/sites/site-deployment-timeline.tsx
+  s_e2ae935e225e0d::t_0c2c3a6005a8e5 42-44,88-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f5bd561ece1704f51d10d76f1211c21b9d3c3117",
+  "prompts": {},
+  "sessions": {
+    "s_e2ae935e225e0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06cc2804-182a-416c-a76e-498225c81944",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
