@@ -10,6 +10,7 @@ import type { CSSProperties } from "react";
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "use-intl";
 
+import { useFrameNow } from "@/lib/hooks/use-frame-now";
 import { useNow } from "@/lib/hooks/use-now";
 import { cn } from "@/lib/utils";
 import type { SiteDeploymentTimelineProps } from "@/types/components/sites";
@@ -27,6 +28,7 @@ export function SiteDeploymentTimeline({
   const locale = useLocale();
   const running = isDeploymentInProgress(deployment.status);
   const now = useNow(running);
+  const frameNow = useFrameNow(running);
   const time = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -36,6 +38,18 @@ export function SiteDeploymentTimeline({
         hour12: false,
       }),
     [locale]
+  );
+  // Widths follow the frame clock so the bars grow in step with real time;
+  // labels stay on the one-second tick so the text doesn't flicker.
+  const liveDurations = useMemo(
+    () =>
+      new Map(
+        deploymentTimelinePhases(deployment, log, frameNow).map((phase) => [
+          phase.id,
+          phase.durationMs,
+        ])
+      ),
+    [deployment, log, frameNow]
   );
   const phases = useMemo(
     () =>
@@ -79,7 +93,10 @@ export function SiteDeploymentTimeline({
                 key={phase.id}
                 style={
                   {
-                    "--phase-duration": Math.max(phase.durationMs ?? 0, 1),
+                    "--phase-duration": Math.max(
+                      liveDurations.get(phase.id) ?? phase.durationMs ?? 0,
+                      1
+                    ),
                   } as CSSProperties
                 }
               >
