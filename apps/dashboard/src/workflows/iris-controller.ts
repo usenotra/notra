@@ -34,6 +34,7 @@ import {
   loadIrisMandate,
   markIrisSignalsProcessed,
   persistIrisPlan,
+  persistIrisPlannerOutput,
   persistIrisRunCost,
   planIrisRun,
   pollIrisSourcesStep,
@@ -231,6 +232,15 @@ async function runIrisMission(input: {
   });
 
   const output = plan.output;
+
+  if (output !== null && plan.inputHash !== undefined) {
+    await persistIrisPlannerOutput({
+      runId,
+      plannerOutput: output,
+      plannerInputHash: plan.inputHash,
+      costCents: plan.costCents,
+    });
+  }
 
   if (plan.status === "rejected" || output === null) {
     await finalizeIrisRun({

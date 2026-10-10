@@ -344,7 +344,11 @@ describe("RoutedLanguageModel", () => {
     assert.equal(gatewayOptions.zeroDataRetention, true);
     assert.equal(gatewayOptions.disallowPromptTraining, true);
     assert.equal(gatewayOptions.caching, "auto");
-    assert.deepEqual(gatewayOptions.tags, ["geo-scan"]);
+    assert.deepEqual(gatewayOptions.tags, [
+      "feature:geo-scan",
+      "geo-scan",
+      "attribution:partial",
+    ]);
     assert.deepEqual(gatewayOptions.models, ["anthropic/claude-haiku-4.5"]);
   });
 
@@ -359,7 +363,11 @@ describe("RoutedLanguageModel", () => {
       ?.gateway as Record<string, unknown>;
     assert.equal(vercelSent.zeroDataRetention, true);
     assert.equal(vercelSent.disallowPromptTraining, true);
-    assert.deepEqual(vercelSent.tags, ["other"]);
+    assert.deepEqual(vercelSent.tags, [
+      "feature:other",
+      "other",
+      "attribution:partial",
+    ]);
 
     await router.model(MODEL, { organizationId: FREE_ORG }).doGenerate(
       callOptions({

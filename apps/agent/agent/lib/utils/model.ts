@@ -1,6 +1,8 @@
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { EVALUATION_MODEL_ID } from "@notra/ai/constants/evaluation";
 import { withGatewayAgentOptions } from "@notra/ai/utils/gateway-agent-model";
+import { withGatewayEvaluationTelemetry } from "@notra/ai/utils/gateway-evaluation-model";
+import { gatewayAttributionOptions } from "@notra/ai/utils/usage-attribution";
 import { getOrganizationId } from "@notra/tools/utils/organization";
 import { gateway, type LanguageModel, wrapLanguageModel } from "ai";
 import { defineDynamic } from "eve";
@@ -87,19 +89,18 @@ export function createAssistantModel() {
     events: {
       "step.started": async (event, ctx) => {
         const organizationId = getOrganizationId(ctx);
-        const gatewayOptions: Record<string, string> = {};
-        if (organizationId) {
-          gatewayOptions.user = organizationId;
-        }
-        const modelOptions = {
-          providerOptions: {
-            gateway: gatewayOptions,
-          },
+        const turnId = (event as { data?: { turnId?: unknown } }).data?.turnId;
+        const providerOptions = {
+          gateway: gatewayAttributionOptions({
+            organizationId,
+            sessionId: ctx.session.id,
+            turnId: typeof turnId === "string" ? turnId : undefined,
+          }),
         };
+        const modelOptions = { providerOptions };
         const surface =
           ctx.session.auth.current?.attributes.surface ??
           ctx.session.auth.initiator?.attributes.surface;
-        const turnId = (event as { data?: { turnId?: unknown } }).data?.turnId;
         if (surface === "task") {
           if (typeof turnId === "string") {
             assistantModelSelection.update(() => ({
@@ -124,10 +125,17 @@ export function createAssistantModel() {
         }
 
         const auto = autoModel({
-          model: EVALUATION_MODEL_ID,
+          model: withGatewayEvaluationTelemetry(
+            gateway.evaluationModel(EVALUATION_MODEL_ID),
+            {
+              organizationId,
+              sessionId: ctx.session.id,
+              turnId: typeof turnId === "string" ? turnId : undefined,
+            }
+          ),
           providerOptions: {
             gateway: {
-              ...gatewayOptions,
+              ...providerOptions.gateway,
               tags: ["evaluation-agent-model"],
               zeroDataRetention: true,
               disallowPromptTraining: true,

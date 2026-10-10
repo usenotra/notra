@@ -1014,6 +1014,7 @@ export interface GeoMentionEvaluation {
 
 export interface GeoMentionEvaluationInput {
   organizationId: string;
+  logContext?: GatewayModelOptions["logContext"];
   companyName: string;
   aliases: readonly string[];
   prompt: string;

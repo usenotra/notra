@@ -290,17 +290,27 @@ export async function orchestrateStandaloneChat(
       }
 
       try {
+        abortSignal?.throwIfAborted();
+        const schema = await inputSchema({ toolName: toolCall.toolName });
+        abortSignal?.throwIfAborted();
         const { output: repairedInput } = await generateText({
-          model: modelWithMemory,
+          // Schema repair must not retrieve or persist conversation memories.
+          model: createModel(
+            organizationId,
+            routingDecision.model,
+            { disableMemory: true },
+            log
+          ),
+          abortSignal,
           providerOptions: {
             gateway: { tags: ["standalone-chat-tool-repair"] },
           },
           output: Output.object({ schema: brokenTool.inputSchema }),
           prompt: [
             `The assistant called the tool "${toolCall.toolName}" with inputs that failed validation:`,
-            JSON.stringify(toolCall.input),
+            toolCall.input,
             "The tool expects inputs matching this JSON schema:",
-            JSON.stringify(await inputSchema({ toolName: toolCall.toolName })),
+            JSON.stringify(schema),
             `Validation error: ${error.message}`,
             "Return corrected inputs that satisfy the schema.",
           ].join("\n"),

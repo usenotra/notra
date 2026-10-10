@@ -41,6 +41,12 @@ export const judgeAnswer = Effect.fn("geo.judgeAnswer")(function* (
       mentioned && models.evaluateMention
         ? models.evaluateMention({
             organizationId: context.organizationId,
+            logContext: {
+              projectId: context.projectId,
+              scanId: context.scanId,
+              runId: context.runId,
+              ...logContext,
+            },
             companyName: context.companyName,
             aliases: context.aliases,
             prompt: promptText,

@@ -1,6 +1,7 @@
 import { scoreColor, seriesColor, theme } from "../../../constants/theme";
 import type { AnySuite, EvalRun, TaskResult } from "../../../types/eval";
 import { pad, padStart, truncate, wrapLine } from "../../../utils/charts";
+import { aggregateCosts } from "../../../utils/cost";
 import { formatMs, formatPct, formatUsd } from "../../../utils/stats";
 
 function taskMark(task: TaskResult | undefined): {
@@ -71,11 +72,19 @@ export function CasesTab({
     });
   }
   for (const task of caseTasks) {
+    const cost = aggregateCosts([task]);
+    const knownSubtotal = cost.reportedCostUsd + cost.estimatedCostUsd;
     detailLines.push({ text: "", color: theme.text });
     detailLines.push({
-      text: `run #${task.repeat + 1} · ${task.status} · ${formatMs(task.durationMs ?? 0)} · ${formatUsd(task.costUsd ?? 0)} · score ${task.score ? formatPct(task.score.score) : "–"}`,
+      text: `run #${task.repeat + 1} · ${task.status} · ${formatMs(task.durationMs ?? 0)} · ${formatUsd(cost.costUsd)} (${cost.costSource}) · score ${task.score ? formatPct(task.score.score) : "–"}`,
       color: task.status === "error" ? theme.bad : theme.accent,
     });
+    if (cost.costSource === "unknown" && knownSubtotal > 0) {
+      detailLines.push({
+        text: `known subtotal: ${formatUsd(knownSubtotal)}; total unknown`,
+        color: theme.muted,
+      });
+    }
     if (task.error) {
       detailLines.push({ text: task.error, color: theme.bad });
     }

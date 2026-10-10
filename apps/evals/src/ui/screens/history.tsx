@@ -4,7 +4,12 @@ import { useState } from "react";
 import { runStatusColor, scoreColor, theme } from "../../constants/theme";
 import type { EvalRun } from "../../types/eval";
 import { pad, padStart, truncate } from "../../utils/charts";
-import { formatPct, formatUsd, summarizeRun } from "../../utils/stats";
+import {
+  formatPct,
+  formatUsd,
+  summarizeRun,
+  totalRunCost,
+} from "../../utils/stats";
 import { Header, KeyHints } from "../components";
 
 export function HistoryScreen({
@@ -93,10 +98,7 @@ export function HistoryScreen({
           const errors = run.tasks.filter(
             (task) => task.status === "error"
           ).length;
-          const spend = summaries.reduce(
-            (sum, item) => sum + item.costUsd + item.judgeCostUsd,
-            0
-          );
+          const spend = totalRunCost(summaries);
           const when = run.createdAt.replace("T", " ").slice(0, 16);
           const statusColor = runStatusColor(run.status);
           return (

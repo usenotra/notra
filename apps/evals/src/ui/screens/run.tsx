@@ -14,6 +14,7 @@ import {
   formatPct,
   formatUsd,
   summarizeRun,
+  totalRunCost,
 } from "../../utils/stats";
 import { Header, KeyHints, ProgressBar } from "../components";
 
@@ -73,10 +74,7 @@ export function RunScreen({
   const done = run.tasks.filter((task) => task.status === "done").length;
   const errors = run.tasks.filter((task) => task.status === "error").length;
   const running = run.tasks.filter((task) => task.status === "running");
-  const totalCost = summaries.reduce(
-    (sum, item) => sum + item.costUsd + item.judgeCostUsd,
-    0
-  );
+  const totalCost = totalRunCost(summaries);
   const barWidth = Math.max(10, Math.min(36, width - 90));
   const labelWidth = 22;
   const recentErrors = run.tasks
@@ -150,7 +148,7 @@ export function RunScreen({
         flexShrink={0}
       >
         <text fg={theme.faint}>
-          {`${pad("", 2)}${pad("model", labelWidth)} ${pad("progress", barWidth)}  ${padStart("done", 7)} ${padStart("err", 4)} ${padStart("score", 7)} ${padStart("pass", 6)} ${padStart("p50", 7)} ${padStart("p95", 7)} ${padStart("cost", 8)}  latency`}
+          {`${pad("", 2)}${pad("model", labelWidth)} ${pad("progress", barWidth)}  ${padStart("done", 7)} ${padStart("err", 4)} ${padStart("score", 7)} ${padStart("pass", 6)} ${padStart("p50", 7)} ${padStart("p95", 7)} ${padStart("cost", 8)} ${pad("source", 10)} latency`}
         </text>
         {summaries.map((summary, index) => (
           <box key={summary.contenderKey} flexDirection="row">
@@ -187,6 +185,7 @@ export function RunScreen({
               <span
                 fg={theme.muted}
               >{` ${padStart(formatUsd(summary.costUsd), 8)}`}</span>
+              <span fg={theme.faint}>{` ${pad(summary.costSource, 10)}`}</span>
               <span
                 fg={seriesColor(index)}
               >{`  ${sparkline(summary.latencies, 14)}`}</span>

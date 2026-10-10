@@ -173,6 +173,7 @@ export async function demoCall(
     output,
     usage: { inputTokens, outputTokens, cachedInputTokens: 0 },
     costUsd: profile.usdPerCall * (0.7 + rng() * 0.6),
+    costSource: "estimated",
     transcript:
       suite.transcript?.(output) ??
       (typeof output === "string" ? output : JSON.stringify(output, null, 2)),

@@ -2,6 +2,8 @@ import type { FontSpec } from "@notra/ai/types/repo-image";
 
 export const AGENT_TIMEOUT_MS = 960_000;
 export const RECOVERY_AGENT_TIMEOUT_MS = 180_000;
+export const RUN_CANCEL_CONFIRMATION_ATTEMPTS = 5;
+export const RUN_CANCEL_CONFIRMATION_INTERVAL_MS = 250;
 export const REPO_IMAGE_OUTPUT_HTML_PATH = "output.html";
 export const MIN_REPO_IMAGE_HTML_BYTES = 1500;
 export const IMAGE_GEN_AGENT_SKILLS_INSTALL_COMMAND =

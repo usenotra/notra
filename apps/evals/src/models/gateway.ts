@@ -9,7 +9,14 @@ import {
 import type { z } from "zod";
 
 import { PROD_GATEWAY_CACHING } from "../constants/gateway";
-import type { CallResult, TokenUsage } from "../types/eval";
+import type {
+  CallResult,
+  EvalCost,
+  EvalCostStep,
+  TokenUsage,
+  UsageLike,
+} from "../types/eval";
+import { readGatewayCost, summarizeCosts } from "../utils/cost";
 import { priceFor } from "./pricing";
 
 let gatewayInstance: ReturnType<typeof createGateway> | undefined;
@@ -40,12 +47,6 @@ const gatewayProviderOptions = (feature: string) => ({
   },
 });
 
-interface UsageLike {
-  inputTokens?: number | undefined;
-  outputTokens?: number | undefined;
-  inputTokenDetails?: { cacheReadTokens?: number | undefined } | undefined;
-}
-
 export function toUsage(usage: UsageLike | undefined): TokenUsage {
   return {
     inputTokens: usage?.inputTokens ?? 0,
@@ -54,72 +55,29 @@ export function toUsage(usage: UsageLike | undefined): TokenUsage {
   };
 }
 
-/** Gateway cost, falling back to market cost (BYOK calls report cost 0). */
-function readGatewayCost(metadata: unknown): number | undefined {
-  const gateway = (
-    metadata as { gateway?: Record<string, unknown> } | undefined
-  )?.gateway;
-  for (const key of ["cost", "marketCost"] as const) {
-    const raw = gateway?.[key];
-    const value = typeof raw === "string" ? Number(raw) : raw;
-    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-      return value;
-    }
-  }
-  return undefined;
-}
-
-/**
- * List-price estimate for calls without a gateway-reported cost. Undefined
- * when the model has no list price, so an unknown cost never reads as free.
- */
-async function estimateCost(
-  modelId: string,
-  usage: TokenUsage
-): Promise<number | undefined> {
-  const price = await priceFor(modelId);
-  if (!price) {
-    return undefined;
-  }
-  const uncached = Math.max(0, usage.inputTokens - usage.cachedInputTokens);
-  // Cache reads bill at roughly a tenth of the input price across providers.
-  return (
-    uncached * price.input +
-    usage.cachedInputTokens * price.input * 0.1 +
-    usage.outputTokens * price.output
-  );
-}
-
-/**
- * Agent loops: the gateway reports cost per step, so sum the steps. Falls back
- * to the list-price estimate if any step lacks a reported cost.
- */
-export async function runCost(
+export async function runCostDetails(
   modelId: string,
   usage: TokenUsage,
-  steps: readonly { providerMetadata?: unknown }[]
-): Promise<number | undefined> {
-  let total = 0;
-  for (const step of steps) {
-    const cost = readGatewayCost(step.providerMetadata);
-    if (cost === undefined) {
-      return estimateCost(modelId, usage);
-    }
-    total += cost;
-  }
-  return total;
+  steps: readonly EvalCostStep[]
+): Promise<EvalCost> {
+  const calls: readonly EvalCostStep[] = steps.length ? steps : [{ usage }];
+  const needsPrice = calls.some(
+    (step) => readGatewayCost(step.providerMetadata) === undefined
+  );
+  return summarizeCosts(
+    calls,
+    needsPrice ? await priceFor(modelId) : undefined
+  );
 }
 
 async function costFor(
   modelId: string,
-  usage: TokenUsage,
+  usage: UsageLike | undefined,
   metadata: unknown
-): Promise<number | undefined> {
-  const reported = readGatewayCost(metadata);
-  if (reported !== undefined) {
-    return reported;
-  }
-  return estimateCost(modelId, usage);
+): Promise<EvalCost> {
+  return runCostDetails(modelId, toUsage(usage), [
+    { usage, providerMetadata: metadata },
+  ]);
 }
 
 export interface ObjectCallParams<SCHEMA extends z.ZodType> {
@@ -157,7 +115,7 @@ export async function callObject<SCHEMA extends z.ZodType>(
   return {
     output: result.output as z.infer<SCHEMA>,
     usage,
-    costUsd: await costFor(params.modelId, usage, result.providerMetadata),
+    ...(await runCostDetails(params.modelId, usage, result.steps)),
     transcript: result.text,
   };
 }
@@ -215,7 +173,11 @@ export async function callJev<QUESTIONS extends JevQuestions>(
   return {
     output: { answers: result.answers, confidence },
     usage,
-    costUsd: await costFor(params.modelId, usage, result.providerMetadata),
+    ...(await costFor(
+      params.modelId,
+      result.usage as UsageLike,
+      result.providerMetadata
+    )),
     transcript: JSON.stringify(
       { answers: result.answers, confidence },
       null,

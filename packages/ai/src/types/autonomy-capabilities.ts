@@ -85,6 +85,7 @@ export interface IrisRepositoryTarget {
 }
 
 export interface IrisPlannerInput {
+  runId?: string;
   mandate: Mandate;
   signalSummaries: string[];
   recentActionSummaries: string[];

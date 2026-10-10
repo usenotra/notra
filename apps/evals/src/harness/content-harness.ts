@@ -40,7 +40,7 @@ import {
 
 import { PROD_GATEWAY_CACHING } from "../constants/gateway";
 import type { ContentScenario } from "../fixtures/content-scenarios";
-import { getGateway, runCost, toUsage } from "../models/gateway";
+import { getGateway, runCostDetails, toUsage } from "../models/gateway";
 import type { CallResult } from "../types/eval";
 
 export type ContentTypeId = keyof typeof CONTENT_AGENT_PROFILES;
@@ -481,7 +481,7 @@ async function runLoop(params: LoopParams): Promise<CallResult<HarnessOutput>> {
   return {
     output,
     usage,
-    costUsd: await runCost(params.modelId, usage, result.steps),
+    ...(await runCostDetails(params.modelId, usage, result.steps)),
     transcript: transcriptFor(output),
   };
 }

@@ -13,8 +13,6 @@ export function serializeBrandReference(
     content: reference.content,
     note: reference.note,
     sourceCapturedAt: reference.sourceCapturedAt?.toISOString() ?? null,
-    sourceContentHash: reference.sourceContentHash,
-    sourceSnapshotKey: reference.sourceSnapshotKey,
     sourceUrl: reference.sourceUrl,
     applicableTo: reference.applicableTo,
     createdAt: reference.createdAt.toISOString(),

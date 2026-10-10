@@ -1,9 +1,11 @@
 import type {
   Contender,
   ContenderSummary,
+  EvalCost,
   EvalRun,
   TaskResult,
 } from "../types/eval";
+import { aggregateCosts, sumKnownCosts } from "./cost";
 
 export function percentile(values: readonly number[], p: number): number {
   if (values.length === 0) {
@@ -51,13 +53,24 @@ export function summarizeContender(
     fieldAccuracy[field] = mean(scores);
   }
 
-  let costUsd = 0;
-  let judgeCostUsd = 0;
+  const attempted = own.filter(
+    (task) => task.status === "done" || task.status === "error"
+  );
+  const cost = aggregateCosts(attempted);
+  const judgeCosts = attempted.flatMap<Partial<EvalCost>>((task) => {
+    const score = task.score;
+    if (task.called && task.status === "error" && !score) {
+      return [{ costSource: "unknown" as const }];
+    }
+    return score?.judgeCostSource !== undefined ||
+      score?.judgeCostUsd !== undefined
+      ? [{ costUsd: score?.judgeCostUsd, costSource: score?.judgeCostSource }]
+      : [];
+  });
+  const judgeCost = aggregateCosts(judgeCosts);
   let inputTokens = 0;
   let outputTokens = 0;
   for (const task of own) {
-    costUsd += task.costUsd ?? 0;
-    judgeCostUsd += task.score?.judgeCostUsd ?? 0;
     inputTokens += task.usage?.inputTokens ?? 0;
     outputTokens += task.usage?.outputTokens ?? 0;
   }
@@ -73,8 +86,11 @@ export function summarizeContender(
     passRate: mean(finished.map((task) => (task.score?.pass ? 1 : 0))),
     p50Ms: percentile(latencies, 50),
     p95Ms: percentile(latencies, 95),
-    costUsd,
-    judgeCostUsd,
+    costUsd: cost.costUsd,
+    costSource: cost.costSource,
+    knownCostUsd: cost.reportedCostUsd + cost.estimatedCostUsd,
+    judgeCostUsd: judgeCosts.length ? judgeCost.costUsd : 0,
+    judgeCostSource: judgeCosts.length ? judgeCost.costSource : undefined,
     inputTokens,
     outputTokens,
     fieldAccuracy,
@@ -85,6 +101,14 @@ export function summarizeContender(
 export function summarizeRun(run: EvalRun): ContenderSummary[] {
   return run.config.contenders.map((contender) =>
     summarizeContender(contender, run.tasks)
+  );
+}
+
+export function totalRunCost(
+  summaries: readonly ContenderSummary[]
+): number | undefined {
+  return sumKnownCosts(
+    summaries.flatMap((summary) => [summary.costUsd, summary.judgeCostUsd])
   );
 }
 
@@ -136,7 +160,10 @@ export function formatMs(ms: number): string {
   return `${(ms / 1000).toFixed(ms < 10_000 ? 2 : 1)}s`;
 }
 
-export function formatUsd(usd: number): string {
+export function formatUsd(usd: number | undefined): string {
+  if (usd === undefined || !Number.isFinite(usd)) {
+    return "–";
+  }
   if (usd <= 0) {
     return "$0";
   }

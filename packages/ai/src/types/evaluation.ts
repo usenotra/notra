@@ -1,4 +1,5 @@
 import type { Experimental_EvaluationModelV4Input } from "@ai-sdk/provider";
+import type { OperationalContext } from "@notra/ai/types/operational-log";
 import type {
   Experimental_EvaluationQuestion,
   Experimental_EvaluationResult,
@@ -29,6 +30,7 @@ export interface EvaluateParams<QUESTIONS extends EvaluationQuestions> {
   /** Name of the calling feature, for logs. */
   feature: string;
   organizationId?: string;
+  logContext?: Partial<OperationalContext>;
   abortSignal?: AbortSignal;
   timeoutMs?: number;
   modelId?: string;

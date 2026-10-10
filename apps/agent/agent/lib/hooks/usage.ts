@@ -15,23 +15,19 @@ import {
   getBooleanSessionAttribute,
   getSessionAttribute,
 } from "@notra/tools/utils/session";
-import { defineHook, type HookDefinition } from "eve/hooks";
+import {
+  defineHook,
+  type HookContext,
+  type HookDefinition,
+  type HookEvent,
+} from "eve/hooks";
 
-const USAGE_KEY_TTL_SECONDS = 60 * 60 * 24;
-const MICRO_USD_PER_USD = 1_000_000;
-
-interface AccumulatedUsage {
-  inputTokens: number;
-  outputTokens: number;
-  cacheReadTokens: number;
-  cacheWriteTokens: number;
-  /**
-   * Cost of the steps behind this usage, summed per call. A turn's prompt
-   * grows with every step, so only per-call costs put each step on the right
-   * side of a long-context price threshold.
-   */
-  costMicroUsd?: number;
-}
+import {
+  ACCUMULATE_USAGE_SCRIPT,
+  MICRO_USD_PER_USD,
+  USAGE_KEY_TTL_SECONDS,
+} from "../constants/usage";
+import type { AccumulatedUsage } from "../types/usage";
 
 function accumulatorKey(sessionId: string, turnId: string) {
   return `agent:usage:acc:${sessionId}:${turnId}`;
@@ -51,7 +47,7 @@ async function trackUsage(
     usage.outputTokens +
     usage.cacheReadTokens +
     usage.cacheWriteTokens;
-  if (totalTokens === 0) {
+  if (totalTokens === 0 && !usage.costMicroUsd) {
     return;
   }
   const cost = calculateAiCreditCostCents(
@@ -80,25 +76,32 @@ async function trackUsage(
       cost_cents: cost.costCents,
     },
   });
-  captureServerEvent({
-    event: POSTHOG_EVENTS.AI_CREDITS_CHARGED,
-    organizationId,
-    properties: {
-      cost_cents: cost.costCents,
-      source: properties.source,
-      model: modelId,
-      billing_basis: cost.billingBasis,
-      input_tokens: usage.inputTokens,
-      output_tokens: usage.outputTokens,
-      cache_read_tokens: usage.cacheReadTokens,
-      cache_write_tokens: usage.cacheWriteTokens,
-      total_tokens: totalTokens,
-      agent: properties.agent,
-      turn_id: properties.turn_id,
-      markup_applied: properties.markup_applied === "true",
-    },
-  });
-  await flushPostHogServer();
+  try {
+    captureServerEvent({
+      event: POSTHOG_EVENTS.AI_CREDITS_CHARGED,
+      organizationId,
+      properties: {
+        cost_cents: cost.costCents,
+        source: properties.source,
+        model: modelId,
+        billing_basis: cost.billingBasis,
+        input_tokens: usage.inputTokens,
+        output_tokens: usage.outputTokens,
+        cache_read_tokens: usage.cacheReadTokens,
+        cache_write_tokens: usage.cacheWriteTokens,
+        total_tokens: totalTokens,
+        agent: properties.agent,
+        turn_id: properties.turn_id,
+        markup_applied: properties.markup_applied === "true",
+      },
+    });
+    await flushPostHogServer();
+  } catch (error) {
+    logError("[agent] Charged usage telemetry failed", error, {
+      sessionId: properties.session_id,
+      turnId: properties.turn_id,
+    });
+  }
 }
 
 function shouldChargeAiCredits(ctx: Parameters<typeof getSessionAttribute>[0]) {
@@ -111,6 +114,116 @@ export function createUsageHook(
 ): HookDefinition {
   const resolveModelId = (turnId: string) =>
     typeof modelId === "string" ? modelId : modelId(turnId);
+
+  async function settleTurn(
+    event: HookEvent<"turn.completed" | "turn.failed" | "turn.cancelled">,
+    ctx: HookContext
+  ) {
+    const key = accumulatorKey(ctx.session.id, event.data.turnId);
+    const billedKey = `agent:usage:billed:${ctx.session.id}:${event.data.turnId}`;
+    const billingKey = `${key}:billing`;
+    let claimed = false;
+    let trackingStarted = false;
+    let charged = false;
+    try {
+      if (
+        !redis ||
+        !autumn ||
+        allowUnmeteredAiInDevelopment ||
+        !shouldChargeAiCredits(ctx)
+      ) {
+        return;
+      }
+      const organizationId = getOrganizationId(ctx);
+      if (!organizationId) {
+        return;
+      }
+      claimed =
+        (await redis.set(billedKey, "1", {
+          nx: true,
+          ex: USAGE_KEY_TTL_SECONDS,
+        })) === "OK";
+      if (!claimed) {
+        return;
+      }
+      if (await redis.exists(billingKey)) {
+        await redis.persist(billingKey);
+        logError("[agent] Usage billing reconciliation required", undefined, {
+          sessionId: ctx.session.id,
+          turnId: event.data.turnId,
+          billingKey,
+          reason: "pending_billing_record",
+          automaticRetry: false,
+        });
+        return;
+      }
+      if (!(await redis.exists(key))) {
+        await redis.del(billedKey);
+        return;
+      }
+      await redis.rename(key, billingKey);
+      // Keep evidence past the claim's TTL. There is no documented Autumn
+      // idempotency contract: an interrupted/rejected track must be reconciled
+      // manually, never automatically retried by another terminal event.
+      // A durable reconciliation path remains outside this change; neither
+      // this claim nor the pending record guarantees exactly-once billing.
+      await redis.persist(billingKey);
+      // Read the frozen hash, not a live snapshot from before RENAME. EVAL
+      // ordered before RENAME is included; later EVAL retains a separate key.
+      const accumulated =
+        await redis.hgetall<Record<string, string>>(billingKey);
+      if (!accumulated) {
+        throw new Error("Frozen usage billing record is missing");
+      }
+      trackingStarted = true;
+      await trackUsage(
+        resolveModelId(event.data.turnId),
+        organizationId,
+        {
+          inputTokens: Number(accumulated.inputTokens ?? 0),
+          outputTokens: Number(accumulated.outputTokens ?? 0),
+          cacheReadTokens: Number(accumulated.cacheReadTokens ?? 0),
+          cacheWriteTokens: Number(accumulated.cacheWriteTokens ?? 0),
+          // Old accumulators lack this field; a reported zero is not missing.
+          costMicroUsd:
+            accumulated.costMicroUsd === undefined
+              ? undefined
+              : Number(accumulated.costMicroUsd),
+        },
+        {
+          source: getSessionAttribute(ctx, "surface") ?? "agent",
+          agent: ctx.agent.name,
+          session_id: ctx.session.id,
+          turn_id: event.data.turnId,
+          markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
+            ? "true"
+            : "false",
+        }
+      );
+      charged = true;
+      await redis.del(billingKey);
+    } catch (error) {
+      logError(
+        trackingStarted && !charged
+          ? "[agent] Usage billing reconciliation required"
+          : "[agent] Usage metering failed",
+        error,
+        {
+          sessionId: ctx.session.id,
+          turnId: event.data.turnId,
+          billingKey,
+          charged,
+          trackingStarted,
+          automaticRetry: false,
+        }
+      );
+      // Only pre-track failures are safe to release. Keeping the claim after
+      // an ambiguous billing failure avoids replaying a possibly accepted charge.
+      if (claimed && !trackingStarted) {
+        await redis?.del(billedKey).catch(() => null);
+      }
+    }
+  }
 
   return defineHook({
     events: {
@@ -127,11 +240,22 @@ export function createUsageHook(
           // eve reports the AI SDK counts, where the prompt total still
           // contains the cached tokens.
           const billable = toAgentTokenUsage(usage);
+          const costUsd =
+            typeof usage.costUsd === "number" &&
+            Number.isFinite(usage.costUsd) &&
+            usage.costUsd >= 0
+              ? usage.costUsd
+              : calculateTokenCostUsd(
+                  billable,
+                  resolveModelId(event.data.turnId)
+                );
+          const costMicroUsd = Math.round(costUsd * MICRO_USD_PER_USD);
           const stepUsage: AccumulatedUsage = {
             inputTokens: billable.inputTokens,
             outputTokens: billable.outputTokens,
             cacheReadTokens: billable.cacheReadTokens,
             cacheWriteTokens: billable.cacheWriteTokens,
+            costMicroUsd,
           };
 
           if (!redis) {
@@ -154,26 +278,37 @@ export function createUsageHook(
           }
 
           const stepKey = `agent:usage:step:${ctx.session.id}:${event.data.turnId}:${event.data.stepIndex}`;
-          const claimed = await redis.set(stepKey, "1", {
-            nx: true,
-            ex: USAGE_KEY_TTL_SECONDS,
-          });
-          if (claimed !== "OK") {
-            return;
-          }
           const key = accumulatorKey(ctx.session.id, event.data.turnId);
-          const stepCostMicroUsd = Math.round(
-            calculateTokenCostUsd(billable, resolveModelId(event.data.turnId)) *
-              MICRO_USD_PER_USD
+          const accumulated = await redis.eval<number[], number>(
+            ACCUMULATE_USAGE_SCRIPT,
+            [
+              stepKey,
+              key,
+              `${key}:billing`,
+              `agent:usage:billed:${ctx.session.id}:${event.data.turnId}`,
+            ],
+            [
+              stepUsage.inputTokens,
+              stepUsage.outputTokens,
+              stepUsage.cacheReadTokens,
+              stepUsage.cacheWriteTokens,
+              costMicroUsd,
+              USAGE_KEY_TTL_SECONDS,
+            ]
           );
-          await Promise.all([
-            redis.hincrby(key, "inputTokens", stepUsage.inputTokens),
-            redis.hincrby(key, "outputTokens", stepUsage.outputTokens),
-            redis.hincrby(key, "cacheReadTokens", stepUsage.cacheReadTokens),
-            redis.hincrby(key, "cacheWriteTokens", stepUsage.cacheWriteTokens),
-            redis.hincrby(key, "costMicroUsd", stepCostMicroUsd),
-            redis.expire(key, USAGE_KEY_TTL_SECONDS),
-          ]);
+          if (accumulated === 2) {
+            logError(
+              "[agent] Usage billing reconciliation required",
+              undefined,
+              {
+                sessionId: ctx.session.id,
+                turnId: event.data.turnId,
+                billingKey: key,
+                reason: "usage_during_or_after_settlement",
+                automaticRetry: false,
+              }
+            );
+          }
         } catch (error) {
           logError("[agent] Usage accumulation failed", error, {
             sessionId: ctx.session.id,
@@ -181,77 +316,9 @@ export function createUsageHook(
           });
         }
       },
-      async "turn.completed"(event, ctx) {
-        let charged = false;
-        try {
-          if (
-            !redis ||
-            allowUnmeteredAiInDevelopment ||
-            !shouldChargeAiCredits(ctx)
-          ) {
-            return;
-          }
-          const organizationId = getOrganizationId(ctx);
-          if (!organizationId) {
-            return;
-          }
-          const billedKey = `agent:usage:billed:${ctx.session.id}:${event.data.turnId}`;
-          const claimed = await redis.set(billedKey, "1", {
-            nx: true,
-            ex: USAGE_KEY_TTL_SECONDS,
-          });
-          if (claimed !== "OK") {
-            return;
-          }
-          const key = accumulatorKey(ctx.session.id, event.data.turnId);
-          const billingKey = `${key}:billing`;
-          try {
-            await redis.rename(key, billingKey);
-          } catch {
-            return;
-          }
-          const accumulated =
-            await redis.hgetall<Record<string, string>>(billingKey);
-          if (!accumulated) {
-            return;
-          }
-          await trackUsage(
-            resolveModelId(event.data.turnId),
-            organizationId,
-            {
-              inputTokens: Number(accumulated.inputTokens ?? 0),
-              outputTokens: Number(accumulated.outputTokens ?? 0),
-              cacheReadTokens: Number(accumulated.cacheReadTokens ?? 0),
-              cacheWriteTokens: Number(accumulated.cacheWriteTokens ?? 0),
-              // Turns that started before this field existed fall back to
-              // pricing the aggregate.
-              costMicroUsd: Number(accumulated.costMicroUsd ?? 0) || undefined,
-            },
-            {
-              source: getSessionAttribute(ctx, "surface") ?? "agent",
-              agent: ctx.agent.name,
-              session_id: ctx.session.id,
-              turn_id: event.data.turnId,
-              markup_applied: getBooleanSessionAttribute(ctx, "useMarkup")
-                ? "true"
-                : "false",
-            }
-          );
-          charged = true;
-          await redis.del(billingKey);
-        } catch (error) {
-          logError("[agent] Usage metering failed", error, {
-            sessionId: ctx.session.id,
-            turnId: event.data.turnId,
-            charged,
-          });
-          if (!charged) {
-            await redis
-              ?.del(`agent:usage:billed:${ctx.session.id}:${event.data.turnId}`)
-              .catch(() => null);
-          }
-        }
-      },
+      "turn.completed": settleTurn,
+      "turn.failed": settleTurn,
+      "turn.cancelled": settleTurn,
     },
   });
 }

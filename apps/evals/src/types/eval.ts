@@ -15,11 +15,37 @@ export interface TokenUsage {
   cachedInputTokens: number;
 }
 
-export interface CallResult<OUTPUT> {
+export interface UsageLike {
+  inputTokens?: number;
+  outputTokens?: number;
+  cachedInputTokens?: number;
+  inputTokenDetails?: { cacheReadTokens?: number };
+}
+
+export interface EvalCostStep {
+  providerMetadata?: unknown;
+  usage?: UsageLike;
+}
+
+export type CostSource = "reported" | "estimated" | "mixed" | "unknown";
+
+export interface EvalCost {
+  /** Complete USD cost only; absent if any step could not be priced. */
+  costUsd?: number;
+  costSource: CostSource;
+  /** Known subtotals, even when the complete cost is unknown. */
+  reportedCostUsd: number;
+  estimatedCostUsd: number;
+}
+
+export interface JudgeVerdict extends Partial<EvalCost> {
+  /** Question id → probability or normalized score, 0..1. */
+  readonly values: Record<string, number>;
+}
+
+export interface CallResult<OUTPUT> extends Partial<EvalCost> {
   output: OUTPUT;
   usage: TokenUsage;
-  /** USD reported by the gateway, if any. */
-  costUsd?: number;
   /** Raw text worth showing in the case drill-down (prompt answer, post). */
   transcript?: string;
 }
@@ -46,6 +72,7 @@ export interface CaseScore {
   readonly fields: readonly FieldScore[];
   /** Spend of an LLM/Jev judge used while scoring, not billed to the contender. */
   readonly judgeCostUsd?: number;
+  readonly judgeCostSource?: CostSource;
 }
 
 export interface DemoContext {
@@ -110,7 +137,7 @@ export type AnySuite = EvalSuite<any, any, any>;
 
 export type TaskStatus = "queued" | "running" | "done" | "error";
 
-export interface TaskResult {
+export interface TaskResult extends Partial<EvalCost> {
   readonly contenderKey: string;
   readonly caseId: string;
   readonly repeat: number;
@@ -121,7 +148,6 @@ export interface TaskResult {
   durationMs?: number;
   score?: CaseScore;
   usage?: TokenUsage;
-  costUsd?: number;
   output?: unknown;
   transcript?: string;
   error?: string;
@@ -162,8 +188,12 @@ export interface ContenderSummary {
   readonly passRate: number;
   readonly p50Ms: number;
   readonly p95Ms: number;
-  readonly costUsd: number;
-  readonly judgeCostUsd: number;
+  /** Absent when any attempted call's spend is unknown. */
+  readonly costUsd?: number;
+  readonly costSource: CostSource;
+  readonly knownCostUsd: number;
+  readonly judgeCostUsd?: number;
+  readonly judgeCostSource?: CostSource;
   readonly inputTokens: number;
   readonly outputTokens: number;
   readonly fieldAccuracy: Readonly<Record<string, number>>;

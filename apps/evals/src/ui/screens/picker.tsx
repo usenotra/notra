@@ -179,7 +179,7 @@ function PlanTable({
       <text>
         <span
           fg={theme.faint}
-        >{`  ${pad("total (stages with prod data)", 22 + modelWidth * 2 + 16 + 10)}`}</span>
+        >{`  ${pad("subtotal (stages with known costs)", 22 + modelWidth * 2 + 16 + 10)}`}</span>
         <span fg={theme.text}>{padStart(formatMonthly(totalNow), 11)}</span>
         <span fg={theme.text}>{padStart(formatMonthly(totalNext), 11)}</span>
         <span fg={totalNow - totalNext > 0.005 ? theme.good : theme.faint}>
@@ -190,7 +190,13 @@ function PlanTable({
   );
 }
 
-function ModelTable({ pick, width }: { pick: SuitePick; width: number }) {
+export function ModelTable({
+  pick,
+  width,
+}: {
+  pick: SuitePick;
+  width: number;
+}) {
   const labelWidth = Math.max(14, Math.min(24, width - 92));
   const noteWidth = Math.max(10, width - labelWidth - 72);
   return (
@@ -226,6 +232,7 @@ function ModelTable({ pick, width }: { pick: SuitePick; width: number }) {
         if (isProd) {
           note = note ? `prod, ${note}` : "prod";
         }
+        note = note ? `${item.costSource}, ${note}` : item.costSource;
         return (
           <text key={item.modelId}>
             <span fg={seriesColor(series)}>{"● "}</span>
@@ -252,7 +259,7 @@ function ModelTable({ pick, width }: { pick: SuitePick; width: number }) {
             </span>
             <span fg={theme.muted}>
               {padStart(
-                pick.includedIn
+                pick.includedIn || item.costPerCall === undefined
                   ? "–"
                   : formatMonthly(item.costPerCall * pick.volume),
                 10
@@ -320,7 +327,11 @@ function rowSegments(row: readonly number[], isBarRow: boolean): Segment[] {
 }
 
 function CostScatter({ pick }: { pick: SuitePick }) {
-  const points = pick.evidence.filter((item) => item.costPerCall > 0);
+  const points = pick.evidence.flatMap((item) =>
+    item.costPerCall !== undefined && item.costPerCall > 0
+      ? [{ ...item, costPerCall: item.costPerCall }]
+      : []
+  );
   const xs = points.map((item) => Math.log10(item.costPerCall));
   const ys = points.map((item) => item.score);
   const xRange: [number, number] = [
@@ -333,7 +344,9 @@ function CostScatter({ pick }: { pick: SuitePick }) {
     points.map((item) => ({
       x: Math.log10(item.costPerCall),
       y: item.score,
-      series: pick.evidence.indexOf(item),
+      series: pick.evidence.findIndex(
+        (evidence) => evidence.modelId === item.modelId
+      ),
     })),
     SCATTER_WIDTH,
     SCATTER_HEIGHT,

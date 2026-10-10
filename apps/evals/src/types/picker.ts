@@ -1,4 +1,4 @@
-import type { AnySuite } from "./eval";
+import type { AnySuite, CostSource } from "./eval";
 
 /** What the latest saved run says about one model on one suite. */
 export interface MeasuredModel {
@@ -18,8 +18,9 @@ export interface MeasuredModel {
   readonly passRate: number;
   readonly p50Ms: number;
   /** Contender spend per attempted call (judge spend excluded). */
-  readonly costPerCall: number;
-  /** False if any finished call has no reported or list-price cost. */
+  readonly costPerCall?: number;
+  readonly costSource: CostSource;
+  /** False if any attempted call has no reported or list-price cost. */
   readonly costKnown: boolean;
 }
 

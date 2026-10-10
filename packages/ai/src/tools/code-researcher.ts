@@ -219,10 +219,19 @@ export function createCodeResearcherTool(params: {
             const route = routeMetadata
               ? await enrichRouteMetadata(routeMetadata)
               : undefined;
-            usage = addStepUsage(usage, toAgentTokenUsage(part.usage), {
-              modelId: route?.model ?? part.response.modelId,
-              gateway: route?.gateway,
-            });
+            usage = addStepUsage(
+              usage,
+              {
+                ...toAgentTokenUsage(part.usage),
+                ...(route?.costUsd === undefined
+                  ? {}
+                  : { tokenCostUsd: route.costUsd }),
+              },
+              {
+                modelId: route?.model ?? part.response.modelId,
+                gateway: route?.gateway,
+              }
+            );
           } else if (part.type === "tool-call") {
             steps = startStep(
               steps,

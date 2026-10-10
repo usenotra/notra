@@ -84,19 +84,30 @@ export function createVercelAdapter(
             ]),
           }),
       }).getGenerationInfo({ id: generationId });
-      const costUsd =
-        generation.totalCost +
-        (generation.isByok ? generation.upstreamInferenceCost : 0);
+      const upstreamCost = generation.isByok
+        ? generation.upstreamInferenceCost
+        : 0;
+      const costUsd = generation.totalCost + upstreamCost;
+      const gatewayCostUsd =
+        Number.isFinite(generation.totalCost) && generation.totalCost >= 0
+          ? generation.totalCost
+          : undefined;
+      const upstreamInferenceCostUsd =
+        Number.isFinite(upstreamCost) && upstreamCost >= 0
+          ? upstreamCost
+          : undefined;
       return {
         model: generation.model,
         upstreamProvider: generation.providerName,
-        ...(Number.isFinite(generation.totalCost) &&
-        generation.totalCost >= 0 &&
-        (!generation.isByok ||
-          (Number.isFinite(generation.upstreamInferenceCost) &&
-            generation.upstreamInferenceCost >= 0)) &&
+        isByok: generation.isByok,
+        ...(gatewayCostUsd === undefined ? {} : { gatewayCostUsd }),
+        ...(upstreamInferenceCostUsd === undefined
+          ? {}
+          : { upstreamInferenceCostUsd }),
+        ...(gatewayCostUsd !== undefined &&
+        upstreamInferenceCostUsd !== undefined &&
         Number.isFinite(costUsd)
-          ? { costUsd }
+          ? { costUsd, costSource: "reported" as const }
           : {}),
       };
     },

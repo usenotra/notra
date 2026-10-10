@@ -1,4 +1,10 @@
-import { IMAGE_GEN_MODEL_ID } from "@notra/ai/constants/repo-image";
+import { setTimeout as delay } from "node:timers/promises";
+
+import {
+  IMAGE_GEN_MODEL_ID,
+  RUN_CANCEL_CONFIRMATION_ATTEMPTS,
+  RUN_CANCEL_CONFIRMATION_INTERVAL_MS,
+} from "@notra/ai/constants/repo-image";
 import type { DiagramSpec } from "@notra/ai/types/excalidraw-diagram";
 import type {
   GenerateRepoImageInput,
@@ -67,7 +73,8 @@ function isAgentTimeoutError(error: unknown) {
 
 async function streamAgent(
   box: RepoImageBox,
-  step: { prompt: string; timeout: number; label: string }
+  step: { prompt: string; timeout: number; label: string },
+  recordCost: (cost: unknown) => void
 ) {
   const startedAt = Date.now();
   const stream = await box.agent.stream({
@@ -78,23 +85,90 @@ async function streamAgent(
     },
   });
 
-  for await (const chunk of stream) {
-    if (chunk.type === "tool-call") {
-      logInfo("[repo-image] Agent tool call", {
-        label: step.label,
-        toolName: chunk.toolName,
-      });
+  let reportedCost: unknown;
+  try {
+    for await (const chunk of stream) {
+      if (chunk.type === "finish") {
+        // The SDK's cost getter is initialized to zero before the done event.
+        // Only a provider finish event makes these values reported usage.
+        reportedCost = stream.cost;
+      }
+      if (chunk.type === "tool-call") {
+        logInfo("[repo-image] Agent tool call", {
+          label: step.label,
+          toolName: chunk.toolName,
+        });
+      }
     }
+
+    logInfo("[repo-image] Agent stream completed", {
+      label: step.label,
+      durationMs: Date.now() - startedAt,
+    });
+  } catch (error) {
+    if (isAgentTimeoutError(error)) {
+      try {
+        // Run.cancel() swallows HTTP failures and sets only a local status.
+        // Confirm this exact run stopped through the supported backend API.
+        await stream.cancel();
+        let run = (await box.listRuns()).find(
+          (candidate) => candidate.id === stream.id
+        );
+        for (
+          let attempt = 1;
+          attempt < RUN_CANCEL_CONFIRMATION_ATTEMPTS &&
+          (!run ||
+            (run.status !== "cancelled" &&
+              run.status !== "completed" &&
+              run.status !== "failed"));
+          attempt++
+        ) {
+          await delay(RUN_CANCEL_CONFIRMATION_INTERVAL_MS);
+          run = (await box.listRuns()).find(
+            (candidate) => candidate.id === stream.id
+          );
+        }
+        if (
+          !run ||
+          (run.status !== "cancelled" &&
+            run.status !== "completed" &&
+            run.status !== "failed")
+        ) {
+          throw new Error("Backend run is not confirmed terminal");
+        }
+        if (
+          reportedCost === undefined &&
+          (run.status === "completed" ||
+            run.input_tokens > 0 ||
+            run.output_tokens > 0 ||
+            (run.cached_input_tokens ?? 0) > 0 ||
+            run.cost_usd > 0)
+        ) {
+          reportedCost = {
+            inputTokens: run.input_tokens,
+            outputTokens: run.output_tokens,
+            cachedInputTokens: run.cached_input_tokens,
+            computeMs: run.duration_ms,
+            totalUsd: run.cost_usd,
+          };
+        }
+      } catch (cancelError) {
+        logWarn("[repo-image] Run cancellation could not be confirmed", {
+          runId: stream.id,
+          error: getErrorMessage(cancelError),
+        });
+        throw new RepoImageError(
+          "agent_failed",
+          "Cancellation of the timed-out image agent could not be confirmed; recovery was not started.",
+          { retryable: false }
+        );
+      }
+    }
+    throw error;
+  } finally {
+    // Unknown usage must stay undefined, not create a zero-token minimum bill.
+    recordCost(reportedCost);
   }
-
-  logInfo("[repo-image] Agent stream completed", {
-    label: step.label,
-    durationMs: Date.now() - startedAt,
-  });
-
-  return typeof stream === "object" && stream !== null && "cost" in stream
-    ? (stream.cost as unknown)
-    : undefined;
 }
 
 export function mergeRepoImageUsage(
@@ -140,9 +214,13 @@ export function createAgentSession(box: RepoImageBox) {
       label: string;
       allowTimeout?: boolean;
     }) {
-      let cost: unknown;
       try {
-        cost = await streamAgent(box, step);
+        await streamAgent(box, step, (cost) => {
+          usage = mergeRepoImageUsage(
+            usage,
+            extractRepoImageUsage(cost, IMAGE_GEN_MODEL_ID)
+          );
+        });
       } catch (error) {
         if (!(step.allowTimeout && isAgentTimeoutError(error))) {
           throw error;
@@ -153,10 +231,6 @@ export function createAgentSession(box: RepoImageBox) {
         });
         return;
       }
-      usage = mergeRepoImageUsage(
-        usage,
-        extractRepoImageUsage(cost, IMAGE_GEN_MODEL_ID)
-      );
     },
     get usage() {
       return usage;

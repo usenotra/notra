@@ -74,6 +74,11 @@ export function createGenerateImageTool() {
         restoreSnapshotId: restoreSnapshot?.snapshotId,
         restoreDiagramSpec: restoreSnapshot?.diagramSpec,
         snapshotName: `image-${organizationId}-${Date.now()}`,
+        logContext: {
+          sessionId: ctx.session.id,
+          turnId: ctx.session.turn.id,
+          chatId,
+        },
         userId,
       });
 

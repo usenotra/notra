@@ -250,6 +250,7 @@ export const contentUnslopSuite: EvalSuite<
         (verdict.values.grounded ?? 0) >= 0.5,
       fields,
       judgeCostUsd: verdict.costUsd,
+      judgeCostSource: verdict.costSource,
     };
   },
   transcript: transcriptFor,

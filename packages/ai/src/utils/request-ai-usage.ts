@@ -13,6 +13,7 @@ interface RequestAIUsage {
   cacheWriteTokens: number;
   reasoningTokens: number;
   costUsd: number;
+  hasReportedCost: boolean;
   models: Set<string>;
   /** Generations whose gateway-reported cost is already in `costUsd`. */
   costedGenerations: Set<string>;
@@ -33,7 +34,7 @@ const MICRO_USD = 1_000_000;
 const usageByRequest = new WeakMap<RequestLogger, RequestAIUsage>();
 
 function routeInfo(providerMetadata: SharedV4ProviderMetadata | undefined): {
-  costUsd: number;
+  costUsd?: number;
   generationId?: string;
   model?: string;
 } {
@@ -45,7 +46,7 @@ function routeInfo(providerMetadata: SharedV4ProviderMetadata | undefined): {
     costUsd:
       typeof costUsd === "number" && Number.isFinite(costUsd) && costUsd >= 0
         ? costUsd
-        : 0,
+        : undefined,
     ...(typeof generationId === "string" ? { generationId } : {}),
     ...(typeof model === "string" ? { model } : {}),
   };
@@ -65,6 +66,7 @@ function usageFor(logger: RequestLogger): RequestAIUsage {
     cacheWriteTokens: 0,
     reasoningTokens: 0,
     costUsd: 0,
+    hasReportedCost: false,
     models: new Set<string>(),
     costedGenerations: new Set<string>(),
   };
@@ -73,7 +75,7 @@ function usageFor(logger: RequestLogger): RequestAIUsage {
 }
 
 function roundedCost(usage: RequestAIUsage) {
-  return usage.costUsd > 0
+  return usage.hasReportedCost
     ? { costUsd: Math.round(usage.costUsd * MICRO_USD) / MICRO_USD }
     : {};
 }
@@ -103,8 +105,12 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
   usage.cacheReadTokens += call.cacheReadTokens ?? 0;
   usage.cacheWriteTokens += call.cacheWriteTokens ?? 0;
   usage.reasoningTokens += call.reasoningTokens ?? 0;
-  if (route.costUsd > 0) {
+  if (
+    route.costUsd !== undefined &&
+    (!route.generationId || !usage.costedGenerations.has(route.generationId))
+  ) {
     usage.costUsd += route.costUsd;
+    usage.hasReportedCost = true;
     if (route.generationId) {
       usage.costedGenerations.add(route.generationId);
     }
@@ -113,20 +119,24 @@ export function recordRequestAIUsage(call: ModelCallUsage): void {
   const newModel = !usage.models.has(model);
   usage.models.add(model);
 
-  logger.set({
-    ai: {
-      calls: usage.calls,
-      model,
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      totalTokens: usage.totalTokens,
-      cacheReadTokens: usage.cacheReadTokens,
-      cacheWriteTokens: usage.cacheWriteTokens,
-      reasoningTokens: usage.reasoningTokens,
-      ...roundedCost(usage),
-      ...(newModel ? { models: [model] } : {}),
-    },
-  });
+  try {
+    logger.set({
+      ai: {
+        calls: usage.calls,
+        model,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        totalTokens: usage.totalTokens,
+        cacheReadTokens: usage.cacheReadTokens,
+        cacheWriteTokens: usage.cacheWriteTokens,
+        reasoningTokens: usage.reasoningTokens,
+        ...roundedCost(usage),
+        ...(newModel ? { models: [model] } : {}),
+      },
+    });
+  } catch {
+    // A logging sink failure must never retry an already completed model call.
+  }
 }
 
 /**
@@ -148,5 +158,10 @@ export function recordRequestAICost(
   }
   usage.costedGenerations.add(generationId);
   usage.costUsd += costUsd;
-  logger.set({ ai: roundedCost(usage) });
+  usage.hasReportedCost = true;
+  try {
+    logger.set({ ai: roundedCost(usage) });
+  } catch {
+    // Cost enrichment remains authoritative even when request logging fails.
+  }
 }

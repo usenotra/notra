@@ -51,6 +51,7 @@ export function createImageTool(config: ImageToolConfig): Tool {
         restoreSnapshotId: restoreSnapshot?.snapshotId,
         restoreDiagramSpec: restoreSnapshot?.diagramSpec,
         snapshotName: `image-${config.organizationId}-${Date.now()}`,
+        logContext: { chatId: config.chatId },
         userId: config.userId,
       });
 
