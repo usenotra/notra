@@ -47,11 +47,14 @@ export function SiteSettingsEditor({
   children,
 }: SiteSettingsEditorProps) {
   const { site } = useSite().detail;
+  // Diff against the settings as they were when the row opened, so saving one
+  // row never sends stale values for settings changed elsewhere meanwhile.
+  const [base] = useState(site);
   const [form, setForm] = useState<SiteSettingsForm>(() =>
-    siteSettingsFormFromSite(site)
+    siteSettingsFormFromSite(base)
   );
   const save = useUpdateSiteSettings({ onSaved: onDone });
-  const patch = siteSettingsPatch(form, site);
+  const patch = siteSettingsPatch(form, base);
   const canSave =
     Object.keys(patch).length > 0 &&
     (isValid?.(form) ?? true) &&

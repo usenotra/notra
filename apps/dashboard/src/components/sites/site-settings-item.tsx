@@ -39,7 +39,7 @@ function IconTile({ icon }: SiteSettingsIconTileProps) {
   );
 }
 
-function ItemText({ title, description }: SiteSettingsItemTextProps) {
+function ItemText({ title, description, value }: SiteSettingsItemTextProps) {
   return (
     <span className="min-w-0 flex-1 space-y-0.5">
       <span className="block text-sm font-medium">{title}</span>
@@ -48,6 +48,8 @@ function ItemText({ title, description }: SiteSettingsItemTextProps) {
           {description}
         </span>
       ) : null}
+      {/* Phones show the value under the text so the title keeps its width. */}
+      {value ? <span className="flex pt-2 sm:hidden">{value}</span> : null}
     </span>
   );
 }
@@ -56,7 +58,7 @@ export function SiteSettingsValue({ children, mono }: SiteSettingsValueProps) {
   return (
     <span
       className={cn(
-        "bg-background hidden h-8 max-w-72 shrink-0 items-center truncate rounded-lg border px-3 text-sm sm:inline-flex",
+        "bg-background inline-flex h-8 max-w-full min-w-0 items-center truncate rounded-lg border px-3 text-sm sm:max-w-72",
         mono && "font-mono text-xs"
       )}
     >
@@ -107,11 +109,14 @@ export function SiteSettingsItem({
 }: SiteSettingsItemProps) {
   if (!children) {
     return (
-      <div className="flex items-center gap-4 px-4 py-4 sm:px-5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:flex-nowrap sm:px-5">
         <IconTile icon={icon} />
         <ItemText description={description} title={title} />
-        {value}
-        <span aria-hidden="true" className="size-4 shrink-0" />
+        {/* On phones the control drops below the title instead of squeezing it. */}
+        <div className="w-full pl-13 sm:w-auto sm:shrink-0 sm:pl-0">
+          {value}
+        </div>
+        <span aria-hidden="true" className="hidden size-4 shrink-0 sm:block" />
       </div>
     );
   }
@@ -126,8 +131,8 @@ export function SiteSettingsItem({
         }
       >
         <IconTile icon={icon} />
-        <ItemText description={description} title={title} />
-        {value}
+        <ItemText description={description} title={title} value={value} />
+        {value ? <span className="hidden sm:flex">{value}</span> : null}
         <HugeiconsIcon
           aria-hidden="true"
           className="text-muted-foreground size-4 shrink-0 transition-transform duration-200 group-data-[panel-open]/item:rotate-90 motion-reduce:transition-none"

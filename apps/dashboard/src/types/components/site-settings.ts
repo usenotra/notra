@@ -86,6 +86,7 @@ export interface SiteSettingsIconTileProps {
 export interface SiteSettingsItemTextProps {
   title: ReactNode;
   description?: ReactNode;
+  value?: ReactNode;
 }
 
 export interface SiteSettingsHintProps {

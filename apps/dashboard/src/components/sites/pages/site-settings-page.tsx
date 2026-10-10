@@ -40,7 +40,7 @@ import { useId, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "use-intl";
 
-import { Button } from "@/components/button";
+import { Button, buttonVariants } from "@/components/button";
 import { useSite } from "@/components/sites/site-context";
 import { SitePreviewAccessForm } from "@/components/sites/site-preview-access-control";
 import { SiteSettingsDangerZone } from "@/components/sites/site-settings-danger-zone";
@@ -59,6 +59,10 @@ import {
   useSiteVariablesCount,
 } from "@/components/sites/site-variables-settings";
 import { SITE_NAME_MAX_LENGTH } from "@/constants/sites-form";
+import {
+  useGitHubCallbackErrorToast,
+  useResumeGitHubInstall,
+} from "@/hooks/use-github-install-callbacks";
 import { useRepositorySuggestions } from "@/lib/hooks/use-repository-suggestions";
 import { useSitePublishModeOptions } from "@/lib/hooks/use-site-publish-mode-options";
 import { useInvalidateSites } from "@/lib/hooks/use-sites";
@@ -77,6 +81,17 @@ import { githubRepositoryUrl, siteHref } from "@/utils/site-links";
 import { sitePreviewAccessMode } from "@/utils/site-preview-access";
 
 export function SiteSettingsPage() {
+  const { organizationId, organizationSlug, siteId } = useSite();
+  useGitHubCallbackErrorToast();
+  useResumeGitHubInstall({
+    callbackPath: siteHref(organizationSlug, siteId, "settings"),
+    organizationId,
+  });
+  // Drafts belong to one site; switching sites must start from fresh state.
+  return <SiteSettingsContent key={siteId} />;
+}
+
+function SiteSettingsContent() {
   const { organizationId, organizationSlug, siteId, detail } = useSite();
   const t = useTranslations("sites.settings");
   const tPage = useTranslations("sites.settingsPage");
@@ -85,7 +100,6 @@ export function SiteSettingsPage() {
   const tPreview = useTranslations("sites.previewAccess");
   const tVariables = useTranslations("sites.variables");
   const variablesCount = useSiteVariablesCount();
-  const nameSave = useUpdateSiteSettings();
   const [openRow, setOpenRow] = useState<SiteSettingsRowKey | null>(null);
   const { site } = detail;
 
@@ -93,7 +107,9 @@ export function SiteSettingsPage() {
     open: openRow === key,
     onOpenChange: (open: boolean) => setOpenRow(open ? key : null),
   });
-  const close = () => setOpenRow(null);
+  // Only close the row that finished saving; another row may be open by now.
+  const closeRow = (key: SiteSettingsRowKey) => () =>
+    setOpenRow((current) => (current === key ? null : current));
   const previewMode = site.previewsEnabled
     ? sitePreviewAccessMode(site)
     : "off";
@@ -135,7 +151,7 @@ export function SiteSettingsPage() {
         >
           <SiteSettingsEditor
             isValid={(form) => form.productionBranch.trim().length > 0}
-            onDone={close}
+            onDone={closeRow("branch")}
           >
             {(form, update) => (
               <BranchField
@@ -156,7 +172,7 @@ export function SiteSettingsPage() {
             </SiteSettingsValue>
           }
         >
-          <SiteSettingsEditor onDone={close}>
+          <SiteSettingsEditor onDone={closeRow("rootDirectory")}>
             {(form, update) => (
               <RootDirectoryField
                 branch={form.productionBranch}
@@ -198,7 +214,7 @@ export function SiteSettingsPage() {
           >
             <SiteSettingsEditor
               isValid={(form) => form.blogEnabled || form.changelogEnabled}
-              onDone={close}
+              onDone={closeRow("sections")}
             >
               {(form, update) => (
                 <>
@@ -265,7 +281,7 @@ export function SiteSettingsPage() {
             }
           >
             <div className="max-w-xl">
-              <SitePreviewAccessForm onDone={close} />
+              <SitePreviewAccessForm onDone={closeRow("previewAccess")} />
             </div>
           </SiteSettingsItem>
           <SiteSettingsToggle
@@ -326,17 +342,11 @@ function RepositoryPanel() {
       </p>
       <div className="flex items-center gap-2">
         {repository ? (
-          <Button
-            nativeButton={false}
-            render={
-              <a
-                href={githubRepositoryUrl(repository)}
-                rel="noopener noreferrer"
-                target="_blank"
-              />
-            }
-            size="sm"
-            variant="ghost"
+          <a
+            className={buttonVariants({ size: "sm", variant: "ghost" })}
+            href={githubRepositoryUrl(repository)}
+            rel="noopener noreferrer"
+            target="_blank"
           >
             {t("openOnGitHub")}
             <HugeiconsIcon
@@ -344,7 +354,7 @@ function RepositoryPanel() {
               data-icon="inline-end"
               icon={ArrowUpRight01Icon}
             />
-          </Button>
+          </a>
         ) : null}
         <Button
           loading={installing}
@@ -437,7 +447,7 @@ function SiteNameField() {
   const dirty = next.length > 0 && next !== site.name;
   return (
     <form
-      className="w-full max-w-64 shrink-0 sm:w-64"
+      className="w-full sm:w-64 sm:shrink-0"
       onSubmit={(event) => {
         event.preventDefault();
         if (dirty && !save.isPending) {
