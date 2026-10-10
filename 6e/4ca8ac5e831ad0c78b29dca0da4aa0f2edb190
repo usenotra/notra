@@ -1,0 +1,27 @@
+apps/dashboard/src/types/geo.ts
+  s_998943ab480493::t_c121afba8fe8fe 1939-1940
+apps/dashboard/src/components/geo/web-visitors-section.tsx
+  s_998943ab480493::t_c121afba8fe8fe 35-39,187-194,235,244,253,260
+apps/dashboard/src/components/evilcharts/charts/echarts-area-chart.tsx
+  s_998943ab480493::t_c121afba8fe8fe 318,451,463,546,598,958,1019,1028,2160,2355,2460
+apps/dashboard/src/components/geo/web-trend-chart.tsx
+  s_998943ab480493::t_c121afba8fe8fe 4,46,61-72,74,82-86,97-98,100,104,126-156
+apps/dashboard/src/components/geo/web-breakdown-table.tsx
+  s_998943ab480493::t_c121afba8fe8fe 23,99-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6e4ca8ac5e831ad0c78b29dca0da4aa0f2edb190",
+  "prompts": {},
+  "sessions": {
+    "s_998943ab480493": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8d1e3293-3674-4929-81f1-9e0a09f663ca",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
