@@ -1,0 +1,25 @@
+apps/ui/src/components/duotone-tooltip.astro
+  s_3d520772240a22::t_f5ae9c289e0752 26-27,31-33
+apps/ui/docs/components/duotone-tooltip.mdx
+  s_3d520772240a22::t_110c6212746a8b 3,6
+apps/ui/src/constants/landing.ts
+  s_3d520772240a22::t_110c6212746a8b 45
+apps/ui/docs/introduction.mdx
+  s_3d520772240a22::t_110c6212746a8b 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "68c9a1c6b3706c6344800926f01e31b6b1888952",
+  "prompts": {},
+  "sessions": {
+    "s_3d520772240a22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eaa9c811-54a7-42e1-916c-7182cfc394bf",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
