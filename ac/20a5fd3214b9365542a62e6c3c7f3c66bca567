@@ -1,0 +1,38 @@
+apps/dashboard/src/components/sites/sites-table.tsx
+  s_f2bb33e6caefa6::t_349218f08fc78a 11,26-27,91,133,146-147,152-153
+  s_f2bb33e6caefa6::t_1d7376c6974658 22,92,97-98,103,126-132,136-137
+  s_f2bb33e6caefa6::t_cb33603da8794d 3,8,10,16-17,28-55,69,73,76,107-118,121,124
+  s_f2bb33e6caefa6::t_8262a192557de1 21
+  s_f2bb33e6caefa6::t_2081be5d2ef170 90
+apps/dashboard/src/constants/sites.ts
+  s_f2bb33e6caefa6::t_349218f08fc78a 114-121
+  s_f2bb33e6caefa6::t_defbc5f5bd98b1 108-113,122-127
+  s_f2bb33e6caefa6::t_a5aee98f467e92 13
+apps/dashboard/messages/en.json
+  s_f2bb33e6caefa6::t_cb33603da8794d 7005-7006,7008
+apps/dashboard/src/utils/site-deployments.ts
+  s_f2bb33e6caefa6::t_f2fae22d8c0c33 36-38
+  s_f2bb33e6caefa6::t_1d7376c6974658 39-75
+apps/dashboard/src/components/sites/site-status-dot.tsx
+  s_f2bb33e6caefa6::t_349218f08fc78a 6-7,27,31-33,35,46-49,51
+apps/dashboard/src/lib/sites/serialize.ts
+  s_f2bb33e6caefa6::t_1d7376c6974658 57
+apps/dashboard/messages/de.json
+  s_f2bb33e6caefa6::t_cb33603da8794d 7005-7006,7008
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ac20a5fd3214b9365542a62e6c3c7f3c66bca567",
+  "prompts": {},
+  "sessions": {
+    "s_f2bb33e6caefa6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c9eb1cdf-b8d7-47c4-8b86-0ed2f22ff483",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
