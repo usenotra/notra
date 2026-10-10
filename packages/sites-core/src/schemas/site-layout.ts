@@ -176,11 +176,11 @@ export const siteLayoutSchema = z
 
 const blogHeroSchema = z
   .object({
-    style: z.enum(["wash", "plain", "image", "none"]).default("wash"),
+    style: z.enum(["wash", "plain", "image", "none"]).default("plain"),
     eyebrow: z.string().trim().max(60).optional(),
     image: sitePathSchema.optional(),
   })
-  .default({ style: "wash" });
+  .default({ style: "plain" });
 
 export const siteBlogSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),

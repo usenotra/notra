@@ -49,13 +49,17 @@ const year = new Date().getUTCFullYear();
     <div class="max-sm:order-last sm:justify-self-center">
       <ThemeToggle />
     </div>
-    <div class="flex items-center gap-4 sm:justify-self-end">
-      {socials.map((social) => (
-        <a href={social.href} rel="noopener" aria-label={social.label} title={social.label} class="transition-colors hover:text-foreground">
-          <LinkIcon icon={social.icon} size={16} />
-        </a>
-      ))}
-      {params.branding && <PoweredByNotra />}
-    </div>
+    {
+      (socials.length > 0 || params.branding) && (
+        <div class="flex items-center gap-4 sm:justify-self-end">
+          {socials.map((social) => (
+            <a href={social.href} rel="noopener" aria-label={social.label} title={social.label} class="transition-colors hover:text-foreground">
+              <LinkIcon icon={social.icon} size={16} />
+            </a>
+          ))}
+          {params.branding && <PoweredByNotra />}
+        </div>
+      )
+    }
   </div>
 </footer>

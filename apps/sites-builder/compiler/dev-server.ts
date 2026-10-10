@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { createServer, request } from "node:http";
 import type { IncomingMessage, Server } from "node:http";
-import { connect } from "node:net";
+import { connect, createServer as createNetServer } from "node:net";
 import { join, relative } from "node:path";
 import type { Duplex } from "node:stream";
 
@@ -17,7 +17,8 @@ import type { BuildParams } from "../src/types/build-params";
 import { astroBin } from "./build";
 import { ASTRO_LOG_NOISE } from "./constants/build";
 import {
-  DEV_READY_POLL_MS,
+  ASTRO_READY_URL,
+  DEV_PORT_SEARCH_RANGE,
   DEV_READY_TIMEOUT_MS,
   DEV_STOP_TIMEOUT_MS,
 } from "./constants/cli";
@@ -52,31 +53,31 @@ export function paramsForArea(
   };
 }
 
-async function waitForPort(port: number, exited: () => boolean) {
-  const deadline = Date.now() + DEV_READY_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    if (exited()) {
-      return false;
-    }
-    try {
-      await fetch(`http://127.0.0.1:${port}/`, { method: "HEAD" });
-      return true;
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, DEV_READY_POLL_MS));
-    }
-  }
-  return false;
-}
-
-function forwardOutput(chunk: Buffer) {
-  const text = chunk
-    .toString()
+function forwardOutput(text: string) {
+  const filtered = text
     .split("\n")
     .filter((line) => !ASTRO_LOG_NOISE.some((pattern) => pattern.test(line)))
     .join("\n");
-  if (text.trim()) {
-    process.stderr.write(text);
+  if (filtered.trim()) {
+    process.stderr.write(filtered);
   }
+}
+
+/** Resolves with a port nothing listens on yet, starting at `from`. */
+export async function findFreePort(from: number): Promise<number> {
+  for (let port = from; port < from + DEV_PORT_SEARCH_RANGE; port++) {
+    const free = await new Promise<boolean>((resolve) => {
+      const probe = createNetServer();
+      probe.once("error", () => resolve(false));
+      probe.listen(port, "127.0.0.1", () => probe.close(() => resolve(true)));
+    });
+    if (free) {
+      return port;
+    }
+  }
+  throw new Error(
+    `No free port between ${from} and ${from + DEV_PORT_SEARCH_RANGE}`
+  );
 }
 
 export async function startAstroDev(
@@ -111,17 +112,31 @@ export async function startAstroDev(
       stdio: ["ignore", "pipe", "pipe"],
     }
   );
-  let exited = false;
-  child.once("exit", () => {
-    exited = true;
+  // Ready only once this child reports its own URL, so a stray server on the
+  // same port can never pass for it. The reported port wins over the requested one.
+  const port = await new Promise<number | null>((resolve) => {
+    const timer = setTimeout(() => resolve(null), DEV_READY_TIMEOUT_MS);
+    const onOutput = (chunk: Buffer) => {
+      const text = chunk.toString();
+      forwardOutput(text);
+      const match = ASTRO_READY_URL.exec(text);
+      if (match?.[1]) {
+        clearTimeout(timer);
+        resolve(Number(match[1]));
+      }
+    };
+    child.stdout.on("data", onOutput);
+    child.stderr.on("data", onOutput);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve(null);
+    });
   });
-  child.stdout.on("data", forwardOutput);
-  child.stderr.on("data", forwardOutput);
-  const ready = await waitForPort(area.port, () => exited);
-  if (!ready) {
+  if (port === null) {
     child.kill("SIGTERM");
     return null;
   }
+  area.port = port;
   return { area, child };
 }
 
@@ -142,8 +157,12 @@ export async function stopAstroDev(running: RunningDevArea): Promise<void> {
   });
 }
 
-function pathnameOf(incoming: IncomingMessage): string {
-  return new URL(incoming.url ?? "/", "http://localhost").pathname;
+function pathnameOf(incoming: IncomingMessage): string | null {
+  try {
+    return new URL(incoming.url ?? "/", "http://localhost").pathname;
+  } catch {
+    return null;
+  }
 }
 
 function proxyUpgrade(
@@ -180,6 +199,11 @@ export function startDevProxy(
   };
   const server = createServer((incoming, outgoing) => {
     const pathname = pathnameOf(incoming);
+    if (pathname === null) {
+      outgoing.writeHead(400);
+      outgoing.end();
+      return;
+    }
     if (fallback && pathname === "/" && !resolveAreaForPath(mounts, pathname)) {
       outgoing.writeHead(302, { location: fallback.mount });
       outgoing.end();
@@ -215,7 +239,8 @@ export function startDevProxy(
     incoming.pipe(upstream);
   });
   server.on("upgrade", (incoming, socket, head) => {
-    const target = targetFor(pathnameOf(incoming));
+    const pathname = pathnameOf(incoming);
+    const target = pathname === null ? undefined : targetFor(pathname);
     if (!target) {
       socket.destroy();
       return;
@@ -224,6 +249,7 @@ export function startDevProxy(
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(port, () => resolve(server));
+    // Loopback only: the preview includes drafts.
+    server.listen(port, "127.0.0.1", () => resolve(server));
   });
 }

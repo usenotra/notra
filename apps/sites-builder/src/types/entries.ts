@@ -33,6 +33,8 @@ export interface PostCardProps {
   featured?: boolean;
   placeholder?: boolean;
   showAuthor?: boolean;
+  /** Loads the cover eagerly; only for the first card above the fold. */
+  priority?: boolean;
 }
 
 export interface PostPaginationProps {

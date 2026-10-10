@@ -55,7 +55,13 @@ const count = sections.reduce((total, section) => total + 1 + section.children.l
   const reachedAt = () => (Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) + 8;
   // The heading the reader just jumped to. Only matters at the very bottom,
   // where several headings are on screen and none can reach the offset.
-  const fromHash = () => decodeURIComponent(location.hash.slice(1)) || null;
+  const fromHash = () => {
+    try {
+      return decodeURIComponent(location.hash.slice(1)) || null;
+    } catch {
+      return null;
+    }
+  };
   let jumped: string | null = fromHash();
   const activeHeading = () => {
     const offset = reachedAt();

@@ -6,7 +6,7 @@ import { assetUrl, params } from "../lib/params";
 const { title, description } = Astro.props;
 const hero = heroOptions(params.area);
 const image = hero.style === "image" ? assetUrl(hero.image) : undefined;
-const style = hero.style === "image" && !image ? "wash" : hero.style;
+const style = hero.style === "image" && !image ? "plain" : hero.style;
 const width = params.area === "changelog" ? "max-w-(--layout-reading)" : "max-w-(--layout-index)";
 ---
 
@@ -22,8 +22,8 @@ const width = params.area === "changelog" ? "max-w-(--layout-reading)" : "max-w-
       </div>
     </section>
   ) : (
-    <section class:list={["mx-auto w-full", width]}>
-      <div class="flex flex-col gap-3 pt-4 sm:pt-8 lg:pt-10">
+    <section class:list={["mx-auto w-full", width, style === "wash" && "hero-wash mt-4 rounded-2xl sm:mt-6"]}>
+      <div class:list={["flex flex-col gap-3", style === "wash" ? "px-6 py-10 sm:px-10 sm:py-14" : "pt-4 sm:pt-8 lg:pt-10"]}>
         {hero.eyebrow && <p class="text-sm font-medium text-primary">{hero.eyebrow}</p>}
         <h1 id="page-title" class="max-w-2xl font-heading text-4xl leading-[1.05] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">{title}</h1>
         {description && <p class="max-w-xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">{description}</p>}

@@ -10,7 +10,7 @@ import { excerpt } from "../utils/excerpt";
 import { readingMinutes } from "../utils/reading-time";
 import AuthorAvatar from "./AuthorAvatar.astro";
 
-const { entry, headingLevel: Heading = "h2", variant = "card", featured = false, placeholder = false, showAuthor = true } = Astro.props;
+const { entry, headingLevel: Heading = "h2", variant = "card", featured = false, placeholder = false, showAuthor = true, priority = false } = Astro.props;
 const show = blogOptions.card;
 const [author] = show.author && showAuthor ? authorsOf(entry) : [];
 const summary = show.excerpt ? (entry.data.description ?? excerpt(entry.body)) : undefined;
@@ -63,7 +63,7 @@ const titleClass = "font-heading text-balance decoration-foreground/25 decoratio
       {framed && (
         <div class:list={["image-outline overflow-hidden bg-muted", variant === "feature" ? "rounded-2xl" : "rounded-xl max-sm:w-22 max-sm:shrink-0 max-sm:rounded-lg"]}>
           {image ? (
-            <img src={image} alt="" loading={variant === "feature" ? "eager" : "lazy"} class:list={["aspect-[1200/630] w-full object-cover transition-transform duration-300 ease-[var(--ease-emphasized)] group-hover:scale-[1.015]", variant === "card" && "max-sm:aspect-square"]} />
+            <img src={image} alt="" loading={priority ? "eager" : "lazy"} class:list={["aspect-[1200/630] w-full object-cover transition-transform duration-300 ease-[var(--ease-emphasized)] group-hover:scale-[1.015]", variant === "card" && "max-sm:aspect-square"]} />
           ) : (
             <div aria-hidden="true" class:list={["post-placeholder flex aspect-[1200/630] w-full items-center justify-center", variant === "card" && "max-sm:aspect-square"]}>
               {lightLogo ? (

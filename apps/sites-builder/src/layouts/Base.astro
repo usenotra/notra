@@ -24,7 +24,7 @@ const robots = params.noindex || noindex ? "noindex, nofollow" : "index, follow,
 const twitterSite = twitterHandle();
 const colors = themeColors();
 const appleTouchIcon = touchIcon();
-const feeds = (await listedAreas()).flatMap((area) => {
+const feeds = (await listedAreas({ keepCurrent: false })).flatMap((area) => {
   const mount = params.mounts[area];
   return mount ? [{ title: namedAreaTitle(area), href: mountPath(mount, "feed.xml") }] : [];
 });

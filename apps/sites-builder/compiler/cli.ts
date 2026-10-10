@@ -15,6 +15,7 @@ import {
 import { buildSite, readBuildTarget, writeBuildParams } from "./build";
 import { USAGE } from "./constants/cli";
 import {
+  findFreePort,
   paramsForArea,
   startAstroDev,
   startDevProxy,
@@ -110,11 +111,18 @@ async function main() {
     });
     const port = Number(values.port ?? "4321");
     const mounted = listMountedAreas(mounts);
-    const areas: DevAreaServer[] = mounted.map((entry, index) => ({
-      ...entry,
-      port: port + index + 1,
-      paramsPath: join(workDir, `params.dev.${entry.area}.json`),
-    }));
+    const areas: DevAreaServer[] = [];
+    let nextPort = port + 1;
+    for (const entry of mounted) {
+      // Sequential on purpose: each search starts after the last port taken.
+      const areaPort = await findFreePort(nextPort);
+      nextPort = areaPort + 1;
+      areas.push({
+        ...entry,
+        port: areaPort,
+        paramsPath: join(workDir, `params.dev.${entry.area}.json`),
+      });
+    }
     const selected =
       areas.find((entry) => entry.area === values.area) ?? areas[0];
     if (!selected) {

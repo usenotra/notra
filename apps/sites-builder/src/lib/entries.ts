@@ -28,7 +28,13 @@ export function getAreaEntries(): Promise<BlogEntry[] | ChangelogEntry[]> {
   return params.area === "blog" ? getBlogEntries() : getChangelogEntries();
 }
 
-export async function listedAreas(): Promise<SiteArea[]> {
+/**
+ * Mounted areas worth linking to. Navigation keeps the current area even when
+ * it is empty so readers can still switch away; feeds pass `keepCurrent: false`.
+ */
+export async function listedAreas({ keepCurrent = true } = {}): Promise<
+  SiteArea[]
+> {
   const [blog, changelog] = await Promise.all([
     getBlogEntries(),
     getChangelogEntries(),
@@ -39,6 +45,7 @@ export async function listedAreas(): Promise<SiteArea[]> {
   };
   return THEME_AREAS.filter(
     (area) =>
-      Boolean(params.mounts[area]) && (area === params.area || counts[area] > 0)
+      Boolean(params.mounts[area]) &&
+      (counts[area] > 0 || (keepCurrent && area === params.area))
   );
 }

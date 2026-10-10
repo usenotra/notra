@@ -37,9 +37,9 @@ const placeholder = blogOptions.card.image && entries.some((entry) => entry.data
       </ul>
     ) : (
       <ul class="grid w-full max-w-(--layout-index) grid-cols-1 gap-x-8 gap-y-12 max-sm:gap-y-0 max-sm:divide-y max-sm:divide-border sm:grid-cols-2 lg:grid-cols-3">
-        {featured.map((entry) => (
+        {featured.map((entry, index) => (
           <li class="h-full max-sm:pb-8 sm:col-span-2 lg:col-span-3">
-            <PostCard entry={entry} variant="feature" featured={layout === "grid" || split.featured.length > 0} placeholder={placeholder} />
+            <PostCard entry={entry} variant="feature" featured={layout === "grid" || split.featured.length > 0} placeholder={placeholder} priority={index === 0} />
           </li>
         ))}
         {rest.map((entry) => (

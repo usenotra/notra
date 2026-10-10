@@ -211,6 +211,12 @@ body {
     }
   }
 
+  .hero-wash {
+    background: color-mix(in oklab, var(--accent) 8%, var(--background));
+  }
+  .dark .hero-wash {
+    background: color-mix(in oklab, var(--accent) 12%, var(--background));
+  }
   .hero-image {
     background-color: hsl(240 6% 10%);
     background-image:
@@ -336,12 +342,6 @@ body {
     padding-block: 0.4375rem;
     font-size: 0.9375rem;
   }
-  @media (pointer: coarse) {
-    .theme-switch > button {
-      width: 2rem;
-      height: 2rem;
-    }
-  }
   @media (prefers-reduced-motion: reduce) {
     .toc-children {
       transition: none;
@@ -378,6 +378,12 @@ body {
   html[data-theme-mode="system"] .theme-switch > [data-theme-option="system"] {
     background: var(--muted);
     color: var(--foreground);
+  }
+  @media (pointer: coarse) {
+    .theme-switch > button {
+      width: 2rem;
+      height: 2rem;
+    }
   }
 
   .changelog-version {

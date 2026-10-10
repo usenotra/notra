@@ -604,12 +604,12 @@
         },
         "hero": {
           "default": {
-            "style": "wash"
+            "style": "plain"
           },
           "type": "object",
           "properties": {
             "style": {
-              "default": "wash",
+              "default": "plain",
               "type": "string",
               "enum": ["wash", "plain", "image", "none"]
             },
@@ -727,12 +727,12 @@
         },
         "hero": {
           "default": {
-            "style": "wash"
+            "style": "plain"
           },
           "type": "object",
           "properties": {
             "style": {
-              "default": "wash",
+              "default": "plain",
               "type": "string",
               "enum": ["wash", "plain", "image", "none"]
             },
