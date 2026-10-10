@@ -64,10 +64,16 @@ test("Effect lint and compiler diagnostics reject bugs without blocking warnings
     );
     result = lint();
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.match(result.stdout + result.stderr, /floating-effect/);
+    assert.match(
+      result.stdout + result.stderr,
+      /error effecttsgo\(floating-effect\)/
+    );
     result = typecheck();
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.match(result.stdout + result.stderr, /effect\(floatingEffect\)/);
+    assert.match(
+      result.stdout + result.stderr,
+      /^.*error TS\d+:.*effect\(floatingEffect\)$/m
+    );
 
     writeFileSync(
       source,
@@ -80,16 +86,22 @@ export const outdated = Effect.catchAll(Effect.fail("error"), () => Effect.void)
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(
       result.stdout + result.stderr,
-      /missing-star-in-yield-effect-gen/
+      /error effecttsgo\(missing-star-in-yield-effect-gen\)/
     );
-    assert.match(result.stdout + result.stderr, /outdated-api/);
+    assert.match(
+      result.stdout + result.stderr,
+      /error effecttsgo\(outdated-api\)/
+    );
     result = typecheck();
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(
       result.stdout + result.stderr,
-      /effect\(missingStarInYieldEffectGen\)/
+      /^.*error TS\d+:.*effect\(missingStarInYieldEffectGen\)$/m
     );
-    assert.match(result.stdout + result.stderr, /effect\(outdatedApi\)/);
+    assert.match(
+      result.stdout + result.stderr,
+      /^.*error TS\d+:.*effect\(outdatedApi\)$/m
+    );
 
     writeFileSync(
       source,
@@ -119,7 +131,10 @@ export const dependent = Layer.mergeAll(A.Default, B.Default);
       "unsafe-effect-type-assertion",
       "layer-merge-all-with-dependencies",
     ]) {
-      assert.match(result.stdout + result.stderr, new RegExp(rule));
+      assert.match(
+        result.stdout + result.stderr,
+        new RegExp(`warning effecttsgo\\(${rule}\\)`)
+      );
     }
     result = typecheck();
     assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -132,7 +147,7 @@ export const dependent = Layer.mergeAll(A.Default, B.Default);
     ]) {
       assert.match(
         result.stdout + result.stderr,
-        new RegExp(`effect\\(${rule}\\)`)
+        new RegExp(`^.*warning TS\\d+:.*effect\\(${rule}\\)$`, "m")
       );
     }
   } finally {
