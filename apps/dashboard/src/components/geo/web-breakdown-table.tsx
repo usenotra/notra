@@ -20,12 +20,13 @@ export function WebBreakdownTable({
   nameHeader,
   valueHeader,
   rows,
-  height = webTableHeight(rows.length),
+  height,
   showFromAi = false,
   showAvgTime = false,
 }: WebBreakdownTableProps) {
   const t = useTranslations("geo.webVisitors");
   const locale = useLocale();
+  const tableHeight = height ?? webTableHeight(rows.length);
   const columns: TableColumn<WebBreakdownRow>[] = [
     {
       key: "name",
@@ -96,8 +97,8 @@ export function WebBreakdownTable({
         defaultSort={{ key: "value", direction: "desc" }}
         emptyState={<WebAnalyticsEmpty />}
         getRowId={(row) => row.key}
-        height={height}
-        minHeight={height}
+        height={tableHeight}
+        minHeight={tableHeight}
         rowHeight={WEB_TABLE_ROW_HEIGHT}
         scrollFade={false}
       />
