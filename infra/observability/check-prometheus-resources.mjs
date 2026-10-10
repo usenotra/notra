@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -34,9 +35,11 @@ export async function checkPrometheusResources(
   const directory = mkdtempSync(
     resolve(source, "../../.artifacts/prometheus-fixtures-")
   );
+  // This bind mount contains only synthetic fixtures; the exporter stays UID 1000.
+  chmodSync(directory, 0o755);
   const setMode = (mode) => {
     const temporary = resolve(directory, "state.tmp");
-    writeFileSync(temporary, JSON.stringify({ mode }));
+    writeFileSync(temporary, JSON.stringify({ mode }), { mode: 0o644 });
     renameSync(temporary, resolve(directory, "state.json"));
   };
   const docker = (args, timeout = 10_000) =>
@@ -216,7 +219,9 @@ export async function checkPrometheusResources(
         return `  - job_name: ${job}\n${limits}    metrics_path: /${job}\n    static_configs:\n      - targets: ["fixture-exporter:9091"]\n`;
       })
       .join("")}`;
-    writeFileSync(resolve(directory, "prometheus.yml"), fixtureConfig);
+    writeFileSync(resolve(directory, "prometheus.yml"), fixtureConfig, {
+      mode: 0o644,
+    });
     setMode("valid");
     docker(["build", "--tag", name, resolve(source, "prometheus")], 120_000);
     docker(["network", "create", network]);

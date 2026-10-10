@@ -19,7 +19,7 @@ export function metricSelections(metric: CatalogMetric): string[] {
   let preferred = "avg";
   if (
     ["count", "bytes", "currency", "usd", "gigabyte_hour"].includes(
-      metric.unit
+      metric.unit.toLowerCase()
     ) ||
     (metric.id.startsWith("vercel.ai_gateway.") &&
       metric.id.endsWith("_duration_seconds"))

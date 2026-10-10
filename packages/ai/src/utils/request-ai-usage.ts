@@ -41,9 +41,17 @@ function routeInfo(providerMetadata: SharedV4ProviderMetadata | undefined): {
   const record =
     route && typeof route === "object" && !Array.isArray(route) ? route : {};
   const { costUsd, generationId, model } = record;
+  const completeCost =
+    record.gateway !== "openrouter" ||
+    (typeof record.byokInferenceCostUsd === "number" &&
+      Number.isFinite(record.byokInferenceCostUsd) &&
+      record.byokInferenceCostUsd >= 0);
   return {
     costUsd:
-      typeof costUsd === "number" && Number.isFinite(costUsd) && costUsd >= 0
+      completeCost &&
+      typeof costUsd === "number" &&
+      Number.isFinite(costUsd) &&
+      costUsd >= 0
         ? costUsd
         : 0,
     ...(typeof generationId === "string" ? { generationId } : {}),

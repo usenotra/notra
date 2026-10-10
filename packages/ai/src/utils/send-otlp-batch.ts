@@ -14,7 +14,12 @@ export async function sendOTLPBatch(
   }
   const groups = new Map<string, [WideEvent, ...WideEvent[]]>();
   for (const event of events) {
-    const key = `${event.service}::${event.environment}`;
+    const key = JSON.stringify([
+      event.service,
+      event.environment,
+      event.version,
+      event.region,
+    ]);
     const group = groups.get(key);
     if (group) {
       group.push(event);

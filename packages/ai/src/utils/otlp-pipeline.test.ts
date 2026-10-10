@@ -5,8 +5,9 @@ import { TELEMETRY_TEST_EVENT } from "@notra/ai/constants/telemetry-test";
 
 import { createAxiomPipeline } from "./axiom-pipeline";
 import { createOTLPPipeline } from "./otlp-pipeline";
+import { isRecord } from "./unknown-record";
 
-test("OTLP failures, partial rejection and auth disablement remain isolated from rich Axiom shipping", async () => {
+test("OTLP failures, resource grouping and permanent disablement remain isolated from rich Axiom shipping", async () => {
   const keys = ["NOTRA_OTLP_ENDPOINT", "NOTRA_OTLP_TOKEN"];
   const previous = keys.map((key) => process.env[key]);
   const requests: Request[] = [];
@@ -83,21 +84,64 @@ test("OTLP failures, partial rejection and auth disablement remain isolated from
       )
     );
 
-    status = 401;
-    pipeline(context);
+    for (const [version, region] of [
+      ["v1", "iad1"],
+      ["v1", "sfo1"],
+      ["v2", "iad1"],
+      ["v2", "sfo1"],
+      ["v1", "iad1"],
+    ]) {
+      pipeline({ event: { ...context.event, version, region } });
+    }
     await pipeline.flush();
-    pipeline(context);
-    await pipeline.flush();
-    assert.equal(requests.length, 8);
-    assert.equal(pipeline.pending, 0);
+    const groupedRequest = requests.at(-1);
+    assert.ok(groupedRequest);
+    const payload: unknown = await groupedRequest.json();
+    assert.ok(isRecord(payload) && Array.isArray(payload.resourceLogs));
+    const groups = new Set();
+    for (const group of payload.resourceLogs) {
+      assert.ok(
+        isRecord(group) &&
+          isRecord(group.resource) &&
+          Array.isArray(group.resource.attributes)
+      );
+      const attributes = new Map<string, unknown>();
+      for (const attribute of group.resource.attributes) {
+        assert.ok(isRecord(attribute) && isRecord(attribute.value));
+        attributes.set(String(attribute.key), attribute.value.stringValue);
+      }
+      assert.ok(Array.isArray(group.scopeLogs));
+      const records = group.scopeLogs[0]?.logRecords;
+      assert.ok(Array.isArray(records));
+      groups.add(
+        `${attributes.get("service.version")}:${attributes.get("cloud.region")}:${records.length}`
+      );
+    }
+    assert.deepEqual(
+      groups,
+      new Set(["v1:iad1:2", "v1:sfo1:1", "v2:iad1:1", "v2:sfo1:1"])
+    );
+    for (const permanentStatus of [401, 403, 404]) {
+      status = permanentStatus;
+      const disabled = createOTLPPipeline();
+      assert.ok(disabled);
+      const before: number = requests.length;
+      disabled(context);
+      await disabled.flush();
+      disabled(context);
+      await disabled.flush();
+      assert.equal(requests.length, before + 1);
+      assert.equal(disabled.pending, 0);
+    }
 
     const axiom = createAxiomPipeline({
       apiKey: "fixture",
       dataset: "fixture",
     });
+    const beforeAxiom = requests.length;
     axiom(context);
     await axiom.flush();
-    assert.equal(requests.length, 9);
+    assert.equal(requests.length, beforeAxiom + 1);
     const axiomRequest = requests.at(-1);
     assert.ok(axiomRequest);
     assert.match(await axiomRequest.text(), /private prompt/);

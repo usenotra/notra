@@ -50,7 +50,7 @@ export function createOTLPPipeline() {
       label: "otlp",
       permanentErrorPattern: OTLP_AUTH_ERROR_PATTERN,
       disabledMessage:
-        "[otlp] authentication rejected; export disabled until reinitialization or next deploy",
+        "[otlp] authentication or endpoint rejected; export disabled until reinitialization or next deploy",
     }
   );
   const push = (ctx: DrainContext) => {

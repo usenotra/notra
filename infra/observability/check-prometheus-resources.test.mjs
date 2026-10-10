@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { statSync } from "node:fs";
+import { resolve } from "node:path";
 import { test } from "node:test";
 
 import { checkPrometheusResources } from "./check-prometheus-resources.mjs";
@@ -10,6 +12,19 @@ test("Prometheus resource failure keeps listeners loopback, mounts fixture-only 
       (_binary, args, options) => {
         assert.ok(options.timeout > 0 && options.timeout <= 120_000);
         calls.push(args);
+        if (args[0] === "run" && args.includes("fixture-exporter")) {
+          const mount = args.find((arg) =>
+            arg.endsWith("target=/fixtures,readonly")
+          );
+          const directory = mount.match(/source=([^,]+)/)[1];
+          assert.equal(statSync(directory).mode & 0o777, 0o755);
+          for (const file of ["state.json", "prometheus.yml"]) {
+            assert.equal(
+              statSync(resolve(directory, file)).mode & 0o777,
+              0o644
+            );
+          }
+        }
         return {
           status: 0,
           stdout: args[0] === "port" ? "127.0.0.1:32768\n" : "fixture",

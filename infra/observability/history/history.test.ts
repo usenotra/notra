@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
+import { HISTORY_DAY_MS, HISTORY_KINDS } from "./constants/history.ts";
 import { historyDate, historySnapshot } from "./schemas/history.ts";
 import type { HistoryEvent, HistoryPayload } from "./types/history.ts";
 import { projectDay } from "./utils/project-day.ts";
@@ -16,6 +19,52 @@ const sample = {
   errors: 0,
 };
 const snapshot = historySnapshot(sample.snapshotStart, sample.snapshotEnd);
+
+test("Axiom CLI requires every intersecting UTC day and kind, without inventing missing zeros", () => {
+  for (const start of [sample.snapshotStart, "2026-10-03T00:00:00.000Z"]) {
+    const end = new Date(Date.parse(start) + 7 * HISTORY_DAY_MS).toISOString();
+    const complete = [];
+    for (
+      let day = Math.floor(Date.parse(start) / HISTORY_DAY_MS) * HISTORY_DAY_MS;
+      day < Date.parse(end);
+      day += HISTORY_DAY_MS
+    ) {
+      for (const kind of HISTORY_KINDS) {
+        complete.push({
+          ...sample,
+          kind,
+          snapshotStart: start,
+          snapshotEnd: end,
+          bucketStart: new Date(day).toISOString(),
+          timestamp: new Date(
+            Math.min(day + HISTORY_DAY_MS - 1, Date.parse(end))
+          ).toISOString(),
+        });
+      }
+    }
+    for (const input of [
+      complete,
+      complete.slice(1),
+      complete.filter(({ kind }) => kind !== "ingest"),
+      [...complete.slice(1), complete[1]],
+    ]) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          "--no-env-file",
+          fileURLToPath(new URL("import-axiom.ts", import.meta.url)),
+        ],
+        {
+          input: JSON.stringify(input),
+          encoding: "utf8",
+          timeout: 5000,
+          env: { PATH: process.env.PATH },
+        }
+      );
+      assert.equal(result.status, input === complete ? 0 : 1, result.stderr);
+    }
+  }
+});
 
 test("history requires real canonical UTC dates and one exact seven-day identity", () => {
   assert.deepEqual(

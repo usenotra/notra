@@ -62,6 +62,8 @@ export const TELEMETRY_IDENTIFIER_FIELDS = new Set([
 ]);
 export const TELEMETRY_IDENTIFIER_PATTERN =
   /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
+export const TELEMETRY_JWT_PATTERN =
+  /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/;
 
 export const TELEMETRY_NUMBER_FIELDS = new Set([
   "durationMs",
@@ -129,6 +131,11 @@ export const TELEMETRY_PROVIDERS = new Set([
 export const TELEMETRY_INTEGRATION_PROVIDERS = new Set([
   ...TELEMETRY_PROVIDERS,
   "context.dev",
+]);
+export const TELEMETRY_MODEL_NAMESPACES = new Set([
+  ...TELEMETRY_PROVIDERS,
+  "meta",
+  "spacexai",
 ]);
 export const TELEMETRY_UPSTREAM_PROVIDERS = new Set(TELEMETRY_PROVIDERS);
 // Reviewed aliases only: never lowercase or sanitize arbitrary provider text.

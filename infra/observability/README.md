@@ -110,7 +110,7 @@ The logs panel intentionally keeps full JSON parsing for details. Organization r
 trusted-team input, not authorization. The shared gateway balance and ingest
 capacity are not organization-scoped; their panels say so.
 
-OpenRouter cost events treat absent/null upstream inference cost as **unknown**, not
+OpenRouter cost events and request rollups treat absent/null upstream inference cost as **unknown**, not
 zero. Measured gateway charges remain available; a combined `costUsd` is reported
 only when both components are measured. Customer cost rankings therefore cover
 reported complete totals, not all spend. The legacy OpenRouter billing fallback
@@ -197,7 +197,7 @@ are unchanged. Regression tests exercise actual loopback 307/308 responses.
 Exported events have an explicit content-free allowlist: no prompts, generated
 content, URLs, emails, request headers, credentials or error text. Organization,
 user and generation IDs remain sensitive operational identifiers. IDs are
-shape/length checked; free-text `reason` is excluded except for reviewed
+shape/length checked and JWT-shaped identifiers are rejected; free-text `reason` is excluded except for reviewed
 `geo.ingest` reason codes.
 The separate `geo.ingest.runtime` allowlist accepts only finite nonnegative numeric
 capacity fields (safe integers for request/task/buffer/pool counts). Strings,
@@ -214,6 +214,8 @@ three-second HTTP timeouts. It is best-effort telemetry, not an accounting ledge
 Request/shutdown flushing waits for events present when flush was called, not
 later arrivals. Watch `[otlp] dropped …`
 messages; a terminated process or exhausted retry budget can lose app-side events.
+HTTP 401/403/404 disables only the OTLP drain until reinitialization; transient
+transport/server failures retain bounded retries, and rich Axiom shipping continues.
 The collector's Loki sending queue is persistent and bounded to 1,000 batches.
 The source config retries retryable downstream errors without a time limit, including
 outages longer than five minutes. This is not a delivery guarantee: permanent
@@ -374,7 +376,10 @@ monitoring, exported, or printed.
 
 [`history/`](history/) contains the bounded replay tools. `backfill-db.ts` defaults
 to a dry run and requires an explicit `HISTORY_END`; `import-axiom.ts` reads at
-most 24 reviewed numeric aggregates on stdin. Snapshot metadata is validated by
+most 24 reviewed numeric aggregates on stdin. Every intersecting UTC day must
+include all three kinds (API, AI, ingest), including explicitly measured empty
+buckets; partial or truncated inputs are rejected, never filled with assumed zeros.
+Snapshot metadata is validated by
 one shared boundary: real UTC dates are normalized to millisecond ISO strings,
 and every snapshot must span **exactly seven days**. Shorter windows are rejected,
 not merged under the same end-only identity. Seconds-precision dates are accepted

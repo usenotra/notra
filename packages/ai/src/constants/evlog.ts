@@ -18,7 +18,7 @@ export const REQUEST_AI_USAGE_FIELDS = new Set([
 export const AXIOM_PERMANENT_ERROR_PATTERN =
   /^Axiom API error: (401|403|404)\b/;
 // evlog's throwing OTLP sender prefixes HTTP errors before any response body.
-export const OTLP_AUTH_ERROR_PATTERN = /^OTLP API error: (401|403)\b/;
+export const OTLP_AUTH_ERROR_PATTERN = /^OTLP API error: (401|403|404)\b/;
 // Three nominal attempts plus 750ms backoff budget 9750ms for ONE batch.
 // Multi-batch drains remain best-effort; this is not a total flush deadline.
 export const LOG_TRANSPORT_TIMEOUT_MS = 3000;

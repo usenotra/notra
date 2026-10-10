@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { TELEMETRY_IDENTIFIER_FIELDS } from "@notra/ai/constants/telemetry";
 import { TELEMETRY_TEST_EVENT } from "@notra/ai/constants/telemetry-test";
 
 import { telemetryEvent } from "./telemetry-event";
@@ -82,4 +83,44 @@ test("projection preserves reviewed routes, providers and GEO codes without priv
   assert.equal(runtime.heapUsedBytes, undefined);
   assert.equal(telemetryEvent({ ...event, rssBytes: 1 }).rssBytes, undefined);
   assert.equal(telemetryValue("constructor", "code"), false);
+});
+
+test("JWT-shaped identifiers are stripped while reviewed model namespaces survive", () => {
+  for (const value of [
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmaXh0dXJlIn0.fixture",
+    "header.payload.",
+  ]) {
+    for (const key of TELEMETRY_IDENTIFIER_FIELDS) {
+      assert.equal(telemetryValue(key, value), false);
+      assert.equal(
+        telemetryEvent({ ...TELEMETRY_TEST_EVENT, [key]: value })[key],
+        undefined
+      );
+    }
+  }
+  assert.equal(telemetryValue("requestId", "request_fixture.123"), true);
+  for (const model of [
+    "meta/llama-4-maverick",
+    "spacexai/grok-4.7",
+    "vercel/anthropic/claude-opus-5.5",
+    "vercel/openai/gpt-6-luna",
+  ]) {
+    const event = telemetryEvent({
+      ...TELEMETRY_TEST_EVENT,
+      model,
+      requestedModel: model,
+      ai: { model },
+    });
+    assert.equal(event.model, model);
+    assert.equal(event.requestedModel, model);
+    assert.deepEqual(event.ai, { model });
+  }
+  for (const model of [
+    "vercel/arbitrary/claude-opus-5",
+    "vercel/vercel/openai/gpt-6",
+    "meta/private-text",
+    "vercel/openai/gpt-secret_fixture",
+  ]) {
+    assert.equal(telemetryValue("model", model), false);
+  }
 });

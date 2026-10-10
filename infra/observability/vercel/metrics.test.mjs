@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { vercelApi } from "./utils/api.ts";
-import { metricGroups, metricQuery, metricSamples } from "./utils/metrics.ts";
+import {
+  metricGroups,
+  metricQuery,
+  metricSamples,
+  metricSelections,
+} from "./utils/metrics.ts";
 import { pollMetrics } from "./utils/poll.ts";
 
 const count = {
@@ -19,6 +24,20 @@ const duration = {
   aggregations: ["avg", "p95", "p99"],
   derivedFrom: { event: "vercel.function_invocation" },
 };
+
+test("currency unit casing keeps spend aggregation as sum", () => {
+  for (const unit of ["usd", "USD"]) {
+    assert.deepEqual(
+      metricSelections({
+        ...count,
+        id: "vercel.ai_gateway.request.cost",
+        unit,
+        aggregations: ["avg", "sum"],
+      }),
+      ["sum"]
+    );
+  }
+});
 
 test("catalog queries use source events, bounded outputs and delayed native five-minute windows", () => {
   const groups = metricGroups([

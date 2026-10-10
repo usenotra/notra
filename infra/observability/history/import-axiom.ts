@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 
+import { HISTORY_DAY_MS, HISTORY_KINDS } from "./constants/history.ts";
 import { historySnapshot } from "./schemas/history.ts";
 import { projectDay } from "./utils/project-day.ts";
 import { pushHistory } from "./utils/push-history.ts";
@@ -14,7 +15,11 @@ try {
     events[0]?.snapshotStart,
     events[0]?.snapshotEnd
   );
+  const days =
+    Math.ceil(Date.parse(snapshot.snapshotEnd) / HISTORY_DAY_MS) -
+    Math.floor(Date.parse(snapshot.snapshotStart) / HISTORY_DAY_MS);
   if (
+    events.length !== days * HISTORY_KINDS.size ||
     events.some(
       (event) =>
         event.snapshotEnd !== snapshot.snapshotEnd ||

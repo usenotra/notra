@@ -5,9 +5,10 @@ import {
   TELEMETRY_IDENTIFIER_FIELDS,
   TELEMETRY_IDENTIFIER_PATTERN,
   TELEMETRY_INTEGER_FIELDS,
+  TELEMETRY_JWT_PATTERN,
+  TELEMETRY_MODEL_NAMESPACES,
   TELEMETRY_MODEL_PATTERN,
   TELEMETRY_NUMBER_FIELDS,
-  TELEMETRY_PROVIDERS,
   TELEMETRY_ROUTE_SEGMENT_PATTERN,
   TELEMETRY_ROUTE_SENTINELS,
   TELEMETRY_SECRET_PATTERN,
@@ -48,12 +49,14 @@ export function telemetryValue(key: string, value: unknown): boolean {
     return typeof value === "string" && choices.has(value);
   }
   if (key === "model" || key === "requestedModel") {
+    if (typeof value !== "string" || value.length > 128) {
+      return false;
+    }
+    const model = value.replace(/^vercel\//, "");
     return (
-      typeof value === "string" &&
-      value.length <= 128 &&
-      TELEMETRY_MODEL_PATTERN.test(value) &&
-      (!value.includes("/") ||
-        TELEMETRY_PROVIDERS.has(value.split("/")[0] ?? "")) &&
+      TELEMETRY_MODEL_PATTERN.test(model) &&
+      (!model.includes("/") ||
+        TELEMETRY_MODEL_NAMESPACES.has(model.split("/")[0] ?? "")) &&
       !TELEMETRY_SECRET_PATTERN.test(value)
     );
   }
@@ -79,7 +82,8 @@ export function telemetryValue(key: string, value: unknown): boolean {
     typeof value === "string" &&
     !TELEMETRY_SECRET_PATTERN.test(value) &&
     (TELEMETRY_IDENTIFIER_FIELDS.has(key)
-      ? TELEMETRY_IDENTIFIER_PATTERN.test(value)
+      ? TELEMETRY_IDENTIFIER_PATTERN.test(value) &&
+        !TELEMETRY_JWT_PATTERN.test(value)
       : TELEMETRY_CODE_FIELDS.has(key) && TELEMETRY_CODE_PATTERN.test(value))
   );
 }

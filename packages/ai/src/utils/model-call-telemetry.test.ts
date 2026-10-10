@@ -82,7 +82,7 @@ test("real OpenRouter usage survives a later error and is accounted once", async
     const ai = request.logger.getContext().ai;
     assert.ok(isRecord(ai));
     assert.equal(ai.calls, 1);
-    assert.equal(ai.costUsd, 0.25);
+    assert.equal(ai.costUsd, undefined);
     const finish = parts.find((part) => part.type === "finish");
     assert.ok(finish?.type === "finish");
     assert.equal(
@@ -144,12 +144,14 @@ test("OpenRouter telemetry distinguishes absent/null BYOK measurement from measu
         logger,
       });
       const model = router.model(MODEL, { organizationId: FREE_ORG });
-      const result =
+      const request = evlogRequestIntegration.start(undefined);
+      const result = await request.runWith(async () =>
         operation === "generate"
           ? await model.doGenerate(callOptions())
           : (await readStreamParts(await model.doStream(callOptions()))).find(
               (part) => part.type === "finish"
-            );
+            )
+      );
       assert.ok(result);
       const metadata = router.getRouteMetadata(result.providerMetadata);
       const measuredCost = costDetails?.upstream_inference_cost ?? undefined;
@@ -169,6 +171,12 @@ test("OpenRouter telemetry distinguishes absent/null BYOK measurement from measu
       assert.equal(costs[0]?.fields?.byokInferenceCostUsd, measuredCost);
       assert.equal(
         costs[0]?.fields?.costUsd,
+        measuredCost === undefined ? undefined : 0.25 + measuredCost
+      );
+      const requestAI = request.logger.getContext().ai;
+      assert.ok(isRecord(requestAI));
+      assert.equal(
+        requestAI.costUsd,
         measuredCost === undefined ? undefined : 0.25 + measuredCost
       );
       assert.deepEqual(
