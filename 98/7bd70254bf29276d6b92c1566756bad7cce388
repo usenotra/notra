@@ -1,0 +1,85 @@
+apps/dashboard/src/constants/sites.ts
+  s_765823703efdf7::t_b0c0a3a65ff717 207-209
+apps/dashboard/src/components/sites/site-variables-settings.tsx
+  s_765823703efdf7::t_11a08df45aa032 180-183
+  s_765823703efdf7::t_d859801c2b873a 28-30,36-55,58,60,65,70,77,85
+  s_765823703efdf7::t_8ea220cf673e12 3-4,8,96-99,106-114,116-117,119,121-124,131,156-179,184-192,194-227,231-234,236,238,240-244,246,248-280,285,288,295-302,304-305
+apps/dashboard/src/components/sites/site-settings-item.tsx
+  s_765823703efdf7::t_150e98e7733357 45
+  s_765823703efdf7::t_06d408e4613737 3-6,20,139,169-180
+  s_765823703efdf7::t_b774ee6ae24f3d 59
+  s_765823703efdf7::t_8b90e84c48e2db 21-22,29,42
+  s_765823703efdf7::t_8a6eff251b6e22 84-95
+  s_765823703efdf7::t_7b5cb61183cea2 114
+  s_765823703efdf7::t_7f8b19a1ae36b7 120-127
+  s_765823703efdf7::t_c2081e2970eb81 31,34,36
+  s_765823703efdf7::t_37375d18420146 1,7-19,23-28,30,32-33,35,37-41,43-44,46-58,60-83,96-101,103,105-113,116-119,128-138,140-165,181-182
+apps/dashboard/messages/en.json
+  s_765823703efdf7::t_2a7653ebbba464 7315-7317,7319-7322,7324-7327
+  s_765823703efdf7::t_bdf9f59f6382f1 7726
+  s_765823703efdf7::t_50b120a1ebac8b 7318,7733
+  s_765823703efdf7::t_c5dbab0264a990 7323,7328-7333
+  s_765823703efdf7::t_06d408e4613737 7334-7337
+apps/dashboard/tests/site-variables-surface.test.tsx
+  s_765823703efdf7::t_bdf9f59f6382f1 91
+apps/dashboard/src/components/sites/site-settings-editor.tsx
+  s_765823703efdf7::t_9cdf0b6208f51e 3,7-17,22-23,26-38,42-82
+  s_765823703efdf7::t_6ce8cb953733a6 19
+apps/dashboard/messages/de.json
+  s_765823703efdf7::t_bdf9f59f6382f1 7726
+  s_765823703efdf7::t_06d408e4613737 7334-7337
+  s_765823703efdf7::t_2a7653ebbba464 7315-7317,7319-7322,7324-7327
+  s_765823703efdf7::t_c5dbab0264a990 7323,7328-7333
+  s_765823703efdf7::t_50b120a1ebac8b 7318,7733
+apps/dashboard/src/types/components/site-settings.ts
+  s_765823703efdf7::t_bdf9f59f6382f1 16,75
+  s_765823703efdf7::t_150e98e7733357 4
+  s_765823703efdf7::t_8b90e84c48e2db 62-67,69,80-88,93
+  s_765823703efdf7::t_a9a1b90ebd6fc2 68,70-73
+  s_765823703efdf7::t_06d408e4613737 74,89-92
+  s_765823703efdf7::t_266f219376641e 76-79
+  s_765823703efdf7::t_06f3c0c8036d11 1-3,5-15,17-61
+apps/dashboard/src/components/sites/site-settings-danger-zone.tsx
+  s_765823703efdf7::t_53cad8194d8b0f 24,27-29,90
+  s_765823703efdf7::t_e648d7510b3eaf 70
+apps/dashboard/src/components/sites/site-form-fields.tsx
+  s_765823703efdf7::t_22c5ffbcd1461b 18
+apps/dashboard/src/types/sites.ts
+  s_765823703efdf7::t_8b90e84c48e2db 168,170-171,173-175
+  s_765823703efdf7::t_a9a1b90ebd6fc2 169
+  s_765823703efdf7::t_36a43c4579ca75 164-165,176-179
+  s_765823703efdf7::t_266f219376641e 172
+apps/dashboard/src/types/hooks/sites.ts
+  s_765823703efdf7::t_b0c0a3a65ff717 52-55
+apps/dashboard/src/components/sites/site-preview-access-control.tsx
+  s_765823703efdf7::t_7ab8a2b4f8ed95 27,147
+apps/dashboard/src/components/sites/pages/site-settings-page.tsx
+  s_765823703efdf7::t_266f219376641e 25-30,110,186-187,189-197,199-203,206-211,213-220,225,227-229,427-450,452-463,470-477,483-486,489,493-496,498,500-507
+  s_765823703efdf7::t_06d408e4613737 50,71,188,204-205,212,221-224,226,369,389,410-415,425,481,487,491-492,497,499,508
+  s_765823703efdf7::t_c2081e2970eb81 15,108
+  s_765823703efdf7::t_799e6698e80eaf 22
+  s_765823703efdf7::t_a9a1b90ebd6fc2 5,18,24,31-36,43,69-70,74,76,88,111,113,118-122,124-126,161,234-235,302-321,323-364,368,394,398-399,409,416-424,426,478-480,482,488,490,509-537,539-550
+  s_765823703efdf7::t_11a08df45aa032 66
+  s_765823703efdf7::t_50b120a1ebac8b 184
+  s_765823703efdf7::t_6a8a0a964905b5 451,464-469
+  s_765823703efdf7::t_32142561c57ed7 538
+  s_765823703efdf7::t_71b70fb63ffcf4 3-4,6-14,16-17,19,45,47-49,51-55,57-60,65,68,72-73,77,85-87,89,92-94,96-99,102,104-107,109,112,114-117,127-142,145-160,162-182,185,230-233,236-247,249-252,254-264,267-268,270-275,277-278,280-290,301,322,365-367,370-388,390-393,395-397,400-408,551-627
+apps/dashboard/src/lib/hooks/use-update-site-settings.ts
+  s_765823703efdf7::t_2934ac9a81c7ff 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "987bd70254bf29276d6b92c1566756bad7cce388",
+  "prompts": {},
+  "sessions": {
+    "s_765823703efdf7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8128f511-0190-4f7f-b3fd-3c8a93bc66aa",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
