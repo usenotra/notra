@@ -59,7 +59,7 @@ export function summarizeContender(
   const cost = aggregateCosts(attempted);
   const judgeCosts = attempted.flatMap<Partial<EvalCost>>((task) => {
     const score = task.score;
-    if (task.status === "error" && !score) {
+    if (task.called && task.status === "error" && !score) {
       return [{ costSource: "unknown" as const }];
     }
     return score?.judgeCostSource !== undefined ||

@@ -119,16 +119,74 @@ describe("OpenRouter cost metadata", () => {
     expect(metadata.isByok).toBeUndefined();
   });
 
-  test("missing upstream details remain unknown, including for zero cost", () => {
-    const metadata = adapter.extractRouteMetadata({
-      openrouter: { usage: { cost: 0 } },
-    });
-    expect(metadata.costUsd).toBe(0);
-    expect(metadata.gatewayCostUsd).toBe(0);
-    expect(metadata.costSource).toBe("reported");
-    expect(metadata.upstreamInferenceCostUsd).toBeUndefined();
-    expect(metadata.isByok).toBeUndefined();
-  });
+  test.each([
+    { cost: 0.02 },
+    { cost: 0.02, costDetails: null },
+    { cost: 0 },
+    { cost: 0, costDetails: null },
+  ])(
+    "missing/null upstream details do not establish a full total: %j",
+    (usage) => {
+      const metadata = adapter.extractRouteMetadata({ openrouter: { usage } });
+      expect(metadata.gatewayCostUsd).toBe(usage.cost);
+      expect(metadata.costUsd).toBeUndefined();
+      expect(metadata.costSource).toBeUndefined();
+      expect(metadata.upstreamInferenceCostUsd).toBeUndefined();
+      expect(metadata.isByok).toBeUndefined();
+    }
+  );
+
+  test.each([
+    { upstream: undefined, expected: undefined },
+    { upstream: null, expected: undefined },
+    { upstream: { upstream_inference_cost: null }, expected: undefined },
+    { upstream: { upstream_inference_cost: 0 }, expected: 0.02 },
+    { upstream: { upstream_inference_cost: 0.4 }, expected: 0.02 + 0.4 },
+  ])(
+    "keeps installed SDK missing/null/zero/BYOK semantics: %j",
+    async (fixture) => {
+      const sdkAdapter = createOpenRouterAdapter({
+        apiKey: "test-key",
+        fetch: async () =>
+          Response.json({
+            id: "gen_test",
+            model: "openai/gpt-5.4-mini",
+            provider: "openai",
+            choices: [
+              {
+                index: 0,
+                message: { role: "assistant", content: "OK" },
+                finish_reason: "stop",
+              },
+            ],
+            usage: {
+              prompt_tokens: 1,
+              completion_tokens: 1,
+              total_tokens: 2,
+              cost: 0.02,
+              ...(fixture.upstream === undefined
+                ? {}
+                : { cost_details: fixture.upstream }),
+            },
+          }),
+      });
+      const result = await sdkAdapter
+        .createModel("openai/gpt-5.4-mini")
+        .doGenerate({
+          prompt: [{ role: "user", content: [{ type: "text", text: "test" }] }],
+        });
+      const metadata = sdkAdapter.extractRouteMetadata(result.providerMetadata);
+      expect(metadata.gatewayCostUsd).toBe(0.02);
+      expect(metadata.costUsd).toBe(fixture.expected);
+      expect(metadata.costSource).toBe(
+        fixture.expected === undefined ? undefined : "reported"
+      );
+      expect(metadata.upstreamInferenceCostUsd).toBe(
+        fixture.upstream?.upstream_inference_cost ?? undefined
+      );
+      expect(metadata.isByok).toBeUndefined();
+    }
+  );
 
   test.each([-1, Number.NaN, Number.POSITIVE_INFINITY, "0.02", null])(
     "rejects invalid gateway and upstream costs: %j",

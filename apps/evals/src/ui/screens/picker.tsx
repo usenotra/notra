@@ -190,7 +190,13 @@ function PlanTable({
   );
 }
 
-function ModelTable({ pick, width }: { pick: SuitePick; width: number }) {
+export function ModelTable({
+  pick,
+  width,
+}: {
+  pick: SuitePick;
+  width: number;
+}) {
   const labelWidth = Math.max(14, Math.min(24, width - 92));
   const noteWidth = Math.max(10, width - labelWidth - 72);
   return (
@@ -226,7 +232,7 @@ function ModelTable({ pick, width }: { pick: SuitePick; width: number }) {
         if (isProd) {
           note = note ? `prod, ${note}` : "prod";
         }
-        note = note ? `${note}, ${item.costSource}` : item.costSource;
+        note = note ? `${item.costSource}, ${note}` : item.costSource;
         return (
           <text key={item.modelId}>
             <span fg={seriesColor(series)}>{"● "}</span>

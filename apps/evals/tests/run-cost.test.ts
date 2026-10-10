@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { Children, isValidElement } from "react";
 
 import type { AnySuite, EvalRun } from "../src/types/eval";
+import { ModelTable } from "../src/ui/screens/picker";
 import { CasesTab } from "../src/ui/screens/results/cases";
 import {
   collectEvidence,
@@ -123,22 +124,38 @@ describe("source → runner → persisted JSON → picker/stats → case text", 
         expect(summary.costUsd).toBeCloseTo(fixture.candidate ?? 0, 12);
         expect(totalRunCost([summary])).toBeCloseTo(fixture.candidate ?? 0, 12);
       }
-      const text = renderedText(
-        CasesTab({
-          run: saved,
-          suite,
-          caseIndex: 0,
-          contenderIndex: 0,
-          detailScroll: 0,
-          height: 40,
-          width: 200,
-        })
-      );
-      expect(text).toContain(`${formatUsd(task.costUsd)} (${fixture.source})`);
-      if (fixture.source === "unknown") {
-        expect(text).toContain("total unknown");
-        expect(text).not.toContain("· $0 ");
+      for (const width of [200, 100]) {
+        const text = renderedText(
+          CasesTab({
+            run: saved,
+            suite,
+            caseIndex: 0,
+            contenderIndex: 0,
+            detailScroll: 0,
+            height: 40,
+            width,
+          })
+        );
+        expect(text).toContain(
+          `${formatUsd(task.costUsd)} (${fixture.source})`
+        );
+        if (fixture.source === "unknown") {
+          expect(text).not.toContain("known subtotal: $0;");
+          if (fixture.reported > 0) {
+            expect(text).toContain(
+              `known subtotal: ${formatUsd(fixture.reported)}`
+            );
+            expect(text).toContain("total unknown");
+          } else {
+            expect(text).not.toContain("known subtotal:");
+            expect(text).not.toContain("$0");
+          }
+        }
       }
+      // At this width the note column is only 10 cells; long reasons truncate.
+      expect(renderedText(ModelTable({ pick, width: 96 }))).toContain(
+        fixture.source
+      );
       task.status = "error";
       task.error = "Scoring failed: offline fixture";
       const retried = await startRun({
@@ -192,4 +209,70 @@ describe("source → runner → persisted JSON → picker/stats → case text", 
     expect(formatUsd(totalRunCost(summaries))).toBe("–");
     expect(collectEvidence([run], "judge", false)[0]?.costKnown).toBe(true);
   });
+
+  test.each(["generation", "scoring"] as const)(
+    "%s failure distinguishes an uncalled judge from unknown judge spend",
+    async (stage) => {
+      const contender = {
+        key: "failure",
+        modelId: "priced",
+        kind: "llm" as const,
+        label: "Failure",
+      };
+      const usage = { ...COST_USAGE, cachedInputTokens: 0 };
+      let scoreCalls = 0;
+      const suite: AnySuite = {
+        id: "failure-fixture",
+        name: "Failure fixture",
+        kind: "generation",
+        stage: "offline",
+        description: "Offline failure accounting",
+        cases: [{ id: "case", title: "Fixture", input: {}, expected: "ok" }],
+        defaultContenders: [contender.modelId],
+        productionModel: contender.modelId,
+        timeoutMs: 1000,
+        run: async () => {
+          if (stage === "generation") {
+            throw new Error("Generation failed before scoring");
+          }
+          return {
+            ...(await runCostDetails(contender.modelId, usage, [
+              { providerMetadata: { gateway: { cost: 0.003 } } },
+            ])),
+            usage,
+            output: "ok",
+          };
+        },
+        score: () => {
+          scoreCalls += 1;
+          throw new Error("Judge failed while scoring");
+        },
+        demoOutput: () => "ok",
+      };
+      const run = await startRun({
+        suite,
+        config: {
+          suiteId: suite.id,
+          contenders: [contender],
+          repeats: 1,
+          concurrency: 1,
+          demo: false,
+        },
+      }).done;
+      const task = run.tasks[0];
+      const summary = summarizeRun(run)[0];
+      assert.ok(task && summary);
+      expect(task.status).toBe("error");
+      expect(task.called).toBe(stage === "generation" ? undefined : true);
+      expect(scoreCalls).toBe(stage === "generation" ? 0 : 1);
+      expect(task.score).toBeUndefined();
+      expect(summary.judgeCostUsd).toBe(stage === "generation" ? 0 : undefined);
+      expect(summary.judgeCostSource).toBe(
+        stage === "generation" ? undefined : "unknown"
+      );
+      // A failed generation is still an unknown model bill, not a free call.
+      expect(summary.costUsd).toBe(stage === "generation" ? undefined : 0.003);
+      expect(totalRunCost([summary])).toBeUndefined();
+    }
+  );
 });

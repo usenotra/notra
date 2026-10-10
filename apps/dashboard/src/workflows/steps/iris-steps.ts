@@ -549,7 +549,15 @@ export async function runIrisTask(input: {
       }
 
       if (started.alreadyExisted) {
-        const errorMessage = `A previous attempt of this action is recorded as ${started.action.status}, so it was not run again`;
+        const errorMessage =
+          started.action.status === "failed" &&
+          typeof started.action.error === "object" &&
+          started.action.error !== null &&
+          "message" in started.action.error &&
+          typeof started.action.error.message === "string" &&
+          started.action.error.message.length > 0
+            ? started.action.error.message
+            : `A previous attempt of this action is recorded as ${started.action.status}, so it was not run again`;
         if (started.action.status === "executing") {
           yield* finishAction({
             actionId: started.action.id,

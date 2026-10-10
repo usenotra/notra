@@ -1,4 +1,10 @@
-import { IMAGE_GEN_MODEL_ID } from "@notra/ai/constants/repo-image";
+import { setTimeout as delay } from "node:timers/promises";
+
+import {
+  IMAGE_GEN_MODEL_ID,
+  RUN_CANCEL_CONFIRMATION_ATTEMPTS,
+  RUN_CANCEL_CONFIRMATION_INTERVAL_MS,
+} from "@notra/ai/constants/repo-image";
 import type { DiagramSpec } from "@notra/ai/types/excalidraw-diagram";
 import type {
   GenerateRepoImageInput,
@@ -105,9 +111,23 @@ async function streamAgent(
         // Run.cancel() swallows HTTP failures and sets only a local status.
         // Confirm this exact run stopped through the supported backend API.
         await stream.cancel();
-        const run = (await box.listRuns()).find(
+        let run = (await box.listRuns()).find(
           (candidate) => candidate.id === stream.id
         );
+        for (
+          let attempt = 1;
+          attempt < RUN_CANCEL_CONFIRMATION_ATTEMPTS &&
+          (!run ||
+            (run.status !== "cancelled" &&
+              run.status !== "completed" &&
+              run.status !== "failed"));
+          attempt++
+        ) {
+          await delay(RUN_CANCEL_CONFIRMATION_INTERVAL_MS);
+          run = (await box.listRuns()).find(
+            (candidate) => candidate.id === stream.id
+          );
+        }
         if (
           !run ||
           (run.status !== "cancelled" &&
@@ -116,7 +136,14 @@ async function streamAgent(
         ) {
           throw new Error("Backend run is not confirmed terminal");
         }
-        if (reportedCost === undefined && run.status === "completed") {
+        if (
+          reportedCost === undefined &&
+          (run.status === "completed" ||
+            run.input_tokens > 0 ||
+            run.output_tokens > 0 ||
+            (run.cached_input_tokens ?? 0) > 0 ||
+            run.cost_usd > 0)
+        ) {
           reportedCost = {
             inputTokens: run.input_tokens,
             outputTokens: run.output_tokens,

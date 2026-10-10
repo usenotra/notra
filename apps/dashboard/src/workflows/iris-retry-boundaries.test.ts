@@ -58,6 +58,7 @@ async function fixture(revision?: string) {
   const writes: unknown[] = [];
   const finalizations: unknown[] = [];
   const actionKeys: string[] = [];
+  const taskWrites: unknown[] = [];
   const boundaries: string[] = [];
   const state = {
     persistenceFailures: 0,
@@ -65,6 +66,7 @@ async function fixture(revision?: string) {
     checkpointFailures: 0,
     status: "executing" as AutonomyActionStatus,
     alreadyExisted: true,
+    error: undefined as unknown,
     executionFails: false,
     plannerFails: false,
     plannerThrows: false,
@@ -158,18 +160,31 @@ async function fixture(revision?: string) {
           action: {
             id: "action-fixture",
             status: state.status,
+            error: state.error,
             externalRef: { artifacts: [artifact] },
           },
         });
       },
-      finishAction: ({ status }: { status: AutonomyActionStatus }) => {
+      finishAction: ({
+        status,
+        error,
+      }: Parameters<
+        typeof import("@notra/ai/autonomy/run-store").finishAction
+      >[0]) => {
         state.status = status;
+        state.error = error;
         return Effect.void;
       },
-      markTask: ({ status }: { status: string }) => {
+      markTask: (
+        input: Parameters<
+          typeof import("@notra/ai/autonomy/run-store").markTask
+        >[0]
+      ) => {
+        const { status } = input;
         if (status !== "running" && state.terminalWriteFailures-- > 0) {
           return Effect.fail(new Error("fixture task write failure"));
         }
+        taskWrites.push(input);
         return Effect.void;
       },
       appendCheckpoint: () =>
@@ -293,6 +308,7 @@ async function fixture(revision?: string) {
     writes,
     finalizations,
     actionKeys,
+    taskWrites,
     boundaries,
     state,
     steps: proxies.result.namespace as typeof import("./steps/iris-steps"),
@@ -434,10 +450,32 @@ test("an execution that failed is not repeated when its terminal write fails", a
   run.state.alreadyExisted = false;
   run.state.executionFails = true;
   run.state.terminalWriteFailures = 1;
-  expect((await run.steps.runIrisTask(taskInput)).status).toBe("failed");
+  expect(await run.steps.runIrisTask(taskInput)).toMatchObject({
+    status: "failed",
+    errorMessage: "fixture execution failed",
+  });
   expect(run.counts.execution).toBe(1);
   expect(run.state.status).toBe("failed");
+  expect(run.taskWrites.at(-1)).toMatchObject({
+    errorMessage: "fixture execution failed",
+  });
 });
+
+test.each([null, {}, { message: 42 }, { message: "" }])(
+  "an existing failed action with unusable error %j retains a diagnostic fallback",
+  async (error) => {
+    const run = await fixture();
+    run.state.status = "failed";
+    run.state.error = error;
+    const expected =
+      "A previous attempt of this action is recorded as failed, so it was not run again";
+    expect(await run.steps.runIrisTask(taskInput)).toMatchObject({
+      errorMessage: expected,
+    });
+    expect(run.taskWrites.at(-1)).toMatchObject({ errorMessage: expected });
+    expect(run.counts.execution).toBe(0);
+  }
+);
 
 test("successful action artifacts are reused after a reporting failure", async () => {
   const run = await fixture();

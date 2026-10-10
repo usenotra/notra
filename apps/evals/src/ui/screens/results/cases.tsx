@@ -73,14 +73,15 @@ export function CasesTab({
   }
   for (const task of caseTasks) {
     const cost = aggregateCosts([task]);
+    const knownSubtotal = cost.reportedCostUsd + cost.estimatedCostUsd;
     detailLines.push({ text: "", color: theme.text });
     detailLines.push({
       text: `run #${task.repeat + 1} · ${task.status} · ${formatMs(task.durationMs ?? 0)} · ${formatUsd(cost.costUsd)} (${cost.costSource}) · score ${task.score ? formatPct(task.score.score) : "–"}`,
       color: task.status === "error" ? theme.bad : theme.accent,
     });
-    if (cost.costSource === "unknown") {
+    if (cost.costSource === "unknown" && knownSubtotal > 0) {
       detailLines.push({
-        text: `known subtotal: ${formatUsd(cost.reportedCostUsd + cost.estimatedCostUsd)}; total unknown`,
+        text: `known subtotal: ${formatUsd(knownSubtotal)}; total unknown`,
         color: theme.muted,
       });
     }

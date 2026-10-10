@@ -114,10 +114,9 @@ export function createOpenRouterAdapter(
         usage.costDetails && typeof usage.costDetails === "object"
           ? (usage.costDetails as Record<string, unknown>)
           : undefined;
-      const upstreamCost =
-        usage.costDetails === undefined
-          ? 0
-          : readNumber(costDetails?.upstreamInferenceCost);
+      // SDK usage.cost is the OpenRouter credit charge, not BYOK passthrough.
+      // Missing/null details do not establish that upstream inference was free.
+      const upstreamCost = readNumber(costDetails?.upstreamInferenceCost);
       const costUsd =
         gatewayCost !== undefined &&
         gatewayCost >= 0 &&

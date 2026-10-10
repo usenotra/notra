@@ -328,8 +328,9 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
   // Exercise the actual SDK stream parser, Run.cancel(), and Box.listRuns().
   // Only HTTP responses are replaced; no private SDK methods are called.
   const realSdkFixture = (
-    status: "running" | "cancelled" | "completed",
-    cancelStatus = 200
+    status: "running" | "cancelled" | "completed" | "failed",
+    cancelStatus = 200,
+    reportedUsage = status === "completed"
   ) => {
     const requests: string[] = [];
     const box = new Box(
@@ -384,9 +385,9 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
                 customer_id: "fixture",
                 type: "agent",
                 status,
-                input_tokens: status === "completed" ? 700 : 0,
-                output_tokens: status === "completed" ? 80 : 0,
-                cost_usd: status === "completed" ? 0.01 : 0,
+                input_tokens: reportedUsage ? 700 : 0,
+                output_tokens: reportedUsage ? 80 : 0,
+                cost_usd: reportedUsage ? 0.01 : 0,
                 duration_ms: 100,
                 created_at: 0,
               },
@@ -795,7 +796,7 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
       if (outcome === "unreadable") {
         fixture.listRuns.mockRejectedValueOnce(new Error("Status unavailable"));
       } else {
-        fixture.listRuns.mockResolvedValueOnce(
+        fixture.listRuns.mockResolvedValue(
           outcome === "missing"
             ? []
             : [
@@ -840,7 +841,9 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
     expect(fixture.requests).toEqual([
       "POST https://fixture.invalid/v2/box/fixture-box/run/stream",
       "POST https://fixture.invalid/v2/box/fixture-box/runs/backend-run/cancel",
-      "GET https://fixture.invalid/v2/box/fixture-box/runs",
+      ...new Array(5).fill(
+        "GET https://fixture.invalid/v2/box/fixture-box/runs"
+      ),
     ]);
     expect(session.usage).toBeUndefined();
   });
@@ -855,6 +858,70 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
       allowTimeout: true,
     });
     expect(session.usage).toMatchObject({ totalTokens: 780, totalUsd: 0.01 });
+  });
+
+  test.each(["missing", "running", "different-run"])(
+    "image briefly %s backend record waits for the exact run before recovery",
+    async (outcome) => {
+      const fixture = imageFixture(
+        new Error("Stream timed out"),
+        undefined,
+        false
+      );
+      fixture.listRuns.mockResolvedValueOnce(
+        outcome === "missing"
+          ? []
+          : [
+              {
+                id:
+                  outcome === "different-run"
+                    ? "another-run"
+                    : fixture.stream.id,
+                status: outcome === "running" ? "running" : "completed",
+              },
+            ]
+      );
+      const session = image.createAgentSession(fixture.box);
+      await session.run({
+        prompt: "Initial",
+        timeout: 100,
+        label: "initial",
+        allowTimeout: true,
+      });
+      expect(fixture.listRuns).toHaveBeenCalledTimes(2);
+      expect(fixture.box.agent.stream).toHaveBeenCalledTimes(1);
+      expect(session.usage).toBeUndefined();
+    }
+  );
+
+  test.each(["cancelled", "failed"] as const)(
+    "real SDK timed-out %s run retains persisted usage without a done event",
+    async (status) => {
+      const fixture = realSdkFixture(status, 200, true);
+      const session = image.createAgentSession(fixture.box);
+      await session.run({
+        prompt: "Initial",
+        timeout: 100,
+        label: "initial",
+        allowTimeout: true,
+      });
+      expect(session.usage).toMatchObject({ totalTokens: 780, totalUsd: 0.01 });
+      expect(
+        fixture.requests.filter((request) => request.endsWith("/run/stream"))
+      ).toHaveLength(1);
+    }
+  );
+
+  test("real SDK failed run with no persisted usage remains unknown", async () => {
+    const fixture = realSdkFixture("failed");
+    const session = image.createAgentSession(fixture.box);
+    await session.run({
+      prompt: "Initial",
+      timeout: 100,
+      label: "initial",
+      allowTimeout: true,
+    });
+    expect(session.usage).toBeUndefined();
   });
 
   test("real SDK pre-done timeout with rendered output and confirmed cancellation creates no minimum image bill", async () => {

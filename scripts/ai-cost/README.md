@@ -45,12 +45,26 @@ agent/eval package processes completed successfully. Use separate processes
 when reproducing the broad regression suite on that runtime; the benchmark
 already isolates its revision workers. No runtime upgrade is included here.
 
-Final separate-process regression runs: AI 277, GEO 170 (one skipped),
+Initial separate-process regression runs: AI 277, GEO 170 (one skipped),
 agent/eval 49 (one opt-in benchmark skipped), dashboard 368, API 54: **918
 passing tests**. Seven affected package typechecks, repository lint/format,
 Knip, and the dashboard production build passed. Existing repository lint and
 bundler warnings remain; no production credentials or paid inference were
 used in these tests.
+
+Follow-up review fixes do not replace the clean-revision snapshot above. A
+local dirty-checkout rerun reproduced both revisions' complete harness
+measurements unchanged; Iris's opt-in historical comparison also remains
+4→1 planner calls, 4→4 persistence attempts, and 1→0 ambiguous/failed action
+re-executions. These checks are not new live-spend measurements.
+
+Follow-up validation: AI 288, GEO 170 (one skipped), agent 52, eval 23,
+dashboard 372, API 54: **959 passing tests** in separate package processes.
+The image-agent fixture additionally runs 33 checks in its isolated child.
+The agent suite includes 24 actual Redis Unix-socket cases covering concurrent
+settlement/accumulation, replay, corrupted keys/fields, numeric overflow and
+invalid arguments. These prove tested Redis ordering and preflight behavior,
+not exactly-once remote billing or rollback on arbitrary server failures.
 
 ## Production-boundary comparison
 
@@ -119,9 +133,13 @@ persistence failed. Existing unknown/failed actions require explicit recovery.
 Image timeouts await cancellation and confirm the exact run's terminal status
 through the public backend run list before allowing recovery. A resolved SDK
 `cancel()` alone is not confirmation: it can swallow HTTP failures. Unconfirmed
-outcomes fail closed instead of starting duplicate inference. Usage is retained
-only after a finish event or a confirmed completed backend result; initialized
-zero counters before completion remain unknown and cannot create a minimum bill.
+outcomes fail closed instead of starting duplicate inference. Briefly missing or
+running exact-run records are checked up to five times, 250 ms apart, before
+failing closed. Usage is retained after a finish event, a confirmed completed
+backend result, or persisted nonzero usage on cancelled/failed terminal runs;
+initialized all-zero unfinished-run counters remain unknown and cannot create
+a minimum bill. A failed Iris action's original stored error remains visible
+when a reporting retry skips execution.
 
 Chat repair and reference regression fixtures are also reproducible:
 
@@ -162,12 +180,26 @@ Flex is never taken as proof of the served tier or discounted a second time.
 Eval market benchmarks are not actual spend; unknown/partial costs cannot win
 the model picker as apparently free runs.
 
+Review hardening also preserves component costs when the full total is unknown.
+OpenRouter's credit charge is not a complete BYOK bill without explicit upstream
+details. Missing/null upstream cost now retains the known gateway component and
+uses the existing full-call estimate instead of claiming a reported total; the
+component is not added again to that estimate. Explicit upstream zero and known
+gateway-plus-upstream totals remain valid. Unknown eval runs no longer show an
+invented zero subtotal, provenance stays visible in narrow picker columns, and
+a failure before scoring is distinguished from unknown attempted-judge spend.
+
 Completed call/cost events survive request-log closure, and logging sink errors
 cannot retry successful inference or discard known costs. Code research uses
 its enriched step cost instead of discarding it. Search Console suggestions
 now propagate the tenant organization into routing and attribution.
 
-Eve usage deduplication, increments, and TTLs use one Redis Lua operation.
+Eve usage deduplication, bucket replacement, and TTLs use one Redis Lua operation.
+The script preflights key types, safe integers, sums and TTLs before writing,
+then replaces all buckets with one `HSET` before recording the marker.
+Settlement reads the renamed frozen hash; a racing later step's separate
+accumulator is retained without expiry and flagged for manual reconciliation,
+not silently deleted or automatically charged again.
 Completed steps also settle on failed/cancelled turns; successful billing is
 independent of telemetry success. Billing outcomes that may have succeeded
 remotely retain evidence and are **not automatically retried** without verified

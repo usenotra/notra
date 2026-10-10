@@ -124,8 +124,8 @@ describe("route cost provenance", () => {
       expect(summary.reportedCostUsd).toBe(0);
       expect(summary.estimatedCostUsd).toBe(0.525);
       expect(summary.costSource).toBe("estimated");
-      expect(summary.gatewayCostUsd).toBeUndefined();
-      expect(summary.upstreamInferenceCostUsd).toBeUndefined();
+      expect(summary.gatewayCostUsd).toBe(0.02);
+      expect(summary.upstreamInferenceCostUsd).toBe(0.4);
     }
   );
 
@@ -141,6 +141,48 @@ describe("route cost provenance", () => {
     expect(summary.costSource).toBe("reported");
     expect(summary.gatewayCostUsd).toBeUndefined();
     expect(summary.upstreamInferenceCostUsd).toBeUndefined();
+  });
+
+  test.each([true, false])(
+    "retains partial reported components without adding them to an estimate (usage=%j)",
+    async (withUsage) => {
+      const route = {
+        ...estimatedRoute,
+        gateway: "openrouter" as const,
+        gatewayCostUsd: 0.02,
+      };
+      const summary = await summarizeRouteUsage([
+        {
+          providerMetadata: { [ROUTER_METADATA_KEY]: route },
+          ...(withUsage ? { usage } : {}),
+        },
+      ]);
+      expect(summary.gatewayCostUsd).toBe(0.02);
+      expect(summary.upstreamInferenceCostUsd).toBeUndefined();
+      expect(summary.tokenCostUsd).toBe(withUsage ? 0.525 : undefined);
+      expect(summary.estimatedCostUsd).toBe(withUsage ? 0.525 : undefined);
+      expect(summary.reportedCostUsd).toBe(withUsage ? 0 : undefined);
+      expect(summary.costSource).toBe(withUsage ? "estimated" : undefined);
+      expect(routeUsageProperties(summary).gateway_cost_usd).toBe(0.02);
+    }
+  );
+
+  test("retains an upstream-only reported component without claiming a full total", async () => {
+    const summary = await summarizeRouteUsage([
+      {
+        providerMetadata: {
+          [ROUTER_METADATA_KEY]: {
+            ...estimatedRoute,
+            upstreamInferenceCostUsd: 0.4,
+          },
+        },
+        usage,
+      },
+    ]);
+    expect(summary.upstreamInferenceCostUsd).toBe(0.4);
+    expect(summary.gatewayCostUsd).toBeUndefined();
+    expect(summary.tokenCostUsd).toBe(0.525);
+    expect(summary.costSource).toBe("estimated");
   });
 
   test("component subtotals stay partial when another reported step lacks a breakdown", async () => {

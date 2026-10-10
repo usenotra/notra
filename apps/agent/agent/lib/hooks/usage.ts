@@ -157,10 +157,8 @@ export function createUsageHook(
         });
         return;
       }
-      const accumulated = await redis.hgetall<Record<string, string>>(key);
-      if (!accumulated) {
+      if (!(await redis.exists(key))) {
         await redis.del(billedKey);
-        claimed = false;
         return;
       }
       await redis.rename(key, billingKey);
@@ -170,6 +168,13 @@ export function createUsageHook(
       // A durable reconciliation path remains outside this change; neither
       // this claim nor the pending record guarantees exactly-once billing.
       await redis.persist(billingKey);
+      // Read the frozen hash, not a live snapshot from before RENAME. EVAL
+      // ordered before RENAME is included; later EVAL retains a separate key.
+      const accumulated =
+        await redis.hgetall<Record<string, string>>(billingKey);
+      if (!accumulated) {
+        throw new Error("Frozen usage billing record is missing");
+      }
       trackingStarted = true;
       await trackUsage(
         resolveModelId(event.data.turnId),
@@ -274,9 +279,14 @@ export function createUsageHook(
 
           const stepKey = `agent:usage:step:${ctx.session.id}:${event.data.turnId}:${event.data.stepIndex}`;
           const key = accumulatorKey(ctx.session.id, event.data.turnId);
-          await redis.eval(
+          const accumulated = await redis.eval<number[], number>(
             ACCUMULATE_USAGE_SCRIPT,
-            [stepKey, key],
+            [
+              stepKey,
+              key,
+              `${key}:billing`,
+              `agent:usage:billed:${ctx.session.id}:${event.data.turnId}`,
+            ],
             [
               stepUsage.inputTokens,
               stepUsage.outputTokens,
@@ -286,6 +296,19 @@ export function createUsageHook(
               USAGE_KEY_TTL_SECONDS,
             ]
           );
+          if (accumulated === 2) {
+            logError(
+              "[agent] Usage billing reconciliation required",
+              undefined,
+              {
+                sessionId: ctx.session.id,
+                turnId: event.data.turnId,
+                billingKey: key,
+                reason: "usage_during_or_after_settlement",
+                automaticRetry: false,
+              }
+            );
+          }
         } catch (error) {
           logError("[agent] Usage accumulation failed", error, {
             sessionId: ctx.session.id,

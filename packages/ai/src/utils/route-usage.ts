@@ -62,6 +62,21 @@ export async function summarizeRouteUsage(
         maxPromptTokens = Math.max(maxPromptTokens, promptTokensOf(usage));
       }
       if (
+        typeof stepRoute?.gatewayCostUsd === "number" &&
+        Number.isFinite(stepRoute.gatewayCostUsd) &&
+        stepRoute.gatewayCostUsd >= 0
+      ) {
+        gatewayCostUsd = (gatewayCostUsd ?? 0) + stepRoute.gatewayCostUsd;
+      }
+      if (
+        typeof stepRoute?.upstreamInferenceCostUsd === "number" &&
+        Number.isFinite(stepRoute.upstreamInferenceCostUsd) &&
+        stepRoute.upstreamInferenceCostUsd >= 0
+      ) {
+        upstreamInferenceCostUsd =
+          (upstreamInferenceCostUsd ?? 0) + stepRoute.upstreamInferenceCostUsd;
+      }
+      if (
         typeof stepRoute?.costUsd === "number" &&
         Number.isFinite(stepRoute.costUsd) &&
         stepRoute.costUsd >= 0
@@ -69,22 +84,6 @@ export async function summarizeRouteUsage(
         tokenCostUsd += stepRoute.costUsd;
         reportedCostUsd += stepRoute.costUsd;
         reportedSteps += 1;
-        if (
-          typeof stepRoute.gatewayCostUsd === "number" &&
-          Number.isFinite(stepRoute.gatewayCostUsd) &&
-          stepRoute.gatewayCostUsd >= 0
-        ) {
-          gatewayCostUsd = (gatewayCostUsd ?? 0) + stepRoute.gatewayCostUsd;
-        }
-        if (
-          typeof stepRoute.upstreamInferenceCostUsd === "number" &&
-          Number.isFinite(stepRoute.upstreamInferenceCostUsd) &&
-          stepRoute.upstreamInferenceCostUsd >= 0
-        ) {
-          upstreamInferenceCostUsd =
-            (upstreamInferenceCostUsd ?? 0) +
-            stepRoute.upstreamInferenceCostUsd;
-        }
       } else if (usage) {
         const serviceTier =
           step.providerMetadata?.gateway?.serviceTier ??
@@ -104,8 +103,14 @@ export async function summarizeRouteUsage(
     }
   }
 
+  const reportedComponents = {
+    ...(gatewayCostUsd === undefined ? {} : { gatewayCostUsd }),
+    ...(upstreamInferenceCostUsd === undefined
+      ? {}
+      : { upstreamInferenceCostUsd }),
+  };
   if (reportedSteps === 0 && estimatedSteps === 0) {
-    return { route };
+    return { route, ...reportedComponents };
   }
 
   let costSource: RouteUsageSummary["costSource"] =
@@ -123,10 +128,7 @@ export async function summarizeRouteUsage(
     estimatedCostUsd,
     reportedSteps,
     estimatedSteps,
-    ...(gatewayCostUsd === undefined ? {} : { gatewayCostUsd }),
-    ...(upstreamInferenceCostUsd === undefined
-      ? {}
-      : { upstreamInferenceCostUsd }),
+    ...reportedComponents,
   };
 }
 
