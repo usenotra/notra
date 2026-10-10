@@ -30,11 +30,27 @@ The baseline-versus-baseline control must produce identical measurements.
 Mock elapsed times and `bytes / 4` are deliberately not presented as latency
 or token benchmarks.
 
+The committed [`results.json`](./results.json) records clean baseline
+`74c26b09991614b88f8411837936b7af736afabd` and clean implementation
+`a58d7ea429b9821fb1a2b4c637193559a6be192b`. The following documentation-only
+commit adds this snapshot; implementation code is unchanged.
+
+- Fixture SHA-256: `18414db7023984c5e5a8dcf00d236763d32c31ca0f95ff8278acfc654d62e3cf`
+- Harness SHA-256: `55e088200fc08a0adac36f5d07963c9d069eb08adcc549439e43b7e42f67f289`
+- Baseline-versus-baseline control: identical complete revision results.
+
 One combined multi-workspace `bun test --isolate` invocation on Bun 1.4.2
 terminated with a runtime segmentation fault. Separate AI, GEO, and
 agent/eval package processes completed successfully. Use separate processes
 when reproducing the broad regression suite on that runtime; the benchmark
 already isolates its revision workers. No runtime upgrade is included here.
+
+Final separate-process regression runs: AI 277, GEO 170 (one skipped),
+agent/eval 49 (one opt-in benchmark skipped), dashboard 368, API 54: **918
+passing tests**. Seven affected package typechecks, repository lint/format,
+Knip, and the dashboard production build passed. Existing repository lint and
+bundler warnings remain; no production credentials or paid inference were
+used in these tests.
 
 ## Production-boundary comparison
 
