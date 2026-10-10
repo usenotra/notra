@@ -21,6 +21,7 @@ import type { RepoImageBox } from "./repo-image-agent";
 // Module mocks must never leak into other suites. This also makes the fixture
 // runnable with ordinary `bun test`, without relying on --isolate.
 if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
+  // The child suite exercises several real cancellation-confirmation waits.
   test("agent cost regressions use isolated, offline production agents", () => {
     const result = spawnSync(
       process.execPath,
@@ -33,7 +34,7 @@ if (process.env.NOTRA_AGENT_COST_TEST_CHILD !== "1") {
       console.log(result.stdout.toString().trim());
     }
     expect(result.status, result.stderr.toString()).toBe(0);
-  });
+  }, 30_000);
 } else {
   setSystemTime(new Date("2026-10-10T12:00:00.000Z"));
   // Any accidental external request is a test failure, even with local keys set.
