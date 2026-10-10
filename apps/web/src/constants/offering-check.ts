@@ -313,7 +313,7 @@ export const OFFERING_HIGHLIGHT_CLASSES = [
 
 // Report copy while the check runs.
 export const OFFERING_PENDING_HERO_BODY =
-  "Searching the web now. You are watching the answer come in.";
+  "Asking the model now. You are watching the answer come in.";
 
 /** Which form field a notice belongs to; the rest show below the form. */
 export const OFFERING_NOTICE_FIELD: Partial<

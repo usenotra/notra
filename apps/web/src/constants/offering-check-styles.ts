@@ -18,7 +18,7 @@ export const OFFERING_BODY_CLASS =
   "font-sans text-[0.9375rem]/6 text-pretty text-[#1E1E1EBF] dark:text-white/70";
 
 export const OFFERING_BACK_LINK_CLASS =
-  "font-sans text-[0.9375rem]/6 font-medium text-[#8B5CF6] hover:underline dark:text-[#A78BFA]";
+  "font-sans text-[0.9375rem]/6 font-medium text-[#7C3AED] hover:underline dark:text-[#A78BFA]";
 
 export const OFFERING_SECTION_TITLE_CLASS =
   "font-display text-[1.625rem]/8 font-medium tracking-[-0.02em] text-[#1E1E1E] dark:text-white";
