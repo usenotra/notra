@@ -1,0 +1,452 @@
+{
+  "uid": "notra-overview",
+  "title": "Notra · Production overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": { "from": "now-7d", "to": "now" },
+  "tags": ["notra", "operations"],
+  "links": [
+    {
+      "title": "Usage accounting",
+      "type": "link",
+      "url": "/d/notra-accounting",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "custom",
+        "query": "production,preview,development,validation",
+        "current": { "text": "production", "value": "production" }
+      },
+      {
+        "name": "organization",
+        "label": "Customer ID (advanced filter)",
+        "type": "textbox",
+        "query": ".*",
+        "current": { "text": ".*", "value": ".*" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Production status",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 2 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Are the public services reachable?** The first row is live, checked from US East. The second row is real imported history, not live request counters. Missing data is not zero."
+      }
+    },
+    {
+      "id": 2,
+      "title": "Public services · reachable now",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 2, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "Unreachable", "color": "red" },
+                "1": { "text": "Online", "color": "green" }
+              }
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "probe_success{job=\"http-probes\"}",
+          "instant": true,
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Latest response time · US East probe",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 2, "w": 6, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0 } },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "probe_duration_seconds{job=\"http-probes\"}",
+          "instant": true,
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "TLS certificate days remaining",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 2, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "d", "decimals": 0 } },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(probe_ssl_earliest_cert_expiry{job=\"http-probes\"} - time()) / 86400",
+          "instant": true,
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Monitoring services · collecting now",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 2, "w": 6, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "Not reachable", "color": "red" },
+                "1": { "text": "Collecting", "color": "green" }
+              }
+            }
+          ]
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "textMode": "value_and_name",
+        "graphMode": "none"
+      },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job!~\"http-probes|vercel\"}",
+          "instant": true,
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "title": "What this history covers",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 5 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Frozen snapshot: 3–10 October 2026, ending 11:35 UTC. Not a live sync.** API/AI/ingest cards count whole daily Axiom buckets; narrowing the time picker does not produce exact sub-day totals. The first and last days are partial. Those cards are team-wide, unaffected by the customer filter. GEO scan history uses original timestamps and honors that filter. Scan totals are not added to checks. Missing costs remain unknown. [Usage and coverage](/d/notra-accounting) · [API and MCP](/d/notra-surfaces) · [Vercel connection](/d/notra-vercel)."
+      }
+    },
+    {
+      "id": 101,
+      "title": "API requests · imported history",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (callId) (max_over_time({service_name=~\"notra-history-axiom-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", calls=\"calls\" | event=\"history.api.day\" | unwrap calls | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "Completed AI calls · history",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (callId) (max_over_time({service_name=~\"notra-history-axiom-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", calls=\"calls\" | event=\"history.ai.day\" | unwrap calls | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "title": "AI tokens · imported history",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (callId) (max_over_time({service_name=~\"notra-history-axiom-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", totalTokens=\"totalTokens\" | event=\"history.ai.day\" | unwrap totalTokens | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "title": "GEO scans · database history",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "count(max by (callId) (max_over_time({service_name=~\"notra-history-database-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", organizationId=\"organizationId\", weight=\"weight\" | event=\"history.geo.scan\" | organizationId=~\"${organization:raw}\" | unwrap weight | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "title": "API 5xx responses · history",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (callId) (max_over_time({service_name=~\"notra-history-axiom-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", errors=\"errors\" | event=\"history.api.day\" | unwrap errors | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 106,
+      "title": "Ingest requests · sampled estimate",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (callId) (max_over_time({service_name=~\"notra-history-axiom-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", callId=\"callId\", estimatedRequests=\"estimatedRequests\" | event=\"history.ingest.day\" | unwrap estimatedRequests | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 200,
+      "title": "Live application metrics · deployment required",
+      "type": "row",
+      "collapsed": true,
+      "gridPos": { "x": 0, "y": 15, "w": 24, "h": 1 },
+      "panels": [
+        {
+          "id": 6,
+          "title": "Observed API requests / second",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 16, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (routeId) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,routeId | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{routeId}}"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "API p95 completed-request latency",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 16, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,routeId,durationMs | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | unwrap durationMs | __error__=\"\" [$__auto]) by (routeId)",
+              "legendFormat": "{{routeId}}"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Observed API 5xx / second",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 23, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (routeId) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,routeId,status | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | status >= 500 | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{routeId}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "AI calls / second by model and outcome",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 23, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (model,event) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,model | event=~\"ai.call.(completed|failed|aborted|incomplete)\" | organizationId=~\"${organization:raw}\" | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{model}} · {{event}}"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "title": "AI tokens / second",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 30, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (model) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,model,ai_totalTokens | event=\"ai.call.completed\" | organizationId=~\"${organization:raw}\" | unwrap ai_totalTokens | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{model}}"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "title": "AI p95 time to first chunk",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 30, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "ms" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,model,ai_msToFirstChunk | event=\"ai.call.completed\" | organizationId=~\"${organization:raw}\" | unwrap ai_msToFirstChunk | __error__=\"\" [$__auto]) by (model)",
+              "legendFormat": "{{model}}"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "title": "Traffic ingest / second (sample-weighted estimates)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 37, "w": 24, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (outcome,reason) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,outcome,reason,weight | event=\"geo.ingest\" | organizationId=~\"${organization:raw}\" | unwrap weight | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{outcome}} · {{reason}}"
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "title": "Ingest memory (latest observed samples)",
+          "description": "RSS and heap from geo.ingest.runtime. Latest sample per service, not a replica sum. Unattributed service capacity is independent of the organization filter. Missing samples are not zero.",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 44, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", rssBytes=\"rssBytes\" | event=\"geo.ingest.runtime\" | unwrap rssBytes | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · RSS"
+            },
+            {
+              "refId": "B",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", heapUsedBytes=\"heapUsedBytes\" | event=\"geo.ingest.runtime\" | unwrap heapUsedBytes | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · heap"
+            }
+          ]
+        },
+        {
+          "id": 20,
+          "title": "Ingest backpressure (latest observed samples)",
+          "description": "Active requests, pending tasks, buffered events and database waiters from geo.ingest.runtime. Latest sample per service, not a replica sum. Independent of the organization filter. Missing samples are not zero.",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 44, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "min": 0, "decimals": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", activeRequests=\"activeRequests\" | event=\"geo.ingest.runtime\" | unwrap activeRequests | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · active requests"
+            },
+            {
+              "refId": "B",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", pendingTasks=\"pendingTasks\" | event=\"geo.ingest.runtime\" | unwrap pendingTasks | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · pending tasks"
+            },
+            {
+              "refId": "C",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", bufferedEvents=\"bufferedEvents\" | event=\"geo.ingest.runtime\" | unwrap bufferedEvents | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · buffered events"
+            },
+            {
+              "refId": "D",
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", databaseWaitingRequests=\"databaseWaitingRequests\" | event=\"geo.ingest.runtime\" | unwrap databaseWaitingRequests | __error__=\"\" [5m]) by (service_name)",
+              "legendFormat": "{{service_name}} · database waiters"
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "title": "Operational events (content-free)",
+          "type": "logs",
+          "gridPos": { "x": 0, "y": 51, "w": 24, "h": 10 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "{service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | organizationId=~\"${organization:raw}\"",
+              "queryType": "range"
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "sortOrder": "Descending",
+            "enableLogDetails": true
+          }
+        }
+      ]
+    }
+  ]
+}

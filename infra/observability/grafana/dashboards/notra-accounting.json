@@ -1,0 +1,188 @@
+{
+  "uid": "notra-accounting",
+  "title": "Notra · Usage and data coverage",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "",
+  "time": { "from": "now-7d", "to": "now" },
+  "tags": ["notra", "accounting"],
+  "links": [
+    {
+      "title": "Operations",
+      "type": "link",
+      "url": "/d/notra-overview",
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "custom",
+        "query": "production,preview,development,validation",
+        "current": { "text": "production", "value": "production" }
+      },
+      {
+        "name": "organization",
+        "label": "Customer ID (advanced filter)",
+        "type": "textbox",
+        "query": ".*",
+        "current": { "text": ".*", "value": ".*" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Usage is not an invoice",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "options": {
+        "mode": "markdown",
+        "content": "**GEO history is available below**, imported from the production database on 10 October. The gateway/BYOK split and balance are **not connected yet**; they are not zero. Missing data is not zero. Reported usage values are **not invoice cash paid**. Never add scan totals to individual check costs. These snapshots are not a live sync; source timestamps are preserved and replays are deduplicated."
+      }
+    },
+    {
+      "id": 200,
+      "title": "Live gateway and BYOK accounting · deployment required",
+      "type": "row",
+      "collapsed": true,
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 },
+      "panels": [
+        {
+          "id": 10,
+          "title": "Gateway charges · collection pending",
+          "description": "Includes charges against free or purchased gateway credits; not cash payments. Deduplicates repeated generation lookups.",
+          "type": "stat",
+          "gridPos": { "x": 0, "y": 9, "w": 8, "h": 5 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "sum(max by (costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", organizationId=\"organizationId\", costId=\"costId\", gatewayCostUsd=\"gatewayCostUsd\" | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | costId!=\"\" | unwrap gatewayCostUsd | __error__=\"\" [$__range])))"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "title": "BYOK usage · collection pending",
+          "description": "Provider-reported inference value, before provider credits, discounts and invoice adjustments. Not cash paid.",
+          "type": "stat",
+          "gridPos": { "x": 8, "y": 9, "w": 8, "h": 5 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "sum(max by (costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", organizationId=\"organizationId\", costId=\"costId\", byokInferenceCostUsd=\"byokInferenceCostUsd\" | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | costId!=\"\" | unwrap byokInferenceCostUsd | __error__=\"\" [$__range])))"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "title": "Gateway balance · collection pending",
+          "description": "Last observation per gateway in the selected range, not a live billing balance. Shared gateway balance is independent of the organization filter.",
+          "type": "stat",
+          "gridPos": { "x": 16, "y": 9, "w": 8, "h": 5 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "last_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,gateway,balance | event=\"ai.router.credits\" | unwrap balance | __error__=\"\" [$__range]) by (gateway)",
+              "legendFormat": "{{gateway}}"
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "title": "Top organizations by observed API requests",
+          "type": "bargauge",
+          "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "topk(20, sum by (organizationId) (count_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", organizationId=\"organizationId\" | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | organizationId!=\"\" | __error__=\"\" [$__range])))",
+              "legendFormat": "{{organizationId}}"
+            }
+          ]
+        },
+        {
+          "id": 18,
+          "title": "Top organizations by reported AI usage value",
+          "description": "Gateway charges plus BYOK inference value; not invoice cash paid. Requires attributable reported cost events.",
+          "type": "bargauge",
+          "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "topk(20, sum by (organizationId) (max by (organizationId,costId) (max_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json event=\"event\", organizationId=\"organizationId\", costId=\"costId\", costUsd=\"costUsd\" | event=\"ai.cost.reported\" | organizationId=~\"${organization:raw}\" | organizationId!=\"\" | costId!=\"\" | unwrap costUsd | __error__=\"\" [$__range]))))",
+              "legendFormat": "{{organizationId}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "title": "GEO scans · imported database history",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 5 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "noValue": "History unavailable" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "count(max by (costId) (max_over_time({service_name=~\"notra-history-database-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", costId=\"costId\", organizationId=\"organizationId\", weight=\"weight\" | event=\"history.geo.scan\" | organizationId=~\"${organization:raw}\" | unwrap weight | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "GEO reported usage value · not payments",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 4, "w": 8, "h": 5 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "noValue": "Unknown" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(max by (costId) (max_over_time({service_name=~\"notra-history-database-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", costId=\"costId\", organizationId=\"organizationId\", costUsd=\"costUsd\" | event=\"history.geo.scan\" | organizationId=~\"${organization:raw}\" | unwrap costUsd | __error__=\"\" [$__range])))"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "title": "GEO scans with a reported cost",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 4, "w": 8, "h": 5 },
+      "datasource": { "type": "loki", "uid": "notra-loki" },
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "Unknown" } },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "count(max by (costId) (max_over_time({service_name=~\"notra-history-database-.+\", deployment_environment_name=\"${environment}\", history_snapshot=\"20261010T113508391Z\"} | json event=\"event\", costId=\"costId\", organizationId=\"organizationId\", costUsd=\"costUsd\" | event=\"history.geo.scan\" | organizationId=~\"${organization:raw}\" | unwrap costUsd | __error__=\"\" [$__range])))"
+        }
+      ]
+    }
+  ]
+}

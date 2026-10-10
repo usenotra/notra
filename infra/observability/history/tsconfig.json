@@ -1,0 +1,12 @@
+{
+  "extends": "../../../packages/ai/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "rootDir": "../../..",
+    "types": ["bun-types"],
+    "paths": { "@notra/ai/*": ["../../../packages/ai/src/*"] }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

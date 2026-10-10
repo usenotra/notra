@@ -150,16 +150,40 @@ export function createModelRouter(config: ModelRouterConfig): ModelRouter {
         const enriched = await adapter.lookupRouteMetadata(
           metadata.generationId
         );
-        if (enriched.costUsd !== undefined) {
-          recordRequestAICost(metadata.generationId, enriched.costUsd);
+        try {
+          if (enriched.costUsd !== undefined) {
+            recordRequestAICost(metadata.generationId, enriched.costUsd);
+          }
+          // Generation ID permits deduplication in queries. This is usage, not
+          // cash paid: only provider billing can account for promotional credits.
+          logger.info("ai.cost.reported", {
+            costId: `${metadata.gateway}:${metadata.generationId}`,
+            ...(metadata.organizationId
+              ? { organizationId: metadata.organizationId }
+              : {}),
+            generationId: metadata.generationId,
+            gateway: metadata.gateway,
+            model: enriched.model ?? metadata.model,
+            upstreamProvider: enriched.upstreamProvider,
+            gatewayCostUsd: enriched.gatewayCostUsd,
+            byokInferenceCostUsd: enriched.byokInferenceCostUsd,
+            isByok: enriched.isByok,
+            costUsd: enriched.costUsd,
+          });
+        } catch {
+          // Logging must not discard successfully fetched billing metadata.
         }
         return { ...metadata, ...enriched };
       } catch (error) {
-        logger.warn("ai.router.generation_lookup_failed", {
-          gateway: metadata.gateway,
-          generationId: metadata.generationId,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        try {
+          logger.warn("ai.router.generation_lookup_failed", {
+            gateway: metadata.gateway,
+            generationId: metadata.generationId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        } catch {
+          // A logging failure must not turn a best-effort lookup into a failure.
+        }
         return metadata;
       }
     },

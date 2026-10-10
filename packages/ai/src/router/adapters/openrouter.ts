@@ -127,6 +127,12 @@ export function createOpenRouterAdapter(
           : undefined;
       return {
         ...(model ? { model } : {}),
+        ...(gatewayCost !== undefined && gatewayCost >= 0
+          ? { gatewayCostUsd: gatewayCost }
+          : {}),
+        ...(upstreamCost !== undefined && upstreamCost >= 0
+          ? { byokInferenceCostUsd: upstreamCost }
+          : {}),
         ...(costUsd !== undefined && Number.isFinite(costUsd)
           ? { costUsd }
           : {}),

@@ -30,7 +30,12 @@ export interface LogPipeline {
   flush(): Promise<void>;
 }
 
+export interface CheckpointLogPipeline extends LogPipeline {
+  readonly pending: number;
+}
+
 export interface EvlogRuntimeState {
+  otlpDrain?: LogPipeline;
   aiDrain?: LogPipeline;
   geoDrain?: LogPipeline;
   flushScheduler?: LogFlushScheduler;

@@ -1,0 +1,55 @@
+extensions:
+  health_check:
+    endpoint: "[::]:13133"
+  bearertokenauth:
+    token: ${env:NOTRA_OTLP_TOKEN}
+  file_storage:
+    directory: /var/lib/otelcol
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: "[::]:4318"
+        max_request_body_size: 4194304
+        auth:
+          authenticator: bearertokenauth
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+  batch:
+    send_batch_size: 512
+    send_batch_max_size: 1024
+    timeout: 2s
+exporters:
+  otlp_http/loki:
+    endpoint: http://loki.railway.internal:3100/otlp
+    sending_queue:
+      storage: file_storage
+      queue_size: 1000
+    retry_on_failure:
+      max_elapsed_time: 0
+  prometheus:
+    endpoint: "[::]:8889"
+    resource_to_telemetry_conversion:
+      enabled: false
+service:
+  extensions: [health_check, bearertokenauth, file_storage]
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: "::"
+                port: 8888
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp_http/loki]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]

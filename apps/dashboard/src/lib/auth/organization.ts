@@ -13,6 +13,7 @@ import type {
   OrganizationAuth,
   OrganizationAuthDependencies,
 } from "@/types/auth/organization";
+import { recordAuthorizedOrganization } from "@/utils/rpc-telemetry";
 
 import { getServerSession } from "./session";
 
@@ -61,6 +62,9 @@ export async function assertAuthenticatedWithDeps(
     });
   }
 
+  if (memo) {
+    memo.authenticatedUserId = user.id;
+  }
   return { session, user };
 }
 
@@ -136,6 +140,11 @@ export async function assertOrganizationAccessWithDeps(
     });
   }
 
+  recordAuthorizedOrganization(
+    headers,
+    safeOrganizationId.data,
+    authenticatedUser.id
+  );
   return {
     user: authenticatedUser,
     organizationId: safeOrganizationId.data,

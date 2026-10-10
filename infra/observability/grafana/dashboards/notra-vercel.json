@@ -1,0 +1,329 @@
+{
+  "uid": "notra-vercel",
+  "title": "Notra · Vercel connection pending",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "5m",
+  "time": { "from": "now-6h", "to": "now" },
+  "tags": ["notra", "vercel"],
+  "links": [
+    {
+      "title": "Operations",
+      "type": "link",
+      "url": "/d/notra-overview",
+      "keepTime": true
+    },
+    {
+      "title": "API and MCP",
+      "type": "link",
+      "url": "/d/notra-surfaces",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "custom",
+        "query": "production,preview,development,unattributed",
+        "current": { "text": "production", "value": "production" }
+      },
+      {
+        "name": "project",
+        "label": "Vercel project ID",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+        "query": "label_values(notra_vercel_metric_window, project_id)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "metric",
+        "label": "Catalog metric",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+        "query": "label_values(notra_vercel_metric_query_success, metric)",
+        "refresh": 1,
+        "current": {
+          "text": "vercel.request.count",
+          "value": "vercel.request.count"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Not connected · separate Vercel token required",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 5 },
+      "options": {
+        "mode": "markdown",
+        "content": "**The Vercel exporter has not been deployed.** A separate 90-day Notra-team token is required; no personal CLI credential is used. Empty charts mean no collection, not no traffic. Missing data is not zero. Once connected, values represent completed five-minute windows, delayed by at least ten minutes. They are not cumulative counters, customer-level usage or invoices."
+      }
+    },
+    {
+      "id": 2,
+      "title": "Connection · waiting for dedicated token",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": { "noValue": "Not connected" },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Scrape" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "Not connected", "color": "orange" },
+                      "1": { "text": "Connected", "color": "green" }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"vercel\"}",
+          "legendFormat": "Scrape"
+        },
+        {
+          "refId": "B",
+          "expr": "notra_vercel_snapshot_fresh",
+          "legendFormat": "Fresh snapshot"
+        },
+        {
+          "refId": "C",
+          "expr": "notra_vercel_catalog_success",
+          "legendFormat": "Catalog API"
+        },
+        {
+          "refId": "D",
+          "expr": "notra_vercel_catalog_metrics",
+          "legendFormat": "Catalog metrics"
+        },
+        {
+          "refId": "E",
+          "expr": "notra_vercel_supported_metrics",
+          "legendFormat": "Supported metrics"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Query coverage (1 = successful, empty may still be normal)",
+      "type": "table",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 5 },
+      "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "notra_vercel_query_success",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 200,
+      "title": "Vercel metrics · token and exporter deployment required",
+      "type": "row",
+      "collapsed": true,
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 1 },
+      "panels": [
+        {
+          "id": 4,
+          "title": "Requests per completed five-minute window",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 10, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.request.count\",aggregation=\"count\",breakdown=\"project\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}}"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Function invocations per five-minute window",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 10, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.function_invocation.count\",aggregation=\"count\",breakdown=\"project\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}}"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Function duration p95 / p99",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 17, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{breakdown=\"project\",metric=\"vercel.function_invocation.function_duration_ms\",aggregation=~\"p95|p99\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{aggregation}}"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "Function CPU time (average per invocation)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 17, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.function_invocation.function_cpu_time_ms\",aggregation=\"avg\",breakdown=\"project\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}}"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Function peak memory p95",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 24, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "fieldConfig": { "defaults": { "unit": "decmbytes", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.function_invocation.peak_memory_mb\",aggregation=\"p95\",breakdown=\"project\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Requests by HTTP status / method",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 24, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.request.count\",aggregation=\"count\",breakdown=\"http\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{http_status}} · {{request_method}}"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "title": "Fast data transfer per five-minute window",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 31, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "fieldConfig": { "defaults": { "unit": "bytes", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.request.fdt_total_bytes\",aggregation=\"sum\",breakdown=\"project\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}}"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "title": "Function runtime / start type",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 31, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.function_invocation.count\",aggregation=\"count\",breakdown=\"runtime\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{runtime}} · {{function_start_type}}"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "title": "Request cache outcomes",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 38, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{metric=\"vercel.request.count\",aggregation=\"count\",breakdown=\"cache\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{cache_result}}"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "title": "AI Gateway reported usage value (not invoices)",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 38, "w": 12, "h": 7 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "fieldConfig": { "defaults": { "unit": "currencyUSD", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{breakdown=\"project\",metric=~\"vercel.ai_gateway.request.(cost|gateway_cost)\",aggregation=\"sum\",environment=\"${environment}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{metric}}"
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "title": "Full catalog explorer (native units; includes environment-less metrics)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 45, "w": 24, "h": 9 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_window{breakdown=\"project\",metric=\"${metric}\",project_id=~\"${project:regex}\"}",
+              "legendFormat": "{{project_id}} · {{environment}} · {{aggregation}} · {{unit}}"
+            }
+          ]
+        },
+        {
+          "id": 15,
+          "title": "Catalog query status (includes metrics with no observations)",
+          "type": "table",
+          "gridPos": { "x": 0, "y": 54, "w": 24, "h": 10 },
+          "datasource": { "type": "prometheus", "uid": "notra-prometheus" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "notra_vercel_metric_query_success",
+              "instant": true,
+              "format": "table"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -81,8 +81,6 @@ export const POST = withEvlog(async function POST(
 
     log.set({
       feature: "content_chat",
-      organizationId,
-      contentId,
     });
 
     const auth = await withOrganizationAuth(request, organizationId);
@@ -90,6 +88,8 @@ export const POST = withEvlog(async function POST(
     if (!auth.success) {
       return auth.response;
     }
+
+    log.set({ organizationId: auth.context.organizationId, contentId });
 
     const body = await request.json().catch(() => null);
     const parseResult = chatRequestSchema.safeParse(body);

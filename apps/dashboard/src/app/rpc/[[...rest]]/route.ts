@@ -18,6 +18,10 @@ import { dashboardRouter } from "@/lib/orpc/router";
 import { localizeServerFailure } from "@/lib/orpc/utils/localize-server-failure";
 import type { ORPCRequestMemo } from "@/types/orpc/context";
 import { isServerFailureError } from "@/utils/orpc-errors";
+import {
+  finalizeRpcRequestAttribution,
+  rpcRequestOrganizationId,
+} from "@/utils/rpc-telemetry";
 
 const handler = new RPCHandler(dashboardRouter, {
   interceptors: [
@@ -35,7 +39,6 @@ const handler = new RPCHandler(dashboardRouter, {
           error,
           headers: options.context.headers,
           userId: options.context.user?.id,
-          organizationId: options.context.session?.activeOrganizationId,
           properties: { surface: "rpc" },
         });
       }
@@ -80,15 +83,18 @@ const handle = withEvlog(async (request: Request) => {
     throw error;
   } finally {
     const durationMs = Math.round(performance.now() - startedAt);
-    log.set({ durationMs });
+    finalizeRpcRequestAttribution(requestMemo);
+    log.set({
+      durationMs,
+      method: request.method,
+    });
     if (durationMs >= DASHBOARD_RPC_SLOW_REQUEST_MS || status >= 400) {
       afterResponse(async () => {
         try {
-          const auth = await requestMemo?.sessionLookup?.catch(() => undefined);
           trackServerEvent({
             event: POSTHOG_EVENTS.API_REQUEST,
             headers: request.headers,
-            organizationId: auth?.session?.activeOrganizationId,
+            organizationId: rpcRequestOrganizationId(requestMemo),
             properties: {
               capture_reason: status >= 400 ? "error" : "slow",
               latency_ms: durationMs,
@@ -99,7 +105,7 @@ const handle = withEvlog(async (request: Request) => {
               status,
               surface: "dashboard-rpc",
             },
-            userId: auth?.user?.id,
+            userId: requestMemo?.authenticatedUserId,
           });
         } catch (error) {
           console.error("[posthog] dashboard RPC capture failed", error);

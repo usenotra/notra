@@ -20,7 +20,7 @@ export function observeModelStream(
             return;
           }
           if (value.type === "response-metadata") {
-            responseId = value.id;
+            responseId = value.id ?? responseId;
           }
           if (
             (value.type === "text-delta" ||

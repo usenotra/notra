@@ -1,0 +1,9 @@
+apiVersion: 1
+providers:
+  - name: Notra
+    folder: Notra
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards

@@ -1,0 +1,262 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "event": "api.request.completed",
+      "surface": "api",
+      "routeId": "/v1/posts/:id",
+      "status": 200,
+      "outcome": "success",
+      "durationMs": 10,
+      "organizationId": "surfaces_org",
+      "userId": "surfaces_user"
+    },
+    {
+      "event": "api.request.completed",
+      "surface": "api",
+      "routeId": "/v1/posts/:id",
+      "status": 500,
+      "outcome": "error",
+      "errorKind": "server_error",
+      "durationMs": 30,
+      "organizationId": "surfaces_org",
+      "userId": "surfaces_user"
+    },
+    {
+      "event": "api.request.completed",
+      "surface": "api",
+      "routeId": "/v1/posts/:id",
+      "status": 429,
+      "outcome": "error",
+      "errorKind": "client_error",
+      "durationMs": 20,
+      "organizationId": "surfaces_org"
+    },
+    {
+      "event": "mcp.tool.completed",
+      "surface": "chat",
+      "integrationId": "surfaces_mcp",
+      "outcome": "success",
+      "durationMs": 10,
+      "organizationId": "surfaces_org",
+      "userId": "surfaces_user"
+    },
+    {
+      "event": "mcp.tool.completed",
+      "surface": "chat",
+      "integrationId": "surfaces_mcp",
+      "outcome": "error",
+      "errorKind": "tool_error",
+      "durationMs": 50,
+      "organizationId": "surfaces_org",
+      "userId": "surfaces_user"
+    },
+    {
+      "event": "mcp.tool.completed",
+      "surface": "chat",
+      "integrationId": "surfaces_mcp",
+      "outcome": "cancelled",
+      "errorKind": "cancelled",
+      "durationMs": 100,
+      "organizationId": "surfaces_org"
+    },
+    {
+      "event": "mcp.tool.completed",
+      "surface": "chat",
+      "integrationId": "other_mcp",
+      "outcome": "success",
+      "durationMs": 9999,
+      "organizationId": "other_org",
+      "userId": "other_user"
+    }
+  ],
+  "expectations": [
+    {
+      "dashboard": "notra-surfaces",
+      "selections": [
+        {
+          "environment": "validation",
+          "organization": "surfaces_org",
+          "user": ".*"
+        }
+      ],
+      "targets": [
+        {
+          "panelId": 2,
+          "refId": "A",
+          "grouping": ["surface", "status"],
+          "vector": [
+            {
+              "metric": { "surface": "api", "status": "200" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "api", "status": "500" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "api", "status": "429" },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 3,
+          "refId": "A",
+          "grouping": ["surface", "routeId"],
+          "vector": [
+            {
+              "metric": { "surface": "api", "routeId": "/v1/posts/:id" },
+              "value": [0, 29]
+            }
+          ]
+        },
+        {
+          "panelId": 4,
+          "refId": "A",
+          "grouping": ["surface", "status", "errorKind"],
+          "vector": [
+            {
+              "metric": {
+                "surface": "api",
+                "status": "500",
+                "errorKind": "server_error"
+              },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": {
+                "surface": "api",
+                "status": "429",
+                "errorKind": "client_error"
+              },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 5,
+          "refId": "A",
+          "grouping": ["surface", "outcome"],
+          "vector": [
+            {
+              "metric": { "surface": "chat", "outcome": "success" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "chat", "outcome": "error" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "chat", "outcome": "cancelled" },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 6,
+          "refId": "A",
+          "grouping": ["surface", "integrationId"],
+          "vector": [
+            {
+              "metric": { "surface": "chat", "integrationId": "surfaces_mcp" },
+              "value": [0, 95]
+            }
+          ]
+        },
+        {
+          "panelId": 7,
+          "refId": "A",
+          "grouping": ["surface", "errorKind"],
+          "vector": [
+            {
+              "metric": { "surface": "chat", "errorKind": "tool_error" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "chat", "errorKind": "cancelled" },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 8,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "surfaces_org" }, "value": [0, 3] }
+          ]
+        },
+        {
+          "panelId": 9,
+          "refId": "A",
+          "grouping": ["userId"],
+          "vector": [
+            { "metric": { "userId": "surfaces_user" }, "value": [0, 4] }
+          ]
+        }
+      ]
+    },
+    {
+      "dashboard": "notra-surfaces",
+      "selections": [
+        {
+          "environment": "validation",
+          "organization": "surfaces_org",
+          "user": "surfaces_user"
+        }
+      ],
+      "targets": [
+        {
+          "panelId": 2,
+          "refId": "A",
+          "grouping": ["surface", "status"],
+          "vector": [
+            {
+              "metric": { "surface": "api", "status": "200" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "api", "status": "500" },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 5,
+          "refId": "A",
+          "grouping": ["surface", "outcome"],
+          "vector": [
+            {
+              "metric": { "surface": "chat", "outcome": "success" },
+              "value": [0, 0.0033333333333333335]
+            },
+            {
+              "metric": { "surface": "chat", "outcome": "error" },
+              "value": [0, 0.0033333333333333335]
+            }
+          ]
+        },
+        {
+          "panelId": 6,
+          "refId": "A",
+          "grouping": ["surface", "integrationId"],
+          "vector": [
+            {
+              "metric": { "surface": "chat", "integrationId": "surfaces_mcp" },
+              "value": [0, 48]
+            }
+          ]
+        },
+        {
+          "panelId": 8,
+          "refId": "A",
+          "grouping": ["organizationId"],
+          "vector": [
+            { "metric": { "organizationId": "surfaces_org" }, "value": [0, 2] }
+          ]
+        }
+      ]
+    }
+  ]
+}

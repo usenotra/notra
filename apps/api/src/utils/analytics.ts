@@ -26,7 +26,7 @@ import type {
   ApiSdkBucket,
   FeedbackReceivedInput,
 } from "../types/analytics";
-import { type AuthData, isIngestAuth } from "../types/auth";
+import { type AuthData, isIngestAuth, isOAuthAuth } from "../types/auth";
 
 function bucketSdkFromUserAgent(userAgent: string | undefined): ApiSdkBucket {
   if (!userAgent) {
@@ -62,7 +62,7 @@ function resolveAuthKind(auth: AuthData | undefined): ApiAuthKind | undefined {
   if (isIngestAuth(auth)) {
     return API_AUTH_KINDS.FEEDBACK_TOKEN;
   }
-  if ("type" in auth && auth.type === "oauth") {
+  if (isOAuthAuth(auth)) {
     return API_AUTH_KINDS.OAUTH;
   }
   return API_AUTH_KINDS.UNKEY;
@@ -141,6 +141,7 @@ export function trackApiRequest(c: Context, latencyMs: number): void {
 }
 
 export function apiRequestLogFields(c: Context, durationMs: number) {
+  const auth = readAuth(c);
   return {
     event: "api.request.completed",
     surface: "api",
@@ -152,6 +153,7 @@ export function apiRequestLogFields(c: Context, durationMs: number) {
     durationMs,
     organizationId: safeOrganizationId(c),
     projectId: safeGeoProjectId(c),
+    userId: auth && isOAuthAuth(auth) ? auth.userId : undefined,
   } satisfies OperationalLogEvent;
 }
 

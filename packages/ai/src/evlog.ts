@@ -30,10 +30,15 @@ export function setLogFlushScheduler(scheduler: LogFlushScheduler): void {
 }
 
 export async function flushLogs(): Promise<void> {
-  await Promise.all([runtime.aiDrain?.flush(), runtime.geoDrain?.flush()]);
+  await Promise.all([
+    runtime.aiDrain?.flush(),
+    runtime.geoDrain?.flush(),
+    runtime.otlpDrain?.flush(),
+  ]);
 }
 
 function routeDrain(ctx: DrainContext) {
+  runtime.otlpDrain?.(ctx);
   if (isGeoLogEvent(ctx.event)) {
     runtime.geoDrain?.(ctx);
   } else {
@@ -47,7 +52,9 @@ function routeDrain(ctx: DrainContext) {
 }
 
 const drain: EvlogDrain | undefined =
-  runtime.aiDrain || runtime.geoDrain ? routeDrain : undefined;
+  runtime.aiDrain || runtime.geoDrain || runtime.otlpDrain
+    ? routeDrain
+    : undefined;
 
 export { log, createError, useRequestLogger as useLogger };
 

@@ -1,0 +1,25 @@
+{
+  "config": {
+    "ingress": [
+      {
+        "hostname": "grafana.usenotra.com",
+        "service": "http://grafana.railway.internal:3000",
+        "originRequest": {
+          "access": {
+            "required": true,
+            "teamName": "devdungeon",
+            "audTag": [
+              "152dcceba7f4eb8d0bacda519dc52c4fd47408bb1876610a65b24a069c9790df"
+            ]
+          }
+        }
+      },
+      {
+        "hostname": "telemetry.usenotra.com",
+        "path": "^/v1/(logs|metrics)$",
+        "service": "http://otel-collector.railway.internal:4318"
+      },
+      { "service": "http_status:404" }
+    ]
+  }
+}

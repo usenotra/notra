@@ -4,6 +4,7 @@ const requestMemosByHeaders = new WeakMap<Headers, ORPCRequestMemo>();
 
 function createRequestMemo(): ORPCRequestMemo {
   return {
+    authorizedOrganizationIds: new Set(),
     shelfMembersByOrganization: new Map(),
     analyticsEnabledByOrganization: new Map(),
     sitesEnabledByOrganization: new Map(),

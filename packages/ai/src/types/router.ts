@@ -85,6 +85,7 @@ export interface RouteDecision {
 
 export interface RouteMetadata {
   gateway: GatewayId;
+  organizationId?: string;
   requestedModel: string;
   model: string;
   reason: RouteReason;
@@ -92,6 +93,11 @@ export interface RouteMetadata {
   generationId?: string;
   upstreamProvider?: string;
   costUsd?: number;
+  /** Gateway-reported charge; does not distinguish paid from promotional credits. */
+  gatewayCostUsd?: number;
+  /** Provider-reported BYOK inference value, before provider credits or invoice adjustments. */
+  byokInferenceCostUsd?: number;
+  isByok?: boolean;
   fallbackFrom?: GatewayId;
   fallbackReason?: FallbackReason;
   /** Whether the call that produced this metadata ran with ZDR enforced. */
@@ -107,6 +113,18 @@ export interface GatewayHealth {
   ok: boolean;
   reason?: string;
 }
+
+export type GatewayRouteMetadata = Partial<
+  Pick<
+    RouteMetadata,
+    | "upstreamProvider"
+    | "model"
+    | "costUsd"
+    | "gatewayCostUsd"
+    | "byokInferenceCostUsd"
+    | "isByok"
+  >
+>;
 
 /**
  * Adapter for a concrete gateway. Adapters are pure: no env access, no
@@ -139,17 +157,8 @@ export interface GatewayAdapter {
   extractRouteMetadata(
     providerMetadata: SharedV4ProviderMetadata | undefined,
     servedModelId?: string
-  ): Partial<
-    Pick<
-      RouteMetadata,
-      "generationId" | "upstreamProvider" | "model" | "costUsd"
-    >
-  >;
-  lookupRouteMetadata?(
-    generationId: string
-  ): Promise<
-    Partial<Pick<RouteMetadata, "upstreamProvider" | "model" | "costUsd">>
-  >;
+  ): GatewayRouteMetadata & Pick<Partial<RouteMetadata>, "generationId">;
+  lookupRouteMetadata?(generationId: string): Promise<GatewayRouteMetadata>;
 }
 
 export interface BuildProviderOptionsInput {

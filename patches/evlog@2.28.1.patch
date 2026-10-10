@@ -21,3 +21,34 @@ index cdac9ffc052009e1a1f30e3e95b1368c3bcfce83..d7f525545bd3dd742a1ecf009c336942
  			});
  			if (skipped) return await handler(...args);
  			if (request) {
+diff --git a/dist/http-CejdKbi7.mjs b/dist/http-CejdKbi7.mjs
+--- a/dist/http-CejdKbi7.mjs
++++ b/dist/http-CejdKbi7.mjs
+@@ -60,6 +60,7 @@ async function httpPost({ url, headers, body, timeout, label, retries = 2, userAgent,
+-			const response = await fetch(url, {
+-				method: "POST",
+-				headers: finalHeaders,
+-				body,
+-				signal: controller.signal
+-			});
++			const response = await fetch(url, {
++				method: "POST",
++				redirect: "error",
++				headers: finalHeaders,
++				body,
++				signal: controller.signal
++			});
+diff --git a/dist/adapters/axiom.mjs b/dist/adapters/axiom.mjs
+--- a/dist/adapters/axiom.mjs
++++ b/dist/adapters/axiom.mjs
+@@ -125,5 +125,5 @@ async function logIngestWarnings(response) {
+-	if (body.failed && body.failed > 0) {
+-		const details = body.failures?.map((failure) => failure.error).filter(Boolean).join("; ");
+-		console.warn(`[evlog/axiom] ${body.failed} event(s) failed to ingest${details ? `: ${details}` : ""}`);
+-	}
+-	for (const message of body.messages ?? []) if (message.msg) console.warn(`[evlog/axiom] ${message.msg}`);
++	if (!body || typeof body !== "object" || Array.isArray(body)) return;
++	if (Number.isSafeInteger(body.failed) && body.failed > 0) {
++		console.warn(`[evlog/axiom] ${body.failed} event(s) failed to ingest`);
++	}
++	if (Array.isArray(body.messages) && body.messages.length > 0) console.warn("[evlog/axiom] Ingest warnings received");

@@ -1,0 +1,187 @@
+{
+  "uid": "notra-surfaces",
+  "title": "Notra · API and MCP coverage",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "tags": ["notra", "api", "mcp"],
+  "links": [
+    {
+      "title": "Operations",
+      "type": "link",
+      "url": "/d/notra-overview",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Vercel platform",
+      "type": "link",
+      "url": "/d/notra-vercel",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "custom",
+        "query": "production,preview,development,validation",
+        "current": { "text": "production", "value": "production" }
+      },
+      {
+        "name": "organization",
+        "label": "Customer ID (advanced filter)",
+        "type": "textbox",
+        "query": ".*",
+        "current": { "text": ".*", "value": ".*" }
+      },
+      {
+        "name": "user",
+        "label": "User ID (advanced filter)",
+        "type": "textbox",
+        "query": ".*",
+        "current": { "text": ".*", "value": ".*" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Live collection is not connected yet",
+      "type": "text",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "options": {
+        "mode": "markdown",
+        "content": "**These are pending live-telemetry panels, not evidence of zero traffic.** Real historical API totals are on the [production overview](/d/notra-overview). MCP history cannot be reconstructed where calls were never recorded. Application and standalone MCP rollouts are still required. Missing data is not zero. No tool arguments, results, prompts or credentials belong here."
+      }
+    },
+    {
+      "id": 200,
+      "title": "Live API and MCP metrics · deployment required",
+      "type": "row",
+      "collapsed": true,
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 1 },
+      "panels": [
+        {
+          "id": 2,
+          "title": "API requests / second by surface and status",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 4, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (surface,status) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,status | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{surface}} · {{status}}"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "API completed-request p95 latency",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 4, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,routeId,durationMs | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | unwrap durationMs | __error__=\"\" [$__auto]) by (surface,routeId)",
+              "legendFormat": "{{surface}} · {{routeId}}"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "API errors / second (including auth and rate limits)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 11, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (surface,status,errorKind) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,status,errorKind | event=\"api.request.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | status >= 400 | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{surface}} · {{status}} · {{errorKind}}"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "MCP logical calls / second",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 11, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (surface,outcome) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,outcome | event=\"mcp.tool.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{surface}} · {{outcome}}"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "title": "MCP logical-call p95 latency (includes OAuth retry)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 18, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "fieldConfig": { "defaults": { "unit": "ms", "min": 0 } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "quantile_over_time(0.95, {service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,integrationId,durationMs | event=\"mcp.tool.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | unwrap durationMs | __error__=\"\" [$__auto]) by (surface,integrationId)",
+              "legendFormat": "{{surface}} · {{integrationId}}"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "title": "MCP errors / second",
+          "type": "timeseries",
+          "gridPos": { "x": 12, "y": 18, "w": 12, "h": 7 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (surface,errorKind) (rate({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId,surface,outcome,errorKind | event=\"mcp.tool.completed\" | outcome!=\"success\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | __error__=\"\" [$__auto]))",
+              "legendFormat": "{{surface}} · {{errorKind}}"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "title": "Top organizations by observed MCP calls (selected range)",
+          "type": "barchart",
+          "gridPos": { "x": 0, "y": 25, "w": 12, "h": 8 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "topk(20, sum by (organizationId) (count_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId | event=\"mcp.tool.completed\" | organizationId=~\"${organization:raw}\" | organizationId!=\"\" | userId=~\"${user:raw}\" | __error__=\"\" [$__range])))",
+              "legendFormat": "{{organizationId}}"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "title": "Top authenticated users by API / MCP events (selected range)",
+          "type": "barchart",
+          "gridPos": { "x": 12, "y": 25, "w": 12, "h": 8 },
+          "datasource": { "type": "loki", "uid": "notra-loki" },
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "topk(20, sum by (userId) (count_over_time({service_name=~\".+\", deployment_environment_name=\"${environment}\"} | json | keep event,organizationId,userId | event=~\"api.request.completed|mcp.tool.completed\" | organizationId=~\"${organization:raw}\" | userId=~\"${user:raw}\" | userId!=\"\" | __error__=\"\" [$__range])))",
+              "legendFormat": "{{userId}}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
