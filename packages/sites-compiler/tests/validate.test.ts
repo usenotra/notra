@@ -397,13 +397,14 @@ describe("variables", () => {
       ),
     });
 
-  test("are replaced in entries, chrome and slots, but not in snippets", () => {
+  test("are replaced in entries, chrome, slots and MDX snippets", () => {
     const result = withVariables({
       "blog/post.mdx": post("Try {{ product }} {{version}}."),
       "blog/plain.md": post("{{ product }} in Markdown."),
       "footer.mdx": "© {{ product }}",
       "slots/after-post.mdx": "Get {{ product }}",
       "snippets/x.mdx": "{{ product }}",
+      "snippets/values.jsx": 'export const product = "{{ product }}";',
     });
     expect(errors(result)).toEqual([]);
     expect(result.outputs.get("blog/post.mdx")).toContain(
@@ -417,7 +418,30 @@ describe("variables", () => {
       "Get Acme Cloud"
     );
     expect(result.outputs.has("snippets/x.mdx")).toBe(true);
-    expect(result.outputs.get("snippets/x.mdx")).not.toContain("Acme Cloud");
+    expect(result.outputs.get("snippets/x.mdx")).toContain("Acme Cloud");
+    expect(result.outputs.get("snippets/values.jsx")).not.toContain(
+      "Acme Cloud"
+    );
+  });
+
+  test("quoted values resolve in snippet content without modifying its JavaScript", () => {
+    const result = withVariables({
+      "blog.json": JSON.stringify({
+        name: "Acme",
+        variables: { product: 'Acme "Flow"' },
+      }),
+      "snippets/cta.mdx":
+        'export const label = "{{ product }}";\n\n{{ product }}\n\n{"{{ product }}"}\n',
+    });
+    expect(result.ok).toBe(true);
+    expect(errors(result)).toEqual([]);
+    expect(result.outputs.get("snippets/cta.mdx")).toContain(
+      'export const label = "{{ product }}";'
+    );
+    expect(result.outputs.get("snippets/cta.mdx")).toContain('Acme "Flow"');
+    expect(result.outputs.get("snippets/cta.mdx")).toContain(
+      '{"{{ product }}"}'
+    );
   });
 
   test("unknown names are warnings and stay literal text", () => {

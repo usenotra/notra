@@ -9,6 +9,52 @@ const VARIABLES = { product: "Acme Cloud", plan_name: "Pro" };
 const substitute = (source: string) => substituteVariables(source, VARIABLES);
 
 describe("substituteVariables", () => {
+  test("leaves JavaScript strings, templates, comments and expressions unchanged", () => {
+    const source = [
+      'export const label = "{{ product }}";',
+      "",
+      'export const options = {\n  // {{ product }}\n  label: "{{ missing }}", text: `{{ product }}`\n};',
+      "",
+      'Use {{ product }}. {"{{ product }}"}',
+      "",
+      '<Card title={"{{ product }}"}>Try {{ product }}</Card>',
+    ].join("\n");
+    const result = substituteVariables(source, { product: 'Acme "Flow"' });
+    expect(result.text).toBe(
+      source
+        .replace("Use {{ product }}.", 'Use Acme "Flow".')
+        .replace("Try {{ product }}", 'Try Acme "Flow"')
+    );
+    expect(result.unknown).toEqual([]);
+  });
+
+  test("treats JavaScript-looking Markdown as content", () => {
+    expect(
+      substituteVariables(
+        'export const label = "{{ product }}";',
+        VARIABLES,
+        false
+      ).text
+    ).toBe('export const label = "Acme Cloud";');
+  });
+
+  test.each(["", " ", "\t", "\n", "\r\n  "])(
+    "preserves JSX object attributes after =%j while replacing prose",
+    (whitespace) => {
+      const source = `---\ntitle: "{{ product }}"\n---\n\n<Card style=${whitespace}{{ product }} data=${whitespace}{{ missing }}>Try {{ product }}</Card>\n\nUnknown {{ nope }}.`;
+      const result = substitute(source);
+      expect(result.text).toBe(
+        source
+          .replace('title: "{{ product }}"', 'title: "Acme Cloud"')
+          .replace("Try {{ product }}", "Try Acme Cloud")
+          .replace("{{ nope }}", "\\{\\{ nope \\}\\}")
+      );
+      expect(result.unknown).toEqual([
+        { name: "nope", offset: source.indexOf("{{ nope }}") },
+      ]);
+    }
+  );
+
   test("replaces names with or without spaces", () => {
     expect(substitute("{{ product }} and {{plan_name}}").text).toBe(
       "Acme Cloud and Pro"

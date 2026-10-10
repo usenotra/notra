@@ -12,6 +12,7 @@ import type {
   UnknownVariable,
   VariableSubstitution,
 } from "../types/variables";
+import { mdxVariableCodeRanges } from "./mdx-variable-ranges";
 
 function lookup(
   variables: Readonly<Record<string, string>>,
@@ -56,7 +57,8 @@ function splitFencedCode(source: string, start: number): TextSegment[] {
 
 export function substituteVariables(
   source: string,
-  variables: Readonly<Record<string, string>>
+  variables: Readonly<Record<string, string>>,
+  isMdx = true
 ): VariableSubstitution {
   const unknown: UnknownVariable[] = [];
   const bodyStart = FRONTMATTER_BLOCK.exec(source)?.[0].length ?? 0;
@@ -65,6 +67,9 @@ export function substituteVariables(
     variables
   );
   unknown.push(...frontmatter.unknown);
+  const codeRanges = isMdx
+    ? mdxVariableCodeRanges(source.slice(bodyStart))
+    : [];
   const parts = [frontmatter.text];
   for (const segment of splitFencedCode(source, bodyStart)) {
     const text = source.slice(segment.start, segment.end);
@@ -82,6 +87,14 @@ export function substituteVariables(
           offset: number
         ) => {
           if (codeSpan !== undefined || name === undefined) {
+            return match;
+          }
+          const bodyOffset = segment.start + offset - bodyStart;
+          if (
+            codeRanges.some(
+              ({ start, end }) => bodyOffset >= start && bodyOffset < end
+            )
+          ) {
             return match;
           }
           const value = lookup(variables, name);

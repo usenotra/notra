@@ -21,6 +21,7 @@ import { SiteSettingsDangerZone } from "@/components/sites/site-settings-danger-
 import { SiteSettingsRow } from "@/components/sites/site-settings-row";
 import { SiteSettingsSaveBar } from "@/components/sites/site-settings-save-bar";
 import { SiteSuggestInput } from "@/components/sites/site-suggest-input";
+import { SiteVariablesSettings } from "@/components/sites/site-variables-settings";
 import { SITE_NAME_MAX_LENGTH } from "@/constants/sites-form";
 import { useRepositorySuggestions } from "@/lib/hooks/use-repository-suggestions";
 import { useSitePublishModeOptions } from "@/lib/hooks/use-site-publish-mode-options";
@@ -254,6 +255,8 @@ function SiteSettingsForm({
           />
         ) : null}
       </form>
+
+      <SiteVariablesSettings />
 
       <SiteSettingsDangerZone
         organizationId={organizationId}
