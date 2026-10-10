@@ -88,7 +88,9 @@ test("projection preserves reviewed routes, providers and GEO codes without priv
 test("JWT-shaped identifiers are stripped while reviewed model namespaces survive", () => {
   for (const value of [
     "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmaXh0dXJlIn0.fixture",
+    "request:eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmaXh0dXJlIn0.fixture",
     "header.payload.",
+    "cost:header.payload.signature:1",
   ]) {
     for (const key of TELEMETRY_IDENTIFIER_FIELDS) {
       assert.equal(telemetryValue(key, value), false);

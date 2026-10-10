@@ -63,7 +63,7 @@ export const TELEMETRY_IDENTIFIER_FIELDS = new Set([
 export const TELEMETRY_IDENTIFIER_PATTERN =
   /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
 export const TELEMETRY_JWT_PATTERN =
-  /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/;
+  /(?:^|:)[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*(?:$|:)/;
 
 export const TELEMETRY_NUMBER_FIELDS = new Set([
   "durationMs",
