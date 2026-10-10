@@ -39,18 +39,9 @@ export function SiteDeploymentTimeline({
       }),
     [locale]
   );
-  // Widths follow the frame clock so the bars grow in step with real time;
-  // labels stay on the one-second tick so the text doesn't flicker.
-  const liveDurations = useMemo(
-    () =>
-      new Map(
-        deploymentTimelinePhases(deployment, log, frameNow).map((phase) => [
-          phase.id,
-          phase.durationMs,
-        ])
-      ),
-    [deployment, log, frameNow]
-  );
+  // Bars follow the frame clock: only the active phase grows past the last
+  // one-second tick, so nothing is re-parsed per frame.
+  const frameGrowth = Math.max(0, frameNow - now);
   const phases = useMemo(
     () =>
       deploymentTimelinePhases(deployment, log, now).map((phase) => ({
@@ -94,7 +85,10 @@ export function SiteDeploymentTimeline({
                 style={
                   {
                     "--phase-duration": Math.max(
-                      liveDurations.get(phase.id) ?? phase.durationMs ?? 0,
+                      (phase.durationMs ?? 0) +
+                        (phase.state === "active" && phase.durationMs !== null
+                          ? frameGrowth
+                          : 0),
                       1
                     ),
                   } as CSSProperties
