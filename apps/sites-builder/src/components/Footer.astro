@@ -3,6 +3,7 @@ import { footerColumns, footerFlatLinks, footerSocials } from "../lib/navigation
 import { config, href, params } from "../lib/params";
 import LinkIcon from "./LinkIcon.astro";
 import PoweredByNotra from "./PoweredByNotra.astro";
+import ThemeToggle from "./ThemeToggle.astro";
 
 const columns = footerColumns();
 const links = footerFlatLinks();
@@ -13,7 +14,7 @@ const year = new Date().getUTCFullYear();
 <footer id="footer" class="border-t border-border">
   {
     columns.length > 0 && (
-      <div class="grid w-full grid-cols-2 gap-x-6 gap-y-8 px-5 pt-10 pb-4 text-sm sm:grid-cols-3 sm:px-6 lg:grid-cols-[repeat(6,minmax(0,12rem))]">
+      <div class="site-container grid grid-cols-2 gap-x-6 gap-y-8 pt-12 pb-4 text-sm sm:grid-cols-3 lg:grid-cols-[repeat(6,minmax(0,1fr))]">
         {columns.map((column) => (
           <nav aria-label={column.header ?? "Footer"} class="flex flex-col gap-2.5">
             {column.header && <p class="font-medium text-foreground">{column.header}</p>}
@@ -32,8 +33,8 @@ const year = new Date().getUTCFullYear();
       </div>
     )
   }
-  <div class="flex w-full flex-col gap-3 px-5 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+  <div class="site-container grid justify-items-center gap-5 py-8 text-sm text-muted-foreground sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:justify-items-stretch sm:gap-4">
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-start">
       <span>© {year} {config.name}</span>
       {
         links.map((link) => (
@@ -45,17 +46,16 @@ const year = new Date().getUTCFullYear();
       }
       <a href={href("feed.xml")} class="transition-colors hover:text-foreground">RSS</a>
     </div>
-    {
-      (socials.length > 0 || params.branding) && (
-        <div class="flex items-center gap-4">
-          {socials.map((social) => (
-            <a href={social.href} rel="noopener" aria-label={social.label} title={social.label} class="transition-colors hover:text-foreground">
-              <LinkIcon icon={social.icon} size={16} />
-            </a>
-          ))}
-          {params.branding && <PoweredByNotra />}
-        </div>
-      )
-    }
+    <div class="max-sm:order-last sm:justify-self-center">
+      <ThemeToggle />
+    </div>
+    <div class="flex items-center gap-4 sm:justify-self-end">
+      {socials.map((social) => (
+        <a href={social.href} rel="noopener" aria-label={social.label} title={social.label} class="transition-colors hover:text-foreground">
+          <LinkIcon icon={social.icon} size={16} />
+        </a>
+      ))}
+      {params.branding && <PoweredByNotra />}
+    </div>
   </div>
 </footer>

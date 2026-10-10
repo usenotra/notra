@@ -101,27 +101,11 @@ export const siteContextualSchema = z
         ])
       )
       .max(12)
-      .default([
-        "copy",
-        "view",
-        "chatgpt",
-        "claude",
-        "t3chat",
-        "perplexity",
-        "grok",
-      ]),
+      .default(["copy", "view", "chatgpt", "claude", "perplexity", "grok"]),
     display: z.enum(["meta", "none"]).default("meta"),
   })
   .default({
-    options: [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "t3chat",
-      "perplexity",
-      "grok",
-    ],
+    options: ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
     display: "meta",
   });
 

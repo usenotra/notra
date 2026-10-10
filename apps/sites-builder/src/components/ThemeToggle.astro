@@ -1,23 +1,42 @@
 ---
+import { THEME_MODES } from "../constants/theme";
 import { config } from "../lib/params";
 import Icon from "./Icon.astro";
 ---
 
 {
   !config.appearance.strict && (
-    <button type="button" data-theme-toggle class="btn btn-ghost btn-icon" aria-label="Toggle dark mode">
-      <Icon name="sun" size={16} class="dark:hidden" />
-      <Icon name="moon" size={16} class="hidden dark:block" />
-    </button>
+    <div role="radiogroup" aria-label="Theme" class="theme-switch" data-theme-switch>
+      {THEME_MODES.map((mode) => (
+        <button type="button" role="radio" aria-checked="false" aria-label={mode.label} title={mode.label} data-theme-option={mode.value}>
+          <Icon name={mode.icon} size={14} />
+        </button>
+      ))}
+    </div>
   )
 }
 
 <script>
-  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")) {
-    button.addEventListener("click", () => {
-      const dark = !document.documentElement.classList.contains("dark");
-      document.documentElement.classList.toggle("dark", dark);
-      localStorage.setItem("notra-theme", dark ? "dark" : "light");
+  const root = document.documentElement;
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  const apply = (mode: string) => {
+    root.dataset.themeMode = mode;
+    root.classList.toggle("dark", mode === "dark" || (mode === "system" && media.matches));
+    for (const option of document.querySelectorAll<HTMLButtonElement>("[data-theme-option]")) {
+      option.setAttribute("aria-checked", String(option.dataset.themeOption === mode));
+    }
+  };
+  apply(root.dataset.themeMode ?? "system");
+  for (const option of document.querySelectorAll<HTMLButtonElement>("[data-theme-option]")) {
+    option.addEventListener("click", () => {
+      const mode = option.dataset.themeOption ?? "system";
+      localStorage.setItem("notra-theme", mode);
+      apply(mode);
     });
   }
+  media.addEventListener("change", () => {
+    if (root.dataset.themeMode === "system") {
+      apply("system");
+    }
+  });
 </script>

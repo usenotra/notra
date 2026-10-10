@@ -1,16 +1,16 @@
 ---
+import { listedAreas } from "../lib/entries";
 import { navbarCta, navbarLinks, navbarPrimary } from "../lib/navigation";
-import { config, href, params } from "../lib/params";
+import { config, href } from "../lib/params";
 import { logoFor } from "../lib/theme";
 import Icon from "./Icon.astro";
 import LinkIcon from "./LinkIcon.astro";
 import SiteAreas from "./SiteAreas.astro";
-import ThemeToggle from "./ThemeToggle.astro";
 
 const lightLogo = logoFor("light");
 const darkLogo = logoFor("dark");
 const logoHref = typeof config.logo === "object" && config.logo.href ? config.logo.href : href();
-const hasSections = Boolean(params.mounts.blog && params.mounts.changelog);
+const hasSections = (await listedAreas()).length > 1;
 const links = navbarLinks();
 const cta = navbarCta();
 const primary = navbarPrimary();
@@ -20,10 +20,10 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
 <header
   id="navbar"
   data-site-header
-  class="sticky top-0 z-30 border-b border-transparent bg-[color-mix(in_oklab,var(--page-background)_88%,transparent)] backdrop-blur-lg transition-[border-color] duration-200 ease-out data-scrolled:border-border"
+  class="sticky top-0 z-30 bg-[color-mix(in_oklab,var(--page-background)_88%,transparent)] backdrop-blur-lg"
 >
-  <div class="flex h-14 w-full items-center gap-3 px-5 sm:px-6">
-    <a href={logoHref} class="flex min-w-0 items-center gap-2.5 rounded-md text-[0.9375rem] font-semibold tracking-[-0.01em]">
+  <div class="site-container flex h-14 items-center gap-3">
+    <a href={logoHref} class="flex min-w-0 items-center gap-2 rounded-md text-[0.9375rem] font-semibold tracking-[-0.01em]">
       {
         lightLogo && (
           <>
@@ -64,7 +64,6 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
           </nav>
         )
       }
-      <ThemeToggle />
       {
         primary && (
           <div id="topbar-primary-button" class="ml-2 hidden md:flex">
@@ -98,7 +97,7 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
   {
     hasMenu && (
       <div id="mobile-nav" popover class="site-menu md:hidden">
-        <nav id="mobile-nav-content" aria-label="Main" class="flex flex-col px-5 py-2 sm:px-6">
+        <nav id="mobile-nav-content" aria-label="Main" class="site-container flex flex-col py-2">
           {links.map((link) => (
             <a href={link.href} class="flex h-11 items-center gap-2.5 border-b border-border text-[0.9375rem] last:border-b-0">
               <LinkIcon icon={link.icon} size={16} class="shrink-0 text-muted-foreground" />
@@ -108,7 +107,7 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
         </nav>
         {
           (cta || primary) && (
-            <div class="flex flex-col gap-2 px-5 pt-1 pb-4 sm:px-6">
+            <div class="site-container flex flex-col gap-2 pt-1 pb-4">
               {primary && (
                 <a href={primary.href} class="btn btn-secondary w-full justify-center">
                   <LinkIcon icon={primary.icon} size={14} />
@@ -127,12 +126,3 @@ const hasMenu = links.length > 0 || Boolean(cta) || Boolean(primary);
     )
   }
 </header>
-
-<script>
-  const header = document.querySelector<HTMLElement>("[data-site-header]");
-  if (header) {
-    const sync = () => header.toggleAttribute("data-scrolled", window.scrollY > 4);
-    window.addEventListener("scroll", sync, { passive: true });
-    sync();
-  }
-</script>

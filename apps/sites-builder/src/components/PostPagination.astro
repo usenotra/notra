@@ -19,15 +19,15 @@ const cards = [
       {cards.map(({ entry, label, right }) => {
         const [author] = authorsOf(entry);
         return (
-          <a href={href(entry.id)} class:list={["post-card group flex h-full flex-col gap-3 rounded-xl border p-5 transition-colors duration-150", right ? "items-end text-right" : "items-start text-left"]}>
-            <span class="flex items-center gap-1 font-mono text-xs text-muted-foreground">
+          <a href={href(entry.id)} class:list={["post-card group flex h-full flex-col gap-3 rounded-xl border p-5 transition-colors duration-150", right ? "items-start text-left sm:items-end sm:text-right" : "items-start text-left"]}>
+            <span class="flex items-center gap-1 text-[0.8125rem] text-muted-foreground">
               {!right && <Icon name="arrow-left" size={14} class="transition-transform duration-150 group-hover:-translate-x-0.5" />}
               {label}
               {right && <Icon name="arrow-right" size={14} class="transition-transform duration-150 group-hover:translate-x-0.5" />}
             </span>
             <span class="line-clamp-2 font-heading text-base leading-snug font-medium tracking-[-0.01em] transition-colors duration-150 group-hover:text-primary">{entry.data.title}</span>
             {author && (
-              <span class:list={["mt-auto flex items-center gap-2 text-sm text-muted-foreground", right && "flex-row-reverse"]}>
+              <span class:list={["mt-auto flex items-center gap-2 text-sm text-muted-foreground", right && "sm:flex-row-reverse"]}>
                 <AuthorAvatar author={author} size={20} />
                 {author.name}
               </span>

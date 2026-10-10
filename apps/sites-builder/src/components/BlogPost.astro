@@ -4,12 +4,13 @@ import { render } from "astro:content";
 import { authorsOf } from "../lib/authors";
 import { getBlogEntries } from "../lib/entries";
 import { blogOptions } from "../lib/options";
-import { assetUrl, config, href, markdownHref } from "../lib/params";
+import { areaTitle, assetUrl, config, href, markdownHref } from "../lib/params";
 import { slotPost } from "../lib/slot-data";
 import { slotComponent } from "../lib/site-files";
 import { formatDate, isoDate } from "../utils/dates";
 import { readingMinutes } from "../utils/reading-time";
 import AuthorList from "./AuthorList.astro";
+import BackLink from "./BackLink.astro";
 import CopyArticle from "./CopyArticle.astro";
 import Icon from "./Icon.astro";
 import PostPagination from "./PostPagination.astro";
@@ -29,52 +30,68 @@ const next = index > 0 ? entries[index - 1] : undefined;
 const previous = index >= 0 ? entries[index + 1] : undefined;
 const post = slotPost(entry);
 const hasSidebarSlot = Boolean(slotComponent("sidebar"));
-const wide = options.width === "wide" && (authors.length > 0 || options.toc || hasSidebarSlot);
+const wide = options.width === "wide" && (options.toc || hasSidebarSlot);
+const hasToc = options.toc && headings.filter((heading) => heading.depth === 2 || heading.depth === 3).length > 1;
 ---
 
 <article
   class:list={[
-    "mx-auto grid w-full grid-cols-1 gap-x-16 gap-y-6 pt-10 sm:pt-16 lg:pt-20 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24",
-    wide ? "max-w-(--layout-post) lg:grid-cols-[minmax(0,1fr)_16rem]" : "max-w-(--layout-reading)",
+    "mx-auto grid w-full grid-cols-1 gap-x-16 pt-0 sm:pt-2 lg:pt-4",
+    wide ? "max-w-(--layout-post) lg:grid-cols-[minmax(0,1fr)_13rem]" : "max-w-(--layout-reading)",
   ]}
 >
   <header id="header" class="min-w-0 lg:col-start-1 lg:row-start-1">
-    <a href={href()} class="group mb-6 inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
-      <Icon name="arrow-left" size={16} class="transition-transform duration-150 group-hover:-translate-x-0.5" />
-      Back to blog
-    </a>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-foreground/75">
-      <time datetime={isoDate(entry.data.date)}>Published {formatDate(entry.data.date)}</time>
+    <BackLink href={href()} label={areaTitle("blog")} />
+    <div class="post-meta mt-6 flex flex-wrap items-center gap-x-2 gap-y-1">
+      <time datetime={isoDate(entry.data.date)}>{formatDate(entry.data.date)}</time>
       {updated && <span>· Updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time></span>}
-      {options.readingTime && <span class="whitespace-nowrap">· {readingMinutes(entry.body)} min read</span>}
       {entry.data.draft && <span class="text-warning">· Draft</span>}
+    </div>
+    <h1 id="page-title" class="mt-3 font-heading text-[2.25rem] leading-[1.1] font-semibold tracking-[-0.035em] text-balance sm:text-[2.75rem]">{entry.data.title}</h1>
+    {entry.data.description && <p class="mt-4 text-lg leading-8 text-pretty text-muted-foreground">{entry.data.description}</p>}
+    {authors.length > 0 && <div class="mt-6"><AuthorList authors={authors} /></div>}
+    <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+      {options.readingTime && (
+        <span class="post-meta inline-flex items-center gap-2">
+          <Icon name="clock" size={15} />
+          {readingMinutes(entry.body)} min read
+        </span>
+      )}
       <CopyArticle markdownHref={markdownHref(href(entry.id))} pagePath={href(entry.id)} title={entry.data.title} />
     </div>
-    <h1 id="page-title" class="mt-6 mb-4 max-w-3xl font-heading text-4xl leading-[1.05] font-medium tracking-[-0.02em] text-balance sm:text-5xl">{entry.data.title}</h1>
-    {!wide && authors.length > 0 && <div class="mt-6"><AuthorList authors={authors} /></div>}
   </header>
 
   {
     wide && (
-      <aside class="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pt-12">
-        <AuthorList authors={authors} />
-        {(options.toc || hasSidebarSlot) && (
-          <div class:list={["sticky top-8 flex-col gap-8", hasSidebarSlot ? "flex" : "hidden lg:flex", authors.length > 0 && "mt-8"]}>
-            {options.toc && (
-              <div class="hidden lg:block">
-                <Toc headings={headings} />
-              </div>
-            )}
-            <SiteSlot name="sidebar" data={{ post }} />
-          </div>
-        )}
+      <aside class="min-w-0 lg:col-start-2 lg:row-start-2 lg:pt-12">
+        <div class:list={["sticky top-24 flex-col gap-8", hasSidebarSlot ? "flex" : "hidden lg:flex"]}>
+          {options.toc && (
+            <div class="hidden lg:block">
+              <Toc headings={headings} />
+            </div>
+          )}
+          <SiteSlot name="sidebar" data={{ post }} />
+        </div>
       </aside>
     )
   }
 
-  <div class="min-w-0 border-t border-border pt-6 lg:col-start-1 lg:row-start-2">
+  <div class="min-w-0 pt-10 lg:col-start-1 lg:row-start-2 lg:pt-12">
+    {
+      hasToc && (
+        <details class="group/toc mb-8 rounded-xl border border-border lg:hidden">
+          <summary class="post-meta flex cursor-pointer list-none items-center justify-between px-4 py-3 [&::-webkit-details-marker]:hidden">
+            On this page
+            <Icon name="chevron-down" size={15} class="transition-transform duration-200 ease-out group-open/toc:rotate-180" />
+          </summary>
+          <div class="border-t border-border px-4 py-3">
+            <Toc headings={headings} inline />
+          </div>
+        </details>
+      )
+    }
     <SiteSlot name="before-post" data={{ post }} class="mb-8" />
-    {image && <img src={image} alt="" class="image-outline mt-2 mb-8 aspect-[16/9] w-full rounded-2xl object-cover" loading="eager" />}
+    {image && <img src={image} alt="" class="image-outline mb-10 aspect-[1200/630] w-full rounded-2xl object-cover" loading="eager" />}
     <div class="mdx-content prose prose-notra max-w-none" data-md-root>
       <Content />
     </div>

@@ -31,6 +31,8 @@ export interface PostCardProps {
   headingLevel?: "h2" | "h3";
   variant?: "card" | "feature" | "row";
   featured?: boolean;
+  placeholder?: boolean;
+  showAuthor?: boolean;
 }
 
 export interface PostPaginationProps {

@@ -1,12 +1,14 @@
 ---
 import type { AuthorPageProps as Props } from "../../types/authors";
 import AuthorAvatar from "../../components/AuthorAvatar.astro";
+import BackLink from "../../components/BackLink.astro";
 import Icon from "../../components/Icon.astro";
 import PostCard from "../../components/PostCard.astro";
 import Base from "../../layouts/Base.astro";
 import { allAuthors, authorsOf, personNode } from "../../lib/authors";
 import { getBlogEntries } from "../../lib/entries";
-import { absoluteUrl, config, href, params } from "../../lib/params";
+import { blogOptions } from "../../lib/options";
+import { absoluteUrl, areaTitle, config, href, params } from "../../lib/params";
 import { breadcrumbs, pageTitle } from "../../lib/seo";
 
 export async function getStaticPaths() {
@@ -21,6 +23,7 @@ export async function getStaticPaths() {
 
 const { author } = Astro.props;
 const posts = (await getBlogEntries()).filter((entry) => authorsOf(entry).some((byline) => byline.id === author.id));
+const placeholder = blogOptions.card.image && posts.some((entry) => entry.data.image);
 const url = absoluteUrl(author.href ?? href());
 const description = author.bio ?? `Posts by ${author.name}.`;
 const noindex = config.seo.indexing !== "all";
@@ -31,23 +34,20 @@ const jsonLd = [
 ---
 
 <Base title={pageTitle(author.name)} description={description} jsonLd={jsonLd} noindex={noindex}>
-  <div class="mx-auto flex max-w-(--layout-index) flex-col gap-12 pt-10 sm:pt-16 lg:pt-20">
+  <div class="mx-auto flex max-w-(--layout-index) flex-col gap-12 pt-0 sm:pt-2 lg:pt-4">
     <header>
-      <a href={href()} class="group mb-8 inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
-        <Icon name="arrow-left" size={16} class="transition-transform duration-150 group-hover:-translate-x-0.5" />
-        Back to blog
-      </a>
-      <div class="flex items-center gap-5">
+      <BackLink href={href()} label={areaTitle("blog")} />
+      <div class="mt-8 flex items-center gap-5">
         <AuthorAvatar author={author} size={64} />
         <div class="min-w-0">
-          <h1 id="page-title" class="font-heading text-3xl font-medium tracking-[-0.02em] sm:text-4xl">{author.name}</h1>
+          <h1 id="page-title" class="font-heading text-3xl leading-tight font-semibold tracking-[-0.03em] sm:text-4xl">{author.name}</h1>
           {author.title && <p class="mt-1 text-muted-foreground">{author.title}</p>}
         </div>
       </div>
-      {author.bio && <p class="mt-6 max-w-2xl text-lg leading-8 text-pretty text-foreground/80">{author.bio}</p>}
+      {author.bio && <p class="mt-6 max-w-xl text-lg leading-8 text-pretty text-muted-foreground">{author.bio}</p>}
       {
         author.links.length > 0 && (
-          <ul class="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm text-muted-foreground">
+          <ul class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
             {author.links.map((link) => (
               <li>
                 <a href={link} rel="me noopener" target="_blank" class="inline-flex items-center gap-1 transition-colors duration-150 hover:text-foreground">
@@ -62,10 +62,10 @@ const jsonLd = [
     </header>
     {
       posts.length > 0 && (
-        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <ul class="grid grid-cols-1 gap-x-8 gap-y-12 border-t border-border pt-12 max-sm:gap-y-0 max-sm:divide-y max-sm:divide-border max-sm:pt-2 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((entry) => (
-            <li class="h-full">
-              <PostCard entry={entry} />
+            <li class="h-full max-sm:py-6">
+              <PostCard entry={entry} placeholder={placeholder} showAuthor={false} />
             </li>
           ))}
         </ul>

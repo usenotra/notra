@@ -1,8 +1,9 @@
 ---
-import { AREA_DEFAULT_TITLES, THEME_AREAS } from "../constants/areas";
+import { AREA_DEFAULT_TITLES } from "../constants/areas";
+import { listedAreas } from "../lib/entries";
 import { areaHref, params } from "../lib/params";
 
-const sections = THEME_AREAS.map((area) => ({ area, label: AREA_DEFAULT_TITLES[area], href: areaHref(area), active: area === params.area }))
+const sections = (await listedAreas()).map((area) => ({ area, label: AREA_DEFAULT_TITLES[area], href: areaHref(area), active: area === params.area }))
   .filter((section) => section.href !== null);
 ---
 

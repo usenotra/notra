@@ -21,3 +21,8 @@ export interface FooterColumn {
   header?: string;
   items: ResolvedLink[];
 }
+
+export interface BackLinkProps {
+  href: string;
+  label: string;
+}

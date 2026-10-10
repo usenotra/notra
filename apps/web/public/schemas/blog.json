@@ -751,15 +751,7 @@
     },
     "contextual": {
       "default": {
-        "options": [
-          "copy",
-          "view",
-          "chatgpt",
-          "claude",
-          "t3chat",
-          "perplexity",
-          "grok"
-        ],
+        "options": ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
         "display": "meta"
       },
       "type": "object",
@@ -770,7 +762,6 @@
             "view",
             "chatgpt",
             "claude",
-            "t3chat",
             "perplexity",
             "grok"
           ],

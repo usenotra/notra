@@ -1,0 +1,11 @@
+---
+import type { BackLinkProps as Props } from "../types/navigation";
+import Icon from "./Icon.astro";
+
+const { href, label } = Astro.props;
+---
+
+<a href={href} class="group -ml-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
+  <Icon name="arrow-left" size={15} class="transition-transform duration-150 ease-out group-hover:-translate-x-0.5" />
+  {label}
+</a>

@@ -33,7 +33,7 @@ import { unnestLinks } from "./utils/nested-links";
 import { rewritePublicAssetUrls } from "./utils/public-assets";
 import { hasReactComponents } from "./utils/react";
 
-function astroBin(toolchainRoot: string): string {
+export function astroBin(toolchainRoot: string): string {
   const require = createRequire(join(toolchainRoot, "package.json"));
   const packageJsonPath = require.resolve("astro/package.json");
   const packageJson = require(packageJsonPath) as AstroPackageJson;

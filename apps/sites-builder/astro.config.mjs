@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import mdx from "@astrojs/mdx";
 import tailwindcss from "@tailwindcss/vite";
@@ -30,6 +31,7 @@ const shikiThemes = shikiThemesFor(codeblocks);
 
 export default defineConfig({
   site: params.publicOrigin,
+  srcDir: fileURLToPath(new URL("src", import.meta.url)),
   base: params.mount,
   outDir: resolve(workDir, "out", params.area),
   publicDir: resolve(siteDir, "public"),
@@ -79,7 +81,9 @@ export default defineConfig({
         "@notra/custom-css": resolve(workDir, "custom.css"),
       },
     },
-    server: { fs: { allow: [workDir, resolve(".")] } },
+    server: {
+      fs: { allow: [workDir, resolve("."), resolve("../../node_modules")] },
+    },
     logLevel: "warn",
   },
 });

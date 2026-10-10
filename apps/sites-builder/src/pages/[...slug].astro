@@ -2,7 +2,7 @@
 import type { EntryPageProps as Props } from "../types/entries";
 import BlogPost from "../components/BlogPost.astro";
 import ChangelogEntry from "../components/ChangelogEntry.astro";
-import Icon from "../components/Icon.astro";
+import BackLink from "../components/BackLink.astro";
 import SiteSlot from "../components/SiteSlot.astro";
 import Base from "../layouts/Base.astro";
 import { authorsOf, personNode } from "../lib/authors";
@@ -74,15 +74,12 @@ const jsonLd = [
   {props.kind === "blog" && <BlogPost entry={props.entry} />}
   {
     props.kind === "changelog" && (
-      <div class="mx-auto max-w-(--layout-reading) pt-10 sm:pt-16 lg:pt-20">
-        <a href={href()} class="group inline-flex items-center gap-2 font-mono text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground">
-          <Icon name="arrow-left" size={16} class="transition-transform duration-150 group-hover:-translate-x-0.5" />
-          Back to {areaTitle("changelog").toLowerCase()}
-        </a>
+      <div class="mx-auto max-w-(--layout-reading) pt-0 sm:pt-2 lg:pt-4">
+        <BackLink href={href()} label={areaTitle("changelog")} />
         <div class="mt-8">
           <ChangelogEntry entry={props.entry} standalone />
         </div>
-        <SiteSlot name="after-changelog-entry" data={{ entry: slotChangelogEntry(props.entry) }} class="mt-8 sm:pl-[10rem]" />
+        <SiteSlot name="after-changelog-entry" data={{ entry: slotChangelogEntry(props.entry) }} class="mt-8" />
       </div>
     )
   }
