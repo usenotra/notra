@@ -78,6 +78,7 @@ export interface GenerateGeoContentBriefOptions {
   organizationId: string;
   input: GeoPlannerPromptInput;
   log?: AILogTarget;
+  telemetryMetadata?: TccMetadata;
 }
 
 export interface GenerateGeoContentBriefResult {

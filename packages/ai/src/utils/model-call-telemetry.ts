@@ -1,13 +1,22 @@
 import type { LanguageModelV4CallOptions } from "@ai-sdk/provider";
 import { ROUTER_METADATA_KEY } from "@notra/ai/constants/router";
 import { log } from "@notra/ai/evlog";
+import { createVercelAdapter } from "@notra/ai/router/adapters/vercel";
 import type {
   ModelCallTelemetry,
   ModelCallTelemetryOptions,
 } from "@notra/ai/types/model-call-telemetry";
-import type { ResolvedRoute, RouterLogFields } from "@notra/ai/types/router";
+import type {
+  ResolvedRoute,
+  RouterLogFields,
+  VercelAdapterConfig,
+} from "@notra/ai/types/router";
+import { getEvlogRuntime } from "@notra/ai/utils/evlog-runtime";
 import { getOperationalContext } from "@notra/ai/utils/operational-context";
-import { recordRequestAIUsage } from "@notra/ai/utils/request-ai-usage";
+import {
+  recordRequestAICost,
+  recordRequestAIUsage,
+} from "@notra/ai/utils/request-ai-usage";
 import { getUsageAttribution } from "@notra/ai/utils/usage-attribution";
 
 /** One lifecycle per SDK model invocation, including any router fallback. */
@@ -17,6 +26,7 @@ export function createModelCallTelemetry({
   operation,
   signal,
   providerOptions,
+  lookupRouteMetadata,
 }: ModelCallTelemetryOptions): ModelCallTelemetry {
   const callId = crypto.randomUUID();
   const attribution = getUsageAttribution(providerOptions);
@@ -54,7 +64,7 @@ export function createModelCallTelemetry({
         requestedModel: request.modelId,
         model: route?.decision.modelId ?? request.modelId,
         gateway: route?.decision.gateway ?? request.gateway,
-        attemptCount: attemptCount || 1,
+        attemptCount,
         fallbackFrom: route?.decision.fallbackFrom,
         fallbackReason: route?.decision.fallbackReason,
         zdrEnforced: route?.decision.zdrEnforced,
@@ -94,6 +104,29 @@ export function createModelCallTelemetry({
     finish("warn", "ai.call.aborted");
   }
 
+  async function enrichCost(generationId: string) {
+    try {
+      const enriched = await lookupRouteMetadata?.(generationId);
+      if (!enriched) {
+        return;
+      }
+      if (enriched.costUsd !== undefined) {
+        recordRequestAICost(generationId, enriched.costUsd);
+      }
+      emit("info", "ai.call.cost_enriched", {
+        ...enriched,
+        generationId,
+        costSource: enriched.costSource ?? "unknown",
+      });
+    } catch (error) {
+      emit("warn", "ai.call.cost_lookup_failed", {
+        generationId,
+        costSource: "unknown",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   emit("info", "ai.call.started");
   signal?.addEventListener("abort", abort, { once: true });
   if (signal?.aborted) {
@@ -102,7 +135,9 @@ export function createModelCallTelemetry({
 
   return {
     attempt(nextRoute) {
-      route = nextRoute;
+      if (nextRoute) {
+        route = nextRoute;
+      }
       attemptCount += 1;
     },
     firstChunk() {
@@ -181,6 +216,21 @@ export function createModelCallTelemetry({
             : {}),
         }
       );
+      // Do not hold a successful answer/stream finish past its SDK deadline.
+      // Request teardown waits for the bounded lookup through flushLogs().
+      if (
+        lookupRouteMetadata &&
+        typeof generationId === "string" &&
+        generationId.length > 0 &&
+        routeMetadata?.costSource !== "reported"
+      ) {
+        const runtime = getEvlogRuntime();
+        runtime.pendingAIUsage ??= new Set();
+        const pending = runtime.pendingAIUsage;
+        const enrichment = enrichCost(generationId);
+        pending.add(enrichment);
+        void enrichment.finally(() => pending.delete(enrichment));
+      }
     },
     fail(error) {
       if (
@@ -218,7 +268,10 @@ export function createModelCallTelemetry({
 export function createGatewayCallTelemetry(
   modelId: string,
   params: Pick<LanguageModelV4CallOptions, "providerOptions" | "abortSignal">,
-  operation: "generate" | "stream" | "evaluate"
+  operation: "generate" | "stream" | "evaluate",
+  gatewayConfig: VercelAdapterConfig = {
+    apiKey: process.env.AI_GATEWAY_API_KEY,
+  }
 ) {
   return createModelCallTelemetry({
     logger: {
@@ -230,5 +283,6 @@ export function createGatewayCallTelemetry(
     providerOptions: params.providerOptions,
     signal: params.abortSignal,
     operation,
+    lookupRouteMetadata: createVercelAdapter(gatewayConfig).lookupRouteMetadata,
   });
 }

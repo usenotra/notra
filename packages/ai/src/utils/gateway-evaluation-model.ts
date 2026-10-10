@@ -1,11 +1,13 @@
 import type { Experimental_EvaluationModelV4 } from "@ai-sdk/provider";
 import type { OperationalContext } from "@notra/ai/types/operational-log";
+import type { VercelAdapterConfig } from "@notra/ai/types/router";
 import { createGatewayCallTelemetry } from "@notra/ai/utils/model-call-telemetry";
 import { withUsageAttribution } from "@notra/ai/utils/usage-attribution";
 
 export function withGatewayEvaluationTelemetry(
   model: Experimental_EvaluationModelV4,
-  context: Partial<OperationalContext> = {}
+  context: Partial<OperationalContext> = {},
+  gatewayConfig?: VercelAdapterConfig
 ): Experimental_EvaluationModelV4 {
   return {
     specificationVersion: model.specificationVersion,
@@ -20,9 +22,11 @@ export function withGatewayEvaluationTelemetry(
       const telemetry = createGatewayCallTelemetry(
         model.modelId,
         params,
-        "evaluate"
+        "evaluate",
+        gatewayConfig
       );
       try {
+        telemetry.attempt();
         const result = await model.doEvaluate(params);
         telemetry.complete({
           usage: {

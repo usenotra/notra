@@ -91,7 +91,8 @@ export function createEvaluationClient(
           ...(params.organizationId
             ? { organizationId: params.organizationId }
             : {}),
-        }
+        },
+        { ...config, apiKey }
       ),
       state: params.state,
       questions: params.questions,

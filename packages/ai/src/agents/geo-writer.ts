@@ -202,8 +202,10 @@ function describePlannerFailure(error: unknown): PlannerFailure {
 export async function generateGeoContentBrief(
   options: GenerateGeoContentBriefOptions
 ): Promise<GenerateGeoContentBriefResult> {
-  return await withUsageContext(options.organizationId, undefined, () =>
-    generateGeoContentBriefWithContext(options)
+  return await withUsageContext(
+    options.organizationId,
+    options.telemetryMetadata,
+    () => generateGeoContentBriefWithContext(options)
   );
 }
 

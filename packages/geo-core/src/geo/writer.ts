@@ -760,6 +760,10 @@ export const planGeoContentBrief = Effect.fn("geo.writer.plan")(function* (
     try: () =>
       generateGeoContentBrief({
         organizationId: scope.organizationId,
+        telemetryMetadata: {
+          runId: planningRunId,
+          projectId: scope.projectId,
+        },
         input: {
           topic,
           contentSubtype: input.contentSubtype,

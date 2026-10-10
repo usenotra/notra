@@ -42,8 +42,12 @@ export function withGatewayAgentOptions(
           "generate"
         );
         try {
+          telemetry.attempt();
           const result = await doGenerate();
-          telemetry.complete({ ...result, responseId: result.response?.id });
+          telemetry.complete({
+            ...result,
+            responseId: result.response?.id,
+          });
           return result;
         } catch (error) {
           telemetry.fail(error);
@@ -57,6 +61,7 @@ export function withGatewayAgentOptions(
           "stream"
         );
         try {
+          telemetry.attempt();
           const result = await doStream();
           return {
             ...result,

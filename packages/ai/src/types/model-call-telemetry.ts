@@ -5,6 +5,7 @@ import type {
   SharedV4ProviderOptions,
 } from "@ai-sdk/provider";
 import type {
+  GatewayAdapter,
   ResolvedRoute,
   RouteRequest,
   RouterLogger,
@@ -16,6 +17,7 @@ export interface ModelCallTelemetryOptions {
   operation: "generate" | "stream" | "evaluate";
   signal?: AbortSignal;
   providerOptions?: SharedV4ProviderOptions;
+  lookupRouteMetadata?: GatewayAdapter["lookupRouteMetadata"];
 }
 
 export interface ModelCallCompletion {
@@ -26,7 +28,7 @@ export interface ModelCallCompletion {
 }
 
 export interface ModelCallTelemetry {
-  attempt(route: ResolvedRoute): void;
+  attempt(route?: ResolvedRoute): void;
   firstChunk(): void;
   complete(result: ModelCallCompletion): void;
   fail(error: unknown): void;
