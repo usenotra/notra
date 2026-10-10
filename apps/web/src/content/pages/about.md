@@ -1,14 +1,16 @@
 # About Notra
 
-The AI content platform that turns shipped work into changelogs, launch posts and marketing assets in your team's own voice.
+Notra is a GEO tool that shows how ChatGPT, Claude, Gemini and Perplexity answer the questions your buyers ask and whether your brand is in those answers.
 
-Notra is an AI content-generation platform for product and engineering teams. It turns shipped work into changelogs, launch posts, blog drafts, marketing assets and social updates that match a team's own voice. The product is built for teams that already ship quickly but lose time collecting context, asking engineers what changed and rewriting rough notes into publishable updates.
+When someone asks an AI assistant which tool to buy, the answer names a few brands and links to a few pages. Notra sends the questions your buyers ask to each engine on a schedule, keeps every answer and records whether you were mentioned, in which position and which competitors the engine named instead.
 
-Notra connects to the systems where product work happens, including GitHub today and additional workflow tools over time. It uses those signals to assemble a timeline of changes, draft content from the facts and preserve brand voice through reusable references and writing skills. Teams can review every draft before publishing.
+Notra also tracks the AI agents that visit your website, so you can tell a training crawler apart from an assistant that read your page while answering someone and from a person who clicked through from an AI answer. Where engines answer without mentioning you, Notra ranks the gap by how winnable it looks and drafts a guide, listicle or comparison in your brand voice that you review before it goes live.
+
+Notra started as a tool that turned shipped work into changelogs and launch posts. That writer still runs inside the product, and it uses the same brand identity when it drafts articles for the gaps you want to close.
 
 ## Built for agents, too
 
-Agents can discover Notra through llms.txt, agent.json, the public OpenAPI schema and MCP documentation.
+AI agents can find Notra through llms.txt, agent.json, the public OpenAPI schema and the MCP server. The agent page lists every endpoint and discovery file.
 
 - [llms.txt](https://www.usenotra.com/llms.txt)
 - [agent.json](https://www.usenotra.com/.well-known/agent.json)

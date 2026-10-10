@@ -8,9 +8,9 @@ import { pageAlternates } from "@/utils/metadata";
 import { SITE_URL } from "@/utils/urls";
 
 const metadata: Metadata = {
-  title: "Notra Agent Interface",
+  title: "Notra agent interface",
   description:
-    "Explore Notra's generative engine optimization (GEO) tools for AI visibility, competitor share of voice and content gaps through the API and MCP.",
+    "Endpoints, discovery files and auth details for agents that use Notra to track AI visibility, competitor share of voice and content gaps.",
   alternates: pageAlternates(`${SITE_URL}/agent`),
 };
 
@@ -25,10 +25,10 @@ function AgentPage() {
   return (
     <main className="flex w-full flex-col items-center gap-8 pb-28 antialiased [font-synthesis:none]">
       <MarketingHeroWash
-        subtitle="Notra helps you track and improve your visibility in AI answers. Monitor brand mentions across ChatGPT, Claude, Gemini and Perplexity, compare your share of voice with competitors and turn content gaps into articles in your brand voice."
+        subtitle="Notra is a GEO tool that tracks how ChatGPT, Claude, Gemini and Perplexity answer the questions your buyers ask. Agents can read and manage projects, prompts, scans and posts through the API and the MCP server listed below."
         title={
           <>
-            Notra <span className="text-primary">Agent</span> Interface
+            Notra <span className="text-primary">agent</span> interface
           </>
         }
       />
@@ -49,10 +49,10 @@ function AgentPage() {
           </h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[#1E1E1E99] dark:text-white/60">
             <li>Agent JSON: {siteUrl("/.well-known/agent.json")}</li>
-            <li>Agent Card: {siteUrl("/.well-known/agent-card.json")}</li>
-            <li>API Catalog: {siteUrl("/.well-known/api-catalog")}</li>
+            <li>Agent card: {siteUrl("/.well-known/agent-card.json")}</li>
+            <li>API catalog: {siteUrl("/.well-known/api-catalog")}</li>
             <li>
-              Integration Surfaces: {siteUrl("/.well-known/integrations.json")}
+              Integrations manifest: {siteUrl("/.well-known/integrations.json")}
             </li>
             <li>Auth guide: {agent.api.auth}</li>
           </ul>
