@@ -161,7 +161,22 @@ export interface SiteSettingsPatch {
   publishMode?: SitePublishMode;
   previewCommentsEnabled?: boolean;
   smartDeployments?: boolean;
+  showBranding?: boolean;
+  analyticsEnabled?: boolean;
 }
+
+export type SiteSettingsRowKey =
+  | "repository"
+  | "branch"
+  | "rootDirectory"
+  | "sections"
+  | "variables"
+  | "previewAccess";
+
+export type SiteSettingsToggleField =
+  | "previewCommentsEnabled"
+  | "smartDeployments"
+  | "showBranding";
 
 export type SiteDomainRecord = SiteDomain["records"][number];
 export type SiteDomainConnectOutcome =

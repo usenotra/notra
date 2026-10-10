@@ -21,10 +21,12 @@ function DangerZoneRow({
   action,
 }: SiteSettingsDangerZoneRowProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-1 last:pb-1">
+    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-5">
       <div className="min-w-0 space-y-0.5">
         <p className="text-sm font-medium">{title}</p>
-        <p className="text-muted-foreground text-xs">{description}</p>
+        <p className="text-muted-foreground text-sm text-pretty">
+          {description}
+        </p>
       </div>
       {action}
     </div>
@@ -38,13 +40,10 @@ export function SiteSettingsDangerZone({
   site,
 }: SiteSettingsDangerZoneProps) {
   const t = useTranslations("sites.settings");
-  const tPage = useTranslations("sites.settingsPage");
   const invalidateSites = useInvalidateSites();
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const suspended = site.status === "suspended";
-  const analyticsOn = site.analyticsEnabled;
 
   const suspendMutation = useMutation({
     mutationFn: (next: boolean) =>
@@ -63,79 +62,16 @@ export function SiteSettingsDangerZone({
     },
   });
 
-  const brandingMutation = useMutation({
-    mutationFn: (showBranding: boolean) =>
-      dashboardOrpc.sites.update.call({ organizationId, siteId, showBranding }),
-    onSuccess: async () => {
-      toast.success(t("savedRebuilding"));
-      await invalidateSites();
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, t("saveFailed")));
-    },
-  });
-
-  const analyticsMutation = useMutation({
-    mutationFn: (analyticsEnabled: boolean) =>
-      dashboardOrpc.sites.update.call({
-        organizationId,
-        siteId,
-        analyticsEnabled,
-      }),
-    onSuccess: async (_result, next) => {
-      toast.success(next ? t("analytics.enabled") : t("analytics.done"));
-      setAnalyticsOpen(false);
-      await invalidateSites();
-    },
-    onError: (error) => {
-      toast.error(toErrorMessage(error, t("analytics.failed")));
-    },
-  });
-
   return (
     <>
       <TitleCard
         as="section"
         className="border-destructive/50 bg-destructive/5"
+        contentClassName="p-0"
         heading={t("dangerZone")}
         headingAs="h2"
       >
         <div className="divide-border divide-y">
-          <DangerZoneRow
-            action={
-              <Button
-                loading={brandingMutation.isPending}
-                onClick={() => brandingMutation.mutate(!site.showBranding)}
-                type="button"
-                variant="outline"
-              >
-                {site.showBranding
-                  ? tPage("brandingRemove")
-                  : tPage("brandingShow")}
-              </Button>
-            }
-            description={tPage("brandingHint")}
-            title={tPage("brandingLabel")}
-          />
-          <DangerZoneRow
-            action={
-              <Button
-                onClick={() => setAnalyticsOpen(true)}
-                type="button"
-                variant="outline"
-              >
-                {analyticsOn ? t("analytics.action") : t("analytics.enable")}
-              </Button>
-            }
-            description={
-              analyticsOn
-                ? t("analytics.description")
-                : t("analytics.enableDescription")
-            }
-            title={
-              analyticsOn ? t("analytics.title") : t("analytics.enableTitle")
-            }
-          />
           <DangerZoneRow
             action={
               suspended ? (
@@ -151,7 +87,7 @@ export function SiteSettingsDangerZone({
                 <Button
                   onClick={() => setOfflineOpen(true)}
                   type="button"
-                  variant="outline"
+                  variant="destructive"
                 >
                   {t("offline.action")}
                 </Button>
@@ -189,26 +125,6 @@ export function SiteSettingsDangerZone({
         open={offlineOpen}
         pending={suspendMutation.isPending}
         title={t("offline.confirmTitle")}
-      />
-      <ConfirmDialog
-        confirmLabel={
-          analyticsOn ? t("analytics.action") : t("analytics.enable")
-        }
-        description={
-          analyticsOn
-            ? t("analytics.confirmDescription")
-            : t("analytics.enableConfirmDescription")
-        }
-        variant={analyticsOn ? "destructive" : "default"}
-        onConfirm={() => analyticsMutation.mutate(!analyticsOn)}
-        onOpenChange={setAnalyticsOpen}
-        open={analyticsOpen}
-        pending={analyticsMutation.isPending}
-        title={
-          analyticsOn
-            ? t("analytics.confirmTitle")
-            : t("analytics.enableConfirmTitle")
-        }
       />
       <SiteDeleteDialog
         onOpenChange={setDeleteOpen}

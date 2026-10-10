@@ -24,7 +24,7 @@ import {
   sitePreviewAccessPlan,
 } from "@/utils/site-preview-access";
 
-function PreviewAccessForm({ onDone }: SitePreviewAccessFormProps) {
+export function SitePreviewAccessForm({ onDone }: SitePreviewAccessFormProps) {
   const t = useTranslations("sites.previewAccess");
   const tCommon = useTranslations("common");
   const id = useId();
@@ -144,7 +144,7 @@ export function SitePreviewAccessControl() {
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 max-w-[calc(100vw-2rem)]">
         <PopoverTitle>{t("title")}</PopoverTitle>
-        {open ? <PreviewAccessForm onDone={() => setOpen(false)} /> : null}
+        {open ? <SitePreviewAccessForm onDone={() => setOpen(false)} /> : null}
       </PopoverContent>
     </Popover>
   );
