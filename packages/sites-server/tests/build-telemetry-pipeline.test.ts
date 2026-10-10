@@ -228,9 +228,9 @@ if (process.env.NOTRA_BUILD_TELEMETRY_PIPELINE_WORKER !== "1") {
           yield* params.onComplete(build);
         }
         if (mode === "interrupted") {
-          yield* Effect.gen(function* () {
+          return yield* Effect.gen(function* () {
             yield* Deferred.succeed(sandboxStarted, undefined);
-            yield* Effect.never;
+            return yield* Effect.never;
           }).pipe(
             Effect.ensuring(
               Effect.sync(() => {

@@ -11,6 +11,24 @@
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
     "noUncheckedIndexedAccess": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "includeSuggestionsInTsc": false,
+        "ignoreEffectWarningsInTscExitCode": true,
+        "diagnosticSeverity": {
+          "floatingEffect": "error",
+          "missingStarInYieldEffectGen": "error",
+          "outdatedApi": "error",
+          "overriddenSchemaConstructor": "warning",
+          "returnEffectInGen": "warning",
+          "effectInVoidSuccess": "warning",
+          "promiseInEffectSuccess": "warning",
+          "unsafeEffectTypeAssertion": "warning",
+          "layerMergeAllWithDependencies": "warning"
+        }
+      }
+    ],
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
