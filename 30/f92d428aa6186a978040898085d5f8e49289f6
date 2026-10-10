@@ -1,0 +1,25 @@
+apps/dashboard/src/lib/orpc/routers/sites.ts
+  s_f2bb33e6caefa6::t_9d6c20bde392df 247
+apps/dashboard/src/utils/site-deployments.ts
+  s_f2bb33e6caefa6::t_fbd0a71ab813d0 41-42,49,65
+apps/dashboard/src/components/sites/sites-table.tsx
+  ai_agent 92-95
+packages/sites-server/src/deployments.ts
+  s_f2bb33e6caefa6::t_9d6c20bde392df 428-429,434-441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "30f92d428aa6186a978040898085d5f8e49289f6",
+  "prompts": {},
+  "sessions": {
+    "s_f2bb33e6caefa6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c9eb1cdf-b8d7-47c4-8b86-0ed2f22ff483",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jan Burzinski <156842394+janburzinski@users.noreply.github.com>"
+    }
+  }
+}
